@@ -2,12 +2,15 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.Instance
 
-trait Metric
+trait Metric extends Operator
 {
-    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Double
+    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double]
 }
 
-class StringEqualityMetric(params : Traversable[Param]) extends Metric
+object Metric
 {
-
+    def apply(aggType : String, weight : Int, optional : Boolean, params : Map[String, AnyParam]) : Metric =
+    {
+        throw new IllegalArgumentException("Metric type unknown: " + aggType)
+    }
 }

@@ -1,12 +1,15 @@
 package de.fuberlin.wiwiss.silk
 
-import datasource.{SparqlBuilder, PathParser}
-import util.parsing.input.CharSequenceReader
+import java.io.File
+import linkspec.ConfigLoader
 
 object Main
 {
     def main(args : Array[String])
     {
+        val configFile = new File("C:/Users/Anja/silk/linkedmdb.xml");
+        ConfigLoader.load(configFile)
+        /*
         val input = new CharSequenceReader("""?artist/dbpedia:director[rdf:type = dbpedia:Album]/rdfs:label[@lang = 'en']""")
         val parser = new PathParser()
 
@@ -18,5 +21,6 @@ object Main
         {
             println("SPARQL: " + SparqlBuilder.build(parseResult.get))
         }
+        */
     }
 }

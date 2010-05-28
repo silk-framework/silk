@@ -4,5 +4,5 @@ import de.fuberlin.wiwiss.silk.Instance
 
 trait AnyParam
 {
-    def evaluate(sourceInstance : Instance, targetInstance : Instance) : String
+    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Traversable[String]
 }
