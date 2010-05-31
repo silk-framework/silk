@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Silk>
+  <Prefixes>
+	  <Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />
+	  <Prefix id="rdfs" namespace="http://www.w3.org/2000/01/rdf-schema#" />
+	  <Prefix id="foaf" namespace="http://xmlns.com/foaf/0.1/" />
+	  <Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#" />
+	  <Prefix id="dbpedia-owl" namespace="http://dbpedia.org/ontology/" />
+	  <Prefix id="dc" namespace="http://purl.org/dc/terms/" />
+	  <Prefix id="movie" namespace="http://data.linkedmdb.org/resource/movie/" />
+  </Prefixes>
+
+  <DataSources>
+    
+	  <DataSource id="dbpedia" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://sesame_server:8890/sparql" />
+      <Param name="graph" value="http://dbpedia.org" />
+    </DataSource>
+
+	  <DataSource id="linkedmdb" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://sesame_server:8890/sparql" />
+      <Param name="graph" value="http://data.linkedmdb.org" />
+	  </DataSource>
+
+  </DataSources>
+
+  <Interlinks>
+	<Interlink id="movies">
+		<LinkType>owl:sameAs</LinkType>
+
+		<SourceDataset dataSource="dbpedia" var="a">
+			<RestrictTo>
+				?a rdf:type dbpedia-owl:Film
+			</RestrictTo>
+		</SourceDataset>
+
+		<TargetDataset dataSource="linkedmdb" var="b">
+			<RestrictTo>
+				?b rdf:type movie:film
+			</RestrictTo>
+		</TargetDataset>
+
+    <LinkCondition>
+      <Aggregate type="average">
+        <Aggregate type="max">
+          <Compare metric="jaroSimilarity">
+            <PathParam name="str1" path="?a/rdfs:label[@lang = 'en']" />
+            <PathParam name="str2" path="?b/rdfs:label" />
+          </Compare>
+          <Compare metric="jaroSimilarity" >
+            <PathParam name="str1" path="?a/rdfs:label[@lang = 'en']" />
+            <PathParam name="str2" path="?b/dc:title" />
+          </Compare>
+          <Compare metric="jaroSimilarity" >
+            <PathParam name="str1" path="?a/foaf:name" />
+            <PathParam name="str2" path="?b/dc:title" />
+          </Compare>
+        </Aggregate>
+        <Aggregate type="max" >
+          <Compare metric="jaroSimilarity" >
+            <PathParam name="str1" path="?a/dbpedia-owl:director/foaf:name" />
+            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          </Compare>
+          <Compare metric="jaroSimilarity" >
+            <PathParam name="str1" path="?a/dbpedia-owl:director/rdfs:label" />
+            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          </Compare>
+          <Compare metric="jaroSimilarity" >
+            <PathParam name="str1" path="?a/dbpedia-owl:director" />
+            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          </Compare>
+          <Compare metric="jaroSimilarity" >
+            <TransformParam name="str1" function="regexReplace">
+              <TransformParam name="string" function="stripURIPrefix">
+                <PathParam name="string" path="?a/dbpedia-owl:director" />
+              </TransformParam>
+              <Param name="regex" value="_" />
+              <Param name="replace" value=" " />
+            </TransformParam>
+            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          </Compare>
+        </Aggregate>
+        <Aggregate type="max" >
+          <Compare metric="dateSimilarity" >
+            <PathParam name="date1" path="?a/dbpedia-owl:releaseDate" />
+            <PathParam name="date2" path="?b/dc:date" />
+            <Param name="max_diff" value="20" />
+          </Compare>
+          <Compare metric="dateSimilarity" >
+            <PathParam name="date1" path="?a/dbpedia-owl:releaseDate" />
+            <PathParam name="date2" path="?b/movie:initial_release_date" />
+            <Param name="max_diff" value="20" />
+          </Compare>
+        </Aggregate>
+        <Compare metric="numSimilarity" >
+          <PathParam name="num1" path="?a/dbpedia-owl:runtime" />
+          <PathParam name="num2" path="?b/movie:runtime" />
+        </Compare>
+      </Aggregate>
+    </LinkCondition>
+
+		<Thresholds accept="0.9" verify="0.7" />
+		<Limit max="1" method="metric_value" />
+
+    <Outputs>
+      <Output type="">
+        <Param name="acceptedLinks" value="lmdb_accepted_links.n3"/>
+        <Param name="verifyLinks" value="lmdb_verify_links.n3"/>
+        <Param name="format" value="n3_debug"/>
+        <Param name="mode" value="truncate"/>
+      </Output>
+    </Outputs>
+
+	</Interlink>
+  </Interlinks>
+</Silk>
