@@ -1,6 +1,9 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-class LinkSpecification(linkType : String, sourceDatasetSpecification : DatasetSpecification, targetDatasetSpecification : DatasetSpecification, linkConditions : Aggregation, acceptThreshold : Double , verifyThreshold : Double, linkLimit : LinkLimit, outputs : Traversable[Output])
+class LinkSpecification(val linkType : String, val sourceDatasetSpecification : DatasetSpecification,
+                        val targetDatasetSpecification : DatasetSpecification, val linkConditions : Aggregation,
+                        val acceptThreshold : Double , val verifyThreshold : Double, val linkLimit : LinkLimit,
+                        val outputs : Traversable[Output])
 {
     
 }

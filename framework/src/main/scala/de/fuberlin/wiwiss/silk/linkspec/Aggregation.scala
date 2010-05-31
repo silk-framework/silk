@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.Instance
 
 trait Aggregation extends Operator
 {
-    
+    val operators : Traversable[Operator]
 }
 
 object Aggregation

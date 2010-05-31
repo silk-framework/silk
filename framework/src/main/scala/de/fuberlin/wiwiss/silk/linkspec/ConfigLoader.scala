@@ -84,15 +84,14 @@ object ConfigLoader
     {
         nodes.collect
         {
-            case node @ <Aggregate>{_}</Aggregate> => loadAggregation(node)
-            case node @ <Compare>{_}</Compare> => loadCompare(node)
+            case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node)
+            case node @ <Compare>{_*}</Compare> => loadCompare(node)
         }
     }
 
     private def loadAggregation(node : Node) : Aggregation =
     {
         val weightStr = node \ "@weight" text
-        val optionalStr = node \ "@optional" text
 
         Aggregation(
             node \ "@type" text,
@@ -104,22 +103,20 @@ object ConfigLoader
     private def loadCompare(node : Node) : Metric =
     {
         val weightStr = node \ "@weight" text
-        val optionalStr = node \ "@optional" text
 
         Metric(
-            node \ "@type" text,
+            node \ "@metric" text,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            if(optionalStr.isEmpty) false else optionalStr.toBoolean,
-            loadAnyParams(node)
+            loadAnyParams(node.child)
             )
     }
 
-    private def loadAnyParams(node : Node) : Map[String, AnyParam] =
+    private def loadAnyParams(nodes : Seq[Node]) : Map[String, AnyParam] =
     {
-        node.map {
+        nodes.collect {
             case p @ <Param/> => (p \ "@name" text, new Param(p \ "@value" text))
             case p @ <PathParam/> =>  (p \ "@name" text, new PathParam(p \ "@path" text))
-            case p @ <TransformParam>{_}</TransformParam> => (p \ "@name" text, TransformParam(p \ "@function" text, loadAnyParams(p)))
+            case p @ <TransformParam>{_*}</TransformParam> => (p \ "@name" text, TransformParam(p \ "@function" text, loadAnyParams(p)))
         } toMap
     }
 
