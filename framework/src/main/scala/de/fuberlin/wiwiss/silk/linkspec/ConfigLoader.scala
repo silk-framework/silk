@@ -9,16 +9,16 @@ import xml.{NodeSeq, Node, Elem, XML}
 
 object ConfigLoader
 {
-    def load(file : File) =
+    def load(file : File) : Configuration =
     {
         validateXML(file)
-        
         val xml = XML.loadFile(file)
+
         val prefixes = loadPrefixes(xml)
         val dataSources = loadDataSources(xml)
         val linkSpecifications = loadLinkSpecifications(xml, dataSources)
 
-        println(linkSpecifications)
+        new Configuration(prefixes, dataSources, linkSpecifications)
     }
 
     private def validateXML(file : File) : Unit =
