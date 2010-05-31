@@ -75,8 +75,8 @@ object ConfigLoader
         
         new DatasetSpecification(
             dataSources.get(datasourceName).getOrElse(throw new ValidationException("Datasource " + datasourceName + "not defined.")),
-            node \ "@variable" text,
-            node \ "RestrictTo" text
+            node \ "@var" text,
+            (node \ "RestrictTo").text.trim 
             )
     }
 

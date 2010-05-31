@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import aggegration.{MinimumAggregation, MaximumAggregation, AverageAggregation}
-import de.fuberlin.wiwiss.silk.Instance
 
 trait Aggregation extends Operator
 {
