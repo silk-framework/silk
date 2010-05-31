@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import aggegration.AverageAggregation
+import aggegration.{MinimumAggregation, MaximumAggregation, AverageAggregation}
 import de.fuberlin.wiwiss.silk.Instance
 
 trait Aggregation extends Operator
@@ -15,8 +15,9 @@ object Aggregation
         aggType match
         {
             case "average" => new AverageAggregation(weight, operators)
-            case _ =>  new AverageAggregation(weight, operators)
+            case "max" => new MaximumAggregation(weight, operators)
+            case "min" => new MinimumAggregation(weight, operators)
+            case _ => throw new IllegalArgumentException("Aggregation type unknown: " + aggType)
         }
-        // throw new IllegalArgumentException("Aggregation type unknown: " + aggType)
     }
 }
