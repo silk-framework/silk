@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.metric
 
 import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.linkspec.{Param, Metric}
+import de.fuberlin.wiwiss.silk.linkspec.{AnyParam, Metric}
 
-class LevenshteinMetric(val weight : Int, val optional : Boolean, val params : Map[String, Param]) extends Metric
+class LevenshteinMetric(val weight : Int, val params : Map[String, AnyParam]) extends Metric
 {
     require(params.contains("str1"), "Parameter 'str1' is required")
     require(params.contains("str2"), "Parameter 'str2' is required")

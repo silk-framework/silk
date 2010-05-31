@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.linkspec._
 
 class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path])
 {
+    override def toString = "InstanceSpecification(variable=" + variable + " restrictions=" + restrictions + " paths=" + paths + ")"
 }
 
 object InstanceSpecification
