@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.linkspec._
 
 class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path])
 {
-    override def toString = "InstanceSpecification(variable=" + variable + " restrictions=" + restrictions + " paths=" + paths + ")"
+    override def toString = "InstanceSpecification(variable='" + variable + "' restrictions='" + restrictions + "' paths=" + paths + ")"
 }
 
 object InstanceSpecification
@@ -28,6 +28,13 @@ object InstanceSpecification
     private def collectPaths(variable : String)(operator : Operator) : Set[Path] = operator match
     {
         case aggregation : Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
-        case metric : Metric => metric.params.collect{case p : PathParam => p.path}.filter(_.variable == variable).toSet
+        case metric : Metric => metric.params.values.flatMap(collectPathsFromParam(variable)).toSet
+    }
+
+    private def collectPathsFromParam(variable : String)(param : AnyParam) : Set[Path] = param match
+    {
+        case p : PathParam if p.path.variable == variable => Set(p.path)
+        case p : TransformParam => p.params.values.flatMap(collectPathsFromParam(variable)).toSet
+        case _ => Set()
     }
 }

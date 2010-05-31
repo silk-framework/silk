@@ -17,11 +17,11 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
         }
     }
 
-    private def retrieveInstances[U](config : Configuration, instance : InstanceSpecification, callback : Instance => U)
+    private def retrieveInstances[U](config : Configuration, instanceSpec : InstanceSpecification, callback : Instance => U)
     {
-        val builder = new SparqlBuilder(config.prefixes)
-        builder.addRestriction(instance.restrictions)
-        for(path <- instance.paths) builder.addPath(path)
+        val builder = new SparqlBuilder(config.prefixes, instanceSpec.variable)
+        builder.addRestriction(instanceSpec.restrictions)
+        for(path <- instanceSpec.paths) builder.addPath(path)
 
         val sparql = builder.build
         println(sparql)
@@ -39,16 +39,16 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
             val bindings = result \ "binding"
 
             //Find binding for subject variable
-            for(subjectBinding <- bindings.find(binding => (binding \ "@name").text == "s"))
+            for(subjectBinding <- bindings.find(binding => (binding \ "@name").text.trim == instanceSpec.variable))
             {
-                val subject = subjectBinding.head.text
+                val subject = subjectBinding.head.text.trim
 
                 //Check if we are still reading values for the current subject
                 if(subject != curSubject)
                 {
                     if(curSubject != null)
                     {
-                        callback(new Instance(curSubject, values.toMap))
+                        callback(new Instance(instanceSpec.variable, curSubject, values.toMap))
                     }
 
                     curSubject = subject
@@ -61,7 +61,7 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
                     varName = varNode.text if varName.startsWith("v"))
                 {
                     val id = varName.tail.toInt
-                    val varValue = binding.head.text
+                    val varValue = binding.head.text.trim
 
                     val oldVarValues = values.get(id).getOrElse(Set())
 
@@ -69,21 +69,6 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
                 }
             }
         }
-    }
-
-    def queryInstances(instance : InstanceSpecification)
-    {
-        //TODO set dataset: params("graph")
-
-        var sparql = "SELECT DISTINCT ?s\n"
-        sparql += "WHERE {\n"
-        sparql += "?s ?s_p ?s_o\n"
-        sparql += "} LIMIT 100"
-
-        //TODO restrictions
-        //TODO limit & offset
-
-        println(query(sparql))
     }
 
     def query(query : String) : Elem =

@@ -5,10 +5,8 @@ import de.fuberlin.wiwiss.silk.linkspec.path._
 /**
  * Builds SPARQL expressions.
  */
-class SparqlBuilder(prefixes : Map[String, String])
+class SparqlBuilder(prefixes : Map[String, String], subjectVar : String)
 {
-    private val subjects = Map("a" -> "dbpedia:Berlin", "b" -> "yago:Berlin")
-
     private var vars = new Vars
 
     private var restrictions = ""
@@ -22,16 +20,15 @@ class SparqlBuilder(prefixes : Map[String, String])
 
     def addPath(path : Path) : Unit =
     {
-        val pattern = build(SparqlBuilder.SubjectVar, path.operators)
-        sparqlPatterns += pattern.replace(vars.curTempVar, vars.newValueVar(path))
+        val pattern = build("?" + subjectVar, path.operators)
+        sparqlPatterns += "OPTIONAL {\n" + pattern.replace(vars.curTempVar, vars.newValueVar(path)) + "}\n"
     }
 
     def build : String =
     {
-        //TODO prefixes
         var sparql = ""
         sparql += prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
-        sparql += "SELECT DISTINCT " + SparqlBuilder.SubjectVar + " " + vars.valueVars.mkString(" ") + "\n"
+        sparql += "SELECT DISTINCT ?" + subjectVar + " " + vars.valueVars.mkString(" ") + "\n"
         //TODO add graphs
         sparql += "WHERE {\n"
         sparql += restrictions
@@ -92,8 +89,6 @@ class SparqlBuilder(prefixes : Map[String, String])
 
 private object SparqlBuilder
 {
-    private val SubjectVar = "?s"
-
     private val ValueVarPrefix = "?v"
 
     private val TempVarPrefix = "?t"

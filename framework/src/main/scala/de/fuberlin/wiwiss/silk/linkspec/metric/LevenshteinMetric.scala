@@ -16,7 +16,7 @@ class LevenshteinMetric(val weight : Int, val params : Map[String, AnyParam]) ex
         {
             val levenshteinDistance = levenshtein(str1, str2)
             val maxDistance = Math.max(str1.length, str2.length)
-            (1.0 - levenshteinDistance / maxDistance)
+            (1.0 - levenshteinDistance.toDouble / maxDistance.toDouble)
         }
     }
 

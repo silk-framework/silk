@@ -16,6 +16,7 @@ object Metric
     {
         //TODO add missing metrics
         if(aggType == "levenshtein") new LevenshteinMetric(weight, params)
+        else if(aggType == "jaroSimilarity") new LevenshteinMetric(weight, params) //TODO
         else
         {
             //Return dummy metric until all metrics are available

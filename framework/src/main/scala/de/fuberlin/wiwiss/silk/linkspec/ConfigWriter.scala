@@ -28,6 +28,7 @@ object ConfigWriter
         val xml = serialize(config)
 
         writer.write(printer.format(xml))
+        writer.write("\n")
         writer.flush()
     }
 
