@@ -2,20 +2,17 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import java.io.File
 import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
-import javax.xml.validation.Validator
 import org.xml.sax.SAXException
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import xml.{NodeSeq, Node, Elem, XML}
 
 object ConfigLoader
 {
-
-
     def load(file : File) =
     {
-        //validateXML(file)
+        validateXML(file)
+        
         val xml = XML.loadFile(file)
         val prefixes = loadPrefixes(xml)
         val dataSources = loadDataSources(xml)
@@ -24,7 +21,7 @@ object ConfigLoader
         println(linkSpecifications)
     }
 
-    def validateXML(file : File) : Unit =
+    private def validateXML(file : File) : Unit =
     {
         try {
             val factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema")
@@ -38,27 +35,27 @@ object ConfigLoader
 
     }
 
-    def loadPrefixes(xml : Elem) : Map[String, String] =
+    private def loadPrefixes(xml : Elem) : Map[String, String] =
     {
         xml \ "Prefixes" \ "Prefix" map(prefix => (prefix \ "@id" text, prefix \ "@namespace" text)) toMap
     }
 
-    def loadDataSources(xml : Elem) : Map[String, DataSource] =
+    private def loadDataSources(xml : Elem) : Map[String, DataSource] =
     {
         xml \ "DataSources" \ "DataSource" map(ds => (ds \ "@id" text, DataSource(ds \ "@type" text, loadParams(ds)))) toMap
     }
 
-    def loadParams(element : NodeSeq) : Map[String, String] =
+    private def loadParams(element : NodeSeq) : Map[String, String] =
     {
         element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
     }
 
-    def loadLinkSpecifications(node : Node, dataSources : Map[String, DataSource]) : Map[String, LinkSpecification] =
+    private def loadLinkSpecifications(node : Node, dataSources : Map[String, DataSource]) : Map[String, LinkSpecification] =
     {
         node \ "Interlinks" \ "Interlink" map(p => (p \ "@id" text, loadLinkSpecification(p, dataSources))) toMap
     }
 
-    def loadLinkSpecification(node : Node, dataSources : Map[String, DataSource]) : LinkSpecification =
+    private def loadLinkSpecification(node : Node, dataSources : Map[String, DataSource]) : LinkSpecification =
     {
         new LinkSpecification(
             node \ "LinkType" text,
@@ -72,7 +69,7 @@ object ConfigLoader
             )
     }
 
-    def loadDatasetSpecification(node : NodeSeq, dataSources : Map[String, DataSource]) : DatasetSpecification =
+    private def loadDatasetSpecification(node : NodeSeq, dataSources : Map[String, DataSource]) : DatasetSpecification =
     {
         val datasourceName = node \ "@dataSource" text
         
@@ -83,7 +80,7 @@ object ConfigLoader
             )
     }
 
-    def loadOperators(nodes : Seq[Node]) : Traversable[Operator] =
+    private def loadOperators(nodes : Seq[Node]) : Traversable[Operator] =
     {
         nodes.collect
         {
@@ -92,7 +89,7 @@ object ConfigLoader
         }
     }
 
-    def loadAggregation(node : Node) : Aggregation =
+    private def loadAggregation(node : Node) : Aggregation =
     {
         val weightStr = node \ "@weight" text
         val optionalStr = node \ "@optional" text
@@ -100,12 +97,11 @@ object ConfigLoader
         Aggregation(
             node \ "@type" text,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            if(optionalStr.isEmpty) false else optionalStr.toBoolean,
             loadOperators(node.child)
             )
     }
 
-    def loadCompare(node : Node) : Metric =
+    private def loadCompare(node : Node) : Metric =
     {
         val weightStr = node \ "@weight" text
         val optionalStr = node \ "@optional" text
@@ -118,7 +114,7 @@ object ConfigLoader
             )
     }
 
-    def loadAnyParams(node : Node) : Map[String, AnyParam] =
+    private def loadAnyParams(node : Node) : Map[String, AnyParam] =
     {
         node.map {
             case p @ <Param/> => (p \ "@name" text, new Param(p \ "@value" text))
@@ -127,12 +123,12 @@ object ConfigLoader
         } toMap
     }
 
-    def loadOutputs(nodes : NodeSeq) : Traversable[Output] =
+    private def loadOutputs(nodes : NodeSeq) : Traversable[Output] =
     {
         nodes.map(loadOutput)
     }
 
-    def loadOutput(node : Node) : Output =
+    private def loadOutput(node : Node) : Output =
     {
         Output(node \ "@type" text, loadParams(node))
     }

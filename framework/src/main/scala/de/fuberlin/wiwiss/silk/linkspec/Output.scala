@@ -6,6 +6,8 @@ object Output
 {
     def apply(outputType : String, params : Map[String, String]) : Output =
     {
-        throw new IllegalArgumentException("No Output " + outputType + " defined.")
+        //Return dummy output
+        return new Output() {}
+        //throw new IllegalArgumentException("No Output " + outputType + " defined.")
     }
 }

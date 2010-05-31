@@ -6,6 +6,7 @@ object LinkLimit
 {
     def apply(max : Int, method : String) : LinkLimit =
     {
-        throw new IllegalArgumentException("No LinkLimit " + method + " defined.")
+        //Return a dummy linkLimit
+        new LinkLimit() {}
     }
 }
