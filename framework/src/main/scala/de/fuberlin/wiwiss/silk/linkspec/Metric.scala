@@ -15,7 +15,18 @@ object Metric
     def apply(aggType : String, weight : Int, params : Map[String, AnyParam]) : Metric =
     {
         //TODO add missing metrics
-        new LevenshteinMetric(weight, params)
+        if(aggType == "levenshtein") new LevenshteinMetric(weight, params)
+        else
+        {
+            //Return dummy metric until all metrics are available
+            new Metric
+            {
+                val weight = 0
+                val params = Map[String, AnyParam]()
+                def evaluate(sourceInstance : Instance, targetInstance : Instance) = Traversable()
+            }
+        }
+
         //throw new IllegalArgumentException("Metric type unknown: " + aggType)
     }
 }

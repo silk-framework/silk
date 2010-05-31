@@ -116,7 +116,7 @@ object ConfigLoader
         nodes.collect {
             case p @ <Param/> => (p \ "@name" text, new Param(p \ "@value" text))
             case p @ <PathParam/> =>  (p \ "@name" text, new PathParam(p \ "@path" text))
-            case p @ <TransformParam>{_*}</TransformParam> => (p \ "@name" text, TransformParam(p \ "@function" text, loadAnyParams(p)))
+            case p @ <TransformParam>{_*}</TransformParam> => (p \ "@name" text, TransformParam(p \ "@function" text, loadAnyParams(p.child)))
         } toMap
     }
 
