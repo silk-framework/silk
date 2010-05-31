@@ -8,6 +8,12 @@ import java.util.concurrent.atomic.AtomicInteger
 case class Path(variable : String, operators : List[PathOperator])
 {
     val id = Path.currentId.getAndIncrement()
+
+    override def toString = operators.mkString
+
+    override def equals(other : Any) = other.isInstanceOf[Path] && toString == other.toString
+
+    override def hashCode = toString.hashCode
 }
 
 object Path

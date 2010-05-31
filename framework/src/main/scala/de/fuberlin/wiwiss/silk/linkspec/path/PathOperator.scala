@@ -9,11 +9,17 @@ sealed abstract class PathOperator
  * Moves forward from a subject resource (set) through a property to its object resource (set).
  */
 case class ForwardOperator(property : String) extends PathOperator
+{
+    override def toString = "/" + property
+}
 
 /**
  * Moves backward from an object resource (set) through a property to its subject resource (set).
  */
 case class BackwardOperator(property : String) extends PathOperator
+{
+    override def toString = "\\" + property
+}
 
 /**
  * Reduces the currently selected set of resources to the ones with a specific language.
@@ -22,6 +28,9 @@ case class BackwardOperator(property : String) extends PathOperator
  * @param value The language.
  */
 case class LanguageFilter(operator : String, language : String) extends PathOperator
+{
+    override def toString = "[@lang " + operator + " " + language + "]"
+}
 
 /**
  * Reduces the currently selected set of resources to the ones matching the filter expression.
@@ -31,3 +40,6 @@ case class LanguageFilter(operator : String, language : String) extends PathOper
  * @param value The comparison value.
  */
 case class PropertyFilter(property : String, operator : String, value : String) extends PathOperator
+{
+    override def toString = "[" + property + " " + operator + " " + value + "]"
+}

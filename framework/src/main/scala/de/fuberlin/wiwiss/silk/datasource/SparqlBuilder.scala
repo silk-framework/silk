@@ -2,15 +2,44 @@ package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.linkspec.path._
 
-class SparqlBuilder
+/**
+ * Builds SPARQL expressions.
+ */
+class SparqlBuilder(prefixes : Map[String, String])
 {
     private val subjects = Map("a" -> "dbpedia:Berlin", "b" -> "yago:Berlin")
 
+    private var vars = new Vars
+
+    private var restrictions = ""
+
     private var sparqlPatterns = ""
+
+    def addRestriction(restriction : String) : Unit =
+    {
+        restrictions += (restriction + " .\n")
+    }
 
     def addPath(path : Path) : Unit =
     {
-        sparqlPatterns = build("?" + path.variable, path.operators)
+        val pattern = build(SparqlBuilder.SubjectVar, path.operators)
+        sparqlPatterns += pattern.replace(vars.curTempVar, vars.newValueVar(path))
+    }
+
+    def build : String =
+    {
+        //TODO prefixes
+        var sparql = ""
+        sparql += prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
+        sparql += "SELECT DISTINCT " + SparqlBuilder.SubjectVar + " " + vars.valueVars.mkString(" ") + "\n"
+        //TODO add graphs
+        sparql += "WHERE {\n"
+        sparql += restrictions
+        sparql += sparqlPatterns
+        sparql += "} LIMIT 100"
+        //TODO limit offset
+
+        sparql
     }
 
     private def build(subjectVar : String, operators : List[PathOperator]) : String =
@@ -19,16 +48,16 @@ class SparqlBuilder
 
         val operatorSparql = operators.head match
         {
-            case ForwardOperator(property) => subjectVar + " " + property + " " + Vars.newVar + " .\n"
-            case BackwardOperator(property) => Vars.newVar + " " + property + " " + subjectVar + " .\n"
+            case ForwardOperator(property) => subjectVar + " " + property + " " + vars.newTempVar + " .\n"
+            case BackwardOperator(property) => vars.newTempVar + " " + property + " " + subjectVar + " .\n"
             case LanguageFilter(op, lang) => "FILTER(lang(" + subjectVar + ") " + op + " " + lang + ") . \n"
-            case PropertyFilter(property, op, value) => subjectVar + " " + property + " " + Vars.newFilterVar + " .\n" +
-                                                        "FILTER(" + Vars.curFilterVar + " " + op + " " + value + ") . \n"
+            case PropertyFilter(property, op, value) => subjectVar + " " + property + " " + vars.newFilterVar + " .\n" +
+                                                        "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
         }
 
         if(!operators.tail.isEmpty)
         {
-            return operatorSparql + build(Vars.curVar, operators.tail)
+            return operatorSparql + build(vars.curTempVar, operators.tail)
         }
         else
         {
@@ -36,22 +65,38 @@ class SparqlBuilder
         }
     }
 
-    private object Vars
+    private class Vars
     {
-        private val VarPrefix = "?v"
-
-        private val FilterVarPrefix = "?f"
-
-        private var varIndex = 0
+        private var tempVarIndex = 0
 
         private var filterVarIndex = 0
 
-        def newVar : String = { varIndex += 1; VarPrefix + varIndex }
+        var valueVars = Set[String]()
 
-        def curVar : String = VarPrefix + varIndex
+        def newTempVar : String = { tempVarIndex += 1; SparqlBuilder.TempVarPrefix + tempVarIndex }
 
-        def newFilterVar : String = { filterVarIndex += 1; FilterVarPrefix + varIndex }
+        def curTempVar : String = SparqlBuilder.TempVarPrefix + tempVarIndex
 
-        def curFilterVar : String = FilterVarPrefix + filterVarIndex
+        def newFilterVar : String = { filterVarIndex += 1; SparqlBuilder.FilterVarPrefix + tempVarIndex }
+
+        def curFilterVar : String = SparqlBuilder.FilterVarPrefix + filterVarIndex
+
+        def newValueVar(path : Path) : String =
+        {
+            val valueVar = SparqlBuilder.ValueVarPrefix + path.id
+            valueVars += valueVar
+            valueVar
+        }
     }
+}
+
+private object SparqlBuilder
+{
+    private val SubjectVar = "?s"
+
+    private val ValueVarPrefix = "?v"
+
+    private val TempVarPrefix = "?t"
+
+    private val FilterVarPrefix = "?f"
 }

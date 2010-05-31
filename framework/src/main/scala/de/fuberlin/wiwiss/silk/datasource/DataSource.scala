@@ -1,8 +1,14 @@
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.linkspec.Param
+import de.fuberlin.wiwiss.silk.Instance
+import de.fuberlin.wiwiss.silk.linkspec.Configuration
 
 trait DataSource
+{
+    val params : Map[String, String]
+
+    def retrieve(config : Configuration, instance : InstanceSpecification) : Traversable[Instance]
+}
 
 object DataSource
 {

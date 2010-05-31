@@ -5,7 +5,7 @@ import path.Path
 
 class PathParam(pathStr : String) extends AnyParam
 {
-    private val path = Path.parse(pathStr)
+    val path = Path.parse(pathStr)
 
     override def evaluate(sourceInstance : Instance, targetInstance : Instance) = Set()
 }
