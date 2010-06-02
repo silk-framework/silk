@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import java.io.File
-import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-import org.xml.sax.SAXException
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import xml.{NodeSeq, Node, Elem, XML}
+import xml._
+import java.io.{File}
+import org.xml.sax.{SAXException}
+import javax.xml.transform.stream.StreamSource
 
 object ConfigLoader
 {
@@ -42,7 +42,9 @@ object ConfigLoader
 
     private def loadDataSources(xml : Elem) : Map[String, DataSource] =
     {
-        xml \ "DataSources" \ "DataSource" map(ds => (ds \ "@id" text, DataSource(ds \ "@type" text, loadParams(ds)))) toMap
+        (xml \ "DataSources" \ "DataSource")
+            .map(ds => DataSource(ds \ "@type" text, ds \ "@id" text, loadParams(ds)))
+            .map(ds => (ds.id, ds)).toMap
     }
 
     private def loadParams(element : NodeSeq) : Map[String, String] =
@@ -85,7 +87,7 @@ object ConfigLoader
         nodes.collect
         {
             case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node)
-            case node @ <Compare>{_*}</Compare> => loadCompare(node)
+            case node @ <Compare>{_*}</Compare> => loadComparison(node)
         }
     }
 
@@ -100,24 +102,24 @@ object ConfigLoader
             )
     }
 
-    private def loadCompare(node : Node) : Metric =
+    private def loadComparison(node : Node) : Comparison =
     {
         val weightStr = node \ "@weight" text
+        val metric = Metric(node \ "@metric" text, loadParams(node.child))
 
-        Metric(
-            node \ "@metric" text,
+        new Comparison(
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadAnyParams(node.child)
-            )
+            loadInputs(node.child),
+            metric
+        )
     }
 
-    private def loadAnyParams(nodes : Seq[Node]) : Map[String, AnyParam] =
+    private def loadInputs(nodes : Seq[Node]) : Seq[Input] =
     {
         nodes.collect {
-            case p @ <Param/> => (p \ "@name" text, new Param(p \ "@value" text))
-            case p @ <PathParam/> =>  (p \ "@name" text, new PathParam(p \ "@path" text))
-            case p @ <TransformParam>{_*}</TransformParam> => (p \ "@name" text, TransformParam(p \ "@function" text, loadAnyParams(p.child)))
-        } toMap
+            case p @ <Input/> => new PathInput(p \ "@path" text)
+            case p @ <TransformInput>{_*}</TransformInput> => TransformInput(p \ "@function" text, loadInputs(p.child), loadParams(p.child))
+        }
     }
 
     private def loadOutputs(nodes : NodeSeq) : Traversable[Output] =

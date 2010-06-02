@@ -38,13 +38,13 @@
 
       <LinkCondition>
         <Aggregate type="max">
-          <Compare metric="jaroSimilarity">
-            <PathParam name="str1" path="?a/dbpedia:director/rdfs:label" />
-            <PathParam name="str2" path="?b/rdfs:label" />
+          <Compare metric="jaro">
+            <Input path="?a/dbpedia:director/rdfs:label" />
+            <Input path="?b/rdfs:label" />
           </Compare>
-          <Compare metric="jaroSimilarity">
-            <PathParam name="str1" path="?a/dbpedia:director/rdfs:label" />
-            <PathParam name="str2" path="?b/movie:director_name" />
+          <Compare metric="jaro">
+            <Input path="?a/dbpedia:director/rdfs:label" />
+            <Input path="?b/movie:director_name" />
           </Compare>
         </Aggregate>
       </LinkCondition>

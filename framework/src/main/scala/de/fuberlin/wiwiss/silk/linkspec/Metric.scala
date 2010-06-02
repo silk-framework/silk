@@ -1,33 +1,24 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.metric.LevenshteinMetric
+import de.fuberlin.wiwiss.silk.metric.{JaroWinklerMetric, JaroDistanceMetric, LevenshteinMetric}
 
-trait Metric extends Operator
+trait Metric
 {
-    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double]
+    val params : Map[String, String]
 
-    val params : Map[String, AnyParam]
+    def evaluate(value1 : String, value2 : String) : Double
 }
 
 object Metric
 {
-    def apply(aggType : String, weight : Int, params : Map[String, AnyParam]) : Metric =
+    def apply(metricType : String, params : Map[String, String]) : Metric =
     {
-        //TODO add missing metrics
-        if(aggType == "levenshtein") new LevenshteinMetric(weight, params)
-        else if(aggType == "jaroSimilarity") new LevenshteinMetric(weight, params) //TODO
-        else
+        metricType match
         {
-            //Return dummy metric until all metrics are available
-            new Metric
-            {
-                val weight = 0
-                val params = Map[String, AnyParam]()
-                def evaluate(sourceInstance : Instance, targetInstance : Instance) = Traversable()
-            }
+            case "levenshtein" => new LevenshteinMetric(params)
+            case "jaro" => new JaroDistanceMetric(params)
+            case "jaroWinkler" => new JaroWinklerMetric(params)
+            case _ => throw new IllegalArgumentException("Metric type unknown: " + metricType)
         }
-
-        //throw new IllegalArgumentException("Metric type unknown: " + aggType)
     }
 }

@@ -50,7 +50,7 @@ object ConfigWriter
     private def datasourceToXML(name : String, dataSource : DataSource) =
     {
         <DataSource id={name} type={dataSource.getClass.getSimpleName}>
-          { dataSource.params.map{case (name, value) => <param name={name} value={value} />} }
+          { dataSource.params.map{case (name, value) => <Param name={name} value={value} />} }
         </DataSource>
     }
 
@@ -88,23 +88,24 @@ object ConfigWriter
               { aggregation.operators.map(operatorToXml) }
             </Aggregate>
         }
-        case metric : Metric =>
+        case comparison : Comparison =>
         {
-            <Compare metric={metric.getClass.getSimpleName}>
-              { metric.params.map{case (name, param) => paramToXml(name, param)} }
+            <Compare metric={comparison.metric.getClass.getSimpleName}>
+              { comparison.inputs.map{input => inputToXml(input)} }
+              { comparison.metric.params.map{case (name, value) => <Param name={name} value={value} />} }
             </Compare>
         }
     }
 
-    private def paramToXml(name : String, param : AnyParam) : Elem = param match
+    private def inputToXml(param : Input) : Elem = param match
     {
-        case p : Param => <Param name={name} value={p.value} />
-        case p : PathParam => <PathParam name={name} path={p.path.toString} />
-        case p : TransformParam =>
+        case p : PathInput => <Input path={p.path.toString} />
+        case p : TransformInput =>
         {
-            <TransformParam name={name} function={p.getClass.getSimpleName}>
-              { p.params.map{case (name, param) => paramToXml(name, param)} }
-            </TransformParam>
+            <TransformInput function={p.getClass.getSimpleName}>
+              { p.inputs.map{input => inputToXml(input)} }
+              { p.params.map{case (name, value) => <Param name={name} value={value} />} }
+            </TransformInput>
         }
     }
 

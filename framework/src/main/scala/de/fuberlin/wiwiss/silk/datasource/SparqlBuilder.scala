@@ -33,8 +33,7 @@ class SparqlBuilder(prefixes : Map[String, String], subjectVar : String)
         sparql += "WHERE {\n"
         sparql += restrictions
         sparql += sparqlPatterns
-        sparql += "} LIMIT 100"
-        //TODO limit offset
+        sparql += "}"
 
         sparql
     }

@@ -2,19 +2,22 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.Instance
 
-trait TransformParam extends AnyParam
+trait TransformInput extends Input
 {
-    val params : Map[String, AnyParam] 
+    val inputs : Seq[Input]
+    val params : Map[String, String]
 }
 
-object TransformParam
+object TransformInput
 {
-    def apply(function : String, _params : Map[String, AnyParam]) : TransformParam =
+    def apply(function : String, _inputs : Seq[Input], _params : Map[String, String]) : TransformInput =
     {
         //TODO add missing transforms
         //adding dummy transform until all transforms are available
-        return new TransformParam
+        return new TransformInput
         {
+            val inputs = _inputs
+
             val params = _params
 
             def evaluate(sourceInstance : Instance, targetInstance : Instance) = Traversable()

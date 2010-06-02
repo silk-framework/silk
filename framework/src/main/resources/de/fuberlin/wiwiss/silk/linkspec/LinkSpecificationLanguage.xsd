@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:element name="AnyParam" abstract="true" />
-
-  <xs:element name="Param" substitutionGroup="AnyParam">
+  <xs:element name="Param">
     <xs:complexType>
       <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="value" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="PathParam" substitutionGroup="AnyParam">
+  <xs:element name="AnyInput" abstract="true" />
+
+  <xs:element name="Input" substitutionGroup="AnyInput">
     <xs:complexType>
-      <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="path" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="TransformParam" substitutionGroup="AnyParam">
+  <xs:element name="TransformInput" substitutionGroup="AnyInput">
     <xs:complexType>
         <xs:sequence>
-          <xs:element ref="AnyParam" maxOccurs="unbounded"/>
+          <xs:element ref="AnyInput" maxOccurs="unbounded"/>
+          <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
-        <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="function" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
@@ -30,7 +29,8 @@
   <xs:element name="Compare">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="AnyParam" minOccurs="2" maxOccurs="unbounded"/>
+        <xs:element ref="AnyInput" minOccurs="2" maxOccurs="2"/>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="metric" type="xs:string" use="required" />
       <xs:attribute name="weight" type="xs:unsignedShort" />

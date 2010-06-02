@@ -1,25 +1,13 @@
 package de.fuberlin.wiwiss.silk.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.AnyParam
 import de.fuberlin.wiwiss.silk.linkspec.Metric
-import de.fuberlin.wiwiss.silk.Instance
 
-class JaroDistanceMetric(val weight: Int, val params: Map[String, AnyParam]) extends Metric
+class JaroDistanceMetric(val params: Map[String, String]) extends Metric
 {
-    require(params.contains("str1"), "Parameter 'str1' is required")
-    require(params.contains("str2"), "Parameter 'str2' is required")
-
-    override def evaluate(instance1: Instance, instance2: Instance) =
+    override def evaluate(str1 : String, str2 : String) =
     {
-        val set1 = params("str1").evaluate(instance1, instance2)
-        val set2 = params("str2").evaluate(instance1, instance2)
-        for (str1 <- set1; str2 <- set2) yield
-        {
-            JaroDinstanceMetric.jaro(str1, str2)
-        }
+        JaroDinstanceMetric.jaro(str1, str2)
     }
-
-
 }
 
 object JaroDinstanceMetric

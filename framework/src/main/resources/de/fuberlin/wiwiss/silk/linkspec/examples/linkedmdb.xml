@@ -43,58 +43,58 @@
     <LinkCondition>
       <Aggregate type="average">
         <Aggregate type="max">
-          <Compare metric="jaroSimilarity">
-            <PathParam name="str1" path="?a/rdfs:label[@lang = 'en']" />
-            <PathParam name="str2" path="?b/rdfs:label" />
+          <Compare metric="jaro">
+            <Input path="?a/rdfs:label[@lang = 'en']" />
+            <Input path="?b/rdfs:label" />
           </Compare>
-          <Compare metric="jaroSimilarity" >
-            <PathParam name="str1" path="?a/rdfs:label[@lang = 'en']" />
-            <PathParam name="str2" path="?b/dc:title" />
+          <Compare metric="jaro" >
+            <Input path="?a/rdfs:label[@lang = 'en']" />
+            <Input path="?b/dc:title" />
           </Compare>
-          <Compare metric="jaroSimilarity" >
-            <PathParam name="str1" path="?a/foaf:name" />
-            <PathParam name="str2" path="?b/dc:title" />
+          <Compare metric="jaro" >
+            <Input path="?a/foaf:name" />
+            <Input path="?b/dc:title" />
           </Compare>
         </Aggregate>
         <Aggregate type="max" >
-          <Compare metric="jaroSimilarity" >
-            <PathParam name="str1" path="?a/dbpedia-owl:director/foaf:name" />
-            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          <Compare metric="jaro" >
+            <Input path="?a/dbpedia-owl:director/foaf:name" />
+            <Input path="?b/movie:director/movie:director_name" />
           </Compare>
-          <Compare metric="jaroSimilarity" >
-            <PathParam name="str1" path="?a/dbpedia-owl:director/rdfs:label" />
-            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          <Compare metric="jaro" >
+            <Input path="?a/dbpedia-owl:director/rdfs:label" />
+            <Input path="?b/movie:director/movie:director_name" />
           </Compare>
-          <Compare metric="jaroSimilarity" >
-            <PathParam name="str1" path="?a/dbpedia-owl:director" />
-            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+          <Compare metric="jaro" >
+            <Input path="?a/dbpedia-owl:director" />
+            <Input path="?b/movie:director/movie:director_name" />
           </Compare>
-          <Compare metric="jaroSimilarity" >
-            <TransformParam name="str1" function="regexReplace">
-              <TransformParam name="string" function="stripURIPrefix">
-                <PathParam name="string" path="?a/dbpedia-owl:director" />
-              </TransformParam>
+          <Compare metric="jaro" >
+            <TransformInput function="regexReplace">
+              <TransformInput function="stripURIPrefix">
+                <Input path="?a/dbpedia-owl:director" />
+              </TransformInput>
               <Param name="regex" value="_" />
               <Param name="replace" value=" " />
-            </TransformParam>
-            <PathParam name="str2" path="?b/movie:director/movie:director_name" />
+            </TransformInput>
+            <Input path="?b/movie:director/movie:director_name" />
           </Compare>
         </Aggregate>
         <Aggregate type="max" >
           <Compare metric="dateSimilarity" >
-            <PathParam name="date1" path="?a/dbpedia-owl:releaseDate" />
-            <PathParam name="date2" path="?b/dc:date" />
+            <Input path="?a/dbpedia-owl:releaseDate" />
+            <Input path="?b/dc:date" />
             <Param name="max_diff" value="20" />
           </Compare>
           <Compare metric="dateSimilarity" >
-            <PathParam name="date1" path="?a/dbpedia-owl:releaseDate" />
-            <PathParam name="date2" path="?b/movie:initial_release_date" />
+            <Input path="?a/dbpedia-owl:releaseDate" />
+            <Input path="?b/movie:initial_release_date" />
             <Param name="max_diff" value="20" />
           </Compare>
         </Aggregate>
         <Compare metric="numSimilarity" >
-          <PathParam name="num1" path="?a/dbpedia-owl:runtime" />
-          <PathParam name="num2" path="?b/movie:runtime" />
+          <Input path="?a/dbpedia-owl:runtime" />
+          <Input path="?b/movie:runtime" />
         </Compare>
       </Aggregate>
     </LinkCondition>

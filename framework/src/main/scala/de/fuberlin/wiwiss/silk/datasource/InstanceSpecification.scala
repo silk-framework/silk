@@ -28,13 +28,13 @@ object InstanceSpecification
     private def collectPaths(variable : String)(operator : Operator) : Set[Path] = operator match
     {
         case aggregation : Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
-        case metric : Metric => metric.params.values.flatMap(collectPathsFromParam(variable)).toSet
+        case comparison : Comparison => comparison.inputs.flatMap(collectPathsFromInput(variable)).toSet
     }
 
-    private def collectPathsFromParam(variable : String)(param : AnyParam) : Set[Path] = param match
+    private def collectPathsFromInput(variable : String)(param : Input) : Set[Path] = param match
     {
-        case p : PathParam if p.path.variable == variable => Set(p.path)
-        case p : TransformParam => p.params.values.flatMap(collectPathsFromParam(variable)).toSet
+        case p : PathInput if p.path.variable == variable => Set(p.path)
+        case p : TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
         case _ => Set()
     }
 }

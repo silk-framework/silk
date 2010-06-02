@@ -1,10 +1,9 @@
 package de.fuberlin.wiwiss.silk.metric
 
-import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.linkspec.{AnyParam, Metric}
+import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.metric._
 
-class JaroWinklerMetric(val weight: Int, val params: Map[String, AnyParam]) extends Metric
+class JaroWinklerMetric(val params: Map[String, String]) extends Metric
 {
     require(params.contains("str1"), "Parameter 'str1' is required")
     require(params.contains("str2"), "Parameter 'str2' is required")
@@ -15,14 +14,9 @@ class JaroWinklerMetric(val weight: Int, val params: Map[String, AnyParam]) exte
     // prefix adjustment scale
     private final val PREFIXADUSTMENTSCALE: Double = 0.1
 
-    override def evaluate(instance1: Instance, instance2: Instance) =
+    override def evaluate(str1 : String, str2 : String) =
     {
-        val set1 = params("str1").evaluate(instance1, instance2)
-        val set2 = params("str2").evaluate(instance1, instance2)
-        for (str1 <- set1; str2 <- set2) yield
-        {
-            jaroWinkler(str1, str2)
-        }
+        jaroWinkler(str1, str2)
     }
 
     /**

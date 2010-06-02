@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk
 
 import linkspec.path.Path
 
+@serializable
 class Instance(val variable : String, val uri : String, values : Map[Int, Set[String]])
 {
     //TODO if this returns a set, multiple equal values will be returned as one which will affect aggregations like the average

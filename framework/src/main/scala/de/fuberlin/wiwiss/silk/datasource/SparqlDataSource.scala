@@ -1,78 +1,96 @@
 package de.fuberlin.wiwiss.silk.datasource
 
 import java.net.{URL, URLEncoder}
-import xml.{Elem, XML}
 import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.linkspec.Configuration
+import xml.{NodeSeq, Elem, XML}
 
-class SparqlDataSource(val params : Map[String, String]) extends DataSource
+class SparqlDataSource(val id : String, val params : Map[String, String]) extends DataSource
 {
     require(params.contains("endpointURI"), "Parameter 'endpointURI' is required")
 
-    override def retrieve(config : Configuration, instance : InstanceSpecification) = new Traversable[Instance]
+    val pageSize = 1000
+
+    override def retrieve(config : Configuration, instanceSpec : InstanceSpecification) = new Traversable[Instance]
     {
         override def foreach[U](f : Instance => U) : Unit =
         {
-            retrieveInstances(config, instance, f)
+            //Create SPARQL query
+            val builder = new SparqlBuilder(config.prefixes, instanceSpec.variable)
+            builder.addRestriction(instanceSpec.restrictions)
+            for(path <- instanceSpec.paths) builder.addPath(path)
+            val sparql = builder.build
+
+            val reader = new SparqlReader(instanceSpec, f)
+
+            //Issue queries
+            for(offset <- 0 until Integer.MAX_VALUE by pageSize)
+            {
+                val xml = query(sparql + "OFFSET " + offset + " LIMIT " + pageSize)
+                val results = xml \ "results" \ "result"
+
+                if(results.isEmpty)
+                {
+                    return
+                }
+                else
+                {
+                    reader.read(results)
+                }
+            }
         }
     }
 
-    private def retrieveInstances[U](config : Configuration, instanceSpec : InstanceSpecification, callback : Instance => U)
+    private def query(query : String) : Elem =
     {
-        val builder = new SparqlBuilder(config.prefixes, instanceSpec.variable)
-        builder.addRestriction(instanceSpec.restrictions)
-        for(path <- instanceSpec.paths) builder.addPath(path)
+        XML.load(new URL(params("endpointURI") + "?format=application/rdf+xml&query=" + URLEncoder.encode(query, "UTF-8")))
+    }
 
-        val sparql = builder.build
-        println(sparql)
-
-        val xml = query(sparql)
-
+    class SparqlReader[U](instanceSpec : InstanceSpecification, f : Instance => U)
+    {
         //Remember current subject
         var curSubject : String = null
 
         //Collect values of the current subject
         val values = collection.mutable.HashMap[Int, Set[String]]()
 
-        for(result <- xml \ "results" \ "result")
+        def read(results : NodeSeq) : Unit =
         {
-            val bindings = result \ "binding"
-
-            //Find binding for subject variable
-            for(subjectBinding <- bindings.find(binding => (binding \ "@name").text.trim == instanceSpec.variable))
+            for(result <- results)
             {
-                val subject = subjectBinding.head.text.trim
+                val bindings = result \ "binding"
 
-                //Check if we are still reading values for the current subject
-                if(subject != curSubject)
+                //Find binding for subject variable
+                for(subjectBinding <- bindings.find(binding => (binding \ "@name").text.trim == instanceSpec.variable))
                 {
-                    if(curSubject != null)
+                    val subject = subjectBinding.head.text.trim
+
+                    //Check if we are still reading values for the current subject
+                    if(subject != curSubject)
                     {
-                        callback(new Instance(instanceSpec.variable, curSubject, values.toMap))
+                        if(curSubject != null)
+                        {
+                            f(new Instance(instanceSpec.variable, curSubject, values.toMap))
+                        }
+
+                        curSubject = subject
+                        values.clear()
                     }
 
-                    curSubject = subject
-                    values.clear()
-                }
+                    //Find bindings for values for the current subject
+                    for(binding <- bindings;
+                        varNode <- binding \ "@name";
+                        varName = varNode.text if varName.startsWith("v"))
+                    {
+                        val id = varName.tail.toInt
+                        val varValue = binding.head.text.trim
 
-                //Find bindings for values for the current subject
-                for(binding <- bindings;
-                    varNode <- binding \ "@name";
-                    varName = varNode.text if varName.startsWith("v"))
-                {
-                    val id = varName.tail.toInt
-                    val varValue = binding.head.text.trim
+                        val oldVarValues = values.get(id).getOrElse(Set())
 
-                    val oldVarValues = values.get(id).getOrElse(Set())
-
-                    values(id) = oldVarValues + varValue
+                        values(id) = oldVarValues + varValue
+                    }
                 }
             }
         }
-    }
-
-    def query(query : String) : Elem =
-    {
-        XML.load(new URL(params("endpointURI") + "?format=application/rdf+xml&query=" + URLEncoder.encode(query, "UTF-8")))
     }
 }
