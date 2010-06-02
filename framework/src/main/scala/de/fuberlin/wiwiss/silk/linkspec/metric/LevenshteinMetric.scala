@@ -20,7 +20,7 @@ class LevenshteinMetric(val weight : Int, val params : Map[String, AnyParam]) ex
         }
     }
 
-    def levenshtein(str1 : String, str2 : String): Int =
+    private def levenshtein(str1 : String, str2 : String): Int =
     {
         val lenStr1 = str1.length
         val lenStr2 = str2.length
@@ -33,19 +33,12 @@ class LevenshteinMetric(val weight : Int, val params : Map[String, AnyParam]) ex
         for (val i <- 1 to lenStr1; val j <- 1 to lenStr2) {
             val cost = if (str1(i - 1) == str2(j - 1)) 0 else 1
 
-            d(i)(j) = minimum(
-                List(d(i - 1)(j) + 1, // deletion
-                d(i)(j - 1) + 1, // insertion
+            d(i)(j) = Math.min(
+                d(i - 1)(j) + 1, // deletion
+                Math.min(d(i)(j - 1) + 1, // insertion
                 d(i - 1)(j - 1) + cost) // substitution
-                ).head
+                )
         }
         return d(lenStr1)(lenStr2)
     }
-
-    def minimum(xs: List[Int]): List[Int] =
-        (List(xs.head) /: xs.tail) {
-            (ys, x) =>
-                if (x < ys.head) (x :: ys)
-                else (ys.head :: x :: ys.tail)
-        }
 }
