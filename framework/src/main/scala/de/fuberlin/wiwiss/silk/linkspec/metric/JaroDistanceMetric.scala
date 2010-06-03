@@ -46,7 +46,7 @@ object JaroDinstanceMetric
         transpositions = transpositions / 2
 
         //calculate jaro metric
-        return (common1.length / (string1.length.toDouble) + common2.length / (string2.length.toDouble) + (common1.length - transpositions) / (common1.length.toDouble)) / 3.0
+        (common1.length / (string1.length.toDouble) + common2.length / (string2.length.toDouble) + (common1.length - transpositions) / (common1.length.toDouble)) / 3.0
     }
 
 
