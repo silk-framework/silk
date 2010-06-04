@@ -2,27 +2,20 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.Instance
 
-trait TransformInput extends Input
-{
-    val inputs : Seq[Input]
-    val params : Map[String, String]
-}
 
-object TransformInput
+class TransformInput(val inputs : Seq[Input], val transformer : Transformer) extends Input
 {
-    def apply(function : String, _inputs : Seq[Input], _params : Map[String, String]) : TransformInput =
+    require(inputs.size > 0, "Number of inputs must be > 0.")
+
+    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Traversable[String] =
     {
-        //TODO add missing transforms
-        //adding dummy transform until all transforms are available
-        return new TransformInput
-        {
-            val inputs = _inputs
+        val strings = for (input <- inputs) yield input.evaluate(sourceInstance, targetInstance)
+        for (sequence <- cartesianProduct(strings)) yield transformer.evaluate(sequence)
+    }
 
-            val params = _params
-
-            def evaluate(sourceInstance : Instance, targetInstance : Instance) = Traversable()
-        }
-        
-        //throw new IllegalArgumentException("TransformParam with function " + function + " does not exist.")
+    def cartesianProduct(strings : Seq[Traversable[String]]) : Traversable[List[String]] =
+    {
+        if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
+        else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
     }
 }

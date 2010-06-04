@@ -48,7 +48,7 @@ object ConfigLoader
             .map(ds => (ds.id, ds)).toMap
     }
 
-    private def loadParams(element : NodeSeq) : Map[String, String] =
+    private def loadParams(element : Node) : Map[String, String] =
     {
         element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
     }
@@ -99,7 +99,7 @@ object ConfigLoader
     {
         val weightStr = node \ "@weight" text
 
-        val aggregator = Aggregator(node \ "@type" text, loadParams(node.child))
+        val aggregator = Aggregator(node \ "@type" text, loadParams(node))
 
         new Aggregation(
             if(weightStr.isEmpty) 1 else weightStr.toInt,
@@ -111,7 +111,7 @@ object ConfigLoader
     private def loadComparison(node : Node, pathCache : collection.mutable.Map[String, Path]) : Comparison =
     {
         val weightStr = node \ "@weight" text
-        val metric = Metric(node \ "@metric" text, loadParams(node.child))
+        val metric = Metric(node \ "@metric" text, loadParams(node))
 
         new Comparison(
             if(weightStr.isEmpty) 1 else weightStr.toInt,
@@ -139,7 +139,11 @@ object ConfigLoader
                 }
                 new PathInput(path)
             }
-            case p @ <TransformInput>{_*}</TransformInput> => TransformInput(p \ "@function" text, loadInputs(p.child, pathCache), loadParams(p.child))
+            case p @ <TransformInput>{_*}</TransformInput> =>
+            {
+                val transformer = Transformer(p \ "@function" text, loadParams(p))
+                new TransformInput(loadInputs(p.child), transformer)
+            }
         }
     }
 

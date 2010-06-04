@@ -104,7 +104,7 @@ object ConfigWriter
         {
             <TransformInput function={p.getClass.getSimpleName}>
               { p.inputs.map{input => inputToXml(input)} }
-              { p.params.map{case (name, value) => <Param name={name} value={value} />} }
+              { p.transformer.params.map{case (name, value) => <Param name={name} value={value} />} }
             </TransformInput>
         }
     }
