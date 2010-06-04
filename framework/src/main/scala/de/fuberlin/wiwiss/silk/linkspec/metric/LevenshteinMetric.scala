@@ -34,22 +34,22 @@ class LevenshteinMetric(val params : Map[String, String] = Map()) extends Metric
     }
 
     //from [Gonzalo Navarro - A guided tour to approximate string matching]
-    def levenshteinDistance(p : String, t : String) : Int =
+    def evaluateDistance2(p : String, t : String) : Int =
     {
         var min = Integer.MAX_VALUE
 
         //Previous column in the matrix
-        var pc = Array[Int](p.length() + 1)
+        var pc = new Array[Int](p.length + 1)
 
         //Current column in the matrix
-        var c = Array[Int](p.length() + 1)
+        var c = new Array[Int](p.length + 1)
 
         //Substring matching: The empty pattern matches with zero errors at any text position
 //        for (int i = 0; i <= p.length(); i++)
 //            c[i] = i;
 
         //Build the matrix
-        for(j <- 1 until t.length())
+        for(j <- 1 to t.length())
         {
             //Swap the current and the previous column
             val temp = pc;
@@ -57,7 +57,7 @@ class LevenshteinMetric(val params : Map[String, String] = Map()) extends Metric
             c = temp;
 
             //Compute current column
-            for(i <- 1 until p.length())
+            for(i <- 1 to p.length())
             {
                 if (p.charAt(i - 1) == t.charAt(j - 1))
                     c(i) = pc(i - 1)

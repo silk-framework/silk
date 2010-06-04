@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import javax.xml.validation.SchemaFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
+import path.Path
 import xml._
 import java.io.{File}
 import org.xml.sax.{SAXException}
@@ -59,11 +60,14 @@ object ConfigLoader
 
     private def loadLinkSpecification(node : Node, dataSources : Map[String, DataSource]) : LinkSpecification =
     {
+        //We cache all paths, so multiple equivalent paths will share the same path object
+        var pathCache = collection.mutable.Map[String, Path]()
+
         new LinkSpecification(
             node \ "LinkType" text,
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
-            loadAggregation(node \ "LinkCondition" \ "Aggregate" head),
+            loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache),
             (node \ "Thresholds" \ "@accept" text).toDouble,
             (node \ "Thresholds" \ "@verify").map(_.text.toDouble).headOption.getOrElse(0.0),
             if (node \ "Limit" isEmpty) null else LinkLimit((node \ "Limit" \ "@max" text).toInt, node \ "Limit" \ "@method" text),
@@ -82,16 +86,16 @@ object ConfigLoader
             )
     }
 
-    private def loadOperators(nodes : Seq[Node]) : Traversable[Operator] =
+    private def loadOperators(nodes : Seq[Node], pathCache : collection.mutable.Map[String, Path]) : Traversable[Operator] =
     {
         nodes.collect
         {
-            case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node)
-            case node @ <Compare>{_*}</Compare> => loadComparison(node)
+            case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node, pathCache)
+            case node @ <Compare>{_*}</Compare> => loadComparison(node, pathCache)
         }
     }
 
-    private def loadAggregation(node : Node) : Aggregation =
+    private def loadAggregation(node : Node, pathCache : collection.mutable.Map[String, Path]) : Aggregation =
     {
         val weightStr = node \ "@weight" text
 
@@ -99,28 +103,43 @@ object ConfigLoader
 
         new Aggregation(
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadOperators(node.child),
+            loadOperators(node.child, pathCache),
             aggregator
         )
     }
 
-    private def loadComparison(node : Node) : Comparison =
+    private def loadComparison(node : Node, pathCache : collection.mutable.Map[String, Path]) : Comparison =
     {
         val weightStr = node \ "@weight" text
         val metric = Metric(node \ "@metric" text, loadParams(node.child))
 
         new Comparison(
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadInputs(node.child),
+            loadInputs(node.child, pathCache),
             metric
         )
     }
 
-    private def loadInputs(nodes : Seq[Node]) : Seq[Input] =
+    private def loadInputs(nodes : Seq[Node], pathCache : collection.mutable.Map[String, Path]) : Seq[Input] =
     {
         nodes.collect {
-            case p @ <Input/> => new PathInput(p \ "@path" text)
-            case p @ <TransformInput>{_*}</TransformInput> => TransformInput(p \ "@function" text, loadInputs(p.child), loadParams(p.child))
+            case p @ <Input/> =>
+            {
+                //Use a cached path if available
+                val pathStr = p \ "@path" text
+                val path = pathCache.get(pathStr) match
+                {
+                    case Some(path) => path
+                    case None =>
+                    {
+                        val path = Path.parse(pathStr)
+                        pathCache.update(pathStr, path)
+                        path
+                    }
+                }
+                new PathInput(path)
+            }
+            case p @ <TransformInput>{_*}</TransformInput> => TransformInput(p \ "@function" text, loadInputs(p.child, pathCache), loadParams(p.child))
         }
     }
 

@@ -3,10 +3,8 @@ package de.fuberlin.wiwiss.silk.linkspec
 import de.fuberlin.wiwiss.silk.Instance
 import path.Path
 
-class PathInput(pathStr : String) extends Input
+class PathInput(val path : Path) extends Input
 {
-    val path = Path.parse(pathStr)
-
     override def evaluate(sourceInstance : Instance, targetInstance : Instance) =
     {
         if(sourceInstance.variable == path.variable) sourceInstance.evaluate(path)
