@@ -95,11 +95,13 @@ object ConfigLoader
     {
         val weightStr = node \ "@weight" text
 
-        Aggregation(
-            node \ "@type" text,
+        val aggregator = Aggregator(node \ "@type" text, loadParams(node.child))
+
+        new Aggregation(
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadOperators(node.child)
-            )
+            loadOperators(node.child),
+            aggregator
+        )
     }
 
     private def loadComparison(node : Node) : Comparison =
