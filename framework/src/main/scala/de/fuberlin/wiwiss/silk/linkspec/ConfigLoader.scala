@@ -142,7 +142,7 @@ object ConfigLoader
             case p @ <TransformInput>{_*}</TransformInput> =>
             {
                 val transformer = Transformer(p \ "@function" text, loadParams(p))
-                new TransformInput(loadInputs(p.child), transformer)
+                new TransformInput(loadInputs(p.child, pathCache), transformer)
             }
         }
     }
