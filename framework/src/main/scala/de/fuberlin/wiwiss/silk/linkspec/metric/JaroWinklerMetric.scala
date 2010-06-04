@@ -5,9 +5,6 @@ import de.fuberlin.wiwiss.silk.metric._
 
 class JaroWinklerMetric(val params: Map[String, String] = Map()) extends Metric
 {
-    require(params.contains("str1"), "Parameter 'str1' is required")
-    require(params.contains("str2"), "Parameter 'str2' is required")
-
     // maximum prefix length to use
     private final val MINPREFIXTESTLENGTH: Int = 6
 
