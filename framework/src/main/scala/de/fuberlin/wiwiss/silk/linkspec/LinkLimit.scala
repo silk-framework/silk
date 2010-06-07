@@ -1,12 +1,14 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-trait LinkLimit
+class LinkLimit(val max : Int)
 
 object LinkLimit
 {
+    /**
+     * Creates a new Link Limit.
+     */
     def apply(max : Int, method : String) : LinkLimit =
     {
-        //Return a dummy linkLimit
-        new LinkLimit() {}
+        new LinkLimit(max)
     }
 }

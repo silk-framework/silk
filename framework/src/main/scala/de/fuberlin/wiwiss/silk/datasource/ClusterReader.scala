@@ -5,7 +5,18 @@ import java.io.{ObjectInputStream, FileInputStream, File}
 
 class ClusterReader(dir : File) extends IndexedSeq[List[Instance]]
 {
-    lazy val length = dir.list.map(name => name.dropWhile(!_.isDigit)).map(_.toInt).max + 1
+    val length =
+    {
+        val partitionFiles = dir.list.map(name => name.dropWhile(!_.isDigit)).filter(!_.isEmpty)
+        if(partitionFiles.isEmpty)
+        {
+            throw new IllegalArgumentException("No cluster files found in " + dir)
+        }
+        else
+        {
+            partitionFiles.map(_.toInt).max + 1
+        }
+    }
 
     def apply(index : Int) : List[Instance] =
     {
