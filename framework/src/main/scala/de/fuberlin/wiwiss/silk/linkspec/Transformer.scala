@@ -18,10 +18,10 @@ object Transformer
             case "replace" => new ReplaceTransformer(params)
             case "regexReplace" => new RegexReplaceTransformer(params)
             case "concat" => new ConcatTransformer(params)
-            case "removeBlanks" => new ReplaceTransformer(("search" -> " ", "replace" -> ""))
+            case "removeBlanks" => new ReplaceTransformer(Map("search" -> " ", "replace" -> ""))
             case "lowerCase" => new LowerCaseTransformer(params)
             case "upperCase" => new UpperCaseTransformer(params)
-            case "numReduce" => new RegexReplaceTransformer(("regex" -> "[^0-9]*", "replace" -> ""))
+            case "numReduce" => new RegexReplaceTransformer(Map("regex" -> "[^0-9]*", "replace" -> ""))
             case _ => throw new IllegalArgumentException("Transform function unknown: " + transformFunction)
         }
         /*
