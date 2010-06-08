@@ -22,6 +22,7 @@ object Transformer
             case "lowerCase" => new LowerCaseTransformer(params)
             case "upperCase" => new UpperCaseTransformer(params)
             case "numReduce" => new RegexReplaceTransformer(Map("regex" -> "[^0-9]*", "replace" -> ""))
+            case "stem" => new StemmerTransformer(params)
             case _ => throw new IllegalArgumentException("Transform function unknown: " + transformFunction)
         }
         /*
