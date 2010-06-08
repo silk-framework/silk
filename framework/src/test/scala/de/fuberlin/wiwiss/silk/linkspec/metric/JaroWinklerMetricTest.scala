@@ -1,25 +1,20 @@
 package de.fuberlin.wiwiss.silk.linkspec.metric
 
 import org.scalatest.FlatSpec
+import de.fuberlin.wiwiss.silk.metric.JaroWinklerMetric
 import org.scalatest.matchers.{BeMatcher, MatchResult, ShouldMatchers}
-import de.fuberlin.wiwiss.silk.metric.{JaroWinklerMetric, JaroDistanceMetric}
 
-class JaroDistanceMetricTest extends FlatSpec with ShouldMatchers
+class JaroWinklerMetricTest extends FlatSpec with ShouldMatchers
 {
-    val metric = new JaroDistanceMetric()
+    val metric = new JaroWinklerMetric()
 
-    "JaroDistanceMetric" should "return distance 0.767" in
+    "JaroWinklerMetric" should "return distance 0.832" in
     {
-        metric.evaluate("DIXON", "DICKSONX") should be (approximatelyEqualTo (0.767))
-        metric.evaluate("DICKSONX", "DIXON") should be (approximatelyEqualTo (0.767))
+        metric.evaluateDistance("JONES", "JOHNSON") should be (approximatelyEqualTo (0.832))
+        metric.evaluateDistance("JOHNSON", "JONES") should be (approximatelyEqualTo (0.832))
     }
-
-    "JaroDistanceMetric" should "return distance 0.944" in
-    {
-        metric.evaluate("MARTHA", "MARHTA") should be (approximatelyEqualTo (0.944))
-        metric.evaluate("MARHTA", "MARTHA") should be (approximatelyEqualTo (0.944))
-    }
-
+    
+    
     /**
      * Matcher to test if 2 values are approximately equal.
      */
