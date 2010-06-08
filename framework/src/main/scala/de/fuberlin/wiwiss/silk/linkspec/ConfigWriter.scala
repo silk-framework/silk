@@ -68,11 +68,10 @@ object ConfigWriter
           </TargetDataset>
 
           <LinkCondition>
-              { operatorToXml(linkSpec.linkConditions) }
+              { operatorToXml(linkSpec.condition) }
           </LinkCondition>
 
-          <Thresholds accept={linkSpec.acceptThreshold.toString} verify={linkSpec.verifyThreshold.toString} />
-          <!-- Limit max={} method={} / -->
+          { linkFilterToXml(linkSpec.filter) }
 
           <Outputs>
              { linkSpec.outputs.map(outputToXml) }
@@ -107,6 +106,12 @@ object ConfigWriter
               { p.transformer.params.map{case (name, value) => <Param name={name} value={value} />} }
             </TransformInput>
         }
+    }
+
+    private def linkFilterToXml(filter : LinkFilter) : Elem = filter.limit match
+    {
+        case Some(limit) => <Filter threshold={filter.threshold.toString} limit={limit.toString} />
+        case None => <Filter threshold={filter.threshold.toString} />
     }
 
     private def outputToXml(output : Output) : Elem =

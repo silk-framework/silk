@@ -7,7 +7,7 @@ class Configuration(val prefixes : Map[String, String], val dataSources : Map[St
 {
     def resolvePrefix(name : String) = name.split(":", 2) match
     {
-        case Array(prefix, suffix) => prefixes(prefix) + ":" + suffix
+        case Array(prefix, suffix) => prefixes(prefix) + suffix
         case _ => name
     }
 }

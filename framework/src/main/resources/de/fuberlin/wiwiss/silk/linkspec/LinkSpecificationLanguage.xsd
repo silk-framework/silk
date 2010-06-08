@@ -120,17 +120,10 @@
                     </xs:complexType>
                   </xs:element>
 
-                  <xs:element name="Thresholds">
+                  <xs:element name="Filter">
                     <xs:complexType>
-                      <xs:attribute name="accept" type="xs:decimal" use="required" />
-                      <xs:attribute name="verify" type="xs:decimal" />
-                    </xs:complexType>
-                  </xs:element>
-
-                  <xs:element name="Limit" minOccurs="0">
-                    <xs:complexType>
-                      <xs:attribute name="max" type="xs:unsignedShort" use="required" />
-                      <xs:attribute name="method" type="xs:string" use="required" />
+                      <xs:attribute name="threshold" type="xs:decimal" use="required" />
+                      <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
                     </xs:complexType>
                   </xs:element>
 

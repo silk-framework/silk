@@ -49,15 +49,19 @@
         </Aggregate>
       </LinkCondition>
 
-      <Thresholds accept="0.9" verify="0.7" />
-
-      <Limit max="1" method="metric_value" />
+      <Filter threshold="0.7" limit="1" />
 
       <Outputs>
-        <Output type="">
-          <Param name="acceptedLinks" value="lmdb_accepted_links.n3"/>
-          <Param name="verifyLinks" value="lmdb_verify_links.n3"/>
+        <Output type="file">
+          <Param name="maxConfidence" value="0.9" />
+          <Param name="file" value="lmdb_verify_links.n3"/>
           <Param name="format" value="n3_debug"/>
+          <Param name="mode" value="truncate"/>
+        </Output>
+        <Output type="file">
+          <Param name="minConfidence" value="0.9" />
+          <Param name="file" value="lmdb_accepted_links.n3"/>
+          <Param name="format" value="ntriples"/>
           <Param name="mode" value="truncate"/>
         </Output>
       </Outputs>

@@ -68,11 +68,9 @@ object ConfigLoader
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
             loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache),
-            (node \ "Thresholds" \ "@accept" text).toDouble,
-            (node \ "Thresholds" \ "@verify").map(_.text.toDouble).headOption.getOrElse(0.0),
-            if (node \ "Limit" isEmpty) null else LinkLimit((node \ "Limit" \ "@max" text).toInt, node \ "Limit" \ "@method" text),
+            loadLinkFilter(node \ "Limit" head),
             loadOutputs(node \ "Outputs" \ "Output")
-            )
+        )
     }
 
     private def loadDatasetSpecification(node : NodeSeq, dataSources : Map[String, DataSource]) : DatasetSpecification =
@@ -145,6 +143,12 @@ object ConfigLoader
                 new TransformInput(loadInputs(p.child, pathCache), transformer)
             }
         }
+    }
+
+    private def loadLinkFilter(node : Node) =
+    {
+        val limitStr = (node \ "@limit").text
+        new LinkFilter((node \ "@threshold").text.toDouble, if(limitStr.isEmpty) None else Some(limitStr.toInt))
     }
 
     private def loadOutputs(nodes : NodeSeq) : Traversable[Output] =
