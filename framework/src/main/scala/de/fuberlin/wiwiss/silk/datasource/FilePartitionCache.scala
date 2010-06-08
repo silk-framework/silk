@@ -3,12 +3,15 @@ package de.fuberlin.wiwiss.silk.datasource
 import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.io._
+import java.util.logging.Logger
 
 /**
  * A partition cache, which caches the partitions on the local file system.
  */
 class FilePartitionCache(dir : File) extends PartitionCache
 {
+    private val logger = Logger.getLogger(getClass.getName)
+
     private val maxPartitionSize = 1000
 
     @volatile
@@ -107,6 +110,6 @@ class FilePartitionCache(dir : File) extends PartitionCache
             stream.close()
         }
 
-        println("Written partition " + _partitionCount)
+        logger.info("Written partition " + _partitionCount)
     }
 }
