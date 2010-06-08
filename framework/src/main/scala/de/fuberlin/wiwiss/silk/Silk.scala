@@ -3,10 +3,10 @@ package de.fuberlin.wiwiss.silk
 import datasource.{InstanceSpecification, FilePartitionCache, PartitionCache}
 import linkspec.{Configuration, ConfigLoader}
 import output.Link
-import java.util.logging.Logger
 import java.util.concurrent.{TimeUnit, Executors}
 import collection.mutable.{ArrayBuffer, SynchronizedBuffer}
 import java.io.File
+import java.util.logging.{Level, Logger}
 
 object Silk
 {
@@ -19,7 +19,7 @@ object Silk
         }
 
         val silk = new Silk(configFile)
-        silk.loadPartitions()
+        //silk.loadPartitions()
         silk.generateLinks()
     }
 }
@@ -66,7 +66,7 @@ class Silk(configFile : File)
         }
 
         //Execute match tasks
-        val executor = Executors.newFixedThreadPool(2)
+        val executor = Executors.newFixedThreadPool(4)
         val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
         for(sourcePartitionIndex <- 0 until sourcePartitionCache.size;
@@ -107,24 +107,31 @@ class Silk(configFile : File)
     {
         override def run() : Unit =
         {
-            val taskNum = (sourcePartitionIndex * targetPartitionCache.size + targetPartitionIndex) + 1
-            val taskCount = sourcePartitionCache.size * targetPartitionCache.size
-            logger.info("Starting task " + taskNum + " of " + taskCount)
-
-            val linkPredicate = config.resolvePrefix(linkSpec.linkType)
-
-            for(sourceInstance <- sourcePartitionCache(sourcePartitionIndex);
-                targetInstance <- targetPartitionCache(targetPartitionIndex))
+            try
             {
-                val confidence = linkSpec.condition.evaluate(sourceInstance, targetInstance).headOption.getOrElse(0.0)
+                val taskNum = (sourcePartitionIndex * targetPartitionCache.size + targetPartitionIndex) + 1
+                val taskCount = sourcePartitionCache.size * targetPartitionCache.size
+                logger.info("Starting task " + taskNum + " of " + taskCount)
 
-                if(confidence >= linkSpec.filter.threshold)
+                val linkPredicate = config.resolvePrefix(linkSpec.linkType)
+
+                for(sourceInstance <- sourcePartitionCache(sourcePartitionIndex);
+                    targetInstance <- targetPartitionCache(targetPartitionIndex))
                 {
-                    callback(new Link(sourceInstance.uri, linkPredicate, targetInstance.uri, confidence))
-                }
-            }
+                    val confidence = linkSpec.condition.evaluate(sourceInstance, targetInstance).headOption.getOrElse(0.0)
 
-            logger.info("Completed task " + taskNum + " of " + taskCount)
+                    if(confidence >= linkSpec.filter.threshold)
+                    {
+                        callback(new Link(sourceInstance.uri, linkPredicate, targetInstance.uri, confidence))
+                    }
+                }
+
+                logger.info("Completed task " + taskNum + " of " + taskCount)
+            }
+            catch
+            {
+                case ex : Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
+            }
         }
     }
 }

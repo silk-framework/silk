@@ -44,7 +44,7 @@ class FilePartitionCache(dir : File) extends PartitionCache
 
     override def apply(index : Int) : Array[Instance] =
     {
-        val stream = new ObjectInputStream(new FileInputStream(dir + "/cluster" + index))
+        val stream = new ObjectInputStream(new FileInputStream(dir + "/partition" + index))
 
         try
         {
