@@ -19,7 +19,7 @@ object Silk
         }
 
         val silk = new Silk(configFile)
-        //silk.loadPartitions()
+        silk.loadPartitions()
         silk.generateLinks()
     }
 }
@@ -33,8 +33,8 @@ class Silk(configFile : File)
     private val config = ConfigLoader.load(configFile)
     private val linkSpec = config.linkSpecs.values.head
 
-    private val sourcePartitionCache : PartitionCache= new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
-    private val targetPartitionCache : PartitionCache= new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))
+    private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
+    private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))
 
     def loadPartitions()
     {
@@ -126,7 +126,7 @@ class Silk(configFile : File)
                     }
                 }
 
-                logger.info("Completed task " + taskNum + " of " + taskCount)
+                logger.info("Completed match task " + taskNum + " of " + taskCount)
             }
             catch
             {
