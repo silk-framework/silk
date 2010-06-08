@@ -25,6 +25,7 @@ object Transformer
             case "stem" => new StemmerTransformer(params)
             case "stripPrefix" => new StripPrefixTransformer(params)
             case "stripPostfix" => new StripPostfixTransformer(params)
+            case "stripUriPrefix" => new StripUriPrefixTransformer(params)
             case _ => throw new IllegalArgumentException("Transform function unknown: " + transformFunction)
         }
         /*
