@@ -55,14 +55,12 @@
         <Output type="file">
           <Param name="maxConfidence" value="0.9" />
           <Param name="file" value="lmdb_verify_links.n3"/>
-          <Param name="format" value="n3_debug"/>
-          <Param name="mode" value="truncate"/>
+          <Param name="format" value="ntriples"/>
         </Output>
         <Output type="file">
           <Param name="minConfidence" value="0.9" />
           <Param name="file" value="lmdb_accepted_links.n3"/>
           <Param name="format" value="ntriples"/>
-          <Param name="mode" value="truncate"/>
         </Output>
       </Outputs>
 

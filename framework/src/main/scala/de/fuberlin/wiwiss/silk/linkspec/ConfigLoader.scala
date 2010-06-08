@@ -7,6 +7,7 @@ import xml._
 import java.io.{File}
 import org.xml.sax.{SAXException}
 import javax.xml.transform.stream.StreamSource
+import de.fuberlin.wiwiss.silk.output.Output
 
 object ConfigLoader
 {
@@ -68,7 +69,7 @@ object ConfigLoader
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
             loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache),
-            loadLinkFilter(node \ "Limit" head),
+            loadLinkFilter(node \ "Filter" head),
             loadOutputs(node \ "Outputs" \ "Output")
         )
     }

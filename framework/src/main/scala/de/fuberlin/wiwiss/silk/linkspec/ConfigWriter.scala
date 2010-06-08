@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk
 
 import datasource.DataSource
 import linkspec._
+import output.Output
 import xml.{PrettyPrinter, Elem}
 import java.io.{OutputStreamWriter, FileOutputStream, OutputStream, File}
 

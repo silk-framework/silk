@@ -14,14 +14,21 @@ class FilePartitionCache(dir : File) extends PartitionCache
     @volatile
     private var _partitionCount =
     {
-        val partitionFiles = dir.list.map(name => name.dropWhile(!_.isDigit)).filter(!_.isEmpty)
-        if(partitionFiles.isEmpty)
+        if(dir.exists)
         {
-            throw new IllegalArgumentException("No partition files found in " + dir)
+            val partitionFiles = dir.list.map(name => name.dropWhile(!_.isDigit)).filter(!_.isEmpty)
+            if(partitionFiles.isEmpty)
+            {
+                0
+            }
+            else
+            {
+                partitionFiles.map(_.toInt).max + 1
+            }
         }
         else
         {
-            partitionFiles.map(_.toInt).max + 1
+            0
         }
     }
 
