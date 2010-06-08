@@ -21,20 +21,18 @@ object Transformer
             case "removeBlanks" => new ReplaceTransformer(Map("search" -> " ", "replace" -> ""))
             case "lowerCase" => new LowerCaseTransformer(params)
             case "upperCase" => new UpperCaseTransformer(params)
-            case "numReduce" => new RegexReplaceTransformer(Map("regex" -> "[^0-9]*", "replace" -> ""))
+            case "numReduce" => new RegexReplaceTransformer(Map("regex" -> "[^0-9]+", "replace" -> ""))
             case "stem" => new StemmerTransformer(params)
             case "stripPrefix" => new StripPrefixTransformer(params)
             case "stripPostfix" => new StripPostfixTransformer(params)
             case "stripUriPrefix" => new StripUriPrefixTransformer(params)
+            case "alphaReduce" => new RegexReplaceTransformer(Map("regex" -> "[^\\pL]+", "replace" -> ""))
+            case "removeSpecialChars" => new RegexReplaceTransformer(Map("regex" -> "[^\\d\\pL\\w]+", "replace" -> ""))
             case _ => throw new IllegalArgumentException("Transform function unknown: " + transformFunction)
         }
         /*
         TODO
-        removeSpecialChars(string str)  	Remove special characters (including punctuation) from a string.
-        stem(string str) 	Apply word stemming to the string.
-        alphaReduce(string str) 	Strip all non-alphabetic characters from a string.
-        stripURIPrefix(string str[]) 	Strip the URI prefix (e.g. http://dbpedia.org/resource/) from a string (set).
         translateWithDictionary(string str[], filename dictionary.csv) 	Translates a string using a dictionary in the form of comma seperated value pairs.
-         */
+        */
     }
 }
