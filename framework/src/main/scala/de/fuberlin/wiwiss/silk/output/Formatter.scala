@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.output
 
-import formatters.NTriplesFormatter
+import formatters.{AlignmentFormatter, NTriplesFormatter}
 
 /**
  * Serializes a link.
@@ -24,6 +24,7 @@ object Formatter
     def apply(format : String) = format.replace("-", "").toLowerCase match
     {
         case "ntriples" => new NTriplesFormatter
+        case "alignment" => new AlignmentFormatter
         case _ => throw new IllegalArgumentException("Unsupported format " + format)
     }
 }
