@@ -74,11 +74,13 @@ class FilePartitionCache(dir : File) extends PartitionCache
         var curPartition = List[Instance]()
         var curPartitionSize = 0
         _partitionCount = 0
+        var instanceCount = 0
 
         for(instance <- instances)
         {
             curPartition ::= instance
             curPartitionSize += 1
+            instanceCount += 1
 
             if(curPartitionSize == maxPartitionSize)
             {
@@ -89,6 +91,8 @@ class FilePartitionCache(dir : File) extends PartitionCache
                 _partitionCount += 1
             }
         }
+
+        logger.info("Completed writing " + instanceCount + " instances")
 
         _isWriting = false
     }
