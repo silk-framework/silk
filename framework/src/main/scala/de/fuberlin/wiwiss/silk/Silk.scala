@@ -19,7 +19,7 @@ object Silk
         }
 
         val silk = new Silk(configFile)
-        silk.loadPartitions()
+        silk.createPartitions()
         silk.generateLinks()
     }
 }
@@ -36,10 +36,8 @@ class Silk(configFile : File)
     private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
     private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))
 
-    def loadPartitions()
+    def createPartitions()
     {
-        logger.info("Loading partitions")
-
         //Create instance specifications
         val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
         println(sourceInstanceSpec)
@@ -49,7 +47,10 @@ class Silk(configFile : File)
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(config, sourceInstanceSpec)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(config, targetInstanceSpec)
 
+        logger.info("Creating partitions of " + linkSpec.sourceDatasetSpecification.dataSource.id)
         sourcePartitionCache.write(sourceInstances)
+        
+        logger.info("Creating partitions of " + linkSpec.targetDatasetSpecification.dataSource.id)
         targetPartitionCache.write(targetInstances)
     }
 
@@ -100,7 +101,7 @@ class Silk(configFile : File)
 
         linkSpec.outputs.foreach(_.close)
 
-        logger.info("Generated " + linkBuffer.size + " links in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+        logger.info("Generated links in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
     private class MatchTask(sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
