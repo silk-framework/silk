@@ -92,6 +92,11 @@ class FilePartitionCache(dir : File) extends PartitionCache
             }
         }
 
+        if(curPartitionSize > 0)
+        {
+            writePartition(curPartition)
+        }
+
         logger.info("Completed writing " + instanceCount + " instances")
 
         _isWriting = false
