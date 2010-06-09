@@ -16,7 +16,7 @@ class SparqlDataSource(val id : String, val params : Map[String, String]) extend
         override def foreach[U](f : Instance => U) : Unit =
         {
             //Create SPARQL query
-            val builder = new SparqlBuilder(config.prefixes, instanceSpec.variable)
+            val builder = new SparqlBuilder(config.prefixes, instanceSpec.variable, params.get("graph"))
             builder.addRestriction(instanceSpec.restrictions)
             for(path <- instanceSpec.paths) builder.addPath(path)
             val sparql = builder.build
