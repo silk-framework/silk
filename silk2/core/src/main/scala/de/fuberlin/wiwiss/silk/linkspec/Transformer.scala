@@ -1,38 +1,32 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.transformer._
+import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
-trait Transformer
+trait Transformer extends Strategy
 {
-    val params : Map[String, String]
-
     def evaluate(strings : Seq[String]) : String
 }
 
-object Transformer
+object Transformer extends Factory[Transformer]
 {
-    def apply(transformFunction : String, params : Map[String, String]) : Transformer =
-    {
-        transformFunction match
-        {
-            case "replace" => new ReplaceTransformer(params)
-            case "regexReplace" => new RegexReplaceTransformer(params)
-            case "concat" => new ConcatTransformer(params)
-            case "removeBlanks" => new ReplaceTransformer(Map("search" -> " ", "replace" -> ""))
-            case "lowerCase" => new LowerCaseTransformer(params)
-            case "upperCase" => new UpperCaseTransformer(params)
-            case "numReduce" => new RegexReplaceTransformer(Map("regex" -> "[^0-9]+", "replace" -> ""))
-            case "stem" => new StemmerTransformer(params)
-            case "stripPrefix" => new StripPrefixTransformer(params)
-            case "stripPostfix" => new StripPostfixTransformer(params)
-            case "stripUriPrefix" => new StripUriPrefixTransformer(params)
-            case "alphaReduce" => new RegexReplaceTransformer(Map("regex" -> "[^\\pL]+", "replace" -> ""))
-            case "removeSpecialChars" => new RegexReplaceTransformer(Map("regex" -> "[^\\d\\pL\\w]+", "replace" -> ""))
-            case _ => throw new IllegalArgumentException("Transform function unknown: " + transformFunction)
-        }
-        /*
-        TODO
-        translateWithDictionary(string str[], filename dictionary.csv) 	Translates a string using a dictionary in the form of comma seperated value pairs.
-        */
-    }
+    register("replace", classOf[ReplaceTransformer])
+    register("regexReplace", classOf[RegexReplaceTransformer])
+    register("concat", classOf[ConcatTransformer])
+    register("removeBlanks", classOf[ReplaceTransformer], Map("search" -> " ", "replace" -> ""))
+    register("lowerCase", classOf[LowerCaseTransformer])
+    register("upperCase", classOf[UpperCaseTransformer])
+    register("numReduce", classOf[RegexReplaceTransformer], Map("regex" -> "[^0-9]+", "replace" -> ""))
+
+    register("stem", classOf[StemmerTransformer])
+    register("stripPrefix", classOf[StripPrefixTransformer])
+    register("stripPostfix", classOf[StripPostfixTransformer])
+    register("stripUriPrefix", classOf[StripUriPrefixTransformer])
+    register("alphaReduce", classOf[RegexReplaceTransformer], Map("regex" -> "[^\\pL]+", "replace" -> ""))
+    register("removeSpecialChars", classOf[RegexReplaceTransformer], Map("regex" -> "[^\\d\\pL\\w]+", "replace" -> ""))
+
+    /*
+    TODO
+    translateWithDictionary(string str[], filename dictionary.csv) 	Translates a string using a dictionary in the form of comma seperated value pairs.
+    */
 }

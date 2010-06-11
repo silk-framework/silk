@@ -1,24 +1,16 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import aggegrator.{MinimumAggregator, MaximumAggregator, AverageAggregator}
+import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
-trait Aggregator
+trait Aggregator extends Strategy
 {
-    val params : Map[String, String]
-
     def evaluate(weightedValues : Traversable[(Int, Double)]) : Option[Double]
 }
 
-object Aggregator
+object Aggregator extends Factory[Aggregator]
 {
-    def apply(aggType : String, params : Map[String, String]) : Aggregator =
-    {
-        aggType match
-        {
-            case "average" => new AverageAggregator(params)
-            case "max" => new MaximumAggregator(params)
-            case "min" => new MinimumAggregator(params)
-            case _ => throw new IllegalArgumentException("Aggregation type unknown: " + aggType)
-        }
-    }
+    register("average", classOf[AverageAggregator])
+    register("max", classOf[MaximumAggregator])
+    register("min", classOf[MinimumAggregator])
 }

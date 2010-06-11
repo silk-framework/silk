@@ -1,24 +1,16 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.metric.{JaroWinklerMetric, JaroDistanceMetric, LevenshteinMetric}
+import de.fuberlin.wiwiss.silk.util.{Strategy, Factory}
 
-trait Metric
+trait Metric extends Strategy
 {
-    val params : Map[String, String]
-
     def evaluate(value1 : String, value2 : String) : Double
 }
 
-object Metric
+object Metric extends Factory[Metric]
 {
-    def apply(metricType : String, params : Map[String, String]) : Metric =
-    {
-        metricType match
-        {
-            case "levenshtein" => new LevenshteinMetric(params)
-            case "jaro" => new JaroDistanceMetric(params)
-            case "jaroWinkler" => new JaroWinklerMetric(params)
-            case _ => throw new IllegalArgumentException("Metric type unknown: " + metricType)
-        }
-    }
+    register("levenshtein", classOf[LevenshteinMetric])
+    register("jaro", classOf[JaroDistanceMetric])
+    register("jaroWinkler", classOf[JaroWinklerMetric])
 }

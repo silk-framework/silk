@@ -7,10 +7,19 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 case class Path(variable : String, operators : List[PathOperator])
 {
+    /**
+     * Unique ID of this path.
+     */
     val id = Path.currentId.getAndIncrement()
 
-    override def toString = operators.mkString
+    /**
+     * Serializes this path using the Silk RDF path language.
+     */
+    override def toString = "?" + variable + operators.mkString
 
+    /**
+     * Tests if this path equals another path
+     */
     override def equals(other : Any) = other.isInstanceOf[Path] && toString == other.toString
 
     override def hashCode = toString.hashCode

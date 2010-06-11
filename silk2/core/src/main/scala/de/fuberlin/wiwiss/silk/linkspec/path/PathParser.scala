@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.linkspec.ValidationException
 /**
  * Parser for the Silk RDF path language.
  */
-private  object PathParser extends RegexParsers
+private object PathParser extends RegexParsers
 {
     def parse(pathStr : String) : Path =
     {

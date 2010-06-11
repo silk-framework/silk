@@ -11,4 +11,6 @@ class PathInput(val path : Path) extends Input
         else if(targetInstance.variable == path.variable) targetInstance.evaluate(path)
         else throw new IllegalArgumentException("No instance found with variable " + path.variable)
     }
+
+    override def toString = "PathInput(" + path + ")"
 }

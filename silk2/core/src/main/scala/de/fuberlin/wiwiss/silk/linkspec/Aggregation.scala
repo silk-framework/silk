@@ -9,4 +9,9 @@ class Aggregation(val weight : Int, val operators : Traversable[Operator], aggre
         val tuples = for (operator <- operators; value <- operator.evaluate(sourceInstance, targetInstance)) yield (operator.weight, value)
         aggregator.evaluate(tuples).toList
     }
+
+    override def toString = aggregator match
+    {
+        case Aggregator(name, params) => "Aggregation(weight=" + weight + ", type=" + name + ", params=" + params + ", operators=" + operators + ")"
+    }
 }

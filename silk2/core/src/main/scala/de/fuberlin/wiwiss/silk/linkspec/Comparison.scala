@@ -13,4 +13,9 @@ class Comparison(val weight : Int, val inputs : Seq[Input], val metric : Metric)
 
         for (str1 <- set1; str2 <- set2) yield metric.evaluate(str1, str2)
     }
+
+    override def toString = metric match
+    {
+        case Metric(name, params) => "Aggregation(weight=" + weight + ", type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
+    }
 }
