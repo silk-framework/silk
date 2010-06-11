@@ -41,12 +41,12 @@ object Evaluation
     {
         for(falseNegative <- referenceAlignments -- evalAlignments)
         {
-            println("+" + falseNegative)
+            println("-" + falseNegative)
         }
 
-        for(falsePositives <- evalAlignments --referenceAlignments)
+        for(falsePositive <- evalAlignments -- referenceAlignments)
         {
-            println("-" + falsePositives)
+            println("+" + falsePositive)
         }
     }
 }
