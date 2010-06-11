@@ -79,12 +79,12 @@
             <Outputs>
                 <Output type="file">
                   <Param name="maxConfidence" value="0.95" />
-                  <Param name="file" value="sider_diseasome_verify_links.n3"/>
+                  <Param name="file" value="sider_diseasome_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
                 <Output type="file">
                   <Param name="minConfidence" value="0.95" />
-                  <Param name="file" value="sider_diseasome_accepted_links.n3"/>
+                  <Param name="file" value="sider_diseasome_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
             </Outputs>
