@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 
-class LevenshteinMetric(val params : Map[String, String] = Map()) extends Metric
+class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
     override def evaluate(str1 : String, str2 : String) =
     {
