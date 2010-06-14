@@ -6,6 +6,6 @@ class UpperCaseTransformer(val params: Map[String, String] = Map()) extends Tran
 {
     override def evaluate(strings : Seq[String]) =
     {
-        strings.toList.head.toUpperCase
+        strings.head.toUpperCase
     }
 }

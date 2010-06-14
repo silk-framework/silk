@@ -6,6 +6,6 @@ class LowerCaseTransformer(val params: Map[String, String] = Map()) extends Tran
 {
     override def evaluate(strings : Seq[String]) =
     {
-        strings.toList.head.toLowerCase
+        strings.head.toLowerCase
     }
 }
