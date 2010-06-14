@@ -85,16 +85,17 @@ class FilePartitionCache(dir : File) extends PartitionCache
             if(curPartitionSize == maxPartitionSize)
             {
                 writePartition(curPartition)
+                _partitionCount += 1
 
                 curPartition = List[Instance]()
                 curPartitionSize = 0
-                _partitionCount += 1
             }
         }
 
         if(curPartitionSize > 0)
         {
             writePartition(curPartition)
+            _partitionCount += 1
         }
 
         logger.info("Completed writing " + instanceCount + " instances")
@@ -108,7 +109,7 @@ class FilePartitionCache(dir : File) extends PartitionCache
 
         try
         {
-            stream.writeInt(maxPartitionSize)
+            stream.writeInt(instances.size)
             for(instance <- instances)
             {
                 stream.writeObject(instance)
