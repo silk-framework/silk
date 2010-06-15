@@ -1,7 +1,8 @@
 package de.fuberlin.wiwiss.silk
 
+import config.{Configuration, ConfigLoader}
 import datasource.{InstanceSpecification, FilePartitionCache, PartitionCache}
-import linkspec.{Configuration, ConfigLoader}
+import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
 import collection.mutable.{ArrayBuffer, SynchronizedBuffer}
@@ -18,20 +19,20 @@ object Silk
             case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
         }
 
-        val silk = new Silk(configFile)
+        val config = ConfigLoader.load(configFile)
+        val linkSpec = config.linkSpecs.values.head
+
+        val silk = new Silk(config, linkSpec)
         silk.createPartitions()
         silk.generateLinks()
     }
 }
 
-class Silk(configFile : File)
+class Silk(config : Configuration, linkSpec : LinkSpecification)
 {
     private val logger = Logger.getLogger(classOf[Silk].getName)
 
-    private val partitionCacheDir = new File("./partitionCache/")
-
-    private val config = ConfigLoader.load(configFile)
-    private val linkSpec = config.linkSpecs.values.head
+    private val partitionCacheDir = new File("./partitionCacheTest/")
 
     private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
     private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))
@@ -44,8 +45,8 @@ class Silk(configFile : File)
         println(targetInstanceSpec)
 
         //Retrieve instances
-        val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(config, sourceInstanceSpec)
-        val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(config, targetInstanceSpec)
+        val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
+        val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Creating partitions of " + linkSpec.sourceDatasetSpecification.dataSource.id)
         sourcePartitionCache.write(sourceInstances)
@@ -61,7 +62,7 @@ class Silk(configFile : File)
         val startTime = System.currentTimeMillis()
 
         //Check if any partitions have been found
-        if(sourcePartitionCache.size == 0 && targetPartitionCache.size == 0)
+        if(sourcePartitionCache.size == 0 || targetPartitionCache.size == 0)
         {
             logger.warning("No partitions found in " + partitionCacheDir)
         }
@@ -91,12 +92,12 @@ class Silk(configFile : File)
             {
                 val bestLinks = links.sortWith(_.confidence > _.confidence).take(linkSpec.filter.limit.get)
 
-                for(link <- bestLinks) linkSpec.outputs.foreach(_.write(link))
+                for(link <- bestLinks) linkSpec.outputs.foreach(_.write(link, linkSpec.linkType))
             }
         }
         else
         {
-            for(link <- linkBuffer) linkSpec.outputs.foreach(_.write(link))
+            for(link <- linkBuffer) linkSpec.outputs.foreach(_.write(link, linkSpec.linkType))
         }
 
         linkSpec.outputs.foreach(_.close)
@@ -114,8 +115,6 @@ class Silk(configFile : File)
                 val taskCount = sourcePartitionCache.size * targetPartitionCache.size
                 logger.info("Starting task " + taskNum + " of " + taskCount)
 
-                val linkPredicate = config.resolvePrefix(linkSpec.linkType)
-
                 for(sourceInstance <- sourcePartitionCache(sourcePartitionIndex);
                     targetInstance <- targetPartitionCache(targetPartitionIndex))
                 {
@@ -123,7 +122,7 @@ class Silk(configFile : File)
 
                     if(confidence >= linkSpec.filter.threshold)
                     {
-                        callback(new Link(sourceInstance.uri, linkPredicate, targetInstance.uri, confidence))
+                        callback(new Link(sourceInstance.uri, targetInstance.uri, confidence))
                     }
                 }
 
