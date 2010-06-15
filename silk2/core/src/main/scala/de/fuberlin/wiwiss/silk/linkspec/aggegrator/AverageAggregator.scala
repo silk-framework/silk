@@ -3,16 +3,26 @@ package de.fuberlin.wiwiss.silk.linkspec.aggegrator
 import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Operator}
 
-class AverageAggregator(val params: Map[String, String] = Map()) extends Aggregator
+class AverageAggregator(val params: Map[String, String] = Map.empty) extends Aggregator
 {
     override def evaluate(values : Traversable[(Int, Double)]) =
     {
-        var count = values.size
-        var result = 0.0
-        for (value <- values; val weight <- values.map(_._1); val value <- values.map(_._2))
+        if(!values.isEmpty)
         {
-            result += weight * value
+            var sumWeights = 0
+            var sumValues = 0.0
+
+            for((weight, value) <- values)
+            {
+                sumWeights += weight
+                sumValues += weight * value
+            }
+
+            Some(sumValues / sumWeights)
         }
-        if (count > 0) Some(result.toDouble/count) else None
+        else
+        {
+            None
+        }
     }
 }
