@@ -23,13 +23,13 @@ class AlignmentFormatter extends XMLFormatter
         "</rdf:RDF>\n"
     }
 
-    override def formatXML(link : Link) =
+    override def formatXML(link : Link, predicateUri : String) =
     {
       <map>
         <Cell>
           <entity1 rdf:resource={link.sourceUri}/>
           <entity2 rdf:resource={link.targetUri}/>
-          <relation>{if(link.predicate == "http://www.w3.org/2002/07/owl#sameAs") "=" else link.predicate}</relation>
+          <relation>{if(predicateUri == "http://www.w3.org/2002/07/owl#sameAs") "=" else predicateUri}</relation>
           <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">{link.confidence.toString}</measure>
         </Cell>
       </map>

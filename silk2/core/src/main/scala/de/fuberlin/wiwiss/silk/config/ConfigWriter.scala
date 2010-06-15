@@ -1,10 +1,10 @@
-package de.fuberlin.wiwiss.silk
+package de.fuberlin.wiwiss.silk.config
 
-import datasource.DataSource
-import linkspec._
-import output.Output
 import xml.{PrettyPrinter, Elem}
 import java.io.{OutputStreamWriter, FileOutputStream, OutputStream, File}
+import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.linkspec._
+import de.fuberlin.wiwiss.silk.datasource.DataSource
 
 //TODO write correct types
 object ConfigWriter

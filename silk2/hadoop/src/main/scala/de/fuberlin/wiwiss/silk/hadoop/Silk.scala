@@ -7,8 +7,8 @@ import org.apache.hadoop.mapreduce._
 import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import org.apache.hadoop.io.{NullWritable, Text}
-import de.fuberlin.wiwiss.silk.linkspec.{Configuration, ConfigLoader}
 import de.fuberlin.wiwiss.silk.datasource.{PartitionCache, FilePartitionCache}
+import de.fuberlin.wiwiss.silk.config.{ConfigLoader, Configuration}
 
 object Silk
 {

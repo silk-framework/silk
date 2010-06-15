@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.output
 
-import outputs.FileOutput
+import outputs.{MemoryOutput, FileOutput}
 
 /**
  * Represents an abstraction over an output of links.
@@ -19,7 +19,7 @@ trait Output
     /**
      * Writes a new link to this output.
      */
-    def write(link : Link) : Unit
+    def write(link : Link, predicateUri : String) : Unit
 
     /**
      * Closes this output.
@@ -34,6 +34,7 @@ object Output
         outputType match
         {
             case "file" => new FileOutput(params)
+            case "memory" => new MemoryOutput(params)
             case _ => throw new IllegalArgumentException("No Output " + outputType + " available.")
         }
     }

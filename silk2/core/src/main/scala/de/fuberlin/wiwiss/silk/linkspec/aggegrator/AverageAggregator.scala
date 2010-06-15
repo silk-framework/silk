@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec.aggegrator
 
-import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Operator}
+import de.fuberlin.wiwiss.silk.linkspec.Aggregator
 
 class AverageAggregator(val params: Map[String, String] = Map.empty) extends Aggregator
 {

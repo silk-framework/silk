@@ -10,7 +10,7 @@ trait Formatter
     def header : String = ""
     def footer : String = ""
 
-    def format(link : Link) : String
+    def format(link : Link, predicate : String) : String
 }
 
 /**

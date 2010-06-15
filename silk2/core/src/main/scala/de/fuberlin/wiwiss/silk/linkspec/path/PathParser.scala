@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec.path
 
 import util.parsing.input.CharSequenceReader
 import util.parsing.combinator.RegexParsers
-import de.fuberlin.wiwiss.silk.linkspec.ValidationException
+import de.fuberlin.wiwiss.silk.config.ValidationException
 
 /**
  * Parser for the Silk RDF path language.

@@ -19,11 +19,9 @@ class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
 
     private class LinkWriter(out : DataOutputStream) extends RecordWriter[Text, InstanceSimilarity]
     {
-        private val linkPredicate = Silk.config.resolvePrefix(Silk.linkSpec.linkType)
-
         override def write(sourceUri : Text, instanceSimilarity : InstanceSimilarity) : Unit =
         {
-            val line = sourceUri + " " + linkPredicate + " " + instanceSimilarity.targetUri + ".\n"
+            val line = sourceUri + " " + Silk.linkSpec.linkType + " " + instanceSimilarity.targetUri + ".\n"
             out.write(line.getBytes("UTF-8"))
         }
 

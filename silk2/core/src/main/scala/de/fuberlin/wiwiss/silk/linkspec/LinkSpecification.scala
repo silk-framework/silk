@@ -6,5 +6,6 @@ class LinkSpecification(val linkType : String, val sourceDatasetSpecification : 
                         val targetDatasetSpecification : DatasetSpecification, val condition : Aggregation,
                         val filter : LinkFilter, val outputs : Traversable[Output])
 {
-    
+    override def toString = "LinkSpecification(linkType=" + linkType + ", source=" + sourceDatasetSpecification +
+        ", target=" + targetDatasetSpecification + ", condition=" + condition +  ", filter=" + filter + ", output=" + outputs + ")" 
 }

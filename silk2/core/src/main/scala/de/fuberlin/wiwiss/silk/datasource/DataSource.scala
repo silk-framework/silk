@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.linkspec.Configuration
 
 trait DataSource
 {
@@ -9,7 +8,7 @@ trait DataSource
 
     val params : Map[String, String]
 
-    def retrieve(config : Configuration, instance : InstanceSpecification) : Traversable[Instance]
+    def retrieve(instance : InstanceSpecification, prefixes : Map[String, String]) : Traversable[Instance]
 }
 
 object DataSource

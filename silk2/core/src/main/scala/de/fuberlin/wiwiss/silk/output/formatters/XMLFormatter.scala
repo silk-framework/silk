@@ -8,7 +8,7 @@ import xml.{NodeSeq, Elem}
  */
 trait XMLFormatter extends Formatter
 {
-    override final def format(link : Link) : String = formatXML(link).toString + "\n"
+    override final def format(link : Link, predicateUri : String) : String = formatXML(link, predicateUri).toString + "\n"
 
-    def formatXML(link : Link) : NodeSeq
+    def formatXML(link : Link, predicateUri : String) : NodeSeq
 }

@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.datasource
 
 import java.net.{URL, URLEncoder}
 import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.linkspec.Configuration
 import xml.{NodeSeq, Elem, XML}
 
 class SparqlDataSource(val id : String, val params : Map[String, String]) extends DataSource
@@ -11,15 +10,17 @@ class SparqlDataSource(val id : String, val params : Map[String, String]) extend
 
     val pageSize = 1000
 
-    override def retrieve(config : Configuration, instanceSpec : InstanceSpecification) = new Traversable[Instance]
+    override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String]) = new Traversable[Instance]
     {
         override def foreach[U](f : Instance => U) : Unit =
         {
             //Create SPARQL query
-            val builder = new SparqlBuilder(config.prefixes, instanceSpec.variable, params.get("graph"))
+            val builder = new SparqlBuilder(prefixes, instanceSpec.variable, params.get("graph"))
             builder.addRestriction(instanceSpec.restrictions)
             for(path <- instanceSpec.paths) builder.addPath(path)
             val sparql = builder.build
+
+            println(sparql)
 
             val reader = new SparqlReader(instanceSpec, f)
 

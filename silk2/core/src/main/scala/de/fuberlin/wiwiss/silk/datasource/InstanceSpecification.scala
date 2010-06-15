@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.datasource
 import de.fuberlin.wiwiss.silk.linkspec.path.Path
 import de.fuberlin.wiwiss.silk.linkspec._
 
+@serializable
 class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path])
 {
     override def toString = "InstanceSpecification(variable='" + variable + "' restrictions='" + restrictions + "' paths=" + paths + ")"

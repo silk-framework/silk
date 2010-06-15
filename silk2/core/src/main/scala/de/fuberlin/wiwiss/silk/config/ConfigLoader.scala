@@ -1,13 +1,14 @@
-package de.fuberlin.wiwiss.silk.linkspec
+package de.fuberlin.wiwiss.silk.config
 
 import javax.xml.validation.SchemaFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import path.Path
 import xml._
 import java.io.{File}
 import org.xml.sax.{SAXException}
 import javax.xml.transform.stream.StreamSource
 import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.linkspec._
+import de.fuberlin.wiwiss.silk.linkspec.path.Path
 
 object ConfigLoader
 {
@@ -18,7 +19,7 @@ object ConfigLoader
 
         val prefixes = loadPrefixes(xml)
         val dataSources = loadDataSources(xml)
-        val linkSpecifications = loadLinkSpecifications(xml, dataSources)
+        val linkSpecifications = loadLinkSpecifications(xml, prefixes, dataSources)
 
         new Configuration(prefixes, dataSources, linkSpecifications)
     }
@@ -54,18 +55,18 @@ object ConfigLoader
         element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
     }
 
-    private def loadLinkSpecifications(node : Node, dataSources : Map[String, DataSource]) : Map[String, LinkSpecification] =
+    private def loadLinkSpecifications(node : Node, prefixes : Map[String, String], dataSources : Map[String, DataSource]) : Map[String, LinkSpecification] =
     {
-        node \ "Interlinks" \ "Interlink" map(p => (p \ "@id" text, loadLinkSpecification(p, dataSources))) toMap
+        node \ "Interlinks" \ "Interlink" map(p => (p \ "@id" text, loadLinkSpecification(p, prefixes, dataSources))) toMap
     }
 
-    private def loadLinkSpecification(node : Node, dataSources : Map[String, DataSource]) : LinkSpecification =
+    private def loadLinkSpecification(node : Node, prefixes : Map[String, String], dataSources : Map[String, DataSource]) : LinkSpecification =
     {
         //We cache all paths, so multiple equivalent paths will share the same path object
         var pathCache = collection.mutable.Map[String, Path]()
 
         new LinkSpecification(
-            node \ "LinkType" text,
+            resolveQualifiedName(node \ "LinkType" text, prefixes),
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
             loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache),
@@ -160,5 +161,15 @@ object ConfigLoader
     private def loadOutput(node : Node) : Output =
     {
         Output(node \ "@type" text, loadParams(node))
+    }
+
+    private def resolveQualifiedName(qualifiedName : String, prefixes : Map[String, String]) = qualifiedName.split(":", 2) match
+    {
+        case Array(prefix, suffix) => prefixes.get(prefix) match
+        {
+            case Some(resolvedPrefix) => resolvedPrefix + suffix
+            case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
+        }
+        case _ => throw new IllegalArgumentException("No prefix found in " + qualifiedName)
     }
 }

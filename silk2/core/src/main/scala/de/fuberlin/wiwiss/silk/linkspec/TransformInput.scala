@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.Instance
 
-
 class TransformInput(val inputs : Seq[Input], val transformer : Transformer) extends Input
 {
     require(inputs.size > 0, "Number of inputs must be > 0.")
@@ -17,5 +16,10 @@ class TransformInput(val inputs : Seq[Input], val transformer : Transformer) ext
     {
         if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
         else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
+    }
+
+    override def toString = transformer match
+    {
+        case Transformer(name, params) => "Transformer(type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
     }
 }

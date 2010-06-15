@@ -33,12 +33,12 @@ class FileOutput(val params : Map[String, String]) extends Output
         out.write(formatter.header)
     }
 
-    override def write(link : Link) : Unit =
+    override def write(link : Link, predicateUri : String) : Unit =
     {
         if((minConfidence.isEmpty || link.confidence > minConfidence.get) &&
            (maxConfidence.isEmpty || link.confidence <= maxConfidence.get))
         {
-            out.write(formatter.format(link))
+            out.write(formatter.format(link, predicateUri))
         }
     }
 

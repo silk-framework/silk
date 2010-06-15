@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.metric
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.metric._
 
-class JaroWinklerMetric(val params: Map[String, String] = Map()) extends Metric
+class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Metric
 {
     // maximum prefix length to use
     private final val MINPREFIXTESTLENGTH: Int = 4 //using value from lingpipe (was 6)

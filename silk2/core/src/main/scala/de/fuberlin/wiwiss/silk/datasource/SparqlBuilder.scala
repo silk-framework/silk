@@ -20,7 +20,7 @@ class SparqlBuilder(prefixes : Map[String, String], subjectVar : String, graphUr
 
     def addPath(path : Path) : Unit =
     {
-        val pattern = build("?" + subjectVar, path.operators)
+        val pattern = buildPath("?" + subjectVar, path.operators)
         sparqlPatterns += "OPTIONAL {\n" + pattern.replace(vars.curTempVar, vars.newValueVar(path)) + "}\n"
     }
 
@@ -38,7 +38,7 @@ class SparqlBuilder(prefixes : Map[String, String], subjectVar : String, graphUr
         sparql
     }
 
-    private def build(subjectVar : String, operators : List[PathOperator]) : String =
+    private def buildPath(subjectVar : String, operators : List[PathOperator]) : String =
     {
         if(operators.isEmpty) return ""
 
@@ -53,7 +53,7 @@ class SparqlBuilder(prefixes : Map[String, String], subjectVar : String, graphUr
 
         if(!operators.tail.isEmpty)
         {
-            return operatorSparql + build(vars.curTempVar, operators.tail)
+            return operatorSparql + buildPath(vars.curTempVar, operators.tail)
         }
         else
         {

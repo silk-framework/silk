@@ -18,8 +18,8 @@ object JaroDinstanceMetric
         val halflen: Int = ((math.min(string1.length, string2.length)) / 2) + ((math.min(string1.length, string2.length)) % 2)
 
         //get common characters
-        val common1: StringBuffer = getCommonCharacters(string1, string2, halflen)
-        val common2: StringBuffer = getCommonCharacters(string2, string1, halflen)
+        val common1 = getCommonCharacters(string1, string2, halflen)
+        val common2 = getCommonCharacters(string2, string1, halflen)
 
         //check for zero in common
         if (common1.length == 0 || common2.length == 0) {
@@ -60,15 +60,16 @@ object JaroDinstanceMetric
      * @return a string buffer of characters from string1 within string2 if they are of a given
      *         distance seperation from the position in string1
      */
-    private def getCommonCharacters(string1: String, string2: String, distanceSep: Int): StringBuffer = {
-        val returnCommons: StringBuffer = new StringBuffer
-        val copy: StringBuffer = new StringBuffer(string2)
+    private def getCommonCharacters(string1 : String, string2 : String, distanceSep : Int) : StringBuilder =
+    {
+        val returnCommons = new StringBuilder()
+        val copy = new StringBuilder(string2)
 
         var i = 0
         for (string1Char <- string1)
         {
-            var foundIt: Boolean = false
-            var j: Int = math.max(0, i - distanceSep)
+            var foundIt = false
+            var j = math.max(0, i - distanceSep)
             while (!foundIt && j < math.min(i + distanceSep + 1, string2.length))
             {
                 if (copy.charAt(j) == string1Char)
@@ -81,6 +82,7 @@ object JaroDinstanceMetric
             }
             i += 1
         }
+        
         returnCommons
     }
 }
