@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.Instance
 import xml.{NodeSeq, Elem, XML}
 
 //TODO inherit from SpraqlEndpoint
-class SparqlDataSource(val id : String, val params : Map[String, String]) extends DataSource
+class SparqlDataSource(val params : Map[String, String]) extends DataSource
 {
     require(params.contains("endpointURI"), "Parameter 'endpointURI' is required")
 
