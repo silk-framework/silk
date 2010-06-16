@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.Instance
 
-class Comparison(val weight : Int, val inputs : Seq[Input], val metric : Metric) extends Operator
+case class Comparison(weight : Int, inputs : Seq[Input], metric : Metric) extends Operator
 {
     require(inputs.size == 2, "Number of inputs must be 2. " + inputs.size + " given.")
 

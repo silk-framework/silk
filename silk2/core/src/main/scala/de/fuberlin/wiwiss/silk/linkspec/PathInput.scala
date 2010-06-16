@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 import de.fuberlin.wiwiss.silk.Instance
 import path.Path
 
-class PathInput(val path : Path) extends Input
+case class PathInput(path : Path) extends Input
 {
     override def evaluate(sourceInstance : Instance, targetInstance : Instance) =
     {

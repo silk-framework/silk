@@ -82,29 +82,29 @@ object ConfigWriter
 
     private def operatorToXml(operator : Operator) : Elem = operator match
     {
-        case aggregation : Aggregation =>
+        case Aggregation(weight, operators, Aggregator(aggregator, params)) =>
         {
-            <Aggregate type={aggregation.getClass.getSimpleName}>
-              { aggregation.operators.map(operatorToXml) }
+            <Aggregate weight={weight.toString} type={aggregator}>
+              { operators.map(operatorToXml) }
             </Aggregate>
         }
-        case comparison : Comparison =>
+        case Comparison(weight, inputs, Metric(metric, params)) =>
         {
-            <Compare metric={comparison.metric.getClass.getSimpleName}>
-              { comparison.inputs.map{input => inputToXml(input)} }
-              { comparison.metric.params.map{case (name, value) => <Param name={name} value={value} />} }
+            <Compare weight={weight.toString} metric={metric}>
+              { inputs.map{input => inputToXml(input)} }
+              { params.map{case (name, value) => <Param name={name} value={value} />} }
             </Compare>
         }
     }
 
     private def inputToXml(param : Input) : Elem = param match
     {
-        case p : PathInput => <Input path={p.path.toString} />
-        case p : TransformInput =>
+        case PathInput(path) => <Input path={path.toString} />
+        case TransformInput(inputs, Transformer(transformer, params)) =>
         {
-            <TransformInput function={p.getClass.getSimpleName}>
-              { p.inputs.map{input => inputToXml(input)} }
-              { p.transformer.params.map{case (name, value) => <Param name={name} value={value} />} }
+            <TransformInput function={transformer}>
+              { inputs.map{input => inputToXml(input)} }
+              { params.map{case (name, value) => <Param name={name} value={value} />} }
             </TransformInput>
         }
     }

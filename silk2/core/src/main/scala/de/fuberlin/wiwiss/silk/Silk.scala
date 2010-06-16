@@ -32,7 +32,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 {
     private val logger = Logger.getLogger(classOf[Silk].getName)
 
-    private val partitionCacheDir = new File("./partitionCacheTest/")
+    private val partitionCacheDir = new File("./partitionCache/")
 
     private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
     private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))

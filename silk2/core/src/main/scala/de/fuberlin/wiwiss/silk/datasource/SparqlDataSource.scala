@@ -4,13 +4,14 @@ import java.net.{URL, URLEncoder}
 import de.fuberlin.wiwiss.silk.Instance
 import xml.{NodeSeq, Elem, XML}
 
+//TODO inherit from SpraqlEndpoint
 class SparqlDataSource(val id : String, val params : Map[String, String]) extends DataSource
 {
     require(params.contains("endpointURI"), "Parameter 'endpointURI' is required")
 
     val pageSize = 1000
 
-    override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String]) = new Traversable[Instance]
+    override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) = new Traversable[Instance]
     {
         override def foreach[U](f : Instance => U) : Unit =
         {
@@ -27,6 +28,8 @@ class SparqlDataSource(val id : String, val params : Map[String, String]) extend
             //Issue queries
             for(offset <- 0 until Integer.MAX_VALUE by pageSize)
             {
+                println("Offset: " + offset)
+
                 val xml = query(sparql + "OFFSET " + offset + " LIMIT " + pageSize)
                 val results = xml \ "results" \ "result"
 

@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.Instance
 
-class TransformInput(val inputs : Seq[Input], val transformer : Transformer) extends Input
+case class TransformInput(inputs : Seq[Input], transformer : Transformer) extends Input
 {
     require(inputs.size > 0, "Number of inputs must be > 0.")
 
