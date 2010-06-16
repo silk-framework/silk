@@ -34,8 +34,8 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 
     private val partitionCacheDir = new File("./partitionCache/")
 
-    private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
-    private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))
+    private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/source/"))
+    private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/target/"))
 
     def createPartitions()
     {
@@ -48,10 +48,10 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
-        logger.info("Creating partitions of " + linkSpec.sourceDatasetSpecification.dataSource.id)
+        logger.info("Creating partitions of source")
         sourcePartitionCache.write(sourceInstances)
         
-        logger.info("Creating partitions of " + linkSpec.targetDatasetSpecification.dataSource.id)
+        logger.info("Creating partitions of target")
         targetPartitionCache.write(targetInstances)
     }
 

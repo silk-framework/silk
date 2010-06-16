@@ -18,8 +18,8 @@ object Silk
     val config = loadConfig()
     val linkSpec = config.linkSpecs.values.head
 
-    val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.sourceDatasetSpecification.dataSource.id + "/"))
-    val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/" + linkSpec.targetDatasetSpecification.dataSource.id + "/"))
+    val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/source/"))
+    val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/target/"))
 
     def main(args : Array[String])
     {

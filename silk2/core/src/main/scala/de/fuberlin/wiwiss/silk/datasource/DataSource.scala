@@ -1,21 +1,14 @@
 package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.Instance
+import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
-trait DataSource
+trait DataSource extends Strategy
 {
-    val id : String
-
-    val params : Map[String, String]
-
     def retrieve(instance : InstanceSpecification, prefixes : Map[String, String]) : Traversable[Instance]
 }
 
-object DataSource
+object DataSource extends Factory[DataSource]
 {
-    def apply(dataSourceType : String, id : String, params : Map[String, String]) : DataSource =
-    {
-        if (dataSourceType == "sparqlEndpoint") new SparqlDataSource(id, params)
-        else throw new IllegalArgumentException("DataSource type unknown: " + dataSourceType)
-    }
+    register("sparqlEndpoint", classOf[SparqlDataSource])
 }

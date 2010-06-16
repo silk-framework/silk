@@ -40,24 +40,27 @@ object ConfigWriter
             { config.prefixes.map{case (id, ns) => <Prefix id={id} namespace={ns} /> } }
           </Prefixes>
           <DataSources>
-            { config.dataSources.map{case (name, ds) => datasourceToXML(name, ds) } }
+            { config.dataSources.map{case (id, ds) => datasourceToXML(id, ds) } }
           </DataSources>
           <Interlinks>
-            { config.linkSpecs.map{case (name, ds) => linkSpecToXml(name, ds) } }
+            { config.linkSpecs.map{case (id, ds) => linkSpecToXml(id, ds) } }
           </Interlinks>
         </Silk>
     }
 
-    private def datasourceToXML(name : String, dataSource : DataSource) =
+    private def datasourceToXML(id : String, dataSource : DataSource) = dataSource match
     {
-        <DataSource id={name} type={dataSource.getClass.getSimpleName}>
-          { dataSource.params.map{case (name, value) => <Param name={name} value={value} />} }
-        </DataSource>
+        case DataSource(dataSourceType, params) =>
+        {
+            <DataSource id={id} type={dataSourceType}>
+              { params.map{case (name, value) => <Param name={name} value={value} />} }
+            </DataSource>
+        }
     }
 
-    private def linkSpecToXml(name : String, linkSpec : LinkSpecification) =
+    private def linkSpecToXml(id : String, linkSpec : LinkSpecification) =
     {
-        <Interlink>
+        <Interlink id={id}>
           <LinkType>{linkSpec.linkType}</LinkType>
 
           <SourceDataset dataSource={linkSpec.sourceDatasetSpecification.dataSource.getClass.getSimpleName} var={linkSpec.sourceDatasetSpecification.variable}>
@@ -115,10 +118,13 @@ object ConfigWriter
         case None => <Filter threshold={filter.threshold.toString} />
     }
 
-    private def outputToXml(output : Output) : Elem =
+    private def outputToXml(output : Output) : Elem = output match
     {
-        <Output type={output.getClass.getSimpleName}>
-          { output.params.map{case (name, value) => <Param name={name} value={value} /> } }
-        </Output>
+        case Output(outputType, params) =>
+        {
+            <Output type={outputType}>
+              { params.map{case (name, value) => <Param name={name} value={value} /> } }
+            </Output>
+        }
     }
 }

@@ -46,8 +46,7 @@ object ConfigLoader
     private def loadDataSources(xml : Elem) : Map[String, DataSource] =
     {
         (xml \ "DataSources" \ "DataSource")
-            .map(ds => DataSource(ds \ "@type" text, ds \ "@id" text, loadParams(ds)))
-            .map(ds => (ds.id, ds)).toMap
+            .map(ds => (ds \ "@id" text, DataSource(ds \ "@type" text, loadParams(ds)))).toMap
     }
 
     private def loadParams(element : Node) : Map[String, String] =

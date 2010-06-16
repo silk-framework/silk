@@ -1,13 +1,14 @@
 package de.fuberlin.wiwiss.silk.output
 
 import outputs.{MemoryOutput, FileOutput}
+import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
 /**
  * Represents an abstraction over an output of links.
  *
  * Implementing classes of this trait must override the write method.
  */
-trait Output
+trait Output extends Strategy
 {
     val params : Map[String, String]
 
@@ -27,15 +28,8 @@ trait Output
     def close() : Unit = {}
 }
 
-object Output
+object Output extends Factory[Output]
 {
-    def apply(outputType : String, params : Map[String, String]) : Output =
-    {
-        outputType match
-        {
-            case "file" => new FileOutput(params)
-            case "memory" => new MemoryOutput(params)
-            case _ => throw new IllegalArgumentException("No Output " + outputType + " available.")
-        }
-    }
+    register("file", classOf[FileOutput])
+    register("memory", classOf[MemoryOutput])
 }
