@@ -133,9 +133,4 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
             }
         }
     }
-
-    private object MatchTask
-    {
-
-    }
 }
