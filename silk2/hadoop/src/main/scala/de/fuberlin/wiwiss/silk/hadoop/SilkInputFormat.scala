@@ -11,10 +11,11 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
     {
         val inputSplits = new java.util.ArrayList[InputSplit]()
 
-        for(is <- 0 until Silk.sourcePartitionCache.size;
-            it <- 0 until Silk.targetPartitionCache.size)
+        for(blockIndex <- 0 until Silk.sourceCache.blockCount;
+            is <- 0 until Silk.sourceCache.partitionCount(blockIndex);
+            it <- 0 until Silk.targetCache.partitionCount(blockIndex))
         {
-            inputSplits.add(new SilkInputSplit(is, it))
+            inputSplits.add(new SilkInputSplit(blockIndex, is, it))
         }
 
         inputSplits
@@ -42,8 +43,8 @@ class SilkRecordReader extends RecordReader[NullWritable, InstancePair]
     {
         val silkInputSplit = inputSplit.asInstanceOf[SilkInputSplit]
 
-        sourceInstances = Silk.sourcePartitionCache(silkInputSplit.sourcePartition)
-        targetInstances = Silk.targetPartitionCache(silkInputSplit.targetPartition)
+        sourceInstances = Silk.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
+        targetInstances = Silk.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
 
         context.setStatus("Comparing partition " + silkInputSplit.sourcePartition + " and " + silkInputSplit.targetPartition)
     }

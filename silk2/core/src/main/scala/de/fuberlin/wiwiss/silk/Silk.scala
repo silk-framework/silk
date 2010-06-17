@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import config.{Configuration, ConfigLoader}
-import datasource.{InstanceSpecification, FilePartitionCache, PartitionCache}
+import datasource._
 import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
@@ -34,8 +34,10 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 
     private val partitionCacheDir = new File("./partitionCache/")
 
-    private val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/source/"))
-    private val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/target/"))
+    private val numBlocks = 1
+
+    private val sourceCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
+    private val targetCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
 
     def createPartitions()
     {
@@ -49,10 +51,10 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Creating partitions of source")
-        sourcePartitionCache.write(sourceInstances)
+        sourceCache.write(sourceInstances)
         
         logger.info("Creating partitions of target")
-        targetPartitionCache.write(targetInstances)
+        targetCache.write(targetInstances)
     }
 
     def generateLinks()
@@ -61,20 +63,15 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 
         val startTime = System.currentTimeMillis()
 
-        //Check if any partitions have been found
-        if(sourcePartitionCache.size == 0 || targetPartitionCache.size == 0)
-        {
-            logger.warning("No partitions found in " + partitionCacheDir)
-        }
-
         //Execute match tasks
         val executor = Executors.newFixedThreadPool(4)
         val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
-        for(sourcePartitionIndex <- 0 until sourcePartitionCache.size;
-            targetPartitionIndex <- 0 until targetPartitionCache.size)
+        for(blockIndex <- 0 until numBlocks;
+            sourcePartitionIndex <- 0 until sourceCache.partitionCount(blockIndex);
+            targetPartitionIndex <- 0 until targetCache.partitionCount(blockIndex))
         {
-            executor.submit(new MatchTask(sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
+            executor.submit(new MatchTask(blockIndex, sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
         }
 
         executor.shutdown()
@@ -105,18 +102,20 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         logger.info("Generated links in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
-    private class MatchTask(sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
+    private class MatchTask(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
     {
         override def run() : Unit =
         {
             try
             {
-                val taskNum = (sourcePartitionIndex * targetPartitionCache.size + targetPartitionIndex) + 1
-                val taskCount = sourcePartitionCache.size * targetPartitionCache.size
+                val tasksPerBlock = for(block <- 0 until numBlocks) yield sourceCache.partitionCount(block) * targetCache.partitionCount(block)
+                val taskNum = tasksPerBlock.take(blockIndex).foldLeft(sourcePartitionIndex * targetCache.partitionCount(blockIndex) + targetPartitionIndex + 1)(_ + _)
+                val taskCount = tasksPerBlock.reduceLeft(_ + _)
+
                 logger.info("Starting task " + taskNum + " of " + taskCount)
 
-                for(sourceInstance <- sourcePartitionCache(sourcePartitionIndex);
-                    targetInstance <- targetPartitionCache(targetPartitionIndex))
+                for(sourceInstance <- sourceCache.read(blockIndex, sourcePartitionIndex);
+                    targetInstance <- targetCache.read(blockIndex, targetPartitionIndex))
                 {
                     val confidence = linkSpec.condition.evaluate(sourceInstance, targetInstance).headOption.getOrElse(0.0)
 
@@ -133,5 +132,10 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
                 case ex : Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
             }
         }
+    }
+
+    private object MatchTask
+    {
+
     }
 }

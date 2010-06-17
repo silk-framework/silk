@@ -7,8 +7,8 @@ import org.apache.hadoop.mapreduce._
 import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import org.apache.hadoop.io.{NullWritable, Text}
-import de.fuberlin.wiwiss.silk.datasource.{PartitionCache, FilePartitionCache}
 import de.fuberlin.wiwiss.silk.config.{ConfigLoader, Configuration}
+import de.fuberlin.wiwiss.silk.datasource.{InstanceCache, FileInstanceCache}
 
 object Silk
 {
@@ -18,8 +18,8 @@ object Silk
     val config = loadConfig()
     val linkSpec = config.linkSpecs.values.head
 
-    val sourcePartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/source/"))
-    val targetPartitionCache : PartitionCache = new FilePartitionCache(new File(partitionCacheDir + "/target/"))
+    val sourceCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"))
+    val targetCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"))
 
     def main(args : Array[String])
     {
