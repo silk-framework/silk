@@ -10,6 +10,9 @@ import de.fuberlin.wiwiss.silk.Instance
  */
 class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
+    require(blockCount >= 0, "blockCount must be greater than 0 (blockCount=" + blockCount + ")")
+    require(maxPartitionSize >= 0, "maxPartitionSize must be greater than 0 (maxPartitionSize=" + maxPartitionSize + ")")
+
     private val logger = Logger.getLogger(getClass.getName)
 
     private val blocks = (for(i <- 0 until blockCount) yield new BlockReader(i)).toArray

@@ -3,34 +3,34 @@ package de.fuberlin.wiwiss.silk.datasource
 import java.net.{URL, URLEncoder}
 import de.fuberlin.wiwiss.silk.Instance
 import xml.{NodeSeq, Elem, XML}
+import de.fuberlin.wiwiss.silk.util.SparqlEndpoint
 
-//TODO inherit from SpraqlEndpoint
 class SparqlDataSource(val params : Map[String, String]) extends DataSource
 {
-    require(params.contains("endpointURI"), "Parameter 'endpointURI' is required")
+    private val endpoint = new SparqlEndpoint(
+                                   uri = readRequiredParam("endpointURI"),
+                                   pauseTime = readOptionalIntParam("pauseTime").getOrElse(0),
+                                   retryCount = readOptionalIntParam("retryCount").getOrElse(3),
+                                   retryPause = readOptionalIntParam("retryPause").getOrElse(1000)
+                               )
 
-    val pageSize = 1000
+    val pageSize = readOptionalIntParam("pageSize").getOrElse(1000)
 
     override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) = new Traversable[Instance]
     {
         override def foreach[U](f : Instance => U) : Unit =
         {
             //Create SPARQL query
-            val builder = new SparqlBuilder(prefixes, instanceSpec.variable, params.get("graph"))
-            builder.addRestriction(instanceSpec.restrictions)
+            val builder = new SparqlBuilder(prefixes, instanceSpec.variable, params.get("graph"), instanceSpec.restrictions)
             for(path <- instanceSpec.paths) builder.addPath(path)
             val sparql = builder.build
-
-            println(sparql)
 
             val reader = new SparqlReader(instanceSpec, f)
 
             //Issue queries
             for(offset <- 0 until Integer.MAX_VALUE by pageSize)
             {
-                println("Offset: " + offset)
-
-                val xml = query(sparql + "OFFSET " + offset + " LIMIT " + pageSize)
+                val xml = endpoint.query(sparql + "OFFSET " + offset + " LIMIT " + pageSize)
                 val results = xml \ "results" \ "result"
 
                 if(results.isEmpty)
@@ -43,11 +43,6 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
                 }
             }
         }
-    }
-
-    private def query(query : String) : Elem =
-    {
-        XML.load(new URL(params("endpointURI") + "?format=application/rdf+xml&query=" + URLEncoder.encode(query, "UTF-8")))
     }
 
     class SparqlReader[U](instanceSpec : InstanceSpecification, f : Instance => U)

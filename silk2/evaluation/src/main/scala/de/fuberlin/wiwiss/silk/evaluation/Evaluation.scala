@@ -21,6 +21,9 @@ object Evaluation
         val evalAlignments = AlignmentReader.read(evalFile).toSet
         val referenceAlignments = AlignmentReader.read(referenceFile).toSet
 
+        println("Evaluation aligments: " + evalAlignments.size)
+        println("Reference aligments: " + referenceAlignments.size)
+
         println(evaluate(evalAlignments, referenceAlignments))
         printDiff(evalAlignments, referenceAlignments)
     }

@@ -5,18 +5,11 @@ import de.fuberlin.wiwiss.silk.linkspec.path._
 /**
  * Builds SPARQL expressions.
  */
-class SparqlBuilder(prefixes : Map[String, String], subjectVar : String, graphUri : Option[String])
+class SparqlBuilder(prefixes : Map[String, String], subjectVar : String, graphUri : Option[String], restrictions : String)
 {
     private var vars = new Vars
 
-    private var restrictions = ""
-
     private var sparqlPatterns = ""
-
-    def addRestriction(restriction : String) : Unit =
-    {
-        restrictions += (restriction + " .\n")
-    }
 
     def addPath(path : Path) : Unit =
     {
@@ -31,7 +24,7 @@ class SparqlBuilder(prefixes : Map[String, String], subjectVar : String, graphUr
         sparql += "SELECT DISTINCT ?" + subjectVar + " " + vars.valueVars.mkString(" ") + "\n"
         for(graph <- graphUri) sparql += "FROM <" + graph + ">\n"
         sparql += "WHERE {\n"
-        sparql += restrictions
+        sparql += restrictions + "\n"
         sparql += sparqlPatterns
         sparql += "}"
 
