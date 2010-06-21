@@ -22,9 +22,7 @@ class SparqlBuilder(endpoint : SparqlEndpoint, pageSize : Int, graphUri : Option
 
         val subjectVar = subject.map("<" + _ + ">").getOrElse("?" + instanceSpec.variable)
 
-        val pathPatterns = instanceSpec.paths.map(path => buildPath(subjectVar, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path)))
-                                             .mkString("OPTIONAL {\n", "", "}\n")
-
+        val pathPatterns = instanceSpec.paths.map(path => "OPTIONAL {\n" + buildPath(subjectVar, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path)) + "}\n").mkString
 
         //Prefixes
         var sparql = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
