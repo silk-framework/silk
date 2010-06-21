@@ -35,7 +35,7 @@ object AlignmentReader
     def readN3Debug(file : File) : Traversable[Alignment] =
      {
          val source = Source.fromFile(file)
-         for(N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines("\n").toList) yield
+         for(N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines().toList) yield
          {
              new Alignment(sourceUri, targetUri, confidence.toDouble)
          }
