@@ -3,26 +3,20 @@ package de.fuberlin.wiwiss.silk.datasource
 import de.fuberlin.wiwiss.silk.linkspec.path._
 import de.fuberlin.wiwiss.silk.Instance
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.util.SparqlEndpoint
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlPathBuilder, Node, SparqlEndpoint}
 
 /**
  * Builds SPARQL expressions.
  */
 class SparqlBuilder(endpoint : SparqlEndpoint, pageSize : Int, graphUri : Option[String] = None)
 {
-    private val ValueVarPrefix = "?v"
-
-    private val TempVarPrefix = "?t"
-
-    private val FilterVarPrefix = "?f"
+    private val varPrefix = "v"
 
     def execute(instanceSpec : InstanceSpecification, subject : Option[String] = None, prefixes : Map[String, String] = Map.empty) : Traversable[Instance] =
     {
-        val vars = new Vars
-
         val subjectVar = subject.map("<" + _ + ">").getOrElse("?" + instanceSpec.variable)
 
-        val pathPatterns = instanceSpec.paths.map(path => "OPTIONAL {\n" + buildPath(subjectVar, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path)) + "}\n").mkString
+        val pathPatterns = SparqlPathBuilder(instanceSpec.paths, subjectVar, "?" + varPrefix)
 
         //Prefixes
         var sparql = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
@@ -30,7 +24,7 @@ class SparqlBuilder(endpoint : SparqlEndpoint, pageSize : Int, graphUri : Option
         //Select
         sparql += "SELECT DISTINCT "
         sparql += (if(subject.isEmpty) "?" + instanceSpec.variable + " " else "")
-        sparql += vars.valueVars.mkString(" ") + "\n"
+        sparql += instanceSpec.paths.map("?" + varPrefix + _.id).mkString(" ") + "\n"
 
         //Graph
         for(graph <- graphUri) sparql += "FROM <" + graph + ">\n"
@@ -41,138 +35,57 @@ class SparqlBuilder(endpoint : SparqlEndpoint, pageSize : Int, graphUri : Option
         sparql += pathPatterns
         sparql += "}"
 
-        new InstanceTraversable(sparql, instanceSpec, subject)
+        val sparqlResults = endpoint.query(sparql)
+
+        new InstanceTraversable(sparqlResults, instanceSpec, subject)
     }
 
-    private def buildPath(subject : String, operators : List[PathOperator], vars : Vars) : String =
-    {
-        if(operators.isEmpty) return ""
-
-        val operatorSparql = operators.head match
-        {
-            case ForwardOperator(property) => subject + " " + property + " " + vars.newTempVar + " .\n"
-            case BackwardOperator(property) => vars.newTempVar + " " + property + " " + subject + " .\n"
-            case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " " + lang + ") . \n"
-            case PropertyFilter(property, op, value) => subject + " " + property + " " + vars.newFilterVar + " .\n" +
-                                                        "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
-        }
-
-        if(!operators.tail.isEmpty)
-        {
-            return operatorSparql + buildPath(vars.curTempVar, operators.tail, vars)
-        }
-        else
-        {
-            return operatorSparql
-        }
-    }
-
-    private class Vars
-    {
-        private var tempVarIndex = 0
-
-        private var filterVarIndex = 0
-
-        var valueVars = Set[String]()
-
-        def newTempVar : String = { tempVarIndex += 1; TempVarPrefix + tempVarIndex }
-
-        def curTempVar : String = TempVarPrefix + tempVarIndex
-
-        def newFilterVar : String = { filterVarIndex += 1; FilterVarPrefix + tempVarIndex }
-
-        def curFilterVar : String = FilterVarPrefix + filterVarIndex
-
-        def newValueVar(path : Path) : String =
-        {
-            val valueVar = ValueVarPrefix + path.id
-            valueVars += valueVar
-            valueVar
-        }
-    }
-
-    private class InstanceTraversable(sparql : String, instanceSpec : InstanceSpecification, subject : Option[String]) extends Traversable[Instance]
+    /**
+     * Wraps a Traversable of SPARQL results and retrieves instances from them.
+     */
+    private class InstanceTraversable(sparqlResults : Traversable[Map[String, Node]], instanceSpec : InstanceSpecification, subject : Option[String]) extends Traversable[Instance]
     {
         override def foreach[U](f : Instance => U) : Unit =
         {
-            //Create SPARQL query
-            val reader = new SparqlReader(instanceSpec, subject, f)
+            //Remember current subject
+            var curSubject : String = subject.getOrElse(null)
 
-            //Issue queries
-            for(offset <- 0 until Integer.MAX_VALUE by pageSize)
+            //Collect values of the current subject
+            val values = collection.mutable.HashMap[Int, Set[String]]()
+
+            for(result <- sparqlResults)
             {
-                val xml = endpoint.query(sparql + " OFFSET " + offset + " LIMIT " + pageSize)
-
-                val results = xml \ "results" \ "result"
-
-                if(reader.read(results)) return
-            }
-        }
-    }
-
-    private class SparqlReader[U](instanceSpec : InstanceSpecification, subject : Option[String], f : Instance => U)
-    {
-        //Remember current subject
-        var curSubject : String = subject.getOrElse(null)
-
-        //Collect values of the current subject
-        val values = collection.mutable.HashMap[Int, Set[String]]()
-
-        /**
-         * Reads the Query Results
-         *
-         * @param results The query results in the SPARQL Query Results Format
-         * @returns True, if this was the last query result 
-         */
-        def read(results : NodeSeq) : Boolean =
-        {
-            for(result <- results)
-            {
-                val bindings = result \ "binding"
-
                 //If the subject is unknown, find binding for subject variable
                 if(subject.isEmpty)
                 {
-                    for(subjectBinding <- bindings.find(binding => (binding \ "@name").text.trim == instanceSpec.variable))
+                    //Check if we are still reading values for the current subject
+                    val resultSubject = result.get(instanceSpec.variable).get
+                    if(resultSubject != curSubject)
                     {
-                        val subject = subjectBinding.head.text.trim
-
-                        //Check if we are still reading values for the current subject
-                        if(subject != curSubject)
+                        if(curSubject != null)
                         {
-                            if(curSubject != null)
-                            {
-                                f(new Instance(instanceSpec.variable, curSubject, values.toMap))
-                            }
-
-                            curSubject = subject
-                            values.clear()
+                            f(new Instance(instanceSpec.variable, curSubject, values.toMap))
                         }
+
+                        curSubject = resultSubject.value
+                        values.clear()
                     }
                 }
-
-                //Find bindings for values for the current subject
-                for(binding <- bindings;
-                    varNode <- binding \ "@name";
-                    varName = varNode.text if varName.startsWith("v"))
+                
+                //Find results for values for the current subject
+                for((variable, node) <- result if variable.startsWith(varPrefix))
                 {
-                    val id = varName.tail.toInt
-                    val varValue = binding.head.text.trim
+                    val id = variable.substring(varPrefix.length).toInt
 
                     val oldVarValues = values.get(id).getOrElse(Set())
 
-                    values(id) = oldVarValues + varValue
+                    values(id) = oldVarValues + node.value
                 }
             }
 
-            if(results.size < pageSize)
+            if(!values.isEmpty)
             {
                 f(new Instance(instanceSpec.variable, curSubject, values.toMap))
-                true
-            }
-            else
-            {
-                false
             }
         }
     }
