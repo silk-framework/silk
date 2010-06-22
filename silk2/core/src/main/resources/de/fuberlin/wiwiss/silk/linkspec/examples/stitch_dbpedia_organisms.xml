@@ -13,6 +13,7 @@
     <DataSources>
         <DataSource id="dbpedia" type="sparqlEndpoint">
             <Param name="endpointURI" value="http://dbpedia.org/sparql" />
+            <Param name="retryCount" value="100" />
         </DataSource>
 
         <DataSource id="stitch" type="sparqlEndpoint">
@@ -40,7 +41,7 @@
                 <Aggregate type="max">
                     <Compare metric="jaroWinkler">
                         <TransformInput function="lowerCase">
-                            <Input path="?a/rdfs:label" />
+                            <Input path="?a/rdfs:label[@lang = 'en']" />
                         </TransformInput>
                         <TransformInput function="lowerCase">
                             <Input path="?b/rdfs:label" />
