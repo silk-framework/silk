@@ -35,12 +35,13 @@ class SparqlEndpoint(val uri : String, val pageSize : Int = 1000, val pauseTime 
 
                 for(resultXml <- resultsXml)
                 {
-                    val bindings = resultXml \ "binding"
+                    val values = for(binding <- resultXml \ "binding"; node <- binding \ "_") yield node.label match
+                    {
+                        case "uri" => (binding \ "@name" text, new Literal(node.text))
+                        case _ => (binding \ "@name" text, new Resource(node.text))
+                    }
 
-                    val resources = bindings.map(binding => (binding \ "@name" text, new Resource(binding \ "uri" text))).toMap
-                    val literals = bindings.map(binding => (binding \ "@name" text, new Literal(binding \ "literal" text))).toMap
-
-                    f(resources ++ literals)
+                    f(values.toMap)
                 }
 
                 if(resultsXml.size < pageSize) return
