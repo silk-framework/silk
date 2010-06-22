@@ -69,7 +69,7 @@
                 </Aggregate>
             </LinkCondition>
 
-            <Filter threshold="0.99" limit="1" />
+            <Filter threshold="0.97" />
 
             <Outputs>
                 <Output type="file">
