@@ -11,8 +11,13 @@ import java.util.logging.{Level, Logger}
 
 object Silk
 {
+    private val logger = Logger.getLogger(Silk.getClass.getName)
+
     def main(args : Array[String])
     {
+        val startTime = System.currentTimeMillis()
+        logger.info("Silk started")
+
         val configFile = System.getProperty("configFile") match
         {
             case fileName : String => new File(fileName)
@@ -23,8 +28,10 @@ object Silk
         val linkSpec = config.linkSpecs.values.head
 
         val silk = new Silk(config, linkSpec)
-        silk.createPartitions()
+        silk.load()
         silk.generateLinks()
+
+        logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 }
 
@@ -39,8 +46,11 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
     private val sourceCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
     private val targetCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
 
-    def createPartitions()
+    def load()
     {
+        val startTime = System.currentTimeMillis()
+        logger.info("Loading instances")
+
         //Create instance specifications
         val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
         println(sourceInstanceSpec)
@@ -50,18 +60,19 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
-        logger.info("Creating partitions of source")
+        logger.info("Loading instances of source dataset")
         sourceCache.write(sourceInstances)
         
-        logger.info("Creating partitions of target")
+        logger.info("Loading instances of target dataset")
         targetCache.write(targetInstances)
+
+        logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
     def generateLinks()
     {
-        logger.info("Generating links")
-
         val startTime = System.currentTimeMillis()
+        logger.info("Generating links")
 
         //Execute match tasks
         val executor = Executors.newFixedThreadPool(4)
