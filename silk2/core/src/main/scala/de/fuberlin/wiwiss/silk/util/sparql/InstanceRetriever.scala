@@ -69,9 +69,9 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
     def retrieve(instanceUri : String, instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) : Option[Instance] =
     {
         //Query 5 paths at once and combine the result into one
-        val pathGroups = instanceSpec.paths.toSeq.grouped(5).toTraversable
+        val pathGroups = instanceSpec.paths.toList.grouped(5).toList
 
-        val sparqlResults = pathGroups.view.flatMap(pathGroup => retrievePaths(instanceUri, pathGroup, prefixes))
+        val sparqlResults = pathGroups.flatMap(pathGroup => retrievePaths(instanceUri, pathGroup, prefixes))
 
         new InstanceTraversable(sparqlResults, instanceSpec, Some(instanceUri)).headOption
     }
