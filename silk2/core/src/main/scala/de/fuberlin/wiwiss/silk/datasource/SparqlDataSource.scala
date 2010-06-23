@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.util.sparql.SparqlEndpoint
-import de.fuberlin.wiwiss.silk.Instance
+import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, SparqlEndpoint}
 
 /**
  * DataSource which retrieves all instances from a SPARQL endpoint
@@ -30,17 +29,17 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
 
     private val instanceList = readOptionalParam("instanceList").getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
-    private val sparqlExecutor = new SparqlBuilder(endpoint, pageSize, graphUri)
+    private val instanceRetriever = new InstanceRetriever(endpoint, pageSize, graphUri)
 
     override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) =
     {
         if(instanceList.isEmpty)
         {
-            sparqlExecutor.execute(instanceSpec, None, prefixes)
+            instanceRetriever.retrieveAll(instanceSpec, prefixes)
         }
         else
         {
-            for(instance <- instanceList.view) yield sparqlExecutor.execute(instanceSpec, Some(instance), prefixes).head
+            instanceRetriever.retrieveList(instanceList, instanceSpec, prefixes)
         }
     }
 }
