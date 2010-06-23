@@ -57,7 +57,7 @@
         <xs:element name="Prefixes">
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="unbounded" name="Prefix">
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="Prefix">
                 <xs:complexType>
                   <xs:attribute name="id" type="xs:string" use="required" />
                   <xs:attribute name="namespace" type="xs:string" use="required" />
