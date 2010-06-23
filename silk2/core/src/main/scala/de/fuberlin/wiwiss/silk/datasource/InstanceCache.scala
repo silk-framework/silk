@@ -2,6 +2,9 @@ package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.Instance
 
+/**
+ * A cache of instances.
+ */
 trait InstanceCache
 {
     /**

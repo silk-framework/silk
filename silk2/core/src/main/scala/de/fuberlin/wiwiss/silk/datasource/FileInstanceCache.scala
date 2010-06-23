@@ -154,7 +154,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
                 stream.close()
             }
 
-            logger.info("Written partition " + partitionCount)
+            logger.info("Written partition " + partitionCount + " of block " + block)
             partitionCount += 1
         }
     }

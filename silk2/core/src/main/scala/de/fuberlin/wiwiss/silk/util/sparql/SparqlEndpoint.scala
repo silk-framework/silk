@@ -37,8 +37,9 @@ class SparqlEndpoint(val uri : String, val pageSize : Int = 1000, val pauseTime 
                 {
                     val values = for(binding <- resultXml \ "binding"; node <- binding \ "_") yield node.label match
                     {
-                        case "uri" => (binding \ "@name" text, new Literal(node.text))
-                        case _ => (binding \ "@name" text, new Resource(node.text))
+                        case "uri" => (binding \ "@name" text, new Resource(node.text))
+                        case "literal" => (binding \ "@name" text, new Literal(node.text))
+                        case label => throw new RuntimeException("Unsupported element: <" + label + "> in SPARQL result binding")
                     }
 
                     f(values.toMap)
