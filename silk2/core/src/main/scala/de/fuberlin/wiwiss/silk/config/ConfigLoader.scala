@@ -79,7 +79,7 @@ object ConfigLoader
         val datasourceName = node \ "@dataSource" text
         
         new DatasetSpecification(
-            dataSources.get(datasourceName).getOrElse(throw new ValidationException("Datasource " + datasourceName + "not defined.")),
+            dataSources.get(datasourceName).getOrElse(throw new ValidationException("Datasource " + datasourceName + " not defined.")),
             node \ "@var" text,
             (node \ "RestrictTo").text.trim 
             )
@@ -162,13 +162,23 @@ object ConfigLoader
         Output(node \ "@type" text, loadParams(node))
     }
 
-    private def resolveQualifiedName(qualifiedName : String, prefixes : Map[String, String]) = qualifiedName.split(":", 2) match
+    private def resolveQualifiedName(name : String, prefixes : Map[String, String]) =
     {
-        case Array(prefix, suffix) => prefixes.get(prefix) match
+        if(name.startsWith("<") && name.endsWith(">"))
         {
-            case Some(resolvedPrefix) => resolvedPrefix + suffix
-            case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
+            name.substring(1, name.length - 1)
         }
-        case _ => throw new IllegalArgumentException("No prefix found in " + qualifiedName)
+        else
+        {
+            name.split(":", 2) match
+            {
+                case Array(prefix, suffix) => prefixes.get(prefix) match
+                {
+                    case Some(resolvedPrefix) => resolvedPrefix + suffix
+                    case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
+                }
+                case _ => throw new IllegalArgumentException("No prefix found in " + name)
+            }
+        }
     }
 }

@@ -27,6 +27,6 @@ private object PathParser extends RegexParsers
     private def langFilter = "@lang" ~> compOperator ~ literal ^^ { case op ~ lang => LanguageFilter(op, lang) }
     private def propFilter = literal ~ compOperator ~ literal ^^ { case prop ~ op ~ value => PropertyFilter(prop, op, value) }
 
-    private def literal = """[^\\/\[\] ]+""".r
+    private def literal = """<[^>]+>|[^\\/\[\] ]+""".r
     private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
 }

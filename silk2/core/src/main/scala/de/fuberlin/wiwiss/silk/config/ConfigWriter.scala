@@ -6,7 +6,6 @@ import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkspec._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 
-//TODO write correct types
 object ConfigWriter
 {
     def write(config : Configuration, file : File)
@@ -63,11 +62,11 @@ object ConfigWriter
         <Interlink id={id}>
           <LinkType>{linkSpec.linkType}</LinkType>
 
-          <SourceDataset dataSource={linkSpec.sourceDatasetSpecification.dataSource.getClass.getSimpleName} var={linkSpec.sourceDatasetSpecification.variable}>
+          <SourceDataset dataSource="source" var={linkSpec.sourceDatasetSpecification.variable}>
             <RestrictTo>{linkSpec.sourceDatasetSpecification.restriction}</RestrictTo>
           </SourceDataset>
 
-          <TargetDataset dataSource={linkSpec.targetDatasetSpecification.dataSource.getClass.getSimpleName} var={linkSpec.targetDatasetSpecification.variable}>
+          <TargetDataset dataSource="target" var={linkSpec.targetDatasetSpecification.variable}>
             <RestrictTo>{linkSpec.targetDatasetSpecification.restriction}</RestrictTo>
           </TargetDataset>
 

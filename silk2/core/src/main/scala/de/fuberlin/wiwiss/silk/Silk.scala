@@ -39,7 +39,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 {
     private val logger = Logger.getLogger(classOf[Silk].getName)
 
-    private val partitionCacheDir = new File("./partitionCache/")
+    private val partitionCacheDir = new File("./instanceCache/")
 
     private val numBlocks = 1
 
