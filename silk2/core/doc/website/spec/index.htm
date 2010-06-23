@@ -147,7 +147,6 @@ UL.toc LI LI {
 }
 </STYLE>
 
-<META content="MSHTML 6.00.6001.18183" name=GENERATOR>
 </HEAD>
 <BODY>
 <DIV class=head>
@@ -156,14 +155,14 @@ UL.toc LI LI {
 <DL>
   <DT>This Version:
   <DD>
-    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/</a> </p>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/</a> </p> <!-- TODO: change date and create folder -->
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/</a><DT>
   <DT>Authors:
   <DD><A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A> (Technische Universität Chemnitz, Germany)
   <DD>
   <DD><A
-  href="http://www.wiwiss.fu-berlin.de/suhl/ueber_uns/team/chris_bizer.htm"
+  href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html"
   target=_blank>Chris Bizer</A> (Freie Universität Berlin, Germany)
   <DD>
   <DD><a href="mailto:gaedke@cs.tu-chemnitz.de">Martin Gaedke</a> (Technische Universität Chemnitz, Germany)
@@ -237,51 +236,69 @@ UL.toc LI LI {
 <p>The example below gives an overview of the main language constructs of Silk-LSL.</p>
 <pre>&lt;Silk&gt;
 
-  &lt;Prefix id=&quot;rdfs&quot; namespace=&quot;http://www.w3.org/2000/01/rdf-schema#&quot; /&gt;
-  &lt;Prefix id=&quot;dbpedia&quot; namespace=&quot;http://dbpedia.org/ontology/&quot; /&gt;
-  &lt;Prefix id=&quot;gn&quot; namespace=&quot;http://www.geonames.org/ontology#&quot; /&gt;
+  &lt;Prefixes&gt;
+    &lt;Prefix id=&quot;rdfs&quot; namespace=&quot;http://www.w3.org/2000/01/rdf-schema#&quot; /&gt;
+    &lt;Prefix id=&quot;dbpedia&quot; namespace=&quot;http://dbpedia.org/ontology/&quot; /&gt;
+    &lt;Prefix id=&quot;gn&quot; namespace=&quot;http://www.geonames.org/ontology#&quot; /&gt;
+  &lt;/Prefixes&gt;
 
-  &lt;DataSource id=&quot;dbpedia&quot;&gt;
-    &lt;EndpointURI&gt;http://demo_sparql_server1/sparql&lt;/EndpointURI&gt;
-    &lt;Graph&gt;http://dbpedia.org&lt;/Graph&gt;
-  &lt;/DataSource&gt;
+  &lt;DataSources&gt;
+    &lt;DataSource id=&quot;dbpedia&quot;&gt;
+      &lt;EndpointURI&gt;http://demo_sparql_server1/sparql&lt;/EndpointURI&gt;
+      &lt;Graph&gt;http://dbpedia.org&lt;/Graph&gt;
+    &lt;/DataSource&gt;
 
-  &lt;DataSource id=&quot;geonames&quot;&gt;
-    &lt;EndpointURI&gt;http://demo_sparql_server2/sparql&lt;/EndpointURI&gt;
-    &lt;Graph&gt;http://sws.geonames.org/&lt;/Graph&gt;
-  &lt;/DataSource&gt;
+    &lt;DataSource id=&quot;geonames&quot;&gt;
+      &lt;EndpointURI&gt;http://demo_sparql_server2/sparql&lt;/EndpointURI&gt;
+      &lt;Graph&gt;http://sws.geonames.org/&lt;/Graph&gt;
+    &lt;/DataSource&gt;
+  &lt;/DataSources&gt;
 
-  &lt;Interlink id=&quot;cities&quot;&gt;
-    &lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;
+  &lt;Interlinks&gt;
+    &lt;Interlink id=&quot;cities&quot;&gt;
+      &lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;
 
-    &lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
-      &lt;RestrictTo&gt;
-         ?a rdf:type dbpedia:City
-      &lt;/RestrictTo&gt;
-    &lt;/SourceDataset&gt;
+      &lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
+        &lt;RestrictTo&gt;
+          ?a rdf:type dbpedia:City
+        &lt;/RestrictTo&gt;
+      &lt;/SourceDataset&gt;
 
-    &lt;TargetDataset dataSource=&quot;geonames&quot; var=&quot;b&quot;&gt;
-      &lt;RestrictTo&gt;
-        ?b rdf:type gn:P
-      &lt;/RestrictTo&gt;
-    &lt;/TargetDataset&gt;
+      &lt;TargetDataset dataSource=&quot;geonames&quot; var=&quot;b&quot;&gt;
+        &lt;RestrictTo&gt;
+          ?b rdf:type gn:P
+        &lt;/RestrictTo&gt;
+      &lt;/TargetDataset&gt;
 
-    &lt;LinkCondition&gt;
-      &lt;AVG&gt;
-        &lt;Compare metric=&quot;jaroSimilarity&quot;&gt;
-          &lt;Param name=&quot;str1&quot; path=&quot;?a/rdfs:label&quot; /&gt;
-          &lt;Param name=&quot;str2&quot; path=&quot;?b/gn:name&quot; /&gt;
-        &lt;/Compare&gt;
-        &lt;Compare metric=&quot;numSimilarity&quot;&gt;
-          &lt;Param name=&quot;num1&quot; path=&quot;?city1/dbpedia:populationTotal&quot; /&gt;
-          &lt;Param name=&quot;num2&quot; path=&quot;?city2/gn:population&quot; /&gt;
-        &lt;/Compare&gt;
-      &lt;/AVG&gt;
-    &lt;/LinkCondition&gt;
+      &lt;LinkCondition&gt;
+        &lt;Aggregate type=&quot;average&quot;&gt;
+          &lt;Compare metric=&quot;jaro&quot;&gt;
+            &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+            &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+          &lt;/Compare&gt;
+          &lt;Compare metric=&quot;num&quot;&gt;
+            &lt;Input path=&quot;?city1/dbpedia:populationTotal&quot; /&gt;
+            &lt;Input path=&quot;?city2/gn:population&quot; /&gt;
+          &lt;/Compare&gt;
+        &lt;/Aggregate&gt;
+      &lt;/LinkCondition&gt;
 
-    &lt;Thresholds accept=&quot;0.9&quot; verify=&quot;0.7&quot; /&gt;
-    &lt;Output acceptedLinks=&quot;accepted_links.n3&quot; verifyLinks=&quot;verify_links.n3&quot; mode=&quot;truncate&quot; /&gt;
-  &lt;/Interlink&gt;
+      &lt;Filter threshold=&quot;0.9&quot; /&gt;
+
+      &lt;Outputs&gt;
+        &lt;Output type=&quot;file&quot;&gt;
+          &lt;Param name=&quot;minConfidence&quot; value=&quot;0.95&quot; /&gt;
+          &lt;Param name=&quot;file&quot; value=&quot;accepted_links.nt&quot; /&gt;
+          &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot; /&gt;
+        &lt;/Ouput&gt;
+        &lt;Output type=&quot;file&quot;&gt;
+          &lt;Param name=&quot;maxConfidence&quot; value=&quot;0.95&quot; /&gt;
+          &lt;Param name=&quot;file&quot; value=&quot;verify_links.nt&quot; /&gt;
+          &lt;Param name=&quot;format&quot; value=&quot;alignment&quot; /&gt;
+        &lt;/Ouput&gt;
+      &lt;/Outputs&gt;
+    &lt;/Interlink&gt;
+  &lt;/Interlinks&gt;
 
 &lt;/Silk&gt;</p></pre>
 <H2><A name=toplevel></A>2.1 Structure and Elements</H2>
@@ -293,7 +310,7 @@ The Silk-LSL is expressed in XML. The root tag name is <TT>&lt;Silk&gt;</TT>. A 
   <li>link specifications and</li>
   <li>output definitions</li>
 </ul>
-<PRE>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+<PRE>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
 &lt;Silk&gt;
     &lt;Prefixes ... /&gt;
       ...
@@ -311,12 +328,12 @@ The Silk-LSL is expressed in XML. The root tag name is <TT>&lt;Silk&gt;</TT>. A 
 prefix to a namespace, as in SPARQL/Turtle/RDF-XML, etc.:</P>
 
 <PRE>&lt;Prefixes&gt
-  &lt;Prefix id="<em>prefix id</em>" namespace="<em>namespace URI</em>" /&gt;
+  &lt;Prefix id=&quot;<em>prefix id</em>&quot; namespace=&quot;<em>namespace URI</em>&quot; /&gt;
 &lt;/Prefixes&gt</PRE>
 <P>Example:</P>
 
 <PRE>&lt;Prefixes&gt
-  &lt;Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" /&gt;
+  &lt;Prefix id=&quot;rdf&quot; namespace=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot; /&gt;
 &lt;/Prefixes&gt</PRE>
 
 <P>The defined prefixes may be used in the <tt>&lt;RestrictTo&gt;</tt> SPARQL clauses of link
@@ -326,11 +343,19 @@ specifications and in RDF paths.</P>
 of access parameters to local or remote SPARQL endpoint<!-- list other new oppurtunities -->. The defined data sources may later be
 referred to and used by their ID within link specification statements.</P>
 
-<PRE>&lt;DataSource id="<em>dataSource id</em>" type="<em>dataSource type</em>"&gt;
+<PRE>&lt;DataSource id="<em>dataSource id</em>" type="<em>dataSource type</em>"&gt
   &lt;Param name="<em>parameter name</em>" value="<em>parameter value</em>" /&gt;
 &lt;/DataSource&gt;
 </PRE>
 
+For SPARQL endpoints (dataSource type <tt>sparqlEndpoint</tt>) the following parameters exist:
+<ul>
+  <li><tt>endpointURI</tt> (mandatory)</li>
+  <li><tt>graph</tt></li>
+  <li><tt>pauseTime</tt></li>
+  <li><tt>retryCount</tt></li>
+  <li><tt>retryPause</tt></li>
+</ul>
 <!--<em>SPARQL URI&lt;/EndpointURI</em>&gt;
     [&lt;Graph&gt;<em>graph name</em>&lt;/Graph&gt;]
     [&lt;DoCache&gt;<em>1|0</em>&lt;/DoCache&gt;]
@@ -340,25 +365,14 @@ referred to and used by their ID within link specification statements.</P>
     [&lt;RetryPause&gt;<em>retry pause time in milliseconds</em>&lt;/RetryPause&gt;]
 -->
 <P>Example:</P>
-<PRE>&lt;DataSource id="dbpedia"&gt;
-    &lt;EndpointURI&gt;http://dbpedia.org/sparql&lt;/EndpointURI&gt;
-    &lt;Graph&gt;http://dbpedia.org/resource/&lt;/Graph&gt;
-    &lt;DoCache&gt;0&lt;/DoCache&gt;
-    &lt;PageSize&gt;1000&lt;/PageSize&gt;
-    &lt;Pause&gt;1000&lt;/Pause&gt;
-&lt;/DataSource&gt;
-</PRE>
-<P>The <tt>&lt;DoCache&gt;</tt> statement can be set to either <tt>0</tt> (false) or <tt>1</tt> (true) to
-indicate to the engine whether RDF path evaluations for this dataset should be
-cached. This only has a performance impact. By default, evaluations are cached.</p>
+<PRE>&lt;DataSource id=&quot;dbpedia&quot; type=&quot;sparqlEndpoint&quot;&gt;
+  &lt;Param name=&quot;endpointURI&quot; value=&quot;http://dbpedia.org/sparql&quot; /&gt;
+  &lt;Param name=&quot;retryCount&quot; value=&quot;100&quot; /&gt;
+&lt;/DataSource&gt;</PRE>
+<p>The optional <tt>PageSize</tt> element limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses. </P>
+<p>To allow rate-limiting of queries to public SPARQL severs, the <tt>pauseTime</tt> statement specifies the number of milliseconds to wait in between subsequent queries. By default, there is no delay between queries.</P>
+<p>To recover from intermittent SPARQL endpoint connection failures, the <tt>retryCount</tt> parameter specifies the number of times to retry connecting, whereas the <tt>retryPause</tt> parameter specifies how long to wait between retries.</p>
 
-<p>The optional <tt>PageSize</tt> element
-limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses. </P>
-<p>To
-  allow rate-limiting of queries to public SPARQL severs, the <tt>Pause</tt> statement specifies the number of milliseconds to wait in between subsequent queries.
-  By default, there is no delay between queries.</P>
-<p>To recover from intermittent SPARQL endpoint connection failures, the <tt>RetryCount</tt> parameter specifies the number of times to retry connecting, whereas the <tt>RetryPause</tt>
-parameter specifies how long to wait between retries.</p>
 <h2><a name="linkspec"></a>2.4 Link Specification</h2>
 <P>Link specification statements state that a link of a given type should be
 established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights. </P>
@@ -1106,6 +1120,7 @@ labels, synonyms, PubChem IDs and molecular weights.</p>
 
 <H1><A name="change_log">6. Change Log</H1>
 <UL>
+  <LI>2010-: <!--TODO: update--> </LI>
   <LI>2009-03-02: Updated document for Silk 0.2-alpha release (Julius). </LI>
   <LI>2009-02-03: Restructured document and extended descriptions (Chris). </LI>
   <LI>2009-02-02: Initial version of this document (Julius). </LI>
