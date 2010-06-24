@@ -2,14 +2,14 @@ package de.fuberlin.wiwiss.silk.linkspec.aggregator
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import de.fuberlin.wiwiss.silk.linkspec.aggegrator.EuclidAggregator
+import de.fuberlin.wiwiss.silk.linkspec.aggegrator.QuadraticMeanAggregator
 import de.fuberlin.wiwiss.silk.linkspec.util.approximatelyEqualTo
 
-class EuclidAggregatorTest extends FlatSpec with ShouldMatchers
+class QuadraticMeanAggregatorTest extends FlatSpec with ShouldMatchers
 {
-    val aggregator = new EuclidAggregator()
+    val aggregator = new QuadraticMeanAggregator()
 
-    "EuclidAggregator" should "compute the weighted euclidian distance" in
+    "QuadraticMeanAggregator" should "compute the weighted quadratic mean" in
     {
         aggregator.evaluate((1, 1.0) :: (1, 1.0) :: (1, 1.0) :: Nil).get should be (approximatelyEqualTo (1.0))
         aggregator.evaluate((1, 1.0) :: (1, 0.0) :: Nil).get should be (approximatelyEqualTo (0.707107))
