@@ -9,7 +9,7 @@ class MinimumAggregatorTest extends FlatSpec with ShouldMatchers
 {
     val aggregator = new MinimumAggregator()
 
-    "MinAggregator" should "return the maximum" in
+    "MinAggregator" should "return the minimum" in
     {
         aggregator.evaluate((1, 1.0) :: (1, 1.0) :: (1, 1.0) :: Nil).get should be (approximatelyEqualTo (1.0))
         aggregator.evaluate((1, 1.0) :: (1, 0.0) :: Nil).get should be (approximatelyEqualTo (0.0))

@@ -19,18 +19,21 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
     private val partitionCounts = Array[Int](blockCount)
 
-    def write(instances : Traversable[Instance], blockingFunction : Instance => Option[Int])
+    def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int])
     {
         dir.deleteRecursive()
 
         val blockWriters = (for(i <- 0 until blockCount) yield new BlockWriter(i)).toArray
         var instanceCount = 0
 
-        for(instance <- instances; block <- blockingFunction(instance))
+        for(instance <- instances)
         {
-            if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
-
-            blockWriters(block).write(instance)
+            for(block <- blockingFunction(instance))
+            {
+                if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
+    
+                blockWriters(block).write(instance)
+            }
 
             instanceCount += 1
         }

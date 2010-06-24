@@ -68,6 +68,7 @@ object ConfigLoader
             resolveQualifiedName(node \ "LinkType" text, prefixes),
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
+            (node \ "Blocking").headOption.map(blockingNode => loadBlocking(blockingNode, pathCache)),
             loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache),
             loadLinkFilter(node \ "Filter" head),
             loadOutputs(node \ "Outputs" \ "Output")
@@ -116,6 +117,16 @@ object ConfigLoader
             if(weightStr.isEmpty) 1 else weightStr.toInt,
             loadInputs(node.child, pathCache),
             metric
+        )
+    }
+
+    private def loadBlocking(node : Node, pathCache : collection.mutable.Map[String, Path]) : Blocking =
+    {
+        new Blocking(
+            loadInputs(node.child, pathCache).asInstanceOf[Traversable[PathInput]],
+            BlockingFunction(node \ "@function" text, loadParams(node)),
+            (node \ "@blocks").text.toInt,
+            (node \ "@overlap").headOption.map(_.text.toDouble).getOrElse(0.0)
         )
     }
 

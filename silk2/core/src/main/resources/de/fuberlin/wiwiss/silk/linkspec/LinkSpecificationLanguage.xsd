@@ -112,6 +112,18 @@
                     </xs:complexType>
                   </xs:element>
 
+                  <xs:element name="Blocking" minOccurs="0">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="Input" minOccurs="2" maxOccurs="2"/>
+                        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                      <xs:attribute name="blocks" type="xs:unsignedShort" use="required" />
+                      <xs:attribute name="overlap" type="xs:decimal" use="optional" />
+                      <xs:attribute name="function" type="xs:string" use="required" />
+                    </xs:complexType>
+                  </xs:element>
+
                   <xs:element name="LinkCondition">
                     <xs:complexType>
                       <xs:choice>
