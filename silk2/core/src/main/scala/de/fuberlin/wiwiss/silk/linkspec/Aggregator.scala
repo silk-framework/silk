@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import aggegrator.{MinimumAggregator, MaximumAggregator, AverageAggregator}
+import aggegrator._
 import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
 trait Aggregator extends Strategy
@@ -13,4 +13,6 @@ object Aggregator extends Factory[Aggregator]
     register("average", classOf[AverageAggregator])
     register("max", classOf[MaximumAggregator])
     register("min", classOf[MinimumAggregator])
+    register("quadraticMean", classOf[QuadraticMeanAggregator])
+    register("geometricMean", classOf[GeometricMeanAggregator])
 }
