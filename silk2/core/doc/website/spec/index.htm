@@ -103,6 +103,7 @@ H2 {
     stress: 20; richness: 90
 }
 H3 {
+	margin-top:2em;
     stress: 20; richness: 90
 }
 .hide {
@@ -195,7 +196,7 @@ UL.toc LI LI {
       <LI>2.10. <A href="#limit">Link Limit </A></LI>
       <LI>2.11. <a href="#output">Output Formats</a> </LI>
       <LI>2.12. <A href="#prematching">Pre-Matching Data Items</A></LI>
-  <LI>2.13. <a href="#userdefined">User-Defined Metrics</a></LI>
+      <!-- TODO: change numbering! <LI>2.13. <a href="#userdefined">User-Defined Metrics</a></LI> -->
       <LI>2.14. <a href="#types">Function, Metric and Data Types</a></LI>
     </UL>
   <LI>3. <A href="#example">Examples</A>
@@ -338,17 +339,19 @@ prefix to a namespace, as in SPARQL/Turtle/RDF-XML, etc.:</P>
 
 <P>The defined prefixes may be used in the <tt>&lt;RestrictTo&gt;</tt> SPARQL clauses of link
 specifications and in RDF paths.</P>
+
 <h2><a name="datasources"></a>2.3 Data Source Definitions</h2>
 <P>Data source definitions are top-level statements that allow the specification
-of access parameters to local or remote SPARQL endpoint<!-- list other new oppurtunities -->. The defined data sources may later be
+of access parameters to local or remote SPARQL endpoints<!-- list other new oppurtunities -->. The defined data sources may later be
 referred to and used by their ID within link specification statements.</P>
 
-<PRE>&lt;DataSource id="<em>dataSource id</em>" type="<em>dataSource type</em>"&gt
-  &lt;Param name="<em>parameter name</em>" value="<em>parameter value</em>" /&gt;
+<PRE>&lt;DataSource id=&quot;<em>dataSource id</em>&quot; type=&quot;<em>dataSource type</em>&quot;&gt
+  &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
 &lt;/DataSource&gt;
 </PRE>
 
-For SPARQL endpoints (dataSource type <tt>sparqlEndpoint</tt>) the following parameters exist:
+<h3>2.3.1 SPARQL Endpoint Data Source Definitions</h3>
+For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following parameters exist:
 <ul>
   <li><tt>endpointURI</tt> (mandatory)</li>
   <li><tt>graph</tt></li>
@@ -364,43 +367,42 @@ For SPARQL endpoints (dataSource type <tt>sparqlEndpoint</tt>) the following par
     [&lt;RetryCount&gt;<em>number of retries</em>&lt;/RetryCount&gt;]
     [&lt;RetryPause&gt;<em>retry pause time in milliseconds</em>&lt;/RetryPause&gt;]
 -->
+
+<p>The optional <tt>pageSize</tt> parameter limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses. </P>
+<p>To allow rate-limiting of queries to public SPARQL severs, the <tt>pauseTime</tt> statement specifies the number of milliseconds to wait in between subsequent queries. By default, there is no delay between queries.</P>
+<p>To recover from intermittent SPARQL endpoint connection failures, the <tt>retryCount</tt> parameter specifies the number of times to retry connecting, whereas the <tt>retryPause</tt> parameter specifies how long to wait between retries. By default, retryCount is set to 3 and retryPause to 1000.</p>
+
 <P>Example:</P>
 <PRE>&lt;DataSource id=&quot;dbpedia&quot; type=&quot;sparqlEndpoint&quot;&gt;
   &lt;Param name=&quot;endpointURI&quot; value=&quot;http://dbpedia.org/sparql&quot; /&gt;
   &lt;Param name=&quot;retryCount&quot; value=&quot;100&quot; /&gt;
 &lt;/DataSource&gt;</PRE>
-<p>The optional <tt>PageSize</tt> element limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses. </P>
-<p>To allow rate-limiting of queries to public SPARQL severs, the <tt>pauseTime</tt> statement specifies the number of milliseconds to wait in between subsequent queries. By default, there is no delay between queries.</P>
-<p>To recover from intermittent SPARQL endpoint connection failures, the <tt>retryCount</tt> parameter specifies the number of times to retry connecting, whereas the <tt>retryPause</tt> parameter specifies how long to wait between retries.</p>
 
 <h2><a name="linkspec"></a>2.4 Link Specification</h2>
 <P>Link specification statements state that a link of a given type should be
-established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights. </P>
+established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights.</P>
 
-<PRE>&lt;Interlink id="<em>interlink id</em>"&gt;
+<PRE>&lt;Interlinks&gt;
+  &lt;Interlink id=&quot;<em>interlink id</em>&quot;&gt;
     &lt;LinkType&gt;<em>link type URI</em>&lt;/LinkType&gt;
-    &lt;SourceDataset dataSource="<em>dataSource id</em>" var="<em>resource variable name</em>"&gt;
+    &lt;SourceDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
         [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
     &lt;/SourceDataset&gt;
-    &lt;TargetDataset dataSource="<em>dataSource id</em>" var="<em>resource variable name</em>"&gt;
+    &lt;TargetDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
         [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
     &lt;/TargetDataset&gt;
-    [&lt;PreMatchingDefinition sourcePath="<em>source dataset path</em>" hitLimit="<em>limit</em>"&gt;
-        &lt;Index targetPath="<em>target dataset path 1</em>" /&gt;
-        &lt;Index targetPath="<em>target dataset path 2</em>" /&gt;
+    [&lt;PreMatchingDefinition sourcePath=&quot;<em>source dataset path</em>&quot; hitLimit=&quot;<em>limit</em>&quot;&gt;
+        &lt;Index targetPath=&quot;<em>target dataset path 1</em>&quot; /&gt;
+        &lt;Index targetPath=&quot;<em>target dataset path 2</em>&quot; /&gt;
         ...
     &lt;/PreMatchingDefinition&gt;]
     &lt;LinkCondition&gt;
-        &lt;AVG|MAX|MIN|...&gt;
-            &lt;AVG|MAX|MIN|...&gt;
-                ...
-            &lt;/AVG|MAX|MIN|...&gt;
-            ...
-            &lt;Compare id="<em>metric id</em>"&gt;
-                &lt;Param name="<em>parameter1 name</em>" path="<em>RDF path</em>" /&gt;
-                &lt;Param name="<em>parameter2 name</em>" value="<em>literal value</em>" /&gt;
-                &lt;Param name="<em>parameter3 name</em>"&gt;
-                    &lt;Transform function="<em>function name</em>"&gt;
+        &lt;Aggregate type=&quot;average|max|min|...&quot;&gt;
+            &lt;Compare id=&quot;<em>metric id</em>&quot;&gt;
+                &lt;Param name=&quot;<em>parameter1 name</em>&quot; path=&quot;<em>RDF path</em>&quot; /&gt;
+                &lt;Param name=&quot;<em>parameter2 name</em>&quot; value=&quot;<em>literal value</em>&quot; /&gt;
+                &lt;Param name=&quot;<em>parameter3 name</em>&quot;&gt;
+                    &lt;Transform function=&quot;<em>function name</em>&quot;&gt;
                         &lt;Param ...&gt;
                         ...
                     &lt;/Transform&gt;
@@ -409,12 +411,15 @@ established between two data items if a specified condition is satisfied. This c
             &lt;Compare ...&gt;
             &lt;/Compare&gt;
             ...
-        &lt;/AVG|MAX|MIN|...&gt;
+        &lt;/Aggregate&gt;
     &lt;/LinkCondition&gt;
-    &lt;Thresholds accept="<em>accept threshold</em>" verify="<em>verify threshold</em>" /&gt;
-    &lt;Limit max="<em>link limit</em>" method="<em>filter method</em>" /&gt;
-    &lt;Output acceptedLinks="<em>output filename</em>" verifyLinks="<em>output filename</em>" mode="<em>truncate|append</em>" format="<em>output format</em>" [namespace="<em>link namespace</em>"]/&gt;
-&lt;/Interlink&gt;
+
+    &lt;Filter threshold=&quot;<em>threshold</em>&quot; /&gt;
+
+    &lt;Limit max=&quot;<em>link limit</em>&quot; method=&quot;<em>filter method</em>&quot; /&gt;
+    &lt;Output acceptedLinks=&quot;<em>output filename</em>&quot; verifyLinks=&quot;<em>output filename</em>&quot; mode=&quot;<em>truncate|append</em>&quot; format=&quot;<em>output format</em>&quot; [namespace=&quot;<em>link namespace</em>&quot;]/&gt;
+  &lt;/Interlink&gt;
+&lt;/Interlinks&gt;
 </PRE>
 
 <P>Example:</P>
@@ -458,29 +463,34 @@ established between two data items if a specified condition is satisfied. This c
       <TH>Description</TH>
     </TR>
     <TR>
-      <TD>jaroSimilarity(string str1, string str2)</TD>
+      <TD>jaro(string input1, string input2)</TD>
       <TD>String similarity based on the Jaro distance metric.</TD>
     </TR>
     <TR>
-      <TD>jaroWinklerSimilarity(string str1, string str2)</TD>
+      <TD>jaroWinkler(string input1, string input2)</TD>
       <TD>String similarity based on the Jaro-Winkler metric.</TD>
     </TR>
     <TR>
-      <TD>qGramSimilarity(string str1, string str2)</TD>
-      <TD>String similarity based on q-grams (q=2).</TD>
+      <TD>levenshtein(string input1, string input2)</TD>
+      <TD>String similarity based on the Levenshtein metric.</TD>
     </TR>
     <TR>
-      <TD>stringEquality(string str1, string str2)</TD>
+      <TD>qGrams(string input1, string input2, int q)</TD>
+      <TD>String similarity based on q-grams (by default q=2).</TD>
+    </TR>
+    <TR>
+      <TD>equality(string input1, string input2)</TD>
       <TD>Return 1 if strings are equal, 0 otherwise.</TD>
     </TR>
     <TR>
-      <TD>numSimilarity(number num1, number num2)</TD>
-      <TD>Computes the numeric similarity of two numbers: min((num1/num2), (num2/num1)).</TD>
+      <TD>num(string input1, string input2)</TD>
+      <TD>Computes the numeric similarity of two numbers: min((input1/input2), (input2/input1)).</TD>
     </TR>
     <TR>
-      <TD>dateSimilarity(date date1, date date2, int max_days)</TD>
+      <TD>date(string input1, string input2, int max_days)</TD>
       <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "max_days", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
     </TR>
+    <!--
     <TR>
       <TD>uriEquality(URI uri1, URI uri2)</TD>
       <TD>Return 1 if the two URIs are equal, 0 otherwise.</TD>
@@ -497,32 +507,37 @@ established between two data items if a specified condition is satisfied. This c
       <TD>setSimilarity(untyped set1[], untyped set2[], string submetric)</TD>
       <TD>Computes a similarity value between two sets of items. Single items between sets are compared with the specified metric identified by the "submetric" string. </TD>
     </TR>
+    -->
   </TBODY>
 </TABLE>
-<P>Parameter values to functions/metrics may be passed in three different ways:</P>
+<P>Input values to functions/metrics may be passed in two different ways:</P>
 <UL>
-  <LI>literal inline value
   <LI>value generated by an RDF path evaluation
   <LI>value generated by another function/metric </LI>
 </UL>
+
+<DL>
+  <DT>RDF Path Values
+  <DD>
+      <P>RDF path values may be passed by specifying the RDF path in the <tt>path</tt> attribute of the <tt>&lt;Input&gt;</tt> element:</P>
+      <PRE>&lt;Input path="RDF path" /&gt;</PRE>
+  <DT>Function-Generated Values
+  <DD>
+      <P>Function-generated input values may be passed by using a <tt>&lt;TransformInput&gt;</tt> element:</P>
+      <PRE>&lt;TransformInput function="transform function name"&gt;
+  &lt;Input ...&gt;
+  ...
+  &lt;Param ...&gt;
+  ...
+&lt;/TransformInput&gt;</PRE>
+  </DD>
+</DL>
+<P>Parameter values to functions/metrics may be passed as a literal inline value.</P>
 <DL>
   <DT>Literal Inline Values
   <DD>
       <P>Literal inline values are passed by using the <tt>value</tt> attribute in a <tt>&lt;Param&gt;</tt> element:</P>
       <PRE>&lt;Param name="parameter name" value="parameter value" /&gt;</PRE>
-  <DT>RDF Path Values
-  <DD>
-      <P>RDF path values may be passed by specifying the RDF path in the <tt>path</tt> attribute of the <tt>&lt;Param&gt;</tt> element:</P>
-      <PRE>&lt;Param name="parameter name" path="RDF path" /&gt;</PRE>
-  <DT>Function-Generated Values
-  <DD>
-      <P>Function/metric-generated parameter values may be passed by omitting the "value" and "path" attributes and instead using an inner <tt>&lt;Transform&gt;</tt> element in the <tt>&lt;Param&gt;</tt> statement:</P>
-      <PRE>&lt;Param name="parameter name"&gt;
-    &lt;Transform id="function id"&gt;
-        &lt;Param ...&gt;
-        ...
-    &lt;/Transform&gt;
-&lt;/Param&gt;</PRE>
   </DD>
 </DL>
 <H2><A name=rdfpath>2.6 The RDF Path Language</H2>
@@ -570,6 +585,7 @@ established between two data items if a specified condition is satisfied. This c
 </TABLE>
 <H3><A name=rdfpath_param></A>2.6.2 Use As Function Argument Selectors</H3>
 <P>The main use of RDF paths is to supply sets of resources as arguments to functions. If a set of resources is empty (the RDF path failed to evaluate because of a missing property), the evaluation of the metric / function generates an exception, which may be handled in a way specified by the user (making a metric optional, for example).</P>
+
 <h2><a name="transformationfunctions"></a>2.7 Transformation Functions</h2>
 <p>The values that are selected by RDF path expressions can be transformed using the following transformation and normalization functions before they are passed to the similarity metric. </p>
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
@@ -626,34 +642,36 @@ established between two data items if a specified condition is satisfied. This c
 </TABLE>
 <h2><a name="combining"></a>2.8 Combining and Weighting Metrics</h2>
 <DL>
-  <DT>Aggregation Types</DT>
+  <DT>Aggregation Operators</DT>
   <DD>
-    <P>When grouping metrics in a metric aggregation statement (<tt>&lt;AVG&gt;</tt>, <tt>&lt;MAX&gt;</tt>, <tt>&lt;MIN&gt;</tt>, ...), the individual submetrics are aggregated into a final value according to the specified aggregation method. The available aggregation types are:</P>
+    <P>When grouping metrics in a metric aggregation statement using <tt>&lt;Aggregate&gt;</tt>, the individual submetrics are aggregated into a final value according to the specified aggregation method. The available aggregation types are:</P>
     <DL>
-      <DT>AVG</DT>
+      <DT>average</DT>
       <DD>Evaluate to the (weighted) average of metrics.</DD>
-      <DT>MAX</DT>
+      <DT>max</DT>
       <DD>Evaluate to the highest metric in the group.</DD>
-      <DT>MIN</DT>
+      <DT>min</DT>
       <DD>Evaluate to the lowest metric in the group.</DD>
-      <DT>EUCLID</DT>
+      <DT>quadraticMean</DT>
       <DD>Apply <a href="http://en.wikipedia.org/wiki/Euclidean_distance">Euclidian distance</a> aggregation. Converts metrics to distances, calculates the Euclidian distance, normalizes the result and converts it back to a metric value between 0 and 1. </DD>
-      <DT>PRODUCT</DT>
-      <DD>Compute the weighted product of a group of metrics. Converts metrics to distances, calculates the weighted product, normalizes the result and converts it back to a metric value between 0 and 1.</DD>
+      <DT>geometricMean</DT>
+      <DD>Compute the (weighted) geometric mean of a group of metrics. Converts metrics to distances, calculates the weighted product, normalizes the result and converts it back to a metric value between 0 and 1.</DD>
     </DL>
   </DD>
   <DT>Weights
   <DD>
-      <P>Some submetrics might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. To express this, the <tt>weight</tt> attribute of a submetric may be used to specify its weight. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>AVG</tt>, <tt>EUCLID</tt> and <tt>PRODUCT</tt>.</P>
+      <P>Some submetrics might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. To express this, the <tt>weight</tt> attribute of a submetric may be used to specify its weight. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
+<!--TODO: no longer needed, can be expressed by Aggregate max
   <DT>Optional Metrics</DT>
     <DD>
       <P>Sometimes properties used for comparisons might be missing from a specific resource, so it will be impossible to evaluate a submetric referring to this missing property. How this should be handled depends on the specific case. In some instances, the submetric could be seen as optional and just discarded from the averaged end result. However, this only makes sense if there are enough other distinguishing metrics in the same group. If there is no other submetric or the others do not suffice to identify a link, the missing metric should generate a negative outcome of its containing metric aggregation statement.</P>
       <P>Two mutually exclusive metric modifiers allow the handling of this problem: the <tt>default</tt> attribute in a submetric may specify a default value to which a metric will evaluate if it cannot be evaluated. An <tt>optional</tt> flag ("<tt>1</tt>" or "<tt>0</tt>") attribute specifies that such a metric should simply be ignored during the aggregation of parallel metrics. If these attributes omitted, a metric is mandatory.</P>
     </DD>
+-->
 </DL>
 <h2><a name="thresholds"></a>2.9 Thresholds
 </h2>
-<P>The <tt>&lt;Thresholds&gt;</tt> directive within the <tt>&lt;Interlink&gt;</tt> allows the definition
+<P>The <tt>&lt;Filter&gt;</tt> directive within the <tt>&lt;Interlink&gt;</tt> allows the definition
   of two thresholds: the metric value above which the specified link should
   definitely be established (<tt>accept</tt> attribute) and another threshold above
   which possible links should be submitted to an expert for review (<tt>verify</tt>
@@ -696,6 +714,7 @@ established between two data items if a specified condition is satisfied. This c
 
   <P>Since comparing every source resource to every single target resource may be too time consuming, it is possible to use an index to look up target resources that would likely match a source resource. The <tt>&lt;PreMatchingDefinition&gt;</tt> statement in a link specification restricts comparisons to such matching target resources. If this statement is specified, the target resources are indexed based on the <tt>targetPath</tt> RDF path fields (for example, their label strings) of the <tt>&lt;Index&gt;</tt> substatements. Later, the <tt>sourcePath</tt> RDF path is evaluated from a source resource and is used to look up potentially matching target resources in the index. Of each specified subindex (<tt>&lt;Index&gt;</tt> substatements), the first <tt>hitLimit</tt> resources are returned and used for comparisons. If no <tt>&lt;PreMatchingDefinition&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs.</P>
 
+<!-- TODO: change numbering!
   <h2><a name="userdefined"></a>2.13 User-Defined Metrics</h2>
   <P>Metric definitions are top-level statements that allow the grouping and reuse of a set of other (sub)metrics. The defined metrics may then be used in other metric definitions as submetrics or within a link specification. A metric definition takes an arbitrary list of parameters and evaluates to a similarity measure between 0 and 1. Every user-defined metric must contain one metric aggregation element (<tt>&lt;AVG&gt;</tt>, <tt>&lt;MIN&gt;</tt>, <tt>&lt;MAX&gt;</tt>, ...) in its top level which specifies how the used submetrics will be aggregated into a final value.</P>
   <PRE>&lt;Metric id="<em>metric id</em>"&gt;
@@ -729,6 +748,7 @@ established between two data items if a specified condition is satisfied. This c
         &lt;/Compare&gt;
     &lt;/AVG&gt;
 &lt;/Metric&gt;</PRE>
+-->
   <H2><A name="types"></A>2.14 Function, Metric and Data Types</H2>
 <P>A metric is a special function that may only return a similarity value
 between 0 or 1. In general, all metrics are functions, but not all functions are
@@ -1120,7 +1140,7 @@ labels, synonyms, PubChem IDs and molecular weights.</p>
 
 <H1><A name="change_log">6. Change Log</H1>
 <UL>
-  <LI>2010-: <!--TODO: update--> </LI>
+  <!-- TODO: update -->
   <LI>2009-03-02: Updated document for Silk 0.2-alpha release (Julius). </LI>
   <LI>2009-02-03: Restructured document and extended descriptions (Chris). </LI>
   <LI>2009-02-02: Initial version of this document (Julius). </LI>
