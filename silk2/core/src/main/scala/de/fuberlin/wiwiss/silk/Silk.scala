@@ -41,7 +41,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 
     private val partitionCacheDir = new File("./instanceCache/")
 
-    private val numBlocks = 1
+    private val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
 
     private val sourceCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
     private val targetCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
@@ -53,18 +53,25 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
 
         //Create instance specifications
         val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
-        println(sourceInstanceSpec)
-        println(targetInstanceSpec)
 
         //Retrieve instances
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of source dataset")
-        sourceCache.write(sourceInstances)
+        linkSpec.blocking match
+        {
+            case Some(blocking) => sourceCache.write(sourceInstances, blocking)
+            case None => sourceCache.write(sourceInstances)
+        }
+
         
         logger.info("Loading instances of target dataset")
-        targetCache.write(targetInstances)
+        linkSpec.blocking match
+        {
+            case Some(blocking) => targetCache.write(targetInstances, blocking)
+            case None => targetCache.write(targetInstances) 
+        }
 
         logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
@@ -123,7 +130,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
                 val taskNum = tasksPerBlock.take(blockIndex).foldLeft(sourcePartitionIndex * targetCache.partitionCount(blockIndex) + targetPartitionIndex + 1)(_ + _)
                 val taskCount = tasksPerBlock.reduceLeft(_ + _)
 
-                logger.info("Starting task " + taskNum + " of " + taskCount)
+                logger.info("Starting match task " + taskNum + " of " + taskCount)
 
                 for(sourceInstance <- sourceCache.read(blockIndex, sourcePartitionIndex);
                     targetInstance <- targetCache.read(blockIndex, targetPartitionIndex))

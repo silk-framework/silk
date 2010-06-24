@@ -11,7 +11,7 @@ trait InstanceCache
      * Writes to this cache.
      * All previous partitions will be deleted.
      */
-    def write(instances : Traversable[Instance], blockingFunction : Instance => Option[Int] = _ => Some(0)) : Unit
+    def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int] = _ => Set(0)) : Unit
 
     /**
      * Reads a partition of a block.
