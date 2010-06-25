@@ -5,36 +5,41 @@ import datasource._
 import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
-import collection.mutable.{ArrayBuffer, SynchronizedBuffer}
 import java.io.File
 import java.util.logging.{Level, Logger}
+import collection.mutable.{Buffer, ArrayBuffer, SynchronizedBuffer}
 
+/**
+ * Executes the complete Silk workflow.
+ */
 object Silk
 {
-    private val logger = Logger.getLogger(Silk.getClass.getName)
-
     def main(args : Array[String])
     {
-        val startTime = System.currentTimeMillis()
-        logger.info("Silk started")
+        val config = loadConfig()
 
+        for(linkSpec <- config.linkSpecs.values)
+        {
+            val silk = new Silk(config, linkSpec)
+            silk.run()
+        }
+    }
+
+    private def loadConfig() : Configuration =
+    {
         val configFile = System.getProperty("configFile") match
         {
             case fileName : String => new File(fileName)
             case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
         }
 
-        val config = ConfigLoader.load(configFile)
-        val linkSpec = config.linkSpecs.values.head
-
-        val silk = new Silk(config, linkSpec)
-        silk.load()
-        silk.generateLinks()
-
-        logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+        ConfigLoader.load(configFile)
     }
 }
 
+/**
+ * Executes the complete Silk workflow.
+ */
 class Silk(config : Configuration, linkSpec : LinkSpecification)
 {
     private val logger = Logger.getLogger(classOf[Silk].getName)
@@ -46,6 +51,23 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
     private val sourceCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
     private val targetCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
 
+    /**
+     * Executes the complete silk workflow.
+     */
+    def run()
+    {
+        val startTime = System.currentTimeMillis()
+        logger.info("Silk started")
+
+        load()
+        executeMatching()
+
+        logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+    }
+
+    /**
+     *  Loads the instances from the data sources into the instance cache.
+     */
     def load()
     {
         val startTime = System.currentTimeMillis()
@@ -58,6 +80,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
+        //Write source instances
         logger.info("Loading instances of source dataset")
         linkSpec.blocking match
         {
@@ -65,7 +88,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
             case None => sourceCache.write(sourceInstances)
         }
 
-        
+        //Write target instances
         logger.info("Loading instances of target dataset")
         linkSpec.blocking match
         {
@@ -76,12 +99,26 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
-    def generateLinks()
+    /**
+     * Executes the matching.
+     */
+    def executeMatching()
     {
         val startTime = System.currentTimeMillis()
-        logger.info("Generating links")
+        logger.info("Starting matching")
 
-        //Execute match tasks
+        var links = generateLinks()
+        links = filterLinks(links)
+        writeOutput(links)
+
+        logger.info("Executed matching in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+    }
+
+    /**
+     * Generates links between the instances according to the link specification.
+     */
+    private def generateLinks() : Buffer[Link] =
+    {
         val executor = Executors.newFixedThreadPool(4)
         val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
@@ -95,31 +132,53 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
         executor.shutdown()
         executor.awaitTermination(1000, TimeUnit.DAYS)
 
-        //Write output
+        linkBuffer
+    }
+
+    /**
+     * Filters the links according to the link limit.
+     */
+    private def filterLinks(links : Buffer[Link]) : Buffer[Link] =
+    {
+        linkSpec.filter.limit match
+        {
+            case Some(limit) =>
+            {
+                val linkBuffer = new ArrayBuffer[Link]()
+                logger.info("Filtering output")
+
+                for((sourceUri, groupedLinks) <- links.groupBy(_.sourceUri))
+                {
+                    val bestLinks = groupedLinks.sortWith(_.confidence > _.confidence).take(limit)
+
+                    linkBuffer.appendAll(bestLinks)
+                }
+
+                linkBuffer
+            }
+            case None => links
+        }
+    }
+
+    /**
+     * Writes the links to the output.
+     */
+    private def writeOutput(linkBuffer : Buffer[Link]) =
+    {
         linkSpec.outputs.foreach(_.open)
 
-        if(linkSpec.filter.limit.isDefined)
+        for(link <- linkBuffer;
+            output <- linkSpec.outputs)
         {
-            logger.info("Filtering output")
-
-            //Apply filter
-            for((sourceUri, links) <- linkBuffer.groupBy(_.sourceUri))
-            {
-                val bestLinks = links.sortWith(_.confidence > _.confidence).take(linkSpec.filter.limit.get)
-
-                for(link <- bestLinks) linkSpec.outputs.foreach(_.write(link, linkSpec.linkType))
-            }
-        }
-        else
-        {
-            for(link <- linkBuffer) linkSpec.outputs.foreach(_.write(link, linkSpec.linkType))
+            output.write(link, linkSpec.linkType)
         }
 
         linkSpec.outputs.foreach(_.close)
-
-        logger.info("Generated links in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
+    /**
+     * A match task, which matches the instances of a single partition.
+     */
     private class MatchTask(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
     {
         override def run() : Unit =
