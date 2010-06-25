@@ -14,18 +14,11 @@ import collection.mutable.{Buffer, ArrayBuffer, SynchronizedBuffer}
  */
 object Silk
 {
-    def main(args : Array[String])
-    {
-        val config = loadConfig()
-
-        for(linkSpec <- config.linkSpecs.values)
-        {
-            val silk = new Silk(config, linkSpec)
-            silk.run()
-        }
-    }
-
-    private def loadConfig() : Configuration =
+    /**
+     * Executes Silk.
+     * The configuration file is specified using the 'configFile' property.
+     */
+    def execute()
     {
         val configFile = System.getProperty("configFile") match
         {
@@ -33,7 +26,35 @@ object Silk
             case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
         }
 
-        ConfigLoader.load(configFile)
+        execute(configFile)
+    }
+
+    /**
+     * Executes Silk using a specific configuration file.
+     */
+    def execute(configFile : File)
+    {
+        execute(ConfigLoader.load(configFile))
+    }
+
+    /**
+     * Executes Silk using a specific configuration.
+     */
+    def execute(config : Configuration)
+    {
+        for(linkSpec <- config.linkSpecs.values)
+        {
+            val silk = new Silk(config, linkSpec)
+            silk.run()
+        }
+    }
+
+    /**
+     * Main method to allow Silk to be started from the command line.
+     */
+    def main(args : Array[String])
+    {
+        execute()
     }
 }
 
