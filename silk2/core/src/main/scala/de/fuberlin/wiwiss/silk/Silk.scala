@@ -15,10 +15,17 @@ import collection.mutable.{Buffer, ArrayBuffer, SynchronizedBuffer}
 object Silk
 {
     /**
+     * The default number of threads to be used for matching.
+     */
+    private val DefaultThreads = 4
+
+    /**
      * Executes Silk.
      * The configuration file is specified using the 'configFile' property.
+     *
+     * @param numThreads The number of threads to be be used for matching.
      */
-    def execute()
+    def execute(numThreads : Int = DefaultThreads)
     {
         val configFile = System.getProperty("configFile") match
         {
@@ -26,25 +33,31 @@ object Silk
             case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
         }
 
-        execute(configFile)
+        executeFile(configFile, numThreads)
     }
 
     /**
      * Executes Silk using a specific configuration file.
+     *
+     * @param configFile The configuration file.
+     * @param numThreads The number of threads to be used for matching.
      */
-    def execute(configFile : File)
+    def executeFile(configFile : File, numThreads : Int = DefaultThreads)
     {
-        execute(ConfigLoader.load(configFile))
+        executeConfig(ConfigLoader.load(configFile), numThreads)
     }
 
     /**
      * Executes Silk using a specific configuration.
+     *
+     * @param configFile The configuration.
+     * @param numThreads The number of threads to be used for matching.
      */
-    def execute(config : Configuration)
+    def executeConfig(config : Configuration, numThreads : Int = DefaultThreads)
     {
         for(linkSpec <- config.linkSpecs.values)
         {
-            val silk = new Silk(config, linkSpec)
+            val silk = new Silk(config, linkSpec, numThreads)
             silk.run()
         }
     }
@@ -61,7 +74,7 @@ object Silk
 /**
  * Executes the complete Silk workflow.
  */
-class Silk(config : Configuration, linkSpec : LinkSpecification)
+class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = Silk.DefaultThreads)
 {
     private val logger = Logger.getLogger(classOf[Silk].getName)
 
@@ -140,7 +153,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification)
      */
     private def generateLinks() : Buffer[Link] =
     {
-        val executor = Executors.newFixedThreadPool(4)
+        val executor = Executors.newFixedThreadPool(numThreads)
         val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
         for(blockIndex <- 0 until numBlocks;
