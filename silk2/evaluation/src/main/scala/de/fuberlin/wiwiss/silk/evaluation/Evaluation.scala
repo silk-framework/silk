@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import java.io.File
+import de.fuberlin.wiwiss.silk.output.Link
 
 object Evaluation
 {
@@ -18,36 +19,36 @@ object Evaluation
             case _ => throw new IllegalArgumentException("No reference file specified. Please set the 'referenceFile' property")
         }
         
-        val evalAlignments = AlignmentReader.read(evalFile).toSet
-        val referenceAlignments = AlignmentReader.read(referenceFile).toSet
+        val evalAlignment = AlignmentReader.read(evalFile).toSet
+        val referenceAlignment = AlignmentReader.read(referenceFile).toSet
 
-        println("Evaluation aligments: " + evalAlignments.size)
-        println("Reference aligments: " + referenceAlignments.size)
+        println("Evaluation aligments: " + evalAlignment.size)
+        println("Reference aligments: " + referenceAlignment.size)
 
-        println(evaluate(evalAlignments, referenceAlignments))
-        printDiff(evalAlignments, referenceAlignments)
+        println(evaluate(evalAlignment, referenceAlignment))
+        printDiff(evalAlignment, referenceAlignment)
     }
 
     /**
-     * Evaluates a set of alignments against a reference set.
+     * Evaluates a alignment against a reference alignment.
      */
-    def evaluate(evalAlignments : Set[Alignment], referenceAlignments : Set[Alignment]) : EvaluationResult =
+    def evaluate(evalAlignment : Set[Link], referenceAlignment : Set[Link]) : EvaluationResult =
     {
-        val intersectionSize = evalAlignments.intersect(referenceAlignments).size
-        new EvaluationResult(intersectionSize / evalAlignments.size, intersectionSize / referenceAlignments.size)
+        val intersectionSize = evalAlignment.intersect(referenceAlignment).size
+        new EvaluationResult(intersectionSize / evalAlignment.size, intersectionSize / referenceAlignment.size)
     }
 
     /**
-     * Prints the difference between an evaluation set and a reference set.
+     * Prints the difference between an evaluation alignment and a reference alignment.
      */
-    def printDiff(evalAlignments : Set[Alignment], referenceAlignments : Set[Alignment])
+    def printDiff(evalAlignment : Set[Link], referenceAlignment : Set[Link])
     {
-        for(falseNegative <- referenceAlignments -- evalAlignments)
+        for(falseNegative <- referenceAlignment -- evalAlignment)
         {
             println("-" + falseNegative)
         }
 
-        for(falsePositive <- evalAlignments -- referenceAlignments)
+        for(falsePositive <- evalAlignment -- referenceAlignment)
         {
             println("+" + falsePositive)
         }
