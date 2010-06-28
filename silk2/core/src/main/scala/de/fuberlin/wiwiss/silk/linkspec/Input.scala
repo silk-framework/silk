@@ -4,5 +4,5 @@ import de.fuberlin.wiwiss.silk.Instance
 
 trait Input
 {
-    def evaluate(instances : Traversable[Instance]) : Traversable[String]
+    def apply(instances : Traversable[Instance]) : Traversable[String]
 }

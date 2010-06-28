@@ -5,7 +5,7 @@ import path.Path
 
 case class PathInput(path : Path) extends Input
 {
-    override def evaluate(instances : Traversable[Instance]) =
+    override def apply(instances : Traversable[Instance]) =
     {
         instances.find(_.variable == path.variable) match
         {
