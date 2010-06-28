@@ -71,7 +71,7 @@ object ConfigWriter
           </TargetDataset>
 
           <LinkCondition>
-              { operatorToXml(linkSpec.condition) }
+              { operatorToXml(linkSpec.condition.rootAggregation) }
           </LinkCondition>
 
           { linkFilterToXml(linkSpec.filter) }

@@ -228,7 +228,7 @@ class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : In
                 for(sourceInstance <- sourceCache.read(blockIndex, sourcePartitionIndex);
                     targetInstance <- targetCache.read(blockIndex, targetPartitionIndex))
                 {
-                    val confidence = linkSpec.condition(sourceInstance, targetInstance).headOption.getOrElse(0.0)
+                    val confidence = linkSpec.condition(sourceInstance, targetInstance)
 
                     if(confidence >= linkSpec.filter.threshold)
                     {

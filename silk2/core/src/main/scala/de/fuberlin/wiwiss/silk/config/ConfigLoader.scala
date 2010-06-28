@@ -69,7 +69,7 @@ object ConfigLoader
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
             (node \ "Blocking").headOption.map(blockingNode => loadBlocking(blockingNode, pathCache)),
-            loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache),
+            new LinkCondition(loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache)),
             loadLinkFilter(node \ "Filter" head),
             loadOutputs(node \ "Outputs" \ "Output")
         )
