@@ -5,6 +5,7 @@ import java.io.{OutputStreamWriter, FileOutputStream, OutputStream, File}
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkspec._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
+import input.{Transformer, Input, PathInput, TransformInput}
 
 object ConfigWriter
 {

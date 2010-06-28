@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
-import de.fuberlin.wiwiss.silk.linkspec.path._
+import de.fuberlin.wiwiss.silk.instance._
 
 /**
  * Builds a SPARQL pattern from Paths.

@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk.output
 
-import outputs.{MemoryOutput, FileOutput}
 import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
 /**
@@ -29,7 +28,3 @@ trait Output extends Strategy
 }
 
 object Output extends Factory[Output]
-{
-    register("file", classOf[FileOutput])
-    register("memory", classOf[MemoryOutput])
-}

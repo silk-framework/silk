@@ -1,8 +1,6 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
-import de.fuberlin.wiwiss.silk.Instance
-import de.fuberlin.wiwiss.silk.datasource.InstanceSpecification
-import de.fuberlin.wiwiss.silk.linkspec.path.Path
+import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification, Instance}
 
 /**
  * Retrieves instances from a SPARQL endpoint.

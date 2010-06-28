@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
 import org.apache.hadoop.mapreduce._
-import de.fuberlin.wiwiss.silk.Instance
+import de.fuberlin.wiwiss.silk.instance.Instance
 import java.io.{DataInput, DataOutput}
 import org.apache.hadoop.io.{NullWritable, Writable, Text}
 
