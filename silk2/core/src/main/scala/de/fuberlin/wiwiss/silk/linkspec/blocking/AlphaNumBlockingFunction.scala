@@ -4,29 +4,39 @@ import de.fuberlin.wiwiss.silk.linkspec.BlockingFunction
 
 class AlphaNumBlockingFunction(val params : Map[String, String] = Map.empty) extends BlockingFunction
 {
-     def apply(value : String) : Double =
-     {
-         value.headOption.map(_.toLower) match
-         {
-             case Some(c) =>
-             {
-                 //Distribute numbers to the first quarter
-                 if(c >= '0' && c <= '9')
-                 {
-                     (c - '0').toDouble / ('9' - '0') * 0.25
-                 }
-                 //Distribute letters to the remaining three quarters
-                 else if(c >= 'a' && c <= 'z')
-                 {
-                     (c - 'a').toDouble / ('z' - 'a') * 0.75 + 0.25
-                 }
-                 //Asign all remaining characters to the last block
-                 else
-                 {
-                     1.0
-                 }
-             }
-             case None => 0.0
-         }
-     }
+    /** The size of the index each character is assigned to */
+    private val numIndexes = 36
+
+    def apply(value : String) : Double =
+    {
+        val indexes = value.map(c => index(c).toDouble / numIndexes)
+
+        indexes.foldRight(0.0)((index, sum) => sum / numIndexes + index)
+    }
+
+    /**
+     * Assigns a index to a single character according to the following schema:
+     *
+     * Numbers: 0 - 9
+     * Alphabetic character: 10 - 34
+     * Others: 35
+     */
+    private final def index(c : Char) : Int =
+    {
+        //Distribute numbers to the first 10 indexes
+        if(c >= '0' && c <= '9')
+        {
+            (c - '0')
+        }
+        //Distribute alphabetic characters to the remaining 24 indexes
+        else if(c >= 'a' && c <= 'z')
+        {
+            10 + (c - 'a')
+        }
+        //Assign all remaining characters to the last indexes
+        else
+        {
+            35
+        }
+    }
 }
