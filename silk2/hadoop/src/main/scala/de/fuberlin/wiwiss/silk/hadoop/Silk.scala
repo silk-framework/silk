@@ -4,11 +4,10 @@ import org.apache.hadoop.fs.Path
 import java.io._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputFormat, TextOutputFormat}
 import org.apache.hadoop.mapreduce._
-import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import org.apache.hadoop.io.{NullWritable, Text}
 import de.fuberlin.wiwiss.silk.config.{ConfigLoader, Configuration}
-import de.fuberlin.wiwiss.silk.datasource.{InstanceCache, FileInstanceCache}
+import de.fuberlin.wiwiss.silk.instance.{InstanceCache, FileInstanceCache}
 
 object Silk
 {

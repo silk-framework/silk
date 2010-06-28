@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.output
 
-import formatters.{AlignmentFormatter, NTriplesFormatter}
+import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
 /**
  * Serializes a link.
  */
-trait Formatter
+trait Formatter extends Strategy
 {
     def header : String = ""
     def footer : String = ""
@@ -16,15 +16,4 @@ trait Formatter
 /**
  * Formatter factory
  */
-object Formatter
-{
-    /**
-     * Creates a new formatter for a specific format
-     */
-    def apply(format : String) = format.replace("-", "").toLowerCase match
-    {
-        case "ntriples" => new NTriplesFormatter
-        case "alignment" => new AlignmentFormatter
-        case _ => throw new IllegalArgumentException("Unsupported format " + format)
-    }
-}
+object Formatter extends Factory[Formatter]

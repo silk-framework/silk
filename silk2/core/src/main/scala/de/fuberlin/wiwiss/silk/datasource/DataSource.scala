@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.Instance
 import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 
 trait DataSource extends Strategy
 {
@@ -9,6 +9,3 @@ trait DataSource extends Strategy
 }
 
 object DataSource extends Factory[DataSource]
-{
-    register("sparqlEndpoint", classOf[SparqlDataSource])
-}

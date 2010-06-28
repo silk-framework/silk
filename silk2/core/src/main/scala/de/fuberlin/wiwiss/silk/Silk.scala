@@ -1,7 +1,8 @@
 package de.fuberlin.wiwiss.silk
 
 import config.{Configuration, ConfigLoader}
-import datasource._
+import impl.DefaultImplementations
+import instance.{FileInstanceCache, InstanceCache, InstanceSpecification}
 import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
@@ -18,6 +19,8 @@ object Silk
      * The default number of threads to be used for matching.
      */
     private val DefaultThreads = 4
+    
+    DefaultImplementations.register()
 
     /**
      * Executes Silk.

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
-import de.fuberlin.wiwiss.silk.Instance
+import de.fuberlin.wiwiss.silk.instance.Instance
 import java.io._
 import org.apache.hadoop.io.Writable
 

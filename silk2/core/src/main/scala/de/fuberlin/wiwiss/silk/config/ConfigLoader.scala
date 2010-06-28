@@ -8,7 +8,8 @@ import org.xml.sax.{SAXException}
 import javax.xml.transform.stream.StreamSource
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkspec._
-import de.fuberlin.wiwiss.silk.linkspec.path.Path
+import input.{Input, TransformInput, Transformer, PathInput}
+import de.fuberlin.wiwiss.silk.instance.Path
 
 object ConfigLoader
 {
