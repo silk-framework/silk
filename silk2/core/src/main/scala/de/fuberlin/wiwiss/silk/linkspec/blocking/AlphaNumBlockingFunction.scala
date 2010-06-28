@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.linkspec.BlockingFunction
 class AlphaNumBlockingFunction(val params : Map[String, String] = Map.empty) extends BlockingFunction
 {
     /** The size of the index each character is assigned to */
-    private val numIndexes = 36
+    private val numIndexes = 37
 
     def apply(value : String) : Double =
     {
@@ -18,8 +18,8 @@ class AlphaNumBlockingFunction(val params : Map[String, String] = Map.empty) ext
      * Assigns a index to a single character according to the following schema:
      *
      * Numbers: 0 - 9
-     * Alphabetic character: 10 - 34
-     * Others: 35
+     * Alphabetic character: 10 - 35
+     * Others: 36
      */
     private final def index(c : Char) : Int =
     {
@@ -36,7 +36,7 @@ class AlphaNumBlockingFunction(val params : Map[String, String] = Map.empty) ext
         //Assign all remaining characters to the last indexes
         else
         {
-            35
+            36
         }
     }
 }
