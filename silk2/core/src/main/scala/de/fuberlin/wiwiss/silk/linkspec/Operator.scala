@@ -6,5 +6,5 @@ trait Operator
 {
     val weight : Int
     
-    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double]
+    def apply(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double]
 }

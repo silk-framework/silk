@@ -6,9 +6,9 @@ case class TransformInput(inputs : Seq[Input], transformer : Transformer) extend
 {
     require(inputs.size > 0, "Number of inputs must be > 0.")
 
-    def evaluate(instances : Traversable[Instance]) : Traversable[String] =
+    def apply(instances : Traversable[Instance]) : Traversable[String] =
     {
-        val strings = for (input <- inputs) yield input.evaluate(instances)
+        val strings = for (input <- inputs) yield input.apply(instances)
         for (sequence <- cartesianProduct(strings)) yield transformer.evaluate(sequence)
     }
 

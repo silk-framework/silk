@@ -6,10 +6,10 @@ case class Comparison(weight : Int, inputs : Seq[Input], metric : Metric) extend
 {
     require(inputs.size == 2, "Number of inputs must be 2. " + inputs.size + " given.")
 
-    def evaluate(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double] =
+    def apply(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double] =
     {
-        val set1 = inputs(0).evaluate(Traversable(sourceInstance, targetInstance))
-        val set2 = inputs(1).evaluate(Traversable(sourceInstance, targetInstance))
+        val set1 = inputs(0).apply(Traversable(sourceInstance, targetInstance))
+        val set2 = inputs(1).apply(Traversable(sourceInstance, targetInstance))
 
         for (str1 <- set1; str2 <- set2) yield metric.evaluate(str1, str2)
     }
