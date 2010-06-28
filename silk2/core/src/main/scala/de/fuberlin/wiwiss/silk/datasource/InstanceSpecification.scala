@@ -19,8 +19,8 @@ object InstanceSpecification
         val sourceRestriction = linkSpec.sourceDatasetSpecification.restriction
         val targetRestriction = linkSpec.targetDatasetSpecification.restriction
 
-        val sourcePaths = collectPaths(sourceVar)(linkSpec.condition)
-        val targetPaths = collectPaths(targetVar)(linkSpec.condition)
+        val sourcePaths = collectPaths(sourceVar)(linkSpec.condition.rootAggregation)
+        val targetPaths = collectPaths(targetVar)(linkSpec.condition.rootAggregation)
 
         ( new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths),
           new InstanceSpecification(targetVar, targetRestriction, targetPaths) )
