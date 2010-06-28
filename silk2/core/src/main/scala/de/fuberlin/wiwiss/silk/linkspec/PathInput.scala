@@ -5,12 +5,12 @@ import path.Path
 
 case class PathInput(path : Path) extends Input
 {
-    override def evaluate(sourceInstance : Instance, targetInstance : Instance) =
+    override def evaluate(instances : Traversable[Instance]) =
     {
-        if(sourceInstance.variable == path.variable) sourceInstance.evaluate(path)
-        else if(targetInstance.variable == path.variable) targetInstance.evaluate(path)
-        else throw new IllegalArgumentException("No instance found with variable " + path.variable)
+        instances.find(_.variable == path.variable) match
+        {
+            case Some(instance) => instance.evaluate(path)
+            case None => Traversable.empty
+        }
     }
-
-    override def toString = "PathInput(" + path + ")"
 }

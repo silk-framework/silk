@@ -15,8 +15,7 @@ class Blocking(val inputs : Traversable[PathInput], val blockingFunction : Block
         val input = inputs.find(_.path.variable == instance.variable)
                           .getOrElse(throw new IllegalArgumentException("No input found with variable " + instance.variable))
 
-        //TODO signature of PathInput should be generalized to (instance : Traversable[Instance]), because it does not always take exactly two instances
-        val values = input.evaluate(instance, new Instance("dummy", "http://dummy.com", Map.empty))
+        val values = input.evaluate(Traversable(new Instance("dummy", "http://dummy.com", Map.empty)))
 
         values.map(blockingFunction).flatMap(getBlock).toSet
     }
