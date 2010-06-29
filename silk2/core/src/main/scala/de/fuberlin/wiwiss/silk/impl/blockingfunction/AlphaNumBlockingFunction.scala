@@ -23,17 +23,19 @@ class AlphaNumBlockingFunction(val params : Map[String, String] = Map.empty) ext
      */
     private final def index(c : Char) : Int =
     {
+        val lc = c.toLower
+
         //Distribute numbers to the first 10 indexes
-        if(c >= '0' && c <= '9')
+        if(lc >= '0' && lc <= '9')
         {
-            (c - '0')
+            (lc - '0')
         }
-        //Distribute alphabetic characters to the remaining 24 indexes
-        else if(c >= 'a' && c <= 'z')
+        //Distribute alphabetic characters to the subsequent 26 indexes
+        else if(lc >= 'a' && lc <= 'z')
         {
-            10 + (c - 'a')
+            10 + (lc - 'a')
         }
-        //Assign all remaining characters to the last indexes
+        //Assign all remaining characters to the last index
         else
         {
             36
