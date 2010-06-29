@@ -49,6 +49,21 @@
       <xs:attribute name="weight" type="xs:unsignedShort" />
     </xs:complexType>
   </xs:element>
+
+  <xs:element name="Outputs">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="Output">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="type" type="xs:string" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
   
   <xs:element name="Silk">
     <xs:complexType>
@@ -139,20 +154,7 @@
                     </xs:complexType>
                   </xs:element>
 
-                  <xs:element name="Outputs">
-                    <xs:complexType>
-                      <xs:sequence>
-                        <xs:element minOccurs="1" maxOccurs="unbounded" name="Output">
-                          <xs:complexType>
-                            <xs:sequence>
-                              <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
-                            </xs:sequence>
-                            <xs:attribute name="type" type="xs:string" />
-                          </xs:complexType>
-                        </xs:element>
-                      </xs:sequence>
-                    </xs:complexType>
-                  </xs:element>
+                  <xs:element ref="Outputs" minOccurs="0"/>
 
                 </xs:sequence>
                 <xs:attribute name="id" type="xs:string" use="required" />
@@ -161,6 +163,9 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+
+        <xs:element ref="Outputs" minOccurs="0"/>
+
       </xs:sequence>
     </xs:complexType>
   </xs:element>
