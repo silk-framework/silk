@@ -202,15 +202,17 @@ class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : In
      */
     private def writeOutput(linkBuffer : Buffer[Link]) =
     {
-        linkSpec.outputs.foreach(_.open)
+        val outputs = config.outputs ++ linkSpec.outputs
+
+        outputs.foreach(_.open)
 
         for(link <- linkBuffer;
-            output <- linkSpec.outputs)
+            output <- outputs)
         {
             output.write(link, linkSpec.linkType)
         }
 
-        linkSpec.outputs.foreach(_.close)
+        outputs.foreach(_.close)
     }
 
     /**

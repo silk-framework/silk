@@ -21,8 +21,9 @@ object ConfigLoader
         val prefixes = loadPrefixes(xml)
         val dataSources = loadDataSources(xml)
         val linkSpecifications = loadLinkSpecifications(xml, prefixes, dataSources)
+        val outputs = loadOutputs(xml \ "Outputs" \ "Output")
 
-        new Configuration(prefixes, dataSources, linkSpecifications)
+        new Configuration(prefixes, dataSources, linkSpecifications, outputs)
     }
 
     private def validateXML(file : File) : Unit =
