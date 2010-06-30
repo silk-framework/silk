@@ -423,7 +423,7 @@ established between two data items if a specified condition is satisfied. This c
   <li><a href="#blocking">blocking</a></li>
   <li><a href="#conditions">link conditions</a>
     <ul>
-        <li><a href="#metrics">similarity metrics</a></li>
+        <li><a href="#comparisons">comparison operators</a></li>
         <li><a href="#combining">combining and weighting metrics</a></li>
     </ul>
   </li>
@@ -799,138 +799,63 @@ Multiple comparisons can be combined using an aggregation.
   </DD>
   <DT>Weights
   <DD>
-      <P>Some submetrics might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. To express this, the <tt>weight</tt> attribute of a submetric may be used to specify its weight. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
-<!--TODO: no longer needed, can be expressed by Aggregate max
-  <DT>Optional Metrics</DT>
-    <DD>
-      <P>Sometimes properties used for comparisons might be missing from a specific resource, so it will be impossible to evaluate a submetric referring to this missing property. How this should be handled depends on the specific case. In some instances, the submetric could be seen as optional and just discarded from the averaged end result. However, this only makes sense if there are enough other distinguishing metrics in the same group. If there is no other submetric or the others do not suffice to identify a link, the missing metric should generate a negative outcome of its containing metric aggregation statement.</P>
-      <P>Two mutually exclusive metric modifiers allow the handling of this problem: the <tt>default</tt> attribute in a submetric may specify a default value to which a metric will evaluate if it cannot be evaluated. An <tt>optional</tt> flag ("<tt>1</tt>" or "<tt>0</tt>") attribute specifies that such a metric should simply be ignored during the aggregation of parallel metrics. If these attributes omitted, a metric is mandatory.</P>
-    </DD>
--->
+      <P>Some comparison operators might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
 </DL>
-<h2><a name="filter"></a>2.4.5 Link Filter
-</h2>
-<P>The <tt>&lt;Filter&gt;</tt> directive within <tt>&lt;Interlink&gt;</tt> allows the definition
-  of two thresholds: the metric value above which the specified link should
-  definitely be established (<tt>threshold</tt> attribute) and another threshold above
-  which possible links should be submitted to an expert for review (verify threshold). The accept and verify thresholds for the output N3 need to be specified in the
-  <tt>&lt;Output&gt;</tt> element.</P>
+<h2><a name="filter"></a>2.4.5 Link Filter</h2>
+<P>The <tt>&lt;Filter&gt;</tt> directive allows for filtering the generated links.
 
-<PRE>&lt;Filter threshold=&quot;<em></em>&quot; /&gt;</PRE>
+<pre>&lt;Filter threshold=&quot;<em>threshold</em>&quot; limit=&quot;<em>maximum link count</em>&quot; /&gt;</pre>
 
-<P>For example, while establishing owl:sameAs-links between resources of two
-  datasets, there should normally only exist one such link going out from each
-  resource in dataset A to one resource in dataset B and vice versa. However,
-  several resource comparisons might have resulted in a metric above the
-  specified threshold. In such a case, the user may limit the amount of links
-  originating from a single resource to a specific count. Only the n
-  highest-rated links originating from a specific resource will remain after the
-  filtering.</P>
-  <P>The optional <tt>&lt;Filter&gt;</tt> statement with the attribute <em>limit</em> allows this as a substatement of an
-  <tt>&lt;Interlink&gt;</tt> statement:</P>
+<p><tt>threshold</tt> defines the minimum similarity of two data items which is required to generate a link between them.</p>
 
-  <PRE>&lt;Filter threshold=&quot;<em></em>&quot; limit=&quot;<em>maximum link count</em>&quot; /&gt;</PRE>
+<p><tt>limit</tt> defines the number of links originating from a single data item.
+Only the n highest-rated links per source data item will remain after the filtering.</p>
 
-  <P>For now, the only valid filtering method is "<tt>metric_evaluation</tt>". This will
-  rank links solely based on their numeric metric evaluation.</P>
+<p>Example:</p>
+  <PRE>&lt;Filter threshold=&quot;0.95&quot; limit=&quot;1&quot; /&gt;</PRE>
 
 <h2><a name="output"></a>2.5 Output</h2>
-  <P>With the <tt>&lt;Output&gt;</tt> directive (inside of an <tt>&lt;Outputs&gt;</tt> statement), the user can specify files to output the
-  generated links. </P>
+  <P>With the <tt>&lt;Output&gt;</tt> directive, the user can specify output targets for the generated links.
+Outputs can either be defined globally or inside a link specification.</p>
+
 <PRE>&lt;Outputs&gt;
-  &lt;Output type=&quot;<em>output type</em>&quot;&gt;
+  &lt;Output type=&quot;<em>output type</em>&quot; minConfidence=&quot;<em>lower threshold</em>&quot; maxConfidence=&quot;<em>upper threshold</em>&quot;&gt;
     &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
     ...
   &lt;/Ouput&gt;
 &lt;/Outputs&gt;</PRE>
 
-  Using the parameter names <tt>maxConfidence</tt> and <tt>minConfidence</tt>
-  and parameter values higher than the defined <tt>threshold</tt> in the filter, the user can specify the
-  accept-threshold for links to output.
+<p>At the moment, the only available output type is <em>file</em> with the following parameters:</p>
 
-  For saving the output in a file, a parameter named <tt>file</tt>
-  has to be defined with the file name and path as the parameter value.
-  In addition to that the output format has to be given by a parameter named <tt>format</tt>.
-  Available formats are "<tt>ntriples</tt>" (N-Triples format) and
-  "<tt>alignment</tt>" (<a href="http://alignapi.gforge.inria.fr/format.html">Alignment</a> format).
-  <!--
-  output file for links above the accept-threshold, the <tt>verifyLinks</tt> attribute
-  does the equivalent for those links between the accept- and verify-threshold.
-  The <tt>mode</tt> attribute may either be "<tt>truncate</tt>" (empty the file before writing
-  to it) or "<tt>append</tt>" (appending to the output file if it already
-  exists).</P>
-  <p>The <tt>format</tt> attribute of the <tt>&lt;Output&gt;</tt> directive specifies
-  the format in which to output the generated links. Available formats are "<tt>n3</tt>" (Notation 3 format),
-  "<tt>n3_debug</tt>" (similar to N3, but with similarity value for each link), "<tt>csv</tt>" (CSV format) and "<tt>n3_reified</tt>" (reified link output with
-  date and confidence information for each link). The default format is "<tt>n3</tt>".
-  </p>
-  -->
-  <P>Example:</P>
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+    <TR>
+      <TD>file</TD>
+      <TD>The output file.</TD>
+    </TR>
+    <TR>
+      <TD>format</TD>
+      <TD>The output format. Available formats are "<tt>ntriples</tt>" (N-Triples format) and
+"<tt>alignment</tt>" (<a href="http://alignapi.gforge.inria.fr/format.html">Alignment</a> format)</TD>
+    </TR>
+  </TBODY>
+</TABLE>
+
+<P>Example:</P>
   <PRE>&lt;Outputs&gt;
-  &lt;Output type=&quot;file&quot;&gt;
-    &lt;Param name=&quot;maxConfidence&quot; value=&quot;0.9&quot; /&gt;
-    &lt;Param name=&quot;file&quot; value=&quot;verify_links.nt&quot;/&gt;
+  &lt;Output type=&quot;file&quot;&gt; minConfidence=&quot;0.9&quot;&gt;
+    &lt;Param name=&quot;file&quot; value=&quot;accept_links.nt&quot;/&gt;
     &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
   &lt;/Output&gt;
 &lt;/Outputs&gt;</PRE>
 
-
-<!-- TODO: change numbering!
-  <h2><a name="userdefined"></a>2.13 User-Defined Metrics</h2>
-  <P>Metric definitions are top-level statements that allow the grouping and reuse of a set of other (sub)metrics. The defined metrics may then be used in other metric definitions as submetrics or within a link specification. A metric definition takes an arbitrary list of parameters and evaluates to a similarity measure between 0 and 1. Every user-defined metric must contain one metric aggregation element (<tt>&lt;AVG&gt;</tt>, <tt>&lt;MIN&gt;</tt>, <tt>&lt;MAX&gt;</tt>, ...) in its top level which specifies how the used submetrics will be aggregated into a final value.</P>
-  <PRE>&lt;Metric id="<em>metric id</em>"&gt;
-    &lt;Param name="<em>parameter name</em>" /&gt;
-    &lt;Param ... /&gt;
-    ...
-    &lt;AVG|MAX|MIN|...&gt;
-        &lt;Compare id="<em>other metric id</em>" [optional="<em>1|0</em>"] [default="<em>metric value</em>"]&gt;
-            &lt;Param name="<em>parameter1 name</em>" path="<em>RDF path</em>" /&gt;
-            &lt;Param name="<em>parameter2 name</em>" value="<em>literal value</em>" /&gt;
-            &lt;Param ...&gt;
-            ...
-        &lt;/Compare&gt;
-        &lt;Compare ... /&gt;
-        ...
-    &lt;/AVG|MAX|MIN|...&gt;
-&lt;/Metric&gt;
-  </PRE>
-  <P>Example:</P>
-  <PRE>&lt;Metric id="songSimilarity"&gt;
-    &lt;Param name="song1" /&gt;
-    &lt;Param name="song2" /&gt;
-    &lt;AVG&gt;
-        &lt;Compare id="jaroSimilarity"&gt;
-            &lt;Param name="string1" path="?song1/foaf:name" /&gt;
-            &lt;Param name="string2" path="?song2/dc:title" /&gt;
-        &lt;/Compare&gt;
-        &lt;Compare id="numSimilarity" optional="1"&gt;
-            &lt;Param name="num1" path="?song1/dbpedia:runtime" /&gt;
-            &lt;Param name="num2" path="?song2/xyz:length" /&gt;
-        &lt;/Compare&gt;
-    &lt;/AVG&gt;
-&lt;/Metric&gt;</PRE>
--->
-
-  <H2><A name="types"></A>2.7 Function, Metric and Data Types</H2>
-<P>A metric is a special function that may only return a similarity value
-between 0 or 1. In general, all metrics are functions, but not all functions are
-metrics. A metric may be used in any place where a function may be used.
-However, in some places, only metrics are allowed: when specifying a metric ID
-in a &lt;Compare&gt; statement or when passing it to a set similarity
-function.</P>
-<P>Internal typing is loose/lazy and casts are mostly done on demand at the very
-bottom layer, e.g. when a builtin metric has to be evaluated. At this time, the
-passed parameter values are automatically converted (from sets of resources,
-typed literals, untyped literals, Python types...) to types suitable for the
-called function/metric. However, a function definition may also specify that no
-conversion should take place. If such a conversion fails (e.g. when a cast from
-a string to a number is invalid), the function evaluation generates an exception
-which may be handled by the upper layers (<tt>optional</tt> and <tt>default</tt>
-attributes).</P>
-
 <HR>
 
-<H1><A name="example">3. Examples</H1>
+<H1><A name="example"/>3. Examples</H1>
 <p>This section contains two complete Silk-LSL examples.
 </p>
 <ul>
@@ -1005,13 +930,11 @@ movie's director <tt>rdfs:label</tt> to both the <tt>rdfs:label</tt> and the
       &lt;Filter threshold=&quot;0.7&quot; limit=&quot;1&quot; /&gt;
 
       &lt;Outputs&gt;
-        &lt;Output type=&quot;file&quot;&gt;
-          &lt;Param name=&quot;maxConfidence&quot; value=&quot;0.9&quot; /&gt;
+        &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.9&quot;&gt;
           &lt;Param name=&quot;file&quot; value=&quot;lmdb_verify_links.xml&quot;/&gt;
           &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
         &lt;/Output&gt;
-        &lt;Output type=&quot;file&quot;&gt;
-          &lt;Param name=&quot;minConfidence&quot; value=&quot;0.9&quot; /&gt;
+        &lt;Output type=&quot;file&quot; minConfidence=&quot;0.9&quot;&gt;
           &lt;Param name=&quot;file&quot; value=&quot;lmdb_accepted_links.nt&quot;/&gt;
           &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
         &lt;/Output&gt;
@@ -1022,9 +945,9 @@ movie's director <tt>rdfs:label</tt> to both the <tt>rdfs:label</tt> and the
 &lt;/Silk&gt;
 </pre>
 <h2><a name="DBpedia2Stitch" id="DBpedia2Stitch"></a>3.3. owl:sameAs links between DBpedia and STITCH organisms</h2>
-<p><b>Generated Links:</b> <a href="../links/drug_accepted_links.n3">drug_accepted_links.n3</a></p>
+<p><b>Generated Links:</b> <a href="../links/dbpedia_stitch_accepted_links.n3">dbpedia_stitch_accepted_links.n3</a></p>
 
-<p>The following example establishes <tt>owl:sameAs</tt> links between organisms (or species) from DBpedia and <a href="lmdb_accepted_links.nt">STITCH</a> by comparing their
+<p>The following example establishes <tt>owl:sameAs</tt> links between organisms from DBpedia and STITCH by comparing their
 labels.</p>
 <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
@@ -1082,14 +1005,12 @@ labels.</p>
             &lt;Filter threshold=&quot;0.90&quot; /&gt;
 
             &lt;Outputs&gt;
-                &lt;Output type=&quot;file&quot;&gt;
-                  &lt;Param name=&quot;maxConfidence&quot; value=&quot;0.95&quot; /&gt;
-                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_species_verify_links.xml&quot;/&gt;
+                &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.95&quot;&gt;
+                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_verify_links.xml&quot;/&gt;
                   &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
                 &lt;/Output&gt;
-                &lt;Output type=&quot;file&quot;&gt;
-                  &lt;Param name=&quot;minConfidence&quot; value=&quot;0.95&quot; /&gt;
-                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_species_accepted_links.xml&quot;/&gt;
+                &lt;Output type=&quot;file&quot; minConfidence=&quot;0.95&quot;&gt;
+                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_accepted_links.xml&quot;/&gt;
                   &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
                 &lt;/Output&gt;
             &lt;/Outputs&gt;
@@ -1101,60 +1022,44 @@ labels.</p>
 <p>&nbsp;</p>
 <HR title="Separator for header">
 
-<!--TODO:rewrite -->
 <H1><A name="usage"></a>4. Installation and Usage</H1>
 <P><BR>
   In order to use Silk, you need:</P>
 <UL>
-  <LI><A href="http://python.org/"><STRONG>Python 2.5</STRONG></A> or newer (check with <TT>python --version</TT> if you're not sure),</LI>
-  <LI><STRONG>Python Modules:</STRONG></LI>
-    <UL>
-      <LI><A href="http://sparql-wrapper.sourceforge.net/"><STRONG>SPARQLWrapper</STRONG></A> for accessing SPARQL endpoints from Python.</LI>
-      <LI><A href="http://xapian.org/download.php"><STRONG>Xapian</STRONG></A> Python bindings for using Silk's indexing features (optional, but recommended)</LI>
-      <LI><A href="http://rdflib.net/"><STRONG>RDFLib</STRONG></A> Python module</LI>
-    </UL>
-  </LI>
+  <LI><STRONG>Silk Linking Framework</STRONG>. Get the most recent version from <A href="https://sourceforge.net/projects/silk2/">https://sourceforge.net/projects/silk2</A>.</LI>
+  <LI><strong>Java Development Kit</strong> The Silk Linking Framework runs on top of the JVM. Get the most recent JDK from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
+  <li><strong>Maven</strong> is used for project management and build automation. Get it from: <a href="http://maven.apache.org">http://maven.apache.org</a>.</LI>
 </UL>
 <P><BR>
   What to do:</P>
 <OL>
   <LI>
-    <P><STRONG><A
-  href="../index.html#download">Download</A> and extract the Silk archive</STRONG> into a suitable location.</P>
-  <LI>
     <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
-  <LI>
+    </li>
+    <LI>
     <P><STRONG>Run Silk:</STRONG></P>
-    <PRE>python -u silk.py -vvvv <EM>&lt;Silk-LSL file&gt;</EM> [<EM>&lt;Interlink ID&gt;</EM> <EM>...</EM>]</PRE>
-    <p>The amount of -v flags sets the debug verbosity level. For experimenting, a verbosity level of 4 is recommended, for a production run, 2 is a reasonable setting.</p>
-    <p>If one or more Interlink IDs are specified after the configuration file name, only these will be executed. By default, all <tt>&lt;Interlink&gt;</tt> sections are evaluated.</p>
-  <LI>
+    <PRE>mvn scala:run <EM>&lt;Silk-LSL file&gt;</EM></PRE>
+    </li>
+    <LI>
     <P><STRONG>Review Results:</STRONG> Open the output files designated in the Silk-LSL configuration and review the generated links. </P>
   </LI>
 </OL>
-<P><BR>
-  Clearing local caches/indexes: To bypass caching effects between Silk runs, you may sometimes want to delete local caches/indexes.</P>
-<OL>
-  <LI>
-    <P><STRONG>Clearing the resource list cache:</STRONG></P>
-    <PRE>rm cache/*</PRE>
-  <LI>
-    <P><STRONG>Deleting comparison lookup indexes:</STRONG></P>
-    <PRE>rm -r index/*</PRE>
-  </LI>
-</OL>
+
 <HR title="Separator for header">
 <H1><A id=language name=architecture>5. Silk Architecture</A></H1>
+TODO
+<!--
 <p>Before executing comparisons, the Silk engine retrieves the source and target resource lists. The source resource list is retrieved directly through a resource lister which queries the respective SPARQL endpoint and caches resource lists on disk. Target resources are first indexed by means of a resource indexer which makes them searchable by specific property/RDF Path values. During comparison, a list of target resource candidates for each source resource are looked up in this index, limiting detailed comparisons to index search hits.</p>
 <p>For each detailed comparison (link condition evaluation), the user-specified metric aggregation tree is evaluated. Function or metric parameters passed as RDF Path values are transformed into SPARQL by an RDF Path translator and sent to the respective SPARQL endpoint for evaluation. RDF Path evaluations are cached in memory during Silk runtime.</p>
 <p>Metric aggregation evaluations above the specified thresholds (accept-threshold for confident links, verify-threshold for links which should be reviewed by an expert) are first saved in memory. After all comparisons for a link specification are completed, a link limit may be applied which limits the maximum number of outgoing links from a specific resource, keeping only a specific number of highest-evaluated links. The remaining links are written to disk as RDF or in another format specified by the user. </p>
 <P align=center> <IMG src="http://www4.wiwiss.fu-berlin.de/bizer/silk/images/silk_arch.png" alt="Silk architecture diagram" width="650" height="450"></P>
 <p>&nbsp;</p>
+-->
 <HR>
 
 <H1><A name="change_log">6. Change Log</H1>
 <UL>
-  <!-- TODO: update -->
+    <LI>2010-07-02: Updated document for Silk 2 release (Robert, Anja). </LI>
   <LI>2009-03-02: Updated document for Silk 0.2-alpha release (Julius). </LI>
   <LI>2009-02-03: Restructured document and extended descriptions (Chris). </LI>
   <LI>2009-02-02: Initial version of this document (Julius). </LI>
