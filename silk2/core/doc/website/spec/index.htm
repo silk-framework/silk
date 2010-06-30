@@ -150,7 +150,7 @@ UL.toc LI LI {
 </HEAD>
 <BODY>
 <DIV class=head>
-<H1 id=title>Silk2 - A Link Discovery Framework for the Web of Data </H1>
+<H1 id=title>Silk - A Link Discovery Framework for the Web of Data </H1>
 <H2 id=doctype>User Manual and Link Language Specification</H2>
 <DL>
   <DT>This Version:
@@ -173,9 +173,9 @@ UL.toc LI LI {
 <P>&nbsp;</P>
 <HR title="Separator for header">
 </DIV>
-<H2><A id=abstract name=abstract></A>Abstract</H2>
-<P>The Silk2 famework is a tool for discovering relationships between data items within different <a href="http://linkeddata.org/">Linked Data</a> sources. Data publishers can use Silk2 to set RDF links from their data sources to other data sources on the Web. Using the declarative <em>Silk Link Specification Language</em> (Silk-LSL), data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. This document describes the <em>Silk - Link Specification Language</em> and gives an overview about the
-configuration and usage of the Silk2 framework.</P>
+<H2><A name=abstract></A>Abstract</H2>
+<P>The Silk famework is a tool for discovering relationships between data items within different <a href="http://linkeddata.org/">Linked Data</a> sources. Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web. Using the declarative <em>Silk Link Specification Language</em> (Silk-LSL), data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. This document describes the <em>Silk - Link Specification Language</em> and gives an overview about the
+configuration and usage of the Silk framework.</P>
 <H2 id=toc>Table of Contents</H2>
 <UL class=toc>
   <LI>1. <A
@@ -215,7 +215,7 @@ configuration and usage of the Silk2 framework.</P>
 </UL>
 <HR>
 
-<H1><A id=introduction name=introduction>1. Introduction</A></H1>
+<H1><A name=introduction>1. Introduction</A></H1>
 <P>The Web is increasingly understood as a global information space consisting not only of linked documents, but also of linked data.  Today, the emerging Web of Data includes datasets as extensive and diverse as DBpedia, Geonames, US Census, EuroStat, MusicBrainz, BBC Programmes, Flickr, DBLP, PubMed, UniProt, FOAF, SIOC, OpenCyc, UMBEL and Yago.  Background information about the Web of Data is found at <a href="http://linkeddata.org/">LinkedData.org</a>, the wiki pages of the <a href="http://esw.w3.org/topic/SweoIG/TaskForces/CommunityProjects/LinkingOpenData">W3C Linking Open Data community effort</a> and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>. </P>
 <P>This document describes the <em>Silk - Link Discovery Framework</em>. Using the declarative <em>Silk - Link Specification Language</em> (Silk-LSL), data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. These link conditions may combine various similarity metrics and can take the graph around data items into account, which is addressed using an RDF path language. Silk accesses the datasets that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints. </P>
 <p>The main features of the Silk framework are:</p>
@@ -228,11 +228,11 @@ configuration and usage of the Silk2 framework.</P>
 </ol>
 <p>Silk is implemented in Scala<!-- and is run as an batch process on the command line-->. In order to run Silk, developers need to:</p>
 <ol>
-  <li>Have SPARQL access to the datasets that should be interlinked.</li> <!-- list other new oppurtunities -->
-  <li>Download Scala and the Silk framework (<a href="../index.htm#download">see download section</a>)</li>
-  <li>Write a link specification (see Section <a href="#specification">Silk Link Specification Language</a>). </li>
-  <li>Run Silk as described in the <a href="#usage">Usage</a> section of this manual.</li>
+  <li>Have SPARQL access to the datasets that should be interlinked.</li>
+  <li>Write a link specification as described this manual.</li>
+  <li>Install the Silk framework as described in the <a href="spec/index.htm#usage">Installation and Usage</a> section.</li>
 </ol>
+
 <HR title="Separator for header">
 
 <H1 id=specification>2. Silk Link Specification Language</H1>
@@ -372,7 +372,7 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
   </tr>
   <tr>
       <td><tt>pageSize</tt></td>
-      <td>The optional <tt>pageSize</tt> parameter limits each SPARQL query to a fixed amount of results, the default being 1000. Silk2 implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses.</td>
+      <td>The optional <tt>pageSize</tt> parameter limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses.</td>
   </tr>
   <tr>
       <td><tt>graph</tt></td></li>
@@ -517,7 +517,7 @@ established between two data items if a specified condition is satisfied. This c
   &lt;/Interlink&gt;
 &lt;/Interlinks&gt;</PRE>
 
-<H2><A name="linktype""></A>2.4.1 Link Type</H2>
+<H2><A name="linktype"></A>2.4.1 Link Type</H2>
 <p>The <tt>LinkType</tt> directive defines the type of the generated links.</p>
 
 <p>Example:</p>
@@ -525,8 +525,7 @@ established between two data items if a specified condition is satisfied. This c
 
 <h2><a name="datasets"></a>2.4.2 Datasets</h2>
 
-<p>The <tt>SourceDataset</tt> and <tt>TargetDataset</tt> directives </p>  define the set of data items which are to be compared.
-
+<p>The <tt>SourceDataset</tt> and <tt>TargetDataset</tt> directives define the set of data items which are to be compared.</p>
 
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
@@ -568,20 +567,13 @@ established between two data items if a specified condition is satisfied. This c
 </pre>
 
 <h2><a name="inputs"></a>2.4.3 Inputs</h2>
-
+An input retrieves values from a data item by a given RDF path and optionally applies a transformation to them.
 
 <h3><a name="pathinputs"></a>Path Inputs</h3>
-<P>Silk uses an RDF path language to select sets of resources or literals in an RDF graph. Every path statement begins with a variable, which may be followed by a series of path elements as specified in the following section. If a path cannot be resolved due to a missing property or a too restrictive filter, an empty result set is returned.</P>
-<p>Examples:</p>
-<pre># Select the English label of a movie
-?movie/rdfs:label[@lang = 'en']
-
-# Select the label (set) of the director(s) of a movie
-?movie/dbpedia:director/rdfs:label
-
-# Select the albums of a given artist (albums have an dbpedia:artist property)
-?artist\dbpedia:artist[rdf:type = dbpedia:Album]</pre>
-<H3><A name=rdfpath_operators></A>RDF Path Operators</H3>
+<p>The <tt>Input</tt> directive is used to retrieve all values which are connected to the data item by a path.</p>
+<p>Every path statement begins with a variable (as defined in the datasets), which may be followed by a series of path elements.
+If a path cannot be resolved due to a missing property or a too restrictive filter, an empty result set is returned.</p>
+<p>The following operators can be used to traverse the graph:</p>
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
     <TR>
@@ -611,11 +603,27 @@ established between two data items if a specified condition is satisfied. This c
     </TR>
   </TBODY>
 </TABLE>
-<H3><A name=rdfpath_param></A>Use As Function Argument Selectors</H3>
-<P>The main use of RDF paths is to supply sets of resources as arguments to functions. <!--TODO: rewrite-->If a set of resources is empty (the RDF path failed to evaluate because of a missing property), the evaluation of the metric / function generates an exception, which may be handled in a way specified by the user (making a metric optional, for example).</P>
+
+<p>Examples:</p>
+<pre># Select the English label of a movie
+&lt;Input path="?movie/rdfs:label[@lang = 'en']" /&gt;
+
+# Select the label (set) of the director(s) of a movie
+&lt;Input path="?movie/dbpedia:director/rdfs:label" /&gt;
+
+# Select the albums of a given artist (albums have an dbpedia:artist property)
+&lt;Input path="?artist\dbpedia:artist[rdf:type = dbpedia:Album]" /&gt;</pre>
 
 <h3><a name="transformations"></a>Transformations</h3>
-<p>The values that are selected by RDF path expressions can be transformed using the following transformation and normalization functions before they are passed to the similarity metric or other transformatrion functions. </p>
+<p>The <tt>TransformInput</tt> directive can be used to transform the result set of an input prior to forwarding it.</p>
+
+<pre>&lt;TransformInput function=&quot;<em>transform function name</em>&quot;&gt;
+  <em>Input</em>
+  &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+  ...
+&lt;/TransformInput&gt;</pre>
+
+<p>Silk provides the following transformation and normalization functions:</p>
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
     <TR>
@@ -670,30 +678,69 @@ established between two data items if a specified condition is satisfied. This c
       <TD>stripURIPrefix</TD>
       <TD>Strip the URI prefix (e.g. http://dbpedia.org/resource/) from a string.</TD>
     </TR>
-    <!--<TR>-->
-      <!--<TD>translateWithDictionary(string str[], filename dictionary.csv)</TD>-->
-      <!--<TD>Translates a string using a dictionary in the form of  comma seperated value pairs.</TD>-->
-    <!--</TR>-->
+    <TR>
+      <TD>concat</TD>
+      <TD>Concats strings from two inputs.</TD>
+    </TR>
   </TBODY>
 </TABLE>
 
+<p>Example:</p>
+<pre>&lt;TransformInput function=&quot;lowerCase&quot;&gt;
+  &lt;TransformInput function=&quot;replace&quot;&gt;
+    &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+    &lt;Param name=&quot;search&quot; value=&quot;_&quot; /&gt;
+    &lt;Param name=&quot;replace&quot; value=&quot; &quot; /&gt;
+  &lt;/TransformInput&gt;
+&lt;/TransformInput&gt;</pre>
+
 <h2><a name="blocking"></a>2.4.3 Blocking Data Items</h2>
 
-<P>Since comparing every source resource to every single target resource may be too time consuming, it is possible to use an index to look up target resources that would likely match a source resource. The <tt>&lt;Blocking&gt;</tt> statement in a link specification restricts comparisons to such matching target resources. If this statement is specified, the target resources are indexed based on the target RDF path fields (for example, their label strings) of the <tt>&lt;Input&gt;</tt> substatements. <!--Later, the <tt>sourcePath</tt> RDF path is evaluated from a source resource and is used to look up potentially matching target resources in the index. Of each specified subindex (<tt>&lt;Index&gt;</tt> substatements), the first <tt>hitLimit</tt> resources are returned and used for comparisons.--> If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs.</P>
+<p>Since comparing every source resource to every single target resource may be too time consuming,
+blocking can be used to reduce the number of comparisons.
+Blocking partitions similar data items into clusters reducing the comparison to items in the same cluster.</p>
 
-  <PRE>&lt;Blocking blocks=&quot;<em>number of blocks</em>&quot; function=&quot;<em>blocking function</em>&quot;&gt;
-&lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
-&lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
-…
-  &lt;/Blocking&gt;</PRE>
+<p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
+If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs.</p>
+
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+    <tr>
+        <td style="white-space:nowrap;"><tt>function</tt> <small>(mandatory)</small></li></td>
+        <td>The blocking function to be used. Available functions are: <em>alphanumeric</em> and <em>numeric</em>.</td>
+    </tr>
+  <tr>
+      <td style="white-space:nowrap;"><tt>blocks</tt> <small>(mandatory)</small></li></td>
+      <td>The number of clusters.</td>
+  </tr>
+  <tr>
+      <td><tt>overlap</tt></td>
+      <td>The overlap in percentage as a value between 0 and 0.5.</td>
+  </tr>
+    </tbody>
+</table>
+
+  <PRE>&lt;Blocking function=&quot;<em>blocking function</em>&quot; blocks=&quot;<em>number of blocks</em>&quot; overlap=&quot;<em>overlap size</em>&quot;&gt;
+  &lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
+  &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+  ...
+&lt;/Blocking&gt;</PRE>
 
   <P>Example:</P>
   <PRE>&lt;Blocking blocks=&quot;10&quot; function=&quot;alphanumeric&quot;&gt;
-&lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
-  &lt;/Blocking&gt;</PRE>
+  &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+&lt;/Blocking&gt;</PRE>
 
-<H2><A name="metrics"></A>2.4.1 Similarity Metrics</H2>
-<p>The Silk framework currently supports the following similarity metrics, which return a similarity value between 0 (lowest similarity) and 1 (highest similarity) each:</p>
+<h2><a name="linkcondition"></a>2.4.3 Link Condition</h2>
+The link condition specifies how two data items are compared for similarity. It consists of a number of comparison operators which are combined using aggregations.
+
+<h3><a name="comparisons"></a>Comparison Operators</h3>
+<p>A comparison operator evaluates two inputs and computes their similarity based on a user-defined metric.<br/>
+The Silk framework currently supports the following similarity metrics, which return a similarity value between 0 (lowest similarity) and 1 (highest similarity) each:</p>
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
     <TR>
@@ -728,53 +775,11 @@ established between two data items if a specified condition is satisfied. This c
       <TD>date(string input1, string input2, int max_days)</TD>
       <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "max_days", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
     </TR>
-    <!--
-    <TR>
-      <TD>uriEquality(URI uri1, URI uri2)</TD>
-      <TD>Return 1 if the two URIs are equal, 0 otherwise.</TD>
-    </TR>
-    <TR>
-      <TD>taxonomicSimilarity(URI concept1, URI concept2, filename taxonomy.rdf)</TD>
-      <TD>The taxonomic matcher computes the similarity of two concepts based on their distance in a taxonomic hierarchy using the algorithm described in <a href="http://www.corporate-semantic-web.de/pub/SemMF_ISWC2005.pdf">Oldakowski05</a>. </TD>
-    </TR>
-    <TR>
-      <TD>maxSimilarityInSet(untyped set1[], untyped set2[], submetric)</TD>
-      <TD>Compares all element pairs of set1 and set2 via the metric identified by "submetric" and returns the maximum encountered submetric evaluation. </TD>
-    </TR>
-    <TR>
-      <TD>setSimilarity(untyped set1[], untyped set2[], string submetric)</TD>
-      <TD>Computes a similarity value between two sets of items. Single items between sets are compared with the specified metric identified by the "submetric" string. </TD>
-    </TR>
-    -->
   </TBODY>
 </TABLE>
 
-<!-- TODO
-<P>Input values to functions/metrics may be passed in two different ways:</P>
-<UL>
-  <LI>value generated by an RDF path evaluation
-  <LI>value generated by another function/metric </LI>
-</UL>
-
-<DL>
-  <DT>RDF Path Values
-  <DD>
-      <P>RDF path values may be passed by specifying the RDF path in the <tt>path</tt> attribute of the <tt>&lt;Input&gt;</tt> element:</P>
-      <PRE>&lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;</PRE>
-  <DT>Function-Generated Values
-  <DD>
-      <P>Function-generated input values may be passed by using a <tt>&lt;TransformInput&gt;</tt> element:</P>
-      <PRE>&lt;TransformInput function=&quot;<em>transform function name</em>&quot;&gt;
-  &lt;Input ...&gt;
-  ...
-  &lt;Param ...&gt;
-  ...
-&lt;/TransformInput&gt;</PRE>
-  </DD>
-</DL>
--->
-
-<h2><a name="combining"></a>2.4.4 Combining and Weighting Metrics</h2>
+<h3><a name="combining"></a>Combining and Weighting Comparisons</h3>
+Multiple comparisons can be combined using an aggregation.
 <DL>
   <DT>Aggregation Operators</DT>
   <DD>
