@@ -159,16 +159,13 @@ UL.toc LI LI {
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/</a><DT>
   <DT>Authors:
-  <DD><A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A> (Technische Universität Chemnitz, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A>
   <DD>
-  <DD><A
-  href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html"
-  target=_blank>Chris Bizer</A> (Freie Universität Berlin, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A>
   <DD>
-  <DD><a href="mailto:gaedke@cs.tu-chemnitz.de">Martin Gaedke</a> (Technische Universität Chemnitz, Germany)
+  <DD><A href="http://www.bizer.de/">Chris Bizer</A>
   <DD>
-  <DD><a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/KobilarovGeorgi.html">Georgi Kobilarov</a> (Freie Universität Berlin, Germany)
-  <dt>&nbsp; </dt>
+  <DD><A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A>
   <DT></DT></DL>
 <P>&nbsp;</P>
 <HR title="Separator for header">
@@ -178,8 +175,7 @@ UL.toc LI LI {
 configuration and usage of the Silk framework.</P>
 <H2 id=toc>Table of Contents</H2>
 <UL class=toc>
-  <LI>1. <A
-  href="#introduction">Introduction</A>
+  <LI>1. <A href="#introduction">Introduction</A>
 
   <LI>2. <A href="#specification">Silk Link Specification Language</A>
     <UL>
@@ -189,24 +185,18 @@ configuration and usage of the Silk framework.</P>
       <LI>2.4 <a href="#linkspec">Link Specifications</a>
           <ul><LI>2.4.1 <a href="#linktype">Link Type</a></LI>
           <LI>2.4.2 <A href="#datasets">Datasets</A></LI>
-          <LI>2.4.3 <A href="#blocking">Blocking Data Items</A></LI>
-          <LI>2.4.4 <a href="#metrics">Similarity Metrics</a></LI>
-          <LI>2.4.5 <a href="#rdfpath">The RDF Path Language</a></LI>
-          <LI>2.4.6 <a href="#transformationfunctions">Transformation Functions</a></LI>
-          <LI>2.4.7 <A href="#combining">Combining and Weighting Metrics</A></LI>
-          <LI>2.4.8 <a href="#thresholds">Thresholds</a></LI>
-          <LI>2.4.9 <A href="#limit">Link Limit </A></LI>
+          <LI>2.4.3 <A href="#inputs">Inputs</A></LI>
+          <LI>2.4.4 <A href="#blocking">Blocking Data Items</A></LI>
+          <LI>2.4.5 <A href="#conditions">Link Condition</A></LI>
+          <LI>2.4.6 <a href="#filter">Link Filter</a></LI>
           </ul>
       </LI>
-      <LI>2.5 <a href="#output">Output Formats</a> </LI>
-      <!-- TODO: change numbering! <LI>2.13. <a href="#userdefined">User-Defined Metrics</a></LI> -->
-      <LI>2.7 <a href="#types">Function, Metric and Data Types</a></LI>
+      <LI>2.5 <a href="#output">Output</a> </LI>
     </UL>
   <LI>3. <A href="#example">Examples</A>
     <ul>
-      <li>3.1 <a href="#DBpedia2LinkedMDB">owl:sameAs links between DBpedia and LinkedMDB movies</a></li>
-    <li>3.2 <a href="#DBpedia2LinkedMDBdirector">dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
-    <li>3.3 <a href="#DBpedia2DrugBank">owl:sameAs links between DBpedia and DrugBank drugs</a></li>
+    <li>3.1 <a href="#DBpedia2LinkedMDBdirector">dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
+    <li>3.2 <a href="#DBpedia2DrugBank">owl:sameAs links between DBpedia and DrugBank drugs</a></li>
     </ul>
   </LI>
   <LI>4. <A href="#usage">Installation and Usage</A></LI>
@@ -417,7 +407,7 @@ established between two data items if a specified condition is satisfied. This c
   <li><a href="#inputs">inputs</a>
     <ul>
         <li><a href="#pathinputs">path inputs</a></li>
-        <li><a href="#transformationfunctions">transformations</a></li>
+        <li><a href="#transformations">transformations</a></li>
     </ul>
   </li>
   <li><a href="#blocking">blocking</a></li>
@@ -735,7 +725,7 @@ If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, t
   &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
 &lt;/Blocking&gt;</PRE>
 
-<h2><a name="linkcondition"></a>2.4.5 Link Condition</h2>
+<h2><a name="conditions"></a>2.4.5 Link Condition</h2>
 The link condition specifies how two data items are compared for similarity. It consists of a number of comparison operators which are combined using aggregations.
 
 <h3><a name="comparisons"></a>Comparison Operators</h3>
