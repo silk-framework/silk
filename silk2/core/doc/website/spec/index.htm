@@ -358,7 +358,7 @@ referred to and used by their ID within link specification statements.</P>
 &lt;/DataSources&gt;
 </PRE>
 
-<h3>2.3.1 SPARQL Endpoint Data Source Definitions</h3>
+<h3>SPARQL Endpoint Data Source Definitions</h3>
 For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following parameters exist:
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
@@ -694,7 +694,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
   &lt;/TransformInput&gt;
 &lt;/TransformInput&gt;</pre>
 
-<h2><a name="blocking"></a>2.4.3 Blocking Data Items</h2>
+<h2><a name="blocking"></a>2.4.4 Blocking Data Items</h2>
 
 <p>Since comparing every source resource to every single target resource may be too time consuming,
 blocking can be used to reduce the number of comparisons.
@@ -735,7 +735,7 @@ If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, t
   &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
 &lt;/Blocking&gt;</PRE>
 
-<h2><a name="linkcondition"></a>2.4.3 Link Condition</h2>
+<h2><a name="linkcondition"></a>2.4.5 Link Condition</h2>
 The link condition specifies how two data items are compared for similarity. It consists of a number of comparison operators which are combined using aggregations.
 
 <h3><a name="comparisons"></a>Comparison Operators</h3>
@@ -801,7 +801,7 @@ Multiple comparisons can be combined using an aggregation.
   <DD>
       <P>Some comparison operators might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
 </DL>
-<h2><a name="filter"></a>2.4.5 Link Filter</h2>
+<h2><a name="filter"></a>2.4.6 Link Filter</h2>
 <P>The <tt>&lt;Filter&gt;</tt> directive allows for filtering the generated links.
 
 <pre>&lt;Filter threshold=&quot;<em>threshold</em>&quot; limit=&quot;<em>maximum link count</em>&quot; /&gt;</pre>
@@ -865,7 +865,7 @@ Outputs can either be defined globally or inside a link specification.</p>
 
 <p>These and more examples can also be found in the <!--TODO--><a href="http://code.google.com/p/silk/source/browse/#svn/trunk/samples">examples directory of Silk</a>.</p>
 
-<h2><a name="DBpedia2LinkedMDBdirector" id="DBpedia2LinkedMDBdirector"></a>3.2. dbpedia:director links between DBpedia movies and LinkedMDB directors </h2>
+<h2><a name="DBpedia2LinkedMDBdirector" id="DBpedia2LinkedMDBdirector"></a>3.1. dbpedia:director links between DBpedia movies and LinkedMDB directors </h2>
 <p><b>Generated Links:</b> <a href="../links/lmdb_accepted_links.nt">lmdb_accepted_links.nt</a></p>
 <p>The following example is a demonstration of how to establish semantic links
 other than <tt>owl:sameAs</tt> between resources with Silk. Movies in DBpedia
@@ -944,7 +944,7 @@ movie's director <tt>rdfs:label</tt> to both the <tt>rdfs:label</tt> and the
   &lt;/Interlinks&gt;
 &lt;/Silk&gt;
 </pre>
-<h2><a name="DBpedia2Stitch" id="DBpedia2Stitch"></a>3.3. owl:sameAs links between DBpedia and STITCH organisms</h2>
+<h2><a name="DBpedia2Stitch" id="DBpedia2Stitch"></a>3.2. owl:sameAs links between DBpedia and STITCH organisms</h2>
 <p><b>Generated Links:</b> <a href="../links/dbpedia_stitch_accepted_links.n3">dbpedia_stitch_accepted_links.n3</a></p>
 
 <p>The following example establishes <tt>owl:sameAs</tt> links between organisms from DBpedia and STITCH by comparing their
