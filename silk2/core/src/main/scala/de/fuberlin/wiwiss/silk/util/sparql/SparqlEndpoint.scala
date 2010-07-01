@@ -88,8 +88,16 @@ class SparqlEndpoint(val uri : String, val pageSize : Int = 1000, val pauseTime 
 
                         if(logger.isLoggable(Level.INFO))
                         {
-                            val errorMessage = Source.fromInputStream(httpConnection.getErrorStream).getLines.mkString("\n")
-                            logger.info("Query failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms.")
+                            val errorStream = httpConnection.getErrorStream
+                            if(errorStream != null)
+                            {
+                                val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
+                                logger.info("Query failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms.")
+                            }
+                            else
+                            {
+                                logger.info("Query failed.\nRetrying in " + retryPause + " ms.")
+                            }
                         }
 
                         Thread.sleep(retryPause)

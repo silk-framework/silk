@@ -71,17 +71,29 @@ configuration and usage of the Silk framework.</P>
 <HR>
 
 <H1><A name=introduction>1. Introduction</A></H1>
-<P>The Web is increasingly understood as a global information space consisting not only of linked documents, but also of linked data.  Today, the emerging Web of Data includes datasets as extensive and diverse as DBpedia, Geonames, US Census, EuroStat, MusicBrainz, BBC Programmes, Flickr, DBLP, PubMed, UniProt, FOAF, SIOC, OpenCyc, UMBEL and Yago.  Background information about the Web of Data is found at <a href="http://linkeddata.org/">LinkedData.org</a>, the wiki pages of the <a href="http://esw.w3.org/topic/SweoIG/TaskForces/CommunityProjects/LinkingOpenData">W3C Linking Open Data community effort</a> and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>. </P>
+<P>The Web is increasingly understood as a global information space consisting not only of linked documents, but also of linked data.
+Today, the emerging Web of Data includes datasets as extensive and diverse as DBpedia, Geonames, US Census, EuroStat, MusicBrainz, BBC Programmes, Flickr, DBLP, PubMed, UniProt, FOAF, SIOC, OpenCyc, UMBEL and Yago.
+    Background information about the Web of Data is found at the wiki pages of the <a href="http://esw.w3.org/topic/SweoIG/TaskForces/CommunityProjects/LinkingOpenData">W3C Linking Open Data community effort</a>,
+    in the overview article <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>
+and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>. </P>
 <P>This document describes the <em>Silk - Link Discovery Framework</em>. Using the declarative <em>Silk - Link Specification Language</em> (Silk-LSL), data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. These link conditions may combine various similarity metrics and can take the graph around data items into account, which is addressed using an RDF path language. Silk accesses the datasets that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints. </P>
-<p>The main features of the Silk framework are:</p>
-<ol>
-  <li>it supports the generation of owl:sameAs links as well as other types of links.</li>
-  <li>it provides a flexible, declarative language for specifying link conditions. </li>
-  <li>it can be employed in distributed environments without having to to replicate datasets locally.</li>
-  <li>it can be used in situations where terms from different vocabularies are mixed and where no consistent RDFS or OWL schemata exist.</li>
-  <li>Silk implements various local caching, indexing and comparison preselection methods to increase performance and reduce network load.</li>
-</ol>
-<p>Silk is implemented in Scala<!-- and is run as an batch process on the command line-->. In order to run Silk, developers need to:</p>
+<p>The main features of the Silk link discovery engine are:</p>
+<ul>
+  <li>Open source link discovery framework, running on all major platforms</li>
+  <li>Support of RDF link generation (owl:sameAs links as well as other types)</li>
+  <li>Flexible, declarative language for specifying link conditions</li>
+  <li>Employment in distributed environments (by accessing local and remote SPARQL endpoints)</li>
+  <li>Usable in situations where terms from different vocabularies are mixed and where no consistent RDFS or OWL schemata exist</li>
+  <li>Scalability and high performance through efficient data handling (speedup factor of 20 compared to Silk 0.2):
+    <ul>
+        <li>Reduction of network load by caching and reusing of SPARQL result sets</li>
+        <li>Multi-threaded computation of the data item comparisons (3 million comparisons per minute on a Core2 Duo)</li>
+        <li>Optional blocking of data items</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Silk is implemented in Scala. In order to run Silk, developers need to:</p>
 <ol>
   <li>Have SPARQL access to the datasets that should be interlinked.</li>
   <li>Write a link specification as described this manual.</li>
@@ -149,13 +161,11 @@ configuration and usage of the Silk framework.</P>
       &lt;Filter threshold=&quot;0.9&quot; /&gt;
 
       &lt;Outputs&gt;
-        &lt;Output type=&quot;file&quot;&gt;
-          &lt;Param name=&quot;minConfidence&quot; value=&quot;0.95&quot; /&gt;
+        &lt;Output type=&quot;file&quot; minConfidence&quot; value=&quot;0.95&quot; /&gt;
           &lt;Param name=&quot;file&quot; value=&quot;accepted_links.nt&quot; /&gt;
           &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot; /&gt;
         &lt;/Ouput&gt;
-        &lt;Output type=&quot;file&quot;&gt;
-          &lt;Param name=&quot;maxConfidence&quot; value=&quot;0.95&quot; /&gt;
+        &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.95&quot; /&gt;
           &lt;Param name=&quot;file&quot; value=&quot;verify_links.nt&quot; /&gt;
           &lt;Param name=&quot;format&quot; value=&quot;alignment&quot; /&gt;
         &lt;/Ouput&gt;
@@ -165,8 +175,8 @@ configuration and usage of the Silk framework.</P>
 
 &lt;/Silk&gt;</p></pre>
 <H2><A name=toplevel></A>2.1 Structure and Elements</H2>
-The Silk-LSL is expressed in XML. The root tag name is <TT>&lt;Silk&gt;</TT>. A valid document may contain four types of top-level
-  statements beneath the root element:
+The Silk-LSL is expressed in XML as specified by the corresponding <a href="http://silk2.svn.sourceforge.net/viewvc/silk2/trunk/silk2/core/src/main/resources/de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd">Silk XML Schema</a>. The root tag name is <TT>&lt;Silk&gt;</TT>.
+A valid document may contain four types of top-level statements beneath the root element:
 <ul>
   <li><a href="#prefixes">prefix definitions</a></li>
   <li><a href="#datasources">datasource definitions</a></li>
@@ -264,7 +274,9 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
 
 <h2><a name="linkspec"></a>2.4 Link Specifications</h2>
 <P>Link specification statements state that a link of a given type should be
-established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights.</P>
+established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights.
+A Silk link specification may contain several interlink 
+</P>
 
 <ul>
   <li><a href="#linktype">link type</a></li>
