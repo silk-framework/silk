@@ -51,13 +51,11 @@
       <Filter threshold="0.7" limit="1" />
 
       <Outputs>
-        <Output type="file">
-          <Param name="maxConfidence" value="0.9" />
+        <Output maxConfidence="0.9" type="file" >
           <Param name="file" value="lmdb_verify_links.xml"/>
           <Param name="format" value="alignment"/>
         </Output>
-        <Output type="file">
-          <Param name="minConfidence" value="0.9" />
+        <Output minConfidence="0.9" type="file">
           <Param name="file" value="lmdb_accepted_links.xml"/>
           <Param name="format" value="alignment"/>
         </Output>

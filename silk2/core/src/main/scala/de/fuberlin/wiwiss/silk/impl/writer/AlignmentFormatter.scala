@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.impl.output
+package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.Link
 

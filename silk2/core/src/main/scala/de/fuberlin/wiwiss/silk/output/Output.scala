@@ -1,30 +1,56 @@
 package de.fuberlin.wiwiss.silk.output
 
 import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
+import java.util.logging.Logger
 
 /**
- * Represents an abstraction over an output of links.
+ * Represents an abstraction over an writer of links.
  *
  * Implementing classes of this trait must override the write method.
  */
-trait Output extends Strategy
+class Output(val writer : AlignmentWriter, minConfidence : Option[Double] = None, maxConfidence : Option[Double] = None)
 {
-    val params : Map[String, String]
+    private val logger = Logger.getLogger(classOf[Output].getName)
+
+    private var linkCount : Int = 0
+
+    private var isOpen = false
 
     /**
-     * Initializes this output.
+     * Initializes this writer.
      */
-    def open() : Unit = {}
+    def open()
+    {
+        require(!isOpen, "Output already open")
+
+        writer.open()
+        linkCount = 0
+        isOpen = true
+    }
 
     /**
-     * Writes a new link to this output.
+     * Writes a new link to this writer.
      */
-    def write(link : Link, predicateUri : String) : Unit
+    def write(link : Link, predicateUri : String)
+    {
+        require(isOpen, "Output must be opened befored writing statements to it")
+
+        if((minConfidence.isEmpty || link.confidence > minConfidence.get) &&
+           (maxConfidence.isEmpty || link.confidence <= maxConfidence.get))
+        {
+            writer.write(link, predicateUri)
+            linkCount += 1
+        }
+
+    }
 
     /**
-     * Closes this output.
+     * Closes this writer.
      */
-    def close() : Unit = {}
+    def close()
+    {
+        if(isOpen) writer.close()
+
+        logger.info("Wrote " + linkCount + " links")
+    }
 }
-
-object Output extends Factory[Output]

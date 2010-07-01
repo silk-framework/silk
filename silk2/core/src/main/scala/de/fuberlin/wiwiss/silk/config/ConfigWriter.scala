@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.config
 
 import xml.{PrettyPrinter, Elem}
 import java.io.{OutputStreamWriter, FileOutputStream, OutputStream, File}
-import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkspec._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import input.{Transformer, Input, PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
 
 object ConfigWriter
 {
@@ -118,9 +118,10 @@ object ConfigWriter
         case None => <Filter threshold={filter.threshold.toString} />
     }
 
-    private def outputToXml(output : Output) : Elem = output match
+    //TODO write minConfidence, maxConfidence
+    private def outputToXml(output : Output) : Elem = output.writer match
     {
-        case Output(outputType, params) =>
+        case AlignmentWriter(outputType, params) =>
         {
             <Output type={outputType}>
               { params.map{case (name, value) => <Param name={name} value={value} /> } }

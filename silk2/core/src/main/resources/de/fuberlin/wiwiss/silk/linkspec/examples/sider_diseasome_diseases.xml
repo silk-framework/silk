@@ -38,18 +38,19 @@
                 </RestrictTo>
             </TargetDataset>
 
+            <!-- Blocking blocks="50" function="alphanumeric">
+               <Input path="?a/rdfs:label" />
+               <Input path="?b/sider:sideEffectName" />
+            </Blocking -->
+
             <LinkCondition>
                 <Aggregate type="max">
                     <Compare metric="jaroWinkler">
                         <TransformInput function="lowerCase">
-                            <TransformInput function="replace">
-                                <Input path="?a/rdfs:label" />
-                                <Param name="search" value="_" />
-                                <Param name="replace" value=" " />
-                            </TransformInput>
+                            <Input path="?a/rdfs:label" />
                         </TransformInput>
                         <TransformInput function="lowerCase">
-                             <Input path="?b/sider:sideEffectName" />
+                            <Input path="?b/sider:sideEffectName" />
                         </TransformInput>
                     </Compare>
 
@@ -77,13 +78,11 @@
             <Filter threshold="0.7" limit="1" />
 
             <Outputs>
-                <Output type="file">
-                  <Param name="maxConfidence" value="0.95" />
+                <Output maxConfidence="0.95" type="file" >
                   <Param name="file" value="sider_diseasome_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
-                <Output type="file">
-                  <Param name="minConfidence" value="0.95" />
+                <Output minConfidence="0.95" type="file">
                   <Param name="file" value="sider_diseasome_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
