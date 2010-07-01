@@ -53,13 +53,11 @@
             <Filter threshold="0.97" />
 
             <Outputs>
-                <Output type="file">
-                  <Param name="maxConfidence" value="0.95" />
+               <Output maxConfidence="0.95" type="file" >
                   <Param name="file" value="stitch_dbpedia_species_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
-                <Output type="file">
-                  <Param name="minConfidence" value="0.95" />
+                <Output minConfidence="0.95" type="file">
                   <Param name="file" value="stitch_dbpedia_species_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>

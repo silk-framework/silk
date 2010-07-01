@@ -6,10 +6,10 @@ import xml._
 import java.io.{File}
 import org.xml.sax.{SAXException}
 import javax.xml.transform.stream.StreamSource
-import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkspec._
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
 
 object ConfigLoader
 {
@@ -172,7 +172,11 @@ object ConfigLoader
 
     private def loadOutput(node : Node) : Output =
     {
-        Output(node \ "@type" text, loadParams(node))
+        new Output(
+            writer = AlignmentWriter(node \ "@type" text, loadParams(node)),
+            minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
+            maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
+        )
     }
 
     private def resolveQualifiedName(name : String, prefixes : Map[String, String]) =

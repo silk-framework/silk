@@ -58,13 +58,11 @@
             <Filter threshold="0.95" />
 
             <Outputs>
-                <Output type="file">
-                  <Param name="maxConfidence" value="0.97" />
+                <Output maxConfidence="0.97" type="file" >
                   <Param name="file" value="tcm_linkedct_drugs_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
-                <Output type="file">
-                  <Param name="minConfidence" value="0.97" />
+                <Output minConfidence="0.97" type="file">
                   <Param name="file" value="tcm_linkedct_drugs_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>

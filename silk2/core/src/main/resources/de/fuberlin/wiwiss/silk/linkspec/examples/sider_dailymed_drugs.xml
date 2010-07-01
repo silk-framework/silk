@@ -72,13 +72,11 @@
             <Filter threshold="0.97" />
 
             <Outputs>
-                <Output type="file">
-                  <Param name="maxConfidence" value="0.99" />
+                <Output maxConfidence="0.99" type="file" >
                   <Param name="file" value="sider_dailymed_drugs_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
-                <Output type="file">
-                  <Param name="minConfidence" value="0.99" />
+                <Output minConfidence="0.99" type="file">
                   <Param name="file" value="sider_dailymed_drugs_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>

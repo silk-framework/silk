@@ -4,12 +4,12 @@ import datasource._
 import transformer._
 import aggegrator._
 import blockingfunction._
-import output._
+import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.output.{Formatter, Output}
 import de.fuberlin.wiwiss.silk.linkspec.{Metric, Aggregator, BlockingFunction}
+import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Formatter, Output}
 
 object DefaultImplementations
 {
@@ -48,8 +48,8 @@ object DefaultImplementations
         Aggregator.register("quadraticMean", classOf[QuadraticMeanAggregator])
         Aggregator.register("geometricMean", classOf[GeometricMeanAggregator])
 
-        Output.register("file", classOf[FileOutput])
-        Output.register("memory", classOf[MemoryOutput])
+        AlignmentWriter.register("file", classOf[FileWriter])
+        AlignmentWriter.register("memory", classOf[MemoryWriter])
 
         Formatter.register("ntriples", classOf[NTriplesFormatter])
         Formatter.register("alignment", classOf[AlignmentFormatter])

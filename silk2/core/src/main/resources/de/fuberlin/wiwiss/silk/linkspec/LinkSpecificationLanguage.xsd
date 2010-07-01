@@ -59,6 +59,8 @@
               <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="type" type="xs:string" />
+            <xs:attribute name="minConfidence" type="xs:decimal" use="optional" />
+            <xs:attribute name="maxConfidence" type="xs:decimal" use="optional" />
           </xs:complexType>
         </xs:element>
       </xs:sequence>
