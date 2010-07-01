@@ -140,3 +140,6 @@ UL.toc LI LI {
 #doctype {
     MARGIN-TOP: 1em
 }
+td, th {
+    vertical-align: top;
+}

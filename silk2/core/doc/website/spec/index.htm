@@ -12,17 +12,17 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discov
 <DL>
   <DT>This Version:
   <DD>
-    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20100702/</a> </p>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20100702/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20100702/</a> </p>
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/</a><DT>
   <DT>Authors:
-  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universität Berlin, Germany)
   <DD>
-  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universität Berlin, Germany)
   <DD>
-  <DD><A href="http://www.bizer.de/">Chris Bizer</A>
+  <DD><A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universität Berlin, Germany)
   <DD>
-  <DD><A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A>
+  <DD><A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A> (Technische Universität Chemnitz, Germany)
   <DT></DT></DL>
 <P>&nbsp;</P>
 <HR title="Separator for header">
@@ -66,7 +66,9 @@ configuration and usage of the Silk framework.</P>
       </ul>
   </LI>
   <LI>5. <A href="#architecture">Architecture</A> </LI>
-  <LI>6. <A href="#change_log">Change Log</A></LI>
+  <LI>6. <A href="#references">References</A></LI>
+  <LI>7. <A href="#change_log">Change Log</A></LI>
+
 </UL>
 <HR>
 
@@ -275,7 +277,6 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
 <h2><a name="linkspec"></a>2.4 Link Specifications</h2>
 <P>Link specification statements state that a link of a given type should be
 established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights.
-A Silk link specification may contain several interlink 
 </P>
 
 <ul>
@@ -297,6 +298,9 @@ A Silk link specification may contain several interlink
   <li><a href="#filter">link filter</a></li>
   <li><a href="#output">output definitions</a></li>
 </ul>
+
+<p>A Silk linking configuration may contain several link specifications if different types of links should be generated.
+Link specifications are structured as follows:</p>
 
 <PRE>&lt;Interlinks&gt;
   &lt;Interlink id=&quot;<em>interlink id</em>&quot;&gt;
@@ -336,6 +340,9 @@ A Silk link specification may contain several interlink
       &lt;/Ouput&gt;
     &lt;/Outputs&gt;
   &lt;/Interlink&gt;
+  &lt;Interlink id=&quot;...&quot;&gt;
+    ...
+  &lt;/Interlink&gt;  
   ...
 &lt;/Interlinks&gt;
 </PRE>
@@ -485,7 +492,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
 <p>The <tt>TransformInput</tt> directive can be used to transform the result set of an input prior to forwarding it.</p>
 
 <pre>&lt;TransformInput function=&quot;<em>transform function name</em>&quot;&gt;
-  <em>Input</em>
+  &lt;Input|TransformInput ... /&gt;
   &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
   ...
 &lt;/TransformInput&gt;</pre>
@@ -494,7 +501,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
     <TR>
-      <TH>Function</TH>
+      <TH>Function and parameters</TH>
       <TH>Description</TH>
     </TR>
     <TR>
@@ -563,12 +570,18 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
 
 <h2><a name="blocking"></a>2.4.4 Blocking Data Items</h2>
 
-<p>Since comparing every source resource to every single target resource may be too time consuming,
-blocking can be used to reduce the number of comparisons.
+<p>Since comparing every source resource to every single target resource results in a number of n*m (n being the number of source resources, m the number of target resources) comparisons
+which might be too time consuming, blocking can be used to reduce the number of comparisons.
 Blocking partitions similar data items into clusters reducing the comparison to items in the same cluster.</p>
 
+<p>For example given two datasets describing books, in order to reduce the number of comparisons, we could block the books by publisher.
+In this case only books from the same publisher will be compared.
+Given a number of 40.000 books in the first dataset and 30.000 in the second dataset, evaluating the full Cartesian product requires 1.2 billion comparisons.</p>
+If we block this datasets by publisher, each book will be allocated to a block based on its publisher.
+Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 1.2 million.</p>
+
 <p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
-If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs.</p>
+If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs (Cartesian product).</p>
 
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
   <TBODY>
@@ -578,7 +591,9 @@ If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, t
     </TR>
     <tr>
         <td style="white-space:nowrap;"><tt>function</tt> <small>(mandatory)</small></li></td>
-        <td>The blocking function to be used. Available functions are: <em>alphanumeric</em> and <em>numeric</em>.</td>
+        <td>The blocking function to be used. Available functions are: <em>alphanumeric</em> and <em>numeric</em>.<br/>
+            <em>alphanumeric</em> can be used if the property values mainly contain alphabetic characters and numbers.<br/>
+            <em>numeric</em> can be used if the property values are numbers.</td>
     </tr>
   <tr>
       <td style="white-space:nowrap;"><tt>blocks</tt> <small>(mandatory)</small></li></td>
@@ -586,13 +601,17 @@ If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, t
   </tr>
   <tr>
       <td><tt>overlap</tt></td>
-      <td>The overlap in percentage as a value between 0 and 0.5.</td>
+      <td>The overlap in percentage as a value between 0 and 0.5.
+          Overlapping is usually used if the input data is noisy and blocking would remove too many correct links.
+          The overlap factor specifies the percentage by which adjacent blocks are overlapping.</td>
   </tr>
     </tbody>
 </table>
 
-  <PRE>&lt;Blocking function=&quot;<em>blocking function</em>&quot; blocks=&quot;<em>number of blocks</em>&quot; overlap=&quot;<em>overlap size</em>&quot;&gt;
-  &lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
+<p>The properties according to which the data items will be blocked are specified by inputs.</p>
+
+<PRE>&lt;Blocking function=&quot;<em>blocking function</em>&quot; blocks=&quot;<em>number of blocks</em>&quot; overlap=&quot;<em>overlap size</em>&quot;&gt;
+  &lt;Input|TransformInput ... /&gt;
   &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
   ...
 &lt;/Blocking&gt;</PRE>
@@ -645,8 +664,15 @@ The Silk framework currently supports the following similarity metrics, which re
   </TBODY>
 </TABLE>
 
+<p>Example:</p>
+<pre>&lt;Compare metric=&quot;jaro&quot;&gt;
+  &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+  &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+&lt;/Compare&gt;
+</pre>
+
 <h3><a name="combining"></a>Combining and Weighting Comparisons</h3>
-Multiple comparisons can be combined using an aggregation.
+<p>Multiple comparisons can be combined using an aggregation.
 <DL>
   <DT>Aggregation Operators</DT>
   <DD>
@@ -668,6 +694,22 @@ Multiple comparisons can be combined using an aggregation.
   <DD>
       <P>Some comparison operators might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
 </DL>
+</p>
+
+<p>Example:</p>
+<pre>&lt;LinkCondition&gt;
+  &lt;Aggregate type=&quot;average&quot;&gt;
+    &lt;Compare metric=&quot;jaro&quot;&gt;
+      &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+      &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+    &lt;/Compare&gt;
+    &lt;Compare metric=&quot;num&quot;&gt;
+      &lt;Input path=&quot;?a/dbpedia:populationTotal&quot; /&gt;
+      &lt;Input path=&quot;?b/gn:population&quot; /&gt;
+    &lt;/Compare&gt;
+  &lt;/Aggregate&gt;
+&lt;/LinkCondition&gt;</pre>
+
 <h2><a name="filter"></a>2.4.6 Link Filter</h2>
 <P>The <tt>&lt;Filter&gt;</tt> directive allows for filtering the generated links.
 
@@ -683,7 +725,12 @@ Only the n highest-rated links per source data item will remain after the filter
 
 <h2><a name="output"></a>2.5 Output</h2>
   <P>With the <tt>&lt;Output&gt;</tt> directive, the user can specify output targets for the generated links.
-Outputs can either be defined globally or inside a link specification.</p>
+Links will be forwarded to the output if their confidence is above the defined threshold of the link filter.
+In addition to this, outputs can have an acceptance windows (defined by <tt>minConfidence</tt> and <tt>maxConfidence</tt>)
+e.g. for separating accepted links and links with a lower confidence which need to be verified before being accepted.</p>
+<p>Outputs can either be defined globally or inside a link specification.
+This allows for separating the generated links by their type as well as generating an output covering all generated links.
+</p>
 
 <PRE>&lt;Outputs&gt;
   &lt;Output type=&quot;<em>output type</em>&quot; minConfidence=&quot;<em>lower threshold</em>&quot; maxConfidence=&quot;<em>upper threshold</em>&quot;&gt;
@@ -890,35 +937,78 @@ labels.</p>
 <HR title="Separator for header">
 
 <H1><A name="usage"></a>4. Installation and Usage</H1>
-<P><BR>
-  In order to use Silk, you need:</P>
+<P>The Silk Link Discovery Framework is implemented in Scala.</p> 
+
+
+<h2><a name="cmdline" />4.1 Silk application</h2>
+<p>In order to use the Silk application, you need:</P>
 <UL>
-  <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <A href="https://sourceforge.net/projects/silk2/">https://sourceforge.net/projects/silk2</A>.</LI>
-  <LI><strong>Java Development Kit</strong> The Silk Link Discovery Framework runs on top of the JVM. Get the most recent JDK from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
-  <li><strong>Maven</strong> is used for project management and build automation. Get it from: <a href="http://maven.apache.org">http://maven.apache.org</a>.</LI>
+  <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <a href="http://sourceforge.net/projects/silk2/">http://sourceforge.net/projects/silk2/</a>.</LI>
+    <LI><strong>Java Runtime Environment</strong> The Silk Link Discovery Framework runs on top of the JVM. Get the most recent JRE from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
 </UL>
-<P><BR>
-  What to do:</P>
+
+<P>What to do:</P>
+
 <OL>
   <LI>
     <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
     </li>
     <LI>
     <P><STRONG>Run Silk:</STRONG></P>
-    <PRE>mvn scala:run <EM>&lt;Silk-LSL file&gt;</EM></PRE>
+    <PRE>java -jar silk.jar <EM>&lt;Silk-LSL file&gt;</EM> [-ids <em>&lt;Interlink ID&gt;</em>] [-t <em>&lt;number of threads&gt;</em>]</PRE>
     </li>
     <LI>
     <P><STRONG>Review Results:</STRONG> Open the output files designated in the Silk-LSL configuration and review the generated links. </P>
   </LI>
 </OL>
 
-<h2><a name="cmdline" />4.1 Silk application</h2>
-
 <h2><a name="api" />4.2 Silk API</h2>
+<p>In order to use the Silk API, you need:</P>
+<UL>
+  <LI><STRONG>Silk Link Discovery Framework</STRONG>. Check out the most recent version from the <a href="http://sourceforge.net/scm/?type=svn&group_id=324745">Silk SVN repository</a>.</LI>
+  <LI><strong>Java Development Kit</strong> The Silk Link Discovery Framework runs on top of the JVM. Get the most recent JDK from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
+  <li><strong>Maven</strong> is used for project management and build automation. Get it from: <a href="http://maven.apache.org">http://maven.apache.org</a>.</LI>
+</UL>
+
+<P>What to do:</P>
+<OL>
+  <LI>
+    <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
+    </li>
+    <LI>
+    <P><STRONG>Call <tt>executeFile</tt></STRONG> on the <tt>Silk</tt> object.</P>
+    <PRE>Silk.executeFile(configFile, numThreads)</PRE>
+    </li>
+    <LI>
+    <P><STRONG>Review Results:</STRONG> Open the output files designated in the Silk-LSL configuration and review the generated links. </P>
+  </LI>
+</OL>
+
 
 <HR title="Separator for header">
 <H1><A id=language name=architecture>5. Silk Architecture</A></H1>
-TODO
+<img src="dataflow.png" alt="Silk Dataflow" />
+
+<p>The <b>DataSource</b> generates a stream of data items. </p>
+
+<p>The optional <b>Blocking</b> phase partitions the incoming data items in clusters.</p>
+
+<p>The <b>Link Generation</b> phase reads the incoming data items and computes a similarity value for each pair.<br/>
+The incoming data items, which might be allocated to a cluster by the preceding blocking phase, are written to an internal cache.
+From the cache pairs of data items are generated. If blocking is disabled, this will generate the complete cartesian product of the two datasets.
+If blocking is enabled, only data items from the same cluster are compared.
+For each pair of data items, the link condition is evaluated, which computes a similarity value between 0.0 and 1.0.
+Each pair generates a preliminary link with a confidence according to the similarity of the source and target data item.</p>
+
+<p>The <b>Filtering</b> phase filters the incoming links in two stages:<br/>
+In the first stage, all links with a lower confidence than the user-defined threshold are removed.<br/>
+In the second stage, all links which originate from the same subject are grouped together.
+If a link limit is defined, only the links with the highest confidence are forwarded to the output.
+The number of links which are forwarded per source item, is specified by the link limit</p>
+
+<p>Finally, the <b>Output</b> phase is responsible for writing the generated and filtered links to a user-defined destination.
+</p>
+
 <!--
 <p>Before executing comparisons, the Silk engine retrieves the source and target resource lists. The source resource list is retrieved directly through a resource lister which queries the respective SPARQL endpoint and caches resource lists on disk. Target resources are first indexed by means of a resource indexer which makes them searchable by specific property/RDF Path values. During comparison, a list of target resource candidates for each source resource are looked up in this index, limiting detailed comparisons to index search hits.</p>
 <p>For each detailed comparison (link condition evaluation), the user-specified metric aggregation tree is evaluated. Function or metric parameters passed as RDF Path values are transformed into SPARQL by an RDF Path translator and sent to the respective SPARQL endpoint for evaluation. RDF Path evaluations are cached in memory during Silk runtime.</p>
@@ -926,9 +1016,19 @@ TODO
 <P align=center> <IMG src="http://www4.wiwiss.fu-berlin.de/bizer/silk/images/silk_arch.png" alt="Silk architecture diagram" width="650" height="450"></P>
 <p>&nbsp;</p>
 -->
+
+<hr>
+
+<H2><a name="references" />6. References</H2>
+<p>
+<ul>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
+</ul>
+
 <HR>
 
-<H1><A name="change_log">6. Change Log</H1>
+<H1><a name="change_log"/>7. Change Log</H1>
 <UL>
     <LI>2010-07-02: Updated document for Silk 2 release (Robert, Anja). </LI>
   <LI>2009-03-02: Updated document for Silk 0.2-alpha release (Julius). </LI>
@@ -936,4 +1036,6 @@ TODO
   <LI>2009-02-02: Initial version of this document (Julius). </LI>
 </UL>
 <HR>
+
+
 </BODY></HTML>
