@@ -113,7 +113,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
                 if(subject.isEmpty)
                 {
                     //Check if we are still reading values for the current subject
-                    val resultSubject = result.get(instanceSpec.variable).get
+                    val resultSubject = result.get(instanceSpec.variable).get.value
                     if(resultSubject != curSubject)
                     {
                         if(curSubject != null)
@@ -121,7 +121,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
                             f(new Instance(instanceSpec.variable, curSubject, values.toMap))
                         }
 
-                        curSubject = resultSubject.value
+                        curSubject = resultSubject
                         values.clear()
                     }
                 }

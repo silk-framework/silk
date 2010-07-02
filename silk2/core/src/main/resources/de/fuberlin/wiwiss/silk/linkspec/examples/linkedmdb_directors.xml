@@ -57,7 +57,7 @@
         </Output>
         <Output minConfidence="0.9" type="file">
           <Param name="file" value="lmdb_accepted_links.xml"/>
-          <Param name="format" value="alignment"/>
+          <Param name="format" value="ntriples"/>
         </Output>
       </Outputs>
 
