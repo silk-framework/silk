@@ -16,11 +16,11 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discov
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/</a><DT>
   <DT>Authors:
-  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit�&auml;t Berlin, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin, Germany)
   <DD>
-  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;�t Berlin, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin, Germany)
   <DD>
-  <DD><A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universit&auml;�t Berlin, Germany)  
+  <DD><A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
   <DT></DT></DL>
 <P>&nbsp;</P>
 <HR title="Separator for header">
@@ -54,7 +54,7 @@ configuration and usage of the Silk framework.</P>
   <LI>3. <A href="#example">Examples</A>
     <ul>
     <li>3.1 <a href="#DBpedia2LinkedMDBdirector">dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
-    <li>3.2 <a href="#DBpedia2DrugBank">owl:sameAs links between DBpedia and DrugBank drugs</a></li>
+    <li>3.2 <a href="#DBpedia2Stitch">owl:sameAs links between DBpedia and STITCH organisms</a></li>
     </ul>
   </LI>
   <LI>4. <A href="#usage">Installation and Usage</A>
@@ -332,7 +332,7 @@ Link specifications are structured as follows:</p>
     &lt;Filter threshold=&quot;<em>threshold</em>&quot; limit=&quot;<em>link limit</em>&quot; /&gt;
 
     &lt;Outputs&gt;
-      &lt;Output type=&quot;<em>output type</em>&quot;&gt;
+      &lt;Output type=&quot;<em>output type</em>&quot; minConfidence=&quot;<em>lower threshold</em>&quot; maxConfidence=&quot;<em>upper threshold</em>&quot;&gt;
         &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
         ...
       &lt;/Ouput&gt;
@@ -375,13 +375,11 @@ Link specifications are structured as follows:</p>
     &lt;/LinkCondition&gt;
     &lt;Filter threshold=&quot;0.7&quot; limit=&quot;1&quot; /&gt;
     &lt;Outputs&gt;
-      &lt;Output type=&quot;file&quot;&gt;
-        &lt;Param name=&quot;maxConfidence&quot; value=&quot;0.9&quot; /&gt;
+      &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.9&quot; &gt;
         &lt;Param name=&quot;file&quot; value=&quot;verify_links.nt&quot;/&gt;
         &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
       &lt;/Output&gt;
-      &lt;Output type=&quot;file&quot;&gt;
-        &lt;Param name=&quot;minConfidence&quot; value=&quot;0.9&quot; /&gt;
+      &lt;Output type=&quot;file&quot; minConfidence=&quot;0.9&quot;&gt;
         &lt;Param name=&quot;file&quot; value=&quot;accepted_links.nt&quot;/&gt;
         &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
       &lt;/Output&gt;
@@ -467,7 +465,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
       <TD>Moves backward from an object resource (set) through a property to its subject resource (set).</TD>
     </TR>
     <TR>
-      <TD>[]</TD>
+      <TD>[ ]</TD>
       <TD>filter operator</TD>
       <TD><I>&lt;path_segment&gt;</I><B>[</B><I>&lt;property&gt;</I>&nbsp;<I>&lt;comp_operator&gt;</I>&nbsp;<I>&lt;value&gt;</I><B>]</B><BR>
           <I>&lt;path_segment&gt;</I><B>[</B>@lang&nbsp;<I>&lt;comp_operator&gt;</I>&nbsp;<I>&lt;value&gt;</I><B>]</B><BR>
@@ -491,6 +489,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
 
 <pre>&lt;TransformInput function=&quot;<em>transform function name</em>&quot;&gt;
   &lt;Input|TransformInput ... /&gt;
+  ...
   &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
   ...
 &lt;/TransformInput&gt;</pre>
@@ -535,7 +534,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
       <TD>Replace all occurrences of "search" with "replace" in a string.</TD>
     </TR>
     <TR>
-      <TD>regexReplace(string search, string replace)</TD>
+      <TD>regexReplace(string regex, string replace)</TD>
       <TD>Replace all occurrences of a regex "regex" with "replace" in a string.</TD>
     </TR>
     <TR>
@@ -552,7 +551,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
     </TR>
     <TR>
       <TD>concat</TD>
-      <TD>Concats strings from two inputs.</TD>
+      <TD>Concatenates strings from two inputs.</TD>
     </TR>
   </TBODY>
 </TABLE>
@@ -568,7 +567,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
 
 <h2><a name="blocking"></a>2.4.4 Blocking Data Items</h2>
 
-<p>Since comparing every source resource to every single target resource results in a number of n*m (n being the number of source resources, m the number of target resources) comparisons
+<p>Since comparing every source resource to every single target resource results in a number of n*m comparisons (n being the number of source resources, m the number of target resources)
 which might be too time consuming, blocking can be used to reduce the number of comparisons.
 Blocking partitions similar data items into clusters reducing the comparison to items in the same cluster.</p>
 
@@ -759,7 +758,7 @@ This allows for separating the generated links by their type as well as generati
 
 <P>Example:</P>
   <PRE>&lt;Outputs&gt;
-  &lt;Output type=&quot;file&quot;&gt; minConfidence=&quot;0.9&quot;&gt;
+  &lt;Output type=&quot;file&quot; minConfidence=&quot;0.9&quot;&gt;
     &lt;Param name=&quot;file&quot; value=&quot;accept_links.nt&quot;/&gt;
     &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
   &lt;/Output&gt;
@@ -857,7 +856,7 @@ movie's director <tt>rdfs:label</tt> to both the <tt>rdfs:label</tt> and the
 &lt;/Silk&gt;
 </pre>
 <h2><a name="DBpedia2Stitch" id="DBpedia2Stitch"></a>3.2. owl:sameAs links between DBpedia and STITCH organisms</h2>
-<p><b>Generated Links:</b> <a href="../links/dbpedia_stitch_accepted_links.n3">dbpedia_stitch_accepted_links.n3</a></p>
+<p><b>Generated Links:</b> <a href="../links/dbpedia_stitch_accepted_links.nt">dbpedia_stitch_accepted_links.nt</a></p>
 
 <p>The following example establishes <tt>owl:sameAs</tt> links between organisms from DBpedia and STITCH by comparing their
 labels.</p>
@@ -922,8 +921,8 @@ labels.</p>
                   &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
                 &lt;/Output&gt;
                 &lt;Output type=&quot;file&quot; minConfidence=&quot;0.95&quot;&gt;
-                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_accepted_links.xml&quot;/&gt;
-                  &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
+                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_accepted_links.nt&quot;/&gt;
+                  &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
                 &lt;/Output&gt;
             &lt;/Outputs&gt;
         &lt;/Interlink&gt;
