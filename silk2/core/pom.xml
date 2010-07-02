@@ -25,7 +25,7 @@
       
 				<groupId>org.scala-tools</groupId>
 				<artifactId>maven-scala-plugin</artifactId>
-        <version>2.13.2-SNAPSHOT</version>
+        <version>2.14-SNAPSHOT</version>
         
         <configuration>
           <launchers>
@@ -40,6 +40,29 @@
         </configuration>
         
 			</plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>de.fuberlin.wiwiss.silk.Silk</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>simple-command</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attached</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
 		</plugins>
 	</build>

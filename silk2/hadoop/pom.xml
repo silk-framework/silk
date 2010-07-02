@@ -25,7 +25,7 @@
       
 				<groupId>org.scala-tools</groupId>
 				<artifactId>maven-scala-plugin</artifactId>
-        <version>2.13.2-SNAPSHOT</version>
+        <version>2.14-SNAPSHOT</version>
         
         <configuration>
           <launchers>
