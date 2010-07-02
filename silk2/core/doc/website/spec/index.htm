@@ -8,7 +8,7 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discov
 <BODY>
 <DIV class=head>
 <H1 id=title>Silk - A Link Discovery Framework for the Web of Data </H1>
-<H2 id=doctype>User Manual and Link Language Specification</H2>
+<H2 id=doctype>User Manual and Link Language Specification 2.0 </H2>
 <DL>
   <DT>This Version:
   <DD>
@@ -16,13 +16,11 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discov
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/</a><DT>
   <DT>Authors:
-  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universität Berlin, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit�&auml;t Berlin, Germany)
   <DD>
-  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universität Berlin, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;�t Berlin, Germany)
   <DD>
-  <DD><A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universität Berlin, Germany)
-  <DD>
-  <DD><A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A> (Technische Universität Chemnitz, Germany)
+  <DD><A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universit&auml;�t Berlin, Germany)  
   <DT></DT></DL>
 <P>&nbsp;</P>
 <HR title="Separator for header">
@@ -61,8 +59,8 @@ configuration and usage of the Silk framework.</P>
   </LI>
   <LI>4. <A href="#usage">Installation and Usage</A>
       <ul>
-      <li>4.1 <a href="#cmdline">Silk application</a></li>
-      <li>4.2 <a href="#api">Silk API</a></li>
+      <li>4.1 <a href="#cmdline">Running Silk from the command line</a></li>
+      <li>4.2 <a href="#api">Using the Silk API</a></li>
       </ul>
   </LI>
   <LI>5. <A href="#architecture">Architecture</A> </LI>
@@ -86,11 +84,11 @@ and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/Linked
   <li>Flexible, declarative language for specifying link conditions</li>
   <li>Employment in distributed environments (by accessing local and remote SPARQL endpoints)</li>
   <li>Usable in situations where terms from different vocabularies are mixed and where no consistent RDFS or OWL schemata exist</li>
-  <li>Scalability and high performance through efficient data handling (speedup factor of 20 compared to Silk 0.2):
+  <li>Scalability and high performance through efficient data handling (Silk 2.0 is about 20 times faster than Silk 0.2):
     <ul>
         <li>Reduction of network load by caching and reusing of SPARQL result sets</li>
-        <li>Multi-threaded computation of the data item comparisons (3 million comparisons per minute on a Core2 Duo)</li>
-        <li>Optional blocking of data items</li>
+        <li>Multi-threaded computation of the data item comparisons (180 million comparisons per hour on a Core2 Duo, 2GB RAM)</li>
+        <li> Optional blocking directive which allows users to reduce the number of comparisons on cost of recall, if necessary. </li>
     </ul>
   </li>
 </ul>
@@ -256,7 +254,7 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
     <tr>
         <td><tt>retryPause</tt></td>
     </tr>
-    </tbody>
+  </tbody>
 </table>
 <!--<em>SPARQL URI&lt;/EndpointURI</em>&gt;
     [&lt;Graph&gt;<em>graph name</em>&lt;/Graph&gt;]
@@ -605,7 +603,7 @@ If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, t
           Overlapping is usually used if the input data is noisy and blocking would remove too many correct links.
           The overlap factor specifies the percentage by which adjacent blocks are overlapping.</td>
   </tr>
-    </tbody>
+  </tbody>
 </table>
 
 <p>The properties according to which the data items will be blocked are specified by inputs.</p>
@@ -940,7 +938,7 @@ labels.</p>
 <P>The Silk Link Discovery Framework is implemented in Scala.</p> 
 
 
-<h2><a name="cmdline" />4.1 Silk application</h2>
+<h2><a name="cmdline" />4.1 Running Silk from the Command Line </h2>
 <p>In order to use the Silk application, you need:</P>
 <UL>
   <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <a href="http://sourceforge.net/projects/silk2/">http://sourceforge.net/projects/silk2/</a>.</LI>
@@ -952,7 +950,7 @@ labels.</p>
 <OL>
   <LI>
     <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
-    </li>
+  </li>
     <LI>
     <P><STRONG>Run Silk:</STRONG></P>
     <PRE>java -jar silk.jar <EM>&lt;Silk-LSL file&gt;</EM> [-ids <em>&lt;Interlink ID&gt;</em>] [-t <em>&lt;number of threads&gt;</em>]</PRE>
@@ -962,7 +960,7 @@ labels.</p>
   </LI>
 </OL>
 
-<h2><a name="api" />4.2 Silk API</h2>
+<h2><a name="api" />4.2 Using the Silk API</h2>
 <p>In order to use the Silk API, you need:</P>
 <UL>
   <LI><STRONG>Silk Link Discovery Framework</STRONG>. Check out the most recent version from the <a href="http://sourceforge.net/scm/?type=svn&group_id=324745">Silk SVN repository</a>.</LI>
@@ -974,7 +972,7 @@ labels.</p>
 <OL>
   <LI>
     <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
-    </li>
+  </li>
     <LI>
     <P><STRONG>Call <tt>executeFile</tt></STRONG> on the <tt>Silk</tt> object.</P>
     <PRE>Silk.executeFile(configFile, numThreads)</PRE>
@@ -1023,6 +1021,7 @@ The number of links which are forwarded per source item, is specified by the lin
 <p>
 <ul>
     <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
     <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
 </ul>
 
