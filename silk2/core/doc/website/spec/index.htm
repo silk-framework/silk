@@ -992,7 +992,7 @@ labels.</p>
 
 <p>The <b>Link Generation</b> phase reads the incoming data items and computes a similarity value for each pair.<br/>
 The incoming data items, which might be allocated to a cluster by the preceding blocking phase, are written to an internal cache.
-From the cache pairs of data items are generated. If blocking is disabled, this will generate the complete cartesian product of the two datasets.
+From the cache, pairs of data items are generated. If blocking is disabled, this will generate the complete cartesian product of the two datasets.
 If blocking is enabled, only data items from the same cluster are compared.
 For each pair of data items, the link condition is evaluated, which computes a similarity value between 0.0 and 1.0.
 Each pair generates a preliminary link with a confidence according to the similarity of the source and target data item.</p>
