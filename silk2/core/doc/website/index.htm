@@ -7,17 +7,16 @@
     
 </HEAD>
 <BODY>
-<DIV id=logo><A href="http://www.fu-berlin.de/"><IMG src="images/fu-logo.gif" alt="Freie Universität Berlin Logo" width="225" height="63"></A> </DIV>
+<DIV id=logo><A href="http://www.fu-berlin.de/"><IMG src="images/fu-logo.gif" alt="Freie Universit&auml;t Berlin Logo" width="225" height="63"></A> </DIV>
 <DIV id=header>
 <H1 style="FONT-SIZE: 250%">Silk - A Link Discovery Framework for the Web of Data</H1>
 <DIV id=tagline></DIV>
 </DIV>
 <DIV id=authors>
-  <p><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A><BR>
-      <A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A><BR>
-     <A href="http://www.bizer.de/">Chris Bizer</A> <br>
-     <A href="mailto:volz@hrz.tu-chemnitz.de">Julius Volz</A>
-       </p>
+  <p><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin) <BR>
+      <A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin)<BR>
+     <A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universit&auml;t Berlin)<br>
+     <A href="mailto:julius.volz@gmail.com">Julius Volz</A> (Google)  </p>
 </DIV>
 <DIV id=content>
 <P>The Silk framework is a tool for discovering relationships between data items within different Linked Data sources.<BR>
@@ -25,9 +24,9 @@
 
 <H2 id=news>News</H2>
 <UL>
-  <LI><STRONG>2010-07-02:</STRONG> Version 2.0 released. Reimplementation in Scala providing improved scalability and performance.</LI>
-  <LI><STRONG>2009-10-27:</STRONG> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009. 
-  <LI><STRONG>2009-03-02:</STRONG> Version 0.2 released. Prematching of data items.</LI>
+  <LI><STRONG>2010-07-02:</STRONG> Version 2.0 released. Reimplementation of the Silk framework in Scala providing improved scalability, optional blocking features and support of the OAEI Alignment format as additional output format. </LI>
+  <LI><STRONG>2009-10-27:</STRONG> Presentation about Silk at ISWC 2009: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a> (<a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk-Talk.pdf">Slides</a>).  
+  <LI><STRONG>2009-03-02:</STRONG> Version 0.2 released. Adding prematching of data items.</LI>
   <LI><STRONG>2009-02-01:</STRONG> Version 0.1 released. Initial release in Python.</LI>
 </UL>
 <H2 id=contents>Contents</H2>
@@ -79,9 +78,7 @@ using an RDF path language. Silk accesses the data sources that should be interl
 
 
 <H2><a name="manual"></a>User Manual</H2>
-<p>To learn how to use Silk, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Silk - User Manual</a>
-or <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>,
-International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</p>
+<p>To learn how to use Silk, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Silk - User Manual.</a></p>
 
 <H2 id=history>Version History</H2>
 
@@ -94,22 +91,24 @@ International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.
       </tr>
       <tr id="grey">
         <td>2.0</td>
-        <td>Reimplementation in Scala.<br/>
+        <td>Reimplementation of the Silk framework in Scala.<br/>
             Improved scalability and performance.<br/>
             Prematching replaced by a more transparent blocking.<br/>
             Configuration is checked for consistency prior to link generation. <br/>
             Support of the <a href="http://alignapi.gforge.inria.fr/format.html">OAEI Alignment format</a>.
-            </td>
+            <br>
+        (Anja and Robert)        </td>
         <td>2010-07-01</td>
       </tr>
       <tr>
-        <td><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/">0.2</a></td>
-        <td>Prematching of data items.</td>
+        <td>0.2</td>
+        <td><p>Added prematching of data items (Julius).<br>
+          The <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/">Silk 0.2 language specification</a> is still available and <a href="http://code.google.com/p/silk/">Silk 0.2 framework</a> can be downloaded from GoogleCode.</p>        </td>
         <td>2009-03-02</td>
       </tr>
       <tr id="grey">
         <td>0.1</td>
-        <td>Initial Release.</td>
+        <td>Initial Release of the Phyton-version of the Silk framework (Julius and Chris) </td>
         <td>2009-02-01</td>
       </tr>
       </tbody>
@@ -120,11 +119,9 @@ International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.
 <p>
 For the next release in August 2010 we plan to enhance the Silk Link Discovery Framework with the following features:
 <ul>
-    <li>Running Silk on distributed clusters using the Hadoop Framework.</li>
-    <li>Generating links from an incoming stream of data items.</li>
+    <li>Parallelization based on Hadoop. This will enable Silk to be deployed on <a href="http://aws.amazon.com/de/ec2/">EC2</a></li>
+  <li>Generating links from a stream of incoming RDF data items. This will allow Silk to be used in conjunction with Linked Data crawlers like <a href="http://code.google.com/p/ldspider/">LDspider</a>. </li>
 </ul>
-</p>
-
 <H2><a name="examples"></a>Usage Examples</H2>
 <ul>
   <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/#DBpedia2LinkedMDBdirector">Discovering dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
@@ -148,6 +145,7 @@ src="http://sourceforge.net/sflogo.php?group_id=111002&type=5" alt="Sourceforge 
 <p>
 <ul>
     <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
     <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
 </ul>
 </p>
