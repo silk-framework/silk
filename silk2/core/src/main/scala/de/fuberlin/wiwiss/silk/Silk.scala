@@ -7,8 +7,9 @@ import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
 import java.io.File
-import java.util.logging.{Level, Logger}
 import collection.mutable.{Buffer, ArrayBuffer, SynchronizedBuffer}
+import java.util.logging.{ConsoleHandler, Level, Logger}
+import util.StringUtils._
 
 /**
  * Executes the complete Silk workflow.
@@ -24,11 +25,12 @@ object Silk
 
     /**
      * Executes Silk.
-     * The configuration file is specified using the 'configFile' property.
-     *
-     * @param numThreads The number of threads to be be used for matching.
+     * The execution is configured using the following properties:
+     *  - 'configFile' (required): The configuration file
+     *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
+     *  - 'threads' (optional): The number of threads to be be used for matching.
      */
-    def execute(numThreads : Int = DefaultThreads)
+    def execute()
     {
         val configFile = System.getProperty("configFile") match
         {
@@ -36,32 +38,57 @@ object Silk
             case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
         }
 
-        executeFile(configFile, numThreads)
+        val linkSpec = System.getProperty("linkSpec")
+
+        val numThreads = System.getProperty("threads") match
+        {
+            case IntLiteral(num) => num
+            case str : String => throw new IllegalArgumentException("Property 'numThreads' must be an integer")
+            case _ => DefaultThreads
+        }
+
+        executeFile(configFile, linkSpec, numThreads)
     }
 
     /**
      * Executes Silk using a specific configuration file.
      *
      * @param configFile The configuration file.
+     * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
      * @param numThreads The number of threads to be used for matching.
      */
-    def executeFile(configFile : File, numThreads : Int = DefaultThreads)
+    def executeFile(configFile : File, linkSpecID : String = null, numThreads : Int = DefaultThreads)
     {
-        executeConfig(ConfigLoader.load(configFile), numThreads)
+        executeConfig(ConfigLoader.load(configFile), linkSpecID, numThreads)
     }
 
     /**
      * Executes Silk using a specific configuration.
      *
      * @param configFile The configuration.
+     * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
      * @param numThreads The number of threads to be used for matching.
      */
-    def executeConfig(config : Configuration, numThreads : Int = DefaultThreads)
+    def executeConfig(config : Configuration, linkSpecID : String = null, numThreads : Int = DefaultThreads)
     {
-        for(linkSpec <- config.linkSpecs.values)
+        if(linkSpecID != null)
         {
-            val silk = new Silk(config, linkSpec, numThreads)
-            silk.run()
+             val linkSpec = config.linkSpecs.get(linkSpecID) match
+             {
+                 case Some(ls) => ls
+                 case None => throw new IllegalArgumentException("Unknown link specification: " + linkSpecID)
+             }
+
+             val silk = new Silk(config, linkSpec, numThreads)
+             silk.run()
+        }
+        else
+        {
+            for(linkSpec <- config.linkSpecs.values)
+            {
+                val silk = new Silk(config, linkSpec, numThreads)
+                silk.run()
+            }
         }
     }
 
