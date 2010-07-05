@@ -43,7 +43,7 @@ object Silk
         val numThreads = System.getProperty("threads") match
         {
             case IntLiteral(num) => num
-            case str : String => throw new IllegalArgumentException("Property 'numThreads' must be an integer")
+            case str : String => throw new IllegalArgumentException("Property 'threads' must be an integer")
             case _ => DefaultThreads
         }
 
