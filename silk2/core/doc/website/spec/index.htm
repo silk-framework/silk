@@ -20,7 +20,9 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discov
   <DD>
   <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin, Germany)
   <DD>
-  <DD><A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.juliusv.com/">Julius Volz</A> (Google, Switzerland)
   <DT></DT></DL>
 <P>&nbsp;</P>
 <HR title="Separator for header">
@@ -575,7 +577,7 @@ Blocking partitions similar data items into clusters reducing the comparison to 
 In this case only books from the same publisher will be compared.
 Given a number of 40.000 books in the first dataset and 30.000 in the second dataset, evaluating the full Cartesian product requires 1.2 billion comparisons.</p>
 If we block this datasets by publisher, each book will be allocated to a block based on its publisher.
-Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 1.2 million.</p>
+Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 12 million.</p>
 
 <p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
 If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs (Cartesian product).</p>
@@ -952,7 +954,7 @@ labels.</p>
   </li>
     <LI>
     <P><STRONG>Run Silk:</STRONG></P>
-    <PRE>java -jar silk.jar -DconfigFile=<EM>&lt;Silk-LSL file&gt;</EM> [-DlinkSpec=<em>&lt;Interlink ID&gt;</em>] [-Dthreads=<em>&lt;number of threads&gt;</em>]</PRE>
+    <PRE>java -DconfigFile=<EM>&lt;Silk-LSL file&gt;</EM> [-DlinkSpec=<em>&lt;Interlink ID&gt;</em>] [-Dthreads=<em>&lt;number of threads&gt;</em>] -jar silk.jar</PRE>
     </li>
     <LI>
     <P><STRONG>Review Results:</STRONG> Open the output files designated in the Silk-LSL configuration and review the generated links. </P>
