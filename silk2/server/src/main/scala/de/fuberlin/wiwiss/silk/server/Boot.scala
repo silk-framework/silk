@@ -2,6 +2,7 @@ package bootstrap.liftweb
 
 import net.liftweb.http.LiftRules
 import de.fuberlin.wiwiss.silk.server.RestApi
+import de.fuberlin.wiwiss.silk.config.ConfigLoader
 
 /**
   * A class that's instantiated early and run.  It allows the application
