@@ -30,7 +30,8 @@ object ConfigLoader
     {
         try {
             val factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema")
-            val stream = ClassLoader.getSystemClassLoader.getResourceAsStream("de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd")
+            val stream = getClass().getClassLoader().getResourceAsStream("de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd")
+            if(stream == null) throw new ValidationException("XML Schema for Link Specification not found")
             val schema = factory.newSchema(new StreamSource(stream))
             val validator = schema.newValidator()
             validator.validate(new StreamSource(file))
