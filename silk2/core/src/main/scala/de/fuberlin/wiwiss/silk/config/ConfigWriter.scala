@@ -1,54 +1,30 @@
 package de.fuberlin.wiwiss.silk.config
 
-import xml.{PrettyPrinter, Elem}
-import java.io.{OutputStreamWriter, FileOutputStream, OutputStream, File}
+import xml.Elem
 import de.fuberlin.wiwiss.silk.linkspec._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import input.{Transformer, Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
 
+//TODO move methods to the respective classes (e.g. configuration.toXML)
 object ConfigWriter
 {
-    def write(config : Configuration, file : File)
-    {
-        val fileStream = new FileOutputStream(file)
-        try
-        {
-            write(config, fileStream)
-        }
-        finally
-        {
-            fileStream.close()
-        }
-    }
-
-    def write(config : Configuration, outputStream : OutputStream)
-    {
-        val printer = new PrettyPrinter(140, 2)
-        val writer = new OutputStreamWriter(outputStream)
-        val xml = serialize(config)
-
-        writer.write(printer.format(xml))
-        writer.write("\n")
-        writer.flush()
-    }
-
-    def serialize(config : Configuration) =
+    def serializeConfig(config : Configuration) =
     {
         <Silk>
           <Prefixes>
             { config.prefixes.map{case (id, ns) => <Prefix id={id} namespace={ns} /> } }
           </Prefixes>
           <DataSources>
-            { config.dataSources.map{case (id, ds) => datasourceToXML(id, ds) } }
+            { config.dataSources.map{case (id, ds) => serializeDatasource(id, ds) } }
           </DataSources>
           <Interlinks>
-            { config.linkSpecs.map{case (id, ds) => linkSpecToXml(id, ds) } }
+            { config.linkSpecs.map{case (id, ds) => serializeLinkSpec(id, ds) } }
           </Interlinks>
         </Silk>
     }
 
-    private def datasourceToXML(id : String, dataSource : DataSource) = dataSource match
+    def serializeDatasource(id : String, dataSource : DataSource) = dataSource match
     {
         case DataSource(dataSourceType, params) =>
         {
@@ -58,7 +34,7 @@ object ConfigWriter
         }
     }
 
-    private def linkSpecToXml(id : String, linkSpec : LinkSpecification) =
+    def serializeLinkSpec(id : String, linkSpec : LinkSpecification) =
     {
         <Interlink id={id}>
           <LinkType>{linkSpec.linkType}</LinkType>
@@ -72,54 +48,54 @@ object ConfigWriter
           </TargetDataset>
 
           <LinkCondition>
-              { operatorToXml(linkSpec.condition.rootAggregation) }
+              { serializeOperator(linkSpec.condition.rootAggregation) }
           </LinkCondition>
 
-          { linkFilterToXml(linkSpec.filter) }
+          { serializeLinkFilter(linkSpec.filter) }
 
           <Outputs>
-             { linkSpec.outputs.map(outputToXml) }
+             { linkSpec.outputs.map(serializeOutput) }
           </Outputs>
         </Interlink>
     }
 
-    private def operatorToXml(operator : Operator) : Elem = operator match
+    def serializeOperator(operator : Operator) : Elem = operator match
     {
         case Aggregation(weight, operators, Aggregator(aggregator, params)) =>
         {
             <Aggregate weight={weight.toString} type={aggregator}>
-              { operators.map(operatorToXml) }
+              { operators.map(serializeOperator) }
             </Aggregate>
         }
         case Comparison(weight, inputs, Metric(metric, params)) =>
         {
             <Compare weight={weight.toString} metric={metric}>
-              { inputs.map{input => inputToXml(input)} }
+              { inputs.map{input => serializeInput(input)} }
               { params.map{case (name, value) => <Param name={name} value={value} />} }
             </Compare>
         }
     }
 
-    private def inputToXml(param : Input) : Elem = param match
+    def serializeInput(param : Input) : Elem = param match
     {
         case PathInput(path) => <Input path={path.toString} />
         case TransformInput(inputs, Transformer(transformer, params)) =>
         {
             <TransformInput function={transformer}>
-              { inputs.map{input => inputToXml(input)} }
+              { inputs.map{input => serializeInput(input)} }
               { params.map{case (name, value) => <Param name={name} value={value} />} }
             </TransformInput>
         }
     }
 
-    private def linkFilterToXml(filter : LinkFilter) : Elem = filter.limit match
+    def serializeLinkFilter(filter : LinkFilter) : Elem = filter.limit match
     {
         case Some(limit) => <Filter threshold={filter.threshold.toString} limit={limit.toString} />
         case None => <Filter threshold={filter.threshold.toString} />
     }
 
     //TODO write minConfidence, maxConfidence
-    private def outputToXml(output : Output) : Elem = output.writer match
+    def serializeOutput(output : Output) : Elem = output.writer match
     {
         case AlignmentWriter(outputType, params) =>
         {
