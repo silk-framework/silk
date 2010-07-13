@@ -13,12 +13,9 @@ class MemoryInstanceCache(val blockCount : Int = 1, maxPartitionSize : Int = 100
 
     /**
      * Writes to this cache.
-     * All previous partitions will be deleted.
      */
     override def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int] = _ => Set(0))
     {
-        instanceCounter = 0
-        blocks = IndexedSeq.fill(blockCount)(new Block)
         for(instance <- instances)
         {
             add(instance, blockingFunction)
@@ -28,13 +25,19 @@ class MemoryInstanceCache(val blockCount : Int = 1, maxPartitionSize : Int = 100
     /**
      * Adds a single instance to the cache.
      */
-    def add(instance : Instance, blockingFunction : Instance => Set[Int] = _ => Set(0))
+    private def add(instance : Instance, blockingFunction : Instance => Set[Int])
     {
         for(block <- blockingFunction(instance))
         {
             blocks(block).add(instance)
         }
         instanceCounter += 1
+    }
+
+    def clear()
+    {
+        instanceCounter = 0
+        blocks = IndexedSeq.fill(blockCount)(new Block)
     }
 
     def instanceCount = instanceCounter

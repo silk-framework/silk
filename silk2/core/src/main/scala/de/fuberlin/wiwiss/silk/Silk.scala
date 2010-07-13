@@ -1,8 +1,9 @@
 package de.fuberlin.wiwiss.silk
 
 import config.{Configuration, ConfigLoader}
+import datasource.DataSource
 import impl.DefaultImplementations
-import instance.{FileInstanceCache, InstanceCache, InstanceSpecification}
+import instance.{Instance, FileInstanceCache, InstanceCache, InstanceSpecification}
 import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
@@ -109,7 +110,7 @@ object Silk
 
         //Load instances
         val loader = new Loader(config, linkSpec)
-        loader.loadCaches(sourceCache, targetCache)
+        loader.writeCaches(sourceCache, targetCache)
 
         //Execute matching
         val matcher = new Matcher(config, linkSpec, numThreads)
@@ -136,40 +137,51 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     private val logger = Logger.getLogger(classOf[Loader].getName)
 
-    def loadCaches(sourceCache : InstanceCache, targetCache : InstanceCache)
+    def writeCaches(sourceCache : InstanceCache, targetCache : InstanceCache)
     {
         val startTime = System.currentTimeMillis()
         logger.info("Loading instances")
 
-        loadSourceCache(sourceCache)
-        loadTargetCache(targetCache)
+        writeSourceCache(sourceCache)
+        writeTargetCache(targetCache)
 
         logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
-    def loadSourceCache(sourceCache : InstanceCache)
+    def writeSourceCache(sourceCache : InstanceCache)
     {
-        val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
+        writeSourceCache(sourceCache, linkSpec.sourceDatasetSpecification.dataSource)
+    }
+
+    def writeSourceCache(sourceCache : InstanceCache, dataSource : DataSource)
+    {
+        val instances =dataSource.retrieve(sourceInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of source dataset")
         linkSpec.blocking match
         {
-            case Some(blocking) => sourceCache.write(sourceInstances, blocking)
-            case None => sourceCache.write(sourceInstances)
+            case Some(blocking) => sourceCache.write(instances, blocking)
+            case None => sourceCache.write(instances)
         }
     }
 
-    def loadTargetCache(targetCache : InstanceCache)
+    def writeTargetCache(targetCache : InstanceCache)
     {
-        val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
+        writeTargetCache(targetCache, linkSpec.targetDatasetSpecification.dataSource)
+    }
+
+    def writeTargetCache(targetCache : InstanceCache, dataSource : DataSource)
+    {
+        val instances = dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of target dataset")
         linkSpec.blocking match
         {
-            case Some(blocking) => targetCache.write(targetInstances, blocking)
-            case None => targetCache.write(targetInstances)
+            case Some(blocking) => targetCache.write(instances, blocking)
+            case None => targetCache.write(instances)
         }
     }
+
 }
 
 /**
