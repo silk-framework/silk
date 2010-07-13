@@ -19,37 +19,56 @@ object Server
 
     val configs = ConfigLoader.load(configFile) :: Nil
 
-    private val unknownInstanceUri = "UnknownInstance"
+    private val silkUriPrefix = "http://www4.wiwiss.fu-berlin.de/bizer/silk/"
 
-    private var matchers : Traversable[InstanceMatcher] = null
+    private val matchResultPropertyUri = silkUriPrefix + "matchingResult"
+
+    private val unknownInstanceUri = silkUriPrefix + "UnknownInstance"
+
+    private var matchers : Traversable[LinkSpecMatcher] = null
 
     def init()
     {
         matchers =
             for(config <- configs;
                 linkSpec <- config.linkSpecs.values)
-                yield new InstanceMatcher(config, linkSpec)
+                yield new LinkSpecMatcher(config, linkSpec)
     }
 
     def process(instanceSource : DataSource) : String =
     {
         //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
-        val links = matchers.flatMap(m => m(instanceSource))
+        val matchResults = matchers.map(m => m(instanceSource))
         //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
 
-        val unknownInstances = addUnknownInstances(instanceSource, links)
+        val unknownInstances = addUnknownInstances(instanceSource, matchResults)
 
-        val unknownLinks = unknownInstances.map(uri => new Link(uri, unknownInstanceUri, 0.0))
-
-        val formatter = new NTriplesFormatter()
-
-        (links ++ unknownLinks).map(link => formatter.format(link, "owl:sameAs")).mkString
+        formatResults(matchResults, unknownInstances)
     }
 
-    private def addUnknownInstances(instanceSource : DataSource, links : Traversable[Link]) : Traversable[String] =
+    private def formatResults(matchResults : Traversable[MatchResult], unknownInstances : Traversable[String]) =
+    {
+        val formatter = new NTriplesFormatter()
+
+        //Format matchResults
+        val formattedResults =
+            for(matchResult <- matchResults;
+                link <- matchResult.links)
+                yield formatter.format(link, matchResult.linkType)
+
+        //Format unknown instances
+        val formattedUnknownInstances =
+            for(unknownInstance <- unknownInstances)
+                yield formatter.format(new Link(unknownInstance, unknownInstanceUri, 0.0), matchResultPropertyUri)
+
+        //Return result
+        formattedResults.mkString + formattedUnknownInstances.mkString
+    }
+
+    private def addUnknownInstances(instanceSource : DataSource, matchResults : Traversable[MatchResult]) : Traversable[String] =
     {
         //Create a source yielding all unknown instances
-        val unknownInstancesSource = new FilterDataSource(instanceSource, links)
+        val unknownInstancesSource = new FilterDataSource(instanceSource, matchResults)
 
         //Add all unknown instances to the instance caches
         matchers.foreach(m => m.addInstances(unknownInstancesSource))
@@ -60,13 +79,14 @@ object Server
         unknownInstances
     }
 
-    private class InstanceMatcher(config : Configuration, linkSpec : LinkSpecification)
+    private class LinkSpecMatcher(config : Configuration, linkSpec : LinkSpecification)
     {
+        //TODO use memory caches
         private val (sourceCache, targetCache) = new Loader(config, linkSpec).loadCaches
 
         private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
 
-        def apply(instanceSource : DataSource) : Traversable[Link] =
+        def apply(instanceSource : DataSource) : MatchResult =
         {
             val instanceCache = new MemoryInstanceCache()
             val writer = new MemoryWriter()
@@ -84,7 +104,7 @@ object Server
                 matcher.execute(sourceCache, instanceCache)
             }
 
-            writer.links
+            MatchResult(writer.links, linkSpec.linkType)
         }
 
         def addInstances(instanceSource : DataSource)
@@ -94,12 +114,18 @@ object Server
         }
     }
 
+    private case class MatchResult(links : Traversable[Link], linkType : String)
+
     /**
      * A DataSource which only returns unknown instances.
      */
-    private class FilterDataSource(dataSource : DataSource, links : Traversable[Link]) extends DataSource
+    private class FilterDataSource(dataSource : DataSource, matchResults : Traversable[MatchResult]) extends DataSource
     {
-        private val knownUris = links.map(_.sourceUri).toSet ++ links.map(_.targetUri).toSet
+        private val knownUris =
+        {
+            val links = matchResults.flatMap(_.links)
+            links.map(_.sourceUri).toSet ++ links.map(_.targetUri).toSet
+        }
 
         override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String]) =
         {
