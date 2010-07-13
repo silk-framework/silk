@@ -83,7 +83,7 @@ object Server
     {
         private val sourceCache = new MemoryInstanceCache()
         private val targetCache = new MemoryInstanceCache()
-        new Loader(config, linkSpec).loadCaches(sourceCache, targetCache)
+        new Loader(config, linkSpec).writeCaches(sourceCache, targetCache)
 
         private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
 
@@ -99,6 +99,7 @@ object Server
                 matcher.execute(instanceCache, targetCache)
             }
 
+            instanceCache.clear()
             instanceCache.write(instanceSource.retrieve(targetInstanceSpec, config.prefixes))
             if(instanceCache.instanceCount > 0)
             {
@@ -110,9 +111,9 @@ object Server
 
         def addInstances(instanceSource : DataSource)
         {
-            //TODO
-            sourceCache.write(instanceSource.retrieve(sourceInstanceSpec, config.prefixes))
-            targetCache.write(instanceSource.retrieve(targetInstanceSpec, config.prefixes))
+            val loader = new Loader(config, linkSpec)
+            loader.writeSourceCache(sourceCache, instanceSource)
+            loader.writeTargetCache(targetCache, instanceSource)
         }
     }
 
