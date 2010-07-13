@@ -11,6 +11,8 @@ class InstanceSpecification(val variable : String, val restrictions : String, va
 
 object InstanceSpecification
 {
+    def empty = new InstanceSpecification("a", "", Traversable.empty)
+
     def retrieve(linkSpec : LinkSpecification) : (InstanceSpecification, InstanceSpecification) =
     {
         val sourceVar = linkSpec.sourceDatasetSpecification.variable
