@@ -8,7 +8,7 @@ import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
 import java.io.File
 import collection.mutable.{Buffer, ArrayBuffer, SynchronizedBuffer}
-import java.util.logging.{ConsoleHandler, Level, Logger}
+import java.util.logging.{Level, Logger}
 import util.StringUtils._
 
 /**
@@ -22,11 +22,16 @@ object Silk
      * The default number of threads to be used for matching.
      */
     val DefaultThreads = 4
+
+    /**
+     * The directory the instance cache will be written to
+     */
+    private val instanceCacheDir = new File("./instanceCache/")
     
     DefaultImplementations.register()
 
     /**
-     * Executes Silk.
+     *  Executes Silk.
      * The execution is configured using the following properties:
      *  - 'configFile' (required): The configuration file
      *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
@@ -97,8 +102,16 @@ object Silk
         val startTime = System.currentTimeMillis()
         logger.info("Silk started")
 
-        val (sourceCache, targetCache) = new Loader(config, linkSpec).loadCaches
+        //Create instance caches
+        val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
+        val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/"), numBlocks)
+        val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/"), numBlocks)
 
+        //Load instances
+        val loader = new Loader(config, linkSpec)
+        loader.loadCaches(sourceCache, targetCache)
+
+        //Execute matching
         val matcher = new Matcher(config, linkSpec, numThreads)
         matcher.execute(sourceCache, targetCache)
 
@@ -119,30 +132,23 @@ object Silk
  */
 class Loader(config : Configuration, linkSpec : LinkSpecification)
 {
-    private val partitionCacheDir = new File("./instanceCache/")
-
     private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
-
-    private val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
 
     private val logger = Logger.getLogger(classOf[Loader].getName)
 
-    def loadCaches =
+    def loadCaches(sourceCache : InstanceCache, targetCache : InstanceCache)
     {
         val startTime = System.currentTimeMillis()
         logger.info("Loading instances")
 
-        val sourceCache = loadSourceCache
-        val targetCache = loadTargetCache
+        loadSourceCache(sourceCache)
+        loadTargetCache(targetCache)
 
         logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
-
-        (sourceCache, targetCache)
     }
 
-    def loadSourceCache : InstanceCache =
+    def loadSourceCache(sourceCache : InstanceCache)
     {
-        val sourceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of source dataset")
@@ -151,13 +157,10 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
             case Some(blocking) => sourceCache.write(sourceInstances, blocking)
             case None => sourceCache.write(sourceInstances)
         }
-
-        sourceCache
     }
 
-    def loadTargetCache : InstanceCache =
+    def loadTargetCache(targetCache : InstanceCache)
     {
-        val targetCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
         val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of target dataset")
@@ -166,8 +169,6 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
             case Some(blocking) => targetCache.write(targetInstances, blocking)
             case None => targetCache.write(targetInstances)
         }
-
-        targetCache
     }
 }
 

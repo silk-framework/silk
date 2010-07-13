@@ -81,8 +81,9 @@ object Server
 
     private class LinkSpecMatcher(config : Configuration, linkSpec : LinkSpecification)
     {
-        //TODO use memory caches
-        private val (sourceCache, targetCache) = new Loader(config, linkSpec).loadCaches
+        private val sourceCache = new MemoryInstanceCache()
+        private val targetCache = new MemoryInstanceCache()
+        new Loader(config, linkSpec).loadCaches(sourceCache, targetCache)
 
         private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
 
@@ -109,6 +110,7 @@ object Server
 
         def addInstances(instanceSource : DataSource)
         {
+            //TODO
             sourceCache.write(instanceSource.retrieve(sourceInstanceSpec, config.prefixes))
             targetCache.write(instanceSource.retrieve(targetInstanceSpec, config.prefixes))
         }
