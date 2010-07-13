@@ -3,8 +3,6 @@ package de.fuberlin.wiwiss.silk.server
 import net.liftweb.http._
 import net.liftweb.common.{Empty, Full}
 import de.fuberlin.wiwiss.silk.jena.RdfDataSource
-import com.hp.hpl.jena.rdf.model.ModelFactory
-import java.io.{StringReader, ByteArrayInputStream}
 
 object RestApi
 {
@@ -20,6 +18,6 @@ object RestApi
 
         val response = Server.process(new RdfDataSource(Map("input" -> request, "format" -> "RDF/XML")))
 
-        Full(PlainTextResponse("", Nil, 200))
+        Full(PlainTextResponse(response, Nil, 200))
     }
 }
