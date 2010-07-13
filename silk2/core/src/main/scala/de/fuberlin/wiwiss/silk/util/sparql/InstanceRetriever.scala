@@ -18,8 +18,6 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      */
     def retrieveAll(instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) : Traversable[Instance] =
     {
-        val pathPatterns = SparqlPathBuilder(instanceSpec.paths, "?" + instanceSpec.variable, "?" + varPrefix)
-
         //Prefixes
         var sparql = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
 
@@ -33,8 +31,15 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
 
         //Body
         sparql += "WHERE {\n"
-        sparql += instanceSpec.restrictions + "\n"
-        sparql += pathPatterns
+        if(instanceSpec.restrictions.isEmpty && instanceSpec.paths.isEmpty)
+        {
+            sparql += "?" + instanceSpec.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o "
+        }
+        else
+        {
+            sparql += instanceSpec.restrictions + "\n"
+            sparql += SparqlPathBuilder(instanceSpec.paths, "?" + instanceSpec.variable, "?" + varPrefix)
+        }
         sparql += "}"
 
         val sparqlResults = endpoint.query(sparql)

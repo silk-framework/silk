@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.util.logging.Logger
 
 /**
- * A instance cache, which caches the partitions on the local file system.
+ * An instance cache, which caches the instance on the local file system.
  */
 class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
@@ -15,8 +15,6 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
     private val logger = Logger.getLogger(getClass.getName)
 
     private val blocks = (for(i <- 0 until blockCount) yield new BlockReader(i)).toArray
-
-    private val partitionCounts = Array[Int](blockCount)
 
     def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int])
     {

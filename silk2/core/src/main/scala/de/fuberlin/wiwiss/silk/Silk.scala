@@ -16,10 +16,12 @@ import util.StringUtils._
  */
 object Silk
 {
+    private val logger = Logger.getLogger(Silk.getClass.getName)
+
     /**
      * The default number of threads to be used for matching.
      */
-    private val DefaultThreads = 4
+    val DefaultThreads = 4
     
     DefaultImplementations.register()
 
@@ -79,17 +81,28 @@ object Silk
                  case None => throw new IllegalArgumentException("Unknown link specification: " + linkSpecID)
              }
 
-             val silk = new Silk(config, linkSpec, numThreads)
-             silk.run()
+             executeLinkSpec(config, linkSpec, numThreads)
         }
         else
         {
             for(linkSpec <- config.linkSpecs.values)
             {
-                val silk = new Silk(config, linkSpec, numThreads)
-                silk.run()
+                executeLinkSpec(config, linkSpec, numThreads)
             }
         }
+    }
+
+    private def executeLinkSpec(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = DefaultThreads)
+    {
+        val startTime = System.currentTimeMillis()
+        logger.info("Silk started")
+
+        val (sourceCache, targetCache) = new Loader(config, linkSpec).loadCaches
+
+        val matcher = new Matcher(config, linkSpec, numThreads)
+        matcher.execute(sourceCache, targetCache)
+
+        logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
     }
 
     /**
@@ -102,49 +115,36 @@ object Silk
 }
 
 /**
- * Executes the complete Silk workflow.
+ * Loads the instance cache
  */
-class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = Silk.DefaultThreads)
+class Loader(config : Configuration, linkSpec : LinkSpecification)
 {
-    private val logger = Logger.getLogger(classOf[Silk].getName)
-
     private val partitionCacheDir = new File("./instanceCache/")
+
+    private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
 
     private val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
 
-    private val sourceCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
-    private val targetCache : InstanceCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
+    private val logger = Logger.getLogger(classOf[Loader].getName)
 
-    /**
-     * Executes the complete silk workflow.
-     */
-    def run()
-    {
-        val startTime = System.currentTimeMillis()
-        logger.info("Silk started")
-
-        load()
-        executeMatching()
-
-        logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
-    }
-
-    /**
-     *  Loads the instances from the data sources into the instance cache.
-     */
-    def load()
+    def loadCaches =
     {
         val startTime = System.currentTimeMillis()
         logger.info("Loading instances")
 
-        //Create instance specifications
-        val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
+        val sourceCache = loadSourceCache
+        val targetCache = loadTargetCache
 
-        //Retrieve instances
+        logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+
+        (sourceCache, targetCache)
+    }
+
+    def loadSourceCache : InstanceCache =
+    {
+        val sourceCache = new FileInstanceCache(new File(partitionCacheDir + "/source/"), numBlocks)
         val sourceInstances = linkSpec.sourceDatasetSpecification.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
-        val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
-        //Write source instances
         logger.info("Loading instances of source dataset")
         linkSpec.blocking match
         {
@@ -152,26 +152,43 @@ class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : In
             case None => sourceCache.write(sourceInstances)
         }
 
-        //Write target instances
+        sourceCache
+    }
+
+    def loadTargetCache : InstanceCache =
+    {
+        val targetCache = new FileInstanceCache(new File(partitionCacheDir + "/target/"), numBlocks)
+        val targetInstances = linkSpec.targetDatasetSpecification.dataSource.retrieve(targetInstanceSpec, config.prefixes)
+
         logger.info("Loading instances of target dataset")
         linkSpec.blocking match
         {
             case Some(blocking) => targetCache.write(targetInstances, blocking)
-            case None => targetCache.write(targetInstances) 
+            case None => targetCache.write(targetInstances)
         }
 
-        logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+        targetCache
     }
+}
+
+/**
+ * Executes the matching.
+ */
+class Matcher(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = Silk.DefaultThreads)
+{
+    private val logger = Logger.getLogger(classOf[Matcher].getName)
 
     /**
      * Executes the matching.
      */
-    def executeMatching()
+    def execute(sourceCache : InstanceCache, targetCache : InstanceCache)
     {
+        require(sourceCache.blockCount == targetCache.blockCount, "sourceCache.blockCount == targetCache.blockCount")
+
         val startTime = System.currentTimeMillis()
         logger.info("Starting matching")
 
-        var links = generateLinks()
+        var links = generateLinks(sourceCache, targetCache)
         links = filterLinks(links)
         writeOutput(links)
 
@@ -181,16 +198,16 @@ class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : In
     /**
      * Generates links between the instances according to the link specification.
      */
-    private def generateLinks() : Buffer[Link] =
+    private def generateLinks(sourceCache : InstanceCache, targetCache : InstanceCache) : Buffer[Link] =
     {
         val executor = Executors.newFixedThreadPool(numThreads)
         val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
-        for(blockIndex <- 0 until numBlocks;
+        for(blockIndex <- 0 until sourceCache.blockCount;
             sourcePartitionIndex <- 0 until sourceCache.partitionCount(blockIndex);
             targetPartitionIndex <- 0 until targetCache.partitionCount(blockIndex))
         {
-            executor.submit(new MatchTask(blockIndex, sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
+            executor.submit(new MatchTask(sourceCache, targetCache, blockIndex, sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
         }
 
         executor.shutdown()
@@ -245,13 +262,14 @@ class Silk(config : Configuration, linkSpec : LinkSpecification, numThreads : In
     /**
      * A match task, which matches the instances of a single partition.
      */
-    private class MatchTask(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
+    private class MatchTask(sourceCache : InstanceCache, targetCache : InstanceCache, blockIndex : Int,
+        sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
     {
         override def run() : Unit =
         {
             try
             {
-                val tasksPerBlock = for(block <- 0 until numBlocks) yield sourceCache.partitionCount(block) * targetCache.partitionCount(block)
+                val tasksPerBlock = for(block <- 0 until sourceCache.blockCount) yield sourceCache.partitionCount(block) * targetCache.partitionCount(block)
                 val taskNum = tasksPerBlock.take(blockIndex).foldLeft(sourcePartitionIndex * targetCache.partitionCount(blockIndex) + targetPartitionIndex + 1)(_ + _)
                 val taskCount = tasksPerBlock.reduceLeft(_ + _)
 
