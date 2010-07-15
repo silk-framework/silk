@@ -1,22 +1,45 @@
 package de.fuberlin.wiwiss.silk.config
 
-import javax.xml.validation.SchemaFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import xml._
-import java.io.{File}
-import org.xml.sax.{SAXException}
 import javax.xml.transform.stream.StreamSource
 import de.fuberlin.wiwiss.silk.linkspec._
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
+import javax.xml.XMLConstants
+import javax.xml.parsers.SAXParserFactory
+import parsing.NoBindingFactoryAdapter
+import javax.xml.validation.SchemaFactory
+import org.xml.sax.SAXException
+import java.io.{FileInputStream, File, InputStream}
 
 object ConfigLoader
 {
     def load(file : File) : Configuration =
     {
-        validateXML(file)
-        val xml = XML.loadFile(file)
+        try
+        {
+            load(new FileInputStream(file))
+        }
+        catch
+        {
+            case ex : ValidationException =>
+                throw new ValidationException("Could not load configuration file: " + file + ". " + ex.getMessage, ex.getCause)
+        }
+    }
+
+    def load(inputStream : InputStream) : Configuration =
+    {
+        val xml =
+            try
+            {
+                new ValidatingFactoryAdapter().loadXML(new InputSource(inputStream))
+            }
+            catch
+            {
+                case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
+            }
 
         val prefixes = loadPrefixes(xml)
         val dataSources = loadDataSources(xml)
@@ -24,21 +47,6 @@ object ConfigLoader
         val outputs = loadOutputs(xml \ "Outputs" \ "Output")
 
         new Configuration(prefixes, dataSources, linkSpecifications, outputs)
-    }
-
-    private def validateXML(file : File) : Unit =
-    {
-        try {
-            val factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema")
-            val stream = getClass().getClassLoader().getResourceAsStream("de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd")
-            if(stream == null) throw new ValidationException("XML Schema for Link Specification not found")
-            val schema = factory.newSchema(new StreamSource(stream))
-            val validator = schema.newValidator()
-            validator.validate(new StreamSource(file))
-        } catch {
-            case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
-        }
-
     }
 
     private def loadPrefixes(xml : Elem) : Map[String, String] =
@@ -197,6 +205,35 @@ object ConfigLoader
                 }
                 case _ => throw new IllegalArgumentException("No prefix found in " + name)
             }
+        }
+    }
+
+    class ValidatingFactoryAdapter extends NoBindingFactoryAdapter
+    {
+        def loadXML(source : InputSource) : Elem =
+        {
+            //Load XML Schema
+            val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+            val schemaStream = getClass().getClassLoader().getResourceAsStream("de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd")
+            if(schemaStream == null) throw new ValidationException("XML Schema for Link Specification not found")
+            val schema = schemaFactory.newSchema(new StreamSource(schemaStream))
+
+            //Create parser
+            val parserFactory = SAXParserFactory.newInstance()
+            parserFactory.setNamespaceAware(true)
+            parserFactory.setFeature("http://xml.org/sax/features/namespace-prefixes", true)
+            val parser = parserFactory.newSAXParser()
+
+            val xr = parser.getXMLReader()
+            val vh = schema.newValidatorHandler()
+            vh.setContentHandler(this)
+            xr.setContentHandler(vh)
+
+            // parse file
+            scopeStack.push(TopScope)
+            xr.parse(source)
+            scopeStack.pop
+            return rootElem.asInstanceOf[Elem]
         }
     }
 }
