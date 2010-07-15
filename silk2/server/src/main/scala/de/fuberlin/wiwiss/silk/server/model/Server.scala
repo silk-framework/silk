@@ -20,6 +20,8 @@ object Server
 
     private var _datasets = Traversable[Dataset]()
 
+    private val writeUnknownInstances = true
+
     def datasets = _datasets
 
     def init()
@@ -44,7 +46,7 @@ object Server
         val matchResults = _datasets.map(m => m(instanceSource))
         //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
 
-        val unknownInstances = addUnknownInstances(instanceSource, matchResults)
+        val unknownInstances = handleUnknownInstances(instanceSource, matchResults)
 
         formatResults(matchResults, unknownInstances)
     }
@@ -68,13 +70,16 @@ object Server
         formattedResults.mkString + formattedUnknownInstances.mkString
     }
 
-    private def addUnknownInstances(instanceSource : DataSource, matchResults : Traversable[MatchResult]) : Traversable[String] =
+    private def handleUnknownInstances(instanceSource : DataSource, matchResults : Traversable[MatchResult]) : Traversable[String] =
     {
         //Create a source yielding all unknown instances
         val unknownInstancesSource = new FilterDataSource(instanceSource, matchResults)
 
         //Add all unknown instances to the instance caches
-        datasets.foreach(m => m.addInstances(unknownInstancesSource))
+        if(writeUnknownInstances)
+        {
+            datasets.foreach(m => m.addInstances(unknownInstancesSource))
+        }
 
         //Retrieve all unknown instances (we are only interested in their URI)
         val unknownInstances = unknownInstancesSource.retrieve(InstanceSpecification.empty, Map.empty).map(_.uri)
