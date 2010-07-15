@@ -1,23 +1,16 @@
-package de.fuberlin.wiwiss.silk.server
+package de.fuberlin.wiwiss.silk.server.model
 
-import java.io.File
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
+import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
+import de.fuberlin.wiwiss.silk.output.Link
+import de.fuberlin.wiwiss.silk.impl.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigLoader}
-import de.fuberlin.wiwiss.silk.instance.{MemoryInstanceCache, InstanceSpecification}
-import de.fuberlin.wiwiss.silk.{Matcher, Loader}
-import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
-import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.output.{Link, Output}
-import de.fuberlin.wiwiss.silk.impl.writer.{NTriplesFormatter, MemoryWriter}
+import java.io.{FileNotFoundException, File}
 
 object Server
 {
     DefaultImplementations.register()
-
-    val configFile = new File("./src/main/resources/de/fuberlin/wiwiss/silk/server/config/sider_drugbank_drugs.xml")
-
-    val configs = ConfigLoader.load(configFile) :: Nil
 
     private val silkUriPrefix = "http://www4.wiwiss.fu-berlin.de/bizer/silk/"
 
@@ -25,20 +18,30 @@ object Server
 
     private val unknownInstanceUri = silkUriPrefix + "UnknownInstance"
 
-    private var matchers : Traversable[LinkSpecMatcher] = null
+    private var _datasets = Traversable[Dataset]()
+
+    def datasets = _datasets
 
     def init()
     {
-        matchers =
-            for(config <- configs;
-                linkSpec <- config.linkSpecs.values)
-                yield new LinkSpecMatcher(config, linkSpec)
+        //Load configurations
+        val configDir = new File("./config")
+        if(!configDir.exists) throw new FileNotFoundException("Config directory " + configDir + " not found")
+        for(file <- configDir.listFiles if file.getName.endsWith("xml"))
+        {
+            addConfig(ConfigLoader.load(file), file.getName.takeWhile(_ != '.'))
+        }
+    }
+
+    def addConfig(config : Configuration, name : String)
+    {
+        _datasets ++= (for((id, linkSpec) <- config.linkSpecs) yield new Dataset(name, config, linkSpec))
     }
 
     def process(instanceSource : DataSource) : String =
     {
         //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
-        val matchResults = matchers.map(m => m(instanceSource))
+        val matchResults = _datasets.map(m => m(instanceSource))
         //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
 
         val unknownInstances = addUnknownInstances(instanceSource, matchResults)
@@ -71,53 +74,13 @@ object Server
         val unknownInstancesSource = new FilterDataSource(instanceSource, matchResults)
 
         //Add all unknown instances to the instance caches
-        matchers.foreach(m => m.addInstances(unknownInstancesSource))
+        datasets.foreach(m => m.addInstances(unknownInstancesSource))
 
         //Retrieve all unknown instances (we are only interested in their URI)
         val unknownInstances = unknownInstancesSource.retrieve(InstanceSpecification.empty, Map.empty).map(_.uri)
 
         unknownInstances
     }
-
-    private class LinkSpecMatcher(config : Configuration, linkSpec : LinkSpecification)
-    {
-        private val sourceCache = new MemoryInstanceCache()
-        private val targetCache = new MemoryInstanceCache()
-        new Loader(config, linkSpec).writeCaches(sourceCache, targetCache)
-
-        private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
-
-        def apply(instanceSource : DataSource) : MatchResult =
-        {
-            val instanceCache = new MemoryInstanceCache()
-            val writer = new MemoryWriter()
-            val matcher = new Matcher(config.copy(outputs = new Output(writer) :: Nil), linkSpec)
-
-            instanceCache.write(instanceSource.retrieve(sourceInstanceSpec, config.prefixes))
-            if(instanceCache.instanceCount > 0)
-            {
-                matcher.execute(instanceCache, targetCache)
-            }
-
-            instanceCache.clear()
-            instanceCache.write(instanceSource.retrieve(targetInstanceSpec, config.prefixes))
-            if(instanceCache.instanceCount > 0)
-            {
-                matcher.execute(sourceCache, instanceCache)
-            }
-
-            MatchResult(writer.links, linkSpec.linkType)
-        }
-
-        def addInstances(instanceSource : DataSource)
-        {
-            val loader = new Loader(config, linkSpec)
-            loader.writeSourceCache(sourceCache, instanceSource)
-            loader.writeTargetCache(targetCache, instanceSource)
-        }
-    }
-
-    private case class MatchResult(links : Traversable[Link], linkType : String)
 
     /**
      * A DataSource which only returns unknown instances.
