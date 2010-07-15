@@ -63,6 +63,6 @@ private class JenaSparqlEndpoint(model : Model) extends SparqlEndpoint
     {
         case r : com.hp.hpl.jena.rdf.model.Resource => new de.fuberlin.wiwiss.silk.util.sparql.Resource(r.getURI)
         case l : com.hp.hpl.jena.rdf.model.Literal => new de.fuberlin.wiwiss.silk.util.sparql.Literal(l.getString)
-        case _ => throw new RuntimeException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
+        case _ => throw new IllegalArgumentException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
     }
 }

@@ -26,7 +26,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     {
         val instanceCache = new MemoryInstanceCache()
         val writer = new MemoryWriter()
-        val matcher = new Matcher(config.copy(outputs = new Output(writer) :: Nil), linkSpec)
+        val matcher = new Matcher(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil))
 
         instanceCache.write(instanceSource.retrieve(sourceInstanceSpec, config.prefixes))
         if(instanceCache.instanceCount > 0)
