@@ -50,6 +50,7 @@ class Output(val writer : AlignmentWriter, minConfidence : Option[Double] = None
     def close()
     {
         if(isOpen) writer.close()
+        isOpen = false
 
         logger.info("Wrote " + linkCount + " links")
     }
