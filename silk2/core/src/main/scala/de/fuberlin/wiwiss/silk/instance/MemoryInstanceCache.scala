@@ -9,12 +9,14 @@ class MemoryInstanceCache(val blockCount : Int = 1, maxPartitionSize : Int = 100
 {
     private var blocks = IndexedSeq.fill(blockCount)(new Block)
 
+    private var allInstances = Set[String]()
+
     private var instanceCounter = 0
 
     /**
      * Writes to this cache.
      */
-    override def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int] = _ => Set(0))
+    override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
     {
         for(instance <- instances)
         {
@@ -25,19 +27,24 @@ class MemoryInstanceCache(val blockCount : Int = 1, maxPartitionSize : Int = 100
     /**
      * Adds a single instance to the cache.
      */
-    private def add(instance : Instance, blockingFunction : Instance => Set[Int])
+    private def add(instance : Instance, blockingFunction : Option[Instance => Set[Int]])
     {
-        for(block <- blockingFunction(instance))
+        if(!allInstances.contains(instance.uri))
         {
-            blocks(block).add(instance)
+            for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+            {
+                blocks(block).add(instance)
+            }
+            allInstances += instance.uri 
+            instanceCounter += 1
         }
-        instanceCounter += 1
     }
 
     def clear()
     {
         instanceCounter = 0
         blocks = IndexedSeq.fill(blockCount)(new Block)
+        allInstances = Set[String]()
     }
 
     def instanceCount = instanceCounter
