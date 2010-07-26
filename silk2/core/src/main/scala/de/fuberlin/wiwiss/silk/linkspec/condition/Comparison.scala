@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 import de.fuberlin.wiwiss.silk.instance.Instance
 import input.Input
 
-case class Comparison(weight : Int, inputs : Seq[Input], metric : Metric) extends Operator
+case class Comparison(required : Boolean, weight : Int, inputs : Seq[Input], metric : Metric) extends Operator
 {
     require(inputs.size == 2, "Number of inputs must be 2. " + inputs.size + " given.")
 
@@ -17,6 +17,6 @@ case class Comparison(weight : Int, inputs : Seq[Input], metric : Metric) extend
 
     override def toString = metric match
     {
-        case Metric(name, params) => "Aggregation(weight=" + weight + ", type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
+        case Metric(name, params) => "Aggregation(required=" + required + ", weight=" + weight + ", type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
     }
 }
