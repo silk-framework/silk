@@ -61,15 +61,15 @@ object ConfigWriter
 
     def serializeOperator(operator : Operator) : Elem = operator match
     {
-        case Aggregation(weight, operators, Aggregator(aggregator, params)) =>
+        case Aggregation(required, weight, operators, Aggregator(aggregator, params)) =>
         {
-            <Aggregate weight={weight.toString} type={aggregator}>
+            <Aggregate required={required.toString} weight={weight.toString} type={aggregator}>
               { operators.map(serializeOperator) }
             </Aggregate>
         }
-        case Comparison(weight, inputs, Metric(metric, params)) =>
+        case Comparison(required, weight, inputs, Metric(metric, params)) =>
         {
-            <Compare weight={weight.toString} metric={metric}>
+            <Compare required={required.toString} weight={weight.toString} metric={metric}>
               { inputs.map{input => serializeInput(input)} }
               { params.map{case (name, value) => <Param name={name} value={value} />} }
             </Compare>
