@@ -34,6 +34,7 @@
       </xs:sequence>
       <xs:attribute name="metric" type="xs:string" use="required" />
       <xs:attribute name="weight" type="xs:unsignedShort" />
+      <xs:attribute name="required" type="xs:boolean" />
     </xs:complexType>
   </xs:element>
 
@@ -47,6 +48,7 @@
       </xs:sequence>
       <xs:attribute name="type" type="xs:string" use="required" />
       <xs:attribute name="weight" type="xs:unsignedShort" />
+      <xs:attribute name="required" type="xs:boolean" />
     </xs:complexType>
   </xs:element>
 
