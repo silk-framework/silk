@@ -108,11 +108,13 @@ object ConfigLoader
 
     private def loadAggregation(node : Node, pathCache : collection.mutable.Map[String, Path]) : Aggregation =
     {
+        val requiredStr = node \ "@required" text
         val weightStr = node \ "@weight" text
 
         val aggregator = Aggregator(node \ "@type" text, loadParams(node))
 
         new Aggregation(
+            if(requiredStr.isEmpty) false else requiredStr.toBoolean,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
             loadOperators(node.child, pathCache),
             aggregator
@@ -121,10 +123,12 @@ object ConfigLoader
 
     private def loadComparison(node : Node, pathCache : collection.mutable.Map[String, Path]) : Comparison =
     {
+        val requiredStr = node \ "@required" text
         val weightStr = node \ "@weight" text
         val metric = Metric(node \ "@metric" text, loadParams(node))
 
         new Comparison(
+            if(requiredStr.isEmpty) false else requiredStr.toBoolean,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
             loadInputs(node.child, pathCache),
             metric
