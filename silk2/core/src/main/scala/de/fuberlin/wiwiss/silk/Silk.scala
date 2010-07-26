@@ -32,7 +32,7 @@ object Silk
     DefaultImplementations.register()
 
     /**
-     *  Executes Silk.
+     * Executes Silk.
      * The execution is configured using the following properties:
      *  - 'configFile' (required): The configuration file
      *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
@@ -155,14 +155,10 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeSourceCache(sourceCache : InstanceCache, dataSource : DataSource)
     {
-        val instances =dataSource.retrieve(sourceInstanceSpec, config.prefixes)
+        val instances = dataSource.retrieve(sourceInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of source dataset")
-        linkSpec.blocking match
-        {
-            case Some(blocking) => sourceCache.write(instances, blocking)
-            case None => sourceCache.write(instances)
-        }
+        sourceCache.write(instances, linkSpec.blocking)
     }
 
     def writeTargetCache(targetCache : InstanceCache)
@@ -175,13 +171,8 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
         val instances = dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of target dataset")
-        linkSpec.blocking match
-        {
-            case Some(blocking) => targetCache.write(instances, blocking)
-            case None => targetCache.write(instances)
-        }
+        targetCache.write(instances, linkSpec.blocking)
     }
-
 }
 
 /**
