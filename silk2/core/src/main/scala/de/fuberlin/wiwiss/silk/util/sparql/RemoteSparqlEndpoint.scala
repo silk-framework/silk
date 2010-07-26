@@ -13,10 +13,10 @@ import io.Source
  * @param pageSize The number of solutions to be retrieved per SPARQL query (default: 1000)
  * @param pauseTime The minimum number of milliseconds between two queries
  * @param retryCount The number of retries if a query fails
- * @param retryPause The pause in milliseconds before a query is retried.
+ * @param initialRetryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  */
 class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val pauseTime : Int = 0,
-                           val retryCount : Int = 3, val retryPause : Int = 1000) extends SparqlEndpoint
+                           val retryCount : Int = 3, val initialRetryPause : Int = 1000) extends SparqlEndpoint
 {
     private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
@@ -28,6 +28,8 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
     {
         override def foreach[U](f : Map[String, Node] => U) : Unit =
         {
+            var blankNodeCount = 0
+
             for(offset <- 0 until Integer.MAX_VALUE by pageSize)
             {
                 val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + pageSize)
@@ -40,7 +42,11 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                     {
                         case "uri" => (binding \ "@name" text, new Resource(node.text))
                         case "literal" => (binding \ "@name" text, new Literal(node.text))
-                        case label => throw new RuntimeException("Unsupported element: <" + label + "> in SPARQL result binding")
+                        case "bnode" =>
+                        {
+                            blankNodeCount += 1
+                            (binding \ "@name" text, new Resource("bnode" + blankNodeCount))
+                        }
                     }
 
                     f(values.toMap)
@@ -68,17 +74,21 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
             //Execute query
             if(logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri +"\n" + query)
 
-            val url = new URL(uri + "?format=application/rdf+xml&query=" + URLEncoder.encode(query, "UTF-8"))
+            val url = new URL(uri + "?format=application/rdf+xml&query=" + URLEncoder.encode(query, "UTF-8") + "&timeout=1000000")
 
             var result : Elem = null
             var retries = 0
+            var retryPause = initialRetryPause
             while(result == null)
             {
                 val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
 
                 try
                 {
-                    result = XML.load(httpConnection.getInputStream)
+                    val x = Source.fromInputStream(httpConnection.getInputStream).getLines.mkString("\n")
+                    println("///////////////////" + x + "/////////////////////////////////")
+
+                    result = XML.load(x)
                 }
                 catch
                 {
@@ -93,15 +103,18 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                             if(errorStream != null)
                             {
                                 val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-                                logger.info("Query failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms.")
+                                logger.info("Query failed. Error Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms.")
                             }
                             else
                             {
-                                logger.info("Query failed.\nRetrying in " + retryPause + " ms.")
+                                val str = ex.getMessage
+                                logger.info("Query failed:\n" + query + "\nRetrying in " + retryPause + " ms.")
                             }
                         }
 
                         Thread.sleep(retryPause)
+                        //Double the retry pause up to a maximum of 1 hour
+                        retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
                     }
                 }
             }

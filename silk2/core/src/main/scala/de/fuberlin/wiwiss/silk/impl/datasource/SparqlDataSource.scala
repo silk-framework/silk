@@ -22,7 +22,7 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
                                    uri = readRequiredParam("endpointURI"),
                                    pauseTime = readOptionalIntParam("pauseTime").getOrElse(0),
                                    retryCount = readOptionalIntParam("retryCount").getOrElse(3),
-                                   retryPause = readOptionalIntParam("retryPause").getOrElse(1000)
+                                   initialRetryPause = readOptionalIntParam("retryPause").getOrElse(1000)
                                )
 
     private val graphUri = readOptionalParam("graph")
