@@ -16,7 +16,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
     private val blocks = (for(i <- 0 until blockCount) yield new BlockReader(i)).toArray
 
-    def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int])
+    def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
     {
         dir.deleteRecursive()
 
@@ -25,7 +25,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
         for(instance <- instances)
         {
-            for(block <- blockingFunction(instance))
+            for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
             {
                 if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
     

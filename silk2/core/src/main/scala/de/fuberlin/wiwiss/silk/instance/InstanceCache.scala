@@ -8,7 +8,7 @@ trait InstanceCache
     /**
      * Writes to this cache.
      */
-    def write(instances : Traversable[Instance], blockingFunction : Instance => Set[Int] = _ => Set(0)) : Unit
+    def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None) : Unit
 
     /**
      * Reads a partition of a block.
