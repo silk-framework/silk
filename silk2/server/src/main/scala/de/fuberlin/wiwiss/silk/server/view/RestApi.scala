@@ -11,15 +11,17 @@ object RestApi
 {
     def dispatch : LiftRules.DispatchPF =
     {
-        case req @ Req(List("api", "generateLinks"), "", PostRequest) => () => generateLinks(getLoad(req))
+        case req @ Req(List("api", "generateLinks"), "", PostRequest) => () => generateLinks(req)
         case Req(List(_), "", _) => () => Empty
     }
 
-    private def generateLinks(data : Array[Byte]) =
+    //TODO allow the specification of the input and output format
+    private def generateLinks(req : Req) =
     {
-        val request = new String(data, "UTF-8")
+        val input = new String(getLoad(req), "UTF-8")
+        val format = req.param("format").getOrElse("RDF/XML")
 
-        val response = Server.process(new RdfDataSource(Map("input" -> request, "format" -> "RDF/XML")))
+        val response = Server.process(new RdfDataSource(Map("input" -> input, "format" -> format)))
 
         Full(PlainTextResponse(response, Nil, 200))
     }

@@ -11,47 +11,80 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 /**
  * Holds the dataset of a link specification.
  */
-class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecification)
+class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecification, writeUnmatchedInstances : Boolean)
 {
     private val sourceCache = new MemoryInstanceCache()
     private val targetCache = new MemoryInstanceCache()
     new Loader(config, linkSpec).writeCaches(sourceCache, targetCache)
 
     private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
-
     /**
      * Matches a set of instances with all instances in this dataset.
      */
     def apply(instanceSource : DataSource) : MatchResult =
     {
+        val sourceLinks = generateSourceLinks(instanceSource)
+        val targetLinks = generateTargetLinks(instanceSource)
+
+        MatchResult(
+            links = sourceLinks.links ++ targetLinks.links,
+            linkType = linkSpec.linkType,
+            unmatchedInstances = sourceLinks.unmatchedInstances ++ targetLinks.unmatchedInstances
+        )
+    }
+
+    /**
+     * Generates all links where the provided instances are link source.
+     */
+    private def generateSourceLinks(instanceSource : DataSource) =
+    {
         val instanceCache = new MemoryInstanceCache()
         val writer = new MemoryWriter()
         val matcher = new Matcher(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil))
 
-        instanceCache.write(instanceSource.retrieve(sourceInstanceSpec, config.prefixes))
+        val instances = instanceSource.retrieve(sourceInstanceSpec, config.prefixes).toList
+        instanceCache.write(instances)
         if(instanceCache.instanceCount > 0)
         {
             matcher.execute(instanceCache, targetCache)
         }
 
-        instanceCache.clear()
-        instanceCache.write(instanceSource.retrieve(targetInstanceSpec, config.prefixes))
+        val matchedInstances = writer.links.map(_.sourceUri).toSet
+        val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
+
+        if(writeUnmatchedInstances)
+        {
+            sourceCache.write(unmatchedInstances, linkSpec.blocking)
+        }
+
+        MatchResult(writer.links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)
+    }
+
+    /**
+     * Generates all links where the provided instances are link target.
+     */
+    private def generateTargetLinks(instanceSource : DataSource) =
+    {
+        val instanceCache = new MemoryInstanceCache()
+        val writer = new MemoryWriter()
+        val matcher = new Matcher(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil))
+
+        val instances = instanceSource.retrieve(targetInstanceSpec, config.prefixes).toList
+        instanceCache.write(instances)
         if(instanceCache.instanceCount > 0)
         {
             matcher.execute(sourceCache, instanceCache)
         }
 
-        MatchResult(writer.links, linkSpec.linkType)
-    }
+        val matchedInstances = writer.links.map(_.targetUri).toSet
+        val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
 
-    /**
-     * Adds new instances to this dataset
-     */
-    def addInstances(instanceSource : DataSource)
-    {
-        val loader = new Loader(config, linkSpec)
-        loader.writeSourceCache(sourceCache, instanceSource)
-        loader.writeTargetCache(targetCache, instanceSource)
+        if(writeUnmatchedInstances)
+        {
+            targetCache.write(unmatchedInstances, linkSpec.blocking)
+        }
+
+        MatchResult(writer.links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)
     }
 
     def sourceInstanceCount = sourceCache.instanceCount
