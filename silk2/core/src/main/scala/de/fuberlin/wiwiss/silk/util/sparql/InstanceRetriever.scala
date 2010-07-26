@@ -142,7 +142,10 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
                 }
             }
 
-            f(new Instance(instanceSpec.variable, curSubject, values.toMap))
+            if(curSubject != null)
+            {
+                f(new Instance(instanceSpec.variable, curSubject, values.toMap))
+            }
         }
     }
 }
