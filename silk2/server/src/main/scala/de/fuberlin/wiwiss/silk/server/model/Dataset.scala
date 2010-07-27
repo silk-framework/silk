@@ -18,6 +18,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     new Loader(config, linkSpec).writeCaches(sourceCache, targetCache)
 
     private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
+
     /**
      * Matches a set of instances with all instances in this dataset.
      */

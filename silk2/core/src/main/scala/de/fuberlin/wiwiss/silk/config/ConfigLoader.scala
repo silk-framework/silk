@@ -72,15 +72,12 @@ object ConfigLoader
 
     private def loadLinkSpecification(node : Node, prefixes : Map[String, String], dataSources : Map[String, DataSource]) : LinkSpecification =
     {
-        //We cache all paths, so multiple equivalent paths will share the same path object
-        var pathCache = collection.mutable.Map[String, Path]()
-
         new LinkSpecification(
             resolveQualifiedName(node \ "LinkType" text, prefixes),
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
-            (node \ "Blocking").headOption.map(blockingNode => loadBlocking(blockingNode, pathCache)),
-            new LinkCondition(loadAggregation(node \ "LinkCondition" \ "Aggregate" head, pathCache)),
+            (node \ "Blocking").headOption.map(blockingNode => loadBlocking(blockingNode)),
+            new LinkCondition(loadAggregation(node \ "LinkCondition" \ "Aggregate" head)),
             loadLinkFilter(node \ "Filter" head),
             loadOutputs(node \ "Outputs" \ "Output")
         )
@@ -97,16 +94,16 @@ object ConfigLoader
             )
     }
 
-    private def loadOperators(nodes : Seq[Node], pathCache : collection.mutable.Map[String, Path]) : Traversable[Operator] =
+    private def loadOperators(nodes : Seq[Node]) : Traversable[Operator] =
     {
         nodes.collect
         {
-            case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node, pathCache)
-            case node @ <Compare>{_*}</Compare> => loadComparison(node, pathCache)
+            case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node)
+            case node @ <Compare>{_*}</Compare> => loadComparison(node)
         }
     }
 
-    private def loadAggregation(node : Node, pathCache : collection.mutable.Map[String, Path]) : Aggregation =
+    private def loadAggregation(node : Node) : Aggregation =
     {
         val requiredStr = node \ "@required" text
         val weightStr = node \ "@weight" text
@@ -116,12 +113,12 @@ object ConfigLoader
         new Aggregation(
             if(requiredStr.isEmpty) false else requiredStr.toBoolean,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadOperators(node.child, pathCache),
+            loadOperators(node.child),
             aggregator
         )
     }
 
-    private def loadComparison(node : Node, pathCache : collection.mutable.Map[String, Path]) : Comparison =
+    private def loadComparison(node : Node) : Comparison =
     {
         val requiredStr = node \ "@required" text
         val weightStr = node \ "@weight" text
@@ -130,44 +127,34 @@ object ConfigLoader
         new Comparison(
             if(requiredStr.isEmpty) false else requiredStr.toBoolean,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadInputs(node.child, pathCache),
+            loadInputs(node.child),
             metric
         )
     }
 
-    private def loadBlocking(node : Node, pathCache : collection.mutable.Map[String, Path]) : Blocking =
+    private def loadBlocking(node : Node) : Blocking =
     {
         new Blocking(
-            loadInputs(node.child, pathCache).asInstanceOf[Traversable[PathInput]],
+            loadInputs(node.child).asInstanceOf[Traversable[PathInput]],
             BlockingFunction(node \ "@function" text, loadParams(node)),
             (node \ "@blocks").text.toInt,
             (node \ "@overlap").headOption.map(_.text.toDouble).getOrElse(0.0)
         )
     }
 
-    private def loadInputs(nodes : Seq[Node], pathCache : collection.mutable.Map[String, Path]) : Seq[Input] =
+    private def loadInputs(nodes : Seq[Node]) : Seq[Input] =
     {
         nodes.collect {
             case p @ <Input/> =>
             {
-                //Use a cached path if available
                 val pathStr = p \ "@path" text
-                val path = pathCache.get(pathStr) match
-                {
-                    case Some(path) => path
-                    case None =>
-                    {
-                        val path = Path.parse(pathStr)
-                        pathCache.update(pathStr, path)
-                        path
-                    }
-                }
-                new PathInput(path)
+                val path = Path.parse(pathStr)
+                PathInput(path)
             }
             case p @ <TransformInput>{_*}</TransformInput> =>
             {
                 val transformer = Transformer(p \ "@function" text, loadParams(p))
-                new TransformInput(loadInputs(p.child, pathCache), transformer)
+                TransformInput(loadInputs(p.child), transformer)
             }
         }
     }
