@@ -7,4 +7,6 @@ sealed trait Node
 
 case class Resource(value : String) extends Node
 
+case class BlankNode(value : String) extends Node
+
 case class Literal(value : String) extends Node
