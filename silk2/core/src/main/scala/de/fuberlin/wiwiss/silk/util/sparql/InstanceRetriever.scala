@@ -107,7 +107,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
         override def foreach[U](f : Instance => U) : Unit =
         {
             //Remember current subject
-            var curSubject : String = subject.getOrElse(null)
+            var curSubject : Option[String] = subject
 
             //Collect values of the current subject
             val values = collection.mutable.HashMap[Int, Set[String]]()
@@ -118,33 +118,41 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
                 if(subject.isEmpty)
                 {
                     //Check if we are still reading values for the current subject
-                    val resultSubject = result.get(instanceSpec.variable).get.value
+                    val resultSubject = result.get(instanceSpec.variable) match
+                    {
+                        case Some(Resource(value)) => Some(value)
+                        case _ => None
+                    }
+
                     if(resultSubject != curSubject)
                     {
-                        if(curSubject != null)
+                        for(curSubjectUri <- curSubject)
                         {
-                            f(new Instance(instanceSpec.variable, curSubject, values.toMap))
+                            f(new Instance(instanceSpec.variable, curSubjectUri, values.toMap))
                         }
 
                         curSubject = resultSubject
                         values.clear()
                     }
                 }
-                
+
                 //Find results for values for the current subject
-                for((variable, node) <- result if variable.startsWith(varPrefix))
+                if(curSubject.isDefined)
                 {
-                    val id = variable.substring(varPrefix.length).toInt
+                    for((variable, node) <- result if variable.startsWith(varPrefix))
+                    {
+                        val id = variable.substring(varPrefix.length).toInt
 
-                    val oldVarValues = values.get(id).getOrElse(Set())
+                        val oldVarValues = values.get(id).getOrElse(Set())
 
-                    values(id) = oldVarValues + node.value
+                        values(id) = oldVarValues + node.value
+                    }
                 }
             }
 
-            if(curSubject != null)
+            for(curSubjectUri <- curSubject)
             {
-                f(new Instance(instanceSpec.variable, curSubject, values.toMap))
+                f(new Instance(instanceSpec.variable, curSubjectUri, values.toMap))
             }
         }
     }

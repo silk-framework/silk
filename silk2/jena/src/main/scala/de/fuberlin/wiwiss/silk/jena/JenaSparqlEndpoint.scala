@@ -61,9 +61,9 @@ private class JenaSparqlEndpoint(model : Model) extends SparqlEndpoint
      */
     private def toSilkNode(node : com.hp.hpl.jena.rdf.model.RDFNode) = node match
     {
-        case r : com.hp.hpl.jena.rdf.model.Resource if !r.isAnon => new de.fuberlin.wiwiss.silk.util.sparql.Resource(r.getURI) 
-        case r : com.hp.hpl.jena.rdf.model.Resource => new de.fuberlin.wiwiss.silk.util.sparql.Resource(r.getId.getLabelString)
-        case l : com.hp.hpl.jena.rdf.model.Literal => new de.fuberlin.wiwiss.silk.util.sparql.Literal(l.getString)
+        case r : com.hp.hpl.jena.rdf.model.Resource if !r.isAnon => de.fuberlin.wiwiss.silk.util.sparql.Resource(r.getURI)
+        case r : com.hp.hpl.jena.rdf.model.Resource => de.fuberlin.wiwiss.silk.util.sparql.BlankNode(r.getId.getLabelString)
+        case l : com.hp.hpl.jena.rdf.model.Literal => de.fuberlin.wiwiss.silk.util.sparql.Literal(l.getString)
         case _ => throw new IllegalArgumentException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
     }
 }

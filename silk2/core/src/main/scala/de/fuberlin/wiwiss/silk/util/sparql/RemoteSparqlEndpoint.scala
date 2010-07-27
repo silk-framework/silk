@@ -40,12 +40,12 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                 {
                     val values = for(binding <- resultXml \ "binding"; node <- binding \ "_") yield node.label match
                     {
-                        case "uri" => (binding \ "@name" text, new Resource(node.text))
-                        case "literal" => (binding \ "@name" text, new Literal(node.text))
+                        case "uri" => (binding \ "@name" text, Resource(node.text))
+                        case "literal" => (binding \ "@name" text, Literal(node.text))
                         case "bnode" =>
                         {
                             blankNodeCount += 1
-                            (binding \ "@name" text, new Resource("bnode" + blankNodeCount))
+                            (binding \ "@name" text, BlankNode("bnode" + blankNodeCount))
                         }
                     }
 
@@ -85,10 +85,7 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
 
                 try
                 {
-                    val x = Source.fromInputStream(httpConnection.getInputStream).getLines.mkString("\n")
-                    println("///////////////////" + x + "/////////////////////////////////")
-
-                    result = XML.load(x)
+                    result = XML.load(httpConnection.getInputStream)
                 }
                 catch
                 {
@@ -107,7 +104,6 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                             }
                             else
                             {
-                                val str = ex.getMessage
                                 logger.info("Query failed:\n" + query + "\nRetrying in " + retryPause + " ms.")
                             }
                         }
