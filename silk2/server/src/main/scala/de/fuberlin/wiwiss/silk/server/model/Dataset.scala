@@ -24,20 +24,19 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
      */
     def apply(instanceSource : DataSource) : MatchResult =
     {
-        val sourceLinks = generateSourceLinks(instanceSource)
-        val targetLinks = generateTargetLinks(instanceSource)
+        val matchResult = generateLinks(instanceSource)
 
         MatchResult(
-            links = sourceLinks.links ++ targetLinks.links,
+            links = matchResult.links,
             linkType = linkSpec.linkType,
-            unmatchedInstances = sourceLinks.unmatchedInstances ++ targetLinks.unmatchedInstances
+            unmatchedInstances = matchResult.unmatchedInstances
         )
     }
 
     /**
-     * Generates all links where the provided instances are link source.
+     * Generates all links where the provided instances are the link source.
      */
-    private def generateSourceLinks(instanceSource : DataSource) =
+    private def generateLinks(instanceSource : DataSource) =
     {
         val instanceCache = new MemoryInstanceCache()
         val writer = new MemoryWriter()
@@ -51,33 +50,6 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
         }
 
         val matchedInstances = writer.links.map(_.sourceUri).toSet
-        val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
-
-        if(writeUnmatchedInstances)
-        {
-            sourceCache.write(unmatchedInstances, linkSpec.blocking)
-        }
-
-        MatchResult(writer.links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)
-    }
-
-    /**
-     * Generates all links where the provided instances are link target.
-     */
-    private def generateTargetLinks(instanceSource : DataSource) =
-    {
-        val instanceCache = new MemoryInstanceCache()
-        val writer = new MemoryWriter()
-        val matcher = new Matcher(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil))
-
-        val instances = instanceSource.retrieve(targetInstanceSpec, config.prefixes).toList
-        instanceCache.write(instances)
-        if(instanceCache.instanceCount > 0)
-        {
-            matcher.execute(sourceCache, instanceCache)
-        }
-
-        val matchedInstances = writer.links.map(_.targetUri).toSet
         val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
 
         if(writeUnmatchedInstances)

@@ -7,6 +7,7 @@ import de.fuberlin.wiwiss.silk.impl.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigLoader}
 import java.io.{FileNotFoundException, File}
 import de.fuberlin.wiwiss.silk.jena.{FileDataSource, RdfDataSource}
+import java.util.logging.{Level, Logger}
 
 object Server
 {
