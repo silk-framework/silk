@@ -3,8 +3,8 @@ package de.fuberlin.wiwiss.silk.util.sparql
 import xml.{XML, Elem}
 import java.util.logging.{Level, Logger}
 import java.net.{HttpURLConnection, URL, URLEncoder}
-import java.io.IOException
 import io.Source
+import java.io.{InputStreamReader, IOException}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -74,7 +74,7 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
             //Execute query
             if(logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri +"\n" + query)
 
-            val url = new URL(uri + "?format=application/rdf+xml&query=" + URLEncoder.encode(query, "UTF-8") + "&timeout=1000000")
+            val url = new URL(uri + "?format=application/sparql-results+xml&query=" + URLEncoder.encode(query, "UTF-8") + "&timeout=1000000")
 
             var result : Elem = null
             var retries = 0
@@ -111,6 +111,11 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                         Thread.sleep(retryPause)
                         //Double the retry pause up to a maximum of 1 hour
                         retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
+                    }
+                    case ex : Exception =>
+                    {
+                        logger.log(Level.SEVERE, "Could not execute query:\n" + query, ex)
+                        throw ex
                     }
                 }
             }
