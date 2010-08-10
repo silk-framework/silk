@@ -114,7 +114,7 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                     }
                     case ex : Exception =>
                     {
-                        logger.log(Level.SEVERE, "Could not execute query:\n" + query, ex)
+                        logger.log(Level.SEVERE, "Could not execute query on " + uri + ":\n" + query, ex)
                         throw ex
                     }
                 }
