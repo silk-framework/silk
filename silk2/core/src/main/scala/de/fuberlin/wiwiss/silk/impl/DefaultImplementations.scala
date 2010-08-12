@@ -41,6 +41,7 @@ object DefaultImplementations
         Metric.register("equality", classOf[EqualityMetric])
         Metric.register("num", classOf[NumMetric])
         Metric.register("date", classOf[DateMetric])
+        Metric.register("wgs84", classOf[GeographicDistanceMetric])
 
         Aggregator.register("average", classOf[AverageAggregator])
         Aggregator.register("max", classOf[MaximumAggregator])
