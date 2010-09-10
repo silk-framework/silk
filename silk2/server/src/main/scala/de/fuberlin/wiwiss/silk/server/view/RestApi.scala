@@ -26,15 +26,6 @@ object RestApi
         Full(PlainTextResponse(response, Nil, 200))
     }
 
-    private def addConfiguration(name : String, data : Array[Byte]) =
-    {
-        val config = ConfigLoader.load(new ByteArrayInputStream(data))
-
-        Server.addConfig(config, name)
-
-        Full(PlainTextResponse("Added configuration", Nil, 200))
-    }
-
     private def getLoad(req : Req) : Array[Byte] =
     {
         if(!req.uploadedFiles.isEmpty)

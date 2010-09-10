@@ -14,7 +14,7 @@ class Boot
 {
     def boot
     {
-        Server.init()
+        Server.start()
 
         LiftRules.addToPackages("de.fuberlin.wiwiss.silk.server.view")
         LiftRules.dispatch.prepend(RestApi.dispatch)
