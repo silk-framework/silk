@@ -58,6 +58,7 @@
         <artifactId>maven-jetty-plugin</artifactId>
         <version>6.1.22</version>
         <configuration>
+          <systemPropertiesFile>./server.properties</systemPropertiesFile>
           <contextPath>/</contextPath>
           <scanIntervalSeconds>5</scanIntervalSeconds>
           <connectors>
