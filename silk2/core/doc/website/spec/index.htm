@@ -633,31 +633,31 @@ The Silk framework currently supports the following similarity metrics, which re
       <TH>Description</TH>
     </TR>
     <TR>
-      <TD>jaro(string input1, string input2)</TD>
+      <TD>jaro</TD>
       <TD>String similarity based on the Jaro distance metric.</TD>
     </TR>
     <TR>
-      <TD>jaroWinkler(string input1, string input2)</TD>
+      <TD>jaroWinkler</TD>
       <TD>String similarity based on the Jaro-Winkler metric.</TD>
     </TR>
     <TR>
-      <TD>levenshtein(string input1, string input2)</TD>
+      <TD>levenshtein</TD>
       <TD>String similarity based on the Levenshtein metric.</TD>
     </TR>
     <TR>
-      <TD>qGrams(string input1, string input2, int q)</TD>
+      <TD>qGrams(int q)</TD>
       <TD>String similarity based on q-grams (by default q=2).</TD>
     </TR>
     <TR>
-      <TD>equality(string input1, string input2)</TD>
+      <TD>equality</TD>
       <TD>Return 1 if strings are equal, 0 otherwise.</TD>
     </TR>
     <TR>
-      <TD>num(string input1, string input2)</TD>
-      <TD>Computes the numeric similarity of two numbers: min((input1/input2), (input2/input1)).</TD>
+      <TD>num(float threshold)</TD>
+      <TD>Computes the numeric distance between two numbers and normalizes it using the threshold. The similarity score is 0.0 if the distance is bigger than threshold.</TD>
     </TR>
     <TR>
-      <TD>date(string input1, string input2, int max_days)</TD>
+      <TD>date(int max_days)</TD>
       <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "max_days", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
     </TR>
   </TBODY>
