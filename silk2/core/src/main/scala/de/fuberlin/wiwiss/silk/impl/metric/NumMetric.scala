@@ -6,11 +6,13 @@ import scala.math._
 
 class NumMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
+    private val threshold = readRequiredDoubleParam("threshold")
+
     override def evaluate(str1 : String, str2 : String) =
     {
         (str1, str2) match
         {
-            case (DoubleLiteral(num1), DoubleLiteral(num2)) => min((num1/num2), (num2/num1))
+            case (DoubleLiteral(num1), DoubleLiteral(num2)) => max((threshold - abs(num1 - num2)) / threshold, 0.0)
             case _ => 0.0
         }
     }
