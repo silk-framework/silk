@@ -11,7 +11,7 @@ object RestApi
 {
     def dispatch : LiftRules.DispatchPF =
     {
-        case req @ Req(List("api", "generateLinks"), "", PostRequest) => () => generateLinks(req)
+        case req @ Req(List("api", "process"), "", PostRequest) => () => generateLinks(req)
         case Req(List(_), "", _) => () => Empty
     }
 
