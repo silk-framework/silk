@@ -24,6 +24,7 @@
 
 <H2 id=news>News</H2>
 <UL>
+  <LI><STRONG>2010-09-15:</STRONG> Version 2.1 released. The main addition is the Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</LI>
   <LI><STRONG>2010-07-02:</STRONG> Version 2.0 released. Reimplementation of the Silk framework in Scala providing improved scalability, optional blocking features and support of the OAEI Alignment format as additional output format. </LI>
   <LI><STRONG>2009-10-27:</STRONG> Presentation about Silk at ISWC 2009: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a> (<a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk-Talk.pdf">Slides</a>).  
   <LI><STRONG>2009-03-02:</STRONG> Version 0.2 released. Adding prematching of data items.</LI>
@@ -76,9 +77,11 @@ using an RDF path language. Silk accesses the data sources that should be interl
   <li>Install the Silk framework as described in the <a href="spec/index.htm#usage">Installation and Usage</a> section of the manual.</li>
 </ol>
 
+<p>The Silk framework, also includes the Silk Server and identity resolution component, which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications. More details can be found in the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/">Silk Server User Manual.</a><p/>
 
 <H2><a name="manual"></a>User Manual</H2>
 <p>To learn how to use Silk, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Silk - User Manual.</a></p>
+<p>Documentation on the Silk Server can be found in the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/">Silk Server - User Manual.</a></p>
 
 <H2 id=history>Version History</H2>
 
@@ -88,6 +91,14 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <th>Version</th>
         <th>Comment</th>
         <th>Release Date</th>
+      </tr>
+      <tr>
+        <td>2.1</td>
+        <td>Added Silk Server<br/>
+            Added a geographical distance metric by Konrad H&ouml;ffner<br/>
+            Bugfixes
+        </td>
+        <td>2010-09-15</td>
       </tr>
       <tr id="grey">
         <td>2.0</td>
@@ -116,12 +127,8 @@ using an RDF path language. Silk accesses the data sources that should be interl
     </p>
 
 <H2><a name="currentwork" />Current Work</H2>
-<p>
-For the next release in August 2010 we plan to enhance the Silk Link Discovery Framework with the following features:
-<ul>
-    <li>Parallelization based on Hadoop. This will enable Silk to be deployed on <a href="http://aws.amazon.com/de/ec2/">EC2</a></li>
-  <li>Generating links from a stream of incoming RDF data items. This will allow Silk to be used in conjunction with Linked Data crawlers like <a href="http://code.google.com/p/ldspider/">LDspider</a>. </li>
-</ul>
+<p>Parallelization based on Hadoop. This will enable Silk to be deployed on <a href="http://aws.amazon.com/de/ec2/">EC2</a></p>
+
 <H2><a name="examples"></a>Usage Examples</H2>
 <ul>
   <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/#DBpedia2LinkedMDBdirector">Discovering dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
@@ -150,5 +157,5 @@ src="http://sourceforge.net/sflogo.php?group_id=111002&type=5" alt="Sourceforge 
 </ul>
 </p>
 
-<DIV id=footer><SMALL>Last change: 2010-07-02</SMALL>
+<DIV id=footer><SMALL>Last change: 2010-09-15</SMALL>
 </DIV></DIV></BODY></HTML>

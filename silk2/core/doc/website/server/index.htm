@@ -1,13 +1,13 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <?xml version="1.0" encoding="utf-8"?><HTML lang=en
-xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server</TITLE>
+xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server - User Manual</TITLE>
 <META http-equiv=Content-Type content="text/html; charset=utf-8">
     <link rel="stylesheet" type="text/css" href="style.css" />
     
 </HEAD>
 <BODY>
 <DIV class=head>
-<H1 id=title>Silk Server</H1>
+<H1 id=title>Silk Server - User Manual</H1>
 <DL>
   <DT>This Version:
   <DD>
@@ -36,9 +36,14 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server</TIT
     <li>2.2 <a href="#linkSpec">Writing Link Specifications for the Server</a></li>
     </ul>
   </LI>
-  <LI>3. <A href="#usage">Usage</A>
-  <LI>4. <A href="#references">References</A></LI>
-  <LI>5. <A href="#change_log">Change Log</A></LI>
+  <li>3. <A href="#usage">Usage</A>
+    <ul>
+      <li>3.1 <A href="#running">Running the Server</A></li>
+      <li>3.2 <A href="#requesting">Making requests the Server</A></li>
+    </ul>
+  </li>  
+  <li>4. <A href="#references">References</A></li>
+  <li>5. <A href="#change_log">Change Log</A></li>
 </UL>
 <HR>
 
@@ -70,7 +75,7 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server</TIT
       </tr> 
       <tr> 
         <td>writeUnknownInstances</td> 
-        <td>Specifies whether unmatched instances should be added to the instance cache.</td> 
+        <td>Specifies whether unknown instances should be added to the instance cache.</td> 
       </tr> 
       <tr> 
         <td>returnUnknownInstances</td> 
@@ -120,6 +125,7 @@ In a typical use-case there is some initial dataset, which shall be loaded by th
 <p>As the Silk Server returns the generated links in the response, the output section of the Link Specification may be left empty.</p>
 
 <h1><A name="usage"></a>3. Usage</h1>
+<h2><A name="running"></a>3.1 Running the Server</h2>
 <p>In order to run the Silk Server, you need:</p>
 <UL>
   <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <a href="http://sourceforge.net/projects/silk2/">http://sourceforge.net/projects/silk2/</a>.</LI>
@@ -145,6 +151,12 @@ In a typical use-case there is some initial dataset, which shall be loaded by th
   </li>
 </ol>
 <strong>Note:</strong>In order to configure the underlying Jetty Server (e.g. the port on which requests are accepted), you need to edit the pom.xml of the server module. Refer to the <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Plugin">official homepage</a> for details.
+
+<h2><A name="requesting"></a>3.2 Making requests the Server</h2>
+<p>The Server accepts HTTP Post requests on the URL <tt>http://{ip:port}/api/process?format={format}</tt>. The input data must be included in the body of the request. 
+By default, the Server expects the input data to be serialized as RDF/XML. Other input formats can be specified using the <tt>format</tt> parameter. Supported input formats are: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL" and "N3"</p>
+<p>The Server response contains the generated links as N-Triples. If the <tt>returnUnknownInstances</tt> configuration parameter is set, it will additionally contain a statement of the form <tt>unknownInstance &lt;http://www4.wiwiss.fu-berlin.de/bizer/silk/matchingResult&gt; &lt;http://www4.wiwiss.fu-berlin.de/bizer/silk/UnknownInstance&gt;</tt> for each unknown instance in the request.</p>
+<p>If the <tt>writeUnknownInstances</tt> configuration parameter is set, each unknown instances will be added to the instance cache. In that case, it will be included in the link generation in future requests.</p>
 
 <hr>
 <H2><a name="references" />4. References</H2>
