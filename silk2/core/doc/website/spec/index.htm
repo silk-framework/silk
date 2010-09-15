@@ -660,6 +660,15 @@ The Silk framework currently supports the following similarity metrics, which re
       <TD>date(int max_days)</TD>
       <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "max_days", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
     </TR>
+    <TR>
+      <TD>wgs84(string unit, float threshold, string curveStyle, boolean longitudeFirst)</TD>
+      <TD>Computes the geographical distance between two points<br/>
+          <strong><tt>unit</tt></strong> The unit in which the distance is measured. Allowed values: "meter" or "m" (default) , "kilometer" or "km"<br/>
+          <strong><tt>threshold</tt></strong> Will result in a 0 for all bigger values than t, values below are varying with the curveStyle<br/>
+          <strong><tt>curveStyle</tt></strong> "discreet" (default) "linear" gives a linear transition, "logistic" uses the logistic function f(x)=1/(1+e^(x) gives a more soft curve with a slow slope at the start and the end of the curve but a  steep one in the middle.<br/>
+          <strong><tt>longitudeFirst</tt></strong> "true" (default) or "false" specifies if the longitude or latitude is given first<br/>
+      </TD>
+    </TR>
   </TBODY>
 </TABLE>
 
