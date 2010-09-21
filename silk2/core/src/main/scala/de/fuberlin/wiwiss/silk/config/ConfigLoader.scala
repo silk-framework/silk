@@ -31,22 +31,29 @@ object ConfigLoader
 
     def load(inputStream : InputStream) : Configuration =
     {
-        val xml =
-            try
-            {
-                new ValidatingFactoryAdapter().loadXML(new InputSource(inputStream))
-            }
-            catch
-            {
-                case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
-            }
+        try
+        {
+            val xml =
+                try
+                {
+                    new ValidatingFactoryAdapter().loadXML(new InputSource(inputStream))
+                }
+                catch
+                {
+                    case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
+                }
 
-        val prefixes = loadPrefixes(xml)
-        val dataSources = loadDataSources(xml)
-        val linkSpecifications = loadLinkSpecifications(xml, prefixes, dataSources)
-        val outputs = loadOutputs(xml \ "Outputs" \ "Output")
+            val prefixes = loadPrefixes(xml)
+            val dataSources = loadDataSources(xml)
+            val linkSpecifications = loadLinkSpecifications(xml, prefixes, dataSources)
+            val outputs = loadOutputs(xml \ "Outputs" \ "Output")
 
-        new Configuration(prefixes, dataSources, linkSpecifications, outputs)
+            new Configuration(prefixes, dataSources, linkSpecifications, outputs)
+        }
+        finally
+        {
+            inputStream.close()
+        }
     }
 
     private def loadPrefixes(xml : Elem) : Map[String, String] =

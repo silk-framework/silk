@@ -1,9 +1,12 @@
-package de.fuberlin.wiwiss.silk.hadoop
+package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import java.io._
 import org.apache.hadoop.io.Writable
 
+/**
+ * Represents a pair of source and target instance.
+ */
 class InstancePair(var sourceInstance : Instance, var targetInstance : Instance) extends Writable
 {
     def this() = this(null, null)

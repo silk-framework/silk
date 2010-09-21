@@ -1,13 +1,15 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import java.io._
-import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceCache}
+import org.apache.hadoop.fs.{Path, FileSystem}
 
 /**
- * An instance cache, which caches the instance on the local file system.
+ * An instance cache, which uses the Hadoop FileSystem API.
+ * This can be used to cache the instances on the Hadoop Distributed FileSystem.
  */
-class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
+class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
     require(blockCount >= 0, "blockCount must be greater than 0 (blockCount=" + blockCount + ")")
     require(maxPartitionSize >= 0, "maxPartitionSize must be greater than 0 (maxPartitionSize=" + maxPartitionSize + ")")
@@ -18,7 +20,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
     def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
     {
-        dir.deleteRecursive()
+        fs.delete(path, true)
 
         val blockWriters = (for(i <- 0 until blockCount) yield new BlockWriter(i)).toArray
         var instanceCount = 0
@@ -28,7 +30,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
             for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
             {
                 if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
-    
+
                 blockWriters(block).write(instance)
             }
 
@@ -59,7 +61,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
     private class BlockReader(block : Int)
     {
-        private var blockDir = new File(dir + "/block" + block + "/")
+        private val blockPath = path.suffix("/block" + block + "/")
 
         var partitionCount = 0
 
@@ -69,9 +71,9 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
         {
             partitionCount =
             {
-                if(blockDir.exists)
+                if(fs.exists(blockPath))
                 {
-                    val partitionFiles = blockDir.list.map(name => name.dropWhile(!_.isDigit)).filter(!_.isEmpty)
+                    val partitionFiles = fs.listStatus(blockPath).map(_.getPath.getName.dropWhile(!_.isDigit)).filter(!_.isEmpty)
 
                     if(partitionFiles.isEmpty) 0
                     else partitionFiles.map(_.toInt).max + 1
@@ -85,7 +87,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
         def read(partition : Int) =
         {
-            val stream = new ObjectInputStream(new FileInputStream(blockDir + "/partition" + partition))
+            val stream = new ObjectInputStream(fs.open(blockPath.suffix("/partition" + partition)))
 
             try
             {
@@ -111,8 +113,8 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
         private var instances = new Array[Instance](maxPartitionSize)
         private var instanceCount = 0
 
-        private val blockDir = new File(dir + "/block" + block + "/")
-        blockDir.mkdirs()
+        private val blockPath = path.suffix("/block" + block + "/")
+        fs.mkdirs(blockPath)
 
         private var partitionCount = 0
 
@@ -139,7 +141,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
 
         private def writePartition()
         {
-            val stream = new ObjectOutputStream(new FileOutputStream(blockDir + "/partition" + partitionCount))
+            val stream = new ObjectOutputStream(fs.create(blockPath.suffix("/partition" + partitionCount)))
 
             try
             {
