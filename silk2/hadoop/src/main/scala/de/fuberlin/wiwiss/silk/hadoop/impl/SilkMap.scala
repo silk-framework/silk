@@ -1,7 +1,8 @@
-package de.fuberlin.wiwiss.silk.hadoop
+package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import org.apache.hadoop.mapreduce.Mapper
 import org.apache.hadoop.io.{NullWritable, Text}
+import de.fuberlin.wiwiss.silk.hadoop.Silk
 
 class SilkMap extends Mapper[NullWritable, InstancePair, Text, InstanceSimilarity]
 {

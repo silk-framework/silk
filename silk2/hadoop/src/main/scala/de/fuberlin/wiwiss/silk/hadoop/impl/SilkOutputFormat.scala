@@ -1,17 +1,18 @@
-package de.fuberlin.wiwiss.silk.hadoop
+package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import java.io.DataOutputStream
 import org.apache.hadoop.mapreduce.{TaskAttemptContext, RecordWriter}
 import org.apache.hadoop.io.{Text, NullWritable}
+import de.fuberlin.wiwiss.silk.hadoop.Silk
 
 class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
 {
     override def getRecordWriter(job : TaskAttemptContext) : RecordWriter[Text, InstanceSimilarity] =
     {
-        val conf = job.getConfiguration
+        val config = job.getConfiguration
         val file = getDefaultWorkFile(job, ".nt")
-        val fs = file.getFileSystem(conf)
+        val fs = file.getFileSystem(config)
         val out = fs.create(file, false)
 
         new LinkWriter(out)

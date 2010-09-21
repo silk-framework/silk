@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.hadoop
+package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import org.apache.hadoop.io.Writable
 import java.io.{DataInput, DataOutput}
