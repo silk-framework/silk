@@ -26,8 +26,8 @@ object Silk
     val linkSpec = config.linkSpecs.values.head
 
     val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-    val sourceCache = new HadoopInstanceCache(fs, instanceCachePath.suffix("source/"), numBlocks)
-    val targetCache = new HadoopInstanceCache(fs, instanceCachePath.suffix("target/"), numBlocks)
+    val sourceCache = new HadoopInstanceCache(fs, instanceCachePath.suffix("/source/"), numBlocks)
+    val targetCache = new HadoopInstanceCache(fs, instanceCachePath.suffix("/target/"), numBlocks)
 
     def main(args : Array[String])
     {
