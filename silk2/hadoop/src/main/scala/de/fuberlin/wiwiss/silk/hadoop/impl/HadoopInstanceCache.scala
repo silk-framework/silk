@@ -18,7 +18,7 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
 
     private val blocks = (for(i <- 0 until blockCount) yield new BlockReader(i)).toArray
 
-    def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
+    override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
     {
         fs.delete(path, true)
 
@@ -44,7 +44,7 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
         logger.info("Written " + instanceCount + " instances.")
     }
 
-    def read(block : Int, partition : Int) =
+    override def read(block : Int, partition : Int) =
     {
         require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
         require(partition >= 0 && partition < blocks(block).partitionCount, "0 <= partition < " + blocks(block).partitionCount + " (partition = " + partition + ")")
@@ -52,11 +52,34 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
         blocks(block).read(partition)
     }
 
-    def partitionCount(block : Int) =
+    override def partitionCount(block : Int) =
     {
         require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
 
         blocks(block).partitionCount
+    }
+
+    /**
+     * The size of a specific partition.
+     */
+    def partitionSize(block : Int, partition : Int) : Long =
+    {
+        require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
+        require(partition >= 0 && partition < blocks(block).partitionCount, "0 <= partition < " + blocks(block).partitionCount + " (partition = " + partition + ")")
+
+        fs.getFileStatus(path.suffix("/block" + block + "/partition" + partition)).getLen
+    }
+
+    /**
+     * The list of nodes by name where the partition would be local.
+     */
+    def hostLocations(block : Int, partition : Int) : Array[String] =
+    {
+        require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
+        require(partition >= 0 && partition < blocks(block).partitionCount, "0 <= partition < " + blocks(block).partitionCount + " (partition = " + partition + ")")
+
+        val file = fs.getFileStatus(path.suffix("/block" + block + "/partition" + partition))
+        fs.getFileBlockLocations(file, 0, file.getLen).flatMap(_.getHosts)
     }
 
     private class BlockReader(block : Int)
@@ -85,7 +108,7 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
             }
         }
 
-        def read(partition : Int) =
+        def read(partition : Int) : Array[Instance] =
         {
             val stream = new ObjectInputStream(fs.open(blockPath.suffix("/partition" + partition)))
 

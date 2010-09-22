@@ -3,16 +3,29 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import org.apache.hadoop.mapreduce.Reducer
 import scala.collection.JavaConversions._
 import org.apache.hadoop.io.Text
+import de.fuberlin.wiwiss.silk.hadoop.Silk
 
 class SilkReduce extends Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]
 {
     protected override def reduce(sourceUri : Text, instanceSimilarities : java.lang.Iterable[InstanceSimilarity],
                                   context : Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]#Context)
     {
-        //TODO consider link limit
-        for(instanceSimilarity <- instanceSimilarities)
+        Silk.linkSpec.filter.limit match
         {
-            context.write(sourceUri, instanceSimilarity)
+            case Some(limit) =>
+            {
+                for(instanceSimilarity <- instanceSimilarities.take(limit))
+                {
+                    context.write(sourceUri, instanceSimilarity)
+                }
+            }
+            case None =>
+            {
+                for(instanceSimilarity <- instanceSimilarities)
+                {
+                    context.write(sourceUri, instanceSimilarity)
+                }
+            }
         }
     }
 }
