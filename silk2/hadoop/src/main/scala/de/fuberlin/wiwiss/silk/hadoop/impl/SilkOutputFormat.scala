@@ -3,8 +3,8 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import java.io.DataOutputStream
 import org.apache.hadoop.mapreduce.{TaskAttemptContext, RecordWriter}
-import org.apache.hadoop.io.{Text, NullWritable}
-import de.fuberlin.wiwiss.silk.hadoop.Silk
+import org.apache.hadoop.io.Text
+import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 
 class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
 {
@@ -15,14 +15,14 @@ class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
         val fs = file.getFileSystem(config)
         val out = fs.create(file, false)
 
-        new LinkWriter(out)
+        new LinkWriter(out, SilkConfiguration.get(job.getConfiguration))
     }
 
-    private class LinkWriter(out : DataOutputStream) extends RecordWriter[Text, InstanceSimilarity]
+    private class LinkWriter(out : DataOutputStream, config : SilkConfiguration) extends RecordWriter[Text, InstanceSimilarity]
     {
         override def write(sourceUri : Text, instanceSimilarity : InstanceSimilarity) : Unit =
         {
-            val line = sourceUri + " " + Silk.linkSpec.linkType + " " + instanceSimilarity.targetUri + ".\n"
+            val line = sourceUri + " " + config.linkSpec.linkType + " " + instanceSimilarity.targetUri + ".\n"
             out.write(line.getBytes("UTF-8"))
         }
 

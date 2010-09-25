@@ -3,7 +3,6 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import org.apache.hadoop.mapreduce._
 import java.io.{DataInput, DataOutput}
 import org.apache.hadoop.io.Writable
-import de.fuberlin.wiwiss.silk.hadoop.Silk
 
 class SilkInputSplit(var blockIndex : Int, var sourcePartition : Int, var targetPartition : Int) extends InputSplit with Writable
 {
@@ -12,7 +11,7 @@ class SilkInputSplit(var blockIndex : Int, var sourcePartition : Int, var target
     /**
      * Get the size of the split, so that the input splits can be sorted by size.
      */
-    override def getLength() : Long = Silk.sourceCache.partitionSize(blockIndex, sourcePartition) + Silk.targetCache.partitionSize(blockIndex, targetPartition)
+    override def getLength() : Long = 0 //TODO config.sourceCache.partitionSize(blockIndex, sourcePartition) + config.targetCache.partitionSize(blockIndex, targetPartition)
 
     /**
      * Get the list of nodes where both partitions of this split would be local if any.
@@ -20,18 +19,21 @@ class SilkInputSplit(var blockIndex : Int, var sourcePartition : Int, var target
      */
     override def getLocations() : Array[String] =
     {
-        val sourceHosts = Silk.sourceCache.hostLocations(blockIndex, sourcePartition)
-        val targetHosts = Silk.targetCache.hostLocations(blockIndex, targetPartition)
+//        val sourceHosts = config.sourceCache.hostLocations(blockIndex, sourcePartition)
+//        val targetHosts = config.targetCache.hostLocations(blockIndex, targetPartition)
+//
+//        val union = sourceHosts union targetHosts
+//        if(!union.isEmpty)
+//        {
+//            union
+//        }
+//        else
+//        {
+//            sourceHosts ++ targetHosts
+//        }
 
-        val union = sourceHosts union targetHosts
-        if(!union.isEmpty)
-        {
-            union
-        }
-        else
-        {
-            sourceHosts ++ targetHosts
-        }
+        //TODO
+        return Array()
     }
 
     override def write(out : DataOutput) : Unit =

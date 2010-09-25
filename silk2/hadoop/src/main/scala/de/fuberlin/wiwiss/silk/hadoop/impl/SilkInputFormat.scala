@@ -3,17 +3,19 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import org.apache.hadoop.mapreduce._
 import de.fuberlin.wiwiss.silk.instance.Instance
 import org.apache.hadoop.io.NullWritable
-import de.fuberlin.wiwiss.silk.hadoop.Silk
+import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 
 class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
 {
     override def getSplits(jobContext : JobContext) : java.util.List[InputSplit] =
     {
+        val config = SilkConfiguration.get(jobContext.getConfiguration)
+
         val inputSplits = new java.util.ArrayList[InputSplit]()
 
-        for(blockIndex <- 0 until Silk.numBlocks;
-            is <- 0 until Silk.sourceCache.partitionCount(blockIndex);
-            it <- 0 until Silk.targetCache.partitionCount(blockIndex))
+        for(blockIndex <- 0 until config.sourceCache.blockCount;
+            is <- 0 until config.sourceCache.partitionCount(blockIndex);
+            it <- 0 until config.targetCache.partitionCount(blockIndex))
         {
             inputSplits.add(new SilkInputSplit(blockIndex, is, it))
         }
@@ -26,7 +28,7 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
         new SilkRecordReader()
     }
 
-    private class SilkRecordReader extends RecordReader[NullWritable, InstancePair]
+    private class SilkRecordReader() extends RecordReader[NullWritable, InstancePair]
     {
         private var sourceInstances : Array[Instance] = null
         private var targetInstances : Array[Instance] = null
@@ -38,10 +40,12 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
 
         override def initialize(inputSplit : InputSplit, context : TaskAttemptContext) : Unit =
         {
+            val config = SilkConfiguration.get(context.getConfiguration)
+
             val silkInputSplit = inputSplit.asInstanceOf[SilkInputSplit]
 
-            sourceInstances = Silk.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
-            targetInstances = Silk.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
+            sourceInstances = config.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
+            targetInstances = config.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
 
             context.setStatus("Comparing partition " + silkInputSplit.sourcePartition + " and " + silkInputSplit.targetPartition)
         }
