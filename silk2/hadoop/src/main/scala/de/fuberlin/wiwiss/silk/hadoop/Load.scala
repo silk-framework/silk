@@ -19,21 +19,32 @@ object Load
 
     def main(args : Array[String])
     {
-        DefaultImplementations.register()
-
-        //TODO check if arguments are provided
+        if(args.length < 2)
+        {
+            println("Usage: Load configFile ouputDir [linkSpec]")
+            System.exit(1)
+        }
         val configPath = new Path(args(0))
         val instanceCachePath = new Path(args(1))
 
+        DefaultImplementations.register()
+
         val config = loadConfig(configPath, instanceCachePath)
 
-        val linkSpec = config.linkSpecs.values.head
+        val linkspecs =
+            if(args.length >= 3)
+            {
+                config.linkSpecs(args(2)) :: Nil
+            }
+            else
+            {
+                config.linkSpecs.values
+            }
 
-        //for((name, linkSpec) <- config.linkSpecs)
-        //{
+        for(linkSpec <- linkspecs)
+        {
             write(config, linkSpec, instanceCachePath)
-        //}
-
+        }
     }
 
     private def loadConfig(filePath : Path, instanceCachePath : Path) : Configuration =
@@ -78,8 +89,8 @@ object Load
         val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 
         val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        val sourceCache = new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/source/"), numBlocks)
-        val targetCache = new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/target/"), numBlocks)
+        val sourceCache = new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
+        val targetCache = new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
 
         val loader = new Loader(config, linkSpec)
         loader.writeCaches(sourceCache, targetCache)

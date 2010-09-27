@@ -86,26 +86,34 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
     {
         private val blockPath = path.suffix("/block" + block + "/")
 
-        var partitionCount = 0
+        @volatile private var partitionCountCache = -1
 
-        reload()
+        def partitionCount =
+        {
+            if(partitionCountCache == -1)
+            {
+                partitionCountCache =
+                {
+                    if(fs.exists(blockPath))
+                    {
+                        val partitionFiles = fs.listStatus(blockPath).map(_.getPath.getName.dropWhile(!_.isDigit)).filter(!_.isEmpty)
+
+                        if(partitionFiles.isEmpty) 0
+                        else partitionFiles.map(_.toInt).max + 1
+                    }
+                    else
+                    {
+                        0
+                    }
+                }
+            }
+
+            partitionCountCache
+        }
 
         def reload()
         {
-            partitionCount =
-            {
-                if(fs.exists(blockPath))
-                {
-                    val partitionFiles = fs.listStatus(blockPath).map(_.getPath.getName.dropWhile(!_.isDigit)).filter(!_.isEmpty)
-
-                    if(partitionFiles.isEmpty) 0
-                    else partitionFiles.map(_.toInt).max + 1
-                }
-                else
-                {
-                    0
-                }
-            }
+            partitionCountCache = -1
         }
 
         def read(partition : Int) : Array[Instance] =

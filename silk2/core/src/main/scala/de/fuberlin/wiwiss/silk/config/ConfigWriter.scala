@@ -19,7 +19,7 @@ object ConfigWriter
             { config.dataSources.map{case (id, ds) => serializeDatasource(id, ds) } }
           </DataSources>
           <Interlinks>
-            { config.linkSpecs.map{case (id, ds) => serializeLinkSpec(id, ds) } }
+            { config.linkSpecs.mapValues(serializeLinkSpec) }
           </Interlinks>
         </Silk>
     }
@@ -34,9 +34,9 @@ object ConfigWriter
         }
     }
 
-    def serializeLinkSpec(id : String, linkSpec : LinkSpecification) =
+    def serializeLinkSpec(linkSpec : LinkSpecification) =
     {
-        <Interlink id={id}>
+        <Interlink id={linkSpec.id}>
           <LinkType>{linkSpec.linkType}</LinkType>
 
           <SourceDataset dataSource="source" var={linkSpec.sourceDatasetSpecification.variable}>

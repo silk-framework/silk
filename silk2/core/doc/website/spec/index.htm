@@ -238,6 +238,10 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
       <td>The URI of the SPARQL endpoint.</td>
   </tr>
   <tr>
+      <td style="white-space:nowrap;"><tt>instanceList</tt></li></td>
+      <td>A list of instances to be retrieved. If not given, all instances will be retrieved. Multiple instances can be separated by a space.</td>
+  </tr>
+  <tr>
       <td><tt>pageSize</tt></td>
       <td>The optional <tt>pageSize</tt> parameter limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses.</td>
   </tr>

@@ -80,6 +80,7 @@ object ConfigLoader
     private def loadLinkSpecification(node : Node, prefixes : Map[String, String], dataSources : Map[String, DataSource]) : LinkSpecification =
     {
         new LinkSpecification(
+            node \ "@id" text,
             resolveQualifiedName(node \ "LinkType" text, prefixes),
             loadDatasetSpecification(node \ "SourceDataset", dataSources),
             loadDatasetSpecification(node \ "TargetDataset", dataSources),
