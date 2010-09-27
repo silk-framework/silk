@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk
 import config.{Configuration, ConfigLoader}
 import datasource.DataSource
 import impl.DefaultImplementations
-import instance.{Instance, FileInstanceCache, InstanceCache, InstanceSpecification}
+import instance.{FileInstanceCache, InstanceCache, InstanceSpecification}
 import linkspec.LinkSpecification
 import output.Link
 import java.util.concurrent.{TimeUnit, Executors}
@@ -37,6 +37,7 @@ object Silk
      *  - 'configFile' (required): The configuration file
      *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
      *  - 'threads' (optional): The number of threads to be be used for matching.
+     *  - 'reload' (optional): Specifies if the instance cache is to be reloaded before executing the matching. Default: true
      */
     def execute()
     {
@@ -55,7 +56,14 @@ object Silk
             case _ => DefaultThreads
         }
 
-        executeFile(configFile, linkSpec, numThreads)
+        val reload = System.getProperty("reload") match
+        {
+            case BooleanLiteral(b) => b
+            case str : String => throw new IllegalArgumentException("Property 'reload' must be an boolean")
+            case _ => true
+        }
+
+        executeFile(configFile, linkSpec, numThreads, reload)
     }
 
     /**
@@ -64,10 +72,11 @@ object Silk
      * @param configFile The configuration file.
      * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
      * @param numThreads The number of threads to be used for matching.
+     * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
      */
-    def executeFile(configFile : File, linkSpecID : String = null, numThreads : Int = DefaultThreads)
+    def executeFile(configFile : File, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
     {
-        executeConfig(ConfigLoader.load(configFile), linkSpecID, numThreads)
+        executeConfig(ConfigLoader.load(configFile), linkSpecID, numThreads, reload)
     }
 
     /**
@@ -76,8 +85,9 @@ object Silk
      * @param configFile The configuration.
      * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
      * @param numThreads The number of threads to be used for matching.
+     * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
      */
-    def executeConfig(config : Configuration, linkSpecID : String = null, numThreads : Int = DefaultThreads)
+    def executeConfig(config : Configuration, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
     {
         if(linkSpecID != null)
         {
@@ -87,18 +97,18 @@ object Silk
                  case None => throw new IllegalArgumentException("Unknown link specification: " + linkSpecID)
              }
 
-             executeLinkSpec(config, linkSpec, numThreads)
+             executeLinkSpec(config, linkSpec, numThreads, reload)
         }
         else
         {
             for(linkSpec <- config.linkSpecs.values)
             {
-                executeLinkSpec(config, linkSpec, numThreads)
+                executeLinkSpec(config, linkSpec, numThreads, reload)
             }
         }
     }
 
-    private def executeLinkSpec(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = DefaultThreads)
+    private def executeLinkSpec(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = DefaultThreads, reload : Boolean = true)
     {
         val startTime = System.currentTimeMillis()
         logger.info("Silk started")
@@ -109,8 +119,11 @@ object Silk
         val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/"), numBlocks)
 
         //Load instances
-        val loader = new Loader(config, linkSpec)
-        loader.writeCaches(sourceCache, targetCache)
+        if(reload)
+        {
+            val loader = new Loader(config, linkSpec)
+            loader.writeCaches(sourceCache, targetCache)
+        }
 
         //Execute matching
         val matcher = new Matcher(config, linkSpec, numThreads)

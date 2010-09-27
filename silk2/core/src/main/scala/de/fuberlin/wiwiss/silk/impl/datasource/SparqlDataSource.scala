@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
  * - '''endpointURI''': The URI of the SPARQL endpoint
  * - '''graph (optional)''': Only retrieve instances from a specific graph
  * - '''pageSize (optional)''': The number of solutions to be retrieved per SPARQL query (default: 1000)
- * - '''instanceList (optional)''': The instances to be retrieved. If not given all instances will be retrieved
+ * - '''instanceList (optional)''': A list of instances to be retrieved. If not given, all instances will be retrieved. Multiple instances are separated by a space.
  * - '''pauseTime (optional)''': The number of milliseconds to wait between subsequent query 
  * - '''retryCount (optional)''': The number of retires if a query fails
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried

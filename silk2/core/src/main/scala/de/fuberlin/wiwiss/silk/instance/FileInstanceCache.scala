@@ -71,7 +71,7 @@ class FileInstanceCache(dir : File, val blockCount : Int = 1, maxPartitionSize :
             {
                 if(blockDir.exists)
                 {
-                    val partitionFiles = blockDir.list.map(name => name.dropWhile(!_.isDigit)).filter(!_.isEmpty)
+                    val partitionFiles = blockDir.list.filter(_.startsWith("partition")).map(name => name.dropWhile(!_.isDigit)).filter(!_.isEmpty)
 
                     if(partitionFiles.isEmpty) 0
                     else partitionFiles.map(_.toInt).max + 1

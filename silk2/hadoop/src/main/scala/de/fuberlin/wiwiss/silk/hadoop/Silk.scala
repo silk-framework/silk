@@ -4,55 +4,9 @@ import impl._
 import org.apache.hadoop.mapreduce._
 import lib.output.FileOutputFormat
 import org.apache.hadoop.io.Text
-import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import java.util.logging.Logger
-import org.apache.hadoop.fs.{FileSystem, Path}
-import de.fuberlin.wiwiss.silk.config.ConfigLoader
-
-object SilkConfiguration
-{
-    @volatile var config : SilkConfiguration = null
-
-    def get(hadoopConfig : org.apache.hadoop.conf.Configuration) =
-    {
-        //This method is not synchronized, because multiple instantiation of SilkConfiguration would not be a problem
-        if(config == null)
-        {
-            config = new SilkConfiguration(hadoopConfig)
-        }
-        config
-    }
-}
-
-class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configuration)
-{
-    def instanceCachePath = new Path(hadoopConfig.get("silk.instancecache.path"))
-
-    //TODO use default hadoop path instead?
-    def outputPath = new Path(hadoopConfig.get("silk.output.path"))
-
-    private lazy val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
-
-    lazy val config =
-    {
-        DefaultImplementations.register()
-        ConfigLoader.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
-    }
-
-    lazy val linkSpec = config.linkSpecs.values.head
-
-    lazy val sourceCache =
-    {
-        val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/source/"), numBlocks)
-    }
-
-    lazy val targetCache =
-    {
-        val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/target/"), numBlocks)
-    }
-}
+import org.apache.hadoop.fs.Path
+import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 
 object Silk
 {
@@ -60,14 +14,25 @@ object Silk
 
     def main(args : Array[String])
     {
+        DefaultImplementations.register()
+
         val startTime = System.currentTimeMillis()
         logger.info("Silk started")
 
         val job = new Job()
         job.setJarByClass(classOf[SilkInputFormat])
 
+        if(args.length < 2)
+        {
+            println("Usage: Load configFile ouputDir [linkSpec]")
+            System.exit(1)
+        }
         job.getConfiguration.set("silk.instancecache.path", args(0))
         job.getConfiguration.set("silk.output.path", args(1))
+        if(args.length >= 3)
+        {
+            job.getConfiguration.set("silk.linkspec", args(2))
+        }
 
         val config = SilkConfiguration.get(job.getConfiguration)
 
