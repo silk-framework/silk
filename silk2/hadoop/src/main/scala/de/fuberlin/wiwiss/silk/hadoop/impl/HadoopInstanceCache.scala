@@ -7,7 +7,7 @@ import org.apache.hadoop.fs.{Path, FileSystem}
 
 /**
  * An instance cache, which uses the Hadoop FileSystem API.
- * This can be used to cache the instances on the Hadoop Distributed FileSystem.
+ * This can be used to cache the instances on any file system which is supported by Hadoop e.g. the Hadoop Distributed FileSystem.
  */
 class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
@@ -96,7 +96,10 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
                 {
                     if(fs.exists(blockPath))
                     {
-                        val partitionFiles = fs.listStatus(blockPath).map(_.getPath.getName.dropWhile(!_.isDigit)).filter(!_.isEmpty)
+                        val partitionFiles = fs.listStatus(blockPath)
+                                               .filter(_.getPath.getName.startsWith("partition"))
+                                               .map(_.getPath.getName.dropWhile(!_.isDigit))
+                                               .filter(!_.isEmpty)
 
                         if(partitionFiles.isEmpty) 0
                         else partitionFiles.map(_.toInt).max + 1

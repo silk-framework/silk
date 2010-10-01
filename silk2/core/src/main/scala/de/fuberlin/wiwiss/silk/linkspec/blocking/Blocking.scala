@@ -13,10 +13,11 @@ class Blocking(val inputs : Traversable[PathInput], val blockingFunction : Block
     def apply(instance : Instance) =
     {
         //Find the input which provides the value for the given instance
-        val input = inputs.find(_.path.variable == instance.variable)
-                          .getOrElse(throw new IllegalArgumentException("No input found with variable " + instance.variable))
+        val instanceInputs = inputs.filter(_.path.variable == instance.variable)
 
-        val values = input.apply(Traversable(instance))
+        if(instanceInputs.isEmpty) throw new IllegalArgumentException("No input found with variable " + instance.variable)
+
+        val values = instanceInputs.flatMap(_(Traversable(instance)))
 
         values.map(blockingFunction).flatMap(getBlock).toSet
     }

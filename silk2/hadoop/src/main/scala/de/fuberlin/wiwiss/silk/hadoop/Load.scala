@@ -9,7 +9,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 
 /**
- *
+ * Populates the instance cache.
  */
 object Load
 {

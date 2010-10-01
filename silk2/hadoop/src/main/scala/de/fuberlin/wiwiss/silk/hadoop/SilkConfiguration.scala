@@ -7,6 +7,10 @@ import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 
 object SilkConfiguration
 {
+    val InputParam = "silk.inputpath"
+    val OutputParam = "silk.outputpath"
+    val LinkSpecParam = "silk.linkspec"
+
     @volatile var config : SilkConfiguration = null
 
     def get(hadoopConfig : org.apache.hadoop.conf.Configuration) =
@@ -22,10 +26,9 @@ object SilkConfiguration
 
 class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configuration)
 {
-    def instanceCachePath = new Path(hadoopConfig.get("silk.instancecache.path"))
+    def instanceCachePath = new Path(hadoopConfig.get(SilkConfiguration.InputParam))
 
-    //TODO use default hadoop path instead?
-    def outputPath = new Path(hadoopConfig.get("silk.output.path"))
+    def outputPath = new Path(hadoopConfig.get(SilkConfiguration.OutputParam))
 
     private lazy val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 
@@ -37,7 +40,7 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
 
     lazy val linkSpec =
     {
-        val linkSpecId = hadoopConfig.get("silk.linkSpec", config.linkSpecs.keys.head)
+        val linkSpecId = hadoopConfig.get(SilkConfiguration.LinkSpecParam, config.linkSpecs.keys.head)
         config.linkSpecs(linkSpecId)
     }
 
