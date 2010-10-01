@@ -115,8 +115,8 @@ object Silk
 
         //Create instance caches
         val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/"), numBlocks)
-        val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/"), numBlocks)
+        val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), numBlocks)
+        val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), numBlocks)
 
         //Load instances
         if(reload)
@@ -155,6 +155,7 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
         val startTime = System.currentTimeMillis()
         logger.info("Loading instances")
 
+        //TODO load in parallel
         writeSourceCache(sourceCache)
         writeTargetCache(targetCache)
 
@@ -312,3 +313,4 @@ class Matcher(config : Configuration, linkSpec : LinkSpecification, numThreads :
         }
     }
 }
+

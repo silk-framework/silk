@@ -74,7 +74,7 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
             //Execute query
             if(logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri +"\n" + query)
 
-            val url = new URL(uri + "?format=application/sparql-results+xml&query=" + URLEncoder.encode(query, "UTF-8") + "&timeout=1000000")
+            val url = new URL(uri + "?format=application/sparql-results+xml&query=" + URLEncoder.encode(query, "UTF-8"))// + "&timeout=10000000")
 
             var result : Elem = null
             var retries = 0
@@ -87,6 +87,21 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                 try
                 {
                     result = XML.load(httpConnection.getInputStream)
+
+                    //Virtuoso workaround for partial results (http://docs.openlinksw.com/virtuoso/anytimequeries.html)
+//                    if(httpConnection.getHeaderField("X-SQL-State") == "S1TAT")
+//                    {
+//                        //This is a partial result, retry...
+//                        result = null
+//
+//                        retries += 1
+//                        logger.warning("Partial result returned. Retrying... (" + retries + "/" + retryCount + ")")
+//                        if(retries > retryCount) throw new Exception("Virtuoso only returned partial results.")
+//
+//                        Thread.sleep(retryPause)
+//                        //Double the retry pause up to a maximum of 1 hour
+//                        retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
+//                    }
                 }
                 catch
                 {
@@ -101,17 +116,17 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                             if(errorStream != null)
                             {
                                 val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-                                logger.info("Query on " + uri + " failed. Error Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms.")
+                                logger.info("Query on " + uri + " failed. Error Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
                             }
                             else
                             {
-                                logger.info("Query on " + uri + " failed:\n" + query + "\nRetrying in " + retryPause + " ms.")
+                                logger.info("Query on " + uri + " failed:\n" + query + "\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
                             }
                         }
 
                         Thread.sleep(retryPause)
                         //Double the retry pause up to a maximum of 1 hour
-                        retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
+                        //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
                     }
                     case ex : Exception =>
                     {

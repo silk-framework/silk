@@ -15,13 +15,13 @@ object GeographicDistanceMetricTest
 		//		println(new GeographicDistanceMetric(Map.empty[String,String]).thresholdLogistic(50,40,20));
 		//		println(new GeographicDistanceMetric(Map.empty[String,String]).thresholdLogistic(50,60,20));
 
-		for(distance <- distances)
-		{
-			assert(new GeographicDistanceMetric(Map.empty[String,String]).evaluate(distance)==distance);
-			assert(aboutEquals(new GeographicDistanceMetric(Map("threshold"->"10","curveStyle"->"linear")).evaluate(distance),(10-distance)/10.0));
-			println(new GeographicDistanceMetric(Map("threshold"->"10","curveStyle"->"logistic")).evaluate(distance));
-
-		}		
+//		for(distance <- distances)
+//		{
+//			assert(new GeographicDistanceMetric(Map.empty[String,String]).evaluate(distance)==distance);
+//			assert(aboutEquals(new GeographicDistanceMetric(Map("threshold"->"10","curveStyle"->"linear")).evaluate(distance),(10-distance)/10.0));
+//			println(new GeographicDistanceMetric(Map("threshold"->"10","curveStyle"->"logistic")).evaluate(distance));
+//
+//		}
 
 		// distance between (0,0) and (180,0)
 		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(0 0)","POINT(180 0)"))
