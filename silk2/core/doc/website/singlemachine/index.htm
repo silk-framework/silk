@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<?xml version="1.0" encoding="utf-8"?><HTML lang=en
+xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Single Machine - User Manual</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    
+</HEAD>
+<BODY>
+<DIV class=head>
+<H1 id=title>Silk Single Machine - User Manual</H1>
+<DL>
+  <DT>This Version:
+  <DD>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/20101005/">http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/20101005/</a> </p>
+    <DT>Latest Version:
+  <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/">http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/</a><DT>
+  <DT>Authors:
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
+  <DT></DT></DL>
+<P>&nbsp;</P>
+<HR title="Separator for header">
+</DIV>
+<H2 id=toc>Table of Contents</H2>
+<UL class=toc>
+  <LI>1. <A href="#introduction">Introduction</A>
+  <LI>2. <A href="#usage">Installation and Usage</A>
+      <ul>
+      <li>2.1 <a href="#cmdline">Running Silk from the command line</a></li>
+      <li>2.2 <a href="#api">Using the Silk API</a></li>
+      </ul>
+  </LI>
+  <LI>3. <A href="#architecture">Architecture</A> </LI>
+  <LI>4. <A href="#references">References</A></LI>
+  <LI>5. <A href="#change_log">Change Log</A></LI>
+
+</UL>
+<HR>
+
+<H1><A name=introduction>1. Introduction</A></H1>
+<p>This document describes <em>Silk Single Machine</em> which can be used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk - Single Machine</em> provides multithreading and caching. In addition, the performance can be further enhanced using an optional blocking feature.</p>
+
+<p>Using the declarative <a href="../spec/"><em>Silk - Link Specification Language</em></a> (Silk-LSL), data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. These link conditions may combine various similarity metrics and can take the graph around data items into account, which is addressed using an RDF path language. Silk accesses the datasets that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints.</p>
+
+<p>The main features of the Silk Single Machine are:</p>
+<ul>
+  <li>Flexible, declarative language for specifying link conditions</li>
+  <li>Support of RDF link generation (owl:sameAs links as well as other types)</li>
+  <li>Employment in distributed environments (by accessing local and remote SPARQL endpoints)</li>
+  <li>Usable in situations where terms from different vocabularies are mixed and where no consistent RDFS or OWL schemata exist</li>
+  <li>Scalability and high performance through efficient data handling (Silk 2.0 is about 20 times faster than Silk 0.2):
+    <ul>
+        <li>Reduction of network load by caching and reusing of SPARQL result sets</li>
+        <li>Multi-threaded computation of the data item comparisons (180 million comparisons per hour on a Core2 Duo, 2GB RAM)</li>
+        <li>Optional blocking directive which allows users to reduce the number of comparisons on cost of recall, if necessary. </li>
+    </ul>
+  </li>
+</ul>
+
+<p>In order to run Silk Single Machine, developers need to:</p>
+<ol>
+  <li>Have SPARQL access to the datasets that should be interlinked.</li>
+  <li>Write a link specification. For details refer to the documentation of the <a href="../spec/"><em>Silk - Link Specification Language</em></a></li>
+  <li>Install the Silk framework as described in the <a href="#usage">Installation and Usage</a> section.</li>
+</ol>
+
+<HR title="Separator for header">
+
+<H1><A name="usage"></a>2. Installation and Usage</H1>
+<h2><a name="cmdline" />2.1 Running Silk from the Command Line </h2>
+<p>In order to use Silk Single Machine, you need:</P>
+<UL>
+  <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <a href="http://sourceforge.net/projects/silk2/">http://sourceforge.net/projects/silk2/</a>.</LI>
+    <LI><strong>Java Runtime Environment</strong> The Silk Link Discovery Framework runs on top of the JVM. Get the most recent JRE from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
+</UL>
+
+<P>What to do:</P>
+
+<OL>
+  <LI>
+    <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
+  </li>
+    <LI>
+    <P><STRONG>Run Silk Single Machine:</STRONG></P>
+    <PRE>java -DconfigFile=<EM>&lt;Silk-LSL file&gt;</EM> [-DlinkSpec=<em>&lt;Interlink ID&gt;</em>] [-Dthreads=<em>&lt;number of threads&gt;</em>] -jar silk.jar</PRE>
+    </li>
+    <LI>
+    <P><STRONG>Review Results:</STRONG> Open the output files designated in the Silk-LSL configuration and review the generated links. </P>
+  </LI>
+</OL>
+
+<h2><a name="api" />2.2 Using the Silk API</h2>
+<p>In order to use the Silk API, you need:</P>
+<UL>
+  <LI><STRONG>Silk Link Discovery Framework</STRONG>. Check out the most recent version from the <a href="http://sourceforge.net/scm/?type=svn&group_id=324745">Silk SVN repository</a>.</LI>
+  <LI><strong>Java Development Kit</strong> The Silk Link Discovery Framework runs on top of the JVM. Get the most recent JDK from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
+  <li><strong>Maven</strong> is used for project management and build automation. Get it from: <a href="http://maven.apache.org">http://maven.apache.org</a>.</LI>
+</UL>
+
+<P>What to do:</P>
+<OL>
+  <LI>
+    <P><STRONG>Write a Silk-LSL configuration file</STRONG> to specify which resources should be interlinked. </P>
+  </li>
+    <LI>
+    <P><STRONG>Call <tt>executeFile</tt></STRONG> on the <tt>Silk</tt> object.</P>
+    <PRE>Silk.executeFile(configFile, [linkSpecId], [numThreads])</PRE>
+    </li>
+    <LI>
+    <P><STRONG>Review Results:</STRONG> Open the output files designated in the Silk-LSL configuration and review the generated links. </P>
+  </LI>
+</OL>
+
+
+<HR title="Separator for header">
+<H1><A id=language name=architecture>3. Silk Architecture</A></H1>
+<img src="dataflow.png" alt="Silk Dataflow" />
+
+<p>The <b>DataSource</b> generates a stream of data items. </p>
+
+<p>The optional <b>Blocking</b> phase partitions the incoming data items in clusters.</p>
+
+<p>The <b>Link Generation</b> phase reads the incoming data items and computes a similarity value for each pair.<br/>
+The incoming data items, which might be allocated to a cluster by the preceding blocking phase, are written to an internal cache.
+From the cache, pairs of data items are generated. If blocking is disabled, this will generate the complete cartesian product of the two datasets.
+If blocking is enabled, only data items from the same cluster are compared.
+For each pair of data items, the link condition is evaluated, which computes a similarity value between 0.0 and 1.0.
+Each pair generates a preliminary link with a confidence according to the similarity of the source and target data item.</p>
+
+<p>The <b>Filtering</b> phase filters the incoming links in two stages:<br/>
+In the first stage, all links with a lower confidence than the user-defined threshold are removed.<br/>
+In the second stage, all links which originate from the same subject are grouped together.
+If a link limit is defined, only the links with the highest confidence are forwarded to the output.
+The number of links which are forwarded per source item, is specified by the link limit</p>
+
+<p>Finally, the <b>Output</b> phase is responsible for writing the generated and filtered links to a user-defined destination.
+</p>
+
+<hr>
+
+<H2><a name="references" />4. References</H2>
+<p>
+<ul>
+    <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
+    <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
+</ul>
+
+<HR>
+
+<H1><a name="change_log"/>5. Change Log</H1>
+<UL>
+  <LI>2010-10-04: Initial version of this document. </LI>
+</UL>
+<HR>
+
+
+</BODY></HTML>
