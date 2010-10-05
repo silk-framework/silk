@@ -25,32 +25,22 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk MapReduce -
 <HR title="Separator for header">
 </DIV>
 
-<H2 id=toc>Table of Contents</H2>
-<UL class=toc>
-  <LI>1. <A href="#introduction">Introduction</A>
-  <LI>2. <A href="#configuration">Configuration</A>
-    <ul>
-    <li>2.1 <a href="#configParams">Server configuration parameters</a></li>
-    <li>2.2 <a href="#linkSpec">Writing Link Specifications for the Server</a></li>
-    </ul>
-  </LI>
-  <li>3. <A href="#usage">Usage</A>
-    <ul>
-      <li>3.1 <A href="#running">Running the Server</A></li>
-      <li>3.2 <A href="#requesting">Making requests the Server</A></li>
-    </ul>
-  </li>  
-  <li>4. <A href="#references">References</A></li>
-  <li>5. <A href="#change_log">Change Log</A></li>
-</UL>
-<HR>
+<h2 id=toc>Table of Contents</h2>
+<ul class=toc>
+  <li>1. <a href="#introduction">Introduction</a></li>  
+  <li>2. <a href="#usage">Usage</a></li>  
+  <li>3. <a href="#usageexample">Usage example</a></li>  
+  <li>4. <a href="#references">References</a></li>
+  <li>5. <a href="#change_log">Change Log</a></li>
+</ul>
+<hr>
 
 <H1><A name=introduction>1. Introduction</A></H1>
 <p>Silk MapReduce is used to generate RDF links between data sets using a cluster of multiple machines. Silk MapReduce is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. Silk MapReduce enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</p>
 
 <HR title="Separator for header">
 
-<h1><A name="usage"></a>3. Usage</h1>
+<h1><A name="usage"></a>2. Usage</h1>
 <p>In order to run the Silk MapReduce, you need:</p>
 <UL>
   <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <a href="http://sourceforge.net/projects/silk2/">http://sourceforge.net/projects/silk2/</a>.</LI>
@@ -97,7 +87,7 @@ Example:
 <pre>hadoop jar silkmr.jar match ./cache ./links</pre>
 </p>
 <hr>
-<h1><A name="usage"></a>4. Usage example</h1>
+<h1><A name="usageexample"></a>3. Usage example</h1>
 <p>We employed Silk to find <tt>owl:sameAs</tt> links between cities in <a href="http://dbpedia.org">DBpedia</a> and in <a href="http://linkedgeodata.org">LinkedGeoData</a>. 
 The used link specification can be found <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/dbpedia_linkedgeodata_cities.xml">online</a>. As both datasets are very big, we used a reduced dataset consisting of 105000 settlements from DBpedia and 59000 cities and towns from LinkedGeoData (omitting villages).</p>
 <p>We executed the link specification using two different configurations:
@@ -149,7 +139,7 @@ For each configuration, we executed the link specifications two times:
 </table>
 <p>The table clearly shows how Silk MapReduce reduces the execution time significantly by scaling to clusters with multiple machines. The performance has been further improved by employing the blocking feature included into Silk while losing less than 1 % of the links compared to the link specification without blocking</p>
 <hr>
-<h1><a name="references" />5. References</h1>
+<h1><a name="references" />4. References</h1>
 <p>
 <ul>
     <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
@@ -160,7 +150,7 @@ For each configuration, we executed the link specifications two times:
 
 <HR>
 
-<H1><a name="change_log"/>6. Change Log</H1>
+<H1><a name="change_log"/>5. Change Log</H1>
 <ul>
   <li>2010-09-15: Initial version of this document. </li>
 </ul>
