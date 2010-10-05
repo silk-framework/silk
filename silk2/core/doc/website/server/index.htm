@@ -11,7 +11,7 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server - Us
 <DL>
   <DT>This Version:
   <DD>
-    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/20100915/">http://www4.wiwiss.fu-berlin.de/bizer/silk/server/20100915/</a> </p>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/20101006/">http://www4.wiwiss.fu-berlin.de/bizer/silk/server/20101006/</a> </p>
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/">http://www4.wiwiss.fu-berlin.de/bizer/silk/server/</a><DT>
   <DT>Authors:
@@ -40,8 +40,9 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server - Us
       <li>3.2 <A href="#requesting">Making requests the Server</A></li>
     </ul>
   </li>  
-  <li>4. <A href="#references">References</A></li>
-  <li>5. <A href="#change_log">Change Log</A></li>
+  <li>4. <A href="#usageexample">Usage example</A></li>  
+  <li>5. <A href="#references">References</A></li>
+  <li>6. <A href="#change_log">Change Log</A></li>
 </UL>
 <HR>
 
@@ -156,8 +157,141 @@ By default, the Server expects the input data to be serialized as RDF/XML. Other
 <p>The Server response contains the generated links as N-Triples. If the <tt>returnUnknownInstances</tt> configuration parameter is set, it will additionally contain a statement of the form <tt>unknownInstance &lt;http://www4.wiwiss.fu-berlin.de/bizer/silk/matchingResult&gt; &lt;http://www4.wiwiss.fu-berlin.de/bizer/silk/UnknownInstance&gt;</tt> for each unknown instance in the request.</p>
 <p>If the <tt>writeUnknownInstances</tt> configuration parameter is set, each unknown instances will be added to the instance cache. In that case, it will be included in the link generation in future requests.</p>
 
-<hr>
-<H2><a name="references" />4. References</H2>
+<hr/>
+<h1><A name="usageexample"></a>4. Usage example</h1>
+This section reports on the results of an experiment in which we used Silk Server to generate RDF links between authors and publications from a Semantic Web Dog Food Corpus dump and a stream of FOAF profiles that we crawled from the Web.
+Semantic Web Dog Food Corpus publishes information on people and publications from Semantic Web conferences.
+FOAF is a widely used vocabulary to describe persons, their connections, projects, publications and interests. 
+Twitter is a social networking and microblogging website which provides user information as RDFa.
+Given these different sources for information on persons, the experiment aims at linking duplicate person descriptions. 
+In the following, we explain the Silk-LSL specification used by Silk Server in the experiment; we then first describe the setup of the experiment and finally report on and discuss the results of the experiment.
+<h2>4.1 The Link Specification used</h2>
+<p>We have used the following link configuration for linking data items describing the same person:</p>
+<pre>
+01	&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+02	&lt;Silk&gt;
+03	  &lt;Prefixes&gt;
+04	    &lt;Prefix id=&quot;rdf&quot; namespace=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot;/&gt;
+05	    &lt;Prefix id=&quot;rdfs&quot; namespace=&quot;http://www.w3.org/2000/01/rdf-schema#&quot;/&gt;
+06	    &lt;Prefix id=&quot;owl&quot; namespace=&quot;http://www.w3.org/2002/07/owl#&quot;/&gt;
+07	    &lt;Prefix id=&quot;dcterms&quot; namespace=&quot;http://purl.org/dc/terms/&quot;/&gt;
+08	    &lt;Prefix id=&quot;foaf&quot; namespace=&quot;http://xmlns.com/foaf/0.1/&quot;/&gt;
+09	    &lt;Prefix id=&quot;vcard&quot; namespace=&quot;http://www.w3.org/2006/vcard/ns#&quot; /&gt;
+10	  &lt;/Prefixes&gt;
+11	  &lt;DataSources&gt;
+12	    &lt;DataSource id=&quot;sw_dog_food&quot; type=&quot;file&quot;&gt;
+13	      &lt;Param name=&quot;file&quot; value=&quot;semantic_web_dog_food.rdf&quot;/&gt;
+14	      &lt;Param name=&quot;format&quot; value=&quot;RDF/XML&quot;/&gt;
+15	    &lt;/DataSource&gt;
+16	    &lt;DataSource id=&quot;input_stream&quot; type=&quot;rdf&quot;&gt;
+17	      &lt;Param name=&quot;format&quot; value=&quot;N-TRIPLE&quot;/&gt;
+18	      &lt;Param name=&quot;input&quot; value=&quot;&quot;/&gt;
+19	    &lt;/DataSource&gt;
+20	  &lt;/DataSources&gt;
+21	  &lt;Interlinks&gt;
+22	    &lt;Interlink id=&quot;persons&quot;&gt;
+23	      &lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;
+24	      &lt;SourceDataset dataSource=&quot;input_stream&quot; var=&quot;a&quot;&gt;
+25	        &lt;RestrictTo&gt;
+26	          ?a rdf:type foaf:Person .
+27	        &lt;/RestrictTo&gt;
+28	      &lt;/SourceDataset&gt;
+29	      &lt;TargetDataset dataSource=&quot;sw_dog_food&quot; var=&quot;b&quot;&gt;
+30	        &lt;RestrictTo&gt;
+31	          ?b rdf:type foaf:Person .
+32	        &lt;/RestrictTo&gt;
+33	      &lt;/TargetDataset&gt;
+34	      &lt;LinkCondition&gt;
+35	        &lt;Aggregate type=&quot;average&quot;&gt;
+36	          &lt;Aggregate type=&quot;max&quot; required=&quot;true&quot;&gt;
+37	            &lt;Compare metric=&quot;jaroWinkler&quot;&gt;
+38	              &lt;TransformInput function=&quot;lowerCase&quot;&gt;
+39	                &lt;Input path=&quot;?a/foaf:name&quot;/&gt;
+40	              &lt;/TransformInput&gt;
+41	              &lt;TransformInput function=&quot;lowerCase&quot;&gt;
+42	                &lt;Input path=&quot;?b/foaf:name&quot;/&gt;
+43	              &lt;/TransformInput&gt;
+44	            &lt;/Compare&gt;
+45	          &lt;/Aggregate&gt;
+46	          &lt;Aggregate type=&quot;max&quot; weight=&quot;2&quot; required=&quot;true&quot;&gt;
+47	            &lt;Compare metric=&quot;jaroWinkler&quot;&gt;
+48	              &lt;TransformInput function=&quot;lowerCase&quot;&gt;
+49	                &lt;Input path=&quot;?a/foaf:homepage&quot;/&gt;
+50	              &lt;/TransformInput&gt;
+51	              &lt;TransformInput function=&quot;lowerCase&quot;&gt;
+52	                &lt;Input path=&quot;?b/foaf:homepage&quot;/&gt;
+53	              &lt;/TransformInput&gt;
+54	            &lt;/Compare&gt;
+55	            &lt;Compare metric=&quot;jaroWinkler&quot;&gt;
+56	              &lt;Input path=&quot;?a/foaf:mbox_sha1sum&quot;/&gt;
+57	              &lt;Input path=&quot;?b/foaf:mbox_sha1sum&quot;/&gt;
+58	            &lt;/Compare&gt;
+59	          &lt;/Aggregate&gt;
+60	        &lt;/Aggregate&gt;
+61	      &lt;/LinkCondition&gt;
+62	      &lt;Filter threshold=&quot;0.9&quot;/&gt;
+63	    &lt;/Interlink&gt;
+64	  &lt;/Interlinks&gt;
+65	&lt;/Silk&gt;
+</pre>
+<p>The complete link configuration for discovering RDF links between persons as well as publications is available <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/persons_and_publications.xml">online</a>.</p>
+
+<h3>Link Conditions</h3>
+<p>The link condition specifies how two data entities are compared for similarity. It consists of a number of comparison operators which are combined using aggregation functions.</p>
+<p>A comparison operator evaluates two inputs and computes their similarity based on a user-defined metric.
+Silk provides several similarity metrics including string, numeric, date, and URI similarity.
+String comparison methods cover the most common ones like Jaro, Jaro-Winkler and Levenshtein.</p>
+<p>Multiple comparisons can be aggregated using a specific aggregation method by using the <tt>&lt;Aggregate&gt;</tt> directive.</p> 
+<p>In the given experiment's link condition we compute similarity values for the FOAF names, homepages, and mailbox hash sums (lines 34 to 61).
+The overall similarity value of two data entities is derived by the weighted average of the similarity values of all comparisons.
+To identify a person uniquely, either a homepage or a mailbox hash sum is required.
+Thus, two persons are considered equal if both names and either the homepage or the mailbox hash sum match.</p> 
+<p>Some comparison operators might be more relevant for the correct establishment of a link between two resources than others and can therefore be weighted higher.
+If no weight is supplied, a default weight of 1 will be assumed.
+As a person may be known under different names, matching homepages or mailbox hash sums are more important and therefore weighted higher (line 46).</p>
+
+<h3>Filtering</h3>
+<p>The generated links can be filtered by using the <tt>&lt;Filter&gt;</tt> directive.
+A threshold for the minimum similarity of two data items required to generate a link between them can be defined (line 62).
+The number of links originating from a single data item can be limited.
+Only the highest-rated links per source data item will remain after the filtering.</p> 
+
+<h2>4.2 Setup of the Experiment</h2>
+
+<p>For the experiment, we loaded the Semantic Web Dog Food Corpus into the Silk Server. 
+The Semantic Web Dog Food Corpus contains profiles for 3.739 persons from which 2.580 provide either a homepage or a mailbox hash which is required to uniquely identify them. 
+We have set up a Linked Data crawler which takes a number of FOAF profile URIs as seeds and follows linked profiles. 
+The crawled documents are forwarded to Silk Server which generates <tt>owl:sameAs</tt> links to known persons from the Semantic Web Dog Food Corpus. 
+All generated links have been written to an ouput file</p>
+<p>The crawler was also used to traverse the RDFa of Twitter accounts for which the server identified the corresponding persons in the Semantic Web Dog Food Corpus if any.</p>  
+<p>In order to show the flexibility of Silk Server, the link configuration was further enhanced to also match publications. 
+For this purpose the crawler was employed to also follow publication links in addition to FOAF profiles.</p> 
+
+<h2>4.3 Results of the Experiment</h2>
+
+<h3>Generated links to FOAF profiles</h3>
+<p>At first, we evaluated how exhaustive the found links are. 
+For this purpose, we exploited the fact that for 56 persons the Semantic Web Dog Food Corpus already sets links to their FOAF profile. 
+For 51 of these persons, Silk Server was able to reconstruct links from the stream. 
+For some persons even multiple duplicated profiles could be identified. For example e.g. in addition to Tom Heath's (<tt>http://data.semanticweb.org/person/tom-heath</tt>) official FOAF profile <tt>http://tomheath.com/id/me</tt>, Silk Server also identified him on <tt>http://www.eswc2006.org/people/#tom-heath</tt>.
+Because in some cases, Silk Server found a link to another profile than the one given in the data set, we checked all links manually for correctness. 
+Thereby, all generated links have been found to be correct.</p>
+
+Next, we evaluated for how many persons in the Semantic Web Dog Food Corpus, the server was able to generate links to a FOAF profile. 
+In total, Silk Server was able to find profiles for 228 persons in the data set. 
+Thus, Silk Server was able to discover links to the FOAF profile of additional 177 persons for which the Semantic Web Dog Food Corpus did not contain a link yet. 
+
+<h3>Generated links to Twitter accounts</h3>
+<p>For 89 persons in the Semantic Web Dog Food Corpus, Silk Server was able to find a corresponding Twitter account. 
+Silk Server was able to detect more than one account for persons holding multiple accounts. 
+For example, it found that Ralph Hodgson (<tt>http://data.semanticweb.org/person/ralph-hodgson</tt>) not only uses the account <tt>http://twitter.com/ralphtq</tt> but also the account <tt>http://twitter.com/oegovnews</tt>.</p>
+
+<h3>Generated links to publications</h3>
+<p>For 37 publications in the Semantic Web Dog Food Corpus Silk Server was able to find the corresponding publication in the Web of Data. 
+The number of links is lower than the number of found FOAF profiles because many persons do not link their publications in their profile.. 
+One exception is the Digital Enterprise Research Institute (DERI), which publishes the meta data about all publications as RDF (<tt>http://www.deri.ie/publications/</tt>).</p> 
+<hr/>
+<H2><a name="references" />5. References</H2>
 <p>
 <ul>
     <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
@@ -168,9 +302,10 @@ By default, the Server expects the input data to be serialized as RDF/XML. Other
 
 <HR>
 
-<H1><a name="change_log"/>5. Change Log</H1>
+<H1><a name="change_log"/>6. Change Log</H1>
 <ul>
-  <li>2010-09-15: Initial version of this document. </li>
+  <li>2010-10-06: Added usage example.</li>
+  <li>2010-09-15: Initial version of this document.</li>
 </ul>
 <HR>
 
