@@ -11,39 +11,25 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 /**
  * Populates the instance cache.
  */
-object Load
+class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Option[String], hadoopConfig : org.apache.hadoop.conf.Configuration)
 {
-    private val logger = Logger.getLogger(Load.getClass.getName)
+    private val logger = Logger.getLogger(getClass.getName)
 
-    private val hadoopConfig = new org.apache.hadoop.conf.Configuration()
-
-    def main(args : Array[String])
+    def apply()
     {
-        if(args.length < 2)
-        {
-            println("Usage: Load configFile ouputDir [linkSpec]")
-            System.exit(1)
-        }
-        val configPath = new Path(args(0))
-        val instanceCachePath = new Path(args(1))
-
         DefaultImplementations.register()
 
-        val config = loadConfig(configPath, instanceCachePath)
+        val config = loadConfig(new Path(silkConfigPath), new Path(instanceCachePath))
 
-        val linkspecs =
-            if(args.length >= 3)
-            {
-                config.linkSpecs(args(2)) :: Nil
-            }
-            else
-            {
-                config.linkSpecs.values
-            }
-
-        for(linkSpec <- linkspecs)
+        val linkSpecs = linkSpec match
         {
-            write(config, linkSpec, instanceCachePath)
+            case Some(spec) => config.linkSpecs(spec) :: Nil
+            case None => config.linkSpecs.values
+        }
+
+        for(linkSpec <- linkSpecs)
+        {
+            write(config, linkSpec, new Path(instanceCachePath))
         }
     }
 
