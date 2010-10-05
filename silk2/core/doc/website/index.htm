@@ -24,7 +24,8 @@
 
 <H2 id=news>News</H2>
 <UL>
-  <LI><STRONG>2010-09-15:</STRONG> Version 2.1 released. The main addition is the Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</LI>
+  <LI><STRONG>2010-10-04:</STRONG> Version 2.2 released. This release includes Silk MapReduce which is based on Hadoop and enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</LI>
+  <LI><STRONG>2010-09-15:</STRONG> Version 2.1 released. The main addition is Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</LI>
   <LI><STRONG>2010-07-02:</STRONG> Version 2.0 released. Reimplementation of the Silk framework in Scala providing improved scalability, optional blocking features and support of the OAEI Alignment format as additional output format. </LI>
   <LI><STRONG>2009-10-27:</STRONG> Presentation about Silk at ISWC 2009: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a> (<a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk-Talk.pdf">Slides</a>).  
   <LI><STRONG>2009-03-02:</STRONG> Version 0.2 released. Adding prematching of data items.</LI>
@@ -35,7 +36,6 @@
   <LI><A href="#about">About Silk</A></LI>
     <LI><A href="#manual">User Manual</A></LI>
   <LI><A href="#history">Version History</A></LI>
-  <LI><A href="#currentwork">Current Work</A></LI>
   <LI><A href="#examples">Usage Examples</A></LI>
   <LI><A href="#support">Support and Feedback</A></LI>
   <LI><A href="#download">Download</A></LI>
@@ -49,16 +49,22 @@ between data items within different data sources. Background information about t
 and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>. 
 </P>
 <p>The <em>Silk Link Discovery Framework</em> supports data publishers in accomplishing the
-second task. Using the declarative <em>Silk - Link Specification Language</em> (Silk-LSL), developers can specify which types of
-RDF links should be discovered between data sources as well as which conditions data items must
+second task. Using the declarative <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/"><em>Silk - Link Specification Language</em></a> (Silk-LSL), developers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must
 fulfill in order to be interlinked. These link conditions may combine various similarity
 metrics and can take the graph around a data item into account, which is addressed
 using an RDF path language. Silk accesses the data sources that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints. </p>
-<p>The main features of the Silk link discovery engine are:</p>
+
+<p>Silk is provided in three different variants which address different use cases:
 <ul>
-  <li>Open source link discovery framework, running on all major platforms</li>
-  <li>Support of RDF link generation (owl:sameAs links as well as other types)</li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk - Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk - Single Machine</em> provides multithreading and caching. In addition, the performance can be further enhanced using an optional blocking feature.</li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk - MapReduce</em></a> is used to generate RDF links between data sets using a cluster of multiple machines. <em>Silk - MapReduce</em> is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. <em>Silk - MapReduce</em> enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</li> 
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk - Server</em></a> can be used as an identity resolution component within applications that consume Linked Data from the Web. <em>Silk - Server</em> provides an HTTP API for matching instances from an incoming stream of RDF data while keeping track of known entities. It can be used for instance together with a Linked Data crawler to populate a local duplicate-free cache with data from the Web.</li>
+</ul></p>
+
+<p>All three variants are based on the Silk link discovery engine which offers the following features:</p>
+<ul>
   <li>Flexible, declarative language for specifying link conditions</li>
+  <li>Support of RDF link generation (owl:sameAs links as well as other types)</li>
   <li>Employment in distributed environments (by accessing local and remote SPARQL endpoints)</li>
   <li>Usable in situations where terms from different vocabularies are mixed and where no consistent RDFS or OWL schemata exist</li>
   <li>Scalability and high performance through efficient data handling (speedup factor of 20 compared to Silk 0.2):
@@ -70,18 +76,14 @@ using an RDF path language. Silk accesses the data sources that should be interl
   </li>
 </ul>
 
-<p>Silk is implemented in Scala running on the Java Virtual Machine. In order to run Silk, developers need to:</p>
-<ol>
-  <li>Have SPARQL access to the datasets that should be interlinked.</li>
-  <li>Write a link specification as described in the <a href="spec/">Silk - User Manual</a>. </li>
-  <li>Install the Silk framework as described in the <a href="spec/index.htm#usage">Installation and Usage</a> section of the manual.</li>
-</ol>
-
-<p>The Silk framework, also includes the Silk Server and identity resolution component, which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications. More details can be found in the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/">Silk Server User Manual.</a><p/>
-
 <H2><a name="manual"></a>User Manual</H2>
-<p>To learn how to use Silk, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Silk - User Manual.</a></p>
-<p>Documentation on the Silk Server can be found in the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/">Silk Server - User Manual.</a></p>
+<p>Documentation on a specific application included in the <em>Silk Link Discovery Framework</em> can be found in the corresponding user manual:
+<ul>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk - Single Machine</em></a></li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk - MapReduce</em></a></li> 
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk - Server</em></a></li>
+</ul>
+To learn how to use the <em>Silk - Link Specification Language</em>, which is used in all applications to specifiy the link conditions, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Specification</a></p>.
 
 <H2 id=history>Version History</H2>
 
@@ -91,6 +93,12 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <th>Version</th>
         <th>Comment</th>
         <th>Release Date</th>
+      </tr>
+      <tr id="grey">
+        <td>2.2</td>
+        <td>Added Silk MapReduce
+        </td>
+        <td>2010-10-04</td>
       </tr>
       <tr>
         <td>2.1</td>
@@ -126,9 +134,6 @@ using an RDF path language. Silk accesses the data sources that should be interl
     </table>
     </p>
 
-<H2><a name="currentwork" />Current Work</H2>
-<p>Parallelization based on Hadoop. This will enable Silk to be deployed on <a href="http://aws.amazon.com/de/ec2/">EC2</a></p>
-
 <H2><a name="examples"></a>Usage Examples</H2>
 <ul>
   <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/#DBpedia2LinkedMDBdirector">Discovering dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
@@ -158,5 +163,5 @@ src="http://sourceforge.net/sflogo.php?group_id=111002&type=5" alt="Sourceforge 
 </ul>
 </p>
 
-<DIV id=footer><SMALL>Last change: 2010-09-15</SMALL>
+<DIV id=footer><SMALL>Last change: 2010-10-04</SMALL>
 </DIV></DIV></BODY></HTML>
