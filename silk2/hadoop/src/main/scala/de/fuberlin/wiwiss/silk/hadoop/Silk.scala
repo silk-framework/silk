@@ -1,13 +1,10 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
-import java.util.logging.Logger
 import org.apache.hadoop.conf.Configured
 import org.apache.hadoop.util.{ToolRunner, Tool}
 
 object Silk
 {
-    private val logger = Logger.getLogger(Silk.getClass.getName)
-
     def main(args : Array[String])
     {
         val res = ToolRunner.run(new Silk(), args)

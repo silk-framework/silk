@@ -29,7 +29,7 @@ object Block
 
         val config = loadConfig(configPath, outputPath)
 
-        for(linkSpec <- config.linkSpecs.values)
+        for(linkSpec <- config.linkSpecs)
         {
             block(linkSpec, inputPath, outputPath)
         }

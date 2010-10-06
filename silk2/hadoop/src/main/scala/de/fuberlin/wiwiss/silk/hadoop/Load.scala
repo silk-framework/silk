@@ -23,8 +23,8 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
 
         val linkSpecs = linkSpec match
         {
-            case Some(spec) => config.linkSpecs(spec) :: Nil
-            case None => config.linkSpecs.values
+            case Some(spec) => config.linkSpec(spec).get :: Nil
+            case None => config.linkSpecs
         }
 
         for(linkSpec <- linkSpecs)
