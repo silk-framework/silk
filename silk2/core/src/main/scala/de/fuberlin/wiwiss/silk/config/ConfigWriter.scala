@@ -2,9 +2,9 @@ package de.fuberlin.wiwiss.silk.config
 
 import xml.Elem
 import de.fuberlin.wiwiss.silk.linkspec._
-import de.fuberlin.wiwiss.silk.datasource.DataSource
 import input.{Transformer, Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
+import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
 //TODO move methods to the respective classes (e.g. configuration.toXML)
 object ConfigWriter
@@ -16,19 +16,19 @@ object ConfigWriter
             { config.prefixes.map{case (id, ns) => <Prefix id={id} namespace={ns} /> } }
           </Prefixes>
           <DataSources>
-            { config.dataSources.map{case (id, ds) => serializeDatasource(id, ds) } }
+            { config.sources.map(serializeSource) }
           </DataSources>
           <Interlinks>
-            { config.linkSpecs.mapValues(serializeLinkSpec) }
+            { config.linkSpecs.map(serializeLinkSpec) }
           </Interlinks>
         </Silk>
     }
 
-    def serializeDatasource(id : String, dataSource : DataSource) = dataSource match
+    def serializeSource(source : Source) = source.dataSource match
     {
         case DataSource(dataSourceType, params) =>
         {
-            <DataSource id={id} type={dataSourceType}>
+            <DataSource id={source.id} type={dataSourceType}>
               { params.map{case (name, value) => <Param name={name} value={value} />} }
             </DataSource>
         }

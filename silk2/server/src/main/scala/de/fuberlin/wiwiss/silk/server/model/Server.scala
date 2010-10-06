@@ -73,7 +73,7 @@ private class Server
         //Iterate through all configuration files and create a dataset for each link spec
         for( file <- serverConfig.configDir.listFiles if file.getName.endsWith("xml");
              config = ConfigLoader.load(file);
-             (id, linkSpec) <- config.linkSpecs ) yield
+             linkSpec <- config.linkSpecs) yield
         {
             new Dataset(name = file.getName.takeWhile(_ != '.'),
                         config = config,

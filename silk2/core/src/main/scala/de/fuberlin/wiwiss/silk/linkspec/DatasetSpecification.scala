@@ -1,5 +1,5 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.Source
 
-case class DatasetSpecification(val dataSource : DataSource, val variable : String, val restriction : String)
+case class DatasetSpecification(val source : Source, val variable : String, val restriction : String)

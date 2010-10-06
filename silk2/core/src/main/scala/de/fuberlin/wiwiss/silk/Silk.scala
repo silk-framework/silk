@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import config.{Configuration, ConfigLoader}
-import datasource.DataSource
+import datasource.{Source, DataSource}
 import impl.DefaultImplementations
 import instance.{FileInstanceCache, InstanceCache, InstanceSpecification}
 import linkspec.LinkSpecification
@@ -91,7 +91,7 @@ object Silk
     {
         if(linkSpecID != null)
         {
-             val linkSpec = config.linkSpecs.get(linkSpecID) match
+             val linkSpec = config.linkSpec(linkSpecID) match
              {
                  case Some(ls) => ls
                  case None => throw new IllegalArgumentException("Unknown link specification: " + linkSpecID)
@@ -101,7 +101,7 @@ object Silk
         }
         else
         {
-            for(linkSpec <- config.linkSpecs.values)
+            for(linkSpec <- config.linkSpecs)
             {
                 executeLinkSpec(config, linkSpec, numThreads, reload)
             }
@@ -164,12 +164,12 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeSourceCache(sourceCache : InstanceCache)
     {
-        writeSourceCache(sourceCache, linkSpec.sourceDatasetSpecification.dataSource)
+        writeSourceCache(sourceCache, linkSpec.sourceDatasetSpecification.source)
     }
 
-    def writeSourceCache(sourceCache : InstanceCache, dataSource : DataSource)
+    def writeSourceCache(sourceCache : InstanceCache, source : Source)
     {
-        val instances = dataSource.retrieve(sourceInstanceSpec, config.prefixes)
+        val instances = source.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of source dataset")
         sourceCache.write(instances, linkSpec.blocking)
@@ -177,12 +177,12 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeTargetCache(targetCache : InstanceCache)
     {
-        writeTargetCache(targetCache, linkSpec.targetDatasetSpecification.dataSource)
+        writeTargetCache(targetCache, linkSpec.targetDatasetSpecification.source)
     }
 
-    def writeTargetCache(targetCache : InstanceCache, dataSource : DataSource)
+    def writeTargetCache(targetCache : InstanceCache, source : Source)
     {
-        val instances = dataSource.retrieve(targetInstanceSpec, config.prefixes)
+        val instances = source.dataSource.retrieve(targetInstanceSpec, config.prefixes)
 
         logger.info("Loading instances of target dataset")
         targetCache.write(instances, linkSpec.blocking)

@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
 import xml._
 import javax.xml.transform.stream.StreamSource
 import de.fuberlin.wiwiss.silk.linkspec._
@@ -13,6 +12,7 @@ import parsing.NoBindingFactoryAdapter
 import javax.xml.validation.SchemaFactory
 import org.xml.sax.SAXException
 import java.io.{FileInputStream, File, InputStream}
+import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
 object ConfigLoader
 {
@@ -44,11 +44,11 @@ object ConfigLoader
                 }
 
             val prefixes = loadPrefixes(xml)
-            val dataSources = loadDataSources(xml)
-            val linkSpecifications = loadLinkSpecifications(xml, prefixes, dataSources)
+            val sources = loadDataSources(xml)
+            val linkSpecifications = loadLinkSpecifications(xml, prefixes, sources.map(s => (s.id, s)).toMap)
             val outputs = loadOutputs(xml \ "Outputs" \ "Output")
 
-            new Configuration(prefixes, dataSources, linkSpecifications, outputs)
+            new Configuration(prefixes, sources, linkSpecifications, outputs)
         }
         finally
         {
@@ -61,10 +61,9 @@ object ConfigLoader
         xml \ "Prefixes" \ "Prefix" map(prefix => (prefix \ "@id" text, prefix \ "@namespace" text)) toMap
     }
 
-    private def loadDataSources(xml : Elem) : Map[String, DataSource] =
+    private def loadDataSources(xml : Elem) : Traversable[Source] =
     {
-        (xml \ "DataSources" \ "DataSource")
-            .map(ds => (ds \ "@id" text, DataSource(ds \ "@type" text, loadParams(ds)))).toMap
+        (xml \ "DataSources" \ "DataSource").map(ds => new Source(ds \ "@id" text, DataSource(ds \ "@type" text, loadParams(ds))))
     }
 
     private def loadParams(element : Node) : Map[String, String] =
@@ -72,18 +71,18 @@ object ConfigLoader
         element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
     }
 
-    private def loadLinkSpecifications(node : Node, prefixes : Map[String, String], dataSources : Map[String, DataSource]) : Map[String, LinkSpecification] =
+    private def loadLinkSpecifications(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : Traversable[LinkSpecification] =
     {
-        node \ "Interlinks" \ "Interlink" map(p => (p \ "@id" text, loadLinkSpecification(p, prefixes, dataSources))) toMap
+        (node \ "Interlinks" \ "Interlink").map(p => loadLinkSpecification(p, prefixes, sourceMap))
     }
 
-    private def loadLinkSpecification(node : Node, prefixes : Map[String, String], dataSources : Map[String, DataSource]) : LinkSpecification =
+    private def loadLinkSpecification(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : LinkSpecification =
     {
         new LinkSpecification(
             node \ "@id" text,
             resolveQualifiedName(node \ "LinkType" text, prefixes),
-            loadDatasetSpecification(node \ "SourceDataset", dataSources),
-            loadDatasetSpecification(node \ "TargetDataset", dataSources),
+            loadDatasetSpecification(node \ "SourceDataset", sourceMap),
+            loadDatasetSpecification(node \ "TargetDataset", sourceMap),
             (node \ "Blocking").headOption.map(blockingNode => loadBlocking(blockingNode)),
             new LinkCondition(loadAggregation(node \ "LinkCondition" \ "Aggregate" head)),
             loadLinkFilter(node \ "Filter" head),
@@ -91,12 +90,12 @@ object ConfigLoader
         )
     }
 
-    private def loadDatasetSpecification(node : NodeSeq, dataSources : Map[String, DataSource]) : DatasetSpecification =
+    private def loadDatasetSpecification(node : NodeSeq, sourceMap : Map[String, Source]) : DatasetSpecification =
     {
         val datasourceName = node \ "@dataSource" text
         
         new DatasetSpecification(
-            dataSources.get(datasourceName).getOrElse(throw new ValidationException("Datasource " + datasourceName + " not defined.")),
+            sourceMap.get(datasourceName).getOrElse(throw new ValidationException("Datasource " + datasourceName + " not defined.")),
             node \ "@var" text,
             (node \ "RestrictTo").text.trim 
             )
