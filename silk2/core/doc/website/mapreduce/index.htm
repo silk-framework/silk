@@ -36,7 +36,7 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk MapReduce -
 <hr>
 
 <H1><A name=introduction>1. Introduction</A></H1>
-<p>Silk MapReduce is used to generate RDF links between data sets using a cluster of multiple machines. Silk MapReduce is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. Silk MapReduce enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</p>
+<p>Silk MapReduce is used to generate RDF links between data sets using a cluster of multiple machines. Silk MapReduce is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. Silk MapReduce enables Silk to scale out to very large datasets by distributing the link generation to multiple machines.</p>
 
 <HR title="Separator for header">
 
@@ -74,7 +74,7 @@ Example:
 The following parameters are accepted:
 <ul>
   <li>
-    <tt><strong>inputDir</strong></tt> The path to previously loaded instance cache.
+    <tt><strong>inputDir</strong></tt> The path to the previously loaded instance cache.
   </li>
   <li>
     <tt><strong>ouputDir</strong></tt> The directory, where the generated links will be written to.
@@ -89,13 +89,13 @@ Example:
 <hr>
 <h1><A name="usageexample"></a>3. Usage example</h1>
 <p>We employed Silk to find <tt>owl:sameAs</tt> links between cities in <a href="http://dbpedia.org">DBpedia</a> and in <a href="http://linkedgeodata.org">LinkedGeoData</a>. 
-The used link specification can be found <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/dbpedia_linkedgeodata_cities.xml">online</a>. As both datasets are very big, we used a reduced dataset consisting of 105000 settlements from DBpedia and 59000 cities and towns from LinkedGeoData (omitting villages).</p>
+The used link specification can be found <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/dbpedia_linkedgeodata_cities.xml">online</a>. As both datasets are very large, we used a reduced dataset consisting of 10,5000 settlements from DBpedia and 59,000 cities and towns from LinkedGeoData (omitting villages).</p>
 <p>We executed the link specification using two different configurations:
 <ol>
   <li>Silk Single Machine running on a Intel Core2Duo E8500 with 8GB of RAM</li>
   <li>Silk MapReduce running on <em>Amazon Elastic MapReduce</em> cluster consisting of 10 <em>Amazon EC2</em> instances (High-CPU Medium Instance Profile)</li>
 </ol>
-For each configuration, we executed the link specifications two times:
+For each configuration, we executed the link specifications twice:
 <ol>
   <li>Without the use of the blocking feature. In this case the Silk Linking Engine has to evaluate the full cartesian product resulting in over 6 billion instance comparisions.</li>
   <li>Using the blocking feature. The link specification has been extended to block the cities by name using 50 blocks</li>
@@ -115,12 +115,12 @@ For each configuration, we executed the link specifications two times:
     <tr>
       <td>Silk Single Machine</td>
       <td>54 hours</td>
-      <td>9283</td>
+      <td>9,283</td>
     </tr>
     <tr>
       <td>Silk MapReduce</td>
       <td>6.7 hours</td>
-      <td>9283</td>
+      <td>9,283</td>
     </tr>
     <tr>
       <th colspan="3" align="center">With Blocking</th>
@@ -128,16 +128,16 @@ For each configuration, we executed the link specifications two times:
     <tr>
       <td>Silk Single Machine</td>
       <td>155.5 minutes</td>
-      <td>9224</td>
+      <td>9,224</td>
     </tr>
     <tr>
       <td>Silk MapReduce</td>
       <td>14.4 minutes</td>
-      <td>9224</td>
+      <td>9,224</td>
     </tr>
   </tbody>
 </table>
-<p>The table clearly shows how Silk MapReduce reduces the execution time significantly by scaling to clusters with multiple machines. The performance has been further improved by employing the blocking feature included into Silk while losing less than 1 % of the links compared to the link specification without blocking</p>
+<p>The table clearly shows how Silk MapReduce reduces the execution time significantly by scaling to clusters with multiple machines. The performance has been further improved by employing the blocking feature included into Silk while losing less than 1 % of the links compared to the link specification without blocking.</p>
 <hr>
 <h1><a name="references" />4. References</h1>
 <p>

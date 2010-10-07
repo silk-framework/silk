@@ -86,7 +86,7 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Server - Us
 <h2><a name="linkSpec" />2.2 Writing Link Specifications for the Server</h2>
 For general information on how to write a Linking Specification refer to <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Silk Link Specification Language Description</a>. There are a few points which should be considered when writing a Link Specification for the Server:
 <h3>DataSources</h3>
-In a typical use-case there is some initial dataset, which shall be loaded by the server on start-up. This can be accomplished by specifying a source dataset in the Link Specification. The target dataset will be formed by the incoming stream and thus is ignored by the server.
+In a typical use case there is some initial dataset, which shall be loaded by the server on start-up. This can be accomplished by specifying a source dataset in the Link Specification. The target dataset will be formed by the incoming stream and thus is ignored by the server.
 <P>Example:</P> 
 <pre>
   ...
@@ -262,7 +262,7 @@ Only the highest-rated links per source data item will remain after the filterin
 The Semantic Web Dog Food Corpus contains profiles for 3.739 persons from which 2.580 provide either a homepage or a mailbox hash which is required to uniquely identify them. 
 We have set up a Linked Data crawler which takes a number of FOAF profile URIs as seeds and follows linked profiles. 
 The crawled documents are forwarded to Silk Server which generates <tt>owl:sameAs</tt> links to known persons from the Semantic Web Dog Food Corpus. 
-All generated links have been written to an ouput file</p>
+All generated links have been written to an ouput file.</p>
 <p>The crawler was also used to traverse the RDFa of Twitter accounts for which the server identified the corresponding persons in the Semantic Web Dog Food Corpus if any.</p>  
 <p>In order to show the flexibility of Silk Server, the link configuration was further enhanced to also match publications. 
 For this purpose the crawler was employed to also follow publication links in addition to FOAF profiles.</p> 
@@ -288,7 +288,7 @@ For example, it found that Ralph Hodgson (<tt>http://data.semanticweb.org/person
 
 <h3>Generated links to publications</h3>
 <p>For 37 publications in the Semantic Web Dog Food Corpus Silk Server was able to find the corresponding publication in the Web of Data. 
-The number of links is lower than the number of found FOAF profiles because many persons do not link their publications in their profile.. 
+The number of links is lower than the number of found FOAF profiles because many persons do not link their publications in their profile. 
 One exception is the Digital Enterprise Research Institute (DERI), which publishes the meta data about all publications as RDF (<tt>http://www.deri.ie/publications/</tt>).</p> 
 <hr/>
 <H2><a name="references" />5. References</H2>
