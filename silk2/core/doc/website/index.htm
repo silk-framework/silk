@@ -56,9 +56,9 @@ using an RDF path language. Silk accesses the data sources that should be interl
 
 <p>Silk is provided in three different variants which address different use cases:
 <ul>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk - Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk - Single Machine</em> provides multithreading and caching. In addition, the performance can be further enhanced using an optional blocking feature.</li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk - MapReduce</em></a> is used to generate RDF links between data sets using a cluster of multiple machines. <em>Silk - MapReduce</em> is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. <em>Silk - MapReduce</em> enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</li> 
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk - Server</em></a> can be used as an identity resolution component within applications that consume Linked Data from the Web. <em>Silk - Server</em> provides an HTTP API for matching instances from an incoming stream of RDF data while keeping track of known entities. It can be used for instance together with a Linked Data crawler to populate a local duplicate-free cache with data from the Web.</li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk Single Machine</em> provides multithreading and caching. In addition, the performance can be further enhanced using an optional blocking feature.</li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk MapReduce</em></a> is used to generate RDF links between data sets using a cluster of multiple machines. <em>Silk MapReduce</em> is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. <em>Silk MapReduce</em> enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</li> 
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk Server</em></a> can be used as an identity resolution component within applications that consume Linked Data from the Web. <em>Silk Server</em> provides an HTTP API for matching instances from an incoming stream of RDF data while keeping track of known entities. It can be used for instance together with a Linked Data crawler to populate a local duplicate-free cache with data from the Web.</li>
 </ul></p>
 
 <p>All three variants are based on the Silk link discovery engine which offers the following features:</p>
@@ -79,9 +79,9 @@ using an RDF path language. Silk accesses the data sources that should be interl
 <H2><a name="manual"></a>User Manual</H2>
 <p>Documentation on a specific application included in the <em>Silk Link Discovery Framework</em> can be found in the corresponding user manual:
 <ul>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk - Single Machine</em></a></li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk - MapReduce</em></a></li> 
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk - Server</em></a></li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a></li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk MapReduce</em></a></li> 
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk Server</em></a></li>
 </ul>
 To learn how to use the <em>Silk - Link Specification Language</em>, which is used in all applications to specifiy the link conditions, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Specification</a></p>.
 

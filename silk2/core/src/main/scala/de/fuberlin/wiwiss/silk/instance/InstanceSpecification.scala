@@ -2,18 +2,20 @@ package de.fuberlin.wiwiss.silk.instance
 
 import de.fuberlin.wiwiss.silk.linkspec._
 import input.{TransformInput, PathInput, Input}
+import de.fuberlin.wiwiss.silk.config.Configuration
 
+//Include prefixes into specification and remove prefix argument from DataSource.retrieve method etc.
 @serializable
-class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path])
+class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path], val prefixes : Map[String, String])
 {
     override def toString = "InstanceSpecification(variable='" + variable + "' restrictions='" + restrictions + "' paths=" + paths + ")"
 }
 
 object InstanceSpecification
 {
-    def empty = new InstanceSpecification("a", "", Traversable.empty)
+    def empty = new InstanceSpecification("a", "", Traversable.empty, Map.empty)
 
-    def retrieve(linkSpec : LinkSpecification) : (InstanceSpecification, InstanceSpecification) =
+    def retrieve(config : Configuration, linkSpec : LinkSpecification) : (InstanceSpecification, InstanceSpecification) =
     {
         val sourceVar = linkSpec.sourceDatasetSpecification.variable
         val targetVar = linkSpec.targetDatasetSpecification.variable
@@ -24,8 +26,8 @@ object InstanceSpecification
         val sourcePaths = collectPaths(sourceVar)(linkSpec.condition.rootAggregation)
         val targetPaths = collectPaths(targetVar)(linkSpec.condition.rootAggregation)
 
-        ( new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths),
-          new InstanceSpecification(targetVar, targetRestriction, targetPaths) )
+        ( new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths, config.prefixes),
+          new InstanceSpecification(targetVar, targetRestriction, targetPaths, config.prefixes) )
     }
 
     private def collectPaths(variable : String)(operator : Operator) : Set[Path] = operator match

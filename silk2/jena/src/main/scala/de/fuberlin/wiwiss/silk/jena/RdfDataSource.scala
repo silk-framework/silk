@@ -27,8 +27,8 @@ class RdfDataSource(val params : Map[String, String]) extends DataSource
         new InstanceRetriever(endpoint)
     }
 
-    override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String]) : Traversable[Instance] =
+    override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
     {
-         instanceRetriever.retrieveAll(instanceSpec, prefixes)
+        instanceRetriever.retrieve(instanceSpec, instances)
     }
 }

@@ -33,15 +33,8 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
 
     private val instanceRetriever = new InstanceRetriever(endpoint, pageSize, graphUri)
 
-    override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) =
+    override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
     {
-        if(instanceList.isEmpty)
-        {
-            instanceRetriever.retrieveAll(instanceSpec, prefixes)
-        }
-        else
-        {
-            instanceRetriever.retrieveList(instanceList, instanceSpec, prefixes)
-        }
+        instanceRetriever.retrieve(instanceSpec, instanceList union instances)
     }
 }
