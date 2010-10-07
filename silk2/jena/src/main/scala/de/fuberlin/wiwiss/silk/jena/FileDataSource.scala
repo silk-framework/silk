@@ -25,8 +25,8 @@ class FileDataSource(val params : Map[String, String]) extends DataSource
         new InstanceRetriever(endpoint)
     }
 
-    override def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String]) =
+    override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
     {
-        instanceRetriever.retrieveAll(instanceSpec, prefixes)
+        instanceRetriever.retrieve(instanceSpec, instances)
     }
 }

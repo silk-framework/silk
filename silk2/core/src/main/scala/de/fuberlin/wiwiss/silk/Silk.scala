@@ -146,7 +146,7 @@ object Silk
  */
 class Loader(config : Configuration, linkSpec : LinkSpecification)
 {
-    private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(linkSpec)
+    private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(config, linkSpec)
 
     private val logger = Logger.getLogger(classOf[Loader].getName)
 
@@ -169,7 +169,7 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeSourceCache(sourceCache : InstanceCache, source : Source)
     {
-        val instances = source.dataSource.retrieve(sourceInstanceSpec, config.prefixes)
+        val instances = source.dataSource.retrieve(sourceInstanceSpec)
 
         logger.info("Loading instances of source dataset")
         sourceCache.write(instances, linkSpec.blocking)
@@ -182,7 +182,7 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeTargetCache(targetCache : InstanceCache, source : Source)
     {
-        val instances = source.dataSource.retrieve(targetInstanceSpec, config.prefixes)
+        val instances = source.dataSource.retrieve(targetInstanceSpec)
 
         logger.info("Loading instances of target dataset")
         targetCache.write(instances, linkSpec.blocking)

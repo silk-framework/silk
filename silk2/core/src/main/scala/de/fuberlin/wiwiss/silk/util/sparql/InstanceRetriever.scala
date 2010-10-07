@@ -9,6 +9,18 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
 {
     private val varPrefix = "v"
 
+    def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
+    {
+        if(instances.isEmpty)
+        {
+            retrieveAll(instanceSpec)
+        }
+        else
+        {
+            retrieveList(instances, instanceSpec)
+        }
+    }
+
     /**
      * Retrieves all instances with a given instance specification.
      *
@@ -16,10 +28,10 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      * @param prefixes A map of the used prefixes
      * @return The retrieved instances
      */
-    def retrieveAll(instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) : Traversable[Instance] =
+    def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
     {
         //Prefixes
-        var sparql = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
+        var sparql = instanceSpec.prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
 
         //Select
         sparql += "SELECT DISTINCT "
@@ -55,9 +67,9 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      * @param prefixes A map of the used prefixes
      * @return A sequence of the retrieved instances. If a instance is not in the store, it wont be included in the returned sequence.
      */
-    def retrieveList(instanceUris : Seq[String], instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) : Seq[Instance] =
+    def retrieveList(instanceUris : Seq[String], instanceSpec : InstanceSpecification) : Seq[Instance] =
     {
-        instanceUris.view.flatMap(instanceUri => retrieve(instanceUri, instanceSpec, prefixes))
+        instanceUris.view.flatMap(instanceUri => retrieveInstance(instanceUri, instanceSpec))
     }
 
     /**
@@ -69,12 +81,12 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      * @return Some(instance), if a instance with the given uri is in the Store
      *         None, if no instance with the given uri is in the Store
      */
-    def retrieve(instanceUri : String, instanceSpec : InstanceSpecification, prefixes : Map[String, String] = Map.empty) : Option[Instance] =
+    def retrieveInstance(instanceUri : String, instanceSpec : InstanceSpecification) : Option[Instance] =
     {
         //Query 5 paths at once and combine the result into one
         val pathGroups = instanceSpec.paths.toList.grouped(5).toList
 
-        val sparqlResults = pathGroups.flatMap(pathGroup => retrievePaths(instanceUri, pathGroup, prefixes))
+        val sparqlResults = pathGroups.flatMap(pathGroup => retrievePaths(instanceUri, pathGroup, instanceSpec.prefixes))
 
         new InstanceTraversable(sparqlResults, instanceSpec, Some(instanceUri)).headOption
     }

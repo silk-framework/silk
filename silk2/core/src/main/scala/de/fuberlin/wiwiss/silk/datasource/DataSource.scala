@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 
 trait DataSource extends Strategy
 {
-    def retrieve(instanceSpec : InstanceSpecification, prefixes : Map[String, String]) : Traversable[Instance]
+    def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String] = Seq.empty) : Traversable[Instance]
 }
 
 object DataSource extends Factory[DataSource]

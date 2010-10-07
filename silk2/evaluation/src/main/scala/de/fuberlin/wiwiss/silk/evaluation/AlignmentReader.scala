@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
-import java.io.File
-import xml.XML
 import io.Source
 import de.fuberlin.wiwiss.silk.output.Link
+import java.io.{InputStream, File}
+import xml.{Node, XML}
 
 /**
  * Reads the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
@@ -21,15 +21,26 @@ object AlignmentReader
 
     }
 
-     def readAlignment(file : File) : Traversable[Link] =
-     {
-         for(cell <- XML.loadFile(file) \ "Alignment" \ "map" \ "Cell") yield
-         {
-             new Link(sourceUri = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-                           targetUri = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-                           confidence = (cell \ "measure").text.toDouble)
-         }
-     }
+    def readAlignment(inputStream : InputStream) : Traversable[Link] =
+    {
+        readAlignment(XML.load(inputStream))
+
+    }
+
+    def readAlignment(file : File) : Traversable[Link] =
+    {
+        readAlignment(XML.loadFile(file))
+    }
+
+    private def readAlignment(xml : Node) : Traversable[Link] =
+    {
+        for(cell <- xml \ "Alignment" \ "map" \ "Cell") yield
+        {
+            new Link(sourceUri = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+                          targetUri = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+                          confidence = (cell \ "measure").text.toDouble)
+        }
+    }
 
     private val N3DebugRegex = """\[(\d*\.\d*)\]:\s*<([^>]*)>\s*<[^>]*>\s*<([^>]*)>\s*\.\s*""".r
 
