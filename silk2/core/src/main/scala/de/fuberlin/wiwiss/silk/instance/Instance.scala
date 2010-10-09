@@ -1,5 +1,8 @@
 package de.fuberlin.wiwiss.silk.instance
 
+/**
+ * A single instance.
+ */
 @serializable
 class Instance(val variable : String, val uri : String, values : Map[Int, Set[String]])
 {

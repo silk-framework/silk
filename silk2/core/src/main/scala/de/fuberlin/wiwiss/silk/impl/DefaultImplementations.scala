@@ -11,6 +11,9 @@ import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.linkspec.{Metric, Aggregator, BlockingFunction}
 import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Formatter, Output}
 
+/**
+ * Registers all default implementations.
+ */
 object DefaultImplementations
 {
     def register()

@@ -14,6 +14,9 @@ import org.xml.sax.SAXException
 import java.io.{FileInputStream, File, InputStream}
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
+/**
+ * Loads a Silk Configuration.
+ */
 object ConfigLoader
 {
     def load(file : File) : Configuration =
