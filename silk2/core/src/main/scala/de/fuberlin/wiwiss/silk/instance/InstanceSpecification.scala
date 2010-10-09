@@ -17,11 +17,11 @@ object InstanceSpecification
 
     def retrieve(config : Configuration, linkSpec : LinkSpecification) : (InstanceSpecification, InstanceSpecification) =
     {
-        val sourceVar = linkSpec.sourceDatasetSpecification.variable
-        val targetVar = linkSpec.targetDatasetSpecification.variable
+        val sourceVar = linkSpec.sourceDataset.variable
+        val targetVar = linkSpec.targetDataset.variable
 
-        val sourceRestriction = linkSpec.sourceDatasetSpecification.restriction
-        val targetRestriction = linkSpec.targetDatasetSpecification.restriction
+        val sourceRestriction = linkSpec.sourceDataset.restriction
+        val targetRestriction = linkSpec.targetDataset.restriction
 
         val sourcePaths = collectPaths(sourceVar)(linkSpec.condition.rootAggregation)
         val targetPaths = collectPaths(targetVar)(linkSpec.condition.rootAggregation)

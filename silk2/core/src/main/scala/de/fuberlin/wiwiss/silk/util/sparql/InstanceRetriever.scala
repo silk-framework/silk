@@ -9,6 +9,13 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
 {
     private val varPrefix = "v"
 
+    /**
+     * Retrieves instances with a given instance specification.
+     *
+     * @param instanceSpec The instance specification
+     * @param instances The URIs of the instances to be retrieved. If empty, all instances will be retrieved.
+     * @return The retrieved instances
+     */
     def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
     {
         if(instances.isEmpty)
@@ -25,7 +32,6 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      * Retrieves all instances with a given instance specification.
      *
      * @param instanceSpec The instance specification
-     * @param prefixes A map of the used prefixes
      * @return The retrieved instances
      */
     def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
@@ -64,7 +70,6 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      *
      * @param instanceUris The URIs of the instances
      * @param instanceSpec The instance specification
-     * @param prefixes A map of the used prefixes
      * @return A sequence of the retrieved instances. If a instance is not in the store, it wont be included in the returned sequence.
      */
     def retrieveList(instanceUris : Seq[String], instanceSpec : InstanceSpecification) : Seq[Instance] =
@@ -77,7 +82,6 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      *
      * @param instanceUri The URI of the instance
      * @param instanceSpec The instance specification
-     * @param prefixes A map of the used prefixes
      * @return Some(instance), if a instance with the given uri is in the Store
      *         None, if no instance with the given uri is in the Store
      */

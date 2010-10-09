@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import config.{Configuration, ConfigLoader}
-import datasource.{Source, DataSource}
+import datasource.Source
 import impl.DefaultImplementations
 import instance.{FileInstanceCache, InstanceCache, InstanceSpecification}
 import linkspec.LinkSpecification
@@ -164,12 +164,12 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeSourceCache(sourceCache : InstanceCache)
     {
-        writeSourceCache(sourceCache, linkSpec.sourceDatasetSpecification.source)
+        writeSourceCache(sourceCache, linkSpec.sourceDataset.source)
     }
 
     def writeSourceCache(sourceCache : InstanceCache, source : Source)
     {
-        val instances = source.dataSource.retrieve(sourceInstanceSpec)
+        val instances = source.retrieve(sourceInstanceSpec)
 
         logger.info("Loading instances of source dataset")
         sourceCache.write(instances, linkSpec.blocking)
@@ -177,12 +177,12 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
 
     def writeTargetCache(targetCache : InstanceCache)
     {
-        writeTargetCache(targetCache, linkSpec.targetDatasetSpecification.source)
+        writeTargetCache(targetCache, linkSpec.targetDataset.source)
     }
 
     def writeTargetCache(targetCache : InstanceCache, source : Source)
     {
-        val instances = source.dataSource.retrieve(targetInstanceSpec)
+        val instances = source.retrieve(targetInstanceSpec)
 
         logger.info("Loading instances of target dataset")
         targetCache.write(instances, linkSpec.blocking)

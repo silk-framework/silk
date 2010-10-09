@@ -6,8 +6,9 @@ import de.fuberlin.wiwiss.silk.output.Output
  * @param id The id which identifies this link specification. May only contain alphanumeric characters (a - z, 0 - 9).
  */
 //TODO make LinkSpecification self contained by including a link to the prefixes?
-case class LinkSpecification(val id : String, val linkType : String, val sourceDatasetSpecification : DatasetSpecification,
-                             val targetDatasetSpecification : DatasetSpecification, val blocking : Option[Blocking], val condition : LinkCondition,
+//TODO choose a better name for sourceDataset and targetDataset ('source' is misleading)
+case class LinkSpecification(val id : String, val linkType : String, val sourceDataset : DatasetSpecification,
+                             val targetDataset : DatasetSpecification, val blocking : Option[Blocking], val condition : LinkCondition,
                              val filter : LinkFilter, val outputs : Traversable[Output])
 {
    require(id.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')),

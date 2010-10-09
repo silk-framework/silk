@@ -6,7 +6,10 @@ import input.{Transformer, Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
-//TODO move methods to the respective classes (e.g. configuration.toXML)
+/**
+ * Writes a Silk Configuration.
+ */
+//TODO move methods to the respective classes (e.g. configuration.toXML)?
 object ConfigWriter
 {
     def serializeConfig(config : Configuration) =
@@ -39,12 +42,12 @@ object ConfigWriter
         <Interlink id={linkSpec.id}>
           <LinkType>{linkSpec.linkType}</LinkType>
 
-          <SourceDataset dataSource="source" var={linkSpec.sourceDatasetSpecification.variable}>
-            <RestrictTo>{linkSpec.sourceDatasetSpecification.restriction}</RestrictTo>
+          <SourceDataset dataSource="source" var={linkSpec.sourceDataset.variable}>
+            <RestrictTo>{linkSpec.sourceDataset.restriction}</RestrictTo>
           </SourceDataset>
 
-          <TargetDataset dataSource="target" var={linkSpec.targetDatasetSpecification.variable}>
-            <RestrictTo>{linkSpec.targetDatasetSpecification.restriction}</RestrictTo>
+          <TargetDataset dataSource="target" var={linkSpec.targetDataset.variable}>
+            <RestrictTo>{linkSpec.targetDataset.restriction}</RestrictTo>
           </TargetDataset>
 
           <LinkCondition>
