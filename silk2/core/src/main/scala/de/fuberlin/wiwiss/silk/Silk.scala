@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
-import config.{Configuration, ConfigLoader}
+import config.{Configuration, ConfigReader}
 import datasource.Source
 import impl.DefaultImplementations
 import instance.{FileInstanceCache, InstanceCache, InstanceSpecification}
@@ -76,7 +76,7 @@ object Silk
      */
     def executeFile(configFile : File, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
     {
-        executeConfig(ConfigLoader.load(configFile), linkSpecID, numThreads, reload)
+        executeConfig(ConfigReader.read(configFile), linkSpecID, numThreads, reload)
     }
 
     /**
@@ -155,7 +155,7 @@ class Loader(config : Configuration, linkSpec : LinkSpecification)
         val startTime = System.currentTimeMillis()
         logger.info("Loading instances")
 
-        //TODO load in parallel
+        //TODO read in parallel
         writeSourceCache(sourceCache)
         writeTargetCache(targetCache)
 

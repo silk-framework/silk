@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.config
 import xml.Elem
 import de.fuberlin.wiwiss.silk.linkspec._
 import input.{Transformer, Input, PathInput, TransformInput}
-import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
+import de.fuberlin.wiwiss.silk.output.{LinkWriter, Output}
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
 /**
@@ -100,7 +100,7 @@ object ConfigWriter
     //TODO write minConfidence, maxConfidence
     def serializeOutput(output : Output) : Elem = output.writer match
     {
-        case AlignmentWriter(outputType, params) =>
+        case LinkWriter(outputType, params) =>
         {
             <Output type={outputType}>
               { params.map{case (name, value) => <Param name={name} value={value} /> } }

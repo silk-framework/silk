@@ -8,7 +8,7 @@ import java.util.logging.Logger
  *
  * Implementing classes of this trait must override the write method.
  */
-case class Output(val writer : AlignmentWriter, minConfidence : Option[Double] = None, maxConfidence : Option[Double] = None)
+case class Output(writer : LinkWriter, minConfidence : Option[Double] = None, maxConfidence : Option[Double] = None)
 {
     private val logger = Logger.getLogger(classOf[Output].getName)
 

@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
-import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Link}
+import de.fuberlin.wiwiss.silk.output.{LinkWriter, Link}
 
-class MemoryWriter(val params : Map[String, String] = Map.empty) extends AlignmentWriter
+class MemoryWriter(val params : Map[String, String] = Map.empty) extends LinkWriter
 {
     private var _links = List[Link]()
 
