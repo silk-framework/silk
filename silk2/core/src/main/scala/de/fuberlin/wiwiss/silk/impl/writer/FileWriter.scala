@@ -1,13 +1,13 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
-import de.fuberlin.wiwiss.silk.output.{Formatter, Link, AlignmentWriter}
+import de.fuberlin.wiwiss.silk.output.{Formatter, Link, LinkWriter}
 import java.io.{Writer, OutputStreamWriter, FileOutputStream}
 import java.util.logging.Logger
 
 /**
  * A file writer.
  */
-class FileWriter(val params : Map[String, String]) extends AlignmentWriter
+class FileWriter(val params : Map[String, String]) extends LinkWriter
 {
     private val formatter = Formatter(params.get("format").getOrElse(throw new IllegalArgumentException("No format specified")))
 

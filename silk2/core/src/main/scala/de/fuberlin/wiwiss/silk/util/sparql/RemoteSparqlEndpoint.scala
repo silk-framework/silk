@@ -4,7 +4,7 @@ import xml.{XML, Elem}
 import java.util.logging.{Level, Logger}
 import java.net.{HttpURLConnection, URL, URLEncoder}
 import io.Source
-import java.io.{InputStreamReader, IOException}
+import java.io.IOException
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -21,6 +21,8 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
     private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
     private var lastQueryTime = 0L
+
+    override def toString = "SparqlEndpoint(" + uri + ")"
 
     override def query(sparql : String) : Traversable[Map[String, Node]] = new ResultTraversable(sparql)
 
@@ -87,21 +89,6 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
                 try
                 {
                     result = XML.load(httpConnection.getInputStream)
-
-                    //Virtuoso workaround for partial results (http://docs.openlinksw.com/virtuoso/anytimequeries.html)
-//                    if(httpConnection.getHeaderField("X-SQL-State") == "S1TAT")
-//                    {
-//                        //This is a partial result, retry...
-//                        result = null
-//
-//                        retries += 1
-//                        logger.warning("Partial result returned. Retrying... (" + retries + "/" + retryCount + ")")
-//                        if(retries > retryCount) throw new Exception("Virtuoso only returned partial results.")
-//
-//                        Thread.sleep(retryPause)
-//                        //Double the retry pause up to a maximum of 1 hour
-//                        retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
-//                    }
                 }
                 catch
                 {
@@ -160,7 +147,7 @@ class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val paus
 //            outputStream.close()
 //        }
 //
-//        XML.load(connection.getInputStream)
+//        XML.read(connection.getInputStream)
 //    }
     }
 }

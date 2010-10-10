@@ -5,7 +5,7 @@ import javax.xml.transform.stream.StreamSource
 import de.fuberlin.wiwiss.silk.linkspec._
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
-import de.fuberlin.wiwiss.silk.output.{AlignmentWriter, Output}
+import de.fuberlin.wiwiss.silk.output.{LinkWriter, Output}
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
 import parsing.NoBindingFactoryAdapter
@@ -15,24 +15,24 @@ import java.io.{FileInputStream, File, InputStream}
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
 /**
- * Loads a Silk Configuration.
+ * Reads a Silk Configuration.
  */
-object ConfigLoader
+object ConfigReader
 {
-    def load(file : File) : Configuration =
+    def read(file : File) : Configuration =
     {
         try
         {
-            load(new FileInputStream(file))
+            read(new FileInputStream(file))
         }
         catch
         {
             case ex : ValidationException =>
-                throw new ValidationException("Could not load configuration file: " + file + ". " + ex.getMessage, ex.getCause)
+                throw new ValidationException("Could not read configuration file: " + file + ". " + ex.getMessage, ex.getCause)
         }
     }
 
-    def load(inputStream : InputStream) : Configuration =
+    def read(inputStream : InputStream) : Configuration =
     {
         try
         {
@@ -46,10 +46,10 @@ object ConfigLoader
                     case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
                 }
 
-            val prefixes = loadPrefixes(xml)
-            val sources = loadDataSources(xml)
-            val linkSpecifications = loadLinkSpecifications(xml, prefixes, sources.map(s => (s.id, s)).toMap)
-            val outputs = loadOutputs(xml \ "Outputs" \ "Output")
+            val prefixes = readPrefixes(xml)
+            val sources = readDataSources(xml)
+            val linkSpecifications = readLinkSpecifications(xml, prefixes, sources.map(s => (s.id, s)).toMap)
+            val outputs = readOutputs(xml \ "Outputs" \ "Output")
 
             new Configuration(prefixes, sources, linkSpecifications, outputs)
         }
@@ -59,41 +59,41 @@ object ConfigLoader
         }
     }
 
-    private def loadPrefixes(xml : Elem) : Map[String, String] =
+    private def readPrefixes(xml : Elem) : Map[String, String] =
     {
         xml \ "Prefixes" \ "Prefix" map(prefix => (prefix \ "@id" text, prefix \ "@namespace" text)) toMap
     }
 
-    private def loadDataSources(xml : Elem) : Traversable[Source] =
+    private def readDataSources(xml : Elem) : Traversable[Source] =
     {
-        (xml \ "DataSources" \ "DataSource").map(ds => new Source(ds \ "@id" text, DataSource(ds \ "@type" text, loadParams(ds))))
+        (xml \ "DataSources" \ "DataSource").map(ds => new Source(ds \ "@id" text, DataSource(ds \ "@type" text, readParams(ds))))
     }
 
-    private def loadParams(element : Node) : Map[String, String] =
+    private def readParams(element : Node) : Map[String, String] =
     {
         element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
     }
 
-    private def loadLinkSpecifications(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : Traversable[LinkSpecification] =
+    private def readLinkSpecifications(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : Traversable[LinkSpecification] =
     {
-        (node \ "Interlinks" \ "Interlink").map(p => loadLinkSpecification(p, prefixes, sourceMap))
+        (node \ "Interlinks" \ "Interlink").map(p => readLinkSpecification(p, prefixes, sourceMap))
     }
 
-    private def loadLinkSpecification(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : LinkSpecification =
+    private def readLinkSpecification(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : LinkSpecification =
     {
         new LinkSpecification(
             node \ "@id" text,
             resolveQualifiedName(node \ "LinkType" text, prefixes),
-            loadDatasetSpecification(node \ "SourceDataset", sourceMap),
-            loadDatasetSpecification(node \ "TargetDataset", sourceMap),
-            (node \ "Blocking").headOption.map(blockingNode => loadBlocking(blockingNode)),
-            new LinkCondition(loadAggregation(node \ "LinkCondition" \ "Aggregate" head)),
-            loadLinkFilter(node \ "Filter" head),
-            loadOutputs(node \ "Outputs" \ "Output")
+            readDatasetSpecification(node \ "SourceDataset", sourceMap),
+            readDatasetSpecification(node \ "TargetDataset", sourceMap),
+            (node \ "Blocking").headOption.map(blockingNode => readBlocking(blockingNode)),
+            new LinkCondition(readAggregation(node \ "LinkCondition" \ "Aggregate" head)),
+            readLinkFilter(node \ "Filter" head),
+            readOutputs(node \ "Outputs" \ "Output")
         )
     }
 
-    private def loadDatasetSpecification(node : NodeSeq, sourceMap : Map[String, Source]) : DatasetSpecification =
+    private def readDatasetSpecification(node : NodeSeq, sourceMap : Map[String, Source]) : DatasetSpecification =
     {
         val datasourceName = node \ "@dataSource" text
         
@@ -104,55 +104,55 @@ object ConfigLoader
             )
     }
 
-    private def loadOperators(nodes : Seq[Node]) : Traversable[Operator] =
+    private def readOperators(nodes : Seq[Node]) : Traversable[Operator] =
     {
         nodes.collect
         {
-            case node @ <Aggregate>{_*}</Aggregate> => loadAggregation(node)
-            case node @ <Compare>{_*}</Compare> => loadComparison(node)
+            case node @ <Aggregate>{_*}</Aggregate> => readAggregation(node)
+            case node @ <Compare>{_*}</Compare> => readComparison(node)
         }
     }
 
-    private def loadAggregation(node : Node) : Aggregation =
+    private def readAggregation(node : Node) : Aggregation =
     {
         val requiredStr = node \ "@required" text
         val weightStr = node \ "@weight" text
 
-        val aggregator = Aggregator(node \ "@type" text, loadParams(node))
+        val aggregator = Aggregator(node \ "@type" text, readParams(node))
 
         new Aggregation(
             if(requiredStr.isEmpty) false else requiredStr.toBoolean,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadOperators(node.child),
+            readOperators(node.child),
             aggregator
         )
     }
 
-    private def loadComparison(node : Node) : Comparison =
+    private def readComparison(node : Node) : Comparison =
     {
         val requiredStr = node \ "@required" text
         val weightStr = node \ "@weight" text
-        val metric = Metric(node \ "@metric" text, loadParams(node))
+        val metric = Metric(node \ "@metric" text, readParams(node))
 
         new Comparison(
             if(requiredStr.isEmpty) false else requiredStr.toBoolean,
             if(weightStr.isEmpty) 1 else weightStr.toInt,
-            loadInputs(node.child),
+            readInputs(node.child),
             metric
         )
     }
 
-    private def loadBlocking(node : Node) : Blocking =
+    private def readBlocking(node : Node) : Blocking =
     {
         new Blocking(
-            loadInputs(node.child).asInstanceOf[Traversable[PathInput]],
-            BlockingFunction(node \ "@function" text, loadParams(node)),
+            readInputs(node.child).asInstanceOf[Traversable[PathInput]],
+            BlockingFunction(node \ "@function" text, readParams(node)),
             (node \ "@blocks").text.toInt,
             (node \ "@overlap").headOption.map(_.text.toDouble).getOrElse(0.0)
         )
     }
 
-    private def loadInputs(nodes : Seq[Node]) : Seq[Input] =
+    private def readInputs(nodes : Seq[Node]) : Seq[Input] =
     {
         nodes.collect {
             case p @ <Input/> =>
@@ -163,27 +163,27 @@ object ConfigLoader
             }
             case p @ <TransformInput>{_*}</TransformInput> =>
             {
-                val transformer = Transformer(p \ "@function" text, loadParams(p))
-                TransformInput(loadInputs(p.child), transformer)
+                val transformer = Transformer(p \ "@function" text, readParams(p))
+                TransformInput(readInputs(p.child), transformer)
             }
         }
     }
 
-    private def loadLinkFilter(node : Node) =
+    private def readLinkFilter(node : Node) =
     {
         val limitStr = (node \ "@limit").text
         new LinkFilter((node \ "@threshold").text.toDouble, if(limitStr.isEmpty) None else Some(limitStr.toInt))
     }
 
-    private def loadOutputs(nodes : NodeSeq) : Traversable[Output] =
+    private def readOutputs(nodes : NodeSeq) : Traversable[Output] =
     {
-        nodes.map(loadOutput)
+        nodes.map(readOutput)
     }
 
-    private def loadOutput(node : Node) : Output =
+    private def readOutput(node : Node) : Output =
     {
         new Output(
-            writer = AlignmentWriter(node \ "@type" text, loadParams(node)),
+            writer = LinkWriter(node \ "@type" text, readParams(node)),
             minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
             maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )

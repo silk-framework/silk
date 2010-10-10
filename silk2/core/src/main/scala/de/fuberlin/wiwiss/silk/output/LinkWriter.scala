@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
  *
  * Implementing classes of this trait must override the write method.
  */
-trait AlignmentWriter extends Strategy
+trait LinkWriter extends Strategy
 {
     val params : Map[String, String]
 
@@ -27,4 +27,4 @@ trait AlignmentWriter extends Strategy
     def close() : Unit = {}
 }
 
-object AlignmentWriter extends Factory[AlignmentWriter]
+object LinkWriter extends Factory[LinkWriter]

@@ -4,8 +4,6 @@ import net.liftweb.http._
 import net.liftweb.common.{Empty, Full}
 import de.fuberlin.wiwiss.silk.jena.RdfDataSource
 import de.fuberlin.wiwiss.silk.server.model.Server
-import java.io.ByteArrayInputStream
-import de.fuberlin.wiwiss.silk.config.ConfigLoader
 
 object RestApi
 {

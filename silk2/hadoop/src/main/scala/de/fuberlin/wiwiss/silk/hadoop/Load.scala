@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopInstanceCache
-import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigLoader}
+import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigReader}
 import de.fuberlin.wiwiss.silk.Loader
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -62,7 +62,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
         val stream = configFS.open(filePath)
         try
         {
-            ConfigLoader.load(stream)
+            ConfigReader.read(stream)
         }
         finally
         {

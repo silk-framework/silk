@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopInstanceCache
 import org.apache.hadoop.fs.{FileSystem, Path}
-import de.fuberlin.wiwiss.silk.config.ConfigLoader
+import de.fuberlin.wiwiss.silk.config.ConfigReader
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 
 object SilkConfiguration
@@ -35,7 +35,7 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
     lazy val config =
     {
         DefaultImplementations.register()
-        ConfigLoader.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
+        ConfigReader.read(cacheFS.open(instanceCachePath.suffix("/config.xml")))
     }
 
     lazy val linkSpec =

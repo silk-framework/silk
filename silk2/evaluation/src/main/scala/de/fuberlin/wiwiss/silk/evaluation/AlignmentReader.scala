@@ -24,7 +24,6 @@ object AlignmentReader
     def readAlignment(inputStream : InputStream) : Traversable[Link] =
     {
         readAlignment(XML.load(inputStream))
-
     }
 
     def readAlignment(file : File) : Traversable[Link] =
