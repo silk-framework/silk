@@ -12,7 +12,7 @@ object AlignmentWriter
              xmlns:xsd='http://www.w3.org/2001/XMLSchema#'
              xmlns:align='http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'>
       <Alignment>{
-        for(link <- alignment)
+        for(link <- alignment) yield
         {
           <map>
             <Cell>

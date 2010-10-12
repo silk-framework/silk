@@ -1,9 +1,118 @@
 <lift:surround with="default" at="content">
-  <h2>Test</h2>
+  <h2>Generate Links</h2>
+  <h3>Generate Links from RDF/XML</h3>
   <p>
-    <form action="api/post" method="post" enctype="multipart/form-data">
+    <form action="api/generateLinks" method="post">
+      <textarea rows="100" cols="120" name="data"><![CDATA[<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:dbpedia="http://dbpedia.org/ontology/"
+    xmlns:diseasome="http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:d2r="http://sites.wiwiss.fu-berlin.de/suhl/bizer/d2r-server/config.rdf#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:map="file:/C:/apps/sider/sider.n3#"
+    xmlns:sider="http://www4.wiwiss.fu-berlin.de/sider/resource/sider/"
+    xmlns:vocabClass="http://www4.wiwiss.fu-berlin.de/drugbank/vocab/resource/class/"
+    xmlns:db="http://www4.wiwiss.fu-berlin.de/sider/resource/"
+    xmlns:vocabProperty="http://www4.wiwiss.fu-berlin.de/drugbank/vocab/resource/property/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:drugbank="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/">
+  <rdf:Description rdf:about="http://www4.wiwiss.fu-berlin.de/sider/data/drugs/3100">
+    <rdfs:label>RDF Description of diphenhydramine</rdfs:label>
+    <foaf:primaryTopic>
+      <sider:drugs rdf:about="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/3100">
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0027497"/>
+        <foaf:page>
+          <rdf:Description rdf:about="http://stitch.embl.de/cgi/show_network_section.pl?identifier=-CID0000003100&amp;input_query_species=9606">
+            <rdfs:seeAlso rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/sparql?query=DESCRIBE+%3Chttp%3A%2F%2Fstitch.embl.de%2Fcgi%2Fshow_network_section.pl%3Fidentifier%3D-CID0000003100%26input_query_species%3D9606%3E"/>
+          </rdf:Description>
+        </foaf:page>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0030554"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0085593"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0040264"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0002871"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0015672"/>
+        <foaf:page>
+          <rdf:Description rdf:about="http://sideeffects.embl.de/drugs/3100">
+            <rdfs:seeAlso rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/sparql?query=DESCRIBE+%3Chttp%3A%2F%2Fsideeffects.embl.de%2Fdrugs%2F3100%3E"/>
+          </rdf:Description>
+        </foaf:page>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0080274"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0677481"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0011991"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0027813"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0040034"/>
+        <owl:sameAs>
+          <rdf:Description rdf:about="http://www.dbpedia.org/resource/Diphenhydramine">
+            <rdfs:seeAlso rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/sparql?query=DESCRIBE+%3Chttp%3A%2F%2Fwww.dbpedia.org%2Fresource%2FDiphenhydramine%3E"/>
+          </rdf:Description>
+        </owl:sameAs>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0009806"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0027424"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0349506"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0022893"/>
+        <owl:sameAs>
+          <rdf:Description rdf:about="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB01075">
+            <rdfs:seeAlso rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/sparql?query=DESCRIBE+%3Chttp%3A%2F%2Fwww4.wiwiss.fu-berlin.de%2Fdrugbank%2Fresource%2Fdrugs%2FDB01075%3E"/>
+          </rdf:Description>
+        </owl:sameAs>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0242422"/>
+        <sider:siderDrugId>3100</sider:siderDrugId>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0039231"/>
+        <owl:sameAs>
+          <rdf:Description rdf:about="http://www4.wiwiss.fu-berlin.de/stitch/resource/chemicals/CID0000003100">
+            <rdfs:seeAlso rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/sparql?query=DESCRIBE+%3Chttp%3A%2F%2Fwww4.wiwiss.fu-berlin.de%2Fstitch%2Fresource%2Fchemicals%2FCID0000003100%3E"/>
+          </rdf:Description>
+        </owl:sameAs>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0012569"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0013144"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0042571"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0009951"/>
+        <sider:drugName>diphenhydramine</sider:drugName>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0917801"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0020649"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0030252"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0085631"/>
+        <sider:drugName>Diphenhydramine</sider:drugName>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0040822"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0003123"/>
+        <rdfs:label>diphenhydramine</rdfs:label>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0002994"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0343065"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0027769"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0002878"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0038990"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C1527304"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0002792"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0043144"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0042963"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0022107"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0015170"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0011609"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0344232"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0018681"/>
+        <sider:stitchId>CID0000003100</sider:stitchId>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0026603"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0001824"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0012833"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0009763"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0009676"/>
+        <sider:sideEffect rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/side_effects/C0042109"/>
+      </sider:drugs>
+    </foaf:primaryTopic>
+  </rdf:Description>
+</rdf:RDF>
+]]></textarea>
+      <input type="submit" value="generate" />
+    </form>
+  </p>
+  <h3>Generate Links from an RDF/XML file</h3>  
+  <p>
+    <form action="api/generateLinks" method="post" enctype="multipart/form-data">
       <input name="File" type="file" size="50" maxlength="100000" accept="text/*" />
-      <input type="submit" value="match" /> 
+      <input type="submit" value="generate" />
     </form>
   </p>
 </lift:surround>
