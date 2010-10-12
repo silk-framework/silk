@@ -40,7 +40,7 @@ object ConfigWriter
     def serializeLinkSpec(linkSpec : LinkSpecification) =
     {
         <Interlink id={linkSpec.id}>
-          <LinkType>{linkSpec.linkType}</LinkType>
+          <LinkType>{"<" + linkSpec.linkType + ">"}</LinkType>
 
           <SourceDataset dataSource="source" var={linkSpec.sourceDataset.variable}>
             <RestrictTo>{linkSpec.sourceDataset.restriction}</RestrictTo>

@@ -2,9 +2,9 @@ package de.fuberlin.wiwiss.silk.util.sparql
 
 import xml.{XML, Elem}
 import java.util.logging.{Level, Logger}
-import java.net.{HttpURLConnection, URL, URLEncoder}
 import io.Source
 import java.io.IOException
+import java.net.{URI, HttpURLConnection, URL, URLEncoder}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -15,7 +15,7 @@ import java.io.IOException
  * @param retryCount The number of retries if a query fails
  * @param initialRetryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  */
-class RemoteSparqlEndpoint(val uri : String, val pageSize : Int = 1000, val pauseTime : Int = 0,
+class RemoteSparqlEndpoint(val uri : URI, val pageSize : Int = 1000, val pauseTime : Int = 0,
                            val retryCount : Int = 3, val initialRetryPause : Int = 1000) extends SparqlEndpoint
 {
     private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)

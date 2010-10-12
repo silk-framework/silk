@@ -17,7 +17,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     private val targetCache = new MemoryInstanceCache()
     new Loader(config, linkSpec).writeCaches(sourceCache, targetCache)
 
-    private val (sourceInstanceSpec, targetInstanceSpec) = InstanceSpecification.retrieve(config, linkSpec)
+    private val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
 
     /**
      * Matches a set of instances with all instances in this dataset.
@@ -42,7 +42,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
         val writer = new MemoryWriter()
         val matcher = new Matcher(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil))
 
-        val instances = instanceSource.retrieve(sourceInstanceSpec).toList
+        val instances = instanceSource.retrieve(instanceSpecs.source).toList
         instanceCache.write(instances)
         if(instanceCache.instanceCount > 0)
         {
