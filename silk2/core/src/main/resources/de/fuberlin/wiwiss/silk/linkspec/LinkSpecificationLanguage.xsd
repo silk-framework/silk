@@ -41,7 +41,7 @@
   <xs:element name="Aggregate">
     <xs:complexType>
       <xs:sequence>
-        <xs:choice maxOccurs="unbounded">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Aggregate" />
           <xs:element ref="Compare" />
         </xs:choice>
