@@ -68,8 +68,8 @@ trait InstanceCache
         {
           currentBlock = (blockNode \ "@id" text).toInt
 
-          for(partitionNode <- blockNode;
-              instanceNode <- partitionNode.child)
+          for(partitionNode <- blockNode \ "Partition";
+              instanceNode <- partitionNode \ "_")
           {
             f(Instance.fromXML(instanceNode))
           }
