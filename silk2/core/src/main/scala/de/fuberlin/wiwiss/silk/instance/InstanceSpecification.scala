@@ -35,7 +35,7 @@ object InstanceSpecification
 {
   def empty = new InstanceSpecification("a", "", Traversable.empty, Map.empty)
 
-  def fromXML(node : Node, prefixes : Map[String, String]) =
+  def fromXML(node : Node) =
   {
     new InstanceSpecification(
       variable = node \ "Variable" text,

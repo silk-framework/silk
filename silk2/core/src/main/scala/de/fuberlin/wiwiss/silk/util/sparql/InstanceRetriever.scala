@@ -87,8 +87,10 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
      */
     def retrieveInstance(instanceUri : String, instanceSpec : InstanceSpecification) : Option[Instance] =
     {
-        //Query 5 paths at once and combine the result into one
-        val pathGroups = instanceSpec.paths.toList.grouped(5).toList
+        //Query only a number of paths at once and combine the result into one
+        val pathsPerQuery = 1
+
+        val pathGroups = instanceSpec.paths.toList.grouped(pathsPerQuery).toList
 
         val sparqlResults = pathGroups.flatMap(pathGroup => retrievePaths(instanceUri, pathGroup, instanceSpec.prefixes))
 

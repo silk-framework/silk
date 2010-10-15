@@ -8,5 +8,7 @@ class SourceTargetPair[T](sourceValue : T, targetValue : T) extends Pair[T, T](s
 
 object SourceTargetPair
 {
+  implicit def fromPair[T](pair : (T, T)) = new SourceTargetPair(pair._1, pair._2)
+
   def apply[T](sourceValue : T, targetValue : T) = new SourceTargetPair(sourceValue, targetValue)
 }
