@@ -7,14 +7,14 @@ import linkspec.LinkSpecification
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import java.util.logging.{Level, Logger}
 import output.Link
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent. {ExecutorService, Executors, TimeUnit}
 
 /**
  * Executes the matching.
  */
 class MatchTask(config : Configuration, linkSpec : LinkSpecification,
                 sourceCache : InstanceCache, targetCache : InstanceCache,
-                numThreads : Int = Silk.DefaultThreads) extends Task[Unit]
+                reload : Boolean = true, numThreads : Int = Silk.DefaultThreads) extends Task[Unit]
 {
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
 
@@ -28,7 +28,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
     val startTime = System.currentTimeMillis()
     logger.info("Starting matching")
 
-    var links = generateLinks(sourceCache, targetCache)
+    var links = generateLinks()
     links = filterLinks(links)
     writeOutput(links)
 
@@ -38,18 +38,28 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
   /**
    * Generates links between the instances according to the link specification.
    */
-  private def generateLinks(sourceCache : InstanceCache, targetCache : InstanceCache) : Buffer[Link] =
+  private def generateLinks() : Buffer[Link] =
   {
     val executor = Executors.newFixedThreadPool(numThreads)
     val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
-    for(blockIndex <- 0 until sourceCache.blockCount;
-        sourcePartitionIndex <- 0 until sourceCache.partitionCount(blockIndex);
-        targetPartitionIndex <- 0 until targetCache.partitionCount(blockIndex))
+    //Load instances into cache
+    val loadSourceCacheTask = new LoadTask(config, linkSpec, Some(sourceCache), None)
+    val loadTargetCacheTask = new LoadTask(config, linkSpec, None, Some(targetCache))
+    if(reload)
     {
-      executor.submit(new MatchingThread(sourceCache, targetCache, blockIndex, sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
+      loadSourceCacheTask.runInBackground()
+      loadTargetCacheTask.runInBackground()
     }
 
+    //Start matching thread scheduler
+    val schedulerThread = new Thread(new SchedulerThread(executor, link => linkBuffer.append(link),
+                                                         () => loadSourceCacheTask.isRunning,
+                                                         () => loadTargetCacheTask.isRunning))
+    schedulerThread.start()
+
+    //Await termination of the matching tasks
+    schedulerThread.join()
     executor.shutdown()
     executor.awaitTermination(1000, TimeUnit.DAYS)
 
@@ -100,12 +110,95 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
   }
 
   /**
-   * A thread, which matches the instances of a single partition.
+   * Monitors the instance caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class MatchingThread(sourceCache : InstanceCache, targetCache : InstanceCache, blockIndex : Int,
-                          sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
+  private class SchedulerThread(executor : ExecutorService, callback : Link => Unit,
+                                loadingSourceCache : () => Boolean, loadingTargetCache : () => Boolean) extends Runnable
   {
-    override def run() : Unit =
+    var sourcePartitions = new Array[Int](sourceCache.blockCount)
+    var targetPartitions = new Array[Int](targetCache.blockCount)
+
+    override def run()
+    {
+      while(true)
+      {
+        val sourceLoaded = !loadingSourceCache()
+        val targetLoaded = !loadingTargetCache()
+
+        updateSourcePartitions(sourceLoaded)
+        updateTargetPartitions(targetLoaded)
+
+        if(sourceLoaded && targetLoaded)
+        {
+          return
+        }
+
+        Thread.sleep(1000)
+      }
+    }
+
+    private def updateSourcePartitions(includeLastPartitions : Boolean)
+    {
+      val newSourcePartitions =
+      {
+        for(block <- 0 until sourceCache.blockCount) yield
+        {
+          if(includeLastPartitions)
+          {
+            sourceCache.partitionCount(block)
+          }
+          else
+          {
+            Math.max(0, sourceCache.partitionCount(block) - 1)
+          }
+        }
+      }.toArray
+
+      for(block <- 0 until sourceCache.blockCount;
+          sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
+          targetPartition <- 0 until targetPartitions(block))
+      {
+         executor.submit(new MatchingThread(block, sourcePartition, targetPartition, callback))
+      }
+
+      sourcePartitions = newSourcePartitions
+    }
+
+    private def updateTargetPartitions(includeLastPartitions : Boolean)
+    {
+      val newTargetPartitions =
+      {
+        for(block <- 0 until targetCache.blockCount) yield
+        {
+          if(includeLastPartitions)
+          {
+            targetCache.partitionCount(block)
+          }
+          else
+          {
+            Math.max(0, targetCache.partitionCount(block) - 1)
+          }
+        }
+      }.toArray
+
+      for(block <- 0 until targetCache.blockCount;
+          targetPartition <- targetPartitions(block) until newTargetPartitions(block);
+          sourcePartition <- 0 until sourcePartitions(block))
+      {
+         executor.submit(new MatchingThread(block, sourcePartition, targetPartition, callback))
+      }
+
+      targetPartitions = newTargetPartitions
+    }
+  }
+
+  /**
+   * A thread, which matches the instances of two partitions.
+   */
+  private class MatchingThread(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int,
+                               callback : Link => Unit) extends Runnable
+  {
+    override def run()
     {
       try
       {
@@ -126,7 +219,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           }
         }
 
-        logger.info("Completed match task " + taskNum + " of " + taskCount)
+        logger.info("Completed match task " + taskNum)
       }
       catch
       {

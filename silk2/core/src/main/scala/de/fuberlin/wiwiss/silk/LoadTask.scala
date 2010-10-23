@@ -10,7 +10,8 @@ import linkspec.LinkSpecification
 /**
  * Loads the instance cache
  */
-class LoadTask(config : Configuration, linkSpec : LinkSpecification, sourceCache : InstanceCache, targetCache : InstanceCache) extends Task[Unit]
+class LoadTask(config : Configuration, linkSpec : LinkSpecification,
+               sourceCache : Option[InstanceCache], targetCache : Option[InstanceCache]) extends Task[Unit]
 {
   private val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
 
@@ -19,15 +20,18 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification, sourceCache
   override def execute()
   {
     val startTime = System.currentTimeMillis()
-    logger.info("Loading instances")
 
-    sourceCache.clear()
-    targetCache.clear()
+    for(cache <- sourceCache)
+    {
+      writeSourceCache(cache)
+    }
 
-    //TODO read in parallel
-    writeSourceCache(sourceCache)
-    writeTargetCache(targetCache)
+    for(cache <- targetCache)
+    {
+      writeTargetCache(cache)
+    }
 
+    //TODO separate report for source and target cache
     logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
 
@@ -41,6 +45,7 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification, sourceCache
     val instances = source.retrieve(instanceSpecs.source)
 
     logger.info("Loading instances of source dataset")
+    sourceCache.clear()
     sourceCache.write(instances, linkSpec.blocking)
   }
 
@@ -54,6 +59,7 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification, sourceCache
     val instances = source.retrieve(instanceSpecs.target)
 
     logger.info("Loading instances of target dataset")
+    targetCache.clear()
     targetCache.write(instances, linkSpec.blocking)
   }
 }

@@ -59,6 +59,7 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
    */
   def runInBackground()
   {
+    running = true
     new Thread(toRunnable(this)).start()
   }
 

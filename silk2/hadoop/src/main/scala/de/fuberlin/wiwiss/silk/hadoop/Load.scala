@@ -2,11 +2,11 @@ package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopInstanceCache
 import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigReader}
-import de.fuberlin.wiwiss.silk.Loader
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.LoadTask
 
 /**
  * Populates the instance cache.
@@ -78,7 +78,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
         val sourceCache = new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
         val targetCache = new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
 
-        val loader = new Loader(config, linkSpec, sourceCache, targetCache)
+        val loader = new LoadTask(config, linkSpec, Some(sourceCache), Some(targetCache))
         loader()
     }
 }

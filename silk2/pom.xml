@@ -21,6 +21,7 @@
     <module>hadoop</module>
     <module>jena</module>
     <module>server</module>
+    <module>workbench</module>
   </modules>
 
   <build>
