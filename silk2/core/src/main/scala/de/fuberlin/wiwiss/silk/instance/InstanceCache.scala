@@ -18,7 +18,14 @@ trait InstanceCache
   def read(block : Int, partition : Int) : Array[Instance]
 
   /**
-   * The number of blocks in this cache.
+   * Removes all instances from this cache.
+   */
+  def clear()
+
+  def close()
+
+  /**
+   *  The number of blocks in this cache.
    */
   val blockCount : Int
 
