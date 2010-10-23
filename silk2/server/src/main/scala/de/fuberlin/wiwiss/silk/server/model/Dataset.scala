@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.{Matcher, Loader}
+import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.impl.writer.MemoryWriter
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, MemoryInstanceCache}
@@ -15,7 +15,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
 {
   private val sourceCache = new MemoryInstanceCache()
   private val targetCache = new MemoryInstanceCache()
-  new Loader(config, linkSpec, sourceCache, targetCache)()
+  new LoadTask(config, linkSpec, Some(sourceCache), Some(targetCache))()
 
   private val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
 
@@ -45,7 +45,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     instanceCache.write(instances)
     if(instanceCache.instanceCount > 0)
     {
-      val matcher = new Matcher(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil), instanceCache, targetCache)
+      val matcher = new MatchTask(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil), instanceCache, targetCache)
       matcher()
     }
 

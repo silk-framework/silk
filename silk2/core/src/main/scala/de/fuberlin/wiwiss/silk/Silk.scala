@@ -114,15 +114,8 @@ object Silk
     val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), numBlocks)
     val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), numBlocks)
 
-    //Load instances
-    if(reload)
-    {
-      val loader = new LoadTask(config, linkSpec, sourceCache, targetCache)
-      loader()
-    }
-
     //Execute matching
-    val matcher = new MatchTask(config, linkSpec, sourceCache, targetCache, numThreads)
+    val matcher = new MatchTask(config, linkSpec, sourceCache, targetCache, reload, numThreads)
     matcher()
 
     logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")

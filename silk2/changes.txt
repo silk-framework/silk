@@ -1,0 +1,5 @@
+2.3
+- parallel loading of instance caches in the background while executing matching tasks
+
+2.2
+TODO
