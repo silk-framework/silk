@@ -40,11 +40,15 @@ class MemoryInstanceCache(val blockCount : Int = 1, maxPartitionSize : Int = 100
     }
   }
 
-  def clear()
+  override def clear()
   {
     instanceCounter = 0
     blocks = IndexedSeq.fill(blockCount)(new Block)
     allInstances = Set[String]()
+  }
+
+  override def close()
+  {
   }
 
   def instanceCount = instanceCounter

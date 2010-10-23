@@ -21,6 +21,9 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification, sourceCache
     val startTime = System.currentTimeMillis()
     logger.info("Loading instances")
 
+    sourceCache.clear()
+    targetCache.clear()
+
     //TODO read in parallel
     writeSourceCache(sourceCache)
     writeTargetCache(targetCache)

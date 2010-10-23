@@ -47,7 +47,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
         sourcePartitionIndex <- 0 until sourceCache.partitionCount(blockIndex);
         targetPartitionIndex <- 0 until targetCache.partitionCount(blockIndex))
     {
-      executor.submit(new MatchTask(sourceCache, targetCache, blockIndex, sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
+      executor.submit(new MatchingThread(sourceCache, targetCache, blockIndex, sourcePartitionIndex, targetPartitionIndex, link => linkBuffer.append(link)))
     }
 
     executor.shutdown()
@@ -100,9 +100,9 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
   }
 
   /**
-   * A match task, which matches the instances of a single partition.
+   * A thread, which matches the instances of a single partition.
    */
-  private class MatchTask(sourceCache : InstanceCache, targetCache : InstanceCache, blockIndex : Int,
+  private class MatchingThread(sourceCache : InstanceCache, targetCache : InstanceCache, blockIndex : Int,
                           sourcePartitionIndex : Int, targetPartitionIndex : Int, callback : Link => Unit) extends Runnable
   {
     override def run() : Unit =
