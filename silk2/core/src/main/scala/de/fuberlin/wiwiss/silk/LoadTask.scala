@@ -19,8 +19,6 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
   override def execute()
   {
-    val startTime = System.currentTimeMillis()
-
     for(cache <- sourceCache)
     {
       writeSourceCache(cache)
@@ -32,9 +30,6 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
       writeTargetCache(cache)
       cache.close()
     }
-
-    //TODO separate report for source and target cache
-    logger.info("Loaded instances in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
 
   private def writeSourceCache(sourceCache : InstanceCache)
@@ -44,11 +39,14 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
   private def writeSourceCache(sourceCache : InstanceCache, source : Source)
   {
-    val instances = source.retrieve(instanceSpecs.source)
-
+    val startTime = System.currentTimeMillis()
     logger.info("Loading instances of source dataset")
+
+    val instances = source.retrieve(instanceSpecs.source)
     sourceCache.clear()
     sourceCache.write(instances, linkSpec.blocking)
+
+    logger.info("Loaded instances of source dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
 
   private def writeTargetCache(targetCache : InstanceCache)
@@ -58,10 +56,13 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
   private def writeTargetCache(targetCache : InstanceCache, source : Source)
   {
-    val instances = source.retrieve(instanceSpecs.target)
-
+    val startTime = System.currentTimeMillis()
     logger.info("Loading instances of target dataset")
+
+    val instances = source.retrieve(instanceSpecs.target)
     targetCache.clear()
     targetCache.write(instances, linkSpec.blocking)
+
+    logger.info("Loaded instances of target dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
 }

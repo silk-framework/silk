@@ -133,13 +133,13 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
     def write(instance : Instance)
     {
+      if(lastPartitionSize == 0)
+      {
+        partitionCount += 1
+      }
+
       lastPartition(lastPartitionSize) = instance
       lastPartitionSize += 1
-
-      if(partitionCount == 0)
-      {
-        partitionCount = 1
-      }
 
       if(lastPartitionSize == maxPartitionSize)
       {
@@ -204,7 +204,6 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
       }
 
       logger.info("Written partition " + (partitionCount - 1) + " of block " + block)
-      partitionCount += 1
     }
   }
 }
