@@ -114,9 +114,33 @@ object Silk
     val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), numBlocks)
     val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), numBlocks)
 
+    //Load instances into cache
+    if(reload)
+    {
+      val loadSourceCacheTask = new LoadTask(config, linkSpec, Some(sourceCache), None)
+      val loadTargetCacheTask = new LoadTask(config, linkSpec, None, Some(targetCache))
+
+      loadSourceCacheTask.runInBackground()
+      loadTargetCacheTask.runInBackground()
+
+      //Wait until caches are being written
+      while((loadSourceCacheTask.isRunning && !sourceCache.isWriting) || (loadTargetCacheTask.isRunning && !targetCache.isWriting))
+      {
+        Thread.sleep(100)
+      }
+    }
+
     //Execute matching
-    val matcher = new MatchTask(config, linkSpec, sourceCache, targetCache, reload, numThreads)
-    matcher()
+    val matchTask = new MatchTask(config, linkSpec, sourceCache, targetCache, numThreads)
+    val links = matchTask()
+
+    //Filter links
+    val filterTask = new FilterTask(linkSpec, links)
+    val filteredLinks = filterTask()
+
+    //Write links
+    val outputTask = new OutputTask(config, linkSpec, filteredLinks)
+    outputTask()
 
     logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }

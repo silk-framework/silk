@@ -1,12 +1,13 @@
 package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.config.Configuration
-import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.impl.writer.MemoryWriter
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, MemoryInstanceCache}
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.output.{Link, Output}
+import collection.mutable.{Buffer, ArrayBuffer}
 
 /**
  * Holds the dataset of a link specification.
@@ -39,17 +40,18 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
   private def generateLinks(instanceSource : DataSource) =
   {
     val instanceCache = new MemoryInstanceCache()
-    val writer = new MemoryWriter()
 
     val instances = instanceSource.retrieve(instanceSpecs.source).toList
     instanceCache.write(instances)
+
+    var links : Buffer[Link] = new ArrayBuffer[Link]()
     if(instanceCache.instanceCount > 0)
     {
-      val matcher = new MatchTask(config.copy(outputs = Nil), linkSpec.copy(outputs = new Output(writer) :: Nil), instanceCache, targetCache)
-      matcher()
+      val matcher = new MatchTask(config, linkSpec, instanceCache, targetCache)
+      links = matcher()
     }
 
-    val matchedInstances = writer.links.map(_.sourceUri).toSet
+    val matchedInstances = links.map(_.sourceUri).toSet
     val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
 
     if(writeUnmatchedInstances)
@@ -57,7 +59,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
       targetCache.write(unmatchedInstances, linkSpec.blocking)
     }
 
-    MatchResult(writer.links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)
+    MatchResult(links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)
   }
 
   def sourceInstanceCount = sourceCache.instanceCount

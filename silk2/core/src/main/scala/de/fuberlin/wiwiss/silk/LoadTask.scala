@@ -24,11 +24,13 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
     for(cache <- sourceCache)
     {
       writeSourceCache(cache)
+      cache.close()
     }
 
     for(cache <- targetCache)
     {
       writeTargetCache(cache)
+      cache.close()
     }
 
     //TODO separate report for source and target cache

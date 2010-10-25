@@ -12,6 +12,8 @@ trait InstanceCache
    */
   def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None) : Unit
 
+  def isWriting : Boolean
+
   /**
    * Reads a partition of a block.
    */
