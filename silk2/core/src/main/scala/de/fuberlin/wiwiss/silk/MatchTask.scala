@@ -19,6 +19,8 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 {
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
 
+  private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
+
   /**
    * Executes the matching.
    */
@@ -30,7 +32,6 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
     val startTime = System.currentTimeMillis()
     val executor = Executors.newFixedThreadPool(numThreads)
-    val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
     //Start matching thread scheduler
     val schedulerThread = new Thread(new SchedulerThread(executor, link => linkBuffer.append(link)))
@@ -45,6 +46,8 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
     linkBuffer
   }
+
+  def links : Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
 
   /**
    * Monitors the instance caches and schedules new matching threads whenever a new partition has been loaded.
