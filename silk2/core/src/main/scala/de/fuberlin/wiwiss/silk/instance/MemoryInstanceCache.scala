@@ -13,16 +13,29 @@ class MemoryInstanceCache(val blockCount : Int = 1, maxPartitionSize : Int = 100
 
   private var instanceCounter = 0
 
+  @volatile private var writing = false
+
   /**
    * Writes to this cache.
    */
   override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
   {
-    for(instance <- instances)
+    writing = true
+
+    try
     {
-      add(instance, blockingFunction)
+      for(instance <- instances)
+      {
+        add(instance, blockingFunction)
+      }
+    }
+    finally
+    {
+      writing = false
     }
   }
+
+  override def isWriting = writing
 
   /**
    * Adds a single instance to the cache.

@@ -11,6 +11,6 @@ case class LinkSpecification(val id : String, val linkType : String, val sourceD
                              val targetDataset : DatasetSpecification, val blocking : Option[Blocking], val condition : LinkCondition,
                              val filter : LinkFilter, val outputs : Traversable[Output])
 {
-   require(id.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')),
-           "A link specification ID may only contain alphanumeric characters (a - z, 0 - 9). The following id is not valid: '" + id + "'")
+  require(id.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')),
+          "A link specification ID may only contain alphanumeric characters (a - z, 0 - 9). The following id is not valid: '" + id + "'")
 }

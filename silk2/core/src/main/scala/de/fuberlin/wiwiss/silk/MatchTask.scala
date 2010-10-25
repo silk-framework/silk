@@ -11,51 +11,29 @@ import java.util.concurrent. {ExecutorService, Executors, TimeUnit}
 
 /**
  * Executes the matching.
+ * Generates links between the instances according to the link specification.
  */
 class MatchTask(config : Configuration, linkSpec : LinkSpecification,
                 sourceCache : InstanceCache, targetCache : InstanceCache,
-                reload : Boolean = true, numThreads : Int = Silk.DefaultThreads) extends Task[Unit]
+                numThreads : Int = Silk.DefaultThreads) extends Task[Buffer[Link]]
 {
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
 
   /**
    * Executes the matching.
    */
-  override def execute()
+  override def execute() : Buffer[Link] =
   {
     require(sourceCache.blockCount == targetCache.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
-    val startTime = System.currentTimeMillis()
     logger.info("Starting matching")
 
-    var links = generateLinks()
-    links = filterLinks(links)
-    writeOutput(links)
-
-    logger.info("Executed matching in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
-  }
-
-  /**
-   * Generates links between the instances according to the link specification.
-   */
-  private def generateLinks() : Buffer[Link] =
-  {
+    val startTime = System.currentTimeMillis()
     val executor = Executors.newFixedThreadPool(numThreads)
     val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
-    //Load instances into cache
-    val loadSourceCacheTask = new LoadTask(config, linkSpec, Some(sourceCache), None)
-    val loadTargetCacheTask = new LoadTask(config, linkSpec, None, Some(targetCache))
-    if(reload)
-    {
-      loadSourceCacheTask.runInBackground()
-      loadTargetCacheTask.runInBackground()
-    }
-
     //Start matching thread scheduler
-    val schedulerThread = new Thread(new SchedulerThread(executor, link => linkBuffer.append(link),
-                                                         () => loadSourceCacheTask.isRunning,
-                                                         () => loadTargetCacheTask.isRunning))
+    val schedulerThread = new Thread(new SchedulerThread(executor, link => linkBuffer.append(link)))
     schedulerThread.start()
 
     //Await termination of the matching tasks
@@ -63,57 +41,15 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
     executor.shutdown()
     executor.awaitTermination(1000, TimeUnit.DAYS)
 
+    logger.info("Executed matching in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+
     linkBuffer
-  }
-
-  /**
-   * Filters the links according to the link limit.
-   */
-  private def filterLinks(links : Buffer[Link]) : Buffer[Link] =
-  {
-    linkSpec.filter.limit match
-    {
-      case Some(limit) =>
-      {
-        val linkBuffer = new ArrayBuffer[Link]()
-        logger.info("Filtering output")
-
-        for((sourceUri, groupedLinks) <- links.groupBy(_.sourceUri))
-        {
-          val bestLinks = groupedLinks.sortWith(_.confidence > _.confidence).take(limit)
-
-          linkBuffer.appendAll(bestLinks)
-        }
-
-        linkBuffer
-      }
-      case None => links
-    }
-  }
-
-  /**
-   * Writes the links to the output.
-   */
-  private def writeOutput(linkBuffer : Buffer[Link]) =
-  {
-    val outputs = config.outputs ++ linkSpec.outputs
-
-    outputs.foreach(_.open)
-
-    for(link <- linkBuffer;
-        output <- outputs)
-    {
-      output.write(link, linkSpec.linkType)
-    }
-
-    outputs.foreach(_.close)
   }
 
   /**
    * Monitors the instance caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor : ExecutorService, callback : Link => Unit,
-                                loadingSourceCache : () => Boolean, loadingTargetCache : () => Boolean) extends Runnable
+  private class SchedulerThread(executor : ExecutorService, callback : Link => Unit) extends Runnable
   {
     var sourcePartitions = new Array[Int](sourceCache.blockCount)
     var targetPartitions = new Array[Int](targetCache.blockCount)
@@ -122,8 +58,8 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
     {
       while(true)
       {
-        val sourceLoaded = !loadingSourceCache()
-        val targetLoaded = !loadingTargetCache()
+        val sourceLoaded = !sourceCache.isWriting
+        val targetLoaded = !targetCache.isWriting
 
         updateSourcePartitions(sourceLoaded)
         updateTargetPartitions(targetLoaded)

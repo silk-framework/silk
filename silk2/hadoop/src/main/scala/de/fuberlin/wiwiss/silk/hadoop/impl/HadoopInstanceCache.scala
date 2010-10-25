@@ -18,31 +18,44 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
 
   private val blocks = (for(i <- 0 until blockCount) yield new BlockReader(i)).toArray
 
+  @volatile private var writing = false
+
   override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
   {
-    fs.delete(path, true)
+    writing = true
 
-    val blockWriters = (for(i <- 0 until blockCount) yield new BlockWriter(i)).toArray
-    var instanceCount = 0
-
-    for(instance <- instances)
+    try
     {
-      for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
-      {
-        if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
+      fs.delete(path, true)
 
-        blockWriters(block).write(instance)
+      val blockWriters = (for(i <- 0 until blockCount) yield new BlockWriter(i)).toArray
+      var instanceCount = 0
+
+      for(instance <- instances)
+      {
+        for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+        {
+          if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
+
+          blockWriters(block).write(instance)
+        }
+
+        instanceCount += 1
       }
 
-      instanceCount += 1
+      blockWriters.foreach(_.close())
+
+      blocks.foreach(_.reload())
+
+      logger.info("Written " + instanceCount + " instances.")
     }
-
-    blockWriters.foreach(_.close())
-
-    blocks.foreach(_.reload())
-
-    logger.info("Written " + instanceCount + " instances.")
+    finally
+    {
+      writing = false
+    }
   }
+
+  override def isWriting = writing
 
   override def read(block : Int, partition : Int) =
   {

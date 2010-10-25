@@ -16,24 +16,36 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
   private val blocks = (for(i <- 0 until blockCount) yield new Block(i)).toArray
 
+  @volatile private var writing = false
+
   override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
   {
+    writing = true
     var instanceCount = 0
 
-    for(instance <- instances)
+    try
     {
-      for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+      for(instance <- instances)
       {
-        if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
+        for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+        {
+          if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
 
-        blocks(block).write(instance)
+          blocks(block).write(instance)
+        }
+
+        instanceCount += 1
       }
 
-      instanceCount += 1
+      logger.info("Written " + instanceCount + " instances.")
     }
-
-    logger.info("Written " + instanceCount + " instances.")
+    finally
+    {
+      writing = false
+    }
   }
+
+  override def isWriting = writing
 
   override def read(block : Int, partition : Int) =
   {
