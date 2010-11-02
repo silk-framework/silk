@@ -7,7 +7,7 @@ import linkspec.LinkSpecification
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import java.util.logging.{Level, Logger}
 import output.Link
-import java.util.concurrent. {ExecutorService, Executors, TimeUnit}
+import java.util.concurrent._
 
 /**
  * Executes the matching.
@@ -21,6 +21,8 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
+  def links : Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
+
   /**
    * Executes the matching.
    */
@@ -28,34 +30,43 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
   {
     require(sourceCache.blockCount == targetCache.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
-    logger.info("Starting matching")
-
     val startTime = System.currentTimeMillis()
-    val executor = Executors.newFixedThreadPool(numThreads)
+    val executor = new ExecutorCompletionService[Traversable[Link]](Executors.newFixedThreadPool(numThreads))
 
     //Start matching thread scheduler
-    val schedulerThread = new Thread(new SchedulerThread(executor, link => linkBuffer.append(link)))
-    schedulerThread.start()
+    val scheduler = new SchedulerThread(executor)
+    scheduler.start()
+    updateStatus("Loading", 0.0)
 
-    //Await termination of the matching tasks
-    schedulerThread.join()
-    executor.shutdown()
-    executor.awaitTermination(1000, TimeUnit.DAYS)
+    //Process finished tasks
+    var finishedTasks = 0
+    while(scheduler.isAlive || finishedTasks < scheduler.taskCount)
+    {
+      val result = executor.poll(100, TimeUnit.MILLISECONDS)
+      if(result != null)
+      {
+        links.appendAll(result.get)
+        finishedTasks += 1
+
+        val status = if(scheduler.isAlive) "Executing Matching (Still loading) " else "Executing Matching "
+        updateStatus(status + finishedTasks + " tasks finished", finishedTasks.toDouble / scheduler.taskCount)
+      }
+    }
 
     logger.info("Executed matching in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
 
     linkBuffer
   }
 
-  def links : Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
-
   /**
    * Monitors the instance caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor : ExecutorService, callback : Link => Unit) extends Runnable
+  private class SchedulerThread(executor : CompletionService[Traversable[Link]]) extends Thread
   {
-    var sourcePartitions = new Array[Int](sourceCache.blockCount)
-    var targetPartitions = new Array[Int](targetCache.blockCount)
+    @volatile var taskCount = 0
+
+    private var sourcePartitions = new Array[Int](sourceCache.blockCount)
+    private var targetPartitions = new Array[Int](targetCache.blockCount)
 
     override def run()
     {
@@ -97,7 +108,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
           targetPartition <- 0 until targetPartitions(block))
       {
-         executor.submit(new MatchingThread(block, sourcePartition, targetPartition, callback))
+        newMatcher(block, sourcePartition, targetPartition)
       }
 
       sourcePartitions = newSourcePartitions
@@ -124,29 +135,31 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           targetPartition <- targetPartitions(block) until newTargetPartitions(block);
           sourcePartition <- 0 until sourcePartitions(block))
       {
-         executor.submit(new MatchingThread(block, sourcePartition, targetPartition, callback))
+        newMatcher(block, sourcePartition, targetPartition)
       }
 
       targetPartitions = newTargetPartitions
     }
+
+    private def newMatcher(block : Int, sourcePartition : Int, targetPartition : Int)
+    {
+      logger.info("Starting matcher " + (taskCount + 1))
+      executor.submit(new Matcher(block, sourcePartition, targetPartition))
+      taskCount += 1
+    }
   }
 
   /**
-   * A thread, which matches the instances of two partitions.
+   * Matches the instances of two partitions.
    */
-  private class MatchingThread(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int,
-                               callback : Link => Unit) extends Runnable
+  private class Matcher(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int) extends Callable[Traversable[Link]]
   {
-    override def run()
+    override def call() : Traversable[Link] =
     {
+      var links = List[Link]()
+
       try
       {
-        val tasksPerBlock = for(block <- 0 until sourceCache.blockCount) yield sourceCache.partitionCount(block) * targetCache.partitionCount(block)
-        val taskNum = tasksPerBlock.take(blockIndex).foldLeft(sourcePartitionIndex * targetCache.partitionCount(blockIndex) + targetPartitionIndex + 1)(_ + _)
-        val taskCount = tasksPerBlock.reduceLeft(_ + _)
-
-        logger.info("Starting match task " + taskNum + " of " + taskCount)
-
         for(sourceInstance <- sourceCache.read(blockIndex, sourcePartitionIndex);
             targetInstance <- targetCache.read(blockIndex, targetPartitionIndex))
         {
@@ -154,16 +167,16 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
           if(confidence >= linkSpec.filter.threshold)
           {
-            callback(new Link(sourceInstance.uri, targetInstance.uri, confidence))
+            links ::= new Link(sourceInstance.uri, targetInstance.uri, confidence)
           }
         }
-
-        logger.info("Completed match task " + taskNum)
       }
       catch
       {
         case ex : Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
       }
+
+      links
     }
   }
 }

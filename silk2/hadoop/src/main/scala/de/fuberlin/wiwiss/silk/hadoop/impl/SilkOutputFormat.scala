@@ -22,7 +22,7 @@ class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
     {
         override def write(sourceUri : Text, instanceSimilarity : InstanceSimilarity) : Unit =
         {
-            val line = sourceUri + " " + config.linkSpec.linkType + " " + instanceSimilarity.targetUri + ".\n"
+            val line = "<" + sourceUri + "> <" + config.linkSpec.linkType + "> <" + instanceSimilarity.targetUri + "> .\n"
             out.write(line.getBytes("UTF-8"))
         }
 
