@@ -94,9 +94,13 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
    */
   protected def execute() : T
 
-  protected def executeSubTask[R](task : Task[R], finalProgress : Double = 1.0) : R =
+  protected def executeSubTask[R](subTask : Task[R], finalProgress : Double = 1.0) : R =
   {
     require(finalProgress >= progress, "finalProgress >= progress")
+
+    //Disable logging of the subtask as this task will do the logging
+    val subTaskLogLevel = subTask.logLevel
+    subTask.logLevel = Level.OFF
 
     //Subscribe to status changes of the sub task
     val subscriber = new Subscriber[StatusMessage, Publisher[StatusMessage]]
@@ -123,12 +127,13 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
     //Start sub task
     try
     {
-      subscribe(subscriber)
-      task()
+      subTask.subscribe(subscriber)
+      subTask()
     }
     finally
     {
-      removeSubscription(subscriber)
+      subTask.removeSubscription(subscriber)
+      subTask.logLevel = subTaskLogLevel
     }
   }
 

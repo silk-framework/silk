@@ -83,7 +83,7 @@ class Match(inputPath : String, outputPath : String, linkSpec : Option[String], 
     private def runJob(job : Job)
     {
         val startTime = System.currentTimeMillis()
-        logger.info("Running MapReduc job")
+        logger.info("Running MapReduce job")
 
         job.waitForCompletion(true)
 
