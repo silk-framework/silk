@@ -143,8 +143,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
     private def newMatcher(block : Int, sourcePartition : Int, targetPartition : Int)
     {
-      logger.info("Starting matcher " + (taskCount + 1))
-      executor.submit(new Matcher(block, sourcePartition, targetPartition))
+      executor.submit(new Matcher(taskCount + 1, block, sourcePartition, targetPartition))
       taskCount += 1
     }
   }
@@ -152,10 +151,12 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
   /**
    * Matches the instances of two partitions.
    */
-  private class Matcher(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int) extends Callable[Traversable[Link]]
+  private class Matcher(id : Int, blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int) extends Callable[Traversable[Link]]
   {
     override def call() : Traversable[Link] =
     {
+      logger.info("Starting matcher " + id)
+
       var links = List[Link]()
 
       try
@@ -175,6 +176,8 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
       {
         case ex : Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
       }
+
+      logger.info("Matcher " + id + " generated " + links.size + " links")
 
       links
     }
