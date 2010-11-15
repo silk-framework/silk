@@ -54,7 +54,7 @@
                         </TransformInput>
                     </Compare>
 
-                    <Compare metric="jaroWinkler" weight="2">
+                    <!-- Compare metric="jaroWinkler" weight="2">
                         <TransformInput function="lowerCase">
                             <TransformInput function="replace">
                                 <Input path="?a/rdfs:label" />
@@ -71,7 +71,8 @@
                                 <Param name="replace" value=" " />
                             </TransformInput>
                         </TransformInput>
-                    </Compare>
+                    </Compare -->
+
                 </Aggregate>
             </LinkCondition>
 
