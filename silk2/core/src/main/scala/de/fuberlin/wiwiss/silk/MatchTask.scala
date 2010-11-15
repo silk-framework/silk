@@ -31,7 +31,8 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
     require(sourceCache.blockCount == targetCache.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     val startTime = System.currentTimeMillis()
-    val executor = new ExecutorCompletionService[Traversable[Link]](Executors.newFixedThreadPool(numThreads))
+    val executorService = Executors.newFixedThreadPool(numThreads)
+    val executor = new ExecutorCompletionService[Traversable[Link]](executorService)
 
     //Start matching thread scheduler
     val scheduler = new SchedulerThread(executor)
@@ -48,11 +49,12 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
         links.appendAll(result.get)
         finishedTasks += 1
 
-        val status = if(scheduler.isAlive) "Executing Matching (Still loading) " else "Executing Matching "
-        updateStatus(status + finishedTasks + " tasks finished", finishedTasks.toDouble / scheduler.taskCount)
+        val status = if(scheduler.isAlive) "Executing Matching (Still loading) (" else "Executing Matching ("
+        updateStatus(status + finishedTasks + " tasks finished)", finishedTasks.toDouble / scheduler.taskCount)
       }
     }
 
+    executorService.shutdown()
     logger.info("Executed matching in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
 
     linkBuffer
