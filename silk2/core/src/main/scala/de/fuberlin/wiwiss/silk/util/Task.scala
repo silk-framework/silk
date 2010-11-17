@@ -30,6 +30,8 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
   override final def apply() : T = synchronized
   {
     running = true
+    currentProgress = 0.0
+    currentStatus = "Running"
     publish(Started())
 
     try
@@ -37,7 +39,7 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
       lastResult = Some(execute())
       running = false
       currentProgress = 1.0
-      currentStatus = "Idle"
+      currentStatus = "Done"
       publish(Finished(true))
       lastResult.get
     }
@@ -47,7 +49,7 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
       {
         running = false
         currentProgress = 1.0
-        currentStatus = "Idle"
+        currentStatus = "Done"
         publish(Finished(false, Some(ex)))
         throw ex
       }
