@@ -18,7 +18,7 @@ object Silk
   /**
    * The default number of threads to be used for matching.
    */
-  val DefaultThreads = 4
+  val DefaultThreads = 8
 
   /**
    * The directory the instance cache will be written to
