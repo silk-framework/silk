@@ -6,6 +6,7 @@ import xml.Node
  * A single instance.
  */
 @serializable
+@SerialVersionUID(0)
 class Instance(val variable : String, val uri : String, values : Map[Int, Set[String]])
 {
   def evaluate(path : Path) : Set[String] = values.get(path.id).getOrElse(Set())
