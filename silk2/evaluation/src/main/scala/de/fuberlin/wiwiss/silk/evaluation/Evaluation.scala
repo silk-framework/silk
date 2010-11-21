@@ -19,38 +19,38 @@ object Evaluation
             case _ => throw new IllegalArgumentException("No reference file specified. Please set the 'referenceFile' property")
         }
         
-        val evalAlignment = AlignmentReader.read(evalFile).toSet
-        val referenceAlignment = AlignmentReader.read(referenceFile).toSet
+        val evalAlignment = AlignmentReader.read(evalFile)
+        val referenceAlignment = AlignmentReader.read(referenceFile)
 
-        println("Evaluation aligments: " + evalAlignment.size)
-        println("Reference aligments: " + referenceAlignment.size)
+        //println("Evaluation aligments: " + evalAlignment.size)
+        //println("Reference aligments: " + referenceAlignment.size)
 
-        println(evaluate(evalAlignment, referenceAlignment))
-        printDiff(evalAlignment, referenceAlignment)
+        //println(evaluate(evalAlignment, referenceAlignment))
+        //printDiff(evalAlignment, referenceAlignment)
     }
 
     /**
      * Evaluates a alignment against a reference alignment.
      */
-    def evaluate(evalAlignment : Set[Link], referenceAlignment : Set[Link]) : EvaluationResult =
-    {
-        val intersectionSize = evalAlignment.intersect(referenceAlignment).size
-        new EvaluationResult(intersectionSize / evalAlignment.size, intersectionSize / referenceAlignment.size)
-    }
+//    def evaluate(evalAlignment : Set[Link], referenceAlignment : Set[Link]) : EvaluationResult =
+//    {
+//        val intersectionSize = evalAlignment.intersect(referenceAlignment).size
+//        new EvaluationResult(intersectionSize / evalAlignment.size, intersectionSize / referenceAlignment.size)
+//    }
 
     /**
      * Prints the difference between an evaluation alignment and a reference alignment.
      */
-    def printDiff(evalAlignment : Set[Link], referenceAlignment : Set[Link])
-    {
-        for(falseNegative <- referenceAlignment -- evalAlignment)
-        {
-            println("-" + falseNegative)
-        }
-
-        for(falsePositive <- evalAlignment -- referenceAlignment)
-        {
-            println("+" + falsePositive)
-        }
-    }
+//    def printDiff(evalAlignment : Set[Link], referenceAlignment : Set[Link])
+//    {
+//        for(falseNegative <- referenceAlignment -- evalAlignment)
+//        {
+//            println("-" + falseNegative)
+//        }
+//
+//        for(falsePositive <- evalAlignment -- referenceAlignment)
+//        {
+//            println("+" + falsePositive)
+//        }
+//    }
 }
