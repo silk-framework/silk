@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
-import de.fuberlin.wiwiss.silk.workbench.Task
+import de.fuberlin.wiwiss.silk.util.Task
 import linkspec.LinkSpecification
 import output.Link
 import collection.mutable.{ArrayBuffer, Buffer}

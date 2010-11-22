@@ -1,16 +1,15 @@
-package de.fuberlin.wiwiss.silk.workbench
+package de.fuberlin.wiwiss.silk.util
 
-import de.fuberlin.wiwiss.silk.workbench.Task._
+import de.fuberlin.wiwiss.silk.util.Task._
 import java.util.concurrent.Callable
 import java.util.logging.{Level, Logger}
-import collection.mutable.
-{Subscriber, Publisher}
+import collection.mutable.{Subscriber, Publisher}
 
 /**
  * A task which computes a result.
  * While executing the status of the execution can be queried.
  */
-trait Task[T] extends (() => T) with Publisher[StatusMessage]
+trait Task[+T] extends (() => T) with Publisher[StatusMessage]
 {
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -19,8 +18,6 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
   private var currentProgress = 0.0
 
   private var running = false
-
-  private var lastResult : Option[T] = None
 
   var logLevel = Level.INFO
 
@@ -36,12 +33,12 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
 
     try
     {
-      lastResult = Some(execute())
+      val result = execute()
       running = false
       currentProgress = 1.0
       currentStatus = "Done"
       publish(Finished(true))
-      lastResult.get
+      result
     }
     catch
     {
@@ -85,11 +82,6 @@ trait Task[T] extends (() => T) with Publisher[StatusMessage]
    *  True, if the task is running at the moment; False, otherwise.
    */
   def isRunning = running
-
-  /**
-   * The result of the computation.
-   */
-  def result = lastResult
 
   /**
    *  Must be overridden in subclasses to do the actual computation.

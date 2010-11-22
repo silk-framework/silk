@@ -18,8 +18,9 @@
   <modules>
     <module>core</module>
     <module>evaluation</module>
-    <module>hadoop</module>
     <module>jena</module>
+    <module>singlemachine</module>
+    <module>hadoop</module>
     <module>server</module>
   </modules>
 

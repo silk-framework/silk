@@ -4,7 +4,7 @@ import collection.mutable.Buffer
 import linkspec.LinkSpecification
 import output.Link
 import config.Configuration
-import de.fuberlin.wiwiss.silk.workbench.Task
+import de.fuberlin.wiwiss.silk.util.Task
 
 /**
 * Writes the links to the output.

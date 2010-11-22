@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 
 trait Aggregator extends Strategy
 {
-    def evaluate(weightedValues : Traversable[(Int, Double)]) : Option[Double]
+  def evaluate(weightedValues : Traversable[(Int, Double)]) : Option[Double]
 }
 
 object Aggregator extends Factory[Aggregator]
