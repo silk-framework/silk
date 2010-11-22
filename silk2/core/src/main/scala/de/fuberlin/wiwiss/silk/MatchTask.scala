@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import config.Configuration
-import de.fuberlin.wiwiss.silk.workbench.Task
+import de.fuberlin.wiwiss.silk.util.Task
 import instance.InstanceCache
 import linkspec.LinkSpecification
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
@@ -15,7 +15,7 @@ import java.util.concurrent._
  */
 class MatchTask(config : Configuration, linkSpec : LinkSpecification,
                 sourceCache : InstanceCache, targetCache : InstanceCache,
-                numThreads : Int = Silk.DefaultThreads) extends Task[Buffer[Link]]
+                numThreads : Int) extends Task[Buffer[Link]]
 {
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
 

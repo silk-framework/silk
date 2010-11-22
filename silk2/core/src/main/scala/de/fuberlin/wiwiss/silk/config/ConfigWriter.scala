@@ -50,9 +50,7 @@ object ConfigWriter
             <RestrictTo>{linkSpec.targetDataset.restriction}</RestrictTo>
           </TargetDataset>
 
-          <LinkCondition>
-              { serializeOperator(linkSpec.condition.rootAggregation) }
-          </LinkCondition>
+          { serializeLinkCondition(linkSpec.condition) }
 
           { serializeLinkFilter(linkSpec.filter) }
 
@@ -60,6 +58,13 @@ object ConfigWriter
              { linkSpec.outputs.map(serializeOutput) }
           </Outputs>
         </Interlink>
+    }
+
+    def serializeLinkCondition(linkCondition : LinkCondition) =
+    {
+        <LinkCondition>
+            { serializeOperator(linkCondition.rootAggregation) }
+        </LinkCondition>
     }
 
     def serializeOperator(operator : Operator) : Elem = operator match

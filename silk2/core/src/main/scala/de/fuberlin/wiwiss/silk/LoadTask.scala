@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk
 
 import config.Configuration
 import datasource.Source
-import instance.{InstanceSpecification, InstanceCache}
+import instance.{Instance, InstanceSpecification, InstanceCache}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.workbench.Task
 import linkspec.LinkSpecification
+import util.Task
 
 /**
  * Loads the instance cache
@@ -44,7 +44,8 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
     val instances = source.retrieve(instanceSpecs.source)
     sourceCache.clear()
-    sourceCache.write(instances, linkSpec.blocking)
+    sourceCache.write(instances)
+    //sourceCache.write(instances, Some(new Blocking(linkSpec)))
 
     logger.info("Loaded instances of source dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
@@ -61,8 +62,53 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
     val instances = source.retrieve(instanceSpecs.target)
     targetCache.clear()
-    targetCache.write(instances, linkSpec.blocking)
+    targetCache.write(instances)
+    //targetCache.write(instances, Some(new Blocking(linkSpec)))
 
     logger.info("Loaded instances of target dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
+
+//  class Blocking(linkSpec : LinkSpecification) extends (Instance => Set[Int])
+//  {
+//    private val blocks = 50
+//    private val overlap = 0.0
+//
+//    override def apply(instance : Instance) : Set[Int] =
+//    {
+//      linkSpec.condition.index(instance).toSet.flatMap(getBlock)
+//    }
+//
+//    /**
+//     * Retrieves the block which corresponds to a specific value.
+//     */
+//    private def getBlock(value : Double) : Set[Int] =
+//    {
+//        val block = value * blocks
+//        val blockIndex = block.toInt
+//
+//        if(block <= 0.5)
+//        {
+//            Set(0)
+//        }
+//        else if(block >= blocks - 0.5)
+//        {
+//            Set(blocks - 1)
+//        }
+//        else
+//        {
+//            if(block - blockIndex < overlap)
+//            {
+//                Set(blockIndex, blockIndex - 1)
+//            }
+//            else if(block + 1 - blockIndex < overlap)
+//            {
+//                Set(blockIndex, blockIndex + 1)
+//            }
+//            else
+//            {
+//                Set(blockIndex)
+//            }
+//        }
+//    }
+//  }
 }
