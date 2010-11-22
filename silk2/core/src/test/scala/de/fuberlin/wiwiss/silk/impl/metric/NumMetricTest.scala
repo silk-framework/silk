@@ -6,14 +6,12 @@ import de.fuberlin.wiwiss.silk.impl.util.approximatelyEqualTo
 
 class NumMetricTest extends FlatSpec with ShouldMatchers
 {
-    val metric = new NumMetric()
+    val metric = new NumMetric(Map("threshold" -> "1.0"))
 
-    "NumMetric" should "return min((num1/num2), (num2/num1))" in
+    "NumMetric" should "return (threshold - abs(num1 - num2)) / threshold" in
     {
-        metric.evaluate("0.3", "0.7") should be (approximatelyEqualTo (0.428571))
-        metric.evaluate("0.7", "0.3") should be (approximatelyEqualTo (0.428571))
-        metric.evaluate("3000", "7000") should be (approximatelyEqualTo (0.428571))
-        metric.evaluate("33", "45") should be (approximatelyEqualTo (0.73333333))
+        metric.evaluate("0.3", "0.7") should be (approximatelyEqualTo (0.60))
+        metric.evaluate("0.7", "0.3") should be (approximatelyEqualTo (0.60))
     }
 
     "NumMetric" should "return 1.0 if the numbers are equal" in

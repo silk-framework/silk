@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 
 class ConcatTransformer(val params: Map[String, String] = Map()) extends Transformer
 {
-    val glue = params("glue")
+    val glue = readOptionalParam("glue").getOrElse("")
     
     override def evaluate(strings : Seq[String]) =
     {
