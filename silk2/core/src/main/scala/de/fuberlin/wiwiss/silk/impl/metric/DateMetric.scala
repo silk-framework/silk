@@ -2,8 +2,8 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
-import javax.xml.datatype.DatatypeFactory
 import scala.math._
+import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
 
 class DateMetric(val params : Map[String, String]) extends Metric
 {
@@ -22,10 +22,7 @@ class DateMetric(val params : Map[String, String]) extends Metric
       val date1 = datatypeFactory.newXMLGregorianCalendar(str1)
       val date2 = datatypeFactory.newXMLGregorianCalendar(str2)
 
-      val numDays1 = date1.getDay + date1.getMonth * 30 + date1.getYear * 365
-      val numDays2 = date2.getDay + date2.getMonth * 30 + date2.getYear * 365
-
-      val days = abs(numDays1 - numDays2)
+      val days = abs(totalDays(date1) - totalDays(date2))
 
       max(1.0 - days.toDouble / maxDays.toDouble, 0.0)
     }
@@ -33,5 +30,28 @@ class DateMetric(val params : Map[String, String]) extends Metric
     {
       case ex : IllegalArgumentException => 0.0
     }
+  }
+
+  private def totalDays(date : XMLGregorianCalendar) =
+  {
+    val days = date.getDay match
+    {
+      case DatatypeConstants.FIELD_UNDEFINED => 0
+      case d => d
+    }
+
+    val monthDays = date.getMonth match
+    {
+      case DatatypeConstants.FIELD_UNDEFINED => 0
+      case m => m * 30
+    }
+
+    val yearDays = date.getYear match
+    {
+      case DatatypeConstants.FIELD_UNDEFINED => 0
+      case y => y * 365
+    }
+
+    days + monthDays + yearDays
   }
 }
