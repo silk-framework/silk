@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
+import de.fuberlin.wiwiss.silk.impl.blockingfunction.AlphaNumBlockingFunction
 
 class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
@@ -16,8 +17,18 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
     {
       val levenshteinDistance = evaluateDistance(str1, str2)
 
-      math.min(0.0, 1.0 - levenshteinDistance.toDouble / maxDistance.toDouble)
+      math.max(0.0, 1.0 - levenshteinDistance.toDouble / maxDistance.toDouble)
     }
+  }
+
+  override def index(str : String) =
+  {
+    Set(Seq(new AlphaNumBlockingFunction()(str)))
+  }
+
+  override val blockCounts : Seq[Int] =
+  {
+    Seq(37)
   }
 
   def evaluateDistance(str1 : String, str2 : String): Int =

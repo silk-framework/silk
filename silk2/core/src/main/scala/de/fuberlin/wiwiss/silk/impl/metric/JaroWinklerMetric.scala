@@ -23,7 +23,7 @@ class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Met
 
   override val blockCounts : Seq[Int] =
   {
-    Seq(50)
+    Seq(37)
   }
 
   /**
