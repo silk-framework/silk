@@ -18,7 +18,7 @@ class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Met
 
   override def index(str : String) =
   {
-    new AlphaNumBlockingFunction()(str)
+    Seq(new AlphaNumBlockingFunction()(str))
   }
 
   /**
