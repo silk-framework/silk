@@ -1,9 +1,8 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
-import de.fuberlin.wiwiss.silk.instance.Instance
-import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Operator}
+import de.fuberlin.wiwiss.silk.linkspec.FlatIndexAggregator
 
-class MaximumAggregator(val params: Map[String, String] = Map()) extends Aggregator
+class MaximumAggregator(val params: Map[String, String] = Map()) extends FlatIndexAggregator
 {
     override def evaluate(values : Traversable[(Int, Double)]) =
     {

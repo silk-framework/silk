@@ -31,20 +31,16 @@ case class LinkCondition(val rootAggregation : Aggregation)
     val blockIndexes = multiBlockIndexes.flatMap(flattenIndexes)
 
     //Convert the index vector to a scalar
-    val result = for(index <- blockIndexes) yield
+    for(index <- blockIndexes) yield
     {
       (index.tail zip rootAggregation.blockCounts).foldLeft(index.head){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
     }
-
-    result
   }
 
   val blockCount =
   {
     rootAggregation.blockCounts.foldLeft(1)(_ * _)
   }
-
-  private val overlap = 0.25
 
   private def flattenIndexes(multiIndex : Seq[Set[Int]]) : Set[Seq[Int]] =
   {
@@ -69,6 +65,8 @@ case class LinkCondition(val rootAggregation : Aggregation)
    */
   private def getBlock(value : Double, blockCount : Int) : Set[Int] =
   {
+    val overlap = 0.25
+
     val block = value * blockCount
     val blockIndex = block.toInt
 

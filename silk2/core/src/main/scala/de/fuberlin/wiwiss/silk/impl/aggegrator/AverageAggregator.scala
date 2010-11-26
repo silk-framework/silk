@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkspec.Aggregator
+import de.fuberlin.wiwiss.silk.linkspec.MultiIndexAggregator
 
-class AverageAggregator(val params: Map[String, String] = Map.empty) extends Aggregator
+class AverageAggregator(val params: Map[String, String] = Map.empty) extends MultiIndexAggregator
 {
     override def evaluate(values : Traversable[(Int, Double)]) =
     {

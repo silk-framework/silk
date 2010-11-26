@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkspec.Aggregator
+import de.fuberlin.wiwiss.silk.linkspec.MultiIndexAggregator
 
 /**
  * Computes the weighted quadratic mean.
  */
-class QuadraticMeanAggregator(val params: Map[String, String] = Map.empty) extends Aggregator
+class QuadraticMeanAggregator(val params: Map[String, String] = Map.empty) extends MultiIndexAggregator
 {
     override def evaluate(values : Traversable[(Int, Double)]) =
     {

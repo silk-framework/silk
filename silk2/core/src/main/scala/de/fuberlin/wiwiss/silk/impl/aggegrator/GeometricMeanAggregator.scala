@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkspec.Aggregator
+import de.fuberlin.wiwiss.silk.linkspec.MultiIndexAggregator
 import scala.math._
 
 /**
  * Computes the weighted geometric mean.
  */
-class GeometricMeanAggregator(val params: Map[String, String] = Map.empty) extends Aggregator
+class GeometricMeanAggregator(val params: Map[String, String] = Map.empty) extends MultiIndexAggregator
 {
     override def evaluate(values : Traversable[(Int, Double)]) =
     {
