@@ -91,8 +91,6 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
     private def load()
     {
-      blockDir.mkdirs()
-
       //Retrieve the number of existing partitions
       partitionCount =
       {
@@ -133,6 +131,11 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
     def write(instance : Instance)
     {
+      if(partitionCount == 0)
+      {
+        blockDir.mkdirs()
+      }
+
       if(lastPartitionSize == 0)
       {
         partitionCount += 1
@@ -153,7 +156,6 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
       partitionCount = 0
       lastPartitionSize = 0
       blockDir.deleteRecursive()
-      blockDir.mkdirs()
     }
 
     def close()

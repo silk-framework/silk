@@ -19,12 +19,12 @@ class EvaluationResult(val truePositives : Int, val trueNegatives : Int,
   /**
    * The '''precision''' or '''positive predictive value (PPV)''' is the proportion of positive links in the alignment which have been generated.
    */
-  def precision = truePositives.toDouble / (truePositives + falsePositives)
+  def precision = if(truePositives > 0) truePositives.toDouble / (truePositives + falsePositives) else 0.0
 
   /**
    * The harmonic mean of precision and recall.
    */
-  def fMeasure = 2.0 * precision * recall / (precision + recall)
+  def fMeasure = if(precision + recall > 0.0) 2.0 * precision * recall / (precision + recall) else 0.0
   
   override def toString = "(precision=" + precision + ", recall=" + recall + ")"
 }

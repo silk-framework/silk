@@ -6,7 +6,9 @@ trait Metric extends Strategy
 {
   def evaluate(value1 : String, value2 : String) : Double
 
-  def index(value : String) : Seq[Double] = throw new UnsupportedOperationException(getClass + " does not support indexing")
+  def index(value : String) : Set[Seq[Double]] = Set(Seq(0))
+
+  val blockCounts : Seq[Int] = Seq(1)
 }
 
 object Metric extends Factory[Metric]

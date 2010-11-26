@@ -18,7 +18,12 @@ class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Met
 
   override def index(str : String) =
   {
-    Seq(new AlphaNumBlockingFunction()(str))
+    Set(Seq(new AlphaNumBlockingFunction()(str)))
+  }
+
+  override val blockCounts : Seq[Int] =
+  {
+    Seq(50)
   }
 
   /**
