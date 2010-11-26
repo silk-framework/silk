@@ -46,10 +46,15 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
         val latIndex = (coords.lat + 90.0) / 180.0
         val longIndex = (coords.long + 180.0) / 360.0
 
-        Seq(latIndex, longIndex)
+        Set(Seq(latIndex, longIndex))
       }
-      case None => Seq.empty
+      case None => Set.empty
     }
+  }
+
+  override val blockCounts : Seq[Int] =
+  {
+    Seq(45, 90)
   }
 
   /**

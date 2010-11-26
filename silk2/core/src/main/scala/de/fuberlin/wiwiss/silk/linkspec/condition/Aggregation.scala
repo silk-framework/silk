@@ -15,27 +15,19 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
     aggregator.evaluate(weightedValues).toList
   }
 
-  override def index(instance : Instance) : Set[Seq[Int]] =
+  override def index(instance : Instance) : Set[Seq[Double]] =
   {
-//    val operatorSeq = operators.toArray
-//    val blocks = operatorSeq.flatMap(_.blockCounts)
-//
-//    val operatorIndexes = operators.map(_.index(instance))
-//
-//
-//    var startIndex = 0
-//    for(operatorIndex <- 0 until operatorSeq.size) yield
-//    {
-//      for(dimIndex <- 0 until blocks.size if dimIndex != startIndex)
-//      {
-//
-//      }
-//
-//
-//      startIndex += operator.blockCounts.size
-//    }
-    Set.empty
-  }
+    val maxDimension = operators.map(_.blockCounts.size).max
+
+    for(operator <- operators;
+        index <- operator.index(instance)) yield
+    {
+      if(index.size < maxDimension)
+        index ++ Seq.fill(maxDimension - index.size)(0.0)
+      else
+        index
+    }
+  }.toSet
 
   override val blockCounts : Seq[Int] =
   {

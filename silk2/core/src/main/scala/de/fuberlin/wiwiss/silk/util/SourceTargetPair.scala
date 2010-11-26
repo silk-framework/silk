@@ -12,5 +12,5 @@ object SourceTargetPair
 
   def apply[T](sourceValue : T, targetValue : T) = new SourceTargetPair(sourceValue, targetValue)
 
-  def unapply[T](pair : SourceTargetPair[T]) = Some((pair.source, pair.target))
+  def unapply[T](pair : SourceTargetPair[T]) : Option[(T, T)] = Some((pair.source, pair.target))
 }
