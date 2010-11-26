@@ -11,17 +11,13 @@
   </Prefixes>
 
   <DataSources>
-    
-	  <DataSource id="dbpedia" type="sparqlEndpoint">
-      <Param name="endpointURI" value="http://sesame_server:8890/sparql" />
+    <DataSource id="dbpedia" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://dbpedia.org/sparql" />
       <Param name="graph" value="http://dbpedia.org" />
     </DataSource>
-
-	  <DataSource id="linkedmdb" type="sparqlEndpoint">
-      <Param name="endpointURI" value="http://sesame_server:8890/sparql" />
-      <Param name="graph" value="http://data.linkedmdb.org" />
-	  </DataSource>
-
+    <DataSource id="linkedmdb" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://data.linkedmdb.org/sparql" />
+    </DataSource>
   </DataSources>
 
   <Interlinks>
@@ -71,7 +67,7 @@
           </Compare>
           <Compare metric="jaro" >
             <TransformInput function="regexReplace">
-              <TransformInput function="stripURIPrefix">
+              <TransformInput function="stripUriPrefix">
                 <Input path="?a/dbpedia-owl:director" />
               </TransformInput>
               <Param name="regex" value="_" />
@@ -81,33 +77,31 @@
           </Compare>
         </Aggregate>
         <Aggregate type="max" >
-          <Compare metric="dateSimilarity" >
+          <Compare metric="date" >
             <Input path="?a/dbpedia-owl:releaseDate" />
             <Input path="?b/dc:date" />
-            <Param name="max_diff" value="20" />
+            <Param name="max_days" value="20" />
           </Compare>
-          <Compare metric="dateSimilarity" >
+          <Compare metric="date" >
             <Input path="?a/dbpedia-owl:releaseDate" />
             <Input path="?b/movie:initial_release_date" />
-            <Param name="max_diff" value="20" />
+            <Param name="max_days" value="20" />
           </Compare>
         </Aggregate>
-        <Compare metric="numSimilarity" >
+        <Compare metric="num" >
           <Input path="?a/dbpedia-owl:runtime" />
           <Input path="?b/movie:runtime" />
+          <Param name="threshold" value="100" />
         </Compare>
       </Aggregate>
     </LinkCondition>
 
-		<Thresholds accept="0.9" verify="0.7" />
-		<Limit max="1" method="metric_value" />
+    <Filter threshold="0.9" limit="1" />
 
     <Outputs>
-      <Output type="">
-        <Param name="acceptedLinks" value="lmdb_accepted_links.n3"/>
-        <Param name="verifyLinks" value="lmdb_verify_links.n3"/>
-        <Param name="format" value="n3_debug"/>
-        <Param name="mode" value="truncate"/>
+      <Output minConfidence="0.9" type="file">
+        <Param name="file" value="linkedmdb.nt"/>
+        <Param name="format" value="ntriples"/>
       </Output>
     </Outputs>
 
