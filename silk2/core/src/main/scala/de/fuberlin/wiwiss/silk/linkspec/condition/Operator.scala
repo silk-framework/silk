@@ -10,5 +10,7 @@ trait Operator
 
   def apply(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double]
 
-  def index(instance : Instance) : Traversable[Double]
+  def index(instance : Instance) : Set[Seq[Int]] = Set(Seq(0))
+
+  val blockCounts : Seq[Int] = Seq(1)
 }
