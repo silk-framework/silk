@@ -15,11 +15,12 @@ case class Comparison(required : Boolean, weight : Int, inputs : Seq[Input], met
     for (str1 <- set1; str2 <- set2) yield metric.evaluate(str1, str2)
   }
 
-  override def index(instance : Instance) : Traversable[Double] =
+  override def index(instance : Instance) : Set[Seq[Int]] =
   {
-    val values = inputs.flatMap(input => input(Traversable(instance)))
-
-    values.map(value => metric.index(value))
+//    val values = inputs.flatMap(input => input(Traversable(instance)))
+//
+//    values.map(value => metric.index(value))
+    Set.empty
   }
 
   override def toString = metric match
