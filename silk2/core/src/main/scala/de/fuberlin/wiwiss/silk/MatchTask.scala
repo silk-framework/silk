@@ -163,9 +163,19 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
       try
       {
-        for(sourceInstance <- sourceCache.read(blockIndex, sourcePartitionIndex);
-            targetInstance <- targetCache.read(blockIndex, targetPartitionIndex))
+        val sourceInstances = sourceCache.read(blockIndex, sourcePartitionIndex)
+        val targetInstances = targetCache.read(blockIndex, targetPartitionIndex)
+
+        val sourceIndexes = sourceInstances.map(linkSpec.condition.index)
+        val targetIndexes = targetInstances.map(linkSpec.condition.index)
+
+        for(s <- 0 until sourceInstances.size;
+            t <- 0 until targetInstances.size;
+            if sourceIndexes(s).exists(targetIndexes(t).contains(_)))
         {
+          val sourceInstance = sourceInstances(s)
+          val targetInstance = targetInstances(t)
+
           val confidence = linkSpec.condition(sourceInstance, targetInstance)
 
           if(confidence >= linkSpec.filter.threshold)

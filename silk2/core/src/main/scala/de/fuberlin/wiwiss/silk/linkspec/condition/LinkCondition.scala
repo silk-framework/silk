@@ -2,14 +2,13 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 
-case class LinkCondition(val rootAggregation : Aggregation)
+case class LinkCondition(rootAggregation : Aggregation)
 {
   def apply(sourceInstance : Instance, targetInstance : Instance) : Double =
   {
     rootAggregation(sourceInstance, targetInstance).headOption.getOrElse(0.0)
   }
 
-  //TODO flatten high dimensional indexes
   def index(instance : Instance) : Set[Int] =
   {
     //The indexes as vectors of doubles
