@@ -14,6 +14,7 @@ import javax.xml.validation.SchemaFactory
 import org.xml.sax.SAXException
 import java.io.{FileInputStream, File, InputStream}
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
  * Reads a Silk Configuration.
@@ -85,10 +86,10 @@ object ConfigReader
     new LinkSpecification(
       node \ "@id" text,
       resolveQualifiedName(node \ "LinkType" text, prefixes),
-      readDatasetSpecification(node \ "SourceDataset", sourceMap),
-      readDatasetSpecification(node \ "TargetDataset", sourceMap),
+      new SourceTargetPair(readDatasetSpecification(node \ "SourceDataset", sourceMap),
+                           readDatasetSpecification(node \ "TargetDataset", sourceMap)),
       (node \ "Blocking").headOption.map(blockingNode => readBlocking(blockingNode)),
-      new LinkCondition(readAggregation(node \ "LinkCondition" \ "Aggregate" head)),
+      new LinkCondition(readAggregation(node \ "LinkCondition" \ "Aggregate" head, prefixes)),
       readLinkFilter(node \ "Filter" head),
       readOutputs(node \ "Outputs" \ "Output")
     )
@@ -105,16 +106,16 @@ object ConfigReader
     )
   }
 
-  private def readOperators(nodes : Seq[Node]) : Traversable[Operator] =
+  private def readOperators(nodes : Seq[Node], prefixes : Map[String, String]) : Traversable[Operator] =
   {
     nodes.collect
     {
-      case node @ <Aggregate>{_*}</Aggregate> => readAggregation(node)
-      case node @ <Compare>{_*}</Compare> => readComparison(node)
+      case node @ <Aggregate>{_*}</Aggregate> => readAggregation(node, prefixes)
+      case node @ <Compare>{_*}</Compare> => readComparison(node, prefixes)
     }
   }
 
-  private def readAggregation(node : Node) : Aggregation =
+  private def readAggregation(node : Node, prefixes : Map[String, String]) : Aggregation =
   {
     val requiredStr = node \ "@required" text
     val weightStr = node \ "@weight" text
@@ -124,12 +125,12 @@ object ConfigReader
     new Aggregation(
       if(requiredStr.isEmpty) false else requiredStr.toBoolean,
       if(weightStr.isEmpty) 1 else weightStr.toInt,
-      readOperators(node.child),
+      readOperators(node.child, prefixes),
       aggregator
     )
   }
 
-  private def readComparison(node : Node) : Comparison =
+  private def readComparison(node : Node, prefixes : Map[String, String]) : Comparison =
   {
     val requiredStr = node \ "@required" text
     val weightStr = node \ "@weight" text
@@ -138,7 +139,7 @@ object ConfigReader
     new Comparison(
       if(requiredStr.isEmpty) false else requiredStr.toBoolean,
       if(weightStr.isEmpty) 1 else weightStr.toInt,
-      readInputs(node.child),
+      readInputs(node.child, prefixes),
       metric
     )
   }
@@ -151,19 +152,19 @@ object ConfigReader
     )
   }
 
-  private def readInputs(nodes : Seq[Node]) : Seq[Input] =
+  private def readInputs(nodes : Seq[Node], prefixes : Map[String, String]) : Seq[Input] =
   {
     nodes.collect {
       case p @ <Input/> =>
       {
         val pathStr = p \ "@path" text
-        val path = Path.parse(pathStr)
+        val path = Path.parse(pathStr, prefixes)
         PathInput(path)
       }
       case p @ <TransformInput>{_*}</TransformInput> =>
       {
         val transformer = Transformer(p \ "@function" text, readParams(p))
-        TransformInput(readInputs(p.child), transformer)
+        TransformInput(readInputs(p.child, prefixes), transformer)
       }
     }
   }

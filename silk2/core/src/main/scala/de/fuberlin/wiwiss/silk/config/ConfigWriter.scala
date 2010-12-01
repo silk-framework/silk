@@ -42,12 +42,12 @@ object ConfigWriter
         <Interlink id={linkSpec.id}>
           <LinkType>{"<" + linkSpec.linkType + ">"}</LinkType>
 
-          <SourceDataset dataSource={linkSpec.sourceDataset.source.id} var={linkSpec.sourceDataset.variable}>
-            <RestrictTo>{linkSpec.sourceDataset.restriction}</RestrictTo>
+          <SourceDataset dataSource={linkSpec.datasets.source.source.id} var={linkSpec.datasets.source.variable}>
+            <RestrictTo>{linkSpec.datasets.source.restriction}</RestrictTo>
           </SourceDataset>
 
-          <TargetDataset dataSource={linkSpec.targetDataset.source.id} var={linkSpec.targetDataset.variable}>
-            <RestrictTo>{linkSpec.targetDataset.restriction}</RestrictTo>
+          <TargetDataset dataSource={linkSpec.datasets.target.source.id} var={linkSpec.datasets.target.variable}>
+            <RestrictTo>{linkSpec.datasets.target.restriction}</RestrictTo>
           </TargetDataset>
 
           { serializeLinkCondition(linkSpec.condition) }

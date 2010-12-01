@@ -31,9 +31,9 @@ object Path
    * Parses a path string.
    * May return a cached copy.
    */
-  def parse(pathStr : String) =
+  def parse(pathStr : String, prefixes : Map[String, String]) =
   {
     //Try to retrieve a cached copy. If not found, parse the path
-    pathCache.getOrElseUpdate(pathStr, PathParser.parse(pathStr))
+    pathCache.getOrElseUpdate(pathStr, new PathParser(prefixes).parse(pathStr))
   }
 }
