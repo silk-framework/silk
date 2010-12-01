@@ -12,6 +12,7 @@ object GeographicDistanceMetricTest
 	def main(args: Array[String])
 	{
 		val distances = Array(0,1,2,3,4,5,6,7,8,9,10)
+    val t = 0.9
 		//		println(new GeographicDistanceMetric(Map.empty[String,String]).thresholdLogistic(50,40,20));
 		//		println(new GeographicDistanceMetric(Map.empty[String,String]).thresholdLogistic(50,60,20));
 
@@ -24,19 +25,19 @@ object GeographicDistanceMetricTest
 //		}
 
 		// distance between (0,0) and (180,0)
-		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(0 0)","POINT(180 0)"))
+		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(0 0)","POINT(180 0)", 0.9))
 		// distance between London and Berlin in Kilometers
-		println(new GeographicDistanceMetric(Map("unit"->"kilometer")).evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)"))
+		println(new GeographicDistanceMetric(Map("unit"->"kilometer")).evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)", 0.9))
 		// between London and London
-		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(-0.124722 51.5081)","POINT(-0.124722 51.5081)"))
+		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(-0.124722 51.5081)","POINT(-0.124722 51.5081)", 0.9))
 		// between London and London, some insignificant digits changed
-		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(-0.124 51.4)","POINT(-0.124722 51.5081)"))
+		println(new GeographicDistanceMetric(Map.empty[String,String]).evaluate("POINT(-0.124 51.4)","POINT(-0.124722 51.5081)", 0.9))
 
 		val params : Map[String,String] = Map("unit"->"km")
 		// distance between London and Berlin with parameter
-		println(new GeographicDistanceMetric(params).evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)"))
+		println(new GeographicDistanceMetric(params).evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)", 0.9))
 		// distance between London and Berlin with threshold 50 km
-		println(new GeographicDistanceMetric(Map("unit"->"km","threshold"->"50")).evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)"))
+		println(new GeographicDistanceMetric(Map("unit"->"km","threshold"->"50")).evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)", 0.9))
 
 	}
 }
