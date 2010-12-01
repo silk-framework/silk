@@ -6,6 +6,7 @@ import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
 
+//TODO remove prefixes?
 class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path], val prefixes : Map[String, String])
 {
   override def toString = "InstanceSpecification(variable='" + variable + "' restrictions='" + restrictions + "' paths=" + paths + ")"
@@ -24,7 +25,7 @@ class InstanceSpecification(val variable : String, val restrictions : String, va
       <Prefixes>{
         for((key, value) <- prefixes) yield
         {
-          <Prefix key={key}>{value}</Prefix>
+          <Prefix id={key} namespace={value} />
         }
       }</Prefixes>
     </InstanceSpecification>
@@ -37,20 +38,23 @@ object InstanceSpecification
 
   def fromXML(node : Node) =
   {
+    val prefixes = {for(prefixNode <- node \ "Prefixes" \ "Prefix") yield (prefixNode \ "@id" text, prefixNode \ "@namespace" text)}.toMap
+
     new InstanceSpecification(
       variable = node \ "Variable" text,
       restrictions = node \ "Restrictions" text,
-      paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text),
-      prefixes = {for(prefixNode <- node \ "Prefixes" \ "Prefix") yield (prefixNode \ "@key " text, prefixNode text)}.toMap)
+      paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text, prefixes),
+      prefixes = prefixes
+    )
   }
 
   def retrieve(config : Configuration, linkSpec : LinkSpecification) : SourceTargetPair[InstanceSpecification] =
   {
-    val sourceVar = linkSpec.sourceDataset.variable
-    val targetVar = linkSpec.targetDataset.variable
+    val sourceVar = linkSpec.datasets.source.variable
+    val targetVar = linkSpec.datasets.target.variable
 
-    val sourceRestriction = linkSpec.sourceDataset.restriction
-    val targetRestriction = linkSpec.targetDataset.restriction
+    val sourceRestriction = linkSpec.datasets.source.restriction
+    val targetRestriction = linkSpec.datasets.target.restriction
 
     val sourcePaths = collectPaths(sourceVar)(linkSpec.condition.rootAggregation)
     val targetPaths = collectPaths(targetVar)(linkSpec.condition.rootAggregation)
