@@ -127,7 +127,7 @@ object Silk
       loadTargetCacheTask.runInBackground()
 
       //Wait until caches are being written
-      while((loadSourceCacheTask.isRunning && !sourceCache.isWriting) || (loadTargetCacheTask.isRunning && !targetCache.isWriting))
+      while((loadSourceCacheTask.isRunning) || (loadTargetCacheTask.isRunning))
       {
         Thread.sleep(100)
       }

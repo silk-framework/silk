@@ -38,9 +38,7 @@ class NumMetric(val params : Map[String, String] = Map.empty) extends Metric
         {
           case (Some(minV), Some(maxV)) =>
           {
-            val index = (num - minV).toDouble / maxV * blockCount
-            val croppedIndex = min(max(index.toInt, 0), blockCount - 1)
-            Set(Seq(croppedIndex))
+            getBlocks((num - minV).toDouble / maxV)
           }
           case _ => Set(Seq(0))
         }
@@ -60,6 +58,41 @@ class NumMetric(val params : Map[String, String] = Map.empty) extends Metric
     {
       case (Some(minV), Some(maxV)) => (blockOverlap * (maxV - minV) / thresholdDistance).toInt
       case _ => 1
+    }
+  }
+
+  /**
+   * Retrieves the block which corresponds to a specific value.
+   */
+  private def getBlocks(value : Double) : Set[Seq[Int]] =
+  {
+    val overlap = 0.25
+
+    val block = value * blockCount
+    val blockIndex = block.toInt
+
+    if(block <= 0.5)
+    {
+      Set(Seq(0))
+    }
+    else if(block >= blockCount - 0.5)
+    {
+      Set(Seq(blockCount - 1))
+    }
+    else
+    {
+      if(block - blockIndex < overlap)
+      {
+        Set(Seq(blockIndex), Seq(blockIndex - 1))
+      }
+      else if(block + 1 - blockIndex < overlap)
+      {
+        Set(Seq(blockIndex), Seq(blockIndex + 1))
+      }
+      else
+      {
+        Set(Seq(blockIndex))
+      }
     }
   }
 }
