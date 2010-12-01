@@ -18,7 +18,7 @@ class QGramsMetric(val params : Map[String, String] = Map.empty) extends Metric
         val qGrams1 = str1.qGrams(q)
         val qGrams2 = str2.qGrams(q)
 
-        val matchingQGrams = (qGrams1 intersect qGrams2).size * 2
+        val matchingQGrams = (qGrams1.toSeq intersect qGrams2.toSeq).size * 2
         val numQGrams = qGrams1.size + qGrams2.size
 
         if (numQGrams == 0) 0.0

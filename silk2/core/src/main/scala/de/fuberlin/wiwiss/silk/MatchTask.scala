@@ -176,7 +176,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           val sourceInstance = sourceInstances(s)
           val targetInstance = targetInstances(t)
 
-          val confidence = linkSpec.condition(sourceInstance, targetInstance)
+          val confidence = linkSpec.condition(sourceInstance, targetInstance, linkSpec.filter.threshold)
 
           if(confidence >= linkSpec.filter.threshold)
           {

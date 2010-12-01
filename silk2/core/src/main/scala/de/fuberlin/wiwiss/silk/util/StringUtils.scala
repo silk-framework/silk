@@ -28,10 +28,10 @@ object StringUtils
 
 class StringUtils(str : String)
 {
-  def qGrams(q : Int) : Seq[String] =
+  def qGrams(q : Int) : Stream[String] =
   {
     val boundary = "#" * (q - 1)
 
-    (boundary + str + boundary).sliding(q).toSeq
+    (boundary + str + boundary).sliding(q).toStream
   }
 }

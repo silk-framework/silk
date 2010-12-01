@@ -10,7 +10,7 @@ class SilkMap extends Mapper[NullWritable, InstancePair, Text, InstanceSimilarit
     {
         val config = SilkConfiguration.get(context.getConfiguration)
 
-        val similarity = config.linkSpec.condition(instances.sourceInstance, instances.targetInstance)
+        val similarity = config.linkSpec.condition(instances.sourceInstance, instances.targetInstance, config.linkSpec.filter.threshold)
 
         if(similarity >= config.linkSpec.filter.threshold)
         {

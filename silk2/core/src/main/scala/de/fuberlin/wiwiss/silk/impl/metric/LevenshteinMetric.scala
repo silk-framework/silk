@@ -2,12 +2,12 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
-import scala.math.max
+import scala.math.{min, max}
 
 class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
   private val minChar = readOptionalParam("minChar").getOrElse("0").head
-  private val maxChar = readOptionalParam("maxChar").getOrElse("Z").head
+  private val maxChar = readOptionalParam("maxChar").getOrElse("z").head
   private val thresholdDistance = readOptionalIntParam("thresholdDistance")
   private val q = readOptionalIntParam("q").getOrElse(1)
 
@@ -23,7 +23,6 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
     }
   }
 
-  //TODO compute qGrams lazy
   override def index(str : String, threshold : Double) : Set[Seq[Int]] =
   {
     val k = thresholdDistance match
@@ -32,19 +31,26 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
       case None => (str.length * (1.0 - threshold)).toInt
     }
 
-    val qGrams = str.qGrams(q).take(k * q + 1)
+    val qGrams = str.qGrams(q)
+    val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 
-    qGrams.map(indexQGram).toSet
+    qGramsReordered.take(k * q + 1).map(indexQGram).toSet
   }
 
   private def indexQGram(qGram : String) =
   {
-    Seq(qGram.foldLeft(0)((index, char) => index * (maxChar - minChar) + char - minChar))
+    def combine(index : Int, char : Char) =
+    {
+      val croppedChar = min(max(char, minChar), maxChar)
+      index * (maxChar - minChar + 1) + croppedChar - minChar
+    }
+
+    Seq(qGram.foldLeft(0)(combine))
   }
 
   override val blockCounts : Seq[Int] =
   {
-    Seq(BigInt(maxChar - minChar).pow(q).toInt)
+    Seq(BigInt(maxChar - minChar + 1).pow(q).toInt)
   }
 
   def evaluateDistance(str1 : String, str2 : String): Int =
