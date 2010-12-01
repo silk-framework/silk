@@ -10,96 +10,98 @@ import de.fuberlin.wiwiss.silk.instance.{InstanceCache, Instance}
 
 object Block
 {
-    private val logger = Logger.getLogger(Block.getClass.getName)
+  private val logger = Logger.getLogger(Block.getClass.getName)
 
-    private val hadoopConfig = new org.apache.hadoop.conf.Configuration()
+  private val hadoopConfig = new org.apache.hadoop.conf.Configuration()
 
-    def main(args : Array[String])
+  def main(args : Array[String])
+  {
+    if(args.length < 3)
     {
-        if(args.length < 3)
-        {
-            println("Usage: Block configFile inputDir ouputDir")
-            System.exit(1)
-        }
-        val configPath = new Path(args(0))
-        val inputPath = new Path(args(1))
-        val outputPath = new Path(args(2))
+      println("Usage: Block configFile inputDir ouputDir")
+      System.exit(1)
+    }
+    val configPath = new Path(args(0))
+    val inputPath = new Path(args(1))
+    val outputPath = new Path(args(2))
 
-        DefaultImplementations.register()
+    DefaultImplementations.register()
 
-        val config = loadConfig(configPath, outputPath)
+    val config = loadConfig(configPath, outputPath)
 
-        for(linkSpec <- config.linkSpecs)
-        {
-            block(linkSpec, inputPath, outputPath)
-        }
+    for(linkSpec <- config.linkSpecs)
+    {
+      block(linkSpec, inputPath, outputPath)
+    }
+  }
+
+  private def loadConfig(filePath : Path, instanceCachePath : Path) : Configuration =
+  {
+    //Create two FileSystem objects, because the config file and the instance cache might be located in different file systems
+    val configFS = FileSystem.get(filePath.toUri, hadoopConfig)
+    val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
+
+    //Copy the config file into the instance cache directory
+    val inputStream = configFS.open(filePath)
+    val outputStream = cacheFS.create(instanceCachePath.suffix("/config.xml"))
+    try
+    {
+      val buffer = new Array[Byte](4096)
+      var c = inputStream.read(buffer)
+      while(c != -1)
+      {
+        outputStream.write(buffer, 0, c)
+        c = inputStream.read(buffer)
+      }
+    }
+    finally
+    {
+      outputStream.close()
+      inputStream.close()
     }
 
-    private def loadConfig(filePath : Path, instanceCachePath : Path) : Configuration =
+    //Load the configuration
+    val stream = configFS.open(filePath)
+    try
     {
-        //Create two FileSystem objects, because the config file and the instance cache might be located in different file systems
-        val configFS = FileSystem.get(filePath.toUri, hadoopConfig)
-        val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
+      ConfigReader.read(stream)
+    }
+    finally
+    {
+      stream.close()
+    }
+  }
 
-        //Copy the config file into the instance cache directory
-        val inputStream = configFS.open(filePath)
-        val outputStream = cacheFS.create(instanceCachePath.suffix("/config.xml"))
-        try
-        {
-            val buffer = new Array[Byte](4096)
-            var c = inputStream.read(buffer)
-            while(c != -1)
-            {
-                outputStream.write(buffer, 0, c)
-                c = inputStream.read(buffer)
-            }
-        }
-        finally
-        {
-            outputStream.close()
-            inputStream.close()
-        }
+  private def block(linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
+  {
+    blockCache(linkSpec, inputPath.suffix("/source/"), outputPath.suffix("/source/"))
+    blockCache(linkSpec, inputPath.suffix("/target/"), outputPath.suffix("/target/"))
+  }
 
-        //Load the configuration
-        val stream = configFS.open(filePath)
-        try
+  private def blockCache(linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
+  {
+    val inputFS = FileSystem.get(inputPath.toUri, hadoopConfig)
+    val outputFS = FileSystem.get(outputPath.toUri, hadoopConfig)
+
+    val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
+    val inputCache = new HadoopInstanceCache(inputFS, inputPath.suffix("/" + linkSpec.id + "/"), 1)
+    val outputCache = new HadoopInstanceCache(outputFS, outputPath.suffix("/" + linkSpec.id + "/"), numBlocks)
+
+    val instances = new Traversable[Instance]
+    {
+      override def foreach[U](f : (Instance) => U) : scala.Unit =
+      {
+        for(block <- 0 until inputCache.blockCount;
+            partition <- 0 until inputCache.partitionCount(block);
+            instance <- inputCache.read(block, partition))
         {
-            ConfigReader.read(stream)
+          f(instance)
         }
-        finally
-        {
-            stream.close()
-        }
+      }
     }
 
-    private def block(linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
-    {
-        blockCache(linkSpec, inputPath.suffix("/source/"), outputPath.suffix("/source/"))
-        blockCache(linkSpec, inputPath.suffix("/target/"), outputPath.suffix("/target/"))
-    }
-
-    private def blockCache(linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
-    {
-        val inputFS = FileSystem.get(inputPath.toUri, hadoopConfig)
-        val outputFS = FileSystem.get(outputPath.toUri, hadoopConfig)
-
-        val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        val inputCache = new HadoopInstanceCache(inputFS, inputPath.suffix("/" + linkSpec.id + "/"), 1)
-        val outputCache = new HadoopInstanceCache(outputFS, outputPath.suffix("/" + linkSpec.id + "/"), numBlocks)
-
-        val instances = new Traversable[Instance]
-        {
-            override def foreach[U](f : (Instance) => U) : scala.Unit =
-            {
-                for(block <- 0 until inputCache.blockCount;
-                    partition <- 0 until inputCache.partitionCount(block);
-                    instance <- inputCache.read(block, partition))
-                {
-                    f(instance)
-                }
-            }
-        }
-
-        outputCache.write(instances, linkSpec.blocking)
-    }
+    //TODO enable blocking
+    outputCache.write(instances)
+    //outputCache.write(instances, linkSpec.blocking)
+  }
 }

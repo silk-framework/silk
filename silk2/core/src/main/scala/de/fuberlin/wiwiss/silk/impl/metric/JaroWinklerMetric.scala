@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
-import de.fuberlin.wiwiss.silk.impl.blockingfunction.AlphaNumBlockingFunction
 
 class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Metric
 {
@@ -14,16 +13,6 @@ class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Met
   override def evaluate(str1 : String, str2 : String) =
   {
     evaluateDistance(str1, str2)
-  }
-
-  override def index(str : String) =
-  {
-    Set(Seq(new AlphaNumBlockingFunction()(str)))
-  }
-
-  override val blockCounts : Seq[Int] =
-  {
-    Seq(37)
   }
 
   /**

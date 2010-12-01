@@ -114,9 +114,8 @@ object Silk
     logger.info("Silk started")
 
     //Create instance caches
-    val numBlocks = 1//linkSpec.condition.blockCount
-    val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), numBlocks)
-    val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), numBlocks)
+    val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), linkSpec.blocking.map(_.blocks).getOrElse(1))
+    val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), linkSpec.blocking.map(_.blocks).getOrElse(1))
 
     //Load instances into cache
     if(reload)

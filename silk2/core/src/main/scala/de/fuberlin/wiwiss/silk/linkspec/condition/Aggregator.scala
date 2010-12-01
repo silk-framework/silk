@@ -6,7 +6,7 @@ trait Aggregator extends Strategy
 {
   def evaluate(weightedValues : Traversable[(Int, Double)]) : Option[Double]
 
-  def aggregateIndexes(indexSets : Traversable[Set[Seq[Double]]]) : Set[Seq[Double]]
+  def aggregateIndexes(indexSets : Traversable[Set[Seq[Int]]]) : Set[Seq[Int]]
 
   def aggregateBlockCounts(blockCounts : Traversable[Seq[Int]]) : Seq[Int]
 }
@@ -15,19 +15,21 @@ object Aggregator extends Factory[Aggregator]
 
 trait FlatIndexAggregator extends Aggregator
 {
-  override def aggregateIndexes(indexSets : Traversable[Set[Seq[Double]]]) : Set[Seq[Double]] =
+  override def aggregateIndexes(indexSets : Traversable[Set[Seq[Int]]]) : Set[Seq[Int]] =
   {
     val maxDimension = indexSets.flatMap(_.headOption.map(_.size)).max
 
     for(indexSet <- indexSets;
         index <- indexSet) yield
     {
-      index.padTo(maxDimension, 0.0)
+      index.padTo(maxDimension, 0)
     }
   }.toSet
 
   override def aggregateBlockCounts(blockCounts : Traversable[Seq[Int]]) : Seq[Int] =
   {
+    //TODO indexes nacheinander statt uebereinander anordnen?
+
     //Combines two blockCounts into one
     def combine(blocks1 : Seq[Int], blocks2 : Seq[Int]) : Seq[Int] =
     {
@@ -40,9 +42,9 @@ trait FlatIndexAggregator extends Aggregator
 
 trait MultiIndexAggregator extends Aggregator
 {
-  override def aggregateIndexes(indexSets : Traversable[Set[Seq[Double]]]) : Set[Seq[Double]] =
+  override def aggregateIndexes(indexSets : Traversable[Set[Seq[Int]]]) : Set[Seq[Int]] =
   {
-    def combine(indexSet1 : Set[Seq[Double]], indexSet2 : Set[Seq[Double]]) : Set[Seq[Double]] =
+    def combine(indexSet1 : Set[Seq[Int]], indexSet2 : Set[Seq[Int]]) : Set[Seq[Int]] =
     {
       for(index1 <- indexSet1;
           index2 <- indexSet2) yield

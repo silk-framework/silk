@@ -6,7 +6,7 @@ trait Metric extends Strategy
 {
   def evaluate(value1 : String, value2 : String) : Double
 
-  def index(value : String) : Set[Seq[Double]] = Set(Seq(0))
+  def index(value : String) : Set[Seq[Int]] = Set(Seq(0))
 
   val blockCounts : Seq[Int] = Seq(1)
 }

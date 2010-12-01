@@ -1,5 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
+import condition.Blocking
 import de.fuberlin.wiwiss.silk.output.Output
 
 /**
@@ -7,6 +8,7 @@ import de.fuberlin.wiwiss.silk.output.Output
  */
 //TODO make LinkSpecification self contained by including a link to the prefixes?
 //TODO choose a better name for sourceDataset and targetDataset ('source' is misleading)
+//TODO move blocking to configuration
 case class LinkSpecification(val id : String, val linkType : String, val sourceDataset : DatasetSpecification,
                              val targetDataset : DatasetSpecification, val blocking : Option[Blocking], val condition : LinkCondition,
                              val filter : LinkFilter, val outputs : Traversable[Output])

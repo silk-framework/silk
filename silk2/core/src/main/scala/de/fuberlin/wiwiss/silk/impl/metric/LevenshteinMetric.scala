@@ -1,10 +1,15 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
-import de.fuberlin.wiwiss.silk.impl.blockingfunction.AlphaNumBlockingFunction
+import de.fuberlin.wiwiss.silk.util.StringUtils._
 
 class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
+  private val minChar = readOptionalParam("minChar").getOrElse("0").head
+  private val maxChar = readOptionalParam("maxChar").getOrElse("Z").head
+  private val maxDistance = readOptionalIntParam("maxDistance")
+  private val q = readOptionalIntParam("q").getOrElse(1)
+
   override def evaluate(str1 : String, str2 : String) =
   {
     val maxDistance = math.min(str1.length, str2.length)
@@ -21,14 +26,28 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
     }
   }
 
-  override def index(str : String) =
+  //TODO compute qGrams lazy
+  override def index(str : String) : Set[Seq[Int]] =
   {
-    Set(Seq(new AlphaNumBlockingFunction()(str)))
+    val k = maxDistance match
+    {
+      case Some(dist) => dist
+      case None => str.length
+    }
+
+    val qGrams = str.qGrams(q).take(k * q + 1)
+
+    qGrams.map(indexQGram).toSet
+  }
+
+  private def indexQGram(qGram : String) =
+  {
+    Seq(qGram.foldLeft(0)((index, char) => index * (maxChar - minChar) + char - minChar))
   }
 
   override val blockCounts : Seq[Int] =
   {
-    Seq(37)
+    Seq(BigInt(maxChar - minChar).pow(q).toInt)
   }
 
   def evaluateDistance(str1 : String, str2 : String): Int =
