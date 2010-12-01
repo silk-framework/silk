@@ -3,13 +3,12 @@ package de.fuberlin.wiwiss.silk.impl
 import datasource._
 import transformer._
 import aggegrator._
-import blockingfunction._
 import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.{Metric, Aggregator, BlockingFunction}
-import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter, Output}
+import de.fuberlin.wiwiss.silk.linkspec.{Metric, Aggregator}
+import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
 
 /**
  * Registers all default implementations.
@@ -19,9 +18,6 @@ object DefaultImplementations
     def register()
     {
         DataSource.register("sparqlEndpoint", classOf[SparqlDataSource])
-
-        BlockingFunction.register("numeric", classOf[NumBlockingFunction])
-        BlockingFunction.register("alphanumeric", classOf[AlphaNumBlockingFunction])
 
         Transformer.register("replace", classOf[ReplaceTransformer])
         Transformer.register("regexReplace", classOf[RegexReplaceTransformer])

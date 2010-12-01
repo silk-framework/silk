@@ -15,7 +15,7 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
     aggregator.evaluate(weightedValues).toList
   }
 
-  override def index(instance : Instance) : Set[Seq[Double]] =
+  override def index(instance : Instance) : Set[Seq[Int]] =
   {
     val indexSets = operators.map(_.index(instance))
     aggregator.aggregateIndexes(indexSets)

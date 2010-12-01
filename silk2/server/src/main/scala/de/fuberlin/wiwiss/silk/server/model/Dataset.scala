@@ -56,7 +56,9 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
 
     if(writeUnmatchedInstances)
     {
-      targetCache.write(unmatchedInstances, linkSpec.blocking)
+      //TODO enable blocking
+      targetCache.write(unmatchedInstances)
+      //targetCache.write(unmatchedInstances, linkSpec.blocking)
     }
 
     MatchResult(links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)

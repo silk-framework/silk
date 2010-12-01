@@ -44,8 +44,7 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
     val instances = source.retrieve(instanceSpecs.source)
     sourceCache.clear()
-    sourceCache.write(instances)
-    //sourceCache.write(instances, Some(linkSpec.condition.index))
+    sourceCache.write(instances, Some(blockingFunction))
 
     logger.info("Loaded instances of source dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
@@ -62,9 +61,13 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
     val instances = source.retrieve(instanceSpecs.target)
     targetCache.clear()
-    targetCache.write(instances)
-    //targetCache.write(instances, Some(linkSpec.condition.index))
+    targetCache.write(instances, Some(blockingFunction))
 
     logger.info("Loaded instances of target dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+  }
+
+  private def blockingFunction(instance : Instance) =
+  {
+    linkSpec.condition.index(instance).map(_ % linkSpec.blocking.map(_.blocks).getOrElse(1))
   }
 }

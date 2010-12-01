@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
+import de.fuberlin.wiwiss.silk.util.StringUtils._
 
 /**
  * String similarity based on q-grams.
@@ -14,10 +15,8 @@ class QGramsMetric(val params : Map[String, String] = Map.empty) extends Metric
 
     override def evaluate(str1 : String, str2 : String) =
     {
-        val boundary = "#" * (q - 1)
-
-        val qGrams1 = (boundary + str1 + boundary).sliding(q).toSeq
-        val qGrams2 = (boundary + str2 + boundary).sliding(q).toSeq
+        val qGrams1 = str1.qGrams(q)
+        val qGrams2 = str2.qGrams(q)
 
         val matchingQGrams = (qGrams1 intersect qGrams2).size * 2
         val numQGrams = qGrams1.size + qGrams2.size
