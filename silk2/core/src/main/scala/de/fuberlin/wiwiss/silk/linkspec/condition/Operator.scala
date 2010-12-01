@@ -8,9 +8,9 @@ trait Operator
 
   val weight : Int
 
-  def apply(sourceInstance : Instance, targetInstance : Instance) : Traversable[Double]
+  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Traversable[Double]
 
-  def index(instance : Instance) : Set[Seq[Int]]
+  def index(instance : Instance, threshold : Double) : Set[Seq[Int]]
 
   val blockCounts : Seq[Int]
 }

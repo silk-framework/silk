@@ -4,15 +4,15 @@ import de.fuberlin.wiwiss.silk.instance.Instance
 
 case class LinkCondition(rootAggregation : Aggregation)
 {
-  def apply(sourceInstance : Instance, targetInstance : Instance) : Double =
+  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Double =
   {
-    rootAggregation(sourceInstance, targetInstance).headOption.getOrElse(0.0)
+    rootAggregation(sourceInstance, targetInstance, threshold).headOption.getOrElse(0.0)
   }
 
-  def index(instance : Instance) : Set[Int] =
+  def index(instance : Instance, threshold : Double) : Set[Int] =
   {
     //The indexes as vectors of doubles
-    val indexes = rootAggregation.index(instance)
+    val indexes = rootAggregation.index(instance, threshold)
 
     //The indexes as vectors of sets of block indexes (one double index may translate to multiple block indexes)
     val multiBlockIndexes =

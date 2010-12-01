@@ -27,7 +27,7 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
 
   val longitudeFirst = params.get("longitudeFirst").getOrElse("true").equals("true")
 
-  override def evaluate(str1 : String, str2 : String) : Double =
+  override def evaluate(str1 : String, str2 : String, threshold : Double) : Double =
   {
     //Parse the coordinates and return a similarity value if both coordinates could be extracted.
     (getCoordinates(str1), getCoordinates(str2)) match

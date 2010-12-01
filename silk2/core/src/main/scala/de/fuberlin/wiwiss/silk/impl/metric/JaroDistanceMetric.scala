@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.Metric
 
 class JaroDistanceMetric(val params: Map[String, String] = Map()) extends Metric
 {
-    override def evaluate(str1 : String, str2 : String) =
+    override def evaluate(str1 : String, str2 : String, threshold : Double) =
     {
         JaroDinstanceMetric.jaro(str1, str2)
     }

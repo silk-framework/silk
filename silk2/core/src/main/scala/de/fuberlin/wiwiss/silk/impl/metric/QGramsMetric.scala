@@ -13,7 +13,7 @@ class QGramsMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
     private val q = readOptionalIntParam("q").getOrElse(2)
 
-    override def evaluate(str1 : String, str2 : String) =
+    override def evaluate(str1 : String, str2 : String, threshold : Double) =
     {
         val qGrams1 = str1.qGrams(q)
         val qGrams2 = str2.qGrams(q)

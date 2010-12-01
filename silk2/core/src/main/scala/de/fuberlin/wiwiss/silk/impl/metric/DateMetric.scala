@@ -13,7 +13,7 @@ class DateMetric(val params : Map[String, String]) extends Metric
     case _ => throw new IllegalArgumentException("Integral parameter 'max_days' required")
   }
 
-  override def evaluate(str1 : String, str2 : String) =
+  override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
     try
     {

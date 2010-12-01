@@ -10,7 +10,7 @@ class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Met
   // prefix adjustment scale
   private final val PREFIXADUSTMENTSCALE: Double = 0.1
 
-  override def evaluate(str1 : String, str2 : String) =
+  override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
     evaluateDistance(str1, str2)
   }

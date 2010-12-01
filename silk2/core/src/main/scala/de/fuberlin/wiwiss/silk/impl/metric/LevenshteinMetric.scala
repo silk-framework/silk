@@ -2,37 +2,34 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
+import scala.math.max
 
 class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Metric
 {
   private val minChar = readOptionalParam("minChar").getOrElse("0").head
   private val maxChar = readOptionalParam("maxChar").getOrElse("Z").head
-  private val maxDistance = readOptionalIntParam("maxDistance")
+  private val thresholdDistance = readOptionalIntParam("thresholdDistance")
   private val q = readOptionalIntParam("q").getOrElse(1)
 
-  override def evaluate(str1 : String, str2 : String) =
+  override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
-    val maxDistance = math.min(str1.length, str2.length)
+    val maxDistance = max(str1.length, str2.length)
+    val levenshteinDistance = evaluateDistance(str1, str2)
 
-    if(math.abs(str1.length - str2.length) >= maxDistance)
+    thresholdDistance match
     {
-      0.0
-    }
-    else
-    {
-      val levenshteinDistance = evaluateDistance(str1, str2)
-
-      math.max(0.0, 1.0 - levenshteinDistance.toDouble / maxDistance.toDouble)
+      case Some(thresholdDist) => max(1.0 - (levenshteinDistance.toDouble / thresholdDist) * (1.0 - threshold), 0.0)
+      case None => 1.0 - (levenshteinDistance.toDouble / maxDistance)
     }
   }
 
   //TODO compute qGrams lazy
-  override def index(str : String) : Set[Seq[Int]] =
+  override def index(str : String, threshold : Double) : Set[Seq[Int]] =
   {
-    val k = maxDistance match
+    val k = thresholdDistance match
     {
       case Some(dist) => dist
-      case None => str.length
+      case None => (str.length * (1.0 - threshold)).toInt
     }
 
     val qGrams = str.qGrams(q).take(k * q + 1)

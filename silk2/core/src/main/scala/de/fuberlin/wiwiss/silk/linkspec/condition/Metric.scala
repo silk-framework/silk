@@ -4,9 +4,9 @@ import de.fuberlin.wiwiss.silk.util.{Strategy, Factory}
 
 trait Metric extends Strategy
 {
-  def evaluate(value1 : String, value2 : String) : Double
+  def evaluate(value1 : String, value2 : String, threshold : Double) : Double
 
-  def index(value : String) : Set[Seq[Int]] = Set(Seq(0))
+  def index(value : String, threshold : Double) : Set[Seq[Int]] = Set(Seq(0))
 
   val blockCounts : Seq[Int] = Seq(1)
 }

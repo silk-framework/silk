@@ -68,6 +68,6 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
   private def blockingFunction(instance : Instance) =
   {
-    linkSpec.condition.index(instance).map(_ % linkSpec.blocking.map(_.blocks).getOrElse(1))
+    linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % linkSpec.blocking.map(_.blocks).getOrElse(1))
   }
 }
