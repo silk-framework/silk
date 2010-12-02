@@ -37,25 +37,25 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
     }
   }
 
-//  override def index(str : String) =
-//  {
-//    getCoordinates(str) match
-//    {
-//      case Some(coords) =>
-//      {
-//        val latIndex = (coords.lat + 90.0) / 180.0
-//        val longIndex = (coords.long + 180.0) / 360.0
-//
-//        Set(Seq(latIndex, longIndex))
-//      }
-//      case None => Set.empty
-//    }
-//  }
-//
-//  override val blockCounts : Seq[Int] =
-//  {
-//    Seq(45, 90)
-//  }
+  override def index(str : String, threshold : Double) : Set[Seq[Int]] =
+  {
+    getCoordinates(str) match
+    {
+      case Some(coords) =>
+      {
+        val latIndex = (coords.lat + 90.0) / 180.0
+        val longIndex = (coords.long + 180.0) / 360.0
+
+        Set(Seq((latIndex * 45).toInt, (longIndex * 90).toInt))
+      }
+      case None => Set.empty
+    }
+  }
+
+  override val blockCounts : Seq[Int] =
+  {
+    Seq(45, 90)
+  }
 
   /**
    * Extracts the latitude and longitude from a string and takes their order from the parameter "longitudeFirst".

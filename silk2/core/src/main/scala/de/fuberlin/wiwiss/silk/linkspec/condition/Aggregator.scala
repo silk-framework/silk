@@ -17,7 +17,9 @@ trait FlatIndexAggregator extends Aggregator
 {
   override def aggregateIndexes(indexSets : Traversable[Set[Seq[Int]]]) : Set[Seq[Int]] =
   {
-    val maxDimension = indexSets.flatMap(_.headOption.map(_.size)).max
+    //TODO maximum does not work on empty sets
+    val set = indexSets.flatMap(_.headOption.map(_.size))
+    val maxDimension = if(set.isEmpty) 1 else set.max
 
     for(indexSet <- indexSets;
         index <- indexSet) yield

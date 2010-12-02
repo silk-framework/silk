@@ -44,11 +44,11 @@
         <Aggregate type="average">
           <Aggregate type="max" required="true" >
             <!-- We need two comparators because some resources in LinkedGeoData do not provided an english label -->
-            <Compare metric="jaro" >
+            <Compare metric="levenshtein" >
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='en']" />
             </Compare>
-            <Compare metric="jaro" >
+            <Compare metric="levenshtein" >
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='']" />
             </Compare>
