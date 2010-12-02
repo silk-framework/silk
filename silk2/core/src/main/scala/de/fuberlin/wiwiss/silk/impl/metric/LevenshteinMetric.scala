@@ -8,26 +8,25 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
 {
   private val minChar = readOptionalParam("minChar").getOrElse("0").head
   private val maxChar = readOptionalParam("maxChar").getOrElse("z").head
-  private val thresholdDistance = readOptionalIntParam("thresholdDistance")
+  private val maxDistance = readOptionalIntParam("maxDistance")
   private val q = readOptionalIntParam("q").getOrElse(1)
 
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
-    val maxDistance = max(str1.length, str2.length)
-    val levenshteinDistance = evaluateDistance(str1, str2)
-
-    thresholdDistance match
+    val k = maxDistance match
     {
-      case Some(thresholdDist) => max(1.0 - (levenshteinDistance.toDouble / thresholdDist) * (1.0 - threshold), 0.0)
-      case None => 1.0 - (levenshteinDistance.toDouble / maxDistance)
+      case Some(d) => d
+      case None => max(str1.length, str2.length)
     }
+
+    max(1.0 - (evaluateDistance(str1, str2).toDouble / k), 0.0)
   }
 
   override def index(str : String, threshold : Double) : Set[Seq[Int]] =
   {
-    val k = thresholdDistance match
+    val k = maxDistance match
     {
-      case Some(dist) => dist
+      case Some(d) => (d * (1.0 - threshold)).toInt
       case None => (str.length * (1.0 - threshold)).toInt
     }
 
