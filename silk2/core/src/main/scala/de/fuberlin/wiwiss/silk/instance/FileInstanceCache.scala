@@ -27,14 +27,15 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
     {
       for(instance <- instances)
       {
-        for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+        val blockIndexes = blockingFunction.map(f => f(instance)).getOrElse(Set(0))
+        for(block <- blockIndexes)
         {
           if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
 
           blocks(block).write(instance)
         }
 
-        instanceCount += 1
+        if(!blockIndexes.isEmpty) instanceCount += 1
       }
 
       logger.info("Written " + instanceCount + " instances.")
