@@ -22,10 +22,12 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
 
   val unitMultiplier : Double = multipliers.get(params.get("unit").getOrElse("")).getOrElse(1)
 
-  val threshold : Option[Double] = params.get("threshold").map(_.toDouble)
+  val threshold : Double = readRequiredDoubleParam("threshold")
   val curveStyle : Option[String] = params.get("curveStyle");
 
   val longitudeFirst = params.get("longitudeFirst").getOrElse("true").equals("true")
+
+  private val blockOverlap = 0.5
 
   override def evaluate(str1 : String, str2 : String, threshold : Double) : Double =
   {
@@ -44,17 +46,39 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
       case Some(coords) =>
       {
         val latIndex = (coords.lat + 90.0) / 180.0
-        val longIndex = (coords.long + 180.0) / 360.0
+        val longIndex = (coords.long + 180.0) / 360.0 * cos(deg2rad(coords.lat))
 
-        Set(Seq((latIndex * 45).toInt, (longIndex * 90).toInt))
+        getBlocks(Seq(latIndex, longIndex), blockOverlap)
       }
       case None => Set.empty
     }
   }
 
+  private val latitudeBlockCount =
+  {
+    val earthCircumferenceEquatorial = 40075160.0
+
+    val distInMeters = threshold / unitMultiplier
+
+    val latitudeBlocks = earthCircumferenceEquatorial / distInMeters * blockOverlap
+
+    latitudeBlocks.toInt
+  }
+
+  private val longitudeBlockCount =
+  {
+    val earthCircumferenceMeridional = 40008000.0
+
+    val distInMeters = threshold / unitMultiplier
+
+    val longitudeBlocks = earthCircumferenceMeridional / distInMeters * blockOverlap
+
+    longitudeBlocks.toInt
+  }
+
   override val blockCounts : Seq[Int] =
   {
-    Seq(45, 90)
+    Seq(latitudeBlockCount, longitudeBlockCount)
   }
 
   /**
@@ -121,12 +145,9 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
    */
   private def scale(distance : Double) : Double =
   {
-    // no threshold defined -> just return the distance
-    if(!threshold.isDefined) {return distance;}
-
-    // a threshold is used, first check for boundary cases
+    //First check for boundary cases
     if(distance==0) {return 1}
-    if(distance>=threshold.get) {return 0}
+    if(distance>=threshold) {return 0}
 
     // curveStyle = "discreet" or no curveStyle set
     // -> no curve, just return 1
@@ -138,12 +159,12 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
     if(curveStyle.get.equals("linear"))
     {
 
-      val m = - 1/threshold.get;
+      val m = - 1/threshold;
       return 1 + m * distance;
     }
 
     // logistic transition
-    return 1 / (1+ exp((distance)*10/threshold.get-5));
+    return 1 / (1+ exp((distance)*10/threshold-5));
   }
 
   /**

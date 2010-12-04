@@ -18,14 +18,26 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
   {
     //TODO modify threshold
-    val indexSets = operators.map(_.index(instance, threshold))
-    aggregator.aggregateIndexes(indexSets)
+    val indexSets = for(op <- operators) yield (op.index(instance, threshold), op.blockCounts)
+
+    val combined = indexSets.reduceLeft[(Set[Seq[Int]], Seq[Int])]
+    {
+      case ((indexSet1, blockCounts1), (indexSet2, blockCounts2)) =>
+      {
+        val combinedIndexSet = aggregator.combineIndexes(indexSet1, blockCounts1, indexSet2, blockCounts2)
+        val combinedBlockCounts = aggregator.combineBlockCounts(blockCounts1, blockCounts2)
+
+        (combinedIndexSet, combinedBlockCounts)
+      }
+    }
+
+    combined._1
   }
 
   override val blockCounts : Seq[Int] =
   {
-    val blockCounts = operators.map(_.blockCounts)
-    aggregator.aggregateBlockCounts(blockCounts)
+    operators.map(_.blockCounts)
+             .reduceLeft((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
   }
 
   override def toString = aggregator match

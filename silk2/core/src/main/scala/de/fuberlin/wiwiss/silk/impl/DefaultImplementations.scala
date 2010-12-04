@@ -18,6 +18,7 @@ object DefaultImplementations
     def register()
     {
         DataSource.register("sparqlEndpoint", classOf[SparqlDataSource])
+        DataSource.register("cache", classOf[CacheDataSource])
 
         Transformer.register("replace", classOf[ReplaceTransformer])
         Transformer.register("regexReplace", classOf[RegexReplaceTransformer])
