@@ -4,15 +4,20 @@ import de.fuberlin.wiwiss.silk.instance.Instance
 
 case class Aggregation(required : Boolean, weight : Int, operators : Traversable[Operator], aggregator : Aggregator) extends Operator
 {
-  override def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Traversable[Double] =
+  override def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Option[Double] =
   {
-    val weightedValues = operators.flatMap{operator =>
-        val values = operator(sourceInstance, targetInstance, threshold)
-        if(operator.required && values.isEmpty) return Traversable.empty
-        values.map(value => (operator.weight, value))
+    val weightedValues =
+    {
+      for(operator <- operators) yield
+      {
+        val value = operator(sourceInstance, targetInstance, threshold)
+        if(operator.required && value.isEmpty) return None
+
+        (operator.weight, value.getOrElse(0.0))
+      }
     }
 
-    aggregator.evaluate(weightedValues).toList
+    aggregator.evaluate(weightedValues)
   }
 
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =

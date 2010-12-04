@@ -8,7 +8,7 @@ trait Operator
 
   val weight : Int
 
-  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Traversable[Double]
+  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Option[Double]
 
   def index(instance : Instance, threshold : Double) : Set[Seq[Int]]
 
