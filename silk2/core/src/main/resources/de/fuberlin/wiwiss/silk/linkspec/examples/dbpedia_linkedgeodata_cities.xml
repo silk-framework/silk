@@ -40,6 +40,8 @@
         </RestrictTo>
       </TargetDataset>
 
+      <!-- Blocking blocks="1000" / -->
+
       <LinkCondition>
         <Aggregate type="average">
           <Aggregate type="max" required="true" >
@@ -53,16 +55,14 @@
               <Input path="?b/rdfs:label[@lang='']" />
             </Compare>
           </Aggregate>
-          <Aggregate type="max" required="true" >
-            <Compare metric="wgs84" >
-              <Input path="?a/georss:point" />
-              <Input path="?b/georss:point" />
-              <Param name="unit" value="km"/>
-              <Param name="threshold" value="50"/>
-              <Param name="curveStyle" value="linear"/>
-              <Param name="longitudeFirst" value="false"/>
-            </Compare>
-          </Aggregate>
+          <Compare metric="wgs84" required="true">
+            <Input path="?a/georss:point" />
+            <Input path="?b/georss:point" />
+            <Param name="unit" value="km"/>
+            <Param name="threshold" value="50"/>
+            <Param name="curveStyle" value="linear"/>
+            <Param name="longitudeFirst" value="false"/>
+          </Compare>
        </Aggregate>              
       </LinkCondition>
 
