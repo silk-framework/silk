@@ -7,12 +7,21 @@ case class Comparison(required : Boolean, weight : Int, inputs : Seq[Input], met
 {
   require(inputs.size == 2, "Number of inputs must be 2. " + inputs.size + " given.")
 
-  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Traversable[Double] =
+  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Option[Double] =
   {
     val set1 = inputs(0).apply(Traversable(sourceInstance, targetInstance))
     val set2 = inputs(1).apply(Traversable(sourceInstance, targetInstance))
 
-    for (str1 <- set1; str2 <- set2) yield metric.evaluate(str1, str2, threshold)
+    if(!set1.isEmpty && !set2.isEmpty)
+    {
+      val similarities = for (str1 <- set1; str2 <- set2) yield metric.evaluate(str1, str2, threshold)
+
+      Some(similarities.max)
+    }
+    else
+    {
+      None
+    }
   }
 
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
