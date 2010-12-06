@@ -11,7 +11,7 @@ class NumMetric(val params : Map[String, String] = Map.empty) extends Metric
 
   private val minValue = readOptionalDoubleParam("min")
   private val maxValue = readOptionalDoubleParam("max")
-  private val thresholdDistance = readRequiredDoubleParam("thresholdDistance")
+  private val maxDistance = readRequiredDoubleParam("maxDistance")
   private val blockOverlap = 0.5
 
   if(minValue.isEmpty || maxValue.isEmpty)
@@ -23,7 +23,7 @@ class NumMetric(val params : Map[String, String] = Map.empty) extends Metric
   {
     (str1, str2) match
     {
-      case (DoubleLiteral(num1), DoubleLiteral(num2)) => max(1.0 - abs(num1 - num2) / thresholdDistance * (1.0 - threshold), 0.0)
+      case (DoubleLiteral(num1), DoubleLiteral(num2)) => max(1.0 - abs(num1 - num2) / maxDistance, 0.0)
       case _ => 0.0
     }
   }

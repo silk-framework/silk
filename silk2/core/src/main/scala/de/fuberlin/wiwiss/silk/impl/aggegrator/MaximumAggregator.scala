@@ -4,8 +4,8 @@ import de.fuberlin.wiwiss.silk.linkspec.FlatIndexAggregator
 
 class MaximumAggregator(val params: Map[String, String] = Map()) extends FlatIndexAggregator
 {
-    override def evaluate(values : Traversable[(Int, Double)]) =
-    {
-        if (values.isEmpty) None else Some(values.map(_._2).max)
-    }
+  override def evaluate(values : Traversable[(Int, Double)]) =
+  {
+    if (values.isEmpty) None else Some(values.map(_._2).max)
+  }
 }

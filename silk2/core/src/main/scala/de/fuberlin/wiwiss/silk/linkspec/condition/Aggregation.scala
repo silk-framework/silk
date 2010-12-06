@@ -22,8 +22,9 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
 
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
   {
-    //TODO modify threshold
-    val indexSets = for(op <- operators) yield (op.index(instance, threshold), op.blockCounts)
+    val totalWeights = operators.map(_.weight).sum
+
+    val indexSets = for(op <- operators) yield (op.index(instance, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)), op.blockCounts)
 
     val combined = indexSets.reduceLeft[(Set[Seq[Int]], Seq[Int])]
     {
