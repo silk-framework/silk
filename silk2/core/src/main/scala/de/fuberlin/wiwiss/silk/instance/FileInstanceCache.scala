@@ -132,15 +132,7 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
     def write(instance : Instance)
     {
-      if(partitionCount == 0)
-      {
-        blockDir.mkdirs()
-      }
-
-      if(lastPartitionSize == 0)
-      {
-        partitionCount += 1
-      }
+      if(partitionCount == 0) partitionCount = 1
 
       lastPartition(lastPartitionSize) = instance
       lastPartitionSize += 1
@@ -149,6 +141,7 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
       {
         writePartitionToFile()
         lastPartitionSize = 0
+        partitionCount += 1
       }
     }
 
@@ -156,6 +149,7 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
     {
       partitionCount = 0
       lastPartitionSize = 0
+      //TODO execute deleteRecursive once on whole cache?
       blockDir.deleteRecursive()
     }
 
@@ -191,6 +185,8 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
     private def writePartitionToFile()
     {
+      if(partitionCount == 1) blockDir.mkdirs()
+
       val stream = new ObjectOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1)))
 
       try
