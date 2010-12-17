@@ -56,7 +56,7 @@ class NumMetric(val params : Map[String, String] = Map.empty) extends Metric
   {
     (minValue, maxValue) match
     {
-      case (Some(minV), Some(maxV)) => (blockOverlap * (maxV - minV) / thresholdDistance).toInt
+      case (Some(minV), Some(maxV)) => (blockOverlap * (maxV - minV) / maxDistance).toInt
       case _ => 1
     }
   }
