@@ -2,12 +2,13 @@ package de.fuberlin.wiwiss.silk
 
 import config.Configuration
 import de.fuberlin.wiwiss.silk.util.Task
-import instance.InstanceCache
+import instance.{Instance, InstanceCache}
 import linkspec.LinkSpecification
-import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import java.util.logging.{Level, Logger}
 import output.Link
 import java.util.concurrent._
+import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
+import collection.immutable.HashSet
 
 /**
  * Executes the matching.
@@ -166,12 +167,23 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
         val sourceInstances = sourceCache.read(blockIndex, sourcePartitionIndex)
         val targetInstances = targetCache.read(blockIndex, targetPartitionIndex)
 
-        val sourceIndexes = sourceInstances.map(instance => linkSpec.condition.index(instance, linkSpec.filter.threshold))
-        val targetIndexes = targetInstances.map(instance => linkSpec.condition.index(instance, linkSpec.filter.threshold))
+        val sourceIndexes = builtIndex(sourceInstances)
+        val targetIndexes = builtIndex(targetInstances)
+
+//        val indexMap =
+//        {
+//          for(i <- 0 until targetInstances.size;
+//              index <- targetIndexes(i)) yield
+//              (index, targetInstances(i))
+//        }.groupBy(_._1).mapValues(_.map(_._2))
 
         for(s <- 0 until sourceInstances.size;
             t <- 0 until targetInstances.size;
-            if sourceIndexes(s).exists(targetIndexes(t).contains(_)))
+            if compareIndexes(sourceIndexes(s), targetIndexes(t)))
+//        for(s <- 0 until sourceInstances.size;
+//            sourceIndex <- sourceIndexes(s);
+//            targetIndexSet <- indexMap.get(sourceIndex);
+//            targetInstance <- targetIndexSet)
         {
           val sourceInstance = sourceInstances(s)
           val targetInstance = targetInstances(t)
@@ -192,6 +204,21 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
       logger.info("Matcher " + id + " generated " + links.size + " links")
 
       links
+    }
+
+    def builtIndex(instances : Array[Instance]) =
+    {
+      instances.map(instance => HashSet(linkSpec.condition.index(instance, linkSpec.filter.threshold).toSeq : _*))
+    }
+
+    def compareIndexes(index1 : Set[Int], index2 : Set[Int]) =
+    {
+      index1.exists(index2.contains(_))
+    }
+
+    def evaluateCondition(sourceInstance : Instance, targetInstance : Instance) =
+    {
+      linkSpec.condition(sourceInstance, targetInstance, linkSpec.filter.threshold)
     }
   }
 }

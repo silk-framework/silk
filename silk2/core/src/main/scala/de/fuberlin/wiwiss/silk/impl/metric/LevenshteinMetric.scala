@@ -33,7 +33,9 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
     val qGrams = str.qGrams(q)
     val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 
-    qGramsReordered.take(k * q + 1).map(indexQGram).toSet
+    val index = qGramsReordered.take(k * q + 1).map(indexQGram).toSet
+
+    index
   }
 
   private def indexQGram(qGram : String) =

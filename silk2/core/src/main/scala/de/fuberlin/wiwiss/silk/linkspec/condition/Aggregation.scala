@@ -20,11 +20,23 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
     aggregator.evaluate(weightedValues)
   }
 
+  //TODO throw away instances with operators with no index which are required
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
   {
     val totalWeights = operators.map(_.weight).sum
 
-    val indexSets = for(op <- operators) yield (op.index(instance, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)), op.blockCounts)
+    val indexSets =
+    {
+      for(op <- operators) yield
+      {
+        val index = op.index(instance, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights))
+        val blockCounts = op.blockCounts
+
+        if(op.required && index.isEmpty) return Set.empty;
+
+        (index, blockCounts)
+      }
+    }
 
     val combined = indexSets.reduceLeft[(Set[Seq[Int]], Seq[Int])]
     {
@@ -43,7 +55,7 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
   override val blockCounts : Seq[Int] =
   {
     operators.map(_.blockCounts)
-             .reduceLeft((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
+             .foldLeft(Seq[Int]())((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
   }
 
   override def toString = aggregator match

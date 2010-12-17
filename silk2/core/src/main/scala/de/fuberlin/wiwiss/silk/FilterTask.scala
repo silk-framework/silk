@@ -28,7 +28,7 @@ class FilterTask(linkSpec : LinkSpecification, links : Buffer[Link]) extends Tas
 
         linkBuffer
       }
-      case None => links
+      case None => links.distinct
     }
   }
 }

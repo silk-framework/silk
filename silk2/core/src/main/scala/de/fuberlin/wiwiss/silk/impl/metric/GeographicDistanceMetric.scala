@@ -25,8 +25,6 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
   val threshold : Double = readRequiredDoubleParam("threshold")
   val curveStyle : Option[String] = params.get("curveStyle");
 
-  val longitudeFirst = params.get("longitudeFirst").getOrElse("true").equals("true")
-
   private val blockOverlap = 0.5
 
   override def evaluate(str1 : String, str2 : String, threshold : Double) : Double =
@@ -98,7 +96,7 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
     {
       case Array(DoubleLiteral(c1), DoubleLiteral(c2)) =>
       {
-        if(longitudeFirst)
+        if(s.startsWith("POINT"))
           Some(new GeoPoint(c2, c1))
         else
           Some(new GeoPoint(c1, c2))
