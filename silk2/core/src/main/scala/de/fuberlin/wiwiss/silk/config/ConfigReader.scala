@@ -147,7 +147,7 @@ object ConfigReader
   private def readBlocking(node : Node) : Blocking =
   {
     new Blocking(
-      (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(1),
+      (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(1000),
       (node \ "@overlap").headOption.map(_.text.toDouble).getOrElse(0.4)
     )
   }
