@@ -11,6 +11,7 @@ import java.io.{File, ByteArrayInputStream}
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
+import net.liftweb.http.js.JsCmd
 
 class ProjectMenu
 {
@@ -69,6 +70,13 @@ class ProjectMenu
     var targetEndpointUri = "http://www4.wiwiss.fu-berlin.de/drugbank/sparql"
     var sourceRestriction = "?a rdf:type sider:drugs"
     var targetRestriction = "?b rdf:type drugbank:drugs"
+    var prefixes = Map[String, String]()
+
+    def updatePrefixes(updatedPrefixes : Map[String, String])
+    {
+      prefixes = updatedPrefixes
+      //JsRaw("$('#createProjectForm').submit()").cmd
+    }
 
     def run()
     {
@@ -76,8 +84,6 @@ class ProjectMenu
       val targetDataset = new Description(new RemoteSparqlEndpoint(new URI(targetEndpointUri)), targetRestriction)
 
       Project.create(new SourceTargetPair(sourceDataset, targetDataset))
-
-      S.redirectTo("linkSpec")
     }
 
     bind("entry", xhtml,
@@ -85,7 +91,8 @@ class ProjectMenu
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60"),
          "targetEndpoint" -> SHtml.text(targetEndpointUri, targetEndpointUri = _, "size" -> "60"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
-         "submit" -> SHtml.submit("Create", run))
+         "prefixes" -> PrefixEditor.prefixEditor(),
+         "submit" -> SHtml.ajaxSubmit("Create", () => PrefixEditor.readPrefixes(updatePrefixes)))
   }
 
   def openProjectDialog(xhtml : NodeSeq) : NodeSeq =
@@ -104,52 +111,8 @@ class ProjectMenu
       }
     }
 
-
     bind("entry", xhtml,
          "file" -> SHtml.fileUpload(fileHolder = _),
          "submit" -> SHtml.submit("Open", submit, "style" -> "float:right;"))
-  }
-
-  def editPrefixes(f : () => Map[String, String]) : NodeSeq =
-  {
-    //var prefixes = Map("dbpedia" -> "http://dbpedia.org/resource/")
-
-    var prefixes = List[(String, String)]()
-
-    def update(str : String) =
-    {
-      println("VVV" + str)
-      JsRaw("").cmd
-    }
-
-    def commit() =
-    {
-      SHtml.ajaxCall(JsRaw("$('#prefixTable tr td input').toArray().map(function (a) { return a.value; })"), update _)._2.cmd
-    }
-
-    def addRow() =
-    {
-      JsRaw("$('#prefixTable').append(\"<tr><td><input type='text' /></td></tr>\");").cmd
-    }
-
-    <table id="prefixTable">
-      <tr>
-        <th>Prefix</th>
-        <th>Namespace</th>
-      </tr>
-      {
-        for((prefix, namespace) <- prefixes) yield
-        {
-          <tr>
-            <td>{prefix}</td>
-            <td>{namespace}</td>
-          </tr>
-        }
-      }
-      <tr>
-        <td>{SHtml.ajaxButton("commit", commit _)}</td>
-        <td>{SHtml.ajaxButton("add", addRow _)}</td>
-      </tr>
-    </table>
   }
 }

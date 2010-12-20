@@ -16,15 +16,15 @@
       <lift:projectMenu.startMenu form="POST">
         <ul id="toolbar">
           <li>
-            <!-- entry:new/ -->
+            <entry:new/>
           </li>
           <li>
             <entry:open/>
           </li>
         </ul>
       </lift:projectMenu.startMenu>
-      <!-- div id="createProjectDialog" title="New Project">
-        <lift:projectMenu.createProjectDialog form="POST">
+      <div id="createProjectDialog" title="New Project">
+        <lift:projectMenu.createProjectDialog form="POST" id="createProjectForm">
           <table border="0">
             <tr>
               <td>Source Endpoint</td>
@@ -49,7 +49,7 @@
           </table>
           <entry:prefixes/>
         </lift:projectMenu.createProjectDialog>
-      </div -->
+      </div>
       <div id="openProjectDialog" title="Open Project">
         <lift:projectMenu.openProjectDialog form="POST" multipart="true">
           <entry:file/>
