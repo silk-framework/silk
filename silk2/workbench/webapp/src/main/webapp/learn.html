@@ -1,0 +1,38 @@
+<lift:surround with="default" at="content">
+  <lift:learning form="POST">
+    <choose:loading>
+      <entry:status/>
+    </choose:loading>
+    <choose:train>
+      <ul id="toolbar">
+        <li>
+          <entry:create/>
+        </li>
+        <li>
+          <entry:iterate/>
+        </li>
+        <li>
+          <entry:progress/>
+        </li>
+      </ul>
+      <lift:comet type="Population" name="Population">
+        <chat:input>
+        </chat:input>
+        <chat:body>
+          <table border="0">
+            <tr>
+              <td>
+                <ul chat:id="na">
+                  <chat:list>
+                    <li><list:name/></li>
+                  </chat:list>
+                </ul>
+              </td>
+              <td id='condition_id'>No Condition selected!</td>
+            </tr>
+          </table>
+        </chat:body>
+      </lift:comet>
+    </choose:train>
+  </lift:learning>
+</lift:surround>

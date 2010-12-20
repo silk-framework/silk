@@ -1,0 +1,18 @@
+<lift:surround with="default" at="content">
+  <lift:alignment.menu form="POST">
+    <ul id="toolbar">
+      <li>
+        <entry:open/>
+      </li>
+    </ul>
+  </lift:alignment.menu>
+  <div id="openAlignmentDialog" title="Open Alignment">
+    <lift:alignment.openAlignmentDialog form="POST" multipart="true">
+      <entry:file/>
+      <br/>
+      <entry:submit/>
+    </lift:alignment.openAlignmentDialog>
+  </div>
+  <lift:alignment.show>
+  </lift:alignment.show>
+</lift:surround>
