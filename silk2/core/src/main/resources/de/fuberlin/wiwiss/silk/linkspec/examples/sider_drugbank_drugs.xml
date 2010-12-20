@@ -42,9 +42,11 @@
         </RestrictTo>
       </TargetDataset>
 
+      <!-- Blocking blocks="1000" / -->
+
       <LinkCondition>
         <Aggregate type="max">
-          <Compare metric="jaroWinkler">
+          <Compare metric="levenshtein">
             <TransformInput function="lowerCase">
               <Input path="?a/rdfs:label"/>
             </TransformInput>
@@ -52,7 +54,7 @@
               <Input path="?b/rdfs:label"/>
             </TransformInput>
           </Compare>
-          <Compare metric="jaroWinkler">
+          <Compare metric="levenshtein">
             <TransformInput function="lowerCase">
               <Input path="?a/rdfs:label"/>
             </TransformInput>

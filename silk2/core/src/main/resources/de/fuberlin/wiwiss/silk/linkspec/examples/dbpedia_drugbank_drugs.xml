@@ -86,6 +86,28 @@
                 <Input path="?b/drugbank:synonym" />
               </TransformInput>
             </Compare>
+            <Compare metric="levenshtein">
+              <TransformInput function="lowerCase">
+                <Input path="?a/rdfs:label" />
+              </TransformInput>
+              <TransformInput function="lowerCase">
+                <Input path="?b/drugbank:brandName" />
+              </TransformInput>
+            </Compare>
+            <Compare metric="levenshtein">
+              <TransformInput function="lowerCase">
+                <TransformInput function="replace">
+                  <TransformInput function="stripUriPrefix">
+                    <Input path="?a\dbpedia-prop:redirect" />
+                  </TransformInput>
+                  <Param name="search" value="_" />
+                  <Param name="replace" value=" " />
+                </TransformInput>
+              </TransformInput>
+              <TransformInput function="lowerCase">
+                <Input path="?b/drugbank:brandName" />
+              </TransformInput>
+            </Compare>
           </Aggregate>
 
           <Aggregate type="max" weight="5">
@@ -93,10 +115,37 @@
               <TransformInput function="lowerCase">
                 <Input path="?a/dbpedia-owl:casNumber" />
               </TransformInput>
+              <TransformInput function="replace">
+                <Input path="?b/drugbank:casRegistryNumber" />
+                <Param name="search" value="http://bio2rdf.org/cas:" />
+                <Param name="replace" value="" />
+              </TransformInput>
+            </Compare>
+            <Compare metric="equality">
               <TransformInput function="lowerCase">
-                <TransformInput function="stripUriPrefix">
-                  <Input path="?b/drugbank:casRegistryNumber" />
+                <TransformInput function="concat">
+                  <Input path="?a/dbpedia-owl:atcPrefix" />
+                  <Input path="?a/dbpedia-owl:atcSuffix" />
                 </TransformInput>
+              </TransformInput>
+              <TransformInput function="lowerCase">
+                <Input path="?b/drugbank:atcCode" />
+              </TransformInput>
+            </Compare>
+            <Compare metric="equality">
+              <TransformInput function="lowerCase">
+                <Input path="?a/dbpedia-owl:drugbank" />
+              </TransformInput>
+              <TransformInput function="lowerCase">
+                <Input path="?b/drugbank:secondaryAccessionNumber" />
+              </TransformInput>
+            </Compare>
+            <Compare metric="equality">
+              <TransformInput function="lowerCase">
+                <Input path="?a/dbpedia-owl:pubchem" />
+              </TransformInput>
+              <TransformInput function="lowerCase">
+                <Input path="?b/drugbank:pubchemCompoundId" />
               </TransformInput>
             </Compare>
             <Compare metric="equality">
