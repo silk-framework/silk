@@ -3,7 +3,7 @@ body
 	margin: 0px;
 	font-family: Arial, "lucida console", sans-serif;
 	font-size: 13px;
-	background: #ffffff url('/static/img/watermark.png') repeat;
+	background-color: #ffffff;
 	color: #000000;
 }
 
