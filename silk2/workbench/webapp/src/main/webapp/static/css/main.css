@@ -1,0 +1,99 @@
+body
+{
+	margin: 0px;
+	font-family: Arial, "lucida console", sans-serif;
+	font-size: 13px;
+	background: #ffffff url('/static/img/watermark.png') repeat;
+	color: #000000;
+}
+
+th
+{
+	text-align: left;
+}
+
+a
+{
+	text-decoration: none;
+ 	color: #0000a0;
+}
+
+table
+{
+	border-collapse: collapse;
+}
+
+td
+{
+	border-top: 1px solid #606060;
+	border-bottom: 1px solid #606060;
+}
+
+pre
+{
+	font-family: "Courier New", Courier, monospace;
+}
+
+/* Tabbar
+----------------------------------*/
+#title
+{
+	font-size: 32px;
+	float: left;
+	position: relative;
+	padding-right: 30px;
+	color: #e0e0e0;
+	font-family: Times, serif;
+}
+
+#tabbar
+{
+	border-top: 4px solid #d20000;
+	height: 35px;
+	color: #000000;
+	border-bottom:  1px solid #505050;
+	padding-left: 30px;
+	background: url('/static/img/navigation.png') repeat-x;
+}
+
+.tab
+{
+	float: left;
+	margin-left: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	line-height: 25px;
+	position: relative;
+	top: 10px;
+	background-color: #202020;
+	border-top: solid 1px #505050;
+	border-left: solid 1px #505050;
+	border-right: solid 1px #505050;
+}
+
+.tab a
+{
+	text-decoration: none;
+	color: #ffffff;
+}
+
+.tab:hover, .tab.selected
+{
+	background-color: #ffffff;
+}
+
+.tab:hover a, .tab.selected a
+{
+	color: #000000;
+}
+
+/* Toolbar
+----------------------------------*/
+
+
+#content
+{
+	padding-left: 30px;
+}
+
+
