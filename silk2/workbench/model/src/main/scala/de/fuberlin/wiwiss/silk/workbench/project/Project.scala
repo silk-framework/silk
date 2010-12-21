@@ -82,9 +82,9 @@ object Project
     }
   }
 
-  def create(description : SourceTargetPair[Description])
+  def create(description : SourceTargetPair[Description], prefixes : Map[String, String])
   {
-    project = Some(ProjectCreator.create(description))
+    project = Some(ProjectCreator.create(description, prefixes))
   }
 
   def open(inputStream : InputStream)

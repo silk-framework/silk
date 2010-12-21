@@ -7,15 +7,13 @@ import net.liftweb.http.js.JE.JsRaw
 
 object PrefixEditor
 {
-  def readPrefixes(f : Map[String, String] => Unit) : JsCmd =
+  def readPrefixes(f : Map[String, String] => JsCmd) : JsCmd =
   {
     def update(str : String) =
     {
       val prefixes = for(Array(prefix, namespace) <- str.split(',').grouped(2)) yield (prefix, namespace)
 
       f(prefixes.toMap)
-
-      JsRaw("").cmd
     }
 
     SHtml.ajaxCall(JsRaw("$('#prefixTable tr td input').toArray().map(function (a) { return a.value; })"), update)._2.cmd
@@ -37,8 +35,8 @@ object PrefixEditor
         for((prefix, namespace) <- prefixes) yield
         {
           <tr>
-            <td>{prefix}</td>
-            <td>{namespace}</td>
+            <td><input type='text' value={prefix} /></td>
+            <td><input type='text' value={namespace} /></td>
           </tr>
         }
       }

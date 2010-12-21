@@ -70,29 +70,29 @@ class ProjectMenu
     var targetEndpointUri = "http://www4.wiwiss.fu-berlin.de/drugbank/sparql"
     var sourceRestriction = "?a rdf:type sider:drugs"
     var targetRestriction = "?b rdf:type drugbank:drugs"
-    var prefixes = Map[String, String]()
+    val prefixes = Map(
+      "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
+      "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
 
-    def updatePrefixes(updatedPrefixes : Map[String, String])
-    {
-      prefixes = updatedPrefixes
-      //JsRaw("$('#createProjectForm').submit()").cmd
-    }
-
-    def run()
+    def submit(prefixes : Map[String, String]) =
     {
       val sourceDataset = new Description(new RemoteSparqlEndpoint(new URI(sourceEndpointUri)), sourceRestriction)
       val targetDataset = new Description(new RemoteSparqlEndpoint(new URI(targetEndpointUri)), targetRestriction)
 
-      Project.create(new SourceTargetPair(sourceDataset, targetDataset))
+      Project.create(new SourceTargetPair(sourceDataset, targetDataset), prefixes)
+
+      JsRaw("$('#createProjectDialog').dialog('close'); window.location.reload();").cmd
     }
 
-    bind("entry", xhtml,
+    SHtml.ajaxForm(
+      bind("entry", xhtml,
          "sourceEndpoint" -> SHtml.text(sourceEndpointUri, sourceEndpointUri = _, "size" -> "60"),
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60"),
          "targetEndpoint" -> SHtml.text(targetEndpointUri, targetEndpointUri = _, "size" -> "60"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
-         "prefixes" -> PrefixEditor.prefixEditor(),
-         "submit" -> SHtml.ajaxSubmit("Create", () => PrefixEditor.readPrefixes(updatePrefixes)))
+         "prefixes" -> PrefixEditor.prefixEditor(prefixes),
+         "submit" -> SHtml.ajaxSubmit("Create", () => PrefixEditor.readPrefixes(submit))))
   }
 
   def openProjectDialog(xhtml : NodeSeq) : NodeSeq =
