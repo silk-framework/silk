@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.evaluation.Alignment
 
 private object ProjectCreator
 {
-  def create(description : SourceTargetPair[Description]) =
+  def create(description : SourceTargetPair[Description], prefixes : Map[String, String]) =
   {
     //Generate initial configuration
     val config : Configuration =
@@ -32,7 +32,7 @@ private object ProjectCreator
           outputs = Nil
         )
 
-      new Configuration(Map.empty, Traversable(sourceDataSource, targetDataSource), Traversable(linkSpec))
+      new Configuration(prefixes, Traversable(sourceDataSource, targetDataSource), Traversable(linkSpec))
     }
 
     //Generate project
