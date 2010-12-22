@@ -89,7 +89,7 @@ object ConfigReader
       new SourceTargetPair(readDatasetSpecification(node \ "SourceDataset", sourceMap),
                            readDatasetSpecification(node \ "TargetDataset", sourceMap)),
       (node \ "Blocking").headOption.map(blockingNode => readBlocking(blockingNode)),
-      new LinkCondition(readAggregation(node \ "LinkCondition" \ "Aggregate" head, prefixes)),
+      readLinkCondition(node \ "LinkCondition" head, prefixes),
       readLinkFilter(node \ "Filter" head),
       readOutputs(node \ "Outputs" \ "Output")
     )
@@ -104,6 +104,11 @@ object ConfigReader
       node \ "@var" text,
       (node \ "RestrictTo").text.trim
     )
+  }
+
+  def readLinkCondition(node : Node, prefixes : Map[String, String]) =
+  {
+    new LinkCondition(readAggregation(node \ "Aggregate" head, prefixes))
   }
 
   private def readOperators(nodes : Seq[Node], prefixes : Map[String, String]) : Traversable[Operator] =
