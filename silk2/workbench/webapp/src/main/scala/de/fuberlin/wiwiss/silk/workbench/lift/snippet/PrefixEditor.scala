@@ -23,9 +23,15 @@ object PrefixEditor
   {
     def addRow() =
     {
-      JsRaw("$('#prefixTable').append(\"<tr><td><input type='text' /></td><td><input type='text' /></td></tr>\");").cmd
+      JsRaw("$('#prefixTable').append(\"<tr><td><input type='text' /></td><td><input type='text' size='50' /></td></tr>\");").cmd
     }
 
+    def removeRow() =
+    {
+      JsRaw("$('#prefixTable tr td').parent().last().remove();").cmd
+    }
+
+    <p>
     <table id="prefixTable">
       <tr>
         <th>Prefix</th>
@@ -36,14 +42,13 @@ object PrefixEditor
         {
           <tr>
             <td><input type='text' value={prefix} /></td>
-            <td><input type='text' value={namespace} /></td>
+            <td><input type='text' value={namespace} size="50" /></td>
           </tr>
         }
       }
-      <tr>
-        <td></td>
-        <td>{SHtml.ajaxButton("add", addRow _)}</td>
-      </tr>
     </table>
+    {SHtml.ajaxButton("add", addRow _)}
+    {SHtml.ajaxButton("remove", removeRow _)}
+    </p>
   }
 }
