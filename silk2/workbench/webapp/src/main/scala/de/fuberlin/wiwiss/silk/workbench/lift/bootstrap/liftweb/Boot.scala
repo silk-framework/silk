@@ -15,6 +15,8 @@ import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 import de.fuberlin.wiwiss.silk.util.Strategy
 import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.config.ConfigWriter
+import xml.PrettyPrinter
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -53,6 +55,13 @@ class Boot
       val outputStream = new ByteArrayOutputStream()
       Project.save(outputStream)
       () => Full(InMemoryResponse(outputStream.toByteArray, ("Content-Type", "application/zip") :: Nil, Nil, 200))
+    }
+    case req @ Req(List("config"), "", GetRequest) =>
+    {
+      val outputStream = new ByteArrayOutputStream()
+      val configXml = ConfigWriter.serializeConfig(Project().config)
+      val configStr = new PrettyPrinter(140, 2).format(configXml)
+      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
     }
     case req @ Req(List("api", "project", "paths"), "", GetRequest) => () => generatePaths(req)
     case req @ Req(List("api", "project", "operators"), "", GetRequest) => () => generateOperators()

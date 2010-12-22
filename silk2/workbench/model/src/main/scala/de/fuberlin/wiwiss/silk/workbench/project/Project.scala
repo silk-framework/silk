@@ -13,7 +13,7 @@ import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 
 case class Project(desc : SourceTargetPair[Description],
-                   config : Configuration,
+                   config : Configuration,//TODO remove and hold all variables in desc
                    linkSpec : LinkSpecification,
                    alignment : Alignment,
                    cache : Cache)
@@ -102,9 +102,10 @@ object Project
     project = None
   }
 
-  def updateConfig(config : Configuration)
+  def updateLinkSpec(linkSpec : LinkSpecification)
   {
-    project = Some(project.get.copy(config = config, linkSpec = config.linkSpecs.head, cache = new Cache()))
+    val updatedConfig = project.get.config.copy(linkSpecs = linkSpec :: Nil)
+    project = Some(project.get.copy(config = updatedConfig, linkSpec = linkSpec, cache = new Cache()))
   }
 
   def updateAlignment(alignment : Alignment)
