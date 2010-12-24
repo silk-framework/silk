@@ -15,20 +15,17 @@ import java.io.StringReader
  */
 class RdfDataSource(val params : Map[String, String]) extends DataSource
 {
-    private val instanceRetriever =
-    {
-        val reader = new StringReader(readRequiredParam("input"))
+  override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
+  {
+    val reader = new StringReader(readRequiredParam("input"))
 
-        val model = ModelFactory.createDefaultModel
-        model.read(reader, null, readRequiredParam("format"))
+    val model = ModelFactory.createDefaultModel
+    model.read(reader, null, readRequiredParam("format"))
 
-        val endpoint = new JenaSparqlEndpoint(model)
+    val endpoint = new JenaSparqlEndpoint(model, instanceSpec.prefixes)
 
-        new InstanceRetriever(endpoint)
-    }
+    val instanceRetriever = new InstanceRetriever(endpoint)
 
-    override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
-    {
-        instanceRetriever.retrieve(instanceSpec, instances)
-    }
+    instanceRetriever.retrieve(instanceSpec, instances)
+  }
 }

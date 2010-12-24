@@ -5,5 +5,7 @@ package de.fuberlin.wiwiss.silk.util.sparql
  */
 trait SparqlEndpoint
 {
-    def query(sparql : String) : Traversable[Map[String, Node]]
+  val prefixes : Map[String, String]
+
+  def query(sparql : String) : Traversable[Map[String, Node]]
 }

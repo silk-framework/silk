@@ -31,7 +31,7 @@ private object ProjectWriter
     zipStream.closeEntry()
 
     zipStream.putNextEntry(new ZipEntry("cache.xml"))
-    writeCache(project.cache, xmlWriter)
+    writeCache(project.cache, project.config.prefixes, xmlWriter)
     zipStream.closeEntry()
 
     zipStream.close()
@@ -68,19 +68,37 @@ private object ProjectWriter
     }
   }
 
-  private def writeCache(cache : Cache, writer : XmlWriter)
+  private def writeCache(cache : Cache, prefixes : Map[String, String], writer : XmlWriter)
   {
     writer
     {
       val nodes = new NodeBuffer()
 
-      if(cache.instanceSpecs != null)
+      nodes.append(
+        <Prefixes>{
+          for((key, value) <- prefixes) yield
+          {
+            <Prefix id={key} namespace={value} />
+          }
+        }</Prefixes>)
+
+      if(cache.paths != null)
       {
         nodes.append(
-          <InstanceSpecifications>
-            <Source>{cache.instanceSpecs.source.toXML}</Source>
-            <Target>{cache.instanceSpecs.target.toXML}</Target>
-          </InstanceSpecifications>)
+          <Paths>
+            <Source>
+            {
+              for((path, frequency) <- cache.paths.source)
+                yield <Path freq={frequency.toString}>{path.toString}</Path>
+            }
+            </Source>
+            <Target>
+            {
+              for((path, frequency) <- cache.paths.source)
+                yield <Path freq={frequency.toString}>{path.toString}</Path>
+            }
+            </Target>
+          </Paths>)
       }
 
       if(cache.positiveInstances != null)
