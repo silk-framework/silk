@@ -1,16 +1,14 @@
 package de.fuberlin.wiwiss.silk.workbench.project
 
-import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import xml.Node
 import java.net.URI
 
-//TODO change endpoint to endpointUri?
-class Description(val endpoint : RemoteSparqlEndpoint, val restriction : String)
+class Description(val endpointUri : URI, val restriction : String)
 {
   def toXML() : Node =
   {
     <Description>
-      <Endpoint>{endpoint.uri}</Endpoint>
+      <Endpoint>{endpointUri}</Endpoint>
       <Restriction>{restriction}</Restriction>
     </Description>
   }
@@ -20,7 +18,7 @@ object Description
 {
   def fromXML(xml : Node) : Description =
   {
-    val endpoint = new RemoteSparqlEndpoint(new URI(xml \ "Endpoint" text))
+    val endpoint = new URI(xml \ "Endpoint" text)
     val restriction = xml \ "Restriction" text;
     new Description(endpoint, restriction)
   }

@@ -11,12 +11,12 @@ import de.fuberlin.wiwiss.silk.workbench.project.Project
 import js.jquery.JQuery14Artifacts
 import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
-import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 import de.fuberlin.wiwiss.silk.util.Strategy
 import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.config.ConfigWriter
 import xml.PrettyPrinter
+import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -73,25 +73,24 @@ class Boot
 
     val datasets = Project().linkSpec.datasets
 
-    val instanceSpecs = Project().cache.instanceSpecs
+    val paths = Project().cache.paths
 
     val sourceJson = JField("source", JObject(JField("id", JString(datasets.source.source.id)) ::
-                                              JField("paths", JArray(generateInstancePaths(instanceSpecs.source, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(instanceSpecs.source.paths.size)) :: Nil))
+                                              JField("paths", JArray(generateInstancePaths(paths.source, maxPathCount).toList)) ::
+                                              JField("availablePaths", JInt(paths.source.size)) :: Nil))
     val targetJson = JField("target", JObject(JField("id", JString(datasets.target.source.id)) ::
-                                              JField("paths", JArray(generateInstancePaths(instanceSpecs.target, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(instanceSpecs.target.paths.size)) :: Nil))
+                                              JField("paths", JArray(generateInstancePaths(paths.target, maxPathCount).toList)) ::
+                                              JField("availablePaths", JInt(paths.target.size)) :: Nil))
     val json = JObject(sourceJson :: targetJson :: Nil)
 
     Full(JsonResponse(json))
   }
 
-  private def generateInstancePaths(instanceSpec : InstanceSpecification, maxPathCount : Int) =
+  private def generateInstancePaths(paths : Traversable[(Path, Double)], maxPathCount : Int) =
   {
-    //TODO sort by frequency
-    for(path <- instanceSpec.paths.take(maxPathCount)) yield
+    for((path, frequency) <- paths.toSeq.sortBy(-_._2).take(maxPathCount)) yield
     {
-      JObject(JField("path", JString(path.toString)) :: JField("frequency", JDouble(1.0)) :: Nil)
+      JObject(JField("path", JString(path.toString)) :: JField("frequency", JDouble(frequency)) :: Nil)
     }
   }
 

@@ -7,7 +7,7 @@ import java.util.zip.ZipInputStream
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigReader}
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, AlignmentReader}
-import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification, MemoryInstanceCache}
+import de.fuberlin.wiwiss.silk.instance.{Path, Instance, InstanceSpecification, MemoryInstanceCache}
 
 private object ProjectReader
 {
@@ -76,18 +76,23 @@ private object ProjectReader
   {
     val xml = XML.load(inputStream)
 
+    val prefixes = {for(prefixNode <- xml \ "Prefixes" \ "Prefix") yield (prefixNode \ "@id" text, prefixNode \ "@namespace" text)}.toMap
+
     val instanceSpecs =
     {
-      if(xml \ "InstanceSpecifications" isEmpty)
+      if(xml \ "Paths" isEmpty)
       {
         null
       }
       else
       {
-        val sourceInstanceSpec = InstanceSpecification.fromXML(xml \ "InstanceSpecifications" \ "Source" \ "_" head)
-        val targetInstanceSpec = InstanceSpecification.fromXML(xml \ "InstanceSpecifications" \ "Target" \ "_" head)
+        val sourcePaths = for(pathNode <- xml \ "Paths" \ "Source" \ "Path")
+                            yield (Path.parse(pathNode.text, prefixes), (pathNode \ "@freq").text.toDouble)
 
-        new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
+        val targetPaths = for(pathNode <- xml \ "Paths" \ "Target" \ "Path")
+                            yield (Path.parse(pathNode.text, prefixes), (pathNode \ "@freq").text.toDouble)
+
+        new SourceTargetPair(sourcePaths, targetPaths)
       }
     }
 

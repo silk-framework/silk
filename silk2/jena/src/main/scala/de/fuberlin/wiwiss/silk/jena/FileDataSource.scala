@@ -15,18 +15,15 @@ import java.io.FileInputStream
  */
 class FileDataSource(val params : Map[String, String]) extends DataSource
 {
-    private val instanceRetriever =
-    {
-        val model = ModelFactory.createDefaultModel
-        model.read(new FileInputStream(readRequiredParam("file")), null, readRequiredParam("format"))
+  override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
+  {
+    val model = ModelFactory.createDefaultModel
+    model.read(new FileInputStream(readRequiredParam("file")), null, readRequiredParam("format"))
 
-        val endpoint = new JenaSparqlEndpoint(model)
+    val endpoint = new JenaSparqlEndpoint(model, instanceSpec.prefixes)
 
-        new InstanceRetriever(endpoint)
-    }
+    val instanceRetriever = new InstanceRetriever(endpoint)
 
-    override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
-    {
-        instanceRetriever.retrieve(instanceSpec, instances)
-    }
+    instanceRetriever.retrieve(instanceSpec, instances)
+  }
 }

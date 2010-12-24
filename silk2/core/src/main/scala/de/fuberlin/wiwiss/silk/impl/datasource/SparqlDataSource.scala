@@ -21,13 +21,15 @@ import java.net.URI
  */
 class SparqlDataSource(val params : Map[String, String]) extends DataSource
 {
-  private val endpoint = new RemoteSparqlEndpoint(
-    uri = new URI(readRequiredParam("endpointURI")),
-    login = readOptionalParam("login").map(login => (login, readRequiredParam("password"))),
-    pauseTime = readOptionalIntParam("pauseTime").getOrElse(0),
-    retryCount = readOptionalIntParam("retryCount").getOrElse(3),
-    initialRetryPause = readOptionalIntParam("retryPause").getOrElse(1000)
-  )
+  private val uri = new URI(readRequiredParam("endpointURI"))
+
+  private val login = readOptionalParam("login").map(login => (login, readRequiredParam("password")))
+
+  private val pauseTime = readOptionalIntParam("pauseTime").getOrElse(0)
+
+  private val retryCount = readOptionalIntParam("retryCount").getOrElse(3)
+
+  private val initialRetryPause = readOptionalIntParam("retryPause").getOrElse(1000)
 
   private val graphUri = readOptionalParam("graph")
 
@@ -35,10 +37,12 @@ class SparqlDataSource(val params : Map[String, String]) extends DataSource
 
   private val instanceList = readOptionalParam("instanceList").getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
-  private val instanceRetriever = new InstanceRetriever(endpoint, pageSize, graphUri)
-
   override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
   {
+    val endpoint = new RemoteSparqlEndpoint(uri, instanceSpec.prefixes, login, pageSize, pauseTime, retryCount, initialRetryPause)
+
+    val instanceRetriever = new InstanceRetriever(endpoint, pageSize, graphUri)
+
     instanceRetriever.retrieve(instanceSpec, instanceList union instances)
   }
 }

@@ -12,6 +12,7 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
 import net.liftweb.http.js.JsCmd
+import de.fuberlin.wiwiss.silk.workbench.instancespec.RelevantPropertiesCollector
 
 class ProjectMenu
 {
@@ -72,17 +73,26 @@ class ProjectMenu
     var targetRestriction = "?b rdf:type drugbank:drugs"
     val prefixes = Map(
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
+      "owl" -> "http://www.w3.org/2002/07/owl#",
       "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
       "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
 
     def submit(prefixes : Map[String, String]) =
     {
-      val sourceDataset = new Description(new RemoteSparqlEndpoint(new URI(sourceEndpointUri)), sourceRestriction)
-      val targetDataset = new Description(new RemoteSparqlEndpoint(new URI(targetEndpointUri)), targetRestriction)
+      if(!Project.isOpen)
+      {
+        val sourceDataset = new Description(new URI(sourceEndpointUri), sourceRestriction)
+        val targetDataset = new Description(new URI(targetEndpointUri), targetRestriction)
 
-      Project.create(new SourceTargetPair(sourceDataset, targetDataset), prefixes)
+        Project.create(new SourceTargetPair(sourceDataset, targetDataset), prefixes)
 
-      JsRaw("$('#createProjectDialog').dialog('close'); window.location.reload();").cmd
+        JsRaw("$('#createProjectDialog').dialog('close'); window.location.reload();").cmd
+      }
+      else
+      {
+        JsRaw("").cmd
+      }
     }
 
     SHtml.ajaxForm(
