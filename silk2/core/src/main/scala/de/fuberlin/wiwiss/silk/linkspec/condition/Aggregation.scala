@@ -1,16 +1,17 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.instance.Instance
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 case class Aggregation(required : Boolean, weight : Int, operators : Traversable[Operator], aggregator : Aggregator) extends Operator
 {
-  override def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Option[Double] =
+  override def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double] =
   {
     val weightedValues =
     {
       for(operator <- operators) yield
       {
-        val value = operator(sourceInstance, targetInstance, threshold)
+        val value = operator(instances, threshold)
         if(operator.required && value.isEmpty) return None
 
         (operator.weight, value.getOrElse(0.0))
@@ -20,7 +21,6 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
     aggregator.evaluate(weightedValues)
   }
 
-  //TODO throw away instances with operators with no index which are required
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
   {
     val totalWeights = operators.map(_.weight).sum

@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.instance.Instance
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 trait Operator
 {
@@ -8,7 +9,7 @@ trait Operator
 
   val weight : Int
 
-  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Option[Double]
+  def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double]
 
   def index(instance : Instance, threshold : Double) : Set[Seq[Int]]
 

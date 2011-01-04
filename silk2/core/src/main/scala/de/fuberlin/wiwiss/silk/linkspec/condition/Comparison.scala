@@ -2,15 +2,14 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import input.Input
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
-case class Comparison(required : Boolean, weight : Int, inputs : Seq[Input], metric : Metric) extends Operator
+case class Comparison(required : Boolean, weight : Int, inputs : SourceTargetPair[Input], metric : Metric) extends Operator
 {
-  require(inputs.size == 2, "Number of inputs must be 2. " + inputs.size + " given.")
-
-  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Option[Double] =
+  override def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double] =
   {
-    val set1 = inputs(0).apply(Traversable(sourceInstance, targetInstance))
-    val set2 = inputs(1).apply(Traversable(sourceInstance, targetInstance))
+    val set1 = inputs.source(instances)
+    val set2 = inputs.target(instances)
 
     if(!set1.isEmpty && !set2.isEmpty)
     {
@@ -26,7 +25,7 @@ case class Comparison(required : Boolean, weight : Int, inputs : Seq[Input], met
 
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
   {
-    val values = inputs.flatMap(input => input(Traversable(instance)))
+    val values = inputs.source(SourceTargetPair(instance, instance)) ++ inputs.target(SourceTargetPair(instance, instance))
 
     values.flatMap(value => metric.index(value, threshold)).toSet
   }

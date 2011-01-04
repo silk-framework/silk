@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.config.{ConfigReader, Configuration}
-import de.fuberlin.wiwiss.silk.instance.{InstanceCache, Instance}
+import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, InstanceCache, Instance}
 
 object Block
 {
@@ -31,7 +31,7 @@ object Block
 
     for(linkSpec <- config.linkSpecs)
     {
-      block(linkSpec, inputPath, outputPath)
+      block(config, linkSpec, inputPath, outputPath)
     }
   }
 
@@ -72,20 +72,21 @@ object Block
     }
   }
 
-  private def block(linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
+  private def block(config : Configuration, linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
   {
-    blockCache(linkSpec, inputPath.suffix("/source/"), outputPath.suffix("/source/"))
-    blockCache(linkSpec, inputPath.suffix("/target/"), outputPath.suffix("/target/"))
+    blockCache(config, linkSpec, inputPath.suffix("/source/"), outputPath.suffix("/source/"))
+    blockCache(config, linkSpec, inputPath.suffix("/target/"), outputPath.suffix("/target/"))
   }
 
-  private def blockCache(linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
+  private def blockCache(config : Configuration, linkSpec : LinkSpecification, inputPath : Path, outputPath : Path)
   {
     val inputFS = FileSystem.get(inputPath.toUri, hadoopConfig)
     val outputFS = FileSystem.get(outputPath.toUri, hadoopConfig)
 
     val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-    val inputCache = new HadoopInstanceCache(inputFS, inputPath.suffix("/" + linkSpec.id + "/"), 1)
-    val outputCache = new HadoopInstanceCache(outputFS, outputPath.suffix("/" + linkSpec.id + "/"), numBlocks)
+    val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+    val inputCache = new HadoopInstanceCache(instanceSpecs.source, inputFS, inputPath.suffix("/" + linkSpec.id + "/"), 1)
+    val outputCache = new HadoopInstanceCache(instanceSpecs.target, outputFS, outputPath.suffix("/" + linkSpec.id + "/"), numBlocks)
 
     val instances = new Traversable[Instance]
     {

@@ -82,23 +82,17 @@ private object ProjectWriter
           }
         }</Prefixes>)
 
-      if(cache.paths != null)
+      if(cache.instanceSpecs != null)
       {
         nodes.append(
-          <Paths>
+          <InstanceSpecifications>
             <Source>
-            {
-              for((path, frequency) <- cache.paths.source)
-                yield <Path freq={frequency.toString}>{path.toString}</Path>
-            }
+              { cache.instanceSpecs.source.toXML }
             </Source>
             <Target>
-            {
-              for((path, frequency) <- cache.paths.source)
-                yield <Path freq={frequency.toString}>{path.toString}</Path>
-            }
+              { cache.instanceSpecs.target.toXML }
             </Target>
-          </Paths>)
+          </InstanceSpecifications>)
       }
 
       if(cache.positiveInstances != null)

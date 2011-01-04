@@ -29,7 +29,7 @@ case class Project(desc : SourceTargetPair[Description],
 
   private class CacheLoader() extends Task[Unit]
   {
-    private val sampleCount = 100 //TODO
+    private val sampleCount = 10 //TODO
 
     private val positiveSamples = alignment.positiveLinks.take(sampleCount).toList
 
@@ -40,12 +40,16 @@ case class Project(desc : SourceTargetPair[Description],
       val sourceEndpoint = new RemoteSparqlEndpoint(desc.source.endpointUri, config.prefixes)
       val targetEndpoint = new RemoteSparqlEndpoint(desc.target.endpointUri, config.prefixes)
 
-      if(cache.paths == null)
+      if(cache.instanceSpecs == null)
       {
         updateStatus("Retrieving frequent property paths", 0.2)
-        val sourcePaths = RelevantPropertiesCollector(sourceEndpoint, desc.source.restriction, positiveSamples.map(_.sourceUri))
-        val targetPaths = RelevantPropertiesCollector(targetEndpoint, desc.target.restriction, positiveSamples.map(_.targetUri))
-        cache.paths = new SourceTargetPair(sourcePaths, targetPaths)
+        val sourcePaths = RelevantPropertiesCollector(sourceEndpoint, desc.source.restriction).map(_._1).toSeq
+        val targetPaths = RelevantPropertiesCollector(targetEndpoint, desc.target.restriction).map(_._1).toSeq
+
+        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, desc.source.restriction, sourcePaths, config.prefixes)
+        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, desc.target.restriction, targetPaths, config.prefixes)
+
+        cache.instanceSpecs = new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
         updateStatus("Retrieved frequent property paths", 0.4)
       }
 
@@ -53,17 +57,14 @@ case class Project(desc : SourceTargetPair[Description],
       {
         updateStatus("Loading instances into cache", 0.6)
 
-        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, desc.source.restriction, cache.paths.source.map(_._1), config.prefixes)
-        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, desc.target.restriction, cache.paths.target.map(_._1), config.prefixes)
-
         val sourceRetriever = new InstanceRetriever(sourceEndpoint)
         val targetRetriever = new InstanceRetriever(targetEndpoint)
 
-        val positiveSourceInstances = sourceRetriever.retrieveList(positiveSamples.map(_.sourceUri), sourceInstanceSpec).toList
-        val positiveTargetInstances = targetRetriever.retrieveList(positiveSamples.map(_.targetUri), targetInstanceSpec).toList
+        val positiveSourceInstances = sourceRetriever.retrieveList(positiveSamples.map(_.sourceUri), cache.instanceSpecs.source).toList
+        val positiveTargetInstances = targetRetriever.retrieveList(positiveSamples.map(_.targetUri), cache.instanceSpecs.target).toList
 
-        val negativeSourceInstances = sourceRetriever.retrieveList(negativeSamples.map(_.sourceUri), sourceInstanceSpec).toList
-        val negativeTargetInstances = targetRetriever.retrieveList(negativeSamples.map(_.targetUri), targetInstanceSpec).toList
+        val negativeSourceInstances = sourceRetriever.retrieveList(negativeSamples.map(_.sourceUri), cache.instanceSpecs.source).toList
+        val negativeTargetInstances = targetRetriever.retrieveList(negativeSamples.map(_.targetUri), cache.instanceSpecs.target).toList
 
         cache.positiveInstances = (positiveSourceInstances zip positiveTargetInstances).map(SourceTargetPair.fromPair)
         cache.negativeInstances = (negativeSourceInstances zip negativeTargetInstances).map(SourceTargetPair.fromPair)

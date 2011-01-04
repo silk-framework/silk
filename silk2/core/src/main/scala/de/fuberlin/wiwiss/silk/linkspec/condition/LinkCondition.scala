@@ -1,12 +1,13 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.instance.Instance
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 case class LinkCondition(rootAggregation : Aggregation)
 {
-  def apply(sourceInstance : Instance, targetInstance : Instance, threshold : Double) : Double =
+  def apply(instances : SourceTargetPair[Instance], threshold : Double) : Double =
   {
-    rootAggregation(sourceInstance, targetInstance, threshold).headOption.getOrElse(0.0)
+    rootAggregation(instances, threshold).headOption.getOrElse(0.0)
   }
 
   def index(instance : Instance, threshold : Double) : Set[Int] =
