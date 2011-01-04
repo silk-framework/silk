@@ -73,24 +73,24 @@ class Boot
 
     val datasets = Project().linkSpec.datasets
 
-    val paths = Project().cache.paths
+    val instanceSpecs = Project().cache.instanceSpecs
 
     val sourceJson = JField("source", JObject(JField("id", JString(datasets.source.source.id)) ::
-                                              JField("paths", JArray(generateInstancePaths(paths.source, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(paths.source.size)) :: Nil))
+                                              JField("paths", JArray(generateInstancePaths(instanceSpecs.source.paths, maxPathCount).toList)) ::
+                                              JField("availablePaths", JInt(instanceSpecs.source.paths.size)) :: Nil))
     val targetJson = JField("target", JObject(JField("id", JString(datasets.target.source.id)) ::
-                                              JField("paths", JArray(generateInstancePaths(paths.target, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(paths.target.size)) :: Nil))
+                                              JField("paths", JArray(generateInstancePaths(instanceSpecs.target.paths, maxPathCount).toList)) ::
+                                              JField("availablePaths", JInt(instanceSpecs.source.paths.size)) :: Nil))
     val json = JObject(sourceJson :: targetJson :: Nil)
 
     Full(JsonResponse(json))
   }
 
-  private def generateInstancePaths(paths : Traversable[(Path, Double)], maxPathCount : Int) =
+  private def generateInstancePaths(paths : Traversable[Path], maxPathCount : Int) =
   {
-    for((path, frequency) <- paths.toSeq.sortBy(-_._2).take(maxPathCount)) yield
+    for(path <- paths.toSeq.take(maxPathCount)) yield
     {
-      JObject(JField("path", JString(path.toString)) :: JField("frequency", JDouble(frequency)) :: Nil)
+      JObject(JField("path", JString(path.toString)) :: JField("frequency", JDouble(1.0)) :: Nil)
     }
   }
 

@@ -7,13 +7,13 @@
   
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
-    <artifactId>workbench</artifactId>
-    <version>2.0</version>
+    <artifactId>silk</artifactId>
+    <version>2.3-SNAPSHOT</version>
   </parent>
 
-  <artifactId>workbench_model</artifactId>
+  <artifactId>silk-jena</artifactId>
   <packaging>jar</packaging>
-  <name>workbench_model</name>
+  <name>Silk Jena Extensions</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,17 +23,22 @@
 
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
-      <artifactId>core</artifactId>
-      <version>2.0</version>
+      <artifactId>silk-core</artifactId>
+      <version>${silk.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>de.fuberlin.wiwiss.silk</groupId>
-      <artifactId>evaluation</artifactId>
-      <version>2.0</version>
+      <groupId>com.hp.hpl.jena</groupId>
+      <artifactId>jena</artifactId>
+      <version>2.6.3</version>
     </dependency>
 
-  </dependencies>
+    <dependency>
+      <groupId>com.hp.hpl.jena</groupId>
+      <artifactId>arq</artifactId>
+      <version>2.8.4</version>
+    </dependency>
+
+	</dependencies>
 
 </project>
-        
