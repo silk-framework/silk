@@ -7,13 +7,13 @@
   
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
-    <artifactId>main</artifactId>
-    <version>2.0</version>
+    <artifactId>silk</artifactId>
+    <version>2.3-SNAPSHOT</version>
   </parent>
   
   <groupId>de.fuberlin.wiwiss.silk</groupId>
-  <artifactId>server</artifactId>
-  <version>2.0</version>
+  <artifactId>silk-server</artifactId>
+  <version>2.3-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Silk Server</name>
 
@@ -21,13 +21,13 @@
 
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
-      <artifactId>core</artifactId>
-      <version>2.0</version>
+      <artifactId>silk-core</artifactId>
+      <version>${silk.version}</version>
     </dependency>
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
-      <artifactId>jena</artifactId>
-      <version>2.0</version>
+      <artifactId>silk-jena</artifactId>
+      <version>${silk.version}</version>
     </dependency>
 
     <dependency>

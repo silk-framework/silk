@@ -7,31 +7,21 @@
   
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
-    <artifactId>main</artifactId>
-    <version>2.0</version>
+    <artifactId>silk</artifactId>
+    <version>2.3-SNAPSHOT</version>
   </parent>
 
-  <artifactId>workbench</artifactId>
+  <artifactId>silk-workbench</artifactId>
   <packaging>pom</packaging>
-  <name>workbench</name>
+  <name>Silk Workbench</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <modules>
-    <module>model</module>
-	<module>webapp</module>
+    <module>silk-workbench-model</module>
+	  <module>silk-workbench-webapp</module>
   </modules>
-  
-  <dependencies>
-
-    <dependency>
-      <groupId>de.fuberlin.wiwiss.silk</groupId>
-      <artifactId>core</artifactId>
-      <version>2.0</version>
-    </dependency>
-
-  </dependencies>
 
 </project>
