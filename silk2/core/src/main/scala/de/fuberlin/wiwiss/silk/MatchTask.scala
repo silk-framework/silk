@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
 import config.Configuration
-import de.fuberlin.wiwiss.silk.util.Task
 import instance.{Instance, InstanceCache}
 import linkspec.LinkSpecification
 import java.util.logging.{Level, Logger}
@@ -9,6 +8,7 @@ import output.Link
 import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import collection.immutable.HashSet
+import util.{SourceTargetPair, Task}
 
 /**
  * Executes the matching.
@@ -188,7 +188,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           val sourceInstance = sourceInstances(s)
           val targetInstance = targetInstances(t)
 
-          val confidence = linkSpec.condition(sourceInstance, targetInstance, linkSpec.filter.threshold)
+          val confidence = linkSpec.condition(SourceTargetPair(sourceInstance, targetInstance), linkSpec.filter.threshold)
 
           if(confidence >= linkSpec.filter.threshold)
           {
@@ -216,9 +216,9 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
       index1.exists(index2.contains(_))
     }
 
-    def evaluateCondition(sourceInstance : Instance, targetInstance : Instance) =
+    def evaluateCondition(instances : SourceTargetPair[Instance]) =
     {
-      linkSpec.condition(sourceInstance, targetInstance, linkSpec.filter.threshold)
+      linkSpec.condition(instances, linkSpec.filter.threshold)
     }
   }
 }

@@ -7,8 +7,17 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
 
 //TODO remove prefixes?
-class InstanceSpecification(val variable : String, val restrictions : String, val paths : Traversable[Path], val prefixes : Map[String, String])
+class InstanceSpecification(val variable : String, val restrictions : String, val paths : Seq[Path], val prefixes : Map[String, String])
 {
+  def pathIndex(path : Path) =
+  {
+    paths.indexWhere(_ == path) match
+    {
+      case -1 => throw new NoSuchElementException("Path " + path + " not found on instance.")
+      case index => index
+    }
+  }
+
   override def toString = "InstanceSpecification(variable='" + variable + "' restrictions='" + restrictions + "' paths=" + paths + ")"
 
   def toXML =
@@ -34,7 +43,7 @@ class InstanceSpecification(val variable : String, val restrictions : String, va
 
 object InstanceSpecification
 {
-  def empty = new InstanceSpecification("a", "", Traversable.empty, Map.empty)
+  def empty = new InstanceSpecification("a", "", Seq.empty, Map.empty)
 
   def fromXML(node : Node) =
   {
@@ -59,8 +68,8 @@ object InstanceSpecification
     val sourcePaths = collectPaths(sourceVar)(linkSpec.condition.rootAggregation)
     val targetPaths = collectPaths(targetVar)(linkSpec.condition.rootAggregation)
 
-    val sourceInstanceSpec = new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths, config.prefixes)
-    val targetInstanceSpec = new InstanceSpecification(targetVar, targetRestriction, targetPaths, config.prefixes)
+    val sourceInstanceSpec = new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths.toSeq, config.prefixes)
+    val targetInstanceSpec = new InstanceSpecification(targetVar, targetRestriction, targetPaths.toSeq, config.prefixes)
 
     SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
   }
@@ -68,7 +77,12 @@ object InstanceSpecification
   private def collectPaths(variable : String)(operator : Operator) : Set[Path] = operator match
   {
     case aggregation : Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
-    case comparison : Comparison => comparison.inputs.flatMap(collectPathsFromInput(variable)).toSet
+    case comparison : Comparison =>
+    {
+      val sourcePaths = collectPathsFromInput(variable)(comparison.inputs.source)
+      val targetPaths = collectPathsFromInput(variable)(comparison.inputs.target)
+      (sourcePaths ++ targetPaths).toSet
+    }
   }
 
   private def collectPathsFromInput(variable : String)(param : Input) : Set[Path] = param match

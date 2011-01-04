@@ -78,7 +78,8 @@ object ConfigWriter
         case Comparison(required, weight, inputs, Metric(metric, params)) =>
         {
             <Compare required={required.toString} weight={weight.toString} metric={metric}>
-              { inputs.map{input => serializeInput(input)} }
+              { serializeInput(inputs.source) }
+              { serializeInput(inputs.target) }
               { params.map{case (name, value) => <Param name={name} value={value} />} }
             </Compare>
         }

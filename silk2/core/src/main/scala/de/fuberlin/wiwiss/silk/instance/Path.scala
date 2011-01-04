@@ -1,12 +1,11 @@
 package de.fuberlin.wiwiss.silk.instance
 
 import collection.mutable.{SynchronizedMap, WeakHashMap}
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Represents an RDF path.
  */
-case class Path(variable : String, operators : List[PathOperator], id : Int = Path.currentId.getAndIncrement())
+case class Path(variable : String, operators : List[PathOperator])
 {
   /**
    * Serializes this path using the Silk RDF path language.
@@ -24,8 +23,6 @@ case class Path(variable : String, operators : List[PathOperator], id : Int = Pa
 object Path
 {
   private val pathCache = new WeakHashMap[String, Path]() with SynchronizedMap[String, Path]
-
-  private val currentId = new AtomicInteger(0)
 
   /**
    * Parses a path string.

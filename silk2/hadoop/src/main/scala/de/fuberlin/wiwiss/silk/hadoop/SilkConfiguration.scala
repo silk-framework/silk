@@ -4,6 +4,7 @@ import impl.HadoopInstanceCache
 import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.config.ConfigReader
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
+import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 
 object SilkConfiguration
 {
@@ -44,15 +45,17 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
         config.linkSpec(linkSpecId).get
     }
 
+    lazy val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+
     lazy val sourceCache =
     {
         val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
+        new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
     }
 
     lazy val targetCache =
     {
         val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        new HadoopInstanceCache(cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
+        new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
     }
 }

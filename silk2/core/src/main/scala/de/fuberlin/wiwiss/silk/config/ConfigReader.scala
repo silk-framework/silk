@@ -140,11 +140,12 @@ object ConfigReader
     val requiredStr = node \ "@required" text
     val weightStr = node \ "@weight" text
     val metric = Metric(node \ "@metric" text, readParams(node))
+    val inputs = readInputs(node.child, prefixes)
 
     new Comparison(
       if(requiredStr.isEmpty) false else requiredStr.toBoolean,
       if(weightStr.isEmpty) 1 else weightStr.toInt,
-      readInputs(node.child, prefixes),
+      SourceTargetPair(inputs(0), inputs(1)),
       metric
     )
   }

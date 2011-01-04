@@ -7,7 +7,7 @@ import java.util.logging.Logger
 /**
  * An instance cache, which caches the instances on the local file system.
  */
-class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
+class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, override val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
   require(blockCount >= 0, "blockCount must be greater than 0 (blockCount=" + blockCount + ")")
   require(maxPartitionSize >= 0, "maxPartitionSize must be greater than 0 (maxPartitionSize=" + maxPartitionSize + ")")
@@ -172,7 +172,7 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
 
         for(i <- 0 until partitionSize)
         {
-          partition(i) = stream.readObject().asInstanceOf[Instance]
+          partition(i) = Instance.deserialize(stream, instanceSpec)
         }
 
         partition
@@ -187,14 +187,14 @@ class FileInstanceCache(dir : File, override val blockCount : Int = 1, maxPartit
     {
       if(partitionCount == 1) blockDir.mkdirs()
 
-      val stream = new ObjectOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1)))
+      val stream = new DataOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1)))
 
       try
       {
         stream.writeInt(lastPartitionSize)
         for(instance <- lastPartition)
         {
-          stream.writeObject(instance)
+          instance.serialize(stream)
         }
       }
       finally

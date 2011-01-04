@@ -1,19 +1,14 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.config.ConfigReader
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import java.net.URI
-import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.project.{Project, Description}
 import net.liftweb.http.{S, SHtml, FileParamHolder}
-import java.io.{File, ByteArrayInputStream}
+import java.io.ByteArrayInputStream
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
-import net.liftweb.http.js.JsCmd
-import de.fuberlin.wiwiss.silk.workbench.instancespec.RelevantPropertiesCollector
-
+import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 class ProjectMenu
 {
   def render(xhtml : NodeSeq) : NodeSeq =

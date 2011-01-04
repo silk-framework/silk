@@ -80,19 +80,15 @@ private object ProjectReader
 
     val instanceSpecs =
     {
-      if(xml \ "Paths" isEmpty)
+      if(xml \ "InstanceSpecifications" isEmpty)
       {
         null
       }
       else
       {
-        val sourcePaths = for(pathNode <- xml \ "Paths" \ "Source" \ "Path")
-                            yield (Path.parse(pathNode.text, prefixes), (pathNode \ "@freq").text.toDouble)
-
-        val targetPaths = for(pathNode <- xml \ "Paths" \ "Target" \ "Path")
-                            yield (Path.parse(pathNode.text, prefixes), (pathNode \ "@freq").text.toDouble)
-
-        new SourceTargetPair(sourcePaths, targetPaths)
+        val sourceSpec = InstanceSpecification.fromXML(xml \ "InstanceSpecifications" \ "Source" \ "_" head)
+        val targetSpec = InstanceSpecification.fromXML(xml \ "InstanceSpecifications" \ "Target" \ "_" head)
+        new SourceTargetPair(sourceSpec, targetSpec)
       }
     }
 
@@ -107,8 +103,8 @@ private object ProjectReader
         for(pairNode <- xml \ "PositiveInstances" \ "Pair" toList) yield
         {
            SourceTargetPair(
-             Instance.fromXML(pairNode \ "Source" \ "Instance" head),
-             Instance.fromXML(pairNode \ "Target" \ "Instance" head))
+             Instance.fromXML(pairNode \ "Source" \ "Instance" head, instanceSpecs.source),
+             Instance.fromXML(pairNode \ "Target" \ "Instance" head, instanceSpecs.target))
         }
       }
     }
@@ -124,8 +120,8 @@ private object ProjectReader
         for(pairNode <- xml \ "NegativeInstances" \ "Pair" toList) yield
         {
            SourceTargetPair(
-             Instance.fromXML(pairNode \ "Source" \ "Instance" head),
-             Instance.fromXML(pairNode \ "Target" \ "Instance" head))
+             Instance.fromXML(pairNode \ "Source" \ "Instance" head, instanceSpecs.source),
+             Instance.fromXML(pairNode \ "Target" \ "Instance" head, instanceSpecs.target))
         }
       }
     }

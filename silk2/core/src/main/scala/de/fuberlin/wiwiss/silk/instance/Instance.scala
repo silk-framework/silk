@@ -1,24 +1,25 @@
 package de.fuberlin.wiwiss.silk.instance
 
 import xml.Node
+import java.io.{DataInputStream, InputStream, DataOutputStream, OutputStream}
 
 /**
  * A single instance.
  */
-@serializable
-@SerialVersionUID(0)
-class Instance(val variable : String, val uri : String, values : Map[Int, Set[String]])
+class Instance(val uri : String, values : Array[Set[String]], val spec : InstanceSpecification)
 {
-  def evaluate(path : Path) : Set[String] = values.get(path.id).getOrElse(Set())
+  def evaluate(path : Path) : Set[String] = values(spec.pathIndex(path))
 
-  override def toString = uri + "\n{\n  " + values.values.mkString("\n  ") + "\n}"
+  def evaluate(pathIndex : Int) : Set[String] = values(pathIndex)
+
+  override def toString = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
   def toXML =
   {
-    <Instance uri={uri} var={variable}>{
-      for((key, valueSet) <- values) yield
+    <Instance uri={uri}>{
+      for(valueSet <- values) yield
       {
-        <Val key={key.toString}>{
+        <Val>{
           for(value <- valueSet) yield
           {
             <e>{value}</e>
@@ -27,22 +28,46 @@ class Instance(val variable : String, val uri : String, values : Map[Int, Set[St
       }
     }</Instance>
   }
+
+  def serialize(stream : OutputStream)
+  {
+    val dataSream = new DataOutputStream(stream)
+    dataSream.writeUTF(uri)
+    for(valueSet <- values)
+    {
+      dataSream.writeInt(valueSet.size)
+      for(value <- valueSet)
+      {
+        dataSream.writeUTF(value)
+      }
+    }
+  }
 }
 
 object Instance
 {
-  def fromXML(node : Node) =
+  def fromXML(node : Node, spec : InstanceSpecification) =
   {
     new Instance(
-      variable = node \ "@var" text,
       uri = node \ "@uri" text,
       values =
       {
         for(valNode <- node \ "Val") yield
         {
-          ((valNode \ "@key" text).toInt, {for(e <- valNode \ "e") yield e text}.toSet)
+          {for(e <- valNode \ "e") yield e text}.toSet
         }
-      }.toMap
+      }.toArray,
+      spec = spec
     )
+  }
+
+  def deserialize(stream : InputStream, spec : InstanceSpecification) =
+  {
+    val dataStream = new DataInputStream(stream)
+
+    val uri = dataStream.readUTF()
+    val values = Array.fill(spec.paths.size)(Traversable.fill(dataStream.readInt)(dataStream.readUTF).toSet)
+
+    new Instance(uri, values, spec)
   }
 }

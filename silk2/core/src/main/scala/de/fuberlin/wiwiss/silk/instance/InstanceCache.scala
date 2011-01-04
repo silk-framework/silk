@@ -65,7 +65,7 @@ trait InstanceCache
   /**
    * Reads instances from XML
    */
-  def fromXML(node : Node)
+  def fromXML(node : Node, instanceSpec : InstanceSpecification)
   {
     val instances = new Traversable[Instance]
     {
@@ -80,7 +80,7 @@ trait InstanceCache
           for(partitionNode <- blockNode \ "Partition";
               instanceNode <- partitionNode \ "_")
           {
-            f(Instance.fromXML(instanceNode))
+            f(Instance.fromXML(instanceNode, instanceSpec))
           }
         }
       }

@@ -2,14 +2,14 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import java.io._
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceCache}
 import org.apache.hadoop.fs.{Path, FileSystem}
+import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance, InstanceCache}
 
 /**
  * An instance cache, which uses the Hadoop FileSystem API.
  * This can be used to cache the instances on any file system which is supported by Hadoop e.g. the Hadoop Distributed FileSystem.
  */
-class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
+class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem, path : Path, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
   require(blockCount >= 0, "blockCount must be greater than 0 (blockCount=" + blockCount + ")")
   require(maxPartitionSize >= 0, "maxPartitionSize must be greater than 0 (maxPartitionSize=" + maxPartitionSize + ")")
@@ -143,7 +143,7 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
 
     def read(partition : Int) : Array[Instance] =
     {
-      val stream = new ObjectInputStream(fs.open(blockPath.suffix("/partition" + partition)))
+      val stream = new DataInputStream(fs.open(blockPath.suffix("/partition" + partition)))
 
       try
       {
@@ -152,7 +152,7 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
 
         for(i <- 0 until partitionSize)
         {
-          partition(i) = stream.readObject().asInstanceOf[Instance]
+          partition(i) = Instance.deserialize(stream, instanceSpec)
         }
 
         partition
@@ -197,14 +197,14 @@ class HadoopInstanceCache(fs : FileSystem, path : Path, val blockCount : Int = 1
 
     private def writePartition()
     {
-      val stream = new ObjectOutputStream(fs.create(blockPath.suffix("/partition" + partitionCount)))
+      val stream = new DataOutputStream(fs.create(blockPath.suffix("/partition" + partitionCount)))
 
       try
       {
         stream.writeInt(instanceCount)
         for(instance <- instances)
         {
-          stream.writeObject(instance)
+          instance.serialize(stream)
         }
       }
       finally

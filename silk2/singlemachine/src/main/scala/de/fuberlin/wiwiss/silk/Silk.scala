@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk
 
 import config.{Configuration, ConfigReader}
 import impl.DefaultImplementations
-import instance.FileInstanceCache
+import instance.{InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
 import linkspec.LinkSpecification
 import datasource.DataSource
@@ -114,8 +114,9 @@ object Silk
     logger.info("Silk started")
 
     //Create instance caches
-    val sourceCache = new FileInstanceCache(new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), linkSpec.blocking.map(_.blocks).getOrElse(1))
-    val targetCache = new FileInstanceCache(new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), linkSpec.blocking.map(_.blocks).getOrElse(1))
+    val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+    val sourceCache = new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), linkSpec.blocking.map(_.blocks).getOrElse(1))
+    val targetCache = new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), linkSpec.blocking.map(_.blocks).getOrElse(1))
 
     //Load instances into cache
     if(reload)

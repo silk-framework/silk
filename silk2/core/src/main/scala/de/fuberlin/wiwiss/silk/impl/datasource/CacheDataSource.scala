@@ -10,7 +10,7 @@ class CacheDataSource(val params : Map[String, String]) extends DataSource
 
   def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String] = Seq.empty) : Traversable[Instance] =
   {
-    val instanceCache = new FileInstanceCache(dir)
+    val instanceCache = new FileInstanceCache(instanceSpec, dir)
 
     new Traversable[Instance]
     {

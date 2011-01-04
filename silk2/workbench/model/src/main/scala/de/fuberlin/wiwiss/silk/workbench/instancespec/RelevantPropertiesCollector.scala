@@ -20,23 +20,12 @@ object RelevantPropertiesCollector
 
   /**
    * Retrieves a list of properties which are defined on most instances.
-   *
-   * @param instances The list of instances for which the most frequent properties should be identified
-   * @param endpoint The SPARQL endpoint
-   * @return The most frequent properties and their frequency
    */
-  def apply(endpoint : SparqlEndpoint, restriction : String, instances : Traversable[String]) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restriction : String) : Traversable[(Path, Double)] =
   {
     val variable = restriction.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
-    if(instances.size < 10)
-    {
-      getAllPaths(endpoint, restriction, variable)
-    }
-    else
-    {
-      getInstancesPaths(endpoint, instances, variable)
-    }
+    getAllPaths(endpoint, restriction, variable)
   }
 
   private def getAllPaths(endpoint : SparqlEndpoint, restriction : String, variable : String) : Traversable[(Path, Double)] =
