@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.util
 
 import de.fuberlin.wiwiss.silk.config.ValidationException
 import de.fuberlin.wiwiss.silk.util.StringUtils._
+import com.thoughtworks.paranamer.BytecodeReadingParanamer
 
 /**
  * A strategy which can have different implementations.
@@ -61,4 +62,48 @@ trait Strategy
             case _ => throw new ValidationException("Parameter " + name + " must be a number")
         }
     }
+}
+
+object Strategy
+{
+  def getParameters[T <: Strategy](strategy : Class[T]) =
+  {
+    println(strategy.getConstructors.size)
+    val constructor = strategy.getConstructors.head
+
+    val paranamer = new BytecodeReadingParanamer()
+    val parameterNames = paranamer.lookupParameterNames(constructor)
+    val parameterTypes = constructor.getGenericParameterTypes
+
+    parameterNames zip parameterTypes
+  }
+
+  def create[T <: Strategy](strategy : Class[T], parameters : Map[String, String])
+  {
+    val constructor = strategy.getConstructors.head
+    val parsedParameters = parseParameters(strategy, parameters)
+
+    constructor.newInstance(parsedParameters)
+  }
+
+  private def parseParameters[T <: Strategy](strategy : Class[T], parameterValues : Map[String, String]) : Array[AnyRef] =
+  {
+    for((parName, parType) <- getParameters(strategy)) yield
+    {
+      val value = parameterValues.get(parName) match
+      {
+        case Some(v) => v
+        case None => ""
+      }
+
+      parType.asInstanceOf[Class[_]].getName match
+      {
+        case "java.lang.String" => value
+        case "int" => Int.box(value.toInt)
+        case "double" => Double.box(value.toDouble)
+        case "boolean" => Boolean.box(value.toBoolean)
+        case _ => throw new IllegalArgumentException("Unsupported parameter type: " + parType)
+      }
+    }
+  }
 }
