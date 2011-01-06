@@ -163,7 +163,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, overri
 
     private def readPartitionFromFile(partition : Int) =
     {
-      val stream = new ObjectInputStream(new FileInputStream(blockDir + "/partition" + partition))
+      val stream = new DataInputStream(new FileInputStream(blockDir + "/partition" + partition))
 
       try
       {
@@ -192,9 +192,9 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, overri
       try
       {
         stream.writeInt(lastPartitionSize)
-        for(instance <- lastPartition)
+        for(i <- 0 until lastPartitionSize)
         {
-          instance.serialize(stream)
+          lastPartition(i).serialize(stream)
         }
       }
       finally

@@ -138,7 +138,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
       var curSubject : Option[String] = subject
 
       //Collect values of the current subject
-      val values = Array.fill(instanceSpec.paths.size)(Set[String]())
+      var values = Array.fill(instanceSpec.paths.size)(Set[String]())
 
       for(result <- sparqlResults)
       {
@@ -160,7 +160,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
             }
 
             curSubject = resultSubject
-            for(i <- 0 until values.size) values(i) = Set.empty
+            values = Array.fill(instanceSpec.paths.size)(Set[String]())
           }
         }
 

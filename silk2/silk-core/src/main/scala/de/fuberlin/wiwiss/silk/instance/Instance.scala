@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.instance
 
 import xml.Node
-import java.io.{DataInputStream, InputStream, DataOutputStream, OutputStream}
+import java.io.{DataInputStream, DataOutputStream}
 
 /**
  * A single instance.
  */
-class Instance(val uri : String, values : Array[Set[String]], val spec : InstanceSpecification)
+class Instance(val uri : String, values : IndexedSeq[Set[String]], val spec : InstanceSpecification)
 {
   def evaluate(path : Path) : Set[String] = values(spec.pathIndex(path))
 
@@ -29,16 +29,15 @@ class Instance(val uri : String, values : Array[Set[String]], val spec : Instanc
     }</Instance>
   }
 
-  def serialize(stream : OutputStream)
+  def serialize(stream : DataOutputStream)
   {
-    val dataSream = new DataOutputStream(stream)
-    dataSream.writeUTF(uri)
+    stream.writeUTF(uri)
     for(valueSet <- values)
     {
-      dataSream.writeInt(valueSet.size)
+      stream.writeInt(valueSet.size)
       for(value <- valueSet)
       {
-        dataSream.writeUTF(value)
+        stream.writeUTF(value)
       }
     }
   }
@@ -56,17 +55,19 @@ object Instance
         {
           {for(e <- valNode \ "e") yield e text}.toSet
         }
-      }.toArray,
+      }.toIndexedSeq,
       spec = spec
     )
   }
 
-  def deserialize(stream : InputStream, spec : InstanceSpecification) =
+  def deserialize(stream : DataInputStream, spec : InstanceSpecification) =
   {
-    val dataStream = new DataInputStream(stream)
+    //Read URI
+    val uri = stream.readUTF()
 
-    val uri = dataStream.readUTF()
-    val values = Array.fill(spec.paths.size)(Traversable.fill(dataStream.readInt)(dataStream.readUTF).toSet)
+    //Read Values
+    def readValue = Traversable.fill(stream.readInt)(stream.readUTF).toSet
+    val values = IndexedSeq.fill(spec.paths.size)(readValue)
 
     new Instance(uri, values, spec)
   }
