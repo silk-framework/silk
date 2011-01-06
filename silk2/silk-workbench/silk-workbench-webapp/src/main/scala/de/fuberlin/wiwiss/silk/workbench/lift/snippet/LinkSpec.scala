@@ -34,7 +34,8 @@ class LinkSpec
     }
 
     //Serialize the link condition to a JavaScript string
-    val linkConditionStr = ConfigWriter.serializeLinkCondition(Project().linkSpec.condition).toString.replace("\n", " ")
+    val linkConditionStr = ConfigWriter.serializeLinkCondition(Project().linkSpec.condition).toString.replace("\n", " ").replace(" function=", " transformfunction=")
+    // val linkConditionStr = ConfigWriter.serializeLinkCondition(Project().linkSpec.condition).toString.replace("\n", " ")
     val linkConditionVar = "var linkCondition = '" + linkConditionStr + "';"
 
     bind("entry", xhtml,
