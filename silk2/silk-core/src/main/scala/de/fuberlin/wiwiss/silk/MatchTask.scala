@@ -170,20 +170,9 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
         val sourceIndexes = builtIndex(sourceInstances)
         val targetIndexes = builtIndex(targetInstances)
 
-//        val indexMap =
-//        {
-//          for(i <- 0 until targetInstances.size;
-//              index <- targetIndexes(i)) yield
-//              (index, targetInstances(i))
-//        }.groupBy(_._1).mapValues(_.map(_._2))
-
         for(s <- 0 until sourceInstances.size;
             t <- 0 until targetInstances.size;
             if compareIndexes(sourceIndexes(s), targetIndexes(t)))
-//        for(s <- 0 until sourceInstances.size;
-//            sourceIndex <- sourceIndexes(s);
-//            targetIndexSet <- indexMap.get(sourceIndex);
-//            targetInstance <- targetIndexSet)
         {
           val sourceInstance = sourceInstances(s)
           val targetInstance = targetInstances(t)
