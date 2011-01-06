@@ -1,13 +1,42 @@
-<lift:surround with="default" at="content">
+<lift:surround with="editor" at="content">
   <lift:linkSpec form="POST">
+    <!--
     <ul id="toolbar">
       <li>
-        <entry:update />
-      </li>
-      <li>
-        <entry:download />
+        <entry:submit />
       </li>
     </ul>
+    -->
+
     <entry:linkSpec/>
+
+    <div class="container">
+        <div class="draggables" id="paths">
+            <span style="font-weight: bold; color: #582271;">Property Paths</span>
+            <br/>
+            <script type="text/javascript">
+                getPropertyPaths();
+            </script>
+        </div>
+
+        <div class="droppable" id="droppable">
+            <p id="droppable_p"></p>
+        </div>
+
+
+        <div class="draggables" id="operators">
+            <script type="text/javascript">
+                getOperators();
+
+                load();
+            </script>
+        </div>
+
+    </div>
+
+<div style="clear: both;" onclick="save();">save</div>
+<div style="clear: both;" onclick="load();">load</div>
+
+
   </lift:linkSpec>
 </lift:surround>
