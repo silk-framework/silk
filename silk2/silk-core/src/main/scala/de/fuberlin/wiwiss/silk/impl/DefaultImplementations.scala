@@ -24,7 +24,7 @@ object DefaultImplementations
 //        Transformer.register("regexReplace", classOf[RegexReplaceTransformer])
 //        Transformer.register("concat", classOf[ConcatTransformer])
 //        Transformer.register("removeBlanks", classOf[ReplaceTransformer], Map("search" -> " ", "replace" -> ""))
-//        Transformer.register("lowerCase", classOf[LowerCaseTransformer])
+        Transformer.register(classOf[LowerCaseTransformer])
 //        Transformer.register("upperCase", classOf[UpperCaseTransformer])
 //        Transformer.register("numReduce", classOf[RegexReplaceTransformer], Map("regex" -> "[^0-9]+", "replace" -> ""))
 //        Transformer.register("stem", classOf[StemmerTransformer])
@@ -49,10 +49,10 @@ object DefaultImplementations
         Aggregator.register(classOf[QuadraticMeanAggregator])
         Aggregator.register(classOf[GeometricMeanAggregator])
 
-//        LinkWriter.register("file", classOf[FileWriter])
-//        LinkWriter.register("memory", classOf[MemoryWriter])
-//
-//        Formatter.register("ntriples", classOf[NTriplesFormatter])
-//        Formatter.register("alignment", classOf[AlignmentFormatter])
+        LinkWriter.register(classOf[FileWriter])
+        LinkWriter.register(classOf[MemoryWriter])
+
+        Formatter.register(classOf[NTriplesFormatter])
+        Formatter.register(classOf[AlignmentFormatter])
     }
 }

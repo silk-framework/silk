@@ -1,8 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.{Link, Formatter}
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class NTriplesFormatter(val params : Map[String, String] = Map.empty) extends Formatter
+@StrategyAnnotation(id = "ntriples", label = "N-Triples")
+class NTriplesFormatter() extends Formatter
 {
-    override def format(link : Link, predicateUri : String) = "<" + link.sourceUri + ">  <" + predicateUri + ">  <" + link.targetUri + "> .\n"
+  override def format(link : Link, predicateUri : String) = "<" + link.sourceUri + ">  <" + predicateUri + ">  <" + link.targetUri + "> .\n"
 }

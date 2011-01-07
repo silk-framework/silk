@@ -1,20 +1,22 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Link}
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class MemoryWriter(val params : Map[String, String] = Map.empty) extends LinkWriter
+@StrategyAnnotation(id = "memory", label = "Memory")
+class MemoryWriter() extends LinkWriter
 {
-    private var _links = List[Link]()
+  private var _links = List[Link]()
 
-    def links = _links
+  def links = _links
 
-    def clear()
-    {
-        _links = List[Link]()
-    }
+  def clear()
+  {
+    _links = List[Link]()
+  }
 
-    override def write(link : Link, predicateUri : String) : Unit =
-    {
-        _links ::= link
-    }
+  override def write(link : Link, predicateUri : String) : Unit =
+  {
+    _links ::= link
+  }
 }
