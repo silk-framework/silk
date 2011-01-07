@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 import java.net.URI
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 /**
  * DataSource which retrieves all instances from a SPARQL endpoint
@@ -19,30 +20,25 @@ import java.net.URI
  * - '''retryCount (optional)''': The number of retires if a query fails
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
  */
-class SparqlDataSource(val params : Map[String, String]) extends DataSource
+@StrategyAnnotation(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all instances from a SPARQL endpoint")
+class SparqlDataSource(endpointURI : String, login : String = null, password : String = null,
+                       graph : String = null, pageSize : Int = 1000, instanceList : String = null,
+                       pauseTime : Int = 1000, retryCount : Int = 3, retryPause : Int = 0) extends DataSource
 {
-  private val uri = new URI(readRequiredParam("endpointURI"))
+  private val uri = new URI(endpointURI)
 
-  private val login = readOptionalParam("login").map(login => (login, readRequiredParam("password")))
+  private val graphUri = if(graph == null) None else Some(graph)
 
-  private val pauseTime = readOptionalIntParam("pauseTime").getOrElse(0)
-
-  private val retryCount = readOptionalIntParam("retryCount").getOrElse(3)
-
-  private val initialRetryPause = readOptionalIntParam("retryPause").getOrElse(1000)
-
-  private val graphUri = readOptionalParam("graph")
-
-  private val pageSize = readOptionalIntParam("pageSize").getOrElse(1000)
-
-  private val instanceList = readOptionalParam("instanceList").getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
+  private val instanceUris = Option(instanceList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
   override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
   {
-    val endpoint = new RemoteSparqlEndpoint(uri, instanceSpec.prefixes, login, pageSize, pauseTime, retryCount, initialRetryPause)
+    val loginComplete =  if(login != null) Some((login, password)) else None
+
+    val endpoint = new RemoteSparqlEndpoint(uri, instanceSpec.prefixes, loginComplete, pageSize, pauseTime, retryCount, pauseTime)
 
     val instanceRetriever = new InstanceRetriever(endpoint, pageSize, graphUri)
 
-    instanceRetriever.retrieve(instanceSpec, instanceList union instances)
+    instanceRetriever.retrieve(instanceSpec, instanceUris union instances)
   }
 }

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec.input
 
-import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
 
 trait Transformer extends Strategy
 {

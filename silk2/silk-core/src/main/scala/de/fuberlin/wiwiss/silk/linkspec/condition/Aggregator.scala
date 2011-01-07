@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
 import scala.math.max
+import de.fuberlin.wiwiss.silk.util.strategy.{StrategyDefinition, Factory, Strategy}
 
 trait Aggregator extends Strategy
 {

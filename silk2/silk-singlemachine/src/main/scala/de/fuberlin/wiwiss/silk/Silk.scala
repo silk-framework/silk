@@ -28,8 +28,8 @@ object Silk
   private val instanceCacheDir = new File("./instanceCache/")
 
   DefaultImplementations.register()
-  DataSource.register("rdf", classOf[RdfDataSource])
-  DataSource.register("file", classOf[FileDataSource])
+  DataSource.register(classOf[RdfDataSource])
+  DataSource.register(classOf[FileDataSource])
 
   /**
    * Executes Silk.

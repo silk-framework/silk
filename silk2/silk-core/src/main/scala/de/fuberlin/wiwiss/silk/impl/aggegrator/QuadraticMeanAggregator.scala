@@ -1,11 +1,13 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkspec.MultiIndexAggregator
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 /**
  * Computes the weighted quadratic mean.
  */
-class QuadraticMeanAggregator(val params: Map[String, String] = Map.empty) extends MultiIndexAggregator
+@StrategyAnnotation(id = "quadraticMean", label = "Euclidian distance", description = "Calculates the Euclidian distance.")
+class QuadraticMeanAggregator() extends MultiIndexAggregator
 {
   override def evaluate(values : Traversable[(Int, Double)]) =
   {

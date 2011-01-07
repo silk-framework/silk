@@ -59,8 +59,8 @@ object Server
 private class Server
 {
     DefaultImplementations.register()
-    DataSource.register("rdf", classOf[RdfDataSource])
-    DataSource.register("file", classOf[FileDataSource])
+    DataSource.register(classOf[RdfDataSource])
+    DataSource.register(classOf[FileDataSource])
 
     val serverConfig = ServerConfig.load()
 

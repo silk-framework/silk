@@ -3,8 +3,9 @@ package de.fuberlin.wiwiss.silk.jena
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
-import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
+import com.hp.hpl.jena.rdf.model.ModelFactory
 import java.io.StringReader
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 /**
  * A DataSource where all instances are given directly in the configuration.
@@ -13,14 +14,15 @@ import java.io.StringReader
  * - '''input''': The input data
  * - '''format''': The format of the input data. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3"
  */
-class RdfDataSource(val params : Map[String, String]) extends DataSource
+@StrategyAnnotation(id = "rdf", label = "RDF", description = "A DataSource where all instances are given directly in the configuration.")
+class RdfDataSource(input : String, format : String) extends DataSource
 {
   override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
   {
-    val reader = new StringReader(readRequiredParam("input"))
+    val reader = new StringReader(input)
 
     val model = ModelFactory.createDefaultModel
-    model.read(reader, null, readRequiredParam("format"))
+    model.read(reader, null, format)
 
     val endpoint = new JenaSparqlEndpoint(model, instanceSpec.prefixes)
 

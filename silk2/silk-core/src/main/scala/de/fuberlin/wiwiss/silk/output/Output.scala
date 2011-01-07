@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.output
 
-import de.fuberlin.wiwiss.silk.util.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
 import java.util.logging.Logger
 
 /**

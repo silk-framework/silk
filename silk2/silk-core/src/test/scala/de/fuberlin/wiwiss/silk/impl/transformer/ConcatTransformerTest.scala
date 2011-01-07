@@ -7,19 +7,19 @@ import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 
 class ConcatTransformerTest extends FlatSpec with ShouldMatchers
 {
-    DefaultImplementations.register()
+  DefaultImplementations.register()
 
-    val transformer = new ConcatTransformer(Map())
+  val transformer = new ConcatTransformer()
 
-    "ConcatTransformer" should "return 'abcdef'" in
-    {
-        transformer.evaluate(List("abc", "def")) should equal ("abcdef")
-    }
+  "ConcatTransformer" should "return 'abcdef'" in
+  {
+    transformer.evaluate(List("abc", "def")) should equal ("abcdef")
+  }
 
-    val transformer1 = new ConcatTransformer(Map())
+  val transformer1 = new ConcatTransformer()
 
-    "ConcatTransformer" should "return 'def123'" in
-    {
-        transformer1.evaluate(List("def", "123")) should equal ("def123")
-    }
+  "ConcatTransformer" should "return 'def123'" in
+  {
+    transformer1.evaluate(List("def", "123")) should equal ("def123")
+  }
 }

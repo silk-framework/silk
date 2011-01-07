@@ -1,8 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class JaroWinklerMetric(val params: Map[String, String] = Map.empty) extends Metric
+@StrategyAnnotation(id = "jaroWinkler", label = "Jaro-Winkler distance", description = "String similarity based on the Jaro-Winkler metric.")
+class JaroWinklerMetric() extends Metric
 {
   // maximum prefix length to use
   private final val MINPREFIXTESTLENGTH: Int = 4 //using value from lingpipe (was 6)
