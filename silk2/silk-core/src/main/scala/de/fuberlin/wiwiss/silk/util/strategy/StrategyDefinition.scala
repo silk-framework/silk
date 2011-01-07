@@ -30,9 +30,13 @@ class StrategyDefinition[+T <: Strategy](val id : String, val label : String, va
             case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
           }
         }
+        case None if parameter.defaultValue.isDefined =>
+        {
+          parameter.defaultValue.get
+        }
         case None =>
         {
-          ""
+          throw new IllegalArgumentException("Parameter '" + parameter.name + "' is required")
         }
       }
     }
@@ -78,7 +82,7 @@ object StrategyDefinition
 
     for(((parName, parType), defaultValue) <- parameterNames zip parameterTypes zip defaultValues) yield
     {
-      if(!parType.isInstanceOf[Class[_]]) throw new InvalidStrategyException("Unsupported parameter type: " + parType)
+      if(!parType.isInstanceOf[Class[_]]) throw new InvalidStrategyException("Unsupported parameter type in strategy " + strategy.getName + ": " + parType)
 
       val dataType = parType.asInstanceOf[Class[_]].getName match
       {
@@ -96,20 +100,20 @@ object StrategyDefinition
 
   private def getDefaultValues[T <: Strategy](strategy : Class[T], count : Int) : Array[Option[AnyRef]] =
   {
-    val clazz = Class.forName(strategy.getName + "$")
-    val fields = clazz.getFields
-
-    for(i <- Array.range(0, count)) yield
+    try
     {
-      val defaultValueField = clazz.getField("init$default$" + i)
-      if(defaultValueField == null)
+      val clazz = Class.forName(strategy.getName + "$")
+      val module = clazz.getField("MODULE$").get(null)
+      val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
+
+      for(i <- Array.range(1, count + 1)) yield
       {
-        None
+        methods.get("init$default$" + i).map(_.invoke(module))
       }
-      else
-      {
-        Some(defaultValueField.get(null))
-      }
+    }
+    catch
+    {
+      case ex : ClassNotFoundException => Array.fill(count)(None)
     }
   }
 }

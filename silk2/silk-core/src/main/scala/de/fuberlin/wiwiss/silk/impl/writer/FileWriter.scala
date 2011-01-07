@@ -2,37 +2,36 @@ package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.{Formatter, Link, LinkWriter}
 import java.io.{Writer, OutputStreamWriter, FileOutputStream}
-import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 /**
  * A file writer.
  */
-class FileWriter(val params : Map[String, String]) extends LinkWriter
+@StrategyAnnotation(id = "file", label = "File")
+class FileWriter(file : String = "output", format : String) extends LinkWriter
 {
-    private val formatter = Formatter(params.get("format").getOrElse(throw new IllegalArgumentException("No format specified")))
+  private val formatter = Formatter(format)
 
-    private val outputFile = params.get("file").getOrElse("output")
+  private var out : Writer = null
 
-    private var out : Writer = null
+  override def open : Unit =
+  {
+    out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
+    out.write(formatter.header)
+  }
 
-    override def open : Unit =
+  override def write(link : Link, predicateUri : String) : Unit =
+  {
+    out.write(formatter.format(link, predicateUri))
+  }
+
+  override def close : Unit =
+  {
+    if(out != null)
     {
-        out = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8")
-        out.write(formatter.header)
+      out.write(formatter.footer)
+      out.close()
+      out = null
     }
-
-    override def write(link : Link, predicateUri : String) : Unit =
-    {
-        out.write(formatter.format(link, predicateUri))
-    }
-
-    override def close : Unit =
-    {
-        if(out != null)
-        {
-            out.write(formatter.footer)
-            out.close()
-            out = null
-        }
-    }
+  }
 }

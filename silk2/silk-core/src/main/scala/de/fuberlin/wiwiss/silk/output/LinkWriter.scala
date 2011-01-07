@@ -9,8 +9,6 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
  */
 trait LinkWriter extends Strategy
 {
-    val params : Map[String, String]
-
     /**
      * Initializes this writer.
      */
