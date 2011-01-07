@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "upperCase", label = "Upper case", description = "Converts a string to upper case.")
-class UpperCaseTransformer(val params: Map[String, String] = Map()) extends Transformer
+class UpperCaseTransformer() extends Transformer
 {
     override def evaluate(strings : Seq[String]) =
     {
