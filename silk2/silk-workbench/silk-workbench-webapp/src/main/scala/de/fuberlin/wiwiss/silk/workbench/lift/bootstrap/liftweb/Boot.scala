@@ -122,7 +122,7 @@ class Boot
     {
       JObject(JField("name", JString(parameter.name)) ::
               JField("type", JString(parameter.dataType.toString)) ::
-              JField("description", JString(parameter.description)) :: Nil)
+              /*JField("description", JString(parameter.description)) ::*/ Nil)
     }
   }
 }
