@@ -3,14 +3,16 @@ package de.fuberlin.wiwiss.silk.impl.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.io.File
 import de.fuberlin.wiwiss.silk.instance.{FileInstanceCache, InstanceSpecification, Instance}
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class CacheDataSource(val params : Map[String, String]) extends DataSource
+@StrategyAnnotation(id = "cache", label = "Cache")
+class CacheDataSource(dir : String) extends DataSource
 {
-  val dir = new File(readRequiredParam("dir"))
+  private val file = new File(dir)
 
   def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String] = Seq.empty) : Traversable[Instance] =
   {
-    val instanceCache = new FileInstanceCache(instanceSpec, dir)
+    val instanceCache = new FileInstanceCache(instanceSpec, file)
 
     new Traversable[Instance]
     {

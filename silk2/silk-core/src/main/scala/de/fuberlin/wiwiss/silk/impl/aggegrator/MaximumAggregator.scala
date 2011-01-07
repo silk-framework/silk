@@ -1,8 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkspec.FlatIndexAggregator
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class MaximumAggregator(val params: Map[String, String] = Map()) extends FlatIndexAggregator
+@StrategyAnnotation(id = "max", label = "Maximum", description = "Selects the maximum value.")
+class MaximumAggregator() extends FlatIndexAggregator
 {
   override def evaluate(values : Traversable[(Int, Double)]) =
   {

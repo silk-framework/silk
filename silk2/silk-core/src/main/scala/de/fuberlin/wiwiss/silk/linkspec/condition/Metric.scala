@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import de.fuberlin.wiwiss.silk.util.{Strategy, Factory}
+import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
 
 trait Metric extends Strategy
 {

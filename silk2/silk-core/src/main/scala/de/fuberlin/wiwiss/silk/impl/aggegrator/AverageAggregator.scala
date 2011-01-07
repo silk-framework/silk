@@ -1,8 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkspec.MultiIndexAggregator
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class AverageAggregator(val params: Map[String, String] = Map.empty) extends MultiIndexAggregator
+@StrategyAnnotation(id = "average", label = "Average", description = "Computes the weighted average.")
+class AverageAggregator() extends MultiIndexAggregator
 {
   override def evaluate(values : Traversable[(Int, Double)]) =
   {

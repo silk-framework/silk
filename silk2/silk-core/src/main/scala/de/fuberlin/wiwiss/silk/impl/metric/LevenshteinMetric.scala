@@ -3,20 +3,17 @@ package de.fuberlin.wiwiss.silk.impl.metric
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math.{min, max}
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Metric
+@StrategyAnnotation(id = "levenshtein", label = "Levenshtein distance", description = "String similarity based on the Levenshtein metric.")
+class LevenshteinMetric(maxDistance : Int = -1, minChar : Char = '0', maxChar : Char = 'z', q : Int = 1) extends Metric
 {
-  private val minChar = readOptionalParam("minChar").getOrElse("0").head
-  private val maxChar = readOptionalParam("maxChar").getOrElse("z").head
-  private val maxDistance = readOptionalIntParam("maxDistance")
-  private val q = readOptionalIntParam("q").getOrElse(1)
-
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
     val k = maxDistance match
     {
-      case Some(d) => d
-      case None => max(str1.length, str2.length)
+      case -1 => max(str1.length, str2.length)
+      case d => d
     }
 
     max(1.0 - (evaluateDistance(str1, str2).toDouble / k), 0.0)
@@ -24,10 +21,16 @@ class LevenshteinMetric(val params : Map[String, String] = Map.empty) extends Me
 
   override def index(str : String, threshold : Double) : Set[Seq[Int]] =
   {
-    val k = maxDistance match
+    val k =
     {
-      case Some(d) => (d * (1.0 - threshold)).toInt
-      case None => (str.length * (1.0 - threshold)).toInt
+      if(maxDistance > 0)
+      {
+        (maxDistance * (1.0 - threshold)).toInt
+      }
+      else
+      {
+        (str.length * (1.0 - threshold)).toInt
+      }
     }
 
     val qGrams = str.qGrams(q)

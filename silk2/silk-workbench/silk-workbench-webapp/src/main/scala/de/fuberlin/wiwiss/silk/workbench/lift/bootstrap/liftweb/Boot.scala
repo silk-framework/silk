@@ -11,12 +11,12 @@ import de.fuberlin.wiwiss.silk.workbench.project.Project
 import js.jquery.JQuery14Artifacts
 import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
-import de.fuberlin.wiwiss.silk.util.Strategy
 import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.config.ConfigWriter
 import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, StrategyDefinition, Strategy}
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -105,14 +105,24 @@ class Boot
     Full(JsonResponse(json))
   }
 
-  private def generateFactoryOperators[T <: Strategy](factory : de.fuberlin.wiwiss.silk.util.Factory[T]) =
+  private def generateFactoryOperators[T <: Strategy](factory : de.fuberlin.wiwiss.silk.util.strategy.Factory[T]) =
   {
-    for((id, name) <- factory.availableStrategies) yield
+    for(strategy <- factory.availableStrategies) yield
     {
-      JObject(JField("id", JString(id)) ::
-              JField("name", JString(name)) ::
-              JField("description", JString("No description available")) ::
-              JField("parameters", JArray(Nil)) :: Nil)
+      JObject(JField("id", JString(strategy.id)) ::
+              JField("label", JString(strategy.label)) ::
+              JField("description", JString(strategy.description)) ::
+              JField("parameters", JArray(generateFactoryParameters(strategy.parameters).toList)) :: Nil)
+    }
+  }
+
+  private def generateFactoryParameters(parameters : Traversable[Parameter]) =
+  {
+    for(parameter <- parameters) yield
+    {
+      JObject(JField("name", JString(parameter.name)) ::
+              JField("type", JString(parameter.dataType.toString)) ::
+              JField("description", JString(parameter.description)) :: Nil)
     }
   }
 }

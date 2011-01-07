@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.impl.metric
 import math._
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 /**
  * This metric takes geographical coordinates of two points,
@@ -13,17 +14,17 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
  * threshold = t -  will result in a 0 for all bigger values than t, values below are varying with the curveStyle
  * curveStyle = "discreet" (default) "linear" gives a linear transition, "logistic" uses the logistic function f(x)=1/(1+e^(x) gives a more soft curve with a slow slope 
  * at the start and the end of the curve but a  steep one in the middle.
- * longitudeFirst = "true" (default) or "false" specifies if the longitude or latitude is given first
  * @autor Konrad Höffner (AKSW, Uni Leipzig)
  */
-class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
+@StrategyAnnotation(
+  id = "wgs84",
+  label = "Geographical distance",
+  description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
+class GeographicDistanceMetric(threshold : Double, unit : String = "", curveStyle : String = "linear") extends Metric
 {
   val multipliers = Map("km"->0.001,"kilometer"->0.001,"meter"->1.0,"m"->1.0)
 
-  val unitMultiplier : Double = multipliers.get(params.get("unit").getOrElse("")).getOrElse(1)
-
-  val threshold : Double = readRequiredDoubleParam("threshold")
-  val curveStyle : Option[String] = params.get("curveStyle");
+  val unitMultiplier : Double = multipliers.get(unit).getOrElse(1)
 
   private val blockOverlap = 0.5
 
@@ -149,12 +150,12 @@ class GeographicDistanceMetric(val params : Map[String, String]) extends Metric
 
     // curveStyle = "discreet" or no curveStyle set
     // -> no curve, just return 1
-    if(!curveStyle.isDefined||curveStyle.get.equals("discreet")) {return 1}
+    if(curveStyle == "discreet") {return 1}
 
     // other curveStyle specified -> use a transition
 
     // linear transition
-    if(curveStyle.get.equals("linear"))
+    if(curveStyle == "linear")
     {
 
       val m = - 1/threshold;

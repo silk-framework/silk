@@ -4,15 +4,15 @@ import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class DateMetric(val params : Map[String, String]) extends Metric
+@StrategyAnnotation(
+  id = "date",
+  label = "Date",
+  description = "Computes the similarity between two dates ('YYYY-MM-DD' format). " +
+                "At a difference of 'maxDays', the metric evaluates to 0 and progresses towards 1 with a lower difference.")
+class DateMetric(maxDays : Int) extends Metric
 {
-  private val maxDays = params.get("max_days") match
-  {
-    case Some(IntLiteral(days)) => days
-    case _ => throw new IllegalArgumentException("Integral parameter 'max_days' required")
-  }
-
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
     try

@@ -17,8 +17,8 @@ private object ProjectCreator
     //Generate initial configuration
     val config : Configuration =
     {
-      val sourceDataSource = new Source(Constants.SourceId, new SparqlDataSource(Map("endpointURI" -> description.source.endpointUri.toString)))
-      val targetDataSource = new Source(Constants.TargetId, new SparqlDataSource(Map("endpointURI" -> description.target.endpointUri.toString)))
+      val sourceDataSource = new Source(Constants.SourceId, new SparqlDataSource(endpointURI = description.source.endpointUri.toString))
+      val targetDataSource = new Source(Constants.TargetId, new SparqlDataSource(endpointURI = description.target.endpointUri.toString))
 
       val linkSpec =
         new LinkSpecification(
