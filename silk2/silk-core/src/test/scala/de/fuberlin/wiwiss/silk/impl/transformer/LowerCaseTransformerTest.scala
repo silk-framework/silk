@@ -9,14 +9,14 @@ class LowerCaseTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new  LowerCaseTransformer(Map())
+    val transformer = new  LowerCaseTransformer()
 
     "LowerCaseTransformer" should "return '123'" in
     {
         transformer.evaluate(List("123")) should equal ("123")
     }
 
-    val transformer1 = new  LowerCaseTransformer(Map())
+    val transformer1 = new  LowerCaseTransformer()
 
     "LowerCaseTransformer" should "return 'abc'" in
     {

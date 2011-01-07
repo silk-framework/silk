@@ -9,14 +9,14 @@ class UpperCaseTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new UpperCaseTransformer(Map())
+    val transformer = new UpperCaseTransformer()
 
     "UpperCaseTransformer" should "return '123'" in
     {
         transformer.evaluate(List("123")) should equal ("123")
     }
 
-    val transformer1 = new UpperCaseTransformer(Map())
+    val transformer1 = new UpperCaseTransformer()
 
     "UpperCaseTransformer" should "return 'ABC'" in
     {
