@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "lowerCase", label = "Lower case", description = "Converts a string to lower case.")
-class LowerCaseTransformer(val params: Map[String, String] = Map()) extends Transformer
+class LowerCaseTransformer() extends Transformer
 {
     override def evaluate(strings : Seq[String]) =
     {
