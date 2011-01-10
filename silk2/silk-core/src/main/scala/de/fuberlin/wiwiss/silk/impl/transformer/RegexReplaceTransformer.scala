@@ -1,15 +1,11 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class RegexReplaceTransformer(val params: Map[String, String] = Map()) extends Transformer
+@StrategyAnnotation(id = "regexReplace", label = "Regex replace", description = "Replace all occurrences of a regex "regex" with "replace" in a string.")
+class RegexReplaceTransformer(regex : String, replace : String) extends Transformer
 {
-    require(params.contains("regex"), "Parameter 'regex' is required")
-    require(params.contains("replace"), "Parameter 'replace' is required")
-
-    val regex = params("regex")
-    val replace = params("replace")
-
     override def evaluate(strings : Seq[String]) =
     {
         strings.toList.head.replaceAll(regex, replace)

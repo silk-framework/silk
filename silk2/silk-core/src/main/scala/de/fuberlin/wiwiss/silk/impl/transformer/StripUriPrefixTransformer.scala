@@ -1,8 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class StripUriPrefixTransformer(val params: Map[String, String] = Map()) extends Transformer
+@StrategyAnnotation(id = "stripUriPrefix", label = "Strip URI prefix", description = "Strips the URI prefix of a string.")
+class StripUriPrefixTransformer() extends Transformer
 {
     override def evaluate(strings : Seq[String]) : String =
     {

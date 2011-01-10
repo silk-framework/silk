@@ -4,10 +4,12 @@ import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "replace", label = "Replace", description = "Replace all occurrences of a string "search" with "replace" in a string.")
-class ReplaceTransformer(search : String, replace : String) extends Transformer
+class RemoveBlanksTransformer() extends Transformer
 {
+    ReplaceTransformer transformer = new ReplaceTransformer(" ", "")
+
     override def evaluate(strings : Seq[String]) =
     {
-        strings.toList.head.replace(search, replace)
+        transformer.evaluate(strings)
     }
 }

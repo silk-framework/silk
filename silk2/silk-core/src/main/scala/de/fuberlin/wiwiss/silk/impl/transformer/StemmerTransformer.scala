@@ -1,8 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class StemmerTransformer(val params: Map[String, String] = Map()) extends Transformer
+@StrategyAnnotation(id = "stem", label = "Stem", description = "Stems a string using the Porter Stemmer.")
+class StemmerTransformer() extends Transformer
 {
     override def evaluate(strings : Seq[String]) =
     {
