@@ -9,14 +9,14 @@ class ReplaceTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new ReplaceTransformer(Map("search" -> " ", "replace" -> ""))
+    val transformer = new ReplaceTransformer(search = " ", replace = "")
 
     "ReplaceTransformer" should "return 'abc'" in
     {
         transformer.evaluate(List("a b c")) should equal ("abc")
     }
 
-    val transformer1 = new ReplaceTransformer(Map("search" -> "abc", "replace" -> ""))
+    val transformer1 = new ReplaceTransformer(search = "abc", replace = "")
 
     "ReplaceTransformer" should "return 'def'" in
     {

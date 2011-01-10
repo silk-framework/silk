@@ -30,7 +30,7 @@ object DefaultImplementations
         Transformer.register(classOf[StemmerTransformer])
         Transformer.register(classOf[StripPrefixTransformer])
         Transformer.register(classOf[StripPostfixTransformer])
-        Transformer.register(lassOf[StripUriPrefixTransformer])
+        Transformer.register(classOf[StripUriPrefixTransformer])
         Transformer.register(classOf[AlphaReduceTransformer])
         Transformer.register(classOf[RemoveSpecialCharsTransformer])
 

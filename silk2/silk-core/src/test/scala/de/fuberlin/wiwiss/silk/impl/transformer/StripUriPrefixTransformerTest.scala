@@ -9,7 +9,7 @@ class StripUriPrefixTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new StripUriPrefixTransformer(Map())
+    val transformer = new StripUriPrefixTransformer()
 
     "StripUriPrefixTransformer" should "return 'Apple'" in
     {
