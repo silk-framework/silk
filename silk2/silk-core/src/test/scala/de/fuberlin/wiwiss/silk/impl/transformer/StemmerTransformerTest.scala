@@ -9,14 +9,14 @@ class StemmerTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new StemmerTransformer(Map())
+    val transformer = new StemmerTransformer()
 
     "StemmerTransformer" should "return 'abolish'" in
     {
         transformer.evaluate(List("abolished")) should equal ("abolish")
     }
 
-    val transformer1 = new StemmerTransformer(Map())
+    val transformer1 = new StemmerTransformer()
 
     "StemmerTransformer" should "return 'abomin'" in
     {

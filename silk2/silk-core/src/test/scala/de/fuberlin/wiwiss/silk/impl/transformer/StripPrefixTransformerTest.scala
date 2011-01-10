@@ -9,14 +9,14 @@ class StripPrefixTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new StripPrefixTransformer(Map("prefix" -> "abc"))
+    val transformer = new StripPrefixTransformer(prefix = "abc")
 
     "StripPrefixTransformer" should "return '123'" in
     {
         transformer.evaluate(List("abc123")) should equal ("123")
     }
 
-    val transformer1 = new StripPrefixTransformer(Map("prefix" -> "123"))
+    val transformer1 = new StripPrefixTransformer(prefix = "123")
 
     "StripPrefixTransformer" should "return 'abc'" in
     {

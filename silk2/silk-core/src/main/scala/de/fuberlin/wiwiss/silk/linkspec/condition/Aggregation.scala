@@ -38,18 +38,25 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
       }
     }
 
-    val combined = indexSets.reduceLeft[(Set[Seq[Int]], Seq[Int])]
+    if(indexSets.isEmpty)
     {
-      case ((indexSet1, blockCounts1), (indexSet2, blockCounts2)) =>
-      {
-        val combinedIndexSet = aggregator.combineIndexes(indexSet1, blockCounts1, indexSet2, blockCounts2)
-        val combinedBlockCounts = aggregator.combineBlockCounts(blockCounts1, blockCounts2)
-
-        (combinedIndexSet, combinedBlockCounts)
-      }
+      Set.empty
     }
+    else
+    {
+      val combined = indexSets.reduceLeft[(Set[Seq[Int]], Seq[Int])]
+      {
+        case ((indexSet1, blockCounts1), (indexSet2, blockCounts2)) =>
+        {
+          val combinedIndexSet = aggregator.combineIndexes(indexSet1, blockCounts1, indexSet2, blockCounts2)
+          val combinedBlockCounts = aggregator.combineBlockCounts(blockCounts1, blockCounts2)
 
-    combined._1
+          (combinedIndexSet, combinedBlockCounts)
+        }
+      }
+
+      combined._1
+    }
   }
 
   override val blockCounts : Seq[Int] =

@@ -9,14 +9,14 @@ class StripPostfixTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new StripPostfixTransformer(Map("postfix" -> "abc"))
+    val transformer = new StripPostfixTransformer(postfix = "abc")
 
     "StripPostfixTransfomer" should "return 'abc123'" in
     {
         transformer.evaluate(List("abc123")) should equal ("abc123")
     }
 
-    val transformer1 = new StripPostfixTransformer(Map("postfix" -> "123"))
+    val transformer1 = new StripPostfixTransformer(postfix = "123")
 
     "StripPostfixTransfomer" should "return 'abc'" in
     {

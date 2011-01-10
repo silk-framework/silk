@@ -9,14 +9,14 @@ class RegexReplaceTransformerTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-    val transformer = new RegexReplaceTransformer(Map("regex" -> "[^0-9]*", "replace" -> ""))
+    val transformer = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
 
     "RegexReplaceTransformerTest" should "return 'abc'" in
     {
         transformer.evaluate(List("a0b1c2")) should equal ("012")
     }
 
-    val transformer1 = new RegexReplaceTransformer(Map("regex" -> "[a-z]*", "replace" -> ""))
+    val transformer1 = new RegexReplaceTransformer(regex = "[a-z]*", replace = "")
 
     "RegexReplaceTransformerTest" should "return '1'" in
     {
