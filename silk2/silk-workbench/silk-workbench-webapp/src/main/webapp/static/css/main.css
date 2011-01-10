@@ -110,6 +110,7 @@ pre
 
 input[type=file]
 {
+    background-color: black;
   color: white;
 }
 
