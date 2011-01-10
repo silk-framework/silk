@@ -15,9 +15,9 @@ private class JenaSparqlEndpoint(model : Model, override val prefixes : Map[Stri
   /**
    * Executes a SPARQL SELECT query.
    */
-  override def query(sparql : String) : Traversable[Map[String, Node]] =
+  override def query(sparql : String, limit : Int) : Traversable[Map[String, Node]] =
   {
-    val qe = QueryExecutionFactory.create(sparqlPrefixes + "\n" + sparql, model)
+    val qe = QueryExecutionFactory.create(sparqlPrefixes + "\n" + sparql + " LIMIT " + limit, model)
 
     try
     {

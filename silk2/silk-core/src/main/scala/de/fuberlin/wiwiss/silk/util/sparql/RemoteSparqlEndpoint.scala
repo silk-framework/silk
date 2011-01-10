@@ -29,17 +29,17 @@ class RemoteSparqlEndpoint(val uri : URI, override val prefixes : Map[String, St
 
   override def toString = "SparqlEndpoint(" + uri + ")"
 
-  override def query(sparql : String) : Traversable[Map[String, Node]] = new ResultTraversable(sparql)
+  override def query(sparql : String, limit : Int) : Traversable[Map[String, Node]] = new ResultTraversable(sparql, limit)
 
-  private class ResultTraversable(sparql : String) extends Traversable[Map[String, Node]]
+  private class ResultTraversable(sparql : String, limit : Int) extends Traversable[Map[String, Node]]
   {
     override def foreach[U](f : Map[String, Node] => U) : Unit =
     {
       var blankNodeCount = 0
 
-      for(offset <- 0 until Integer.MAX_VALUE by pageSize)
+      for(offset <- 0 until limit by pageSize)
       {
-        val xml = executeQuery(sparqlPrefixes + "\n" + sparql + " OFFSET " + offset + " LIMIT " + pageSize)
+        val xml = executeQuery(sparqlPrefixes + "\n" + sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
 
         val resultsXml = xml \ "results" \ "result"
 
