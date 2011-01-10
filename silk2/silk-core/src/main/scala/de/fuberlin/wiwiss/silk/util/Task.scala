@@ -19,6 +19,8 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
 
   private var running = false
 
+  var taskName = "Task"
+
   var logLevel = Level.INFO
 
   /**
@@ -30,6 +32,7 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
     currentProgress = 0.0
     currentStatus = "Running"
     publish(Started())
+    logger.log(logLevel, taskName + " started")
 
     try
     {
@@ -38,6 +41,7 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
       currentProgress = 1.0
       currentStatus = "Done"
       publish(Finished(true))
+      logger.log(logLevel, taskName + " done")
       result
     }
     catch

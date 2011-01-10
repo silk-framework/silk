@@ -37,7 +37,7 @@ object RelevantPropertiesCollector
       "GROUP BY ?p\n" +
       "ORDER BY DESC (?count)"
 
-    val results = endpoint.query(sparql).toList
+    val results = endpoint.query(sparql, MaxPropertyCount).toList
     if(!results.isEmpty)
     {
       val maxCount = results.head("count").value.toDouble

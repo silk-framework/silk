@@ -7,5 +7,5 @@ trait SparqlEndpoint
 {
   val prefixes : Map[String, String]
 
-  def query(sparql : String) : Traversable[Map[String, Node]]
+  def query(sparql : String, limit : Int = Integer.MAX_VALUE) : Traversable[Map[String, Node]]
 }

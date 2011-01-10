@@ -35,6 +35,8 @@ case class Project(desc : SourceTargetPair[Description],
 
     private val negativeSamples = alignment.negativeLinks.take(sampleCount).toList
 
+    taskName = "CacheLoaderTask"
+
     override protected def execute()
     {
       val sourceEndpoint = new RemoteSparqlEndpoint(desc.source.endpointUri, config.prefixes)
