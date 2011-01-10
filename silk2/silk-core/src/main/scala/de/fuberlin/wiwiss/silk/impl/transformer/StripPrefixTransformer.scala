@@ -1,13 +1,11 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
-class StripPrefixTransformer(val params: Map[String, String] = Map()) extends Transformer
+@StrategyAnnotation(id = "stripPrefix", label = "Strip prefix", description = "Strips a prefix of a string.")
+class StripPrefixTransformer(prefix : String) extends Transformer
 {
-    require(params.contains("prefix"), "Parameter 'prefix' is required")
-
-    val prefix = params("prefix")
-
     override def evaluate(strings : Seq[String]) : String =
     {
         val word = strings.toList.head
