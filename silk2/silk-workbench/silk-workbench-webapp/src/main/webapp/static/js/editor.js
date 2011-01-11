@@ -20,7 +20,7 @@ var endpointOptions1 = {
     style:{fillStyle:'#359ace'},
     connectorStyle : { gradient:{stops:[[0,'#359ace'], [1, '#35ceb7']] }, strokeStyle:'#359ace', lineWidth:5 },
     isTarget:true,
-    maxConnections:2,
+    maxConnections:4,
     anchor: "LeftMiddle"
 };
 
@@ -30,7 +30,7 @@ var endpointOptions2 = {
     style:{fillStyle:'#35ceb7'},
     connectorStyle : { gradient:{stops:[[0,'#35ceb7'], [1, '#359ace']] }, strokeStyle:'#359ace', lineWidth:5 },
     isTarget:false,
-    maxConnections:1,
+    maxConnections:4,
     anchor: "RightMiddle"
 };
 
@@ -444,7 +444,7 @@ $(function() {
 });
 
 function getPropertyPaths() {
-        $.getJSON("paths.json",
+        $.getJSON("http://160.45.137.90:30300/api/project/paths?max=10",
             function(data) {
 
             var global_id = 0;
@@ -547,7 +547,7 @@ function getPropertyPaths() {
 
 
 function getOperators() {
-    $.getJSON("operators.json",
+    $.getJSON("http://160.45.137.90:30300/api/project/operators",
       function(data) {
 
         var global_id = 0;
