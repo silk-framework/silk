@@ -81,7 +81,7 @@ object ConfigReader
     (node \ "Interlinks" \ "Interlink").map(p => readLinkSpecification(p, prefixes, sourceMap))
   }
 
-  private def readLinkSpecification(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : LinkSpecification =
+  def readLinkSpecification(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : LinkSpecification =
   {
     new LinkSpecification(
       node \ "@id" text,

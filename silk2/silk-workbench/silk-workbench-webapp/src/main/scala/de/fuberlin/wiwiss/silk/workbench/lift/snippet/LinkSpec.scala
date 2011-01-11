@@ -17,14 +17,17 @@ class LinkSpec
     /**
      * Updates the Link Specification
      */
-    def updateLinkSpec(linkConditionStr : String) =
+    def updateLinkSpec(linkSpecStr : String) =
     {
       try
       {
-        val linkConditionXml = XML.loadString(linkConditionStr)
-        val linkCondition = ConfigReader.readLinkCondition(linkConditionXml, Project().config.prefixes)
-        val linkSpecification = Project().linkSpec.copy(condition = linkCondition)
-        Project.updateLinkSpec(linkSpecification)
+        val config = Project().config
+        val sourceMap = config.sources.map(source => (source.id, source)).toMap
+
+        val linkSpecXml = XML.loadString(linkSpecStr)
+        val linkSpec = ConfigReader.readLinkSpecification(linkSpecXml, config.prefixes, sourceMap)
+
+        Project.updateLinkSpec(linkSpec)
         JsRaw("alert('Updated Link Specification')").cmd
       }
       catch
@@ -34,13 +37,14 @@ class LinkSpec
     }
 
     //Serialize the link condition to a JavaScript string
-    val linkConditionStr = ConfigWriter.serializeLinkCondition(Project().linkSpec.condition).toString.replace("\n", " ").replace(" function=", " transformfunction=")
-    // val linkConditionStr = ConfigWriter.serializeLinkCondition(Project().linkSpec.condition).toString.replace("\n", " ")
-    val linkConditionVar = "var linkCondition = '" + linkConditionStr + "';"
+    //TODO remove last replace?
+    val linkSpecStr = ConfigWriter.serializeLinkSpec(Project().linkSpec).toString.replace("\n", " ").replace(" function=", " transformfunction=")
+
+    val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 
     bind("entry", xhtml,
-         "update" -> SHtml.ajaxButton("Update", () => SHtml.ajaxCall(Call("serializeLinkCondition"), updateLinkSpec)._2.cmd),
+         "update" -> SHtml.ajaxButton("Update", () => SHtml.ajaxCall(Call("serializeLinkSpec"), updateLinkSpec)._2.cmd),
          "download" -> SHtml.submit("Download", () => S.redirectTo("config")),
-         "linkSpec" -> Script(JsRaw(linkConditionVar).cmd))
+         "linkSpec" -> Script(JsRaw(linkSpecVar).cmd))
   }
 }
