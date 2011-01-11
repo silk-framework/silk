@@ -214,179 +214,6 @@ function parseXML(xml, level, level_y, last_element) {
 	});
 }
 
-function addElements(json, level) {
-	alert (JSON.stringify(json) + " " + json._children.length + " children");
-	for(var i = 0; i < json._children.length; i++) {
-		//alert (json._children[i] + " "+level);
-		if(json._children[i] == "Aggregate") {
-			var box1 = $(document.createElement('div'));
-			box1.addClass('dragDiv aggregateDiv');
-			box1.attr("id", "aggregate_" + aggregatecounter);
-			var height = aggregatecounter * 30 + 400;
-			box1.attr("style", "left: 680px; top: "+height+"px;");
-
-			var number = "#aggregate_" + aggregatecounter;
-			box1.draggable({containment: '.droppable'});
-			box1.appendTo("#droppable_p");
-
-            var box2 = $(document.createElement('h5'));
-			box2.addClass('handler');
-			var mytext = document.createTextNode("Aggregator: " + json.Aggregate[aggregatecounter].type);
-			box2.append(mytext);
-			box1.append(box2);
-
-            var box2 = $(document.createElement('div'));
-			box2.addClass('content');
-
-			var mytext = document.createTextNode("required: ");
-			box2.append(mytext);
-
-			var box3 = $(document.createElement('input'));
-            box3.attr("type", "checkbox");
-            box2.append(box3);
-
-            var box4 = $(document.createElement('br'));
-            box2.append(box4);
-
-            var mytext = document.createTextNode("weight: ");
-			box2.append(mytext);
-
-			var box5 = $(document.createElement('input'));
-            box5.attr("type", "text");
-            box5.attr("size", "2");
-            box5.attr("value", json.Aggregate[aggregatecounter].weight);
-            box2.append(box5);
-
-			box1.append(box2);
-
-			jsPlumb.addEndpoint('aggregate_'+aggregatecounter, endpointOptions1);
-			jsPlumb.addEndpoint('aggregate_'+aggregatecounter, endpointOptions2);
-			aggregatecounter = aggregatecounter + 1;
-			addElements(json.Aggregate[0], level + 1);
-		}
-		if (json._children[i] == "Compare") {
-			var box1 = $(document.createElement('div'));
-			box1.addClass('dragDiv compareDiv');
-			box1.attr("id", "compare_"+comparecounter);
-			var height = comparecounter*30+400;
-			box1.attr("style", "left: 560px; top: "+height+"px;");
-			//box1.html("<h5 class='handler'>Comparator: "+json.Compare[comparecounter].metric+"</h5><div class='content'>required: <input type='checkbox' checked><br/>weight: <input type='text' size='2' value='1' /></div>");
-			var number = "#compare_"+comparecounter;
-			box1.draggable({containment: '.droppable'});
-			box1.appendTo("#droppable_p");
-
-			var box2 = $(document.createElement('h5'));
-			box2.addClass('handler');
-			var mytext = document.createTextNode("Comparator: " + json.Compare[comparecounter].metric);
-			box2.append(mytext);
-			box1.append(box2);
-
-            var box2 = $(document.createElement('div'));
-			box2.addClass('content');
-
-			var mytext = document.createTextNode("required: ");
-			box2.append(mytext);
-
-			var box3 = $(document.createElement('input'));
-            box3.attr("type", "checkbox");
-            box2.append(box3);
-
-            var box4 = $(document.createElement('br'));
-            box2.append(box4);
-
-            var mytext = document.createTextNode("weight: ");
-			box2.append(mytext);
-
-			var box5 = $(document.createElement('input'));
-            box5.attr("type", "text");
-            box5.attr("size", "2");
-            box5.attr("value", "1");
-            box2.append(box5);
-
-			box1.append(box2);
-
-			jsPlumb.addEndpoint('compare_'+comparecounter, endpointOptions1);
-			jsPlumb.addEndpoint('compare_'+comparecounter, endpointOptions2);
-			comparecounter = comparecounter + 1;
-			addElements(json.Compare[0], level + 1);
-		}
-		if (json._children[i] == "TransformInput") {
-			var box1 = $(document.createElement('div'));
-			box1.addClass('dragDiv transformDiv');
-			box1.attr("id", "transform_"+transformcounter);
-			var height = transformcounter*30+400;
-			box1.attr("style", "left: 450px; top: "+height+"px;");
-			//box1.html("<h5 class='handler'>Transformation: " + json.TransformInput[transformcounter].transformfunction + "</h5><div class='content'>required: <input type='checkbox' checked><br/>weight: <input type='text' size='2' value='1' /></div>");
-			var number = "#transform_"+transformcounter;
-			box1.draggable({containment: '.droppable'});
-			box1.appendTo("#droppable_p");
-
-			var box2 = $(document.createElement('h5'));
-			box2.addClass('handler');
-			var mytext = document.createTextNode("Transformation: " + json.TransformInput[transformcounter].transformfunction);
-			box2.append(mytext);
-			box1.append(box2);
-
-            var box2 = $(document.createElement('div'));
-			box2.addClass('content');
-
-			var mytext = document.createTextNode("required: ");
-			box2.append(mytext);
-
-			var box3 = $(document.createElement('input'));
-            box3.attr("type", "checkbox");
-            box2.append(box3);
-
-            var box4 = $(document.createElement('br'));
-            box2.append(box4);
-
-            var mytext = document.createTextNode("weight: ");
-			box2.append(mytext);
-
-			var box5 = $(document.createElement('input'));
-            box5.attr("type", "text");
-            box5.attr("size", "2");
-            box5.attr("value", "1");
-            box2.append(box5);
-
-			box1.append(box2);
-
-			jsPlumb.addEndpoint('transform_'+transformcounter, endpointOptions1);
-			jsPlumb.addEndpoint('transform_'+transformcounter, endpointOptions2);
-			transformcounter = transformcounter + 1;
-			addElements(json.Compare[0], level + 1);
-		}
-		if (json._children[i] == "Input") {
-			var box1 = $(document.createElement('div'));
-			box1.addClass('dragDiv sourceDiv');
-			box1.attr("id", "source_" + sourcecounter);
-			var height = sourcecounter*30+400;
-			box1.attr("style", "left: 340px; top: "+height+"px;");
-			//box1.html("<h5 class='handler'>" + json.Input[sourcecounter].path + "</h5><div class='content'></div>");
-			var number = "#source_"+sourcecounter;
-			box1.draggable({containment: '.droppable'});
-			box1.appendTo("#droppable_p");
-
-			var box2 = $(document.createElement('h5'));
-			box2.addClass('handler');
-			var mytext = document.createTextNode(json.Input[sourcecounter].path);
-			box2.append(mytext);
-			box1.append(box2);
-
-            var box2 = $(document.createElement('div'));
-			box2.addClass('content');
-
-			box1.append(box2);
-
-			jsPlumb.addEndpoint('source_'+sourcecounter, endpointOptions1);
-			jsPlumb.addEndpoint('source_'+sourcecounter, endpointOptions2);
-			sourcecounter = sourcecounter + 1;
-			addElements(json.Input[0], level + 1);
-		}
-
-	}
-}
-
 function load() {
     // alert(linkCondition);
     parseXML(linkCondition, 0, 0, "");
@@ -640,7 +467,13 @@ function getOperators() {
                   var box1 = $(document.createElement('div'));
                   box1.addClass('dragDiv aggregateDiv');
                   box1.attr("id", "aggregate_"+aggregatecounter);
+
                   box1.html("<h5 class='handler'>Aggregator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
+                  /*
+                  $.each(item.parameters, function(j, parameter) {
+                    alert("param " + parameter.name);
+                  });
+                  */
                   // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
                   return box1;
                 }
