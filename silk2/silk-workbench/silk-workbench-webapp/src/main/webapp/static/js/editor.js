@@ -63,6 +63,9 @@ function parseXML(xml, level, level_y, last_element) {
 
 			var box3 = $(document.createElement('input'));
             box3.attr("type", "checkbox");
+            if ($(this).attr("required") == "true") {
+                box3.attr("checked", "checked");
+            }
             box2.append(box3);
 
             var box4 = $(document.createElement('br'));
@@ -114,6 +117,9 @@ function parseXML(xml, level, level_y, last_element) {
 
 			var box3 = $(document.createElement('input'));
             box3.attr("type", "checkbox");
+            if ($(this).attr("required") == "true") {
+                box3.attr("checked", "checked");
+            }
             box2.append(box3);
 
             var box4 = $(document.createElement('br'));
@@ -125,7 +131,7 @@ function parseXML(xml, level, level_y, last_element) {
 			var box5 = $(document.createElement('input'));
             box5.attr("type", "text");
             box5.attr("size", "2");
-            box5.attr("value", "1");
+            box5.attr("value", $(this).attr("weight"));
             box2.append(box5);
 
 			box1.append(box2);
@@ -382,7 +388,8 @@ function addElements(json, level) {
 }
 
 function load() {
-      parseXML(linkCondition, 0, 0, "");
+    // alert(linkCondition);
+    parseXML(linkCondition, 0, 0, "");
 
 }
 
@@ -552,25 +559,6 @@ function getOperators() {
 
         var global_id = 0;
 
-      var endpointOptions1 = {
-        endpoint: new jsPlumb.Endpoints.Dot({radius:5}),
-        isSource:false,
-        style:{fillStyle:'#359ace'},
-        connectorStyle : { gradient:{stops:[[0,'#359ace'], [1, '#35ceb7']] }, strokeStyle:'#359ace', lineWidth:5 },
-        isTarget:true,
-        maxConnections:2,
-        anchor: "LeftMiddle"
-    };
-      var endpointOptions2 = {
-        endpoint: new jsPlumb.Endpoints.Dot({radius:5}),
-        isSource:true,
-        style:{fillStyle:'#35ceb7'},
-        connectorStyle : { gradient:{stops:[[0,'#35ceb7'], [1, '#359ace']] }, strokeStyle:'#359ace', lineWidth:5 },
-        isTarget:false,
-        maxConnections:1,
-        anchor: "RightMiddle"
-    };
-
         var box = $(document.createElement('div'));
         box.attr("style", "color: #0cc481; font-weight: bold;");
         box.html("Transformations").appendTo("#operators");
@@ -581,13 +569,14 @@ function getOperators() {
             var box = $(document.createElement('div'));
             box.addClass('draggable tranformations');
             box.attr("id", "transformation"+global_id);
-            box.html("<span></span><small>"+item.id+"</small><p>"+item.id+"</p>");
+            box.attr("title", item.description);
+            box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
             box.draggable({
                 helper: function() {
                   var box1 = $(document.createElement('div'));
                   box1.addClass('dragDiv transformDiv');
                   box1.attr("id", "transform_"+transformcounter);
-                  box1.html("<h5 class='handler'>Transformation: "+item.id+"</h5><div class='content'></div>");
+                  box1.html("<h5 class='handler'>Transformation: "+item.label+"</h5><div class='content'></div>");
                   // jsPlumb.addEndpoint('transform_1', endpointOptions);
                   return box1;
                 }
@@ -614,13 +603,14 @@ function getOperators() {
             var box = $(document.createElement('div'));
             box.addClass('draggable comparators');
             box.attr("id", "comparator"+global_id);
-            box.html("<span></span><small>"+item.id+"</small><p>"+item.id+"</p>");
+            box.attr("title", item.description);
+            box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
             box.draggable({
                 helper: function() {
                   var box1 = $(document.createElement('div'));
                   box1.addClass('dragDiv compareDiv');
                   box1.attr("id", "compare_"+comparecounter);
-                  box1.html("<h5 class='handler'>Comparator: "+item.id+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
+                  box1.html("<h5 class='handler'>Comparator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
                   // jsPlumb.addEndpoint('compare_1', endpointOptions);
                   return box1;
                 }
@@ -642,14 +632,15 @@ function getOperators() {
         $.each(sourcepaths, function(i, item){
             var box = $(document.createElement('div'));
             box.addClass('draggable aggregators');
+            box.attr("title", item.description);
             box.attr("id", "aggregator"+global_id);
-            box.html("<span></span><small>"+item.id+"</small><p>"+item.id+"</p>");
+            box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
             box.draggable({
                 helper: function() {
                   var box1 = $(document.createElement('div'));
                   box1.addClass('dragDiv aggregateDiv');
                   box1.attr("id", "aggregate_"+aggregatecounter);
-                  box1.html("<h5 class='handler'>Aggregator: "+item.id+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
+                  box1.html("<h5 class='handler'>Aggregator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
                   // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
                   return box1;
                 }
