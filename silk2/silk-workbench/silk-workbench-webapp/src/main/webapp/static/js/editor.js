@@ -36,6 +36,7 @@ var endpointOptions2 = {
 
 document.onselectstart = function () { return false; };
 
+
 function parseXML(xml, level, level_y, last_element) {
     $(xml).find("> Aggregate").each(function() {
         var box1 = $(document.createElement('div'));
@@ -401,12 +402,36 @@ function getOperators() {
             box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
             box.draggable({
                 helper: function() {
-                  var box1 = $(document.createElement('div'));
-                  box1.addClass('dragDiv transformDiv');
-                  box1.attr("id", "transform_"+transformcounter);
-                  box1.html("<h5 class='handler'>Transformation: "+item.label+"</h5><div class='content'></div>");
-                  // jsPlumb.addEndpoint('transform_1', endpointOptions);
-                  return box1;
+                    var box1 = $(document.createElement('div'));
+                    box1.addClass('dragDiv transformDiv');
+                    box1.attr("id", "transform_"+transformcounter);
+                    var box2 = $(document.createElement('h5'));
+                    box2.addClass('handler');
+                    var mytext = document.createTextNode("Transformation: " + item.label);
+                    box2.append(mytext);
+
+                    box1.append(box2);
+
+                    var box2 = $(document.createElement('div'));
+                    box2.addClass('content');
+
+                    $.each(item.parameters, function(j, parameter) {
+                        if (j > 0) {
+                            var box4 = $(document.createElement('br'));
+                            box2.append(box4);
+                        }
+
+                        var mytext = document.createTextNode(parameter.name + ": ");
+                        box2.append(mytext);
+
+                        var box5 = $(document.createElement('input'));
+                        box5.attr("type", "text");
+                        box5.attr("size", "10");;
+                        box2.append(box5);
+                    });
+
+                    box1.append(box2);
+                    return box1;
                 }
             });
             box.appendTo("#operators");
@@ -435,16 +460,55 @@ function getOperators() {
             box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
             box.draggable({
                 helper: function() {
-                  var box1 = $(document.createElement('div'));
-                  box1.addClass('dragDiv compareDiv');
-                  box1.attr("id", "compare_"+comparecounter);
-                  box1.html("<h5 class='handler'>Comparator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
+                    var box1 = $(document.createElement('div'));
+                    box1.addClass('dragDiv compareDiv');
+                    box1.attr("id", "compare_"+comparecounter);
 
-                  $.each(item.parameters, function(j, parameter) {
-                    // alert("param " + parameter.name);
-                  });
-                  // jsPlumb.addEndpoint('compare_1', endpointOptions);
-                  return box1;
+                    var box2 = $(document.createElement('h5'));
+                    box2.addClass('handler');
+                    var mytext = document.createTextNode("Comparator: " + item.label);
+                    box2.append(mytext);
+                    box1.append(box2);
+
+                    var box2 = $(document.createElement('div'));
+                    box2.addClass('content');
+
+                    var mytext = document.createTextNode("required: ");
+                    box2.append(mytext);
+
+                    var box3 = $(document.createElement('input'));
+                    box3.attr("type", "checkbox");
+                    box2.append(box3);
+
+                    var box4 = $(document.createElement('br'));
+                    box2.append(box4);
+
+                    var mytext = document.createTextNode("weight: ");
+                    box2.append(mytext);
+
+                    var box5 = $(document.createElement('input'));
+                    box5.attr("type", "text");
+                    box5.attr("size", "2");
+                    box5.attr("value", "1");
+                    box2.append(box5);
+
+                    $.each(item.parameters, function(j, parameter) {
+                        var box4 = $(document.createElement('br'));
+                        box2.append(box4);
+
+                        var mytext = document.createTextNode(parameter.name + ": ");
+                        box2.append(mytext);
+
+                        var box5 = $(document.createElement('input'));
+                        box5.attr("type", "text");
+                        box5.attr("size", "10");;
+                        box2.append(box5);
+                    });
+
+                    box1.append(box2);
+
+                    // jsPlumb.addEndpoint('compare_1', endpointOptions);
+                    return box1;
                 }
             });
             box.appendTo("#operators");
@@ -470,18 +534,55 @@ function getOperators() {
 
             box.draggable({
                 helper: function() {
-                  var box1 = $(document.createElement('div'));
-                  box1.addClass('dragDiv aggregateDiv');
-                  box1.attr("id", "aggregate_"+aggregatecounter);
+                    var box1 = $(document.createElement('div'));
+                    box1.addClass('dragDiv aggregateDiv');
+                    box1.attr("id", "aggregate_"+aggregatecounter);
 
-                  box1.html("<h5 class='handler'>Aggregator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
+                    var box2 = $(document.createElement('h5'));
+                    box2.addClass('handler');
+                    var mytext = document.createTextNode("Aggregator: " + item.label);
+                    box2.append(mytext);
+                    box1.append(box2);
 
-                  $.each(item.parameters, function(j, parameter) {
-                    alert("param " + parameter.name);
-                  });
+                    var box2 = $(document.createElement('div'));
+                    box2.addClass('content');
 
-                  // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
-                  return box1;
+                    var mytext = document.createTextNode("required: ");
+                    box2.append(mytext);
+
+                    var box3 = $(document.createElement('input'));
+                    box3.attr("type", "checkbox");
+                    box2.append(box3);
+
+                    var box4 = $(document.createElement('br'));
+                    box2.append(box4);
+
+                    var mytext = document.createTextNode("weight: ");
+                    box2.append(mytext);
+
+                    var box5 = $(document.createElement('input'));
+                    box5.attr("type", "text");
+                    box5.attr("size", "2");
+                    box5.attr("value", "1");
+                    box2.append(box5);
+
+                    $.each(item.parameters, function(j, parameter) {
+                        var box4 = $(document.createElement('br'));
+                        box2.append(box4);
+
+                        var mytext = document.createTextNode(parameter.name + ": ");
+                        box2.append(mytext);
+
+                        var box5 = $(document.createElement('input'));
+                        box5.attr("type", "text");
+                        box5.attr("size", "10");;
+                        box2.append(box5);
+                    });
+
+                    box1.append(box2);
+
+                    // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
+                    return box1;
                 }
 
             });
