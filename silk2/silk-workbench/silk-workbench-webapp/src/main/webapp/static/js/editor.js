@@ -216,8 +216,9 @@ function parseXML(xml, level, level_y, last_element) {
 
 function load() {
     // alert(linkCondition);
-    parseXML(linkCondition, 0, 0, "");
-
+    $(linkSpec).find("> LinkCondition").each(function() {
+        parseXML($(this), 0, 0, "");
+    });
 }
 
 
@@ -438,6 +439,10 @@ function getOperators() {
                   box1.addClass('dragDiv compareDiv');
                   box1.attr("id", "compare_"+comparecounter);
                   box1.html("<h5 class='handler'>Comparator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
+
+                  $.each(item.parameters, function(j, parameter) {
+                    // alert("param " + parameter.name);
+                  });
                   // jsPlumb.addEndpoint('compare_1', endpointOptions);
                   return box1;
                 }
@@ -462,6 +467,7 @@ function getOperators() {
             box.attr("title", item.description);
             box.attr("id", "aggregator"+global_id);
             box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
+
             box.draggable({
                 helper: function() {
                   var box1 = $(document.createElement('div'));
@@ -469,11 +475,11 @@ function getOperators() {
                   box1.attr("id", "aggregate_"+aggregatecounter);
 
                   box1.html("<h5 class='handler'>Aggregator: "+item.label+"</h5><div class='content'>required: <input type='checkbox'/><br/>weight: <input type='text' size='2' value='1' /></div>");
-                  /*
+
                   $.each(item.parameters, function(j, parameter) {
                     alert("param " + parameter.name);
                   });
-                  */
+
                   // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
                   return box1;
                 }
