@@ -356,8 +356,6 @@ function getPropertyPaths() {
                     });
                     box.appendTo("#paths");
 
-                    // jsPlumb.addEndpoint('target'+global_id, endpointOptions);
-
                     global_id = global_id + 1;
 
                 });
@@ -385,22 +383,19 @@ function getPropertyPaths() {
         );
 }
 
-/*
-function getTransformationLabel(operatorId) {
-    $.getJSON("http://160.45.137.90:30300/api/project/operators",
-    function(data) {
-        var sourcepaths = data.transformations;
-        $.each(sourcepaths, function(i, item) {
-            if (item.id == operatorId) {
-                returnValue = item.label;
-            }
-        });
-    });
-    return returnValue;
-}
-*/
-
 function getOperators() {
+
+    $.ajax(
+            {
+                type: "GET",
+                url: "http://160.45.137.92:30300/api/project/operators",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success:  function (data, textStatus, XMLHttpRequest) { alert("success: " + data + " " + textStatus);},
+                error: function (XMLHttpRequest, textStatus, errorThrown) { alert("error:" + textStatus + " " + errorThrown);}
+            });
+
+    /*
     $.getJSON("http://160.45.137.90:30300/api/project/operators",
       function(data) {
 
@@ -613,4 +608,5 @@ function getOperators() {
 
         }
     );
+    */
 }
