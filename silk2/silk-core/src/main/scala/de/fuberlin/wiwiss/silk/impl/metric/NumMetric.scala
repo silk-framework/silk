@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(
   id = "num",
-  label = "Numeric Similarity",
+  label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers and normalizes it using the threshold." +
     " The similarity score is 0.0 if the distance is bigger than threshold.")
 class NumMetric(maxDistance : Double, minValue : Double, maxValue : Double) extends Metric
