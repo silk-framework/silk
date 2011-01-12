@@ -77,10 +77,12 @@ class Boot
 
     val sourceJson = JField("source", JObject(JField("id", JString(datasets.source.source.id)) ::
                                               JField("paths", JArray(generateInstancePaths(instanceSpecs.source.paths, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(instanceSpecs.source.paths.size)) :: Nil))
+                                              JField("availablePaths", JInt(instanceSpecs.source.paths.size)) ::
+                                              JField("restrictions", JString(instanceSpecs.source.restrictions)) :: Nil))
     val targetJson = JField("target", JObject(JField("id", JString(datasets.target.source.id)) ::
                                               JField("paths", JArray(generateInstancePaths(instanceSpecs.target.paths, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(instanceSpecs.target.paths.size)) :: Nil))
+                                              JField("availablePaths", JInt(instanceSpecs.target.paths.size)) ::
+                                              JField("restrictions", JString(instanceSpecs.target.restrictions)) :: Nil))
     val json = JObject(sourceJson :: targetJson :: Nil)
 
     Full(JsonResponse(json))
