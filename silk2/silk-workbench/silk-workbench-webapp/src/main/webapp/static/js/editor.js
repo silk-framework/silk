@@ -5,6 +5,8 @@ var comparecounter = 0;
 var sourcecounter = 0;
 var targetcounter = 0;
 
+var transformations = new Object();
+
 var endpointOptions = {
     endpoint: new jsPlumb.Endpoints.Dot({radius:5}),
     isSource:true,
@@ -163,7 +165,9 @@ function parseXML(xml, level, level_y, last_element) {
 
 			var box2 = $(document.createElement('h5'));
 			box2.addClass('handler');
-			var mytext = document.createTextNode("Transformation: " + $(this).attr("transformfunction"));
+			var tf = $(this).attr("transformfunction");
+			// alert("");
+			var mytext = document.createTextNode("Transformation: " + transformations[tf]);
 			box2.append(mytext);
 			box1.append(box2);
 
@@ -381,6 +385,20 @@ function getPropertyPaths() {
         );
 }
 
+/*
+function getTransformationLabel(operatorId) {
+    $.getJSON("http://160.45.137.90:30300/api/project/operators",
+    function(data) {
+        var sourcepaths = data.transformations;
+        $.each(sourcepaths, function(i, item) {
+            if (item.id == operatorId) {
+                returnValue = item.label;
+            }
+        });
+    });
+    return returnValue;
+}
+*/
 
 function getOperators() {
     $.getJSON("http://160.45.137.90:30300/api/project/operators",
@@ -395,6 +413,7 @@ function getOperators() {
 
         var sourcepaths = data.transformations;
         $.each(sourcepaths, function(i, item){
+            transformations[item.id] = item.label;
             var box = $(document.createElement('div'));
             box.addClass('draggable tranformations');
             box.attr("id", "transformation"+global_id);
