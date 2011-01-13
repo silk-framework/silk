@@ -1,3 +1,5 @@
+var ip = "160.45.137.90";
+
 var max_paths = 10;
 var aggregatecounter = 0;
 var transformcounter = 0;
@@ -139,7 +141,7 @@ function parseXML(xml, level, level_y, last_element) {
             box5.attr("value", $(this).attr("weight"));
             box2.append(box5);
 
-			// alert(comparators[$(this).attr("metric")].parameters);
+			//alert(comparators[$(this).attr("metric")]["parameters"]);
 			/*
 			$.each(comparators[$(this).attr("metric")].parameters, function(j, parameter) {
 				var box4 = $(document.createElement('br'));
@@ -240,6 +242,7 @@ function load() {
     $(linkSpec).find("> LinkCondition").each(function() {
         parseXML($(this), 0, 0, "");
     });
+
 }
 
 
@@ -307,7 +310,8 @@ function encodeHtml(value) {
 } 
    
 function getPropertyPaths() {
-        $.getJSON("http://160.45.137.90:30300/api/project/paths?max=10",
+        var url = "http://"+ip+":30300/api/project/paths?max=10";
+		$.getJSON(url,
             function(data) {
 
             var global_id = 0;
@@ -343,6 +347,21 @@ function getPropertyPaths() {
                     global_id = global_id + 1;
 
                 });
+				
+				var box = $(document.createElement('div'));
+                    box.addClass('draggable');
+                    box.attr("id", "source"+global_id);
+					box.html("<span> </span><small> </small><p> </p>");
+                    box.draggable({
+                        helper: function() {
+                          var box1 = $(document.createElement('div'));
+                          box1.addClass('dragDiv sourcePath');
+                          box1.attr("id", "source_"+sourcecounter);
+                          box1.html("<h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
+                          return box1;
+                        }
+                    });
+                    box.appendTo("#paths");
 
                 var availablePaths = data.source.availablePaths;
                 if (max_paths < availablePaths) {
@@ -383,6 +402,21 @@ function getPropertyPaths() {
 
                 });
 
+				var box = $(document.createElement('div'));
+				box.addClass('draggable');
+				box.attr("id", "target"+global_id);
+				box.html("<span> </span><small> </small><p> </p>");
+				box.draggable({
+					helper: function() {
+					  var box1 = $(document.createElement('div'));
+					  box1.addClass('dragDiv sourcePath');
+					  box1.attr("id", "source_"+sourcecounter);
+					  box1.html("<h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
+					  return box1;
+					}
+				});
+				box.appendTo("#paths");
+
                 var availablePaths = data.target.availablePaths;
 				if (max_paths < availablePaths) {
                     var box = $(document.createElement('div'));
@@ -411,7 +445,7 @@ function getOperators() {
     $.ajax(
             {
                 type: "GET",
-                url: "http://160.45.137.90:30300/api/project/operators",
+                url: "http://"+ip+":30300/api/project/operators",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 timeout: 2000,
@@ -488,7 +522,7 @@ function getOperators() {
                     var sourcepaths = data.comparators;
                     $.each(sourcepaths, function(i, item){
 						comparators[item.id] = item.label;
-						comparators[item.id].parameters = item.parameters;
+						comparators[item.id]["parameters"] = item.parameters;
                         var box = $(document.createElement('div'));
                         box.addClass('draggable comparators');
                         box.attr("id", "comparator"+global_id);
