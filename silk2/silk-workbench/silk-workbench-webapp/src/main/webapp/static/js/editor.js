@@ -299,6 +299,13 @@ $(function() {
     });
 });
 
+function encodeHtml(value) {
+     encodedHtml = value.replace("<", "&lt;");
+     encodedHtml = encodedHtml.replace(">", "&gt;");
+     encodedHtml = encodedHtml.replace("\"", '\\"');
+	 return encodedHtml;
+} 
+   
 function getPropertyPaths() {
         $.getJSON("http://160.45.137.90:30300/api/project/paths?max=10",
             function(data) {
@@ -311,7 +318,7 @@ function getPropertyPaths() {
 
                 var box = $(document.createElement('div'));
                 box.addClass('more');
-                box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.source.restriction).appendTo("#paths");
+                box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.source.restrictions).appendTo("#paths");
                 box.appendTo("#paths");
 
                 var sourcepaths = data.source.paths;
@@ -319,13 +326,13 @@ function getPropertyPaths() {
                     var box = $(document.createElement('div'));
                     box.addClass('draggable');
                     box.attr("id", "source"+global_id);
-                    box.html("<span></span><small>"+item.path+"</small><p>"+item.path+"</p>");
+					box.html("<span></span><small>"+encodeHtml(item.path)+"</small><p>"+encodeHtml(item.path)+"</p>");
                     box.draggable({
                         helper: function() {
                           var box1 = $(document.createElement('div'));
                           box1.addClass('dragDiv sourcePath');
                           box1.attr("id", "source_"+sourcecounter);
-                          box1.html("<h5 class='handler'>"+item.path+"</h5><div class='content'></div>");
+                          box1.html("<h5 class='handler'>"+encodeHtml(item.path)+"</h5><div class='content'></div>");
                           return box1;
                         }
                     });
@@ -350,7 +357,7 @@ function getPropertyPaths() {
 
                 var box = $(document.createElement('div'));
                 box.addClass('more');
-                box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.target.restriction).appendTo("#paths");
+                box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.target.restrictions).appendTo("#paths");
                 box.appendTo("#paths");
 
                 var global_id = 0;
@@ -360,13 +367,13 @@ function getPropertyPaths() {
                     var box = $(document.createElement('div'));
                     box.addClass('draggable');
                     box.attr("id", "target"+global_id);
-                    box.html("<span></span><small>"+item.path+"</small><p>"+item.path+"</p>");
+                    box.html("<span></span><small>"+encodeHtml(item.path)+"</small><p>"+encodeHtml(item.path)+"</p>");
                     box.draggable({
                         helper: function() {
                           var box1 = $(document.createElement('div'));
                           box1.addClass('dragDiv targetPath');
                           box1.attr("id", "target_"+targetcounter);
-                          box1.html("<h5 class='handler'>"+item.path+"</h5><div class='content'></div>");
+                          box1.html("<h5 class='handler'>"+encodeHtml(item.path)+"</h5><div class='content'></div>");
                           return box1;
                         }
                     });
@@ -377,10 +384,10 @@ function getPropertyPaths() {
                 });
 
                 var availablePaths = data.target.availablePaths;
-                if (max_paths < availablePaths) {
+				if (max_paths < availablePaths) {
                     var box = $(document.createElement('div'));
-                    box.html('<a href="" class="more">&darr; more target paths... ('+availablePaths+' in total)</a>').appendTo("#paths");
-                    box.appendTo("#paths");
+                    box.html('<a href="" class="more">&darr; more target paths... ('+availablePaths+' in total)</a>');
+					box.appendTo("#paths");
 
                 }
 
