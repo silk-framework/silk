@@ -6,7 +6,6 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Script
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.Call
-import java.io.ByteArrayInputStream
 import xml.{XML, NodeSeq}
 import net.liftweb.http.{S, SHtml}
 

@@ -109,7 +109,7 @@ class Boot
 
   private def generateFactoryOperators[T <: Strategy](factory : de.fuberlin.wiwiss.silk.util.strategy.Factory[T]) =
   {
-    for(strategy <- factory.availableStrategies) yield
+    for(strategy <- factory.availableStrategies.toSeq.sortBy(_.label)) yield
     {
       JObject(JField("id", JString(strategy.id)) ::
               JField("label", JString(strategy.label)) ::
