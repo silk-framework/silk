@@ -19,9 +19,14 @@
             </script>
         </div>
 
+        <div class="droppable_outer">
         <div class="droppable" id="droppable">
             <p id="droppable_p"></p>
         </div>
+            <div style="width: 32%; float: left;">Link Type: <input type="text" id="linktype" size="25" /></div>
+            <div style="width: 32%; float: left;">Threshold: <input type="text" id="threshold" size="4" /></div>
+            <div style="width: 32%; float: left;">Link Limit: <input type="text" id="linklimit" size="4" /></div>
+            </div>
 
 
         <div class="draggables" id="operators">
@@ -31,6 +36,7 @@
         </div>
 
     </div>
+
 
 <div style="clear: both;" onclick="save();">save</div>
 <div style="clear: both;" onclick="load();">load</div>

@@ -6,6 +6,8 @@ var sourcecounter = 0;
 var targetcounter = 0;
 
 var transformations = new Object();
+var comparators = new Object();
+var aggregators = new Object();
 
 var endpointOptions = {
     endpoint: new jsPlumb.Endpoints.Dot({radius:5}),
@@ -54,7 +56,7 @@ function parseXML(xml, level, level_y, last_element) {
 
             var box2 = $(document.createElement('h5'));
 			box2.addClass('handler');
-			var mytext = document.createTextNode("Aggregator: " + $(this).attr("type"));
+			var mytext = document.createTextNode("Aggregator: " + aggregators[$(this).attr("type")]);
 			box2.append(mytext);
 			box1.append(box2);
 
@@ -108,7 +110,7 @@ function parseXML(xml, level, level_y, last_element) {
 
 			var box2 = $(document.createElement('h5'));
 			box2.addClass('handler');
-			var mytext = document.createTextNode("Comparator: " + $(this).attr("metric"));
+			var mytext = document.createTextNode("Comparator: " + comparators[$(this).attr("metric")]);
 			box2.append(mytext);
 			box1.append(box2);
 
@@ -137,6 +139,22 @@ function parseXML(xml, level, level_y, last_element) {
             box5.attr("value", $(this).attr("weight"));
             box2.append(box5);
 
+			// alert(comparators[$(this).attr("metric")].parameters);
+			/*
+			$.each(comparators[$(this).attr("metric")].parameters, function(j, parameter) {
+				var box4 = $(document.createElement('br'));
+				box2.append(box4);
+
+				var mytext = document.createTextNode(parameter.name + ": ");
+				box2.append(mytext);
+
+				var box5 = $(document.createElement('input'));
+				box5.attr("type", "text");
+				box5.attr("size", "10");;
+				box2.append(box5);
+			});
+			*/
+			
 			box1.append(box2);
 
 			var endp_left = jsPlumb.addEndpoint('compare_'+comparecounter, endpointOptions1);
@@ -165,9 +183,7 @@ function parseXML(xml, level, level_y, last_element) {
 
 			var box2 = $(document.createElement('h5'));
 			box2.addClass('handler');
-			var tf = $(this).attr("transformfunction");
-			// alert("");
-			var mytext = document.createTextNode("Transformation: " + transformations[tf]);
+			var mytext = document.createTextNode("Transformation: " + transformations[$(this).attr("transformfunction")]);
 			box2.append(mytext);
 			box1.append(box2);
 
@@ -388,10 +404,228 @@ function getOperators() {
     $.ajax(
             {
                 type: "GET",
-                url: "http://160.45.137.92:30300/api/project/operators",
+                url: "http://160.45.137.90:30300/api/project/operators",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success:  function (data, textStatus, XMLHttpRequest) { alert("success: " + data + " " + textStatus);},
+                timeout: 2000,
+                success:  function (data, textStatus, XMLHttpRequest) {
+                    // alert("success: " + data + " " + textStatus + " " + XMLHttpRequest.status);
+                    if (XMLHttpRequest.status >= 200 && XMLHttpRequest.status < 300) {
+                        var global_id = 0;
+
+                    var box = $(document.createElement('div'));
+                    box.attr("style", "color: #0cc481; font-weight: bold;");
+                    box.html("Transformations").appendTo("#operators");
+                    box.appendTo("#operators");
+
+                    var sourcepaths = data.transformations;
+                    $.each(sourcepaths, function(i, item){
+                        transformations[item.id] = item.label;
+                        var box = $(document.createElement('div'));
+                        box.addClass('draggable tranformations');
+                        box.attr("id", "transformation"+global_id);
+                        box.attr("title", item.description);
+                        box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
+                        box.draggable({
+                            helper: function() {
+                                var box1 = $(document.createElement('div'));
+                                box1.addClass('dragDiv transformDiv');
+                                box1.attr("id", "transform_"+transformcounter);
+                                var box2 = $(document.createElement('h5'));
+                                box2.addClass('handler');
+                                var mytext = document.createTextNode("Transformation: " + item.label);
+                                box2.append(mytext);
+
+                                box1.append(box2);
+
+                                var box2 = $(document.createElement('div'));
+                                box2.addClass('content');
+
+								transformations[item.id].parameters = item.parameters;
+                                $.each(item.parameters, function(j, parameter) {
+                                    if (j > 0) {
+                                        var box4 = $(document.createElement('br'));
+                                        box2.append(box4);
+                                    }
+
+                                    var mytext = document.createTextNode(parameter.name + ": ");
+                                    box2.append(mytext);
+
+                                    var box5 = $(document.createElement('input'));
+                                    box5.attr("type", "text");
+                                    box5.attr("size", "10");;
+                                    box2.append(box5);
+                                });
+
+                                box1.append(box2);
+                                return box1;
+                            }
+                        });
+                        box.appendTo("#operators");
+
+
+                        // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions1);
+                        // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions2);
+                        global_id = global_id + 1;
+
+
+                    });
+
+                    var global_id = 0;
+
+                    var box = $(document.createElement('div'));
+                    box.attr("style", "color: #e59829; font-weight: bold;");
+                    box.html("Comparators").appendTo("#operators");
+                    box.appendTo("#operators");
+
+                    var sourcepaths = data.comparators;
+                    $.each(sourcepaths, function(i, item){
+						comparators[item.id] = item.label;
+						comparators[item.id].parameters = item.parameters;
+                        var box = $(document.createElement('div'));
+                        box.addClass('draggable comparators');
+                        box.attr("id", "comparator"+global_id);
+                        box.attr("title", item.description);
+                        box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
+                        box.draggable({
+                            helper: function() {
+                                var box1 = $(document.createElement('div'));
+                                box1.addClass('dragDiv compareDiv');
+                                box1.attr("id", "compare_"+comparecounter);
+
+                                var box2 = $(document.createElement('h5'));
+                                box2.addClass('handler');
+                                var mytext = document.createTextNode("Comparator: " + item.label);
+                                box2.append(mytext);
+                                box1.append(box2);
+
+                                var box2 = $(document.createElement('div'));
+                                box2.addClass('content');
+
+                                var mytext = document.createTextNode("required: ");
+                                box2.append(mytext);
+
+                                var box3 = $(document.createElement('input'));
+                                box3.attr("type", "checkbox");
+                                box2.append(box3);
+
+                                var box4 = $(document.createElement('br'));
+                                box2.append(box4);
+
+                                var mytext = document.createTextNode("weight: ");
+                                box2.append(mytext);
+
+                                var box5 = $(document.createElement('input'));
+                                box5.attr("type", "text");
+                                box5.attr("size", "2");
+                                box5.attr("value", "1");
+                                box2.append(box5);
+
+								
+                                $.each(item.parameters, function(j, parameter) {
+                                    var box4 = $(document.createElement('br'));
+                                    box2.append(box4);
+
+                                    var mytext = document.createTextNode(parameter.name + ": ");
+                                    box2.append(mytext);
+
+                                    var box5 = $(document.createElement('input'));
+                                    box5.attr("type", "text");
+                                    box5.attr("size", "10");;
+                                    box2.append(box5);
+                                });
+
+                                box1.append(box2);
+
+                                // jsPlumb.addEndpoint('compare_1', endpointOptions);
+                                return box1;
+                            }
+                        });
+                        box.appendTo("#operators");
+                        // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions1);
+                        // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions2);
+                        global_id = global_id + 1;
+                    });
+
+                    var global_id = 0;
+
+                    var box = $(document.createElement('div'));
+                    box.attr("style", "color: #1484d4; font-weight: bold;");
+                    box.html("Aggregators").appendTo("#operators");
+                    box.appendTo("#operators");
+
+                    var sourcepaths = data.aggregators;
+                    $.each(sourcepaths, function(i, item){
+						aggregators[item.id] = item.label;
+                        var box = $(document.createElement('div'));
+                        box.addClass('draggable aggregators');
+                        box.attr("title", item.description);
+                        box.attr("id", "aggregator"+global_id);
+                        box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
+
+                        box.draggable({
+                            helper: function() {
+                                var box1 = $(document.createElement('div'));
+                                box1.addClass('dragDiv aggregateDiv');
+                                box1.attr("id", "aggregate_"+aggregatecounter);
+
+                                var box2 = $(document.createElement('h5'));
+                                box2.addClass('handler');
+                                var mytext = document.createTextNode("Aggregator: " + item.label);
+                                box2.append(mytext);
+                                box1.append(box2);
+
+                                var box2 = $(document.createElement('div'));
+                                box2.addClass('content');
+
+                                var mytext = document.createTextNode("required: ");
+                                box2.append(mytext);
+
+                                var box3 = $(document.createElement('input'));
+                                box3.attr("type", "checkbox");
+                                box2.append(box3);
+
+                                var box4 = $(document.createElement('br'));
+                                box2.append(box4);
+
+                                var mytext = document.createTextNode("weight: ");
+                                box2.append(mytext);
+
+                                var box5 = $(document.createElement('input'));
+                                box5.attr("type", "text");
+                                box5.attr("size", "2");
+                                box5.attr("value", "1");
+                                box2.append(box5);
+
+								aggregators[item.id].parameters = item.parameters;
+                                $.each(item.parameters, function(j, parameter) {
+                                    var box4 = $(document.createElement('br'));
+                                    box2.append(box4);
+
+                                    var mytext = document.createTextNode(parameter.name + ": ");
+                                    box2.append(mytext);
+
+                                    var box5 = $(document.createElement('input'));
+                                    box5.attr("type", "text");
+                                    box5.attr("size", "10");;
+                                    box2.append(box5);
+                                });
+
+                                box1.append(box2);
+
+                                // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
+                                return box1;
+                            }
+
+                        });
+                        box.appendTo("#operators");
+                        // jsPlumb.addEndpoint('aggregator'+global_id, endpointOptions1);
+                        // jsPlumb.addEndpoint('aggregator'+global_id, endpointOptions2);
+                        global_id = global_id + 1;
+                        });
+                        load();
+                    }
+                },
                 error: function (XMLHttpRequest, textStatus, errorThrown) { alert("error:" + textStatus + " " + errorThrown);}
             });
 

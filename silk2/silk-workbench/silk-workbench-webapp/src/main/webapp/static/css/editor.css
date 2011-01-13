@@ -146,15 +146,20 @@ a.more {
 	height: 15px;
 	padding: 5px;
 }
-.droppable {
+.droppable_outer {
 	width: 60%;
+	height: 650px;
+	margin: 25px 10px;
+	float: left;
+}
+.droppable {
+	width: 98%;
 	height: 600px;
 	padding: 5px;
-	float: left;
-	margin: 25px 10px;
 	overflow:auto;
 	background-color: #f8f8f8;
 	border:1px dashed #d9d9d9;
+	margin-bottom: 10px;
 }
 .dragactive{
 	background-color: #ffcccc;
