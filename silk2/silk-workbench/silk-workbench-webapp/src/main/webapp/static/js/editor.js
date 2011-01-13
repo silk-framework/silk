@@ -238,11 +238,17 @@ function parseXML(xml, level, level_y, last_element) {
 }
 
 function load() {
-    // alert(linkCondition);
+    //alert(linkSpec);
     $(linkSpec).find("> LinkCondition").each(function() {
         parseXML($(this), 0, 0, "");
     });
-
+    $(linkSpec).find("> LinkType").each(function() {
+	    $("#linktype").attr("value", $(this).text());
+    });
+    $(linkSpec).find("> Filter").each(function() {
+	    $("#linklimit").attr("value", $(this).attr("limit"));
+	    $("#threshold").attr("value", $(this).attr("threshold"));
+    });
 }
 
 
