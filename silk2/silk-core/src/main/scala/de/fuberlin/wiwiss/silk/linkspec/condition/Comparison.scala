@@ -34,6 +34,6 @@ case class Comparison(required : Boolean, weight : Int, inputs : SourceTargetPai
 
   override def toString = metric match
   {
-    case Metric(name, params) => "Aggregation(required=" + required + ", weight=" + weight + ", type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
+    case Metric(name, params) => "Comparison(required=" + required + ", weight=" + weight + ", type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
   }
 }
