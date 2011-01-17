@@ -5,10 +5,10 @@ import de.fuberlin.wiwiss.silk.impl.datasource.SparqlDataSource
 import de.fuberlin.wiwiss.silk.config.Configuration
 import java.io.File
 import de.fuberlin.wiwiss.silk.linkspec._
-import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench._
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
+import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 
 private object ProjectCreator
 {
@@ -17,8 +17,8 @@ private object ProjectCreator
     //Generate initial configuration
     val config : Configuration =
     {
-      val sourceDataSource = new Source(Constants.SourceId, new SparqlDataSource(endpointURI = description.source.endpointUri.toString))
-      val targetDataSource = new Source(Constants.TargetId, new SparqlDataSource(endpointURI = description.target.endpointUri.toString))
+      val sourceDataSource = new Source(Constants.SourceId, DataSource("sparqlEndpoint", Map("endpointURI" -> description.source.endpointUri.toString)))
+      val targetDataSource = new Source(Constants.TargetId, DataSource("sparqlEndpoint", Map("endpointURI" -> description.target.endpointUri.toString)))
 
       val linkSpec =
         new LinkSpecification(
