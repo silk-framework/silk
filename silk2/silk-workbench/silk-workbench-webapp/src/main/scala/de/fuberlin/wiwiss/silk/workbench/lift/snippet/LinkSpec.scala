@@ -61,11 +61,12 @@ class LinkSpec
 
   private def generatePathsObj() =
   {
+    JsCmds.JsReturn(
     new JsObj
     {
       val props = ("source", generateSelectedPathsObj(true)) ::
                   ("target", generateSelectedPathsObj(false)) :: Nil
-    }.cmd
+    })
   }
 
   private def generateSelectedPathsObj(selectSource : Boolean) =
