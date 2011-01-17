@@ -6,6 +6,8 @@ class SourceTargetPair[T](sourceValue : T, targetValue : T) extends Pair[T, T](s
   def target = _2
 
   def map[U](f : (T) => U) = SourceTargetPair(f(sourceValue), f(targetValue))
+
+  def select(selectSource : Boolean) = if(selectSource) source else target
 }
 
 object SourceTargetPair
