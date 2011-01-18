@@ -1,5 +1,5 @@
 <lift:surround with="default" at="content">
-  <lift:projectMenu form="POST">
+  <lift:projectMenu form="POST" id="projectMenuForm">
     <choose:projectOpen>
       <lift:projectMenu.menu form="POST">
         <ul id="toolbar">
@@ -24,7 +24,7 @@
         </ul>
       </lift:projectMenu.startMenu>
       <div id="createProjectDialog" title="New Project">
-        <lift:projectMenu.createProjectDialog form="POST" id="createProjectForm">
+        <lift:projectMenu.createProjectDialog>
           <table border="0">
             <tr>
               <td>Source Endpoint</td>
