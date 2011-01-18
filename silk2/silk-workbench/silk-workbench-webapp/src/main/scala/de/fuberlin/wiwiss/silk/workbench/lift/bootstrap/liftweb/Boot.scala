@@ -17,6 +17,7 @@ import de.fuberlin.wiwiss.silk.config.ConfigWriter
 import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, StrategyDefinition, Strategy}
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -72,18 +73,23 @@ class Boot
     val maxPathCount = req.param("max").map(_.toInt).getOrElse(Int.MaxValue)
 
     val datasets = Project().linkSpec.datasets
-
+    val restrictions = Project().linkSpec.datasets.map(_.restriction)
     val instanceSpecs = Project().cache.instanceSpecs
+    val sourcePaths = if(instanceSpecs != null) instanceSpecs.source.paths else List[Path]()
+    val targetPaths = if(instanceSpecs != null) instanceSpecs.target.paths else List[Path]()
 
-    val sourceJson = JField("source", JObject(JField("id", JString(datasets.source.source.id)) ::
-                                              JField("paths", JArray(generateInstancePaths(instanceSpecs.source.paths, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(instanceSpecs.source.paths.size)) ::
-                                              JField("restrictions", JString(instanceSpecs.source.restrictions)) :: Nil))
-    val targetJson = JField("target", JObject(JField("id", JString(datasets.target.source.id)) ::
-                                              JField("paths", JArray(generateInstancePaths(instanceSpecs.target.paths, maxPathCount).toList)) ::
-                                              JField("availablePaths", JInt(instanceSpecs.target.paths.size)) ::
-                                              JField("restrictions", JString(instanceSpecs.target.restrictions)) :: Nil))
-    val json = JObject(sourceJson :: targetJson :: Nil)
+    val sourceField = JField("source", JObject(JField("id", JString(datasets.source.source.id)) ::
+                                               JField("paths", JArray(generateInstancePaths(sourcePaths, maxPathCount).toList)) ::
+                                               JField("availablePaths", JInt(sourcePaths.size)) ::
+                                               JField("restrictions", JString(restrictions.source)) :: Nil))
+    val targetField = JField("target", JObject(JField("id", JString(datasets.target.source.id)) ::
+                                               JField("paths", JArray(generateInstancePaths(targetPaths, maxPathCount).toList)) ::
+                                               JField("availablePaths", JInt(targetPaths.size)) ::
+                                               JField("restrictions", JString(restrictions.target)) :: Nil))
+
+    val isLoadingField = JField("isLoading", JBool(instanceSpecs == null))
+
+    val json = JObject(sourceField :: targetField :: isLoadingField :: Nil)
 
     Full(JsonResponse(json))
   }
