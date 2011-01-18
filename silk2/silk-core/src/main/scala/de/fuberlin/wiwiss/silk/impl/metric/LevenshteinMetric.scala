@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
-import scala.math.{min, max}
+import scala.math.{min, max, abs}
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "levenshtein", label = "Levenshtein distance", description = "String similarity based on the Levenshtein metric.")
@@ -16,7 +16,14 @@ class LevenshteinMetric(maxDistance : Int = -1, minChar : Char = '0', maxChar : 
       case d => d
     }
 
-    max(1.0 - (evaluateDistance(str1, str2).toDouble / k), 0.0)
+    if(abs(str1.length - str2.length) > k * (1.0 - threshold))
+    {
+      0.0
+    }
+    else
+    {
+      max(1.0 - (evaluateDistance(str1, str2).toDouble / k), 0.0)
+    }
   }
 
   override def index(str : String, threshold : Double) : Set[Seq[Int]] =

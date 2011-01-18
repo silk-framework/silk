@@ -7,11 +7,13 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
 {
   override def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double] =
   {
+    val totalWeights = operators.map(_.weight).sum
+
     val weightedValues =
     {
       for(operator <- operators) yield
       {
-        val value = operator(instances, threshold)
+        val value = operator(instances, aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights))
         if(operator.required && value.isEmpty) return None
 
         (operator.weight, value.getOrElse(0.0))
