@@ -428,10 +428,15 @@ function encodeHtml(value)
 
 function getPropertyPaths()
 {
+
   var url = "/api/project/paths?max=10";
   $.getJSON(url, function (data)
   {
-
+    if(data.isLoading) {
+      setTimeout("getPropertyPaths();", 1000);
+    }
+    else
+    {
     var global_id = 0;
 
     var box = $(document.createElement('div'));
@@ -552,6 +557,7 @@ function getPropertyPaths()
       box.html('<a href="" class="more">&darr; more target paths... (' + availablePaths + ' in total)</a>');
       box.appendTo("#paths");
 
+    }
     }
   });
 }
