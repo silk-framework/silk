@@ -25,11 +25,13 @@ object Widgets
     </form>
   }
 
+  @deprecated("Use ProgressWidget instead")
   def taskProgress[T](task : Task[T]) =
   {
     currentTaskProgress(() => Some(task))
   }
 
+  @deprecated("Use ProgressWidget instead")
   def currentTaskProgress[T](task : () => Option[Task[T]]) =
   {
     //Updates the status message

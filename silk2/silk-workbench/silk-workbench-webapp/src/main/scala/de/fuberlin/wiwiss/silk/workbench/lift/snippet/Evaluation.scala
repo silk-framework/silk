@@ -39,7 +39,6 @@ class Evaluation
 
     bind("entry", xhtml,
          "control" -> Widgets.taskControl(EvaluationServer.evaluationTask),
-         "progress" -> Widgets.taskProgress(EvaluationServer.evaluationTask),
          "table" ->
            <p>
              <div id="alignemtTable">Waiting...</div>
