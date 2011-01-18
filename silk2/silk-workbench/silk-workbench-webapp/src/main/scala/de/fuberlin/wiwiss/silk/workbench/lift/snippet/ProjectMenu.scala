@@ -82,7 +82,7 @@ class ProjectMenu
 
         Project.create(new SourceTargetPair(sourceDataset, targetDataset), prefixes)
 
-        JsRaw("$('#createProjectDialog').dialog('close'); window.location.reload();").cmd
+        JsRaw("$('#createProjectDialog').dialog('close'); document.forms['projectMenuForm'].submit();").cmd
       }
       else
       {
