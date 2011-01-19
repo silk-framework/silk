@@ -134,8 +134,7 @@ a.more {
 	text-decoration: none;
 }
 
-.draggable span,
-.draggable small{
+.dragDiv small, .draggable span, .draggable small{
 	display:none;
 }
 .excerpt{
