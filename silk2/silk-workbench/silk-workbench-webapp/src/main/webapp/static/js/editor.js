@@ -430,7 +430,7 @@ function createNewElement(elementId)
 	return xml;
 }
 
-function save() {
+function serializeLinkSpec() {
   //alert (JSON.stringify(c));
   
   var c = jsPlumb.getConnections();
@@ -478,11 +478,12 @@ function save() {
 	var xmlString = getHTML(xml, true);
 	xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
 	//alert(xmlString);
-	updateLinkSpec(xmlString);
+	return xmlString;
   }
   else
   {
     alert("No tree root found!");
+    return "Error";
   }
 }
 
