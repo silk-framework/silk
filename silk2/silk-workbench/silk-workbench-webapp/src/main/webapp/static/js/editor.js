@@ -9,6 +9,11 @@ var transformations = new Object();
 var comparators = new Object();
 var aggregators = new Object();
 
+var sources = new Array();
+var targets = new Array();
+
+var interlinkId = "";
+
 var endpointOptions =
 {
   endpoint: new jsPlumb.Endpoints.Dot(
@@ -29,7 +34,7 @@ var endpointOptions =
     strokeStyle: '#890685',
     lineWidth: 5
   },
-  isTarget: false,
+  isTarget: true,
   anchor: "RightMiddle"
 };
 
@@ -39,7 +44,7 @@ var endpointOptions1 =
   {
     radius: 5
   }),
-  isSource: false,
+  isSource: true,
   style: {
     fillStyle: '#359ace'
   },
@@ -78,7 +83,7 @@ var endpointOptions2 =
     strokeStyle: '#359ace',
     lineWidth: 5
   },
-  isTarget: false,
+  isTarget: true,
   maxConnections: 4,
   anchor: "RightMiddle"
 };
@@ -107,7 +112,18 @@ function parseXML(xml, level, level_y, last_element)
     });
     box1.appendTo("#droppable_p");
 
-    var box2 = $(document.createElement('h5'));
+	var box2 = $(document.createElement('small'));
+	box2.addClass('name');
+	var mytext = document.createTextNode($(this).attr("type"));
+	box2.append(mytext);
+	box1.append(box2);
+	var box2 = $(document.createElement('small'));
+	box2.addClass('type');
+	var mytext = document.createTextNode("Aggregate");
+	box2.append(mytext);
+	box1.append(box2);
+
+	var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
     var mytext = document.createTextNode("Aggregator: " + aggregators[$(this).attr("type")]);
     box2.append(mytext);
@@ -169,6 +185,18 @@ function parseXML(xml, level, level_y, last_element)
       containment: '.droppable'
     });
     box1.appendTo("#droppable_p");
+
+	var box2 = $(document.createElement('small'));
+	box2.addClass('name');
+	var mytext = document.createTextNode($(this).attr("metric"));
+	box2.append(mytext);
+	box1.append(box2);
+	var box2 = $(document.createElement('small'));
+	box2.addClass('type');
+	var mytext = document.createTextNode("Compare");
+	box2.append(mytext);
+	box1.append(box2);
+
 
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
@@ -252,6 +280,17 @@ function parseXML(xml, level, level_y, last_element)
     });
     box1.appendTo("#droppable_p");
 
+	var box2 = $(document.createElement('small'));
+	box2.addClass('name');
+	var mytext = document.createTextNode($(this).attr("transformfunction"));
+	box2.append(mytext);
+	box1.append(box2);
+	var box2 = $(document.createElement('small'));
+	box2.addClass('type');
+	var mytext = document.createTextNode("TransformInput");
+	box2.append(mytext);
+	box1.append(box2);
+	
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
     var mytext = document.createTextNode("Transformation: " + transformations[$(this).attr("transformfunction")]);
@@ -295,6 +334,17 @@ function parseXML(xml, level, level_y, last_element)
     });
     box1.appendTo("#droppable_p");
 
+	var box2 = $(document.createElement('small'));
+	box2.addClass('name');
+	var mytext = document.createTextNode(encodeHtml($(this).attr("path")));
+	box2.append(mytext);
+	box1.append(box2);
+	var box2 = $(document.createElement('small'));
+	box2.addClass('type');
+	var mytext = document.createTextNode("Input");
+	box2.append(mytext);
+	box1.append(box2);
+	
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
     var mytext = document.createTextNode($(this).attr("path"));
@@ -322,7 +372,9 @@ function parseXML(xml, level, level_y, last_element)
 
 function load()
 {
-  //alert(linkSpec);
+  // alert(linkSpec);
+  interlinkId = $(linkSpec).attr("id");
+  
   $(linkSpec).find("> LinkCondition").each(function ()
   {
     parseXML($(this), 0, 0, "");
@@ -349,8 +401,89 @@ function getHTML(who, deep)
   return txt;
 }
 
+function createNewElement(elementId)
+{
+	var elementIdName = "#"+elementId;
+	var elName = ($(elementIdName).children(".name").text());
+	var elType = ($(elementIdName).children(".type").text());
+	var xml = document.createElement(elType);
+	if (elType == "Input") {
+		xml.setAttribute("path", elName);
+	} else if (elType == "TransformInput") {
+		xml.setAttribute("function", elName);
+	} else if (elType == "Aggregate") {
+		xml.setAttribute("type", elName);
+	} else if (elType == "Compare") {
+		xml.setAttribute("metric", elName);
+	}
+	
+	var c = jsPlumb.getConnections();
+	for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
+  {
+	var source = c[jsPlumb.getDefaultScope()][i].sourceId;
+	var target = c[jsPlumb.getDefaultScope()][i].targetId;
+	if (target == elementId) 
+	{
+	  xml.appendChild(createNewElement(source));
+	}
+  }
+	return xml;
+}
+
 function save() {
   //alert (JSON.stringify(c));
+  
+  var c = jsPlumb.getConnections();
+  var connections = "";
+  for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
+  {
+    var source = c[jsPlumb.getDefaultScope()][i].sourceId;
+    var target = c[jsPlumb.getDefaultScope()][i].targetId;
+    sources[target] = source;
+    targets[source] = target;
+    connections = connections + source + " -> " + target + ", ";
+  }
+  //alert (connections);
+  var root = null;
+  for (var key in sources)
+  {
+    if (!targets[key])
+	{
+      root = key;
+    }
+  }
+  if (root != null)
+  {
+    // alert(connections + "\n" + root);
+    var xml = document.createElement("Interlink");
+	xml.setAttribute("id", interlinkId);
+	
+	var linkcondition = document.createElement("LinkCondition");
+	linkcondition.appendChild(createNewElement(root));
+	xml.appendChild(linkcondition);
+
+	var linktype = document.createElement("LinkType");
+	var linktypeText = document.createTextNode($("#linktype").val());
+	linktype.appendChild(linktypeText);
+	xml.appendChild(linktype);
+
+	var filter = document.createElement("Filter");
+	filter.setAttribute("limit", $("#linklimit").val());
+	filter.setAttribute("threshold", $("#threshold").val());
+	xml.appendChild(filter);
+
+	var outputs = document.createElement("Outputs");
+	xml.appendChild(outputs);
+
+	var xmlString = getHTML(xml, true);
+	xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
+	//alert(xmlString);
+	updateLinkSpec(xmlString);
+  }
+  else
+  {
+    alert("No tree root found!");
+  }
 }
 
 $(function ()
@@ -437,6 +570,9 @@ function getPropertyPaths()
     }
     else
     {
+    document.getElementById("paths").removeChild(document.getElementById("loading"));
+
+
     var global_id = 0;
 
     var box = $(document.createElement('div'));
@@ -454,7 +590,7 @@ function getPropertyPaths()
       var box = $(document.createElement('div'));
       box.addClass('draggable');
       box.attr("id", "source" + global_id);
-      box.html("<span></span><small>" + encodeHtml(item.path) + "</small><p>" + encodeHtml(item.path) + "</p>");
+      box.html("<span></span><p>" + encodeHtml(item.path) + "</p>");
       box.draggable(
       {
         helper: function ()
@@ -462,7 +598,7 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv sourcePath');
           box1.attr("id", "source_" + sourcecounter);
-          box1.html("<h5 class='handler'>" + encodeHtml(item.path) + "</h5><div class='content'></div>");
+          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "</h5><div class='content'></div>");
           return box1;
         }
       });
@@ -484,7 +620,7 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
+        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
         return box1;
       }
     });
@@ -523,7 +659,7 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv targetPath');
           box1.attr("id", "target_" + targetcounter);
-          box1.html("<h5 class='handler'>" + encodeHtml(item.path) + "</h5><div class='content'></div>");
+          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "</h5><div class='content'></div>");
           return box1;
         }
       });
@@ -544,7 +680,7 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
+        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
         return box1;
       }
     });
@@ -600,6 +736,18 @@ function getOperators()
               var box1 = $(document.createElement('div'));
               box1.addClass('dragDiv transformDiv');
               box1.attr("id", "transform_" + transformcounter);
+
+              var box2 = $(document.createElement('small'));
+              box2.addClass('name');
+              var mytext = document.createTextNode(item.id);
+              box2.append(mytext);
+              box1.append(box2);
+              var box2 = $(document.createElement('small'));
+              box2.addClass('type');
+              var mytext = document.createTextNode("TransformInput");
+              box2.append(mytext);
+              box1.append(box2);
+
               var box2 = $(document.createElement('h5'));
               box2.addClass('handler');
               var mytext = document.createTextNode("Transformation: " + item.label);
@@ -666,6 +814,17 @@ function getOperators()
               var box1 = $(document.createElement('div'));
               box1.addClass('dragDiv compareDiv');
               box1.attr("id", "compare_" + comparecounter);
+
+              var box2 = $(document.createElement('small'));
+              box2.addClass('name');
+              var mytext = document.createTextNode(item.id);
+              box2.append(mytext);
+              box1.append(box2);
+              var box2 = $(document.createElement('small'));
+              box2.addClass('type');
+              var mytext = document.createTextNode("Compare");
+              box2.append(mytext);
+              box1.append(box2);
 
               var box2 = $(document.createElement('h5'));
               box2.addClass('handler');
@@ -747,6 +906,17 @@ function getOperators()
               box1.addClass('dragDiv aggregateDiv');
               box1.attr("id", "aggregate_" + aggregatecounter);
 
+              var box2 = $(document.createElement('small'));
+              box2.addClass('name');
+              var mytext = document.createTextNode(item.id);
+              box2.append(mytext);
+              box1.append(box2);
+              var box2 = $(document.createElement('small'));
+              box2.addClass('type');
+              var mytext = document.createTextNode("Compare");
+              box2.append(mytext);
+              box1.append(box2);
+
               var box2 = $(document.createElement('h5'));
               box2.addClass('handler');
               var mytext = document.createTextNode("Aggregator: " + item.label);
@@ -810,219 +980,4 @@ function getOperators()
       alert("error:" + textStatus + " " + errorThrown);
     }
   });
-
-/*
-    $.getJSON("http://160.45.137.90:30300/api/project/operators",
-      function(data) {
-
-        var global_id = 0;
-
-        var box = $(document.createElement('div'));
-        box.attr("style", "color: #0cc481; font-weight: bold;");
-        box.html("Transformations").appendTo("#operators");
-        box.appendTo("#operators");
-
-        var sourcepaths = data.transformations;
-        $.each(sourcepaths, function(i, item){
-            transformations[item.id] = item.label;
-            var box = $(document.createElement('div'));
-            box.addClass('draggable tranformations');
-            box.attr("id", "transformation"+global_id);
-            box.attr("title", item.description);
-            box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
-            box.draggable({
-                helper: function() {
-                    var box1 = $(document.createElement('div'));
-                    box1.addClass('dragDiv transformDiv');
-                    box1.attr("id", "transform_"+transformcounter);
-                    var box2 = $(document.createElement('h5'));
-                    box2.addClass('handler');
-                    var mytext = document.createTextNode("Transformation: " + item.label);
-                    box2.append(mytext);
-
-                    box1.append(box2);
-
-                    var box2 = $(document.createElement('div'));
-                    box2.addClass('content');
-
-                    $.each(item.parameters, function(j, parameter) {
-                        if (j > 0) {
-                            var box4 = $(document.createElement('br'));
-                            box2.append(box4);
-                        }
-
-                        var mytext = document.createTextNode(parameter.name + ": ");
-                        box2.append(mytext);
-
-                        var box5 = $(document.createElement('input'));
-                        box5.attr("type", "text");
-                        box5.attr("size", "10");;
-                        box2.append(box5);
-                    });
-
-                    box1.append(box2);
-                    return box1;
-                }
-            });
-            box.appendTo("#operators");
-
-
-            // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions1);
-            // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions2);
-            global_id = global_id + 1;
-
-
-        });
-
-        var global_id = 0;
-
-        var box = $(document.createElement('div'));
-        box.attr("style", "color: #e59829; font-weight: bold;");
-        box.html("Comparators").appendTo("#operators");
-        box.appendTo("#operators");
-
-        var sourcepaths = data.comparators;
-        $.each(sourcepaths, function(i, item){
-            var box = $(document.createElement('div'));
-            box.addClass('draggable comparators');
-            box.attr("id", "comparator"+global_id);
-            box.attr("title", item.description);
-            box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
-            box.draggable({
-                helper: function() {
-                    var box1 = $(document.createElement('div'));
-                    box1.addClass('dragDiv compareDiv');
-                    box1.attr("id", "compare_"+comparecounter);
-
-                    var box2 = $(document.createElement('h5'));
-                    box2.addClass('handler');
-                    var mytext = document.createTextNode("Comparator: " + item.label);
-                    box2.append(mytext);
-                    box1.append(box2);
-
-                    var box2 = $(document.createElement('div'));
-                    box2.addClass('content');
-
-                    var mytext = document.createTextNode("required: ");
-                    box2.append(mytext);
-
-                    var box3 = $(document.createElement('input'));
-                    box3.attr("type", "checkbox");
-                    box2.append(box3);
-
-                    var box4 = $(document.createElement('br'));
-                    box2.append(box4);
-
-                    var mytext = document.createTextNode("weight: ");
-                    box2.append(mytext);
-
-                    var box5 = $(document.createElement('input'));
-                    box5.attr("type", "text");
-                    box5.attr("size", "2");
-                    box5.attr("value", "1");
-                    box2.append(box5);
-
-                    $.each(item.parameters, function(j, parameter) {
-                        var box4 = $(document.createElement('br'));
-                        box2.append(box4);
-
-                        var mytext = document.createTextNode(parameter.name + ": ");
-                        box2.append(mytext);
-
-                        var box5 = $(document.createElement('input'));
-                        box5.attr("type", "text");
-                        box5.attr("size", "10");;
-                        box2.append(box5);
-                    });
-
-                    box1.append(box2);
-
-                    // jsPlumb.addEndpoint('compare_1', endpointOptions);
-                    return box1;
-                }
-            });
-            box.appendTo("#operators");
-            // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions1);
-            // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions2);
-            global_id = global_id + 1;
-        });
-
-        var global_id = 0;
-
-        var box = $(document.createElement('div'));
-        box.attr("style", "color: #1484d4; font-weight: bold;");
-        box.html("Aggregators").appendTo("#operators");
-        box.appendTo("#operators");
-
-        var sourcepaths = data.aggregators;
-        $.each(sourcepaths, function(i, item){
-            var box = $(document.createElement('div'));
-            box.addClass('draggable aggregators');
-            box.attr("title", item.description);
-            box.attr("id", "aggregator"+global_id);
-            box.html("<span></span><small>"+item.label+"</small><p>"+item.label+"</p>");
-
-            box.draggable({
-                helper: function() {
-                    var box1 = $(document.createElement('div'));
-                    box1.addClass('dragDiv aggregateDiv');
-                    box1.attr("id", "aggregate_"+aggregatecounter);
-
-                    var box2 = $(document.createElement('h5'));
-                    box2.addClass('handler');
-                    var mytext = document.createTextNode("Aggregator: " + item.label);
-                    box2.append(mytext);
-                    box1.append(box2);
-
-                    var box2 = $(document.createElement('div'));
-                    box2.addClass('content');
-
-                    var mytext = document.createTextNode("required: ");
-                    box2.append(mytext);
-
-                    var box3 = $(document.createElement('input'));
-                    box3.attr("type", "checkbox");
-                    box2.append(box3);
-
-                    var box4 = $(document.createElement('br'));
-                    box2.append(box4);
-
-                    var mytext = document.createTextNode("weight: ");
-                    box2.append(mytext);
-
-                    var box5 = $(document.createElement('input'));
-                    box5.attr("type", "text");
-                    box5.attr("size", "2");
-                    box5.attr("value", "1");
-                    box2.append(box5);
-
-                    $.each(item.parameters, function(j, parameter) {
-                        var box4 = $(document.createElement('br'));
-                        box2.append(box4);
-
-                        var mytext = document.createTextNode(parameter.name + ": ");
-                        box2.append(mytext);
-
-                        var box5 = $(document.createElement('input'));
-                        box5.attr("type", "text");
-                        box5.attr("size", "10");;
-                        box2.append(box5);
-                    });
-
-                    box1.append(box2);
-
-                    // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
-                    return box1;
-                }
-
-            });
-            box.appendTo("#operators");
-            // jsPlumb.addEndpoint('aggregator'+global_id, endpointOptions1);
-            // jsPlumb.addEndpoint('aggregator'+global_id, endpointOptions2);
-            global_id = global_id + 1;
-        });
-
-        }
-    );
-    */
 }
