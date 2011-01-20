@@ -480,7 +480,7 @@ function serializeLinkSpec() {
   }
   if (root != null)
   {
-    alert(connections + "\n" + root);
+    // alert(connections + "\n" + root);
     var xml = document.createElement("Interlink");
 	xml.setAttribute("id", interlinkId);
 	
@@ -524,7 +524,7 @@ function serializeLinkSpec() {
 
 	var xmlString = getHTML(xml, true);
 	xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
-	alert(xmlString);
+	// alert(xmlString);
 	return xmlString;
   }
   else
@@ -614,8 +614,8 @@ function getPropertyPaths()
   $.getJSON(url, function (data)
   {
     if(data.isLoading) {
-		var dot = document.createTextNode(".");
-		document.getElementById("loading").appendChild(dot);
+	  var dot = document.createTextNode(".");
+      document.getElementById("loading").appendChild(dot);
       setTimeout("getPropertyPaths();", 1000);	  
     }
     else
