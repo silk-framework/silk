@@ -1,14 +1,22 @@
-<lift:surround with="default" at="content">
-  <lift:evaluation>
-    <ul id="toolbar">
-      <li>
-        <entry:control/>
-      </li>
-      <li>
-        <lift:comet type="EvaluationProgress" name="EvaluationProgress" />
-      </li>
-    </ul>
-    <br/>
-    <entry:table/>
-  </lift:evaluation>
+<lift:surround with="default">
+
+  <lift:bind-at name="toolbar">
+    <lift:evaluation.toolbar>
+      <ul>
+        <li>
+          <entry:control/>
+        </li>
+        <li>
+          <lift:comet type="EvaluationProgress" name="EvaluationProgress" />
+        </li>
+      </ul>
+    </lift:evaluation.toolbar>
+  </lift:bind-at>
+
+  <lift:bind-at name="content">
+    <lift:evaluation.content>
+      <entry:table/>
+    </lift:evaluation.content>
+  </lift:bind-at>
+
 </lift:surround>
