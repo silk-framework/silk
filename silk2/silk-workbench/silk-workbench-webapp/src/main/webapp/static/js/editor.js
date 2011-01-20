@@ -237,7 +237,7 @@ function parseXML(xml, level, level_y, last_element)
     box5.attr("value", $(this).attr("weight"));
     box2.append(box5);
 
-    //alert(comparators[$(this).attr("metric")]["parameters"]);
+    // alert(comparators[$(this).attr("metric")]["parameters"]);
 /*
 			$.each(comparators[$(this).attr("metric")].parameters, function(j, parameter) {
 				var box4 = $(document.createElement('br'));
@@ -480,7 +480,7 @@ function serializeLinkSpec() {
   }
   if (root != null)
   {
-    //alert(connections + "\n\n" + root);
+    // alert(connections + "\n\n" + root);
     var xml = document.createElement("Interlink");
 	xml.setAttribute("id", interlinkId);
 	
@@ -963,7 +963,7 @@ function getOperators()
               box1.append(box2);
               var box2 = $(document.createElement('small'));
               box2.addClass('type');
-              var mytext = document.createTextNode("Compare");
+              var mytext = document.createTextNode("Aggregate");
               box2.append(mytext);
               box1.append(box2);
 
@@ -1011,15 +1011,13 @@ function getOperators()
               });
 
               box1.append(box2);
-
-              // jsPlumb.addEndpoint('aggregate_1', endpointOptions);
+			  
               return box1;
             }
 
           });
           box.appendTo("#operators");
-          // jsPlumb.addEndpoint('aggregator'+global_id, endpointOptions1);
-          // jsPlumb.addEndpoint('aggregator'+global_id, endpointOptions2);
+		  
           global_id = global_id + 1;
         });
         load();
