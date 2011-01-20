@@ -12,9 +12,9 @@ import javax.xml.parsers.SAXParserFactory
 import parsing.NoBindingFactoryAdapter
 import javax.xml.validation.SchemaFactory
 import org.xml.sax.SAXException
-import java.io.{FileInputStream, File, InputStream}
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import java.io.{StringReader, FileInputStream, File, InputStream}
 
 /**
  * Reads a Silk Configuration.
@@ -59,6 +59,21 @@ object ConfigReader
     {
       inputStream.close()
     }
+  }
+
+  def readXML(str : String) =
+  {
+      val xml =
+        try
+        {
+          new ValidatingFactoryAdapter().loadXML(new InputSource(new StringReader(str)))
+        }
+        catch
+        {
+          case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
+        }
+
+    xml
   }
 
   private def readPrefixes(xml : Elem) : Map[String, String] =
@@ -106,7 +121,7 @@ object ConfigReader
     )
   }
 
-  def readLinkCondition(node : Node, prefixes : Map[String, String]) =
+  private def readLinkCondition(node : Node, prefixes : Map[String, String]) =
   {
     new LinkCondition(readAggregation(node \ "Aggregate" head, prefixes))
   }
