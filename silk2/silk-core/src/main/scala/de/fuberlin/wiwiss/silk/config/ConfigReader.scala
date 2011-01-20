@@ -123,7 +123,7 @@ object ConfigReader
 
   private def readLinkCondition(node : Node, prefixes : Map[String, String]) =
   {
-    new LinkCondition(readAggregation(node \ "Aggregate" head, prefixes))
+    LinkCondition(readOperators(node.child, prefixes).headOption)
   }
 
   private def readOperators(nodes : Seq[Node], prefixes : Map[String, String]) : Traversable[Operator] =
