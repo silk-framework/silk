@@ -289,7 +289,7 @@ function parseXML(xml, level, level_y, last_element)
 
 	var box2 = $(document.createElement('small'));
 	box2.addClass('name');
-	var mytext = document.createTextNode($(this).attr("transformfunction"));
+	var mytext = document.createTextNode($(this).attr("function"));
 	box2.append(mytext);
 	box1.append(box2);
 	var box2 = $(document.createElement('small'));
@@ -300,7 +300,7 @@ function parseXML(xml, level, level_y, last_element)
 	
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
-    var mytext = document.createTextNode("Transformation: " + transformations[$(this).attr("transformfunction")]);
+    var mytext = document.createTextNode("Transformation: " + transformations[$(this).attr("function")]);
     box2.append(mytext);
     box1.append(box2);
 

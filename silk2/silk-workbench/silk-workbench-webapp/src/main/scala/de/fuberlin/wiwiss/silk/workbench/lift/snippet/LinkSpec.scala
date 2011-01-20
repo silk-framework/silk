@@ -51,8 +51,7 @@ class LinkSpec
   private def generateLinkSpecVar() =
   {
     //Serialize the link condition to a JavaScript string
-    //TODO remove last replace?
-    val linkSpecStr = ConfigWriter.serializeLinkSpec(Project().linkSpec).toString.replace("\n", " ").replace(" function=", " transformfunction=")
+    val linkSpecStr = ConfigWriter.serializeLinkSpec(Project().linkSpec).toString.replace("\n", " ")
 
     val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 
