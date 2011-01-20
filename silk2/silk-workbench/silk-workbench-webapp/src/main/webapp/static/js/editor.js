@@ -41,7 +41,7 @@ var endpointOptions =
     strokeStyle: '#890685',
     lineWidth: 5
   },
-  isTarget: true,
+  isTarget: false,
   anchor: "RightMiddle"
 };
 
@@ -51,7 +51,7 @@ var endpointOptions1 =
   {
     radius: 5
   }),
-  isSource: true,
+  isSource: false,
   style: {
     fillStyle: '#359ace'
   },
@@ -171,8 +171,8 @@ function parseXML(xml, level, level_y, last_element)
     {
       jsPlumb.connect(
       {
-        sourceEndpoint: last_element,
-        targetEndpoint: endp_right
+        sourceEndpoint: endp_right,
+        targetEndpoint: last_element
       });
     }
     parseXML($(this), level + 1, 0, endp_left);
@@ -262,8 +262,8 @@ function parseXML(xml, level, level_y, last_element)
     {
       jsPlumb.connect(
       {
-        sourceEndpoint: last_element,
-        targetEndpoint: endp_right
+        sourceEndpoint: endp_right,
+        targetEndpoint: last_element
       });
     }
     parseXML($(this), level + 1, 0, endp_left);
@@ -316,8 +316,8 @@ function parseXML(xml, level, level_y, last_element)
     {
       jsPlumb.connect(
       {
-        sourceEndpoint: last_element,
-        targetEndpoint: endp_right
+        sourceEndpoint: endp_right,
+        targetEndpoint: last_element
       });
     }
     parseXML($(this), level + 1, 0, endp_left);
@@ -369,8 +369,8 @@ function parseXML(xml, level, level_y, last_element)
     {
       jsPlumb.connect(
       {
-        sourceEndpoint: last_element,
-        targetEndpoint: endp_right
+        sourceEndpoint: endp_right,
+        targetEndpoint: last_element
       });
     }
     parseXML($(this), level + 1, 0, endp_right);
@@ -480,7 +480,7 @@ function serializeLinkSpec() {
   }
   if (root != null)
   {
-    // alert(connections + "\n" + root);
+    //alert(connections + "\n\n" + root);
     var xml = document.createElement("Interlink");
 	xml.setAttribute("id", interlinkId);
 	
