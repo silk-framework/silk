@@ -14,6 +14,13 @@ var targets = new Array();
 
 var interlinkId = "";
 
+var sourceDataSet = "";
+var targetDataSet = "";
+var sourceDataSetVar = "";
+var targetDataSetVar = "";
+var sourceDataSetRestriction = "";
+var targetDataSetRestriction = "";
+  
 var endpointOptions =
 {
   endpoint: new jsPlumb.Endpoints.Dot(
@@ -372,8 +379,27 @@ function parseXML(xml, level, level_y, last_element)
 
 function load()
 {
-  // alert(linkSpec);
+  //alert(linkSpec);
   interlinkId = $(linkSpec).attr("id");
+  
+  $(linkSpec).find("> SourceDataset").each(function ()
+  {
+    sourceDataSet = $(this).attr("dataSource");
+	sourceDataSetVar = $(this).attr("var");
+	$(this).find("> RestrictTo").each(function ()
+	{
+		sourceDataSetRestriction = $(this).text();
+	});
+  });
+  $(linkSpec).find("> TargetDataset").each(function ()
+  {
+    targetDataSet = $(this).attr("dataSource");
+	targetDataSetVar = $(this).attr("var");
+	$(this).find("> RestrictTo").each(function ()
+	{
+		targetDataSetRestriction = $(this).text();
+	});
+  });
   
   $(linkSpec).find("> LinkCondition").each(function ()
   {
@@ -458,6 +484,24 @@ function serializeLinkSpec() {
     var xml = document.createElement("Interlink");
 	xml.setAttribute("id", interlinkId);
 	
+	var sourceDataset = document.createElement("SourceDataset");
+	sourceDataset.setAttribute("var", sourceDataSetVar);
+	sourceDataset.setAttribute("dataSource", sourceDataSet);
+	var restriction = document.createElement("RestrictTo");
+	var restrictionText = document.createTextNode(sourceDataSetRestriction);
+	restriction.appendChild(restrictionText);
+	sourceDataset.appendChild(restriction);
+	xml.appendChild(sourceDataset);
+
+	var targetDataset = document.createElement("TargetDataset");
+	targetDataset.setAttribute("var", targetDataSetVar);
+	targetDataset.setAttribute("dataSource", targetDataSet);
+	var restriction = document.createElement("RestrictTo");
+	var restrictionText = document.createTextNode(targetDataSetRestriction);
+	restriction.appendChild(restrictionText);
+	targetDataset.appendChild(restriction);
+	xml.appendChild(targetDataset);
+
 	var linkcondition = document.createElement("LinkCondition");
 	linkcondition.appendChild(createNewElement(root));
 	xml.appendChild(linkcondition);
@@ -477,7 +521,7 @@ function serializeLinkSpec() {
 
 	var xmlString = getHTML(xml, true);
 	xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
-	//alert(xmlString);
+	// alert(xmlString);
 	return xmlString;
   }
   else
