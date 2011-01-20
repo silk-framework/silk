@@ -27,7 +27,7 @@ private object ProjectCreator
           datasets = new SourceTargetPair(new DatasetSpecification(sourceDataSource, Constants.SourceVariable, description.source.restriction),
                                           new DatasetSpecification(targetDataSource, Constants.TargetVariable, description.target.restriction)),
           blocking = None,
-          condition = new LinkCondition(Aggregation(false, 1, Traversable.empty, Aggregator("max"))),
+          condition = new LinkCondition(None),
           filter = new LinkFilter(0.95, None),
           outputs = Nil
         )

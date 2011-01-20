@@ -3,26 +3,42 @@ package de.fuberlin.wiwiss.silk.linkspec
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
-case class LinkCondition(rootAggregation : Aggregation)
+case class LinkCondition(rootOperator : Option[Operator])
 {
   def apply(instances : SourceTargetPair[Instance], threshold : Double) : Double =
   {
-    rootAggregation(instances, threshold).headOption.getOrElse(0.0)
+    rootOperator match
+    {
+      case Some(operator) => operator(instances, threshold).getOrElse(0.0)
+      case None => 0.0
+    }
   }
 
   def index(instance : Instance, threshold : Double) : Set[Int] =
   {
-    val indexes = rootAggregation.index(instance, threshold)
-
-    //Convert the index vectors to scalars
-    for(index <- indexes) yield
+    rootOperator match
     {
-      (index zip rootAggregation.blockCounts).foldLeft(0){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
+      case Some(operator) =>
+      {
+        val indexes = operator.index(instance, threshold)
+
+        //Convert the index vectors to scalars
+        for(index <- indexes) yield
+        {
+          (index zip operator.blockCounts).foldLeft(0){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
+        }
+      }
+      case None => Set.empty
     }
+
   }
 
   val blockCount =
   {
-    rootAggregation.blockCounts.foldLeft(1)(_ * _)
+    rootOperator match
+    {
+      case Some(operator) => operator.blockCounts.foldLeft(1)(_ * _)
+      case None => 1
+    }
   }
 }

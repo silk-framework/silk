@@ -104,8 +104,9 @@
 
         <xs:element name="LinkCondition">
           <xs:complexType>
-            <xs:choice>
-                <xs:element ref="Aggregate" />
+            <xs:choice minOccurs="0" maxOccurs="1">
+              <xs:element ref="Aggregate" />
+              <xs:element ref="Compare" />
             </xs:choice>
           </xs:complexType>
         </xs:element>
