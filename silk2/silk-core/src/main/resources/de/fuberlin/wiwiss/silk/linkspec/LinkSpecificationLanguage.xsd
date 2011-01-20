@@ -68,6 +68,61 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+
+  <xs:element name="Interlink">
+    <xs:complexType>
+      <xs:sequence>
+
+        <xs:element name="LinkType" type="xs:string" />
+
+        <xs:element name="SourceDataset">
+          <xs:complexType>
+            <xs:choice>
+              <xs:element name="RestrictTo" minOccurs="0" type="xs:string" />
+            </xs:choice>
+            <xs:attribute name="dataSource" type="xs:string" use="required" />
+            <xs:attribute name="var" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="TargetDataset">
+          <xs:complexType>
+            <xs:choice>
+              <xs:element name="RestrictTo" minOccurs="0" type="xs:string" />
+            </xs:choice>
+            <xs:attribute name="dataSource" type="xs:string" use="required" />
+            <xs:attribute name="var" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Blocking" minOccurs="0">
+          <xs:complexType>
+            <xs:attribute name="blocks" type="xs:unsignedShort" use="optional" />
+            <xs:attribute name="overlap" type="xs:decimal" use="optional" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="LinkCondition">
+          <xs:complexType>
+            <xs:choice>
+                <xs:element ref="Aggregate" />
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Filter">
+          <xs:complexType>
+            <xs:attribute name="threshold" type="xs:decimal" use="required" />
+            <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ref="Outputs" minOccurs="0"/>
+
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
   
   <xs:element name="Silk">
     <xs:complexType>
@@ -105,60 +160,7 @@
         <xs:element name="Interlinks">
           <xs:complexType>
             <xs:sequence>
-             <xs:element name="Interlink" maxOccurs="unbounded">
-              <xs:complexType>
-                <xs:sequence>
-
-                  <xs:element name="LinkType" type="xs:string" />
-
-                  <xs:element name="SourceDataset">
-                    <xs:complexType>
-                      <xs:choice>
-                        <xs:element name="RestrictTo" minOccurs="0" type="xs:string" />
-                      </xs:choice>
-                      <xs:attribute name="dataSource" type="xs:string" use="required" />
-                      <xs:attribute name="var" type="xs:string" use="required" />
-                    </xs:complexType>
-                  </xs:element>
-
-                  <xs:element name="TargetDataset">
-                    <xs:complexType>
-                      <xs:choice>
-                        <xs:element name="RestrictTo" minOccurs="0" type="xs:string" />
-                      </xs:choice>
-                      <xs:attribute name="dataSource" type="xs:string" use="required" />
-                      <xs:attribute name="var" type="xs:string" use="required" />
-                    </xs:complexType>
-                  </xs:element>
-
-                  <xs:element name="Blocking" minOccurs="0">
-                    <xs:complexType>
-                      <xs:attribute name="blocks" type="xs:unsignedShort" use="optional" />
-                      <xs:attribute name="overlap" type="xs:decimal" use="optional" />
-                    </xs:complexType>
-                  </xs:element>
-
-                  <xs:element name="LinkCondition">
-                    <xs:complexType>
-                      <xs:choice>
-                          <xs:element ref="Aggregate" />
-                      </xs:choice>
-                    </xs:complexType>
-                  </xs:element>
-
-                  <xs:element name="Filter">
-                    <xs:complexType>
-                      <xs:attribute name="threshold" type="xs:decimal" use="required" />
-                      <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
-                    </xs:complexType>
-                  </xs:element>
-
-                  <xs:element ref="Outputs" minOccurs="0"/>
-
-                </xs:sequence>
-                <xs:attribute name="id" type="xs:string" use="required" />
-              </xs:complexType>
-            </xs:element>
+              <xs:element ref="Interlink" maxOccurs="unbounded" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

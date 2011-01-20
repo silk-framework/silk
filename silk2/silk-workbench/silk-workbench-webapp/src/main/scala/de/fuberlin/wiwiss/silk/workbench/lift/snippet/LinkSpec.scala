@@ -25,7 +25,7 @@ class LinkSpec
         val config = Project().config
         val sourceMap = config.sources.map(source => (source.id, source)).toMap
 
-        val linkSpecXml = XML.loadString(linkSpecStr)
+        val linkSpecXml = ConfigReader.readXML(linkSpecStr)
         val linkSpec = ConfigReader.readLinkSpecification(linkSpecXml, config.prefixes, sourceMap)
 
         Project.updateLinkSpec(linkSpec)
@@ -56,17 +56,16 @@ class LinkSpec
 
   private def generatePathsFunction() =
   {
-    JsCmds.Function("retrievePaths", Nil, SHtml.ajaxInvoke(generatePathsObj)._2.cmd)
+    JsCmds.Function("retrievePaths", Nil, JsCmds.JsReturn(SHtml.ajaxInvoke(() => Str("test").cmd)._2))
   }
 
   private def generatePathsObj() =
   {
-    JsCmds.JsReturn(
     new JsObj
     {
       val props = ("source", generateSelectedPathsObj(true)) ::
                   ("target", generateSelectedPathsObj(false)) :: Nil
-    })
+    }.cmd
   }
 
   private def generateSelectedPathsObj(selectSource : Boolean) =
