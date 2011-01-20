@@ -1,6 +1,7 @@
 body
 {
 	margin: 0px;
+	padding: 0px;
 	font-family: Arial, "lucida console", sans-serif;
 	font-size: 13px;
 	background-color: #ffffff;
@@ -95,8 +96,7 @@ pre
   height: 40px;
   background: url('/static/img/toolbar.png') repeat-x;
   position: relative;
-  left: -30px;
-  width: 150%;
+  width: 100%;
   clear: both;
 }
 
@@ -133,9 +133,4 @@ input[type=file]
   left: 10px;
   top: -22px;
   z-index: 1;
-}
-
-#content
-{
-	padding-left: 30px;
 }

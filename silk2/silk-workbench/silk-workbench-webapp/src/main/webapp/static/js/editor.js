@@ -480,10 +480,15 @@ function serializeLinkSpec() {
   }
   if (root != null)
   {
-    // alert(connections + "\n" + root);
+    alert(connections + "\n" + root);
     var xml = document.createElement("Interlink");
 	xml.setAttribute("id", interlinkId);
 	
+	var linktype = document.createElement("LinkType");
+	var linktypeText = document.createTextNode($("#linktype").val());
+	linktype.appendChild(linktypeText);
+	xml.appendChild(linktype);
+
 	var sourceDataset = document.createElement("SourceDataset");
 	sourceDataset.setAttribute("var", sourceDataSetVar);
 	sourceDataset.setAttribute("dataSource", sourceDataSet);
@@ -506,13 +511,11 @@ function serializeLinkSpec() {
 	linkcondition.appendChild(createNewElement(root));
 	xml.appendChild(linkcondition);
 
-	var linktype = document.createElement("LinkType");
-	var linktypeText = document.createTextNode($("#linktype").val());
-	linktype.appendChild(linktypeText);
-	xml.appendChild(linktype);
-
 	var filter = document.createElement("Filter");
-	filter.setAttribute("limit", $("#linklimit").val());
+	if ($("#linklimit").val().length > 0)
+	{
+	  filter.setAttribute("limit", $("#linklimit").val());
+    }
 	filter.setAttribute("threshold", $("#threshold").val());
 	xml.appendChild(filter);
 
@@ -521,7 +524,7 @@ function serializeLinkSpec() {
 
 	var xmlString = getHTML(xml, true);
 	xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
-	// alert(xmlString);
+	alert(xmlString);
 	return xmlString;
   }
   else
@@ -611,7 +614,9 @@ function getPropertyPaths()
   $.getJSON(url, function (data)
   {
     if(data.isLoading) {
-      setTimeout("getPropertyPaths();", 1000);
+		var dot = document.createTextNode(".");
+		document.getElementById("loading").appendChild(dot);
+      setTimeout("getPropertyPaths();", 1000);	  
     }
     else
     {
