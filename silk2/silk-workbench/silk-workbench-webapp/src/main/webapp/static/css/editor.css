@@ -71,6 +71,10 @@ body{
 	font-size: 9pt;
 }
 
+.dragDiv h5 {
+	font-size: 9pt;
+}
+
 .sourcePath {
 	background-color:#f2d7ff;
 	border:1px solid #C354BF;
