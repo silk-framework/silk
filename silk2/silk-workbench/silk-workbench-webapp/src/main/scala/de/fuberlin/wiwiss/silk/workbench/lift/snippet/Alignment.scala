@@ -11,7 +11,7 @@ import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 
 class Alignment
 {
-  def menu(xhtml : NodeSeq) : NodeSeq =
+  def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
     def showOpenDialog() =
     {
@@ -46,7 +46,7 @@ class Alignment
          "submit" -> SHtml.submit("Open", submit, "style" -> "float:right;"))
   }
 
-  def show(xhtml : NodeSeq) : NodeSeq =
+  def content(xhtml : NodeSeq) : NodeSeq =
   {
     <table border="1">
       <tr>

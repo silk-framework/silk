@@ -9,7 +9,13 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationServer
 
 class Evaluation
 {
-  def render(xhtml : NodeSeq) : NodeSeq =
+  def toolbar(xhtml : NodeSeq) : NodeSeq =
+  {
+    bind("entry", xhtml,
+         "control" -> Widgets.taskControl(EvaluationServer.evaluationTask))
+  }
+
+  def content(xhtml : NodeSeq) : NodeSeq =
   {
     def createTable() =
     {
@@ -38,7 +44,6 @@ class Evaluation
     def update() = SetHtml("alignemtTable", createTable())
 
     bind("entry", xhtml,
-         "control" -> Widgets.taskControl(EvaluationServer.evaluationTask),
          "table" ->
            <p>
              <div id="alignemtTable">Waiting...</div>
