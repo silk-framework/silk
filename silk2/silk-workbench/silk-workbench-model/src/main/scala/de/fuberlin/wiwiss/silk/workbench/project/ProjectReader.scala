@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import java.io.{InputStream, File}
 import java.util.zip.ZipInputStream
 import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.config.{Configuration, ConfigReader}
+import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, AlignmentReader}
 import de.fuberlin.wiwiss.silk.instance.{Path, Instance, InstanceSpecification, MemoryInstanceCache}
 
@@ -36,7 +36,7 @@ private object ProjectReader
       currentEntry.getName match
       {
         case "project.xml" => datasets = readDescription(zipStream)
-        case "config.xml" => config = readConfig(zipStream)
+        case "config.xml" => config = Configuration.load(zipStream)
         case "alignment.xml" => alignment = readAlignment(zipStream)
         case "cache.xml" => cache = readCache(zipStream)
       }
@@ -60,11 +60,6 @@ private object ProjectReader
 
     new SourceTargetPair(Description.fromXML(xml \ "Source" \ "Description" head),
                          Description.fromXML(xml \ "Target" \ "Description" head))
-  }
-
-  private def readConfig(inputStream : InputStream) =
-  {
-     ConfigReader.read(inputStream)
   }
 
   private def readAlignment(inputStream : InputStream) =

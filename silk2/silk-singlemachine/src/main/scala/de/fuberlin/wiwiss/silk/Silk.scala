@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
-import config.{Configuration, ConfigReader}
+import config.Configuration
 import impl.DefaultImplementations
 import instance.{InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
@@ -76,7 +76,7 @@ object Silk
    */
   def executeFile(configFile : File, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
   {
-    executeConfig(ConfigReader.read(configFile), linkSpecID, numThreads, reload)
+    executeConfig(Configuration.load(configFile), linkSpecID, numThreads, reload)
   }
 
   /**

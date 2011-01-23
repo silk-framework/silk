@@ -47,7 +47,7 @@ object InstanceSpecification
 
   def fromXML(node : Node) =
   {
-    val prefixes = {for(prefixNode <- node \ "Prefixes" \ "Prefix") yield (prefixNode \ "@id" text, prefixNode \ "@namespace" text)}.toMap
+    val prefixes = (node \ "Prefixes" \ "Prefix").map(n => (n \ "@id" text, n \ "@namespace" text)).toMap
 
     new InstanceSpecification(
       variable = node \ "Variable" text,

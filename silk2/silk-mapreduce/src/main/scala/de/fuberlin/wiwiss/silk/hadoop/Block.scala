@@ -5,7 +5,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import org.apache.hadoop.fs.{FileSystem, Path}
-import de.fuberlin.wiwiss.silk.config.{ConfigReader, Configuration}
+import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, InstanceCache, Instance}
 
 object Block
@@ -64,7 +64,7 @@ object Block
     val stream = configFS.open(filePath)
     try
     {
-      ConfigReader.read(stream)
+      Configuration.load(stream)
     }
     finally
     {

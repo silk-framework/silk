@@ -8,10 +8,10 @@ import net.liftweb.http.js.JE.{Call, Str, Num, JsArray}
 import xml.NodeSeq
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.{JsObj, JsCmds}
-import de.fuberlin.wiwiss.silk.config.{ConfigWriter, ConfigReader}
+import de.fuberlin.wiwiss.silk.config.{ConfigWriter}
 import de.fuberlin.wiwiss.silk.instance.Path
-import org.xml.sax.InputSource
 import java.io.StringReader
+import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 
 class LinkSpec
 {
@@ -37,8 +37,7 @@ class LinkSpec
     {
       val config = Project().config
 
-      val linkSpecXml = ConfigReader.readXML(new InputSource(new StringReader(linkSpecStr)))
-      val linkSpec = ConfigReader.readLinkSpecification(linkSpecXml, config.prefixes)
+      val linkSpec = LinkSpecification.load(config.prefixes)(new StringReader(linkSpecStr))
 
       Project.updateLinkSpec(linkSpec)
       JsRaw("alert('Updated Link Specification')").cmd
