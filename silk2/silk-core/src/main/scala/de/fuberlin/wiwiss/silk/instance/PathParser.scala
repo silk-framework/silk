@@ -2,8 +2,7 @@ package de.fuberlin.wiwiss.silk.instance
 
 import util.parsing.input.CharSequenceReader
 import util.parsing.combinator.RegexParsers
-import de.fuberlin.wiwiss.silk.config.ValidationException
-import de.fuberlin.wiwiss.silk.util.Uri
+import de.fuberlin.wiwiss.silk.util.{ValidationException, Uri}
 
 /**
  * Parser for the Silk RDF path language.

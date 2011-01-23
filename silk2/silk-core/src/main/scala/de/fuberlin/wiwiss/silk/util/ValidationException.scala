@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.config
+package de.fuberlin.wiwiss.silk.util
 
 /**
  * Thrown if the configuration is not valid.
