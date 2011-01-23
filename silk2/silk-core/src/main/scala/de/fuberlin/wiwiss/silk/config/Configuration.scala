@@ -19,7 +19,7 @@ case class Configuration(val prefixes : Map[String, String], val sources : Trave
     private val sourceMap = sources.map(s => (s.id, s)).toMap
     private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
 
-    def dataSource(id : String) = sourceMap.get(id)
+    def source(id : String) = sourceMap(id)
 
-    def linkSpec(id : String) = linkSpecMap.get(id)
+    def linkSpec(id : String) = linkSpecMap(id)
 }

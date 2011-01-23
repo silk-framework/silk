@@ -10,6 +10,8 @@ import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.{JsObj, JsCmds}
 import de.fuberlin.wiwiss.silk.config.{ConfigWriter, ConfigReader}
 import de.fuberlin.wiwiss.silk.instance.Path
+import org.xml.sax.InputSource
+import java.io.StringReader
 
 class LinkSpec
 {
@@ -34,10 +36,9 @@ class LinkSpec
     try
     {
       val config = Project().config
-      val sourceMap = config.sources.map(source => (source.id, source)).toMap
 
-      val linkSpecXml = ConfigReader.readXML(linkSpecStr)
-      val linkSpec = ConfigReader.readLinkSpecification(linkSpecXml, config.prefixes, sourceMap)
+      val linkSpecXml = ConfigReader.readXML(new InputSource(new StringReader(linkSpecStr)))
+      val linkSpec = ConfigReader.readLinkSpecification(linkSpecXml, config.prefixes)
 
       Project.updateLinkSpec(linkSpec)
       JsRaw("alert('Updated Link Specification')").cmd
@@ -80,7 +81,7 @@ class LinkSpec
 
     new JsObj
     {
-      val props = ("id", Str(dataset.source.id)) ::
+      val props = ("id", Str(dataset.sourceId)) ::
                   ("paths", JsArray(instanceSpec.paths.map(generatePathObj) : _*)) ::
                   ("availablePaths", Num(instanceSpec.paths.size)) ::
                   ("restrictions", Str(instanceSpec.restrictions)) :: Nil

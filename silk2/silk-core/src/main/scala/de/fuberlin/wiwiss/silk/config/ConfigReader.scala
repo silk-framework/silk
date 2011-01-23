@@ -14,7 +14,7 @@ import javax.xml.validation.SchemaFactory
 import org.xml.sax.SAXException
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import java.io.{StringReader, FileInputStream, File, InputStream}
+import java.io.{FileInputStream, File, InputStream}
 
 /**
  * Reads a Silk Configuration.
@@ -50,7 +50,7 @@ object ConfigReader
 
       val prefixes = readPrefixes(xml)
       val sources = readDataSources(xml)
-      val linkSpecifications = readLinkSpecifications(xml, prefixes, sources.map(s => (s.id, s)).toMap)
+      val linkSpecifications = readLinkSpecifications(xml, prefixes)
       val outputs = readOutputs(xml \ "Outputs" \ "Output")
 
       new Configuration(prefixes, sources, linkSpecifications, outputs)
@@ -61,12 +61,12 @@ object ConfigReader
     }
   }
 
-  def readXML(str : String) =
+  def readXML(inputSource : InputSource) =
   {
       val xml =
         try
         {
-          new ValidatingFactoryAdapter().loadXML(new InputSource(new StringReader(str)))
+          new ValidatingFactoryAdapter().loadXML(inputSource)
         }
         catch
         {
@@ -91,18 +91,18 @@ object ConfigReader
     element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
   }
 
-  private def readLinkSpecifications(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : Traversable[LinkSpecification] =
+  private def readLinkSpecifications(node : Node, prefixes : Map[String, String]) : Traversable[LinkSpecification] =
   {
-    (node \ "Interlinks" \ "Interlink").map(p => readLinkSpecification(p, prefixes, sourceMap))
+    (node \ "Interlinks" \ "Interlink").map(p => readLinkSpecification(p, prefixes))
   }
 
-  def readLinkSpecification(node : Node, prefixes : Map[String, String], sourceMap : Map[String, Source]) : LinkSpecification =
+  def readLinkSpecification(node : Node, prefixes : Map[String, String]) : LinkSpecification =
   {
     new LinkSpecification(
       node \ "@id" text,
       resolveQualifiedName(node \ "LinkType" text, prefixes),
-      new SourceTargetPair(readDatasetSpecification(node \ "SourceDataset", sourceMap),
-                           readDatasetSpecification(node \ "TargetDataset", sourceMap)),
+      new SourceTargetPair(readDatasetSpecification(node \ "SourceDataset" head),
+                           readDatasetSpecification(node \ "TargetDataset" head)),
       (node \ "Blocking").headOption.map(blockingNode => readBlocking(blockingNode)),
       readLinkCondition(node \ "LinkCondition" head, prefixes),
       readLinkFilter(node \ "Filter" head),
@@ -110,12 +110,10 @@ object ConfigReader
     )
   }
 
-  private def readDatasetSpecification(node : NodeSeq, sourceMap : Map[String, Source]) : DatasetSpecification =
+  private def readDatasetSpecification(node : Node) : DatasetSpecification =
   {
-    val datasourceName = node \ "@dataSource" text
-
     new DatasetSpecification(
-      sourceMap.get(datasourceName).getOrElse(throw new ValidationException("Datasource " + datasourceName + " not defined.")),
+      node \ "@dataSource" text,
       node \ "@var" text,
       (node \ "RestrictTo").text.trim
     )

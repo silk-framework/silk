@@ -42,11 +42,11 @@ object ConfigWriter
     <Interlink id={linkSpec.id}>
       <LinkType>{"<" + linkSpec.linkType + ">"}</LinkType>
 
-      <SourceDataset dataSource={linkSpec.datasets.source.source.id} var={linkSpec.datasets.source.variable}>
+      <SourceDataset dataSource={linkSpec.datasets.source.sourceId} var={linkSpec.datasets.source.variable}>
         <RestrictTo>{linkSpec.datasets.source.restriction}</RestrictTo>
       </SourceDataset>
 
-      <TargetDataset dataSource={linkSpec.datasets.target.source.id} var={linkSpec.datasets.target.variable}>
+      <TargetDataset dataSource={linkSpec.datasets.target.sourceId} var={linkSpec.datasets.target.variable}>
         <RestrictTo>{linkSpec.datasets.target.restriction}</RestrictTo>
       </TargetDataset>
 

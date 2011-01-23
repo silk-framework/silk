@@ -34,7 +34,7 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
   private def writeSourceCache(sourceCache : InstanceCache)
   {
-    writeSourceCache(sourceCache, linkSpec.datasets.source.source)
+    writeSourceCache(sourceCache, config.source(linkSpec.datasets.source.sourceId))
   }
 
   private def writeSourceCache(sourceCache : InstanceCache, source : Source)
@@ -51,7 +51,7 @@ class LoadTask(config : Configuration, linkSpec : LinkSpecification,
 
   private def writeTargetCache(targetCache : InstanceCache)
   {
-    writeTargetCache(targetCache, linkSpec.datasets.target.source)
+    writeTargetCache(targetCache, config.source(linkSpec.datasets.target.sourceId))
   }
 
   private def writeTargetCache(targetCache : InstanceCache, source : Source)
