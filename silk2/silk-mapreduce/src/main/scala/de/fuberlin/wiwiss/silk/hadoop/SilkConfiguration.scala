@@ -42,7 +42,7 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
     lazy val linkSpec =
     {
         val linkSpecId = hadoopConfig.get(SilkConfiguration.LinkSpecParam, config.linkSpecs.head.id)
-        config.linkSpec(linkSpecId).get
+        config.linkSpec(linkSpecId)
     }
 
     lazy val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)

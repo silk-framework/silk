@@ -91,11 +91,7 @@ object Silk
   {
     if(linkSpecID != null)
     {
-      val linkSpec = config.linkSpec(linkSpecID) match
-      {
-        case Some(ls) => ls
-        case None => throw new IllegalArgumentException("Unknown link specification: " + linkSpecID)
-      }
+      val linkSpec = config.linkSpec(linkSpecID)
 
       executeLinkSpec(config, linkSpec, numThreads, reload)
     }

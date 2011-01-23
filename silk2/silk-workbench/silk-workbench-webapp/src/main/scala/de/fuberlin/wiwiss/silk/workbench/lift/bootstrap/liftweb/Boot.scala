@@ -78,11 +78,11 @@ class Boot
     val sourcePaths = if(instanceSpecs != null) instanceSpecs.source.paths else List[Path]()
     val targetPaths = if(instanceSpecs != null) instanceSpecs.target.paths else List[Path]()
 
-    val sourceField = JField("source", JObject(JField("id", JString(datasets.source.source.id)) ::
+    val sourceField = JField("source", JObject(JField("id", JString(datasets.source.sourceId)) ::
                                                JField("paths", JArray(generateInstancePaths(sourcePaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(sourcePaths.size)) ::
                                                JField("restrictions", JString(restrictions.source)) :: Nil))
-    val targetField = JField("target", JObject(JField("id", JString(datasets.target.source.id)) ::
+    val targetField = JField("target", JObject(JField("id", JString(datasets.target.sourceId)) ::
                                                JField("paths", JArray(generateInstancePaths(targetPaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(targetPaths.size)) ::
                                                JField("restrictions", JString(restrictions.target)) :: Nil))
