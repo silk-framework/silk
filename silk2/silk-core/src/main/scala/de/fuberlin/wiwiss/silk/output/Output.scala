@@ -53,6 +53,17 @@ case class Output(writer : LinkWriter, minConfidence : Option[Double] = None, ma
 
     logger.info("Wrote " + linkCount + " links")
   }
+
+  //TODO write minConfidence, maxConfidence
+  def toXML : Node = writer match
+  {
+    case LinkWriter(outputType, params) =>
+    {
+      <Output type={outputType}>
+        { params.map{case (name, value) => <Param name={name} value={value} /> } }
+      </Output>
+    }
+  }
 }
 
 object Output

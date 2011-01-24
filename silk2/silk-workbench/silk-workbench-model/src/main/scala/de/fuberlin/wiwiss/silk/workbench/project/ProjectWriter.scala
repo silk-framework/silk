@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.project
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.config.{ConfigWriter, Configuration}
+import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.evaluation.AlignmentWriter
 import xml.{NodeBuffer, PrettyPrinter, Node}
@@ -56,7 +56,7 @@ private object ProjectWriter
   {
     writer
     {
-      ConfigWriter.serializeConfig(config)
+      config.toXML
     }
   }
 
