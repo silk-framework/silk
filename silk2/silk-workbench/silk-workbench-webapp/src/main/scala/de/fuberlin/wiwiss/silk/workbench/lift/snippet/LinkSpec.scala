@@ -8,7 +8,6 @@ import net.liftweb.http.js.JE.{Call, Str, Num, JsArray}
 import xml.NodeSeq
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.{JsObj, JsCmds}
-import de.fuberlin.wiwiss.silk.config.{ConfigWriter}
 import de.fuberlin.wiwiss.silk.instance.Path
 import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
@@ -51,7 +50,7 @@ class LinkSpec
   private def generateLinkSpecVar() =
   {
     //Serialize the link condition to a JavaScript string
-    val linkSpecStr = ConfigWriter.serializeLinkSpec(Project().linkSpec).toString.replace("\n", " ")
+    val linkSpecStr = Project().linkSpec.toXML.toString.replace("\n", " ")
 
     val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 
