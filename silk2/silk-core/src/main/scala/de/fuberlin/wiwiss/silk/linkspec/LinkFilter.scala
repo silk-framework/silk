@@ -3,6 +3,13 @@ package de.fuberlin.wiwiss.silk.linkspec
 import xml.Node
 
 case class LinkFilter(threshold : Double = 0.0, limit : Option[Int] = None)
+{
+  def toXML : Node = limit match
+  {
+    case Some(limit) => <Filter threshold={threshold.toString} limit={limit.toString} />
+    case None => <Filter threshold={threshold.toString} />
+  }
+}
 
 object LinkFilter
 {

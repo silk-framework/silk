@@ -2,6 +2,8 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import input.{Input, PathInput, TransformInput, Transformer}
+import xml.Elem
 
 case class LinkCondition(rootOperator : Option[Operator])
 {
@@ -39,6 +41,43 @@ case class LinkCondition(rootOperator : Option[Operator])
     {
       case Some(operator) => operator.blockCounts.foldLeft(1)(_ * _)
       case None => 1
+    }
+  }
+
+  def toXML =
+  {
+    <LinkCondition>
+      { rootOperator.toList.map(serializeOperator) }
+    </LinkCondition>
+  }
+
+  private def serializeOperator(operator : Operator) : Elem = operator match
+  {
+    case Aggregation(required, weight, operators, Aggregator(aggregator, params)) =>
+    {
+      <Aggregate required={required.toString} weight={weight.toString} type={aggregator}>
+        { operators.map(serializeOperator) }
+      </Aggregate>
+    }
+    case Comparison(required, weight, inputs, Metric(metric, params)) =>
+    {
+      <Compare required={required.toString} weight={weight.toString} metric={metric}>
+        { serializeInput(inputs.source) }
+        { serializeInput(inputs.target) }
+        { params.map{case (name, value) => <Param name={name} value={value} />} }
+      </Compare>
+    }
+  }
+
+  private def serializeInput(param : Input) : Elem = param match
+  {
+    case PathInput(path) => <Input path={path.toString} />
+    case TransformInput(inputs, Transformer(transformer, params)) =>
+    {
+      <TransformInput function={transformer}>
+        { inputs.map{input => serializeInput(input)} }
+        { params.map{case (name, value) => <Param name={name} value={value} />} }
+      </TransformInput>
     }
   }
 }

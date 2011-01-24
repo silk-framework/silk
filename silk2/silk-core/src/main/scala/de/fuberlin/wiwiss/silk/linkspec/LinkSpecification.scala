@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import condition.Blocking
-import de.fuberlin.wiwiss.silk.output.Output
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
-import xml.Node
 import java.io.InputStream
 import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, SourceTargetPair}
+import xml.{Elem, Node}
+import de.fuberlin.wiwiss.silk.output.{LinkWriter, Output}
 
 /**
  * @param id The id which identifies this link specification. May only contain alphanumeric characters (a - z, 0 - 9).
@@ -19,6 +19,30 @@ case class LinkSpecification(val id : String, val linkType : String, val dataset
 {
   require(id.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')),
           "A link specification ID may only contain alphanumeric characters (a - z, 0 - 9). The following id is not valid: '" + id + "'")
+
+
+  def toXML : Node =
+  {
+    <Interlink id={id}>
+      <LinkType>{"<" + linkType + ">"}</LinkType>
+
+      <SourceDataset dataSource={datasets.source.sourceId} var={datasets.source.variable}>
+        <RestrictTo>{datasets.source.restriction}</RestrictTo>
+      </SourceDataset>
+
+      <TargetDataset dataSource={datasets.target.sourceId} var={datasets.target.variable}>
+        <RestrictTo>{datasets.target.restriction}</RestrictTo>
+      </TargetDataset>
+
+      { condition.toXML }
+
+      { filter.toXML }
+
+      <Outputs>
+        { outputs.map(_.toXML) }
+      </Outputs>
+    </Interlink>
+  }
 }
 
 object LinkSpecification
