@@ -18,9 +18,12 @@
 //    }
 //    else
 //    {
+//      var iterations = 1
+//
 //      bind("entry", chooseTemplate("choose", "train", xhtml),
 //           "create" -> SHtml.submit("Create", () => LearningServer.createPopulation()),
-//           "iterate" -> SHtml.submit("Iterate", () => LearningServer.iteratePopulation()),
+//           "iterations" -> SHtml.number(iterations, iterations = _, 1, 100),
+//           "iterate" -> SHtml.submit("Iterate", () => LearningServer.iteratePopulation(iterations)),
 //           "progress" -> Widgets.currentTaskProgress(() => LearningServer.currentTask))
 //    }
 //  }

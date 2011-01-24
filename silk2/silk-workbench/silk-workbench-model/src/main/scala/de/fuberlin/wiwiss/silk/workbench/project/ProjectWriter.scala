@@ -2,10 +2,8 @@ package de.fuberlin.wiwiss.silk.workbench.project
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.config.Configuration
-import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.evaluation.AlignmentWriter
-import xml.{NodeBuffer, PrettyPrinter, Node}
-import java.io.{OutputStream, FileOutputStream, OutputStreamWriter}
+import xml.{PrettyPrinter, Node}
+import java.io.OutputStream
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 
@@ -31,7 +29,7 @@ private object ProjectWriter
     zipStream.closeEntry()
 
     zipStream.putNextEntry(new ZipEntry("cache.xml"))
-    writeCache(project.cache, project.config.prefixes, xmlWriter)
+    writeCache(project.cache, xmlWriter)
     zipStream.closeEntry()
 
     zipStream.close()
@@ -64,66 +62,15 @@ private object ProjectWriter
   {
     writer
     {
-      AlignmentWriter.serialize(alignment)
+      alignment.toXML
     }
   }
 
-  private def writeCache(cache : Cache, prefixes : Map[String, String], writer : XmlWriter)
+  private def writeCache(cache : Cache, writer : XmlWriter)
   {
     writer
     {
-      val nodes = new NodeBuffer()
-
-      nodes.append(
-        <Prefixes>{
-          for((key, value) <- prefixes) yield
-          {
-            <Prefix id={key} namespace={value} />
-          }
-        }</Prefixes>)
-
-      if(cache.instanceSpecs != null)
-      {
-        nodes.append(
-          <InstanceSpecifications>
-            <Source>
-              { cache.instanceSpecs.source.toXML }
-            </Source>
-            <Target>
-              { cache.instanceSpecs.target.toXML }
-            </Target>
-          </InstanceSpecifications>)
-      }
-
-      if(cache.positiveInstances != null)
-      {
-        nodes.append(
-            <PositiveInstances>{
-            for(SourceTargetPair(sourceInstance, targetInstance) <- cache.positiveInstances) yield
-            {
-              <Pair>
-                <Source>{sourceInstance.toXML}</Source>
-                <Target>{targetInstance.toXML}</Target>
-              </Pair>
-            }
-            }</PositiveInstances>)
-      }
-
-      if(cache.negativeInstances != null)
-      {
-        nodes.append(
-          <NegativeInstances>{
-            for(SourceTargetPair(sourceInstance, targetInstance) <- cache.negativeInstances) yield
-            {
-              <Pair>
-                <Source>{sourceInstance.toXML}</Source>
-                <Target>{targetInstance.toXML}</Target>
-              </Pair>
-            }
-          }</NegativeInstances>)
-      }
-
-      <Cache>{nodes}</Cache>
+      cache.toXML
     }
   }
 
