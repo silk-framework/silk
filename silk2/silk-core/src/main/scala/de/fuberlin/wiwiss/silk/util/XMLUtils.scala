@@ -1,13 +1,7 @@
 package de.fuberlin.wiwiss.silk.util
 
 import java.io._
-import xml.{TopScope, Elem, PrettyPrinter, NodeSeq}
-import org.xml.sax.{SAXException, InputSource}
-import javax.xml.parsers.SAXParserFactory
-import javax.xml.XMLConstants
-import javax.xml.validation.SchemaFactory
-import javax.xml.transform.stream.StreamSource
-import xml.parsing.NoBindingFactoryAdapter
+import xml.{PrettyPrinter, NodeSeq}
 
 /**
  * Defines additional methods on XML, which are missing in the standard library.

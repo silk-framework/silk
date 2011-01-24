@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
+import de.fuberlin.wiwiss.silk.output.Link
 
 class Alignment
 {
@@ -34,7 +35,24 @@ class Alignment
       {
         case FileParamHolder(_, mime, _, data) =>
         {
-          Project.updateAlignment(AlignmentReader.readAlignment(new ByteArrayInputStream(data)))
+          val alignment = AlignmentReader.readAlignment(new ByteArrayInputStream(data))
+
+          //If the alignment does not define any negative links -> generate some
+          if(alignment.negativeLinks.isEmpty)
+          {
+            val positiveLinksSeq = alignment.positiveLinks.toSeq
+            val sourceInstances = positiveLinksSeq.map(_.sourceUri)
+            val targetInstances = positiveLinksSeq.map(_.targetUri)
+
+            val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
+
+            Project.updateAlignment(alignment.copy(negativeLinks = negativeLinks.toSet))
+          }
+          else
+          {
+            Project.updateAlignment(alignment)
+          }
+
           S.redirectTo("alignment")
         }
         case _ =>

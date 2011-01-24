@@ -13,7 +13,6 @@ import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
 import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.config.ConfigWriter
 import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, StrategyDefinition, Strategy}
@@ -60,7 +59,7 @@ class Boot
     case req @ Req(List("config"), "", GetRequest) =>
     {
       val outputStream = new ByteArrayOutputStream()
-      val configXml = ConfigWriter.serializeConfig(Project().config)
+      val configXml = Project().config.toXML
       val configStr = new PrettyPrinter(140, 2).format(configXml)
       () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
     }
