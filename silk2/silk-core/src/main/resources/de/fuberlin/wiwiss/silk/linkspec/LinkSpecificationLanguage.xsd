@@ -18,11 +18,11 @@
 
   <xs:element name="TransformInput" substitutionGroup="AnyInput">
     <xs:complexType>
-        <xs:sequence>
-          <xs:element ref="AnyInput" maxOccurs="unbounded"/>
-          <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
-        </xs:sequence>
-        <xs:attribute name="function" type="xs:string" use="required" />
+      <xs:sequence>
+        <xs:element ref="AnyInput" maxOccurs="unbounded"/>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="function" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
 

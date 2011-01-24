@@ -1,15 +1,17 @@
 package de.fuberlin.wiwiss.silk.util
 
-import collection.mutable.Queue
+import collection.mutable.{Queue, Buffer, SynchronizedBuffer, ArrayBuffer}
 
-class ParallelTraversable[T](traversable : Traversable[T], threadCount : Int = 8) extends Traversable[T]
+class ParallelMapper[T](traversable : Traversable[T], threadCount : Int = 8)
 {
   val queue = new Queue[T]()
 
-  override def foreach[U](f : T => U)
+  def map[U](f : T => U) : Traversable[U] =
   {
+    val buffer = new ArrayBuffer[U]() with SynchronizedBuffer[U]
+
     //Start worker threads in the background
-    val threads = for(i <- 0 until threadCount) yield new WorkerThread(f, i)
+    val threads = for(i <- 0 until threadCount) yield new WorkerThread(f, buffer, i)
     threads.foreach(_.start)
 
     //Add all elements to the queue
@@ -22,9 +24,11 @@ class ParallelTraversable[T](traversable : Traversable[T], threadCount : Int = 8
     }
     threads.foreach(_.interrupt)
     threads.foreach(_.join)
+
+    buffer.toTraversable
   }
 
-  private class WorkerThread[U](f : T => U, id : Int) extends Thread
+  private class WorkerThread[U](map : T => U, buffer : Buffer[U], id : Int) extends Thread
   {
     override def run()
     {
@@ -40,7 +44,8 @@ class ParallelTraversable[T](traversable : Traversable[T], threadCount : Int = 8
           {
             case Some(el) =>
             {
-              f(el)
+              val m = map(el)
+              buffer.append(m)
             }
             case None =>
             {
