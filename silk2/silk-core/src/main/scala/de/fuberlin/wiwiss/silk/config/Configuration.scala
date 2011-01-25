@@ -17,6 +17,7 @@ import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
  */
 case class Configuration(prefixes : Map[String, String],
                          sources : Traversable[Source],
+                         blocking : Option[Blocking],
                          linkSpecs : Traversable[LinkSpecification],
                          outputs : Traversable[Output] = Traversable.empty)
 {
@@ -56,9 +57,10 @@ object Configuration
   {
     val prefixes = node \ "Prefixes" \ "Prefix" map(prefix => (prefix \ "@id" text, prefix \ "@namespace" text)) toMap
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
+    val blocking = (node \ "Blocking").headOption.map(Blocking.fromXML)
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, prefixes))
     val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
 
-    Configuration(prefixes, sources, linkSpecifications, outputs)
+    Configuration(prefixes, sources, blocking, linkSpecifications, outputs)
   }
 }
