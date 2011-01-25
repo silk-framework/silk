@@ -1,5 +1,8 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
+import modules.linking.LinkingModule
+import modules.source.SourceModule
+
 trait Project
 {
   /**
@@ -13,17 +16,12 @@ trait Project
   def config_=(config : ProjectConfig) : Unit
 
   /**
-   * Retrieves the modules in this project.
+   * The source module which encapsulates all data sources.
    */
-  def modules : Traversable[Module]
+  def sourceModule : SourceModule
 
   /**
-   * Updates a specific module.
+   * The linking module which encapsulates all linking tasks.
    */
-  def update(module : Module) : Unit
-
-  /**
-   * Removes a module from this project.
-   */
-  def remove(module : Module) : Unit
+  def linkingModule : LinkingModule
 }

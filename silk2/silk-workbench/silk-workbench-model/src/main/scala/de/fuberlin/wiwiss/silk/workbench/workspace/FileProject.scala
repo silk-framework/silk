@@ -1,5 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
+import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
+import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.AlignmentReader
@@ -8,11 +10,14 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 
+/**
+ * Implementation of a project which is stored on the local file system.
+ */
 class FileProject(file : File) extends Project
 {
-  private val DataSourceDir = "datasources"
-  private val LinkingTaskDir = "linkingtasks"
-
+  /**
+   * Reads the project configuration.
+   */
   override def config =
   {
     val configXML = XML.loadFile(file + "/config.xml")
@@ -22,6 +27,9 @@ class FileProject(file : File) extends Project
     new ProjectConfig(prefixes)
   }
 
+  /**
+   * Writes the updated project configuration.
+   */
   override def config_=(config : ProjectConfig)
   {
     <Project>
@@ -36,60 +44,88 @@ class FileProject(file : File) extends Project
     </Project>
   }
 
-  override def modules : Traversable[Module] = synchronized
-  {
-    //TODO
-    Traversable.empty
-  }
+  /**
+   * The source module which encapsulates all data sources.
+   */
+  override def sourceModule = new FileSourceModule(file + "source")
 
-  override def update(module : Module) : Unit = module match
-  {
-    case m : DataSourceDefinition => writeDataSource(m, new File(file + "/" + DataSourceDir + "/" + m.name))
-    case m : LinkingTask => writeLinkingTask(m, new File(file + "/" + LinkingTaskDir + "/" + m.name))
-  }
+  /**
+   * The linking module which encapsulates all linking tasks.
+   */
+  override def linkingModule = new FileLinkingModule(file + "linking")
 
-  override def remove(module : Module) : Unit = module match
+  /**
+   * The source module which encapsulates all data sources.
+   */
+  class FileSourceModule(file : File) extends SourceModule
   {
-    case m : DataSourceDefinition => new File(file + "/" + DataSourceDir + "/" + m.name).deleteRecursive()
-    case m : LinkingTask => new File(file + "/" + LinkingTaskDir + "/" + m.name).deleteRecursive()
-  }
+    def config = SourceConfig()
 
-  private def readDataSource(file : File) =
-  {
-    val xml = XML.loadFile(new File(file + "/datasource.xml"))
+    def config_=(c : SourceConfig) {}
 
-    DataSourceDefinition(file.getName, xml \ "DataSource" text)
-  }
-
-  private def writeDataSource(dataSourceDefinition : DataSourceDefinition, file : File)
-  {
-    val dataSourceXML =
-      <DataSource>
+    def tasks =
+    {
+      for(fileName <- file.list.toList) yield
       {
-        dataSourceDefinition.endpointUri
+        val xml = XML.loadFile(file + "/" + fileName + "/datasource.xml")
+
+        SourceTask(file.getName, xml \ "DataSource" text)
       }
-      </DataSource>
+    }
 
-    dataSourceXML.write(new File(file + "/datasource.xml"))
+    def update(task : SourceTask)
+    {
+      val dataSourceXML =
+        <DataSource>
+        {
+          task.endpointUri
+        }
+        </DataSource>
+
+      dataSourceXML.write(file + "/" + task.name + "/datasource.xml")
+    }
+
+    def remove(task : SourceTask)
+    {
+      (file + task.name).deleteRecursive()
+    }
   }
 
-  private def readLinkingTask(file : File) =
+  /**
+   * The linking module which encapsulates all linking tasks.
+   */
+  class FileLinkingModule(file : File) extends LinkingModule
   {
-    val projectConfig = config
+    def config = LinkingConfig()
 
-    val linkSpec = LinkSpecification.load(projectConfig.prefixes)(new File(file + "/linkSpec.xml"))
+    def config_=(c : LinkingConfig) {}
 
-    val alignment = AlignmentReader.readAlignment(new File(file + "/alignment.xml"))
+    def tasks =
+    {
+      for(fileName <- file.list.toList) yield
+      {
+        val projectConfig = FileProject.this.config
 
-    val cache = Cache.fromXML(XML.loadFile(new File(file + "/cache.xml")))
+        val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + "/" + fileName + "/linkSpec.xml")
 
-    LinkingTask(file.getName, linkSpec, alignment, cache)
-  }
+        val alignment = AlignmentReader.readAlignment(file + "/" + fileName + "/alignment.xml")
 
-  private def writeLinkingTask(linkingTask : LinkingTask, file : File)
-  {
-    linkingTask.linkSpec.toXML.write(new File(file + "/linkSpec.xml"))
-    linkingTask.alignment.toXML.write(new File(file + "/alignment.xml"))
-    linkingTask.cache.toXML.write(new File(file + "/cache.xml"))
+        val cache = Cache.fromXML(XML.loadFile(file + "/" + fileName + "/cache.xml"))
+
+        LinkingTask(file.getName, linkSpec, alignment, cache)
+      }
+    }
+
+    def update(task : LinkingTask)
+    {
+      task.linkSpec.toXML.write(file + "/" + task.name + "/linkSpec.xml")
+      task.alignment.toXML.write(file + "/" + task.name + "/alignment.xml")
+      task.cache.toXML.write(file + "/" + task.name +  "/cache.xml")
+    }
+
+    def remove(task : LinkingTask)
+    {
+      (file + task.name).deleteRecursive()
+    }
   }
 }

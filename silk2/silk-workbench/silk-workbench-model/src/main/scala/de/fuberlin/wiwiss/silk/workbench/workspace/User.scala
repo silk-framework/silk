@@ -2,17 +2,16 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import java.io.File
 
+/**
+ * Dummy user as there is no user management yet.
+ */
 class User
 {
-  //val id = Random.nextInt
-
   val project = new FileProject(new File("."))
 }
 
 object User
 {
-  //var userManager : () => User = null
-
   /**
    * Retrieves the current user.
    */
