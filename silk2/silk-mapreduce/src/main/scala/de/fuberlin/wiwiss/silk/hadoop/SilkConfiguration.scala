@@ -8,54 +8,54 @@ import de.fuberlin.wiwiss.silk.config.Configuration
 
 object SilkConfiguration
 {
-    val InputParam = "silk.inputpath"
-    val OutputParam = "silk.outputpath"
-    val LinkSpecParam = "silk.linkspec"
+  val InputParam = "silk.inputpath"
+  val OutputParam = "silk.outputpath"
+  val LinkSpecParam = "silk.linkspec"
 
-    @volatile var config : SilkConfiguration = null
+  @volatile var config : SilkConfiguration = null
 
-    def get(hadoopConfig : org.apache.hadoop.conf.Configuration) =
+  def get(hadoopConfig : org.apache.hadoop.conf.Configuration) =
+  {
+    //This method is not synchronized, because multiple instantiations of SilkConfiguration are not a problem
+    if(config == null)
     {
-        //This method is not synchronized, because multiple instantiations of SilkConfiguration are not be a problem
-        if(config == null)
-        {
-            config = new SilkConfiguration(hadoopConfig)
-        }
-        config
+      config = new SilkConfiguration(hadoopConfig)
     }
+    config
+  }
 }
 
 class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configuration)
 {
-    def instanceCachePath = new Path(hadoopConfig.get(SilkConfiguration.InputParam))
+  def instanceCachePath = new Path(hadoopConfig.get(SilkConfiguration.InputParam))
 
-    def outputPath = new Path(hadoopConfig.get(SilkConfiguration.OutputParam))
+  def outputPath = new Path(hadoopConfig.get(SilkConfiguration.OutputParam))
 
-    private lazy val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
+  private lazy val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 
-    lazy val config =
-    {
-        DefaultImplementations.register()
-        Configuration.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
-    }
+  lazy val config =
+  {
+    DefaultImplementations.register()
+    Configuration.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
+  }
 
-    lazy val linkSpec =
-    {
-        val linkSpecId = hadoopConfig.get(SilkConfiguration.LinkSpecParam, config.linkSpecs.head.id)
-        config.linkSpec(linkSpecId)
-    }
+  lazy val linkSpec =
+  {
+    val linkSpecId = hadoopConfig.get(SilkConfiguration.LinkSpecParam, config.linkSpecs.head.id)
+    config.linkSpec(linkSpecId)
+  }
 
-    lazy val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+  lazy val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
 
-    lazy val sourceCache =
-    {
-        val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
-    }
+  lazy val sourceCache =
+  {
+    val numBlocks = config.blocking.map(_.blocks).getOrElse(1)
+    new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
+  }
 
-    lazy val targetCache =
-    {
-        val numBlocks = linkSpec.blocking.map(_.blocks).getOrElse(1)
-        new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
-    }
+  lazy val targetCache =
+  {
+    val numBlocks = config.blocking.map(_.blocks).getOrElse(1)
+    new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
+  }
 }

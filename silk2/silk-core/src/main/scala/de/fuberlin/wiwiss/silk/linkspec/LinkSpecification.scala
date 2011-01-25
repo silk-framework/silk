@@ -1,21 +1,20 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import condition.Blocking
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
-import java.io.InputStream
 import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, SourceTargetPair}
-import xml.{Elem, Node}
-import de.fuberlin.wiwiss.silk.output.{LinkWriter, Output}
+import xml.Node
+import de.fuberlin.wiwiss.silk.output.Output
 
 /**
  * @param id The id which identifies this link specification. May only contain alphanumeric characters (a - z, 0 - 9).
  */
-//TODO make LinkSpecification self contained by including a link to the prefixes?
-//TODO move blocking to configuration
-case class LinkSpecification(val id : String, val linkType : String, val datasets : SourceTargetPair[DatasetSpecification],
-                             val blocking : Option[Blocking], val condition : LinkCondition,
-                             val filter : LinkFilter, val outputs : Traversable[Output])
+case class LinkSpecification(id : String,
+                             linkType : String,
+                             datasets : SourceTargetPair[DatasetSpecification],
+                             condition : LinkCondition,
+                             filter : LinkFilter,
+                             outputs : Traversable[Output])
 {
   require(id.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')),
           "A link specification ID may only contain alphanumeric characters (a - z, 0 - 9). The following id is not valid: '" + id + "'")
@@ -61,7 +60,6 @@ object LinkSpecification
       resolveQualifiedName(node \ "LinkType" text, prefixes),
       new SourceTargetPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
                            DatasetSpecification.fromXML(node \ "TargetDataset" head)),
-      (node \ "Blocking").headOption.map(blockingNode => readBlocking(blockingNode)),
       readLinkCondition(node \ "LinkCondition" head, prefixes),
       LinkFilter.fromXML(node \ "Filter" head),
       (node \ "Outputs" \ "Output").map(Output.fromXML)
@@ -109,14 +107,6 @@ object LinkSpecification
       if(weightStr.isEmpty) 1 else weightStr.toInt,
       SourceTargetPair(inputs(0), inputs(1)),
       metric
-    )
-  }
-
-  private def readBlocking(node : Node) : Blocking =
-  {
-    new Blocking(
-      (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(1000),
-      (node \ "@overlap").headOption.map(_.text.toDouble).getOrElse(0.4)
     )
   }
 

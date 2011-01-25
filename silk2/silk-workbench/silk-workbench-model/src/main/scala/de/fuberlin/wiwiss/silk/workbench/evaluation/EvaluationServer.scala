@@ -20,8 +20,8 @@ object EvaluationServer
   private class EvaluationTask extends Task[Unit]
   {
     //Instance caches
-    private val sourceCache = new MemoryInstanceCache(Project().linkSpec.blocking.map(_.blocks).getOrElse(1), 100)
-    private val targetCache = new MemoryInstanceCache(Project().linkSpec.blocking.map(_.blocks).getOrElse(1), 100)
+    private val sourceCache = new MemoryInstanceCache(Project().config.blocking.map(_.blocks).getOrElse(1), 100)
+    private val targetCache = new MemoryInstanceCache(Project().config.blocking.map(_.blocks).getOrElse(1), 100)
 
     private val matchTask = new MatchTask(Project().config, Project().linkSpec, sourceCache, targetCache, 8)
 

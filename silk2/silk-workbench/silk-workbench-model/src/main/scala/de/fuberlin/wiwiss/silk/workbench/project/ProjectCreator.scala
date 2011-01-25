@@ -26,13 +26,12 @@ private object ProjectCreator
           linkType = "http://www.w3.org/2002/07/owl#sameAs",
           datasets = new SourceTargetPair(new DatasetSpecification(Constants.SourceId, Constants.SourceVariable, description.source.restriction),
                                           new DatasetSpecification(Constants.TargetId, Constants.TargetVariable, description.target.restriction)),
-          blocking = None,
           condition = new LinkCondition(None),
           filter = new LinkFilter(0.95, None),
           outputs = Nil
         )
 
-      new Configuration(prefixes, Traversable(sourceDataSource, targetDataSource), Traversable(linkSpec))
+      new Configuration(prefixes, Traversable(sourceDataSource, targetDataSource), None, Traversable(linkSpec))
     }
 
     //Generate project
