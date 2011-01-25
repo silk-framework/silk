@@ -7,7 +7,12 @@ import java.io.File
  */
 class User
 {
-  val project = new FileProject(new File("."))
+  val project =
+  {
+    val projectFile = new File("./workspace/project/")
+    projectFile.mkdirs()
+    new FileProject(projectFile)
+  }
 }
 
 object User
