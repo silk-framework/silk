@@ -83,7 +83,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, overri
   {
     @volatile var partitionCount = 0
 
-    private val blockDir = new File(dir + "/block" + block + "/")
+    private val blockDir = dir + "/block" + block.toString + "/"
 
     private val lastPartition = new Array[Instance](maxPartitionSize)
     @volatile private var lastPartitionSize = 0
@@ -163,7 +163,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, overri
 
     private def readPartitionFromFile(partition : Int) =
     {
-      val stream = new DataInputStream(new FileInputStream(blockDir + "/partition" + partition))
+      val stream = new DataInputStream(new FileInputStream(blockDir + "/partition" + partition.toString))
 
       try
       {
@@ -187,7 +187,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, overri
     {
       if(partitionCount == 1) blockDir.mkdirs()
 
-      val stream = new DataOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1)))
+      val stream = new DataOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1).toString))
 
       try
       {
