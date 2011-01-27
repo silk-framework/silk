@@ -55,12 +55,12 @@ class FileProject(file : File) extends Project
   /**
    * The source module which encapsulates all data sources.
    */
-  override def sourceModule = new FileSourceModule(file + "/source")
+  override val sourceModule = new FileSourceModule(file + "/source")
 
   /**
    * The linking module which encapsulates all linking tasks.
    */
-  override def linkingModule = new FileLinkingModule(file + "/linking")
+  override val linkingModule = new FileLinkingModule(file + "/linking")
 
   /**
    * The source module which encapsulates all data sources.
@@ -137,7 +137,7 @@ class FileProject(file : File) extends Project
 
     def remove(task : LinkingTask)
     {
-      (file + task.name).deleteRecursive()
+      (file + ("/" + task.name)).deleteRecursive()
     }
   }
 }

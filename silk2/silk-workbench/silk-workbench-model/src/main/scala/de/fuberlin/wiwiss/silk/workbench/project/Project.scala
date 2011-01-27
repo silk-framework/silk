@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.instancespec.{RelevantPropertiesCollector}
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.util.sparql.{RemoteSparqlEndpoint, SparqlEndpoint, InstanceRetriever}
+import de.fuberlin.wiwiss.silk.util.sparql.{ParallelInstanceRetriever, RemoteSparqlEndpoint, SparqlEndpoint}
 
 case class Project(desc : SourceTargetPair[Description],
                    config : Configuration,//TODO remove and hold all variables in desc
@@ -59,14 +59,14 @@ case class Project(desc : SourceTargetPair[Description],
       {
         updateStatus("Loading instances into cache", 0.6)
 
-        val sourceRetriever = new InstanceRetriever(sourceEndpoint)
-        val targetRetriever = new InstanceRetriever(targetEndpoint)
+        val sourceRetriever = new ParallelInstanceRetriever(sourceEndpoint)
+        val targetRetriever = new ParallelInstanceRetriever(targetEndpoint)
 
-        val positiveSourceInstances = sourceRetriever.retrieveList(positiveSamples.map(_.sourceUri), cache.instanceSpecs.source).toList
-        val positiveTargetInstances = targetRetriever.retrieveList(positiveSamples.map(_.targetUri), cache.instanceSpecs.target).toList
+        val positiveSourceInstances = sourceRetriever.retrieve(cache.instanceSpecs.source, positiveSamples.map(_.sourceUri)).toList
+        val positiveTargetInstances = targetRetriever.retrieve(cache.instanceSpecs.target, positiveSamples.map(_.targetUri)).toList
 
-        val negativeSourceInstances = sourceRetriever.retrieveList(negativeSamples.map(_.sourceUri), cache.instanceSpecs.source).toList
-        val negativeTargetInstances = targetRetriever.retrieveList(negativeSamples.map(_.targetUri), cache.instanceSpecs.target).toList
+        val negativeSourceInstances = sourceRetriever.retrieve(cache.instanceSpecs.source, negativeSamples.map(_.sourceUri)).toList
+        val negativeTargetInstances = targetRetriever.retrieve(cache.instanceSpecs.target, negativeSamples.map(_.targetUri)).toList
 
         cache.positiveInstances = (positiveSourceInstances zip positiveTargetInstances).map(SourceTargetPair.fromPair)
         cache.negativeInstances = (negativeSourceInstances zip negativeTargetInstances).map(SourceTargetPair.fromPair)
