@@ -7,7 +7,7 @@ import java.util.logging.Logger
 /**
  * An instance cache, which caches the instances on the local file system.
  */
-class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, override val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
+class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearOnLoading : Boolean = false, override val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
 {
   require(blockCount >= 0, "blockCount must be greater than 0 (blockCount=" + blockCount + ")")
   require(maxPartitionSize >= 0, "maxPartitionSize must be greater than 0 (maxPartitionSize=" + maxPartitionSize + ")")
@@ -88,7 +88,10 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, overri
     private val lastPartition = new Array[Instance](maxPartitionSize)
     @volatile private var lastPartitionSize = 0
 
-    load()
+    if(clearOnLoading)
+      clear()
+    else
+      load()
 
     private def load()
     {

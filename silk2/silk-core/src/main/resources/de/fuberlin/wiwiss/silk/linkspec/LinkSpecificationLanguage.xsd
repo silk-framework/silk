@@ -95,13 +95,6 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element name="Blocking" minOccurs="0">
-          <xs:complexType>
-            <xs:attribute name="blocks" type="xs:unsignedShort" use="optional" />
-            <xs:attribute name="overlap" type="xs:decimal" use="optional" />
-          </xs:complexType>
-        </xs:element>
-
         <xs:element name="LinkCondition">
           <xs:complexType>
             <xs:choice minOccurs="0" maxOccurs="1">
@@ -155,6 +148,12 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Blocking" minOccurs="0">
+          <xs:complexType>
+            <xs:attribute name="blocks" type="xs:unsignedShort" use="optional" />
           </xs:complexType>
         </xs:element>
         

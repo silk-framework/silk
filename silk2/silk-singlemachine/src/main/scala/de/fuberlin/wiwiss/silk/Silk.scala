@@ -111,8 +111,8 @@ object Silk
 
     //Create instance caches
     val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
-    val sourceCache = new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
-    val targetCache = new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
+    val sourceCache = new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
+    val targetCache = new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
 
     //Load instances into cache
     if(reload)

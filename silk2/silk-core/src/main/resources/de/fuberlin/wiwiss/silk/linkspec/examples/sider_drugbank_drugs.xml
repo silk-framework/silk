@@ -17,14 +17,14 @@
   <DataSources>
     <DataSource id="sider" type="sparqlEndpoint">
       <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/sider/sparql"/>
-      <!-- Param name="instanceList" value="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/3652"/ -->
     </DataSource>
 
     <DataSource id="drugbank" type="sparqlEndpoint">
       <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/drugbank/sparql"/>
-      <!-- Param name="instanceList" value="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00608"/ -->
     </DataSource>
   </DataSources>
+
+  <Blocking blocks="10" />
 
   <Interlinks>
     <Interlink id="drugs">
@@ -41,8 +41,6 @@
           ?b rdf:type drugbank:drugs
         </RestrictTo>
       </TargetDataset>
-
-      <!-- Blocking blocks="1000" / -->
 
       <LinkCondition>
         <Aggregate type="max">
@@ -65,7 +63,7 @@
         </Aggregate>
       </LinkCondition>
 
-      <Filter threshold="0.99" limit="1"/>
+      <Filter threshold="0.90" limit="1"/>
 
     </Interlink>
   </Interlinks>

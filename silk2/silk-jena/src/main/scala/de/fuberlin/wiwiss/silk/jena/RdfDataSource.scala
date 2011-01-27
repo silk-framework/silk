@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.jena
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
-import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import java.io.StringReader
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.sparql.ParallelInstanceRetriever
 
 /**
  * A DataSource where all instances are given directly in the configuration.
@@ -26,7 +26,7 @@ class RdfDataSource(input : String, format : String) extends DataSource
 
     val endpoint = new JenaSparqlEndpoint(model, instanceSpec.prefixes)
 
-    val instanceRetriever = new InstanceRetriever(endpoint)
+    val instanceRetriever = new ParallelInstanceRetriever(endpoint)
 
     instanceRetriever.retrieve(instanceSpec, instances)
   }

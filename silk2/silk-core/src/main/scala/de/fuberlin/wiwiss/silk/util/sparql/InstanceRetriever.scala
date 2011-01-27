@@ -34,7 +34,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
    * @param instanceSpec The instance specification
    * @return The retrieved instances
    */
-  def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
+  private def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
   {
     //Prefixes
     var sparql = instanceSpec.prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
@@ -76,7 +76,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
    * @param instanceSpec The instance specification
    * @return A sequence of the retrieved instances. If a instance is not in the store, it wont be included in the returned sequence.
    */
-  def retrieveList(instanceUris : Seq[String], instanceSpec : InstanceSpecification) : Seq[Instance] =
+  private def retrieveList(instanceUris : Seq[String], instanceSpec : InstanceSpecification) : Seq[Instance] =
   {
     instanceUris.view.flatMap(instanceUri => retrieveInstance(instanceUri, instanceSpec))
   }
