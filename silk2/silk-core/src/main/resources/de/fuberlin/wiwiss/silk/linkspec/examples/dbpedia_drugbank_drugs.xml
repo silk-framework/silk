@@ -23,6 +23,8 @@
     </DataSource>
   </DataSources>
 
+  <!-- Blocking / -->
+
   <Interlinks>
     <Interlink id="drugs">
       <LinkType>owl:sameAs</LinkType>

@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.datasource
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 import java.net.URI
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.sparql.{ParallelInstanceRetriever, RemoteSparqlEndpoint}
 
 /**
  * DataSource which retrieves all instances from a SPARQL endpoint
@@ -37,7 +37,7 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
 
     val endpoint = new RemoteSparqlEndpoint(uri, instanceSpec.prefixes, loginComplete, pageSize, pauseTime, retryCount, pauseTime)
 
-    val instanceRetriever = new InstanceRetriever(endpoint, pageSize, graphUri)
+    val instanceRetriever = new ParallelInstanceRetriever(endpoint, pageSize, graphUri)
 
     instanceRetriever.retrieve(instanceSpec, instanceUris union instances)
   }
