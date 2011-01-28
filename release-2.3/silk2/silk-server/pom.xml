@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>de.fuberlin.wiwiss.silk</groupId>
+    <artifactId>silk</artifactId>
+    <version>2.3-SNAPSHOT</version>
+  </parent>
+  
+  <groupId>de.fuberlin.wiwiss.silk</groupId>
+  <artifactId>silk-server</artifactId>
+  <version>2.3-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>Silk Server</name>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>de.fuberlin.wiwiss.silk</groupId>
+      <artifactId>silk-core</artifactId>
+      <version>${silk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>de.fuberlin.wiwiss.silk</groupId>
+      <artifactId>silk-jena</artifactId>
+      <version>${silk.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.liftweb</groupId>
+      <artifactId>lift-webkit_2.8.0</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>[6.1.6,7.0)</version>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src/main/scala</sourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>maven-jetty-plugin</artifactId>
+        <version>6.1.22</version>
+        <configuration>
+          <systemPropertiesFile>./server.properties</systemPropertiesFile>
+          <contextPath>/</contextPath>
+          <scanIntervalSeconds>5</scanIntervalSeconds>
+          <connectors>
+            <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+              <port>8080</port>
+              <maxIdleTime>60000</maxIdleTime>
+            </connector>
+          </connectors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

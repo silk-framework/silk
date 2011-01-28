@@ -1,0 +1,179 @@
+body{
+	font-family:"Trebuchet MS","Arial","Helvetica","Verdana","sans-serif";
+}
+
+#content
+{
+	padding-left: 0px;
+}
+
+.container  {
+	background-color:#fefefe;
+	border: 1px solid #eee;
+	height:90%;
+	padding:12px;
+	width:96%;
+	margin: 10px;
+	float: left;
+}
+
+.draggables {
+	float: left;
+}
+
+.draggable {
+	width: 200px;
+	height: 13px;
+	padding: 4px;
+	margin: 4px 4px 4px 0;
+	background-color: #f2d7ff;
+	border:1px dotted #582271;
+	text-align: left;
+	cursor:move;
+	font-size: 9pt;
+	z-index:50;
+
+}
+
+._jsPlumb_connector { z-index:1; }
+._jsPlumb_endpoint { z-index:50; }
+
+.draggable-inside {
+	width: 200px;
+	height: 13px;
+	padding: 4px;
+	margin: 4px 4px 4px 0;
+	background-color: #d6eeff;
+	border:1px dotted #582271;
+	text-align: left;
+	cursor:move;
+	font-size: 9pt;
+}
+
+.aggregators {
+	background-color: #d6eeff;
+	border:1px dotted #1484d4;
+}
+.tranformations {
+	background-color: #d6fff0;
+	border:1px dotted #0cc481;
+}
+.comparators {
+	background-color: #ffeed6;
+	border:1px dotted #e59829;
+}
+
+.dragDiv {
+	width:200px;
+	position:absolute;
+	left:100px;
+	top:100px;
+	font-size: 9pt;
+}
+
+.dragDiv h5 {
+	font-size: 9pt;
+}
+
+.sourcePath {
+	background-color:#f2d7ff;
+	border:1px solid #C354BF;
+}
+
+.targetPath {
+	background-color:#f2d7ff;
+	border:1px solid #C354BF;
+}
+
+.transformDiv  {
+	background-color: #d6fff0;
+	border:1px solid #0cc481;
+}
+
+.compareDiv  {
+	background-color: #ffeed6;
+	border:1px solid #e59829;
+}
+
+.aggregateDiv  {
+	background-color: #d6eeff;
+	border:1px solid #1484d4;
+}
+
+.dragDiv h5 {
+	padding:5px;
+	margin:1px;
+}
+
+.sourcePath h5 {
+	background-color:#C354BF;
+}
+
+.targetPath h5 {
+	background-color:#C354BF;
+}
+
+.transformDiv h5 {
+	background-color:#0cc481;
+}
+
+.compareDiv h5 {
+	background-color:#e59829;
+}
+
+.aggregateDiv h5 {
+	background-color:#1484d4;
+}
+
+.dragDiv div {
+	padding:3px 5px;
+	margin-bottom:5px;
+}
+
+.more {
+	font-size: 9pt;
+}
+
+a.more {
+	text-decoration: none;
+}
+
+.dragDiv small, .draggable span, .draggable small{
+	display:none;
+}
+.excerpt{
+	font-size: 10px;
+	background: #db8ffe;
+	border: 1px solid #582271;
+	width: 200px;
+	height: 15px;
+	padding: 5px;
+}
+.droppable_outer {
+	width: 60%;
+	height: 650px;
+	margin: 25px 10px;
+	float: left;
+}
+.droppable {
+	width: 98%;
+	height: 600px;
+	padding: 5px;
+	overflow:auto;
+	background-color: #f8f8f8;
+	border:1px dashed #d9d9d9;
+	margin-bottom: 10px;
+}
+.dragactive{
+	background-color: #ffcccc;
+	border: 1px dashed #e5a8a8;
+}
+.drophover{
+	background-color: #d5eca6;
+	border: 1px dotted #c7dd9b;
+}
+.drophighlight{
+	background-color: #cae9ec;
+	border: 1px solid #b9d5d8;
+}
+.description{font-size:12px;text-align:center;}

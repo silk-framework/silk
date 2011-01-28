@@ -1,0 +1,158 @@
+BODY {
+	PADDING-RIGHT: 3em; PADDING-LEFT: 3em; BACKGROUND: white; PADDING-BOTTOM: 2.5em; MARGIN: 0px; COLOR: black; LINE-HEIGHT: 1.4em; PADDING-TOP: 2.5em; FONT-FAMILY: sans-serif
+}
+:link {
+	COLOR: #00c
+}
+:visited {
+	COLOR: #609
+}
+A:link IMG {
+	BORDER-TOP-STYLE: none; BORDER-RIGHT-STYLE: none; BORDER-LEFT-STYLE: none; BORDER-BOTTOM-STYLE: none
+}
+A:visited IMG {
+	BORDER-TOP-STYLE: none; BORDER-RIGHT-STYLE: none; BORDER-LEFT-STYLE: none; BORDER-BOTTOM-STYLE: none
+}
+H1 {
+	BACKGROUND: white; COLOR: #800
+}
+H2 {
+	BACKGROUND: white; COLOR: #800
+}
+H3 {
+	BACKGROUND: white; COLOR: #800
+}
+H1 {
+	MARGIN: 0px; FONT: 170% sans-serif
+}
+H2 {
+	CLEAR: both; MARGIN: 1.5em 0px -0.5em; FONT: 140% sans-serif
+}
+H3 {
+	MARGIN: 1.5em 0px -0.5em; FONT: 120% sans-serif
+}
+H4 {
+	FONT: bold 100% sans-serif
+}
+H5 {
+	FONT: italic 100% sans-serif
+}
+H6 {
+	FONT: small-caps 100% sans-serif
+}
+.hide {
+	DISPLAY: none
+}
+PRE {
+	PADDING-RIGHT: 2em; PADDING-LEFT: 2em; BACKGROUND: #fff6bb; PADDING-BOTTOM: 1em; LINE-HEIGHT: 1.2em; PADDING-TOP: 1em; FONT-FAMILY: monospace
+}
+DT {
+	MARGIN-TOP: 0px; FONT-WEIGHT: bold; MARGIN-BOTTOM: 0px
+}
+DD {
+	MARGIN-TOP: 0px; MARGIN-BOTTOM: 0px
+}
+CODE {
+	FONT-FAMILY: monospace
+}
+TT {
+	FONT-FAMILY: monospace
+}
+TABLE
+{
+    border-collapse: collapse;
+}
+TABLE, TR, TD, TH
+{
+   border: 0px;
+}
+TD, TH
+{
+    vertical-align: top;
+    padding-left: 8px;
+}
+#grey
+{
+    background-color: #EDEDED;
+}
+#darkgrey
+{
+    background-color: #CFCFCF;
+}
+UL.toc {
+	LIST-STYLE-TYPE: none
+}
+OL.toc LI A {
+	TEXT-DECORATION: none
+}
+.note {
+	COLOR: red
+}
+#header {
+	BORDER-BOTTOM: #ccc 1px solid
+}
+#logo {
+	FLOAT: right
+}
+#authors {
+	CLEAR: right; FONT-SIZE: 80%; FLOAT: right; TEXT-ALIGN: right
+}
+#content {
+	CLEAR: both; MARGIN: 2em auto 0px 0px; TEXT-ALIGN: justify
+}
+#download {
+	FLOAT: left; MARGIN: 1em 0px 1.5em; WIDTH: 50%; FONT-FAMILY: sans-serif; TEXT-ALIGN: center
+}
+#demo {
+	FLOAT: left; MARGIN: 1em 0px 1.5em; WIDTH: 50%; FONT-FAMILY: sans-serif; TEXT-ALIGN: center
+}
+#download H2 {
+	FONT-SIZE: 125%; MARGIN: 1.5em 0px -0.2em
+}
+#demo H2 {
+	FONT-SIZE: 125%; MARGIN: 1.5em 0px -0.2em
+}
+#download SMALL {
+	FONT-SIZE: 80%; COLOR: #888
+}
+#demo SMALL {
+	FONT-SIZE: 80%; COLOR: #888
+}
+#footer {
+	BORDER-TOP: #ccc 1px solid; MARGIN: 4em 0px 0px; COLOR: #aaa
+}
+
+@media Print
+{
+* {
+	FONT-SIZE: 92%
+}
+BODY {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; LINE-HEIGHT: 1.2em; PADDING-TOP: 0px
+}
+#content {
+	MARGIN: 0px; WIDTH: 100%
+}
+
+}
+
+@media Aural
+{
+H1 {
+	stress: 20; richness: 90
+}
+H2 {
+	stress: 20; richness: 90
+}
+H3 {
+	stress: 20; richness: 90
+}
+.hide {
+	speak: none
+}
+DT {
+	pause-before: 20%
+}
+PRE {
+	speak-punctuation: code
+}

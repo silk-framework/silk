@@ -1,0 +1,25 @@
+<lift:surround with="default" at="content">
+  <h2>Datasets</h2>
+  <p>
+    <lift:comet type="DatasetManager" name="Other">
+      <comet:input>
+      </comet:input>
+      <comet:body>
+        <table border="1">
+          <tr>
+            <th>Name</th>
+            <th>Source Instances</th>
+            <th>Target Instances</th>
+          </tr>
+          <comet:row>
+            <tr>
+              <td><row:name/></td>
+              <td><row:sourceInstances/></td>
+              <td><row:targetInstances/></td>
+            </tr>
+          </comet:row>
+        </table>
+      </comet:body>
+    </lift:comet>
+  </p>
+</lift:surround>

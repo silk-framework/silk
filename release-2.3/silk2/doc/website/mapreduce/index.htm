@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<?xml version="1.0" encoding="utf-8"?><HTML lang=en
+xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk MapReduce - User Manual</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    
+</HEAD>
+<BODY>
+<DIV class=head>
+<H1 id=title>Silk MapReduce - User Manual</H1>
+<DL>
+  <DT>This Version:
+  <DD>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/20101006/">http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/20101006/</a> </p>
+    <DT>Latest Version:
+  <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/">http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/</a><DT>
+  <DT>Authors:
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
+  <DT></DT></DL>
+<P>&nbsp;</P>
+<HR title="Separator for header">
+</DIV>
+
+<h2 id=toc>Table of Contents</h2>
+<ul class=toc>
+  <li>1. <a href="#introduction">Introduction</a></li>  
+  <li>2. <a href="#usage">Usage</a></li>  
+  <li>3. <a href="#usageexample">Usage example</a></li>  
+  <li>4. <a href="#references">References</a></li>
+  <li>5. <a href="#change_log">Change Log</a></li>
+</ul>
+<hr>
+
+<H1><A name=introduction>1. Introduction</A></H1>
+<p>Silk MapReduce is used to generate RDF links between data sets using a cluster of multiple machines. Silk MapReduce is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. Silk MapReduce enables Silk to scale out to very large datasets by distributing the link generation to multiple machines.</p>
+
+<HR title="Separator for header">
+
+<h1><A name="usage"></a>2. Usage</h1>
+<p>In order to run the Silk MapReduce, you need:</p>
+<UL>
+  <LI><STRONG>Silk Link Discovery Framework</STRONG>. Get the most recent version from <a href="http://sourceforge.net/projects/silk2/">http://sourceforge.net/projects/silk2/</a>.</LI>
+    <LI><strong>Java Runtime Environment</strong> The Silk Link Discovery Framework runs on top of the JVM. Get the most recent JRE from <a href="http://java.sun.com">http://java.sun.com</a>.</li>
+</UL>
+
+The Silk MapReduce linking workflow is divided into 2 phases:
+
+<h2>Load phase</h2>
+<p>In the <b>Load phase</b> Silk loads all data sets which are specified by the user-provided link specifications into the instance cache.
+<pre>hadoop jar silkmr.jar load configFile ouputDir [linkSpec]</pre>
+The following parameters are accepted:
+<ul>
+  <li>
+    <tt><strong>configFile</strong></tt> The path to the Silk configuration file, which contains the link specifications. For details on the <em>Silk - Link Specification Language</em>, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Specification</a>.
+  </li>
+  <li>
+    <tt><strong>ouputDir</strong></tt> The directory, where the instance cache will be written to. This will be the input directory of the <em>Link Generation</em> phase.
+  </li>
+  <li>
+    <strong><tt>linkSpec</tt> (optional)</strong> If given, only the specified link specification will be loaded. If not given, all link specifications in the provided configuration will be loaded.
+  </li>
+</ul>
+Example:
+<pre>hadoop jar silkmr.jar load ./config.xml ./cache</pre>
+</p>
+
+<h2>Link Generation phase</h2>
+<p>In the <b>Link Generation phase</b> Silk generates the links from the previously loaded instance cache.
+<pre>hadoop jar silkmr.jar match inputDir ouputDir [linkSpec]</pre>
+The following parameters are accepted:
+<ul>
+  <li>
+    <tt><strong>inputDir</strong></tt> The path to the previously loaded instance cache.
+  </li>
+  <li>
+    <tt><strong>ouputDir</strong></tt> The directory, where the generated links will be written to.
+  </li>
+  <li>
+    <strong><tt>linkSpec</tt> (optional)</strong> The link specification for which links should be generated. Can be omitted if the provided configuration only contains one link specification.
+  </li>
+</ul>
+Example:
+<pre>hadoop jar silkmr.jar match ./cache ./links</pre>
+</p>
+<hr>
+<h1><A name="usageexample"></a>3. Usage example</h1>
+<p>We employed Silk to find <tt>owl:sameAs</tt> links between cities in <a href="http://dbpedia.org">DBpedia</a> and in <a href="http://linkedgeodata.org">LinkedGeoData</a>. 
+The used link specification can be found <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/dbpedia_linkedgeodata_cities.xml">online</a>. As both datasets are very large, we used a reduced dataset consisting of 10,5000 settlements from DBpedia and 59,000 cities and towns from LinkedGeoData (omitting villages).</p>
+<p>We executed the link specification using two different configurations:
+<ol>
+  <li>Silk Single Machine running on a Intel Core2Duo E8500 with 8GB of RAM</li>
+  <li>Silk MapReduce running on <em>Amazon Elastic MapReduce</em> cluster consisting of 10 <em>Amazon EC2</em> instances (High-CPU Medium Instance Profile)</li>
+</ol>
+For each configuration, we executed the link specifications twice:
+<ol>
+  <li>Without the use of the blocking feature. In this case the Silk Linking Engine has to evaluate the full cartesian product resulting in over 6 billion instance comparisions.</li>
+  <li>Using the blocking feature. The link specification has been extended to block the cities by name using 50 blocks</li>
+</ol>
+</p>
+<p>The number of generated links and the time needed to generate the links for each combination is given in the following table:</p>
+<table borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <tbody>
+    <tr>
+      <th>Variant</th>
+      <th>Link Generation time</th>
+      <th>Number of links</th>
+    </tr>
+    <tr>
+      <th colspan="3" align="center">Without Blocking</th>
+    </tr>
+    <tr>
+      <td>Silk Single Machine</td>
+      <td>54 hours</td>
+      <td>9,283</td>
+    </tr>
+    <tr>
+      <td>Silk MapReduce</td>
+      <td>6.7 hours</td>
+      <td>9,283</td>
+    </tr>
+    <tr>
+      <th colspan="3" align="center">With Blocking</th>
+    </tr>
+    <tr>
+      <td>Silk Single Machine</td>
+      <td>155.5 minutes</td>
+      <td>9,224</td>
+    </tr>
+    <tr>
+      <td>Silk MapReduce</td>
+      <td>14.4 minutes</td>
+      <td>9,224</td>
+    </tr>
+  </tbody>
+</table>
+<p>The table clearly shows how Silk MapReduce reduces the execution time significantly by scaling to clusters with multiple machines. The performance has been further improved by employing the blocking feature included into Silk while losing less than 1 % of the links compared to the link specification without blocking.</p>
+<hr>
+<h1><a name="references" />4. References</h1>
+<p>
+<ul>
+    <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
+    <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
+</ul>
+
+<HR>
+
+<H1><a name="change_log"/>5. Change Log</H1>
+<ul>
+  <li>2010-10-06: Initial version of this document. </li>
+</ul>
+<HR>
+
+
+</BODY></HTML>

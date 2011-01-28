@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Silk>
+  <Prefixes>
+	  <Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />
+	  <Prefix id="rdfs" namespace="http://www.w3.org/2000/01/rdf-schema#" />
+	  <Prefix id="foaf" namespace="http://xmlns.com/foaf/0.1/" />
+	  <Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#" />
+	  <Prefix id="dbpedia" namespace="http://dbpedia.org/ontology/" />
+	  <Prefix id="dc" namespace="http://purl.org/dc/terms/" />
+	  <Prefix id="movie" namespace="http://data.linkedmdb.org/resource/movie/" />
+  </Prefixes>
+
+  <DataSources>
+    <DataSource id="dbpedia" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://dbpedia.org/sparql" />
+      <Param name="graph" value="http://dbpedia.org" />
+    </DataSource>
+    <DataSource id="linkedmdb" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://data.linkedmdb.org/sparql" />
+    </DataSource>
+  </DataSources>
+
+  <Interlinks>
+    <Interlink id="movies">
+      <LinkType>dbpedia:director</LinkType>
+
+      <SourceDataset dataSource="dbpedia" var="a">
+        <RestrictTo>
+          ?a rdf:type dbpedia:Film
+        </RestrictTo>
+      </SourceDataset>
+      <TargetDataset dataSource="linkedmdb" var="b">
+        <RestrictTo>
+          ?b rdf:type movie:director
+        </RestrictTo>
+      </TargetDataset>
+
+      <LinkCondition>
+        <Aggregate type="max">
+          <Compare metric="jaro">
+            <Input path="?a/dbpedia:director/rdfs:label" />
+            <Input path="?b/rdfs:label" />
+          </Compare>
+          <Compare metric="jaro">
+            <Input path="?a/dbpedia:director/rdfs:label" />
+            <Input path="?b/movie:director_name" />
+          </Compare>
+        </Aggregate>
+      </LinkCondition>
+
+      <Filter threshold="0.7" limit="1" />
+
+      <Outputs>
+        <Output maxConfidence="0.9" type="file" >
+          <Param name="file" value="lmdb_verify_links.xml"/>
+          <Param name="format" value="alignment"/>
+        </Output>
+        <Output minConfidence="0.9" type="file">
+          <Param name="file" value="lmdb_accepted_links.xml"/>
+          <Param name="format" value="ntriples"/>
+        </Output>
+      </Outputs>
+
+    </Interlink>
+  </Interlinks>
+</Silk>

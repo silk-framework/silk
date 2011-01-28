@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Silk>
+    <Prefixes>
+        <Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />
+        <Prefix id="rdfs" namespace="http://www.w3.org/2000/01/rdf-schema#" />
+        <Prefix id="foaf" namespace="http://xmlns.com/foaf/0.1/" />
+        <Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#" />
+        <Prefix id="dbpedia-owl" namespace="http://dbpedia.org/ontology/" />
+        <Prefix id="dbpedia" namespace="http://dbpedia.org/resource/" />
+        <Prefix id="dbpedia-prop" namespace="http://dbpedia.org/property/" />
+        <Prefix id="dc" namespace="http://purl.org/dc/terms/" />
+        <Prefix id="tcm" namespace="http://purl.org/net/tcm/tcm.lifescience.ntu.edu.tw/" />
+        <Prefix id="opencyc" namespace="http://sw.opencyc.org/2008/06/10/concept/" />
+    </Prefixes>
+
+    <DataSources>
+        <DataSource id="tcm" type="sparqlEndpoint">
+            <Param name="endpointURI" value="http://hcls.deri.org/sparql" />
+            <Param name="graph" value="http://hcls.deri.org/resource/graph/tcm" />
+        </DataSource>
+
+        <DataSource id="dbpedia" type="sparqlEndpoint">
+            <Param name="endpointURI" value="http://dbpedia.org/sparql" />
+            <Param name="retryCount" value="100" />
+        </DataSource>
+    </DataSources>
+
+    <Interlinks>
+        <Interlink id="genes">
+            <LinkType>owl:sameAs</LinkType>
+
+            <SourceDataset dataSource="dbpedia" var="a">
+                <RestrictTo>
+                    ?a dbpedia-prop:wikiPageUsesTemplate &lt;http://dbpedia.org/resource/Template:pbb_controls&gt;
+                </RestrictTo>
+            </SourceDataset>
+
+            <TargetDataset dataSource="tcm" var="b">
+                <RestrictTo>
+                    ?b rdf:type tcm:Gene
+                </RestrictTo>
+            </TargetDataset>
+
+            <LinkCondition>
+                <Aggregate type="max">
+                    <Compare metric="levenshtein">
+                        <TransformInput function="lowerCase">
+                            <Input path="?a/rdfs:label" />
+                        </TransformInput>
+                        <TransformInput function="lowerCase">
+                            <Input path="?b/rdfs:label" />
+                        </TransformInput>
+                    </Compare>
+                    <Compare metric="levenshtein">
+                        <TransformInput function="lowerCase">
+                            <TransformInput function="replace">
+                                <TransformInput function="stripUriPrefix">
+                                    <Input path="?a/rdfs:label" />
+                                </TransformInput>
+                                <Param name="search" value="_" />
+                                <Param name="replace" value=" " />
+                            </TransformInput>
+                        </TransformInput>
+                        <TransformInput function="lowerCase">
+                            <Input path="?b/rdfs:label" />
+                        </TransformInput>
+                    </Compare>
+                </Aggregate>
+            </LinkCondition>
+
+            <Filter threshold="0.9" />
+
+            <Outputs>
+                <Output maxConfidence="0.97" type="file" >
+                  <Param name="file" value="tcm_dbpedia_genes_verify_links.xml"/>
+                  <Param name="format" value="alignment"/>
+                </Output>
+                <Output minConfidence="0.97" type="file">
+                  <Param name="file" value="tcm_dbpedia_genes_accepted_links.xml"/>
+                  <Param name="format" value="alignment"/>
+                </Output>
+            </Outputs>
+        </Interlink>
+    </Interlinks>
+</Silk>

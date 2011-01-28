@@ -1,0 +1,944 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<?xml version="1.0" encoding="utf-8"?><HTML lang=en
+xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discovery Framework - User Manual</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    
+</HEAD>
+<BODY>
+<DIV class=head>
+<H1 id=title>Silk - A Link Discovery Framework for the Web of Data </H1>
+<H2 id=doctype>Silk Link Specification Language 2.0 </H2>
+<DL>
+  <DT>This Version:
+  <DD>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20101006/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20101006/</a> </p>
+    <DT>Latest Version:
+  <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/</a><DT>
+  <DT>Authors:
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.juliusv.com/">Julius Volz</A> (Google, Switzerland)
+  <DT></DT></DL>
+<P>&nbsp;</P>
+<HR title="Separator for header">
+</DIV>
+<H2><A name=abstract></A>Abstract</H2>
+<p>The Silk framework is a tool for discovering relationships between data items within different <a href="http://linkeddata.org/">Linked Data</a> sources.
+Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web. Using the declarative <em>Silk Link Specification Language</em> (Silk-LSL),
+data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked.</p>
+<H2 id=toc>Table of Contents</H2>
+<UL class=toc>
+  <LI>1. <A href="#introduction">Introduction</A>
+
+  <LI>2. <A href="#specification">Silk Link Specification Language</A>
+    <UL>
+      <LI>2.1 <A href="#toplevel">Structure and Elements</A></LI>
+      <LI>2.2 <a href="#prefixes">Prefix Definitions</a> </LI>
+      <LI>2.3 <a href="#datasources">Data Source Definitions</a></LI>
+      <LI>2.4 <a href="#linkspec">Link Specifications</a>
+          <ul><LI>2.4.1 <a href="#linktype">Link Type</a></LI>
+          <LI>2.4.2 <A href="#datasets">Datasets</A></LI>
+          <LI>2.4.3 <A href="#inputs">Inputs</A></LI>
+          <LI>2.4.4 <A href="#blocking">Blocking Data Items</A></LI>
+          <LI>2.4.5 <A href="#conditions">Link Condition</A></LI>
+          <LI>2.4.6 <a href="#filter">Link Filter</a></LI>
+          </ul>
+      </LI>
+      <LI>2.5 <a href="#output">Output</a> </LI>
+    </UL>
+  <LI>3. <A href="#example">Examples</A>
+    <ul>
+    <li>3.1 <a href="#DBpedia2LinkedMDBdirector">dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
+    <li>3.2 <a href="#DBpedia2Stitch">owl:sameAs links between DBpedia and STITCH organisms</a></li>
+    </ul>
+  </LI>
+  <LI>4. <A href="#references">References</A></LI>
+  <LI>5. <A href="#change_log">Change Log</A></LI>
+
+</UL>
+<HR>
+
+<H1><A name=introduction>1. Introduction</A></H1>
+<P>The Web is increasingly understood as a global information space consisting not only of linked documents, but also of linked data.
+Today, the emerging Web of Data includes datasets as extensive and diverse as DBpedia, Geonames, US Census, EuroStat, MusicBrainz, BBC Programmes, Flickr, DBLP, PubMed, UniProt, FOAF, SIOC, OpenCyc, UMBEL and Yago.
+    Background information about the Web of Data is found at the wiki pages of the <a href="http://esw.w3.org/topic/SweoIG/TaskForces/CommunityProjects/LinkingOpenData">W3C Linking Open Data community effort</a>,
+    in the overview article <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>
+and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>. </P>
+<P>This document describes the <em>Silk - Link Discovery Framework</em>. Using the declarative <em>Silk - Link Specification Language</em> (Silk-LSL), data publishers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. These link conditions may combine various similarity metrics and can take the graph around data items into account, which is addressed using an RDF path language. Silk accesses the datasets that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints. </P>
+
+<HR title="Separator for header">
+
+<H1 id=specification>2. Silk Link Specification Language</H1>
+<p>The Silk framework provides a declarative language for specifying which types of RDF links should be discovered between data sources as well as which conditions data items must fulfill in order to be interlinked. This section describes the language constructs of the Silk Link Specification Language (Silk-LSL). </p>
+<p>The example below gives an overview of the main language constructs of Silk-LSL.</p>
+<pre>&lt;Silk&gt;
+
+  &lt;Prefixes&gt;
+    &lt;Prefix id=&quot;rdfs&quot; namespace=&quot;http://www.w3.org/2000/01/rdf-schema#&quot; /&gt;
+    &lt;Prefix id=&quot;dbpedia&quot; namespace=&quot;http://dbpedia.org/ontology/&quot; /&gt;
+    &lt;Prefix id=&quot;gn&quot; namespace=&quot;http://www.geonames.org/ontology#&quot; /&gt;
+  &lt;/Prefixes&gt;
+
+  &lt;DataSources&gt;
+    &lt;DataSource id=&quot;dbpedia&quot;&gt;
+      &lt;EndpointURI&gt;http://demo_sparql_server1/sparql&lt;/EndpointURI&gt;
+      &lt;Graph&gt;http://dbpedia.org&lt;/Graph&gt;
+    &lt;/DataSource&gt;
+
+    &lt;DataSource id=&quot;geonames&quot;&gt;
+      &lt;EndpointURI&gt;http://demo_sparql_server2/sparql&lt;/EndpointURI&gt;
+      &lt;Graph&gt;http://sws.geonames.org/&lt;/Graph&gt;
+    &lt;/DataSource&gt;
+  &lt;/DataSources&gt;
+
+  &lt;Interlinks&gt;
+    &lt;Interlink id=&quot;cities&quot;&gt;
+      &lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;
+
+      &lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
+        &lt;RestrictTo&gt;
+          ?a rdf:type dbpedia:City
+        &lt;/RestrictTo&gt;
+      &lt;/SourceDataset&gt;
+
+      &lt;TargetDataset dataSource=&quot;geonames&quot; var=&quot;b&quot;&gt;
+        &lt;RestrictTo&gt;
+          ?b rdf:type gn:P
+        &lt;/RestrictTo&gt;
+      &lt;/TargetDataset&gt;
+
+      &lt;Blocking blocks=&quot;10&quot; function=&quot;alphanumeric&quot;&gt;
+        &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+      &lt;/Blocking&gt;
+
+      &lt;LinkCondition&gt;
+        &lt;Aggregate type=&quot;average&quot;&gt;
+          &lt;Compare metric=&quot;jaro&quot;&gt;
+            &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+            &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+          &lt;/Compare&gt;
+          &lt;Compare metric=&quot;num&quot;&gt;
+            &lt;Input path=&quot;?a/dbpedia:populationTotal&quot; /&gt;
+            &lt;Input path=&quot;?b/gn:population&quot; /&gt;
+          &lt;/Compare&gt;
+        &lt;/Aggregate&gt;
+      &lt;/LinkCondition&gt;
+
+      &lt;Filter threshold=&quot;0.9&quot; /&gt;
+
+      &lt;Outputs&gt;
+        &lt;Output type=&quot;file&quot; minConfidence&quot; value=&quot;0.95&quot; /&gt;
+          &lt;Param name=&quot;file&quot; value=&quot;accepted_links.nt&quot; /&gt;
+          &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot; /&gt;
+        &lt;/Ouput&gt;
+        &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.95&quot; /&gt;
+          &lt;Param name=&quot;file&quot; value=&quot;verify_links.nt&quot; /&gt;
+          &lt;Param name=&quot;format&quot; value=&quot;alignment&quot; /&gt;
+        &lt;/Ouput&gt;
+      &lt;/Outputs&gt;
+    &lt;/Interlink&gt;
+  &lt;/Interlinks&gt;
+
+&lt;/Silk&gt;</p></pre>
+<H2><A name=toplevel></A>2.1 Structure and Elements</H2>
+The Silk-LSL is expressed in XML as specified by the corresponding <a href="http://silk2.svn.sourceforge.net/viewvc/silk2/trunk/silk2/core/src/main/resources/de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd">Silk XML Schema</a>. The root tag name is <TT>&lt;Silk&gt;</TT>.
+A valid document may contain four types of top-level statements beneath the root element:
+<ul>
+  <li><a href="#prefixes">prefix definitions</a></li>
+  <li><a href="#datasources">datasource definitions</a></li>
+  <li><a href="#linkspec">link specifications</a></li>
+  <li><a href="#output">output definitions</a></li>
+</ul>
+<PRE>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;Silk&gt;
+    &lt;Prefixes ... /&gt;
+      ...
+    &lt;DataSources ... /&gt;
+      ...
+    &lt;Interlinks ... /&gt;
+      ...
+    &lt;Outputs ... /&gt;
+      ...
+&lt;/Silk&gt;
+</PRE>
+The <tt>Outputs</tt> statement is optional.
+
+<h2><a name="prefixes"></a>2.2 Prefix Definitions</h2>
+<P>Prefix definitions are top-level statements that allow the binding of a
+prefix to a namespace:</P>
+
+<PRE>&lt;Prefixes&gt
+  &lt;Prefix id=&quot;<em>prefix id</em>&quot; namespace=&quot;<em>namespace URI</em>&quot; /&gt;
+&lt;/Prefixes&gt</PRE>
+<P>Example:</P>
+
+<PRE>&lt;Prefixes&gt
+  &lt;Prefix id=&quot;rdf&quot; namespace=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot; /&gt;
+&lt;/Prefixes&gt</PRE>
+
+<h2><a name="datasources"></a>2.3 Data Source Definitions</h2>
+<P>Data source definitions are top-level statements that allow the specification
+of access parameters to local or remote SPARQL endpoints<!-- list other new opportunities -->. The defined data sources may later be
+referred to and used by their ID within link specification statements.</P>
+
+<PRE>&lt;DataSources&gt;
+  &lt;DataSource id=&quot;<em>data source ID</em>&quot; type=&quot;<em>dataSource type</em>&quot;&gt
+    &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+    ...
+  &lt;/DataSource&gt;
+&lt;/DataSources&gt;
+</PRE>
+
+<h3>SPARQL Endpoint Data Source Definitions</h3>
+For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following parameters exist:
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+  <tr>
+      <td style="white-space:nowrap;"><tt>endpointURI</tt> <small>(mandatory)</small></li></td>
+      <td>The URI of the SPARQL endpoint.</td>
+  </tr>
+  <tr>
+      <td style="white-space:nowrap;"><tt>instanceList</tt></li></td>
+      <td>A list of instances to be retrieved. If not given, all instances will be retrieved. Multiple instances can be separated by a space.</td>
+  </tr>
+  <tr>
+      <td><tt>pageSize</tt></td>
+      <td>The optional <tt>pageSize</tt> parameter limits each SPARQL query to a fixed amount of results, the default being 1000. Silk implements a paging mechanism which translates the pagesize parameter into SPARQL LIMIT and OFFSET clauses.</td>
+  </tr>
+  <tr>
+      <td><tt>graph</tt></td></li>
+      <td>Only retrieve instances from a specific graph.</td>
+  </tr>
+  <tr>
+      <td><tt>pauseTime</tt></td>
+      <td>To allow rate-limiting of queries to public SPARQL severs, the <tt>pauseTime</tt> statement specifies the number of milliseconds to wait in between subsequent queries. By default, there is no delay between queries.</td>
+  </tr>
+    <tr>
+        <td><tt>retryCount</tt></td>
+        <td rowspan="2">To recover from intermittent SPARQL endpoint connection failures, the <tt>retryCount</tt> parameter specifies the number of times to retry connecting, whereas the <tt>retryPause</tt> parameter specifies how long to wait between retries. By default, retryCount is set to 3 and retryPause to 1000.</td>
+    </tr>
+    <tr>
+        <td><tt>retryPause</tt></td>
+    </tr>
+  </tbody>
+</table>
+<!--<em>SPARQL URI&lt;/EndpointURI</em>&gt;
+    [&lt;Graph&gt;<em>graph name</em>&lt;/Graph&gt;]
+    [&lt;DoCache&gt;<em>1|0</em>&lt;/DoCache&gt;]
+    [&lt;PageSize&gt;<em>page size</em>&lt;/PageSize&gt;]
+    [&lt;Pause&gt;<em>pause time in milliseconds</em>&lt;/Pause&gt;]
+    [&lt;RetryCount&gt;<em>number of retries</em>&lt;/RetryCount&gt;]
+    [&lt;RetryPause&gt;<em>retry pause time in milliseconds</em>&lt;/RetryPause&gt;]
+-->
+
+
+<P>Example:</P>
+<PRE>&lt;DataSource id=&quot;dbpedia&quot; type=&quot;sparqlEndpoint&quot;&gt;
+  &lt;Param name=&quot;endpointURI&quot; value=&quot;http://dbpedia.org/sparql&quot; /&gt;
+  &lt;Param name=&quot;retryCount&quot; value=&quot;100&quot; /&gt;
+&lt;/DataSource&gt;</PRE>
+
+<h2><a name="linkspec"></a>2.4 Link Specifications</h2>
+<P>Link specification statements state that a link of a given type should be
+established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights.
+</P>
+
+<ul>
+  <li><a href="#linktype">link type</a></li>
+  <li><a href="#datasets">datasets</a></li>
+  <li><a href="#inputs">inputs</a>
+    <ul>
+        <li><a href="#pathinputs">path inputs</a></li>
+        <li><a href="#transformations">transformations</a></li>
+    </ul>
+  </li>
+  <li><a href="#blocking">blocking</a></li>
+  <li><a href="#conditions">link conditions</a>
+    <ul>
+        <li><a href="#comparisons">comparison operators</a></li>
+        <li><a href="#combining">combining and weighting metrics</a></li>
+    </ul>
+  </li>
+  <li><a href="#filter">link filter</a></li>
+  <li><a href="#output">output definitions</a></li>
+</ul>
+
+<p>A Silk linking configuration may contain several link specifications if different types of links should be generated.
+Link specifications are structured as follows:</p>
+
+<PRE>&lt;Interlinks&gt;
+  &lt;Interlink id=&quot;<em>interlink id</em>&quot;&gt;
+    &lt;LinkType&gt;<em>link type URI</em>&lt;/LinkType&gt;
+    &lt;SourceDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
+        [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
+    &lt;/SourceDataset&gt;
+    &lt;TargetDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
+        [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
+    &lt;/TargetDataset&gt;
+    [&lt;Blocking blocks=&quot;<em>number of blocks</em>&quot; function=&quot;<em>blocking function</em>&quot;&gt;
+      &lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
+      &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+      ...
+    &lt;/Blocking&gt;]
+    &lt;LinkCondition&gt;
+        &lt;Aggregate type=&quot;average|max|min|...&quot;&gt;
+            &lt;Compare metric=&quot;<em>similarity metric</em>&quot;&gt;
+                &lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
+                &lt;TransformInput function=&quot;<em>transform function name</em>&quot;&gt;
+                  &lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
+                &lt;/TransformInput&gt;
+                &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>literal value</em>&quot; /&gt;
+            &lt;/Compare&gt;
+            &lt;Compare ...&gt;
+            &lt;/Compare&gt;
+            ...
+        &lt;/Aggregate&gt;
+    &lt;/LinkCondition&gt;
+
+    &lt;Filter threshold=&quot;<em>threshold</em>&quot; limit=&quot;<em>link limit</em>&quot; /&gt;
+
+    &lt;Outputs&gt;
+      &lt;Output type=&quot;<em>output type</em>&quot; minConfidence=&quot;<em>lower threshold</em>&quot; maxConfidence=&quot;<em>upper threshold</em>&quot;&gt;
+        &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+        ...
+      &lt;/Ouput&gt;
+    &lt;/Outputs&gt;
+  &lt;/Interlink&gt;
+  &lt;Interlink id=&quot;...&quot;&gt;
+    ...
+  &lt;/Interlink&gt;  
+  ...
+&lt;/Interlinks&gt;
+</PRE>
+
+<P>Example:</P>
+
+<PRE>&lt;Interlinks&gt;
+  &lt;Interlink id=&quot;countries&quot;&gt;
+    &lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;
+    &lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
+        &lt;RestrictTo&gt;
+            ?a rdf:type dbpedia:Country
+        &lt;/RestrictTo&gt;
+    &lt;/SourceDataset&gt;
+    &lt;TargetDataset dataSource=&quot;factbook&quot; var=&quot;b&quot;&gt;
+    &lt;/TargetDataset&gt;
+    &lt;Blocking blocks=&quot;10&quot; hitLimit=&quot;10&quot;&gt;
+        &lt;Index path=&quot;?b/rdfs:label&quot; /&gt;
+    &lt;/Blocking&gt;
+    &lt;LinkCondition&gt;
+        &lt;Aggregate type=&quot;average&quot;&gt;
+            &lt;Compare metric=&quot;jaro&quot; weight=&quot;2&quot;&gt;
+                &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+                &lt;Input path=&quot;?b/rdfs:label&quot; /&gt;
+            &lt;/Compare&gt;
+            &lt;Compare id=&quot;num&quot;&gt;
+                &lt;Input path=&quot;?a/dbpedia:population&quot; /&gt;
+                &lt;Param path=&quot;?b/fb:totalPopulation&quot; /&gt;
+                &lt;Param name=&quot;factor&quot; value=&quot;2&quot; /&gt;
+            &lt;/Compare&gt;
+        &lt;/Aggregate&gt;
+    &lt;/LinkCondition&gt;
+    &lt;Filter threshold=&quot;0.7&quot; limit=&quot;1&quot; /&gt;
+    &lt;Outputs&gt;
+      &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.9&quot; &gt;
+        &lt;Param name=&quot;file&quot; value=&quot;verify_links.nt&quot;/&gt;
+        &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
+      &lt;/Output&gt;
+      &lt;Output type=&quot;file&quot; minConfidence=&quot;0.9&quot;&gt;
+        &lt;Param name=&quot;file&quot; value=&quot;accepted_links.nt&quot;/&gt;
+        &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
+      &lt;/Output&gt;
+    &lt;/Outputs&gt;
+  &lt;/Interlink&gt;
+&lt;/Interlinks&gt;</PRE>
+
+<H2><A name="linktype"></A>2.4.1 Link Type</H2>
+<p>The <tt>LinkType</tt> directive defines the type of the generated links.</p>
+
+<p>Example:</p>
+<PRE>&lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;</PRE>
+
+<h2><a name="datasets"></a>2.4.2 Datasets</h2>
+
+<p>The <tt>SourceDataset</tt> and <tt>TargetDataset</tt> directives define the set of data items which are to be compared.</p>
+
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+    <TR>
+        <TD><tt>dataSource</tt></TD>
+        <TD>Selects a previously defined data source by its id.</TD>
+    </TR>
+    <TR>
+        <TD><tt>var</tt></TD>
+        <TD>Binds each data item to this variable.</TD>
+    </TR>
+    <TR>
+        <TD><tt>RestrictTo</tt></TD>
+        <TD>Restricts this dataset using SPARQL clauses.</TD>
+    </TR>
+  </TBODY>
+</TABLE>
+
+<pre>
+&lt;SourceDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
+  [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
+&lt;/SourceDataset&gt;
+&lt;TargetDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
+  [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
+&lt;/TargetDataset&gt;
+</pre>
+
+<p>Example:</p>
+<pre>
+&lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
+  &lt;RestrictTo&gt;
+    ?a rdf:type dbpedia:Country
+  &lt;/RestrictTo&gt;
+&lt;/SourceDataset&gt;
+</pre>
+
+<h2><a name="inputs"></a>2.4.3 Inputs</h2>
+An input retrieves values from a data item by a given RDF path and optionally applies a transformation to them.
+
+<h3><a name="pathinputs"></a>Path Inputs</h3>
+<p>The <tt>Input</tt> directive is used to retrieve all values which are connected to the data item by a path.</p>
+<p>Every path statement begins with a variable (as defined in the datasets), which may be followed by a series of path elements.
+If a path cannot be resolved due to a missing property or a too restrictive filter, an empty result set is returned.</p>
+<p>The following operators can be used to traverse the graph:</p>
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Operator</TH>
+      <TH>Name</TH>
+      <TH>Use</TH>
+      <TH>Description</TH>
+    </TR>
+    <TR>
+      <TD>/ </TD>
+      <TD>forward operator</TD>
+      <TD><I>&lt;path_segment&gt;</I><B>/</B><I>&lt;property&gt;</I></TD>
+      <TD>Moves forward from a subject resource (set) through a property to its object resource (set).</TD>
+    </TR>
+    <TR>
+      <TD>\ </TD>
+      <TD>reverse operator</TD>
+      <TD><I>&lt;path_segment&gt;</I><B>\</B><I>&lt;property&gt;</I></TD>
+      <TD>Moves backward from an object resource (set) through a property to its subject resource (set).</TD>
+    </TR>
+    <TR>
+      <TD>[ ]</TD>
+      <TD>filter operator</TD>
+      <TD><I>&lt;path_segment&gt;</I><B>[</B><I>&lt;property&gt;</I>&nbsp;<I>&lt;comp_operator&gt;</I>&nbsp;<I>&lt;value&gt;</I><B>]</B><BR>
+          <I>&lt;path_segment&gt;</I><B>[</B>@lang&nbsp;<I>&lt;comp_operator&gt;</I>&nbsp;<I>&lt;value&gt;</I><B>]</B><BR>
+      <TD>Reduces the currently selected set of resources to the ones matching the filter expression. <I>comp_operator</I> may be one of &gt;, &lt;, &gt;=, &lt;=, =, !=</TD>
+    </TR>
+  </TBODY>
+</TABLE>
+
+<p>Examples:</p>
+<pre># Select the English label of a movie
+&lt;Input path="?movie/rdfs:label[@lang = 'en']" /&gt;
+
+# Select the label (set) of the director(s) of a movie
+&lt;Input path="?movie/dbpedia:director/rdfs:label" /&gt;
+
+# Select the albums of a given artist (albums have an dbpedia:artist property)
+&lt;Input path="?artist\dbpedia:artist[rdf:type = dbpedia:Album]" /&gt;</pre>
+
+<h3><a name="transformations"></a>Transformations</h3>
+<p>The <tt>TransformInput</tt> directive can be used to transform the result set of an input prior to forwarding it.</p>
+
+<pre>&lt;TransformInput function=&quot;<em>transform function name</em>&quot;&gt;
+  &lt;Input|TransformInput ... /&gt;
+  ...
+  &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+  ...
+&lt;/TransformInput&gt;</pre>
+
+<p>Silk provides the following transformation and normalization functions:</p>
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Function and parameters</TH>
+      <TH>Description</TH>
+    </TR>
+    <TR>
+      <TD>removeBlanks</TD>
+      <TD>Remove whitespace from a string.</TD>
+    </TR>
+    <TR>
+      <TD>removeSpecialChars</TD>
+      <TD>Remove special characters (including punctuation) from a string.</TD>
+    </TR>
+    <TR>
+      <TD>lowerCase</TD>
+      <TD>Convert a string to lower case.</TD>
+    </TR>
+    <TR>
+      <TD>upperCase</TD>
+      <TD>Convert a string to upper case.</TD>
+    </TR>
+    <TR>
+      <TD>stem</TD>
+      <TD>Apply word stemming to the string.</TD>
+    </TR>
+    <TR>
+      <TD>alphaReduce</TD>
+      <TD>Strip all non-alphabetic characters from a string.</TD>
+    </TR>
+    <TR>
+      <TD>numReduce</TD>
+      <TD>Strip all non-numeric characters from a string.</TD>
+    </TR>
+    <TR>
+      <TD>replace(string search, string replace)</TD>
+      <TD>Replace all occurrences of "search" with "replace" in a string.</TD>
+    </TR>
+    <TR>
+      <TD>regexReplace(string regex, string replace)</TD>
+      <TD>Replace all occurrences of a regex "regex" with "replace" in a string.</TD>
+    </TR>
+    <TR>
+      <TD>stripPrefix</TD>
+      <TD>Strip the prefix from a string .</TD>
+    </TR>
+    <TR>
+      <TD>stripPostfix</TD>
+      <TD>Strip the postfix from a string.</TD>
+    </TR>
+    <TR>
+      <TD>stripURIPrefix</TD>
+      <TD>Strip the URI prefix (e.g. http://dbpedia.org/resource/) from a string.</TD>
+    </TR>
+    <TR>
+      <TD>concat</TD>
+      <TD>Concatenates strings from two inputs.</TD>
+    </TR>
+  </TBODY>
+</TABLE>
+
+<p>Example:</p>
+<pre>&lt;TransformInput function=&quot;lowerCase&quot;&gt;
+  &lt;TransformInput function=&quot;replace&quot;&gt;
+    &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+    &lt;Param name=&quot;search&quot; value=&quot;_&quot; /&gt;
+    &lt;Param name=&quot;replace&quot; value=&quot; &quot; /&gt;
+  &lt;/TransformInput&gt;
+&lt;/TransformInput&gt;</pre>
+
+<h2><a name="blocking"></a>2.4.4 Blocking Data Items</h2>
+
+<p>Since comparing every source resource to every single target resource results in a number of n*m comparisons (n being the number of source resources, m the number of target resources)
+which might be too time consuming, blocking can be used to reduce the number of comparisons.
+Blocking partitions similar data items into clusters reducing the comparison to items in the same cluster.</p>
+
+<p>For example given two datasets describing books, in order to reduce the number of comparisons, we could block the books by publisher.
+In this case only books from the same publisher will be compared.
+Given a number of 40.000 books in the first dataset and 30.000 in the second dataset, evaluating the full Cartesian product requires 1.2 billion comparisons.</p>
+If we block this datasets by publisher, each book will be allocated to a block based on its publisher.
+Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 12 million.</p>
+
+<p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
+If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs (Cartesian product).</p>
+
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+    <tr>
+        <td style="white-space:nowrap;"><tt>function</tt> <small>(mandatory)</small></li></td>
+        <td>The blocking function to be used. Available functions are: <em>alphanumeric</em> and <em>numeric</em>.<br/>
+            <em>alphanumeric</em> can be used if the property values mainly contain alphabetic characters and numbers.<br/>
+            <em>numeric</em> can be used if the property values are numbers.</td>
+    </tr>
+  <tr>
+      <td style="white-space:nowrap;"><tt>blocks</tt> <small>(mandatory)</small></li></td>
+      <td>The number of clusters.</td>
+  </tr>
+  <tr>
+      <td><tt>overlap</tt></td>
+      <td>The overlap in percentage as a value between 0 and 0.5.
+          Overlapping is usually used if the input data is noisy and blocking would remove too many correct links.
+          The overlap factor specifies the percentage by which adjacent blocks are overlapping.</td>
+  </tr>
+  </tbody>
+</table>
+
+<p>The properties according to which the data items will be blocked are specified by inputs.</p>
+
+<PRE>&lt;Blocking function=&quot;<em>blocking function</em>&quot; blocks=&quot;<em>number of blocks</em>&quot; overlap=&quot;<em>overlap size</em>&quot;&gt;
+  &lt;Input|TransformInput ... /&gt;
+  &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+  ...
+&lt;/Blocking&gt;</PRE>
+
+  <P>Example:</P>
+  <PRE>&lt;Blocking blocks=&quot;10&quot; function=&quot;alphanumeric&quot;&gt;
+  &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+&lt;/Blocking&gt;</PRE>
+
+<h2><a name="conditions"></a>2.4.5 Link Condition</h2>
+The link condition specifies how two data items are compared for similarity. It consists of a number of comparison operators which are combined using aggregations.
+
+<h3><a name="comparisons"></a>Comparison Operators</h3>
+<p>A comparison operator evaluates two inputs and computes their similarity based on a user-defined metric.<br/>
+The Silk framework currently supports the following similarity metrics, which return a similarity value between 0 (lowest similarity) and 1 (highest similarity) each:</p>
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Metric</TH>
+      <TH>Description</TH>
+    </TR>
+    <TR>
+      <TD>jaro</TD>
+      <TD>String similarity based on the Jaro distance metric.</TD>
+    </TR>
+    <TR>
+      <TD>jaroWinkler</TD>
+      <TD>String similarity based on the Jaro-Winkler metric.</TD>
+    </TR>
+    <TR>
+      <TD>levenshtein</TD>
+      <TD>String similarity based on the Levenshtein metric.</TD>
+    </TR>
+    <TR>
+      <TD>qGrams(int q)</TD>
+      <TD>String similarity based on q-grams (by default q=2).</TD>
+    </TR>
+    <TR>
+      <TD>equality</TD>
+      <TD>Return 1 if strings are equal, 0 otherwise.</TD>
+    </TR>
+    <TR>
+      <TD>num(float threshold)</TD>
+      <TD>Computes the numeric distance between two numbers and normalizes it using the threshold. The similarity score is 0.0 if the distance is bigger than threshold.</TD>
+    </TR>
+    <TR>
+      <TD>date(int max_days)</TD>
+      <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "max_days", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
+    </TR>
+    <TR>
+      <TD>wgs84(string unit, float threshold, string curveStyle, boolean longitudeFirst)</TD>
+      <TD>Computes the geographical distance between two points<br/>
+          <strong><tt>unit</tt></strong> The unit in which the distance is measured. Allowed values: "meter" or "m" (default) , "kilometer" or "km"<br/>
+          <strong><tt>threshold</tt></strong> Will result in a 0 for all bigger values than t, values below are varying with the curveStyle<br/>
+          <strong><tt>curveStyle</tt></strong> "discreet" (default) "linear" gives a linear transition, "logistic" uses the logistic function f(x)=1/(1+e^(x) gives a more soft curve with a slow slope at the start and the end of the curve but a  steep one in the middle.<br/>
+          <strong><tt>longitudeFirst</tt></strong> "true" (default) or "false" specifies if the longitude or latitude is given first<br/>
+          <br/>
+          Author: Konrad H&ouml;ffner (<a href="http://aksw.org/Groups/MOLE">MOLE</a> subgroup of Research Group AKSW, University of Leipzig)
+      </TD>
+    </TR>
+  </TBODY>
+</TABLE>
+
+<p>Example:</p>
+<pre>&lt;Compare metric=&quot;jaro&quot;&gt;
+  &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+  &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+&lt;/Compare&gt;
+</pre>
+
+<h3><a name="combining"></a>Combining and Weighting Comparisons</h3>
+<p>Multiple comparisons can be combined using an aggregation.
+<DL>
+  <DT>Aggregation Operators</DT>
+  <DD>
+    <P>When grouping metrics in a metric aggregation statement using <tt>&lt;Aggregate&gt;</tt>, the individual submetrics are aggregated into a final value according to the specified aggregation method. The available aggregation types are:</P>
+    <DL>
+      <DT>average</DT>
+      <DD>Evaluate to the (weighted) average of metrics.</DD>
+      <DT>max</DT>
+      <DD>Evaluate to the highest metric in the group.</DD>
+      <DT>min</DT>
+      <DD>Evaluate to the lowest metric in the group.</DD>
+      <DT>quadraticMean</DT>
+      <DD>Apply <a href="http://en.wikipedia.org/wiki/Euclidean_distance">Euclidian distance</a> aggregation. Converts metrics to distances, calculates the Euclidian distance, normalizes the result and converts it back to a metric value between 0 and 1. </DD>
+      <DT>geometricMean</DT>
+      <DD>Compute the (weighted) geometric mean of a group of metrics. Converts metrics to distances, calculates the weighted product, normalizes the result and converts it back to a metric value between 0 and 1.</DD>
+    </DL>
+  </DD>
+  <DT>Weights
+  <DD>
+      <P>Some comparison operators might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
+</DL>
+</p>
+
+<p>Example:</p>
+<pre>&lt;LinkCondition&gt;
+  &lt;Aggregate type=&quot;average&quot;&gt;
+    &lt;Compare metric=&quot;jaro&quot;&gt;
+      &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
+      &lt;Input path=&quot;?b/gn:name&quot; /&gt;
+    &lt;/Compare&gt;
+    &lt;Compare metric=&quot;num&quot;&gt;
+      &lt;Input path=&quot;?a/dbpedia:populationTotal&quot; /&gt;
+      &lt;Input path=&quot;?b/gn:population&quot; /&gt;
+    &lt;/Compare&gt;
+  &lt;/Aggregate&gt;
+&lt;/LinkCondition&gt;</pre>
+
+<h2><a name="filter"></a>2.4.6 Link Filter</h2>
+<P>The <tt>&lt;Filter&gt;</tt> directive allows for filtering the generated links.
+
+<pre>&lt;Filter threshold=&quot;<em>threshold</em>&quot; limit=&quot;<em>maximum link count</em>&quot; /&gt;</pre>
+
+<p><tt>threshold</tt> defines the minimum similarity of two data items which is required to generate a link between them.</p>
+
+<p><tt>limit</tt> defines the number of links originating from a single data item.
+Only the n highest-rated links per source data item will remain after the filtering.</p>
+
+<p>Example:</p>
+  <PRE>&lt;Filter threshold=&quot;0.95&quot; limit=&quot;1&quot; /&gt;</PRE>
+
+<h2><a name="output"></a>2.5 Output</h2>
+  <P>With the <tt>&lt;Output&gt;</tt> directive, the user can specify output targets for the generated links.
+Links will be forwarded to the output if their confidence is above the defined threshold of the link filter.
+In addition to this, outputs can have an acceptance windows (defined by <tt>minConfidence</tt> and <tt>maxConfidence</tt>)
+e.g. for separating accepted links and links with a lower confidence which need to be verified before being accepted.</p>
+<p>Outputs can either be defined globally or inside a link specification.
+This allows for separating the generated links by their type as well as generating an output covering all generated links.
+</p>
+
+<PRE>&lt;Outputs&gt;
+  &lt;Output type=&quot;<em>output type</em>&quot; minConfidence=&quot;<em>lower threshold</em>&quot; maxConfidence=&quot;<em>upper threshold</em>&quot;&gt;
+    &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
+    ...
+  &lt;/Ouput&gt;
+&lt;/Outputs&gt;</PRE>
+
+<p>At the moment, the only available output type is <em>file</em> with the following parameters:</p>
+
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+    <TR>
+      <TD>file</TD>
+      <TD>The output file.</TD>
+    </TR>
+    <TR>
+      <TD>format</TD>
+      <TD>The output format. Available formats are "<tt>ntriples</tt>" (N-Triples format) and
+"<tt>alignment</tt>" (<a href="http://alignapi.gforge.inria.fr/format.html">Alignment</a> format)</TD>
+    </TR>
+  </TBODY>
+</TABLE>
+
+<P>Example:</P>
+  <PRE>&lt;Outputs&gt;
+  &lt;Output type=&quot;file&quot; minConfidence=&quot;0.9&quot;&gt;
+    &lt;Param name=&quot;file&quot; value=&quot;accept_links.nt&quot;/&gt;
+    &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
+  &lt;/Output&gt;
+&lt;/Outputs&gt;</PRE>
+
+<HR>
+
+<H1><A name="example"/>3. Examples</H1>
+<p>This section contains two complete Silk-LSL examples.
+</p>
+<ul>
+  <li><a href="#DBpedia2LinkedMDBdirector">dbpedia:director links between DBpedia movies and LinkedMDB directors</a></li>
+<li><a href="#DBpedia2Stitch">owl:sameAs links between DBpedia and STITCH organisms</a></li>
+</ul>
+
+<p>These and more examples can also be found in the <!--TODO--><a href="http://code.google.com/p/silk/source/browse/#svn/trunk/samples">examples directory of Silk</a>.</p>
+
+<h2><a name="DBpedia2LinkedMDBdirector" id="DBpedia2LinkedMDBdirector"></a>3.1. dbpedia:director links between DBpedia movies and LinkedMDB directors </h2>
+<p><b>Generated Links:</b> <a href="../links/lmdb_accepted_links.nt">lmdb_accepted_links.nt</a></p>
+<p>The following example is a demonstration of how to establish semantic links
+other than <tt>owl:sameAs</tt> between resources with Silk. Movies in DBpedia
+are linked via a <tt>dbpedia:director</tt> property to their respective
+directors in LinkedMDB by a simple label match. To achieve this, we use the
+<tt>&lt;RestrictTo&gt;</tt> SPARQL clauses of the datasets to preselect only
+movies from DBpedia and only directors from LinkedMDB. Actual comparisons in
+the <tt>&lt;LinkCondition&gt;</tt> then evaluate the similarity of the DBpedia
+movie's director <tt>rdfs:label</tt> to both the <tt>rdfs:label</tt> and the
+<tt>movie:director_name</tt> of directors in LinkedMDB.</p>
+<pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;Silk&gt;
+  &lt;Prefixes&gt;
+	  &lt;Prefix id=&quot;rdf&quot; namespace=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot; /&gt;
+	  &lt;Prefix id=&quot;rdfs&quot; namespace=&quot;http://www.w3.org/2000/01/rdf-schema#&quot; /&gt;
+	  &lt;Prefix id=&quot;foaf&quot; namespace=&quot;http://xmlns.com/foaf/0.1/&quot; /&gt;
+	  &lt;Prefix id=&quot;owl&quot; namespace=&quot;http://www.w3.org/2002/07/owl#&quot; /&gt;
+	  &lt;Prefix id=&quot;dbpedia&quot; namespace=&quot;http://dbpedia.org/ontology/&quot; /&gt;
+	  &lt;Prefix id=&quot;dc&quot; namespace=&quot;http://purl.org/dc/terms/&quot; /&gt;
+	  &lt;Prefix id=&quot;movie&quot; namespace=&quot;http://data.linkedmdb.org/resource/movie/&quot; /&gt;
+  &lt;/Prefixes&gt;
+
+  &lt;DataSources&gt;
+    &lt;DataSource id=&quot;dbpedia&quot; type=&quot;sparqlEndpoint&quot;&gt;
+      &lt;Param name=&quot;endpointURI&quot; value=&quot;http://dbpedia.org/sparql&quot; /&gt;
+      &lt;Param name=&quot;graph&quot; value=&quot;http://dbpedia.org&quot; /&gt;
+    &lt;/DataSource&gt;
+    &lt;DataSource id=&quot;linkedmdb&quot; type=&quot;sparqlEndpoint&quot;&gt;
+      &lt;Param name=&quot;endpointURI&quot; value=&quot;http://data.linkedmdb.org/sparql&quot; /&gt;
+    &lt;/DataSource&gt;
+  &lt;/DataSources&gt;
+
+  &lt;Interlinks&gt;
+    &lt;Interlink id=&quot;movies&quot;&gt;
+      &lt;LinkType&gt;dbpedia:director&lt;/LinkType&gt;
+
+      &lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
+        &lt;RestrictTo&gt;
+          ?a rdf:type dbpedia:Film
+        &lt;/RestrictTo&gt;
+      &lt;/SourceDataset&gt;
+      &lt;TargetDataset dataSource=&quot;linkedmdb&quot; var=&quot;b&quot;&gt;
+        &lt;RestrictTo&gt;
+          ?b rdf:type movie:director
+        &lt;/RestrictTo&gt;
+      &lt;/TargetDataset&gt;
+
+      &lt;LinkCondition&gt;
+        &lt;Aggregate type=&quot;max&quot;&gt;
+          &lt;Compare metric=&quot;jaro&quot;&gt;
+            &lt;Input path=&quot;?a/dbpedia:director/rdfs:label&quot; /&gt;
+            &lt;Input path=&quot;?b/rdfs:label&quot; /&gt;
+          &lt;/Compare&gt;
+          &lt;Compare metric=&quot;jaro&quot;&gt;
+            &lt;Input path=&quot;?a/dbpedia:director/rdfs:label&quot; /&gt;
+            &lt;Input path=&quot;?b/movie:director_name&quot; /&gt;
+          &lt;/Compare&gt;
+        &lt;/Aggregate&gt;
+      &lt;/LinkCondition&gt;
+
+      &lt;Filter threshold=&quot;0.7&quot; limit=&quot;1&quot; /&gt;
+
+      &lt;Outputs&gt;
+        &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.9&quot;&gt;
+          &lt;Param name=&quot;file&quot; value=&quot;lmdb_verify_links.xml&quot;/&gt;
+          &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
+        &lt;/Output&gt;
+        &lt;Output type=&quot;file&quot; minConfidence=&quot;0.9&quot;&gt;
+          &lt;Param name=&quot;file&quot; value=&quot;lmdb_accepted_links.nt&quot;/&gt;
+          &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
+        &lt;/Output&gt;
+      &lt;/Outputs&gt;
+
+    &lt;/Interlink&gt;
+  &lt;/Interlinks&gt;
+&lt;/Silk&gt;
+</pre>
+<h2><a name="DBpedia2Stitch" id="DBpedia2Stitch"></a>3.2. owl:sameAs links between DBpedia and STITCH organisms</h2>
+<p><b>Generated Links:</b> <a href="../links/dbpedia_stitch_accepted_links.nt">dbpedia_stitch_accepted_links.nt</a></p>
+
+<p>The following example establishes <tt>owl:sameAs</tt> links between organisms from DBpedia and STITCH by comparing their
+labels.</p>
+<pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;Silk&gt;
+    &lt;Prefixes&gt;
+        &lt;Prefix id=&quot;rdf&quot; namespace=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot; /&gt;
+        &lt;Prefix id=&quot;rdfs&quot; namespace=&quot;http://www.w3.org/2000/01/rdf-schema#&quot; /&gt;
+        &lt;Prefix id=&quot;owl&quot; namespace=&quot;http://www.w3.org/2002/07/owl#&quot; /&gt;
+        &lt;Prefix id=&quot;dbpedia-owl&quot; namespace=&quot;http://dbpedia.org/ontology/&quot; /&gt;
+        &lt;Prefix id=&quot;dbpedia-prop&quot; namespace=&quot;http://dbpedia.org/property/&quot; /&gt;
+        &lt;Prefix id=&quot;dc&quot; namespace=&quot;http://purl.org/dc/terms/&quot; /&gt;
+        &lt;Prefix id=&quot;stitch&quot; namespace=&quot;http://www4.wiwiss.fu-berlin.de/stitch/resource/stitch/&quot; /&gt;
+    &lt;/Prefixes&gt;
+
+    &lt;DataSources&gt;
+        &lt;DataSource id=&quot;dbpedia&quot; type=&quot;sparqlEndpoint&quot;&gt;
+            &lt;Param name=&quot;endpointURI&quot; value=&quot;http://dbpedia.org/sparql&quot; /&gt;
+            &lt;Param name=&quot;retryCount&quot; value=&quot;100&quot; /&gt;
+        &lt;/DataSource&gt;
+
+        &lt;DataSource id=&quot;stitch&quot; type=&quot;sparqlEndpoint&quot;&gt;
+            &lt;Param name=&quot;endpointURI&quot; value=&quot;http://www4.wiwiss.fu-berlin.de/stitch/sparql&quot; /&gt;
+        &lt;/DataSource&gt;
+    &lt;/DataSources&gt;
+
+    &lt;Interlinks&gt;
+        &lt;Interlink id=&quot;organisms&quot;&gt;
+            &lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;
+
+            &lt;SourceDataset dataSource=&quot;dbpedia&quot; var=&quot;a&quot;&gt;
+                &lt;RestrictTo&gt;
+                    ?a rdf:type dbpedia-owl:Species
+                &lt;/RestrictTo&gt;
+            &lt;/SourceDataset&gt;
+
+            &lt;TargetDataset dataSource=&quot;stitch&quot; var=&quot;b&quot;&gt;
+                &lt;RestrictTo&gt;
+                    ?b rdf:type stitch:organisms
+                &lt;/RestrictTo&gt;
+            &lt;/TargetDataset&gt;
+
+            &lt;LinkCondition&gt;
+                &lt;Aggregate type=&quot;max&quot;&gt;
+                    &lt;Compare metric=&quot;jaroWinkler&quot;&gt;
+                        &lt;TransformInput function=&quot;lowerCase&quot;&gt;
+                            &lt;Input path=&quot;?a/rdfs:label[@lang = 'en']&quot; /&gt;
+                        &lt;/TransformInput&gt;
+                        &lt;TransformInput function=&quot;lowerCase&quot;&gt;
+                            &lt;Input path=&quot;?b/rdfs:label&quot; /&gt;
+                        &lt;/TransformInput&gt;
+                    &lt;/Compare&gt;
+                &lt;/Aggregate&gt;
+            &lt;/LinkCondition&gt;
+
+            &lt;Filter threshold=&quot;0.90&quot; /&gt;
+
+            &lt;Outputs&gt;
+                &lt;Output type=&quot;file&quot; maxConfidence=&quot;0.95&quot;&gt;
+                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_verify_links.xml&quot;/&gt;
+                  &lt;Param name=&quot;format&quot; value=&quot;alignment&quot;/&gt;
+                &lt;/Output&gt;
+                &lt;Output type=&quot;file&quot; minConfidence=&quot;0.95&quot;&gt;
+                  &lt;Param name=&quot;file&quot; value=&quot;stitch_dbpedia_accepted_links.nt&quot;/&gt;
+                  &lt;Param name=&quot;format&quot; value=&quot;ntriples&quot;/&gt;
+                &lt;/Output&gt;
+            &lt;/Outputs&gt;
+        &lt;/Interlink&gt;
+    &lt;/Interlinks&gt;
+&lt;/Silk&gt;
+</pre>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<HR title="Separator for header">
+
+<H2><a name="references" />4. References</H2>
+<p>
+<ul>
+    <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
+    <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
+</ul>
+
+<HR>
+
+<H1><a name="change_log"/>5. Change Log</H1>
+<UL>
+  <LI>2010-10-06: Moved the <em>Silk - Single Machine</em> user manual to a separate page.</LI>
+  <LI>2010-07-02: Updated document for Silk 2 release (Robert, Anja). </LI>
+  <LI>2009-03-02: Updated document for Silk 0.2-alpha release (Julius). </LI>
+  <LI>2009-02-03: Restructured document and extended descriptions (Chris). </LI>
+  <LI>2009-02-02: Initial version of this document (Julius). </LI>
+</UL>
+<HR>
+
+
+</BODY></HTML>
