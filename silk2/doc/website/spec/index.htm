@@ -40,16 +40,17 @@ data publishers can specify which types of RDF links should be discovered betwee
       <LI>2.1 <A href="#toplevel">Structure and Elements</A></LI>
       <LI>2.2 <a href="#prefixes">Prefix Definitions</a> </LI>
       <LI>2.3 <a href="#datasources">Data Source Definitions</a></LI>
-      <LI>2.4 <a href="#linkspec">Link Specifications</a>
-          <ul><LI>2.4.1 <a href="#linktype">Link Type</a></LI>
-          <LI>2.4.2 <A href="#datasets">Datasets</A></LI>
-          <LI>2.4.3 <A href="#inputs">Inputs</A></LI>
-          <LI>2.4.4 <A href="#blocking">Blocking Data Items</A></LI>
-          <LI>2.4.5 <A href="#conditions">Link Condition</A></LI>
-          <LI>2.4.6 <a href="#filter">Link Filter</a></LI>
-          </ul>
+      <LI>2.4 <A href="#blocking">Blocking Data Items</A></LI>
+      <LI>2.5 <a href="#linkspec">Link Specifications</a>
+        <ul>
+          <LI>2.5.1 <a href="#linktype">Link Type</a></LI>
+          <LI>2.5.2 <A href="#datasets">Datasets</A></LI>
+          <LI>2.5.3 <A href="#inputs">Inputs</A></LI>
+          <LI>2.5.4 <A href="#conditions">Link Condition</A></LI>
+          <LI>2.5.5 <a href="#filter">Link Filter</a></LI>
+        </ul>
       </LI>
-      <LI>2.5 <a href="#output">Output</a> </LI>
+      <LI>2.6 <a href="#output">Output</a> </LI>
     </UL>
   <LI>3. <A href="#example">Examples</A>
     <ul>
@@ -95,6 +96,8 @@ and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/Linked
       &lt;Graph&gt;http://sws.geonames.org/&lt;/Graph&gt;
     &lt;/DataSource&gt;
   &lt;/DataSources&gt;
+  
+  [&lt;Blocking blocks=&quot;100&quot; /&gt;]
 
   &lt;Interlinks&gt;
     &lt;Interlink id=&quot;cities&quot;&gt;
@@ -111,10 +114,6 @@ and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/Linked
           ?b rdf:type gn:P
         &lt;/RestrictTo&gt;
       &lt;/TargetDataset&gt;
-
-      &lt;Blocking blocks=&quot;10&quot; function=&quot;alphanumeric&quot;&gt;
-        &lt;Input path=&quot;?b/gn:name&quot; /&gt;
-      &lt;/Blocking&gt;
 
       &lt;LinkCondition&gt;
         &lt;Aggregate type=&quot;average&quot;&gt;
@@ -159,6 +158,8 @@ A valid document may contain four types of top-level statements beneath the root
     &lt;Prefixes ... /&gt;
       ...
     &lt;DataSources ... /&gt;
+      ...
+    [&lt;Blocking ... /&gt;]  
       ...
     &lt;Interlinks ... /&gt;
       ...
@@ -231,15 +232,6 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
     </tr>
   </tbody>
 </table>
-<!--<em>SPARQL URI&lt;/EndpointURI</em>&gt;
-    [&lt;Graph&gt;<em>graph name</em>&lt;/Graph&gt;]
-    [&lt;DoCache&gt;<em>1|0</em>&lt;/DoCache&gt;]
-    [&lt;PageSize&gt;<em>page size</em>&lt;/PageSize&gt;]
-    [&lt;Pause&gt;<em>pause time in milliseconds</em>&lt;/Pause&gt;]
-    [&lt;RetryCount&gt;<em>number of retries</em>&lt;/RetryCount&gt;]
-    [&lt;RetryPause&gt;<em>retry pause time in milliseconds</em>&lt;/RetryPause&gt;]
--->
-
 
 <P>Example:</P>
 <PRE>&lt;DataSource id=&quot;dbpedia&quot; type=&quot;sparqlEndpoint&quot;&gt;
@@ -247,7 +239,35 @@ For SPARQL endpoints (dataSource type: <tt>sparqlEndpoint</tt>) the following pa
   &lt;Param name=&quot;retryCount&quot; value=&quot;100&quot; /&gt;
 &lt;/DataSource&gt;</PRE>
 
-<h2><a name="linkspec"></a>2.4 Link Specifications</h2>
+<h2><a name="blocking"></a>2.4 Blocking Data Items</h2>
+
+<p>Since comparing every source resource to every single target resource results in a number of n*m comparisons (n being the number of source resources, m the number of target resources)
+which might be too time consuming, blocking can be used to reduce the number of comparisons.
+Blocking partitions similar data items into clusters reducing the comparison to items in the same cluster.</p>
+
+<p>For example given two datasets describing books, in order to reduce the number of comparisons, we could block the books by publisher.
+In this case only books from the same publisher will be compared.
+Given a number of 40.000 books in the first dataset and 30.000 in the second dataset, evaluating the full Cartesian product requires 1.2 billion comparisons.</p>
+If we block this datasets by publisher, each book will be allocated to a block based on its publisher.
+Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 12 million.</p>
+
+<p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
+If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs (Cartesian product).</p>
+
+<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
+  <TBODY>
+    <TR>
+      <TH>Parameter</TH>
+      <TH>Description</TH>
+    </TR>
+    <tr>
+        <td style="white-space:nowrap;"><tt>blocks</tt> <small>(optional)</small></li></td>
+        <td>The number of clusters. Default: 100</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2><a name="linkspec"></a>2.5 Link Specifications</h2>
 <P>Link specification statements state that a link of a given type should be
 established between two data items if a specified condition is satisfied. This condition may contain different similarity metrics, aggregation and transformation functions, thresholds and weights.
 </P>
@@ -261,7 +281,6 @@ established between two data items if a specified condition is satisfied. This c
         <li><a href="#transformations">transformations</a></li>
     </ul>
   </li>
-  <li><a href="#blocking">blocking</a></li>
   <li><a href="#conditions">link conditions</a>
     <ul>
         <li><a href="#comparisons">comparison operators</a></li>
@@ -284,11 +303,7 @@ Link specifications are structured as follows:</p>
     &lt;TargetDataset dataSource=&quot;<em>dataSource id</em>&quot; var=&quot;<em>resource variable name</em>&quot;&gt;
         [&lt;RestrictTo&gt;<em>SPARQL restriction</em>&lt;/RestrictTo&gt;]
     &lt;/TargetDataset&gt;
-    [&lt;Blocking blocks=&quot;<em>number of blocks</em>&quot; function=&quot;<em>blocking function</em>&quot;&gt;
-      &lt;Input path=&quot;<em>RDF path</em>&quot; /&gt;
-      &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
-      ...
-    &lt;/Blocking&gt;]
+    &lt;/TargetDataset&gt;
     &lt;LinkCondition&gt;
         &lt;Aggregate type=&quot;average|max|min|...&quot;&gt;
             &lt;Compare metric=&quot;<em>similarity metric</em>&quot;&gt;
@@ -332,9 +347,6 @@ Link specifications are structured as follows:</p>
     &lt;/SourceDataset&gt;
     &lt;TargetDataset dataSource=&quot;factbook&quot; var=&quot;b&quot;&gt;
     &lt;/TargetDataset&gt;
-    &lt;Blocking blocks=&quot;10&quot; hitLimit=&quot;10&quot;&gt;
-        &lt;Index path=&quot;?b/rdfs:label&quot; /&gt;
-    &lt;/Blocking&gt;
     &lt;LinkCondition&gt;
         &lt;Aggregate type=&quot;average&quot;&gt;
             &lt;Compare metric=&quot;jaro&quot; weight=&quot;2&quot;&gt;
@@ -362,13 +374,13 @@ Link specifications are structured as follows:</p>
   &lt;/Interlink&gt;
 &lt;/Interlinks&gt;</PRE>
 
-<H2><A name="linktype"></A>2.4.1 Link Type</H2>
+<H2><A name="linktype"></A>2.5.1 Link Type</H2>
 <p>The <tt>LinkType</tt> directive defines the type of the generated links.</p>
 
 <p>Example:</p>
 <PRE>&lt;LinkType&gt;owl:sameAs&lt;/LinkType&gt;</PRE>
 
-<h2><a name="datasets"></a>2.4.2 Datasets</h2>
+<h2><a name="datasets"></a>2.5.2 Datasets</h2>
 
 <p>The <tt>SourceDataset</tt> and <tt>TargetDataset</tt> directives define the set of data items which are to be compared.</p>
 
@@ -411,7 +423,7 @@ Link specifications are structured as follows:</p>
 &lt;/SourceDataset&gt;
 </pre>
 
-<h2><a name="inputs"></a>2.4.3 Inputs</h2>
+<h2><a name="inputs"></a>2.5.3 Inputs</h2>
 An input retrieves values from a data item by a given RDF path and optionally applies a transformation to them.
 
 <h3><a name="pathinputs"></a>Path Inputs</h3>
@@ -540,60 +552,7 @@ If a path cannot be resolved due to a missing property or a too restrictive filt
   &lt;/TransformInput&gt;
 &lt;/TransformInput&gt;</pre>
 
-<h2><a name="blocking"></a>2.4.4 Blocking Data Items</h2>
-
-<p>Since comparing every source resource to every single target resource results in a number of n*m comparisons (n being the number of source resources, m the number of target resources)
-which might be too time consuming, blocking can be used to reduce the number of comparisons.
-Blocking partitions similar data items into clusters reducing the comparison to items in the same cluster.</p>
-
-<p>For example given two datasets describing books, in order to reduce the number of comparisons, we could block the books by publisher.
-In this case only books from the same publisher will be compared.
-Given a number of 40.000 books in the first dataset and 30.000 in the second dataset, evaluating the full Cartesian product requires 1.2 billion comparisons.</p>
-If we block this datasets by publisher, each book will be allocated to a block based on its publisher.
-Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 12 million.</p>
-
-<p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
-If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs (Cartesian product).</p>
-
-<TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
-  <TBODY>
-    <TR>
-      <TH>Parameter</TH>
-      <TH>Description</TH>
-    </TR>
-    <tr>
-        <td style="white-space:nowrap;"><tt>function</tt> <small>(mandatory)</small></li></td>
-        <td>The blocking function to be used. Available functions are: <em>alphanumeric</em> and <em>numeric</em>.<br/>
-            <em>alphanumeric</em> can be used if the property values mainly contain alphabetic characters and numbers.<br/>
-            <em>numeric</em> can be used if the property values are numbers.</td>
-    </tr>
-  <tr>
-      <td style="white-space:nowrap;"><tt>blocks</tt> <small>(mandatory)</small></li></td>
-      <td>The number of clusters.</td>
-  </tr>
-  <tr>
-      <td><tt>overlap</tt></td>
-      <td>The overlap in percentage as a value between 0 and 0.5.
-          Overlapping is usually used if the input data is noisy and blocking would remove too many correct links.
-          The overlap factor specifies the percentage by which adjacent blocks are overlapping.</td>
-  </tr>
-  </tbody>
-</table>
-
-<p>The properties according to which the data items will be blocked are specified by inputs.</p>
-
-<PRE>&lt;Blocking function=&quot;<em>blocking function</em>&quot; blocks=&quot;<em>number of blocks</em>&quot; overlap=&quot;<em>overlap size</em>&quot;&gt;
-  &lt;Input|TransformInput ... /&gt;
-  &lt;Param name=&quot;<em>parameter name</em>&quot; value=&quot;<em>parameter value</em>&quot; /&gt;
-  ...
-&lt;/Blocking&gt;</PRE>
-
-  <P>Example:</P>
-  <PRE>&lt;Blocking blocks=&quot;10&quot; function=&quot;alphanumeric&quot;&gt;
-  &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
-&lt;/Blocking&gt;</PRE>
-
-<h2><a name="conditions"></a>2.4.5 Link Condition</h2>
+<h2><a name="conditions"></a>2.5.5 Link Condition</h2>
 The link condition specifies how two data items are compared for similarity. It consists of a number of comparison operators which are combined using aggregations.
 
 <h3><a name="comparisons"></a>Comparison Operators</h3>
@@ -614,7 +573,7 @@ The Silk framework currently supports the following similarity metrics, which re
       <TD>String similarity based on the Jaro-Winkler metric.</TD>
     </TR>
     <TR>
-      <TD>levenshtein</TD>
+      <TD>levenshtein([float maxDistance], [float minValue], [float maxValue])</TD>
       <TD>String similarity based on the Levenshtein metric.</TD>
     </TR>
     <TR>
@@ -625,21 +584,24 @@ The Silk framework currently supports the following similarity metrics, which re
       <TD>equality</TD>
       <TD>Return 1 if strings are equal, 0 otherwise.</TD>
     </TR>
+     <TR>
+      <TD>inequality</TD>
+      <TD>Return 0 if strings are equal, 1 otherwise.</TD>
+    </TR>
     <TR>
-      <TD>num(float threshold)</TD>
+      <TD>num(float maxDistance, float minValue, float maxValue)</TD>
       <TD>Computes the numeric distance between two numbers and normalizes it using the threshold. The similarity score is 0.0 if the distance is bigger than threshold.</TD>
     </TR>
     <TR>
-      <TD>date(int max_days)</TD>
-      <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "max_days", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
+      <TD>date(int maxDays)</TD>
+      <TD>Computes the similarity between two dates ("YYYY-MM-DD" format). At a difference of "maxDays", the metric evaluates to 0 and progresses towards 1 with a lower difference. </TD>
     </TR>
     <TR>
-      <TD>wgs84(string unit, float threshold, string curveStyle, boolean longitudeFirst)</TD>
+      <TD>wgs84(string unit, float threshold, string curveStyle)</TD>
       <TD>Computes the geographical distance between two points<br/>
           <strong><tt>unit</tt></strong> The unit in which the distance is measured. Allowed values: "meter" or "m" (default) , "kilometer" or "km"<br/>
           <strong><tt>threshold</tt></strong> Will result in a 0 for all bigger values than t, values below are varying with the curveStyle<br/>
           <strong><tt>curveStyle</tt></strong> "discreet" (default) "linear" gives a linear transition, "logistic" uses the logistic function f(x)=1/(1+e^(x) gives a more soft curve with a slow slope at the start and the end of the curve but a  steep one in the middle.<br/>
-          <strong><tt>longitudeFirst</tt></strong> "true" (default) or "false" specifies if the longitude or latitude is given first<br/>
           <br/>
           Author: Konrad H&ouml;ffner (<a href="http://aksw.org/Groups/MOLE">MOLE</a> subgroup of Research Group AKSW, University of Leipzig)
       </TD>
@@ -693,7 +655,7 @@ The Silk framework currently supports the following similarity metrics, which re
   &lt;/Aggregate&gt;
 &lt;/LinkCondition&gt;</pre>
 
-<h2><a name="filter"></a>2.4.6 Link Filter</h2>
+<h2><a name="filter"></a>2.5.6 Link Filter</h2>
 <P>The <tt>&lt;Filter&gt;</tt> directive allows for filtering the generated links.
 
 <pre>&lt;Filter threshold=&quot;<em>threshold</em>&quot; limit=&quot;<em>maximum link count</em>&quot; /&gt;</pre>
@@ -706,7 +668,7 @@ Only the n highest-rated links per source data item will remain after the filter
 <p>Example:</p>
   <PRE>&lt;Filter threshold=&quot;0.95&quot; limit=&quot;1&quot; /&gt;</PRE>
 
-<h2><a name="output"></a>2.5 Output</h2>
+<h2><a name="output"></a>2.6 Output</h2>
   <P>With the <tt>&lt;Output&gt;</tt> directive, the user can specify output targets for the generated links.
 Links will be forwarded to the output if their confidence is above the defined threshold of the link filter.
 In addition to this, outputs can have an acceptance windows (defined by <tt>minConfidence</tt> and <tt>maxConfidence</tt>)
@@ -922,6 +884,7 @@ labels.</p>
 <H2><a name="references" />4. References</H2>
 <p>
 <ul>
+    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
     <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
     <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
     <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
@@ -932,6 +895,7 @@ labels.</p>
 
 <H1><a name="change_log"/>5. Change Log</H1>
 <UL>
+  <LI>2011-01-31: Updated document for Silk 2.3 release.</LI>
   <LI>2010-10-06: Moved the <em>Silk - Single Machine</em> user manual to a separate page.</LI>
   <LI>2010-07-02: Updated document for Silk 2 release (Robert, Anja). </LI>
   <LI>2009-03-02: Updated document for Silk 0.2-alpha release (Julius). </LI>

@@ -24,6 +24,7 @@
 
 <H2 id=news>News</H2>
 <ul>
+  <li><strong>2010-01-31:</strong> Version 2.3 released offering an increased performance by using a new blocking method</li>
   <li><strong>2010-12-20:</strong> Version 2.3 beta released offering an increased performance by using a new blocking method</li>
   <li><strong>2010-10-06:</strong> Version 2.2 released. This release includes Silk MapReduce which is based on Hadoop and enables Silk to scale out to very large datasets by distributing the link generation to multiple machines.</li>
   <li><strong>2010-09-15:</strong> Version 2.1 released. The main addition is Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</li>
@@ -95,6 +96,14 @@ To learn how to use the <em>Silk - Link Specification Language</em>, which is us
         <th>Comment</th>
         <th>Release Date</th>
       </tr>
+      <tr>
+        <td>2.3</td>
+        <td>Improved loading perfomance: Multiple parallel SPARQL queries are executed, while their results are merged on the fly.<br/>
+            Improved matching performance: New blocking method offers greatly improved performance.<br/>
+            Improved overall performance: Matching tasks are now executed concurrently to loading data instead of waiting for the complete data set to be loaded.<br/>
+        </td>
+        <td>2011-01-31</td>
+      </tr>
       <tr id="grey">
         <td>2.2</td>
         <td>Added Silk MapReduce
@@ -155,6 +164,7 @@ src="http://sourceforge.net/sflogo.php?group_id=111002&type=5" alt="Sourceforge 
 <H2><a name="references" />References</H2>
 <p>
 <ul>
+    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
     <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
     <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
     <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
@@ -162,5 +172,5 @@ src="http://sourceforge.net/sflogo.php?group_id=111002&type=5" alt="Sourceforge 
 </ul>
 </p>
 
-<DIV id=footer><SMALL>Last change: 2010-12-20</SMALL>
+<DIV id=footer><SMALL>Last change: 2011-01-31</SMALL>
 </DIV></DIV></BODY></HTML>
