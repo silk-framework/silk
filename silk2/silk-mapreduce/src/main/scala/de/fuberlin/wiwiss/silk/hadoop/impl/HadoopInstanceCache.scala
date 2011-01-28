@@ -202,9 +202,9 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
       try
       {
         stream.writeInt(instanceCount)
-        for(instance <- instances)
+        for(i <- 0 until instanceCount)
         {
-          instance.serialize(stream)
+          instances(i).serialize(stream)
         }
       }
       finally

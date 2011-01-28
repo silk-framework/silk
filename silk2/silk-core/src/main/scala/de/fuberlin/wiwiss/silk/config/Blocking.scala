@@ -17,7 +17,7 @@ object Blocking
   def fromXML(node : Node) =
   {
     new Blocking(
-      (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(1000)
+      (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(100)
     )
   }
 }
