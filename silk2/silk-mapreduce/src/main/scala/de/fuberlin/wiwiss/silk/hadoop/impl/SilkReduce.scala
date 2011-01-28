@@ -7,27 +7,27 @@ import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 
 class SilkReduce extends Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]
 {
-    protected override def reduce(sourceUri : Text, instanceSimilarities : java.lang.Iterable[InstanceSimilarity],
-                                  context : Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]#Context)
-    {
-        val config = SilkConfiguration.get(context.getConfiguration)
+  protected override def reduce(sourceUri : Text, instanceSimilarities : java.lang.Iterable[InstanceSimilarity],
+                                context : Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]#Context)
+  {
+    val config = SilkConfiguration.get(context.getConfiguration)
 
-        config.linkSpec.filter.limit match
+    config.linkSpec.filter.limit match
+    {
+      case Some(limit) =>
+      {
+        for(instanceSimilarity <- instanceSimilarities.take(limit))
         {
-            case Some(limit) =>
-            {
-                for(instanceSimilarity <- instanceSimilarities.take(limit))
-                {
-                    context.write(sourceUri, instanceSimilarity)
-                }
-            }
-            case None =>
-            {
-                for(instanceSimilarity <- instanceSimilarities)
-                {
-                    context.write(sourceUri, instanceSimilarity)
-                }
-            }
+          context.write(sourceUri, instanceSimilarity)
         }
+      }
+      case None =>
+      {
+        for(instanceSimilarity <- instanceSimilarities)
+        {
+          context.write(sourceUri, instanceSimilarity)
+        }
+      }
     }
+  }
 }
