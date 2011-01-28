@@ -9,6 +9,7 @@ import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import collection.immutable.HashSet
 import util.{SourceTargetPair, Task}
+import scala.math.max
 
 /**
  * Executes the matching.
@@ -102,7 +103,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           }
           else
           {
-            Math.max(0, sourceCache.partitionCount(block) - 1)
+            max(0, sourceCache.partitionCount(block) - 1)
           }
         }
       }.toArray
@@ -129,7 +130,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
           }
           else
           {
-            Math.max(0, targetCache.partitionCount(block) - 1)
+            max(0, targetCache.partitionCount(block) - 1)
           }
         }
       }.toArray
