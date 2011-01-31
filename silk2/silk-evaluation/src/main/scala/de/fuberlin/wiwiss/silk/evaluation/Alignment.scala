@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.evaluation
 import de.fuberlin.wiwiss.silk.output.Link
 import xml.Node
 
-case class Alignment(positiveLinks : Set[Link], negativeLinks : Set[Link])
+case class Alignment(positiveLinks : Set[Link] = Set.empty, negativeLinks : Set[Link] = Set.empty)
 {
   def toXML : Node =
   {

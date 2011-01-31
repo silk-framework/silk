@@ -25,7 +25,7 @@ class XMLUtils(xml : NodeSeq)
 
   def write(file : File)
   {
-    val fileWriter= new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
+    val fileWriter = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
     try
     {
       write(fileWriter)
