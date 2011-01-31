@@ -24,8 +24,6 @@
     </DataSource>
   </DataSources>
 
-  <Blocking blocks="10" />
-
   <Interlinks>
     <Interlink id="drugs">
       <LinkType>owl:sameAs</LinkType>
