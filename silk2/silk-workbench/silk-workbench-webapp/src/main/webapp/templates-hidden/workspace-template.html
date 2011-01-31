@@ -35,7 +35,7 @@
 
         for (var p in obj.workspace.project) {
            var  proj = document.createElement("li");
-                proj.class= 'closed';
+                proj.setAttribute('class', 'closed');
                 root.appendChild(proj);
                 var proj_span = document.createElement("span");
                     proj_span.setAttribute('class', 'folder');
