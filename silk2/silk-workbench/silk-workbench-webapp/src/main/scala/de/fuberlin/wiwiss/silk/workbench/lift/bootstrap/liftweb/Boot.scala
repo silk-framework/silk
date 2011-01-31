@@ -38,6 +38,7 @@ class Boot
 
     val entries =
         Menu(Loc("home", List("index"), "Home")) ::
+        Menu(Loc("Workspace", List("workspace"), "Workspace")) ::
         Menu(Loc("Link Specification", List("linkSpec"), "Link Specification", ifProjectOpen)) ::
         Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifProjectOpen)) ::
         Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifProjectOpen)) :: Nil
