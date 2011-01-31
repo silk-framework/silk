@@ -20,8 +20,10 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
   id = "wgs84",
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
-class GeographicDistanceMetric(threshold : Double, unit : String = "", curveStyle : String = "linear") extends Metric
+class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveStyle : String = "linear") extends Metric
 {
+  require(threshold > 0.0, "Threshold must be positive.")
+
   val multipliers = Map("km"->0.001,"kilometer"->0.001,"meter"->1.0,"m"->1.0)
 
   val unitMultiplier : Double = multipliers.get(unit).getOrElse(1)
