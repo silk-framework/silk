@@ -1,9 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules.source
 
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.ModuleTask
+import de.fuberlin.wiwiss.silk.datasource.Source
 
 /**
  * A data source.
  */
-//TODO replace endpointUri with complete datasource definition
-case class SourceTask(name : String, endpointUri : String) extends ModuleTask
+case class SourceTask(source : Source) extends ModuleTask
+{
+  val name = source.id
+}
