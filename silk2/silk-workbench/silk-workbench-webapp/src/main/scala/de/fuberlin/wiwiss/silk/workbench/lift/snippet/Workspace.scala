@@ -38,14 +38,13 @@ class Workspace
       ("targetDataset" -> task.linkSpec.datasets.target.restriction)
     }
 
-    ("workspace" ->
-      ("project" ->
-        (
-          ("name" -> "project") ~
-          ("dataSource" -> sources) ~
-          ("linkingTask" -> linkingTasks)
-        )
-      )
-    )
+    val projects : JArray = for(p <- project :: Nil) yield
+    {
+      ("name" -> "project") ~
+      ("dataSource" -> sources) ~
+      ("linkingTask" -> linkingTasks)
+    }
+
+    ("workspace" -> ("project" -> projects))
   }
 }
