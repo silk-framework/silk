@@ -1,6 +1,66 @@
-<lift:surround with="default">
+<lift:surround with="workspace-template">
 
-  <lift:bind-at name="toolbar">
+ <lift:bind-at name="toolbar">
+    <lift:projectMenu form="POST" id="projectMenuForm">
+      <choose:projectOpen>
+        <lift:projectMenu.menu>
+          <ul>
+            <li>
+              <entry:save/>
+            </li>
+            <li>
+              <entry:close/>
+            </li>
+          </ul>
+        </lift:projectMenu.menu>
+      </choose:projectOpen>
+      <choose:projectClosed>
+        <lift:projectMenu.startMenu>
+          <ul>
+            <li>
+              <entry:new/>
+            </li>
+            <li>
+              <entry:open/>
+            </li>
+          </ul>
+        </lift:projectMenu.startMenu>
+        <div id="createProjectDialog" title="New Project">
+          <lift:projectMenu.createProjectDialog>
+            <table border="0">
+              <tr>
+                <td>Source Endpoint</td>
+                <td><entry:sourceEndpoint/></td>
+              </tr>
+              <tr>
+                <td>Source Restriction</td>
+                <td><entry:sourceRestriction/></td>
+              </tr>
+              <tr>
+                <td>Target Endpoint</td>
+                <td><entry:targetEndpoint/></td>
+              </tr>
+              <tr>
+                <td>Target Restriction</td>
+                <td><entry:targetRestriction/></td>
+              </tr>
+              <tr>
+                <td></td>
+                <td align="right"><entry:submit/></td>
+              </tr>
+            </table>
+            <entry:prefixes/>
+          </lift:projectMenu.createProjectDialog>
+        </div>
+        <div id="openProjectDialog" title="Open Project">
+          <lift:projectMenu.openProjectDialog form="POST" multipart="true">
+            <entry:file/>
+            <br/>
+            <entry:submit/>
+          </lift:projectMenu.openProjectDialog>
+        </div>
+      </choose:projectClosed>
+    </lift:projectMenu>
   </lift:bind-at>
 
   <lift:bind-at name="content">
