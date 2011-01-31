@@ -4,11 +4,12 @@ import config.Configuration
 import impl.DefaultImplementations
 import instance.{InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
-import linkspec.LinkSpecification
 import datasource.DataSource
 import java.io.File
 import java.util.logging.Logger
+import linkspec.{Aggregator, LinkSpecification}
 import util.StringUtils._
+import java.util.ServiceLoader
 
 /**
  * Executes the complete Silk workflow.
