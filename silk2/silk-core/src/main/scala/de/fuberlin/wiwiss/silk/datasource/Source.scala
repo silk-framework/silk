@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 import xml.Node
+import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
 
 /**
  * A source of instances.
@@ -31,6 +32,13 @@ case class Source(id : String, dataSource : DataSource)
 
 object Source
 {
+  private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+
+  def load =
+  {
+    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
+  }
+
   def fromXML(node : Node) : Source =
   {
     new Source(node \ "@id" text, DataSource(node \ "@type" text, readParams(node)))

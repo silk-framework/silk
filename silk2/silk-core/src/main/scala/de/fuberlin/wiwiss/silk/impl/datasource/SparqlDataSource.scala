@@ -41,4 +41,6 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
 
     instanceRetriever.retrieve(instanceSpec, instanceUris union instances)
   }
+
+  override def toString = endpointURI
 }

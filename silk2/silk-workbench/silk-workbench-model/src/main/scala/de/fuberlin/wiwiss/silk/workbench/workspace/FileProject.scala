@@ -6,6 +6,7 @@ import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.AlignmentReader
 import de.fuberlin.wiwiss.silk.workbench.project.Cache
+import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -77,22 +78,15 @@ class FileProject(file : File) extends Project
     {
       for(fileName <- file.list.toList) yield
       {
-        val xml = XML.loadFile(file + ("/" + fileName))
+        val source = Source.load(file + ("/" + fileName))
 
-        SourceTask(fileName.takeWhile(_ != '.'), xml \ "DataSource" text)
+        SourceTask(source)
       }
     }
 
     def update(task : SourceTask)
     {
-      val dataSourceXML =
-        <DataSource>
-        {
-          task.endpointUri
-        }
-        </DataSource>
-
-      dataSourceXML.write(file + ("/" + task.name + ".xml"))
+      task.source.toXML.write(file + ("/" + task.name + ".xml"))
     }
 
     def remove(task : SourceTask)
