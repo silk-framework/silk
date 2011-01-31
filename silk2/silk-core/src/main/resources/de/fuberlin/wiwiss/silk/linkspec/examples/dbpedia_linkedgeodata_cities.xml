@@ -55,8 +55,6 @@
         </RestrictTo>
       </TargetDataset>
 
-      <!-- Blocking blocks="1000" / -->
-
       <LinkCondition>
         <Aggregate type="average">
           <Aggregate type="max" required="true" >
@@ -77,7 +75,6 @@
             <Input path="?b/wgs84:geometry" />
             <Param name="unit" value="km"/>
             <Param name="threshold" value="50"/>
-            <Param name="curveStyle" value="linear"/>
           </Compare>
        </Aggregate>              
       </LinkCondition>
