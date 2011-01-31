@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
+
 class ProjectMenu
 {
   def render(xhtml : NodeSeq) : NodeSeq =

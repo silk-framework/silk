@@ -10,6 +10,7 @@ import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -21,19 +22,7 @@ class FileProject(file : File) extends Project
    */
   override def config =
   {
-    val configFile = file + "/config.xml"
-    if(configFile.exists)
-    {
-      val configXML = XML.loadFile(file + "/config.xml")
-
-      val prefixes = (configXML \ "Prefixes" \ "Prefix").map(n => (n \ "@id" text, n \ "@namespace" text)).toMap
-
-      new ProjectConfig(prefixes)
-    }
-    else
-    {
-      new ProjectConfig(Map.empty)
-    }
+    ProjectConfig()
   }
 
   /**
@@ -41,16 +30,6 @@ class FileProject(file : File) extends Project
    */
   override def config_=(config : ProjectConfig)
   {
-    <Project>
-      <Prefixes>
-      {
-        for((key, value) <- config.prefixes) yield
-        {
-          <Prefix id={key} namespace={value} />
-        }
-      }
-      </Prefixes>
-    </Project>
   }
 
   /**
@@ -74,7 +53,7 @@ class FileProject(file : File) extends Project
 
     def config_=(c : SourceConfig) {}
 
-    def tasks =
+    def tasks = synchronized
     {
       for(fileName <- file.list.toList) yield
       {
@@ -84,12 +63,12 @@ class FileProject(file : File) extends Project
       }
     }
 
-    def update(task : SourceTask)
+    def update(task : SourceTask) = synchronized
     {
       task.source.toXML.write(file + ("/" + task.name + ".xml"))
     }
 
-    def remove(task : SourceTask)
+    def remove(task : SourceTask) = synchronized
     {
       (file + task.name).deleteRecursive()
     }
@@ -100,36 +79,40 @@ class FileProject(file : File) extends Project
    */
   class FileLinkingModule(file : File) extends LinkingModule
   {
-    file.mkdirs()
-
     def config = LinkingConfig()
 
     def config_=(c : LinkingConfig) {}
 
-    def tasks =
+    def tasks = synchronized
     {
       for(fileName <- file.list.toList) yield
       {
         val projectConfig = FileProject.this.config
 
-        val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+        val prefixes = Prefixes.fromXML(XML.loadFile(file + ("/" + fileName + "/prefixes.xml")))
+
+        val linkSpec = LinkSpecification.load(prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
 
         val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
 
         val cache = Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
 
-        LinkingTask(fileName, linkSpec, alignment, cache)
+        LinkingTask(fileName, prefixes, linkSpec, alignment, cache)
       }
     }
 
-    def update(task : LinkingTask)
+    def update(task : LinkingTask) = synchronized
     {
-      task.linkSpec.toXML.write(file + ("/" + task.name + "/linkSpec.xml"))
-      task.alignment.toXML.write(file + ("/" + task.name + "/alignment.xml"))
-      task.cache.toXML.write(file + ("/" + task.name +  "/cache.xml"))
+      val taskDir = file + ("/" + task.name)
+      taskDir.mkdirs()
+
+      task.prefixes.toXML.write(taskDir + "/prefixes.xml")
+      task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
+      task.alignment.toXML.write(taskDir+ "/alignment.xml")
+      task.cache.toXML.write(taskDir +  "/cache.xml")
     }
 
-    def remove(task : LinkingTask)
+    def remove(task : LinkingTask) = synchronized
     {
       (file + ("/" + task.name)).deleteRecursive()
     }
