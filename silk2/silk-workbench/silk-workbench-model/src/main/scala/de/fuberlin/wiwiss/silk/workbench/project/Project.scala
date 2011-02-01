@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.instancespec.{RelevantPropertiesCollector}
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.util.sparql.{ParallelInstanceRetriever, RemoteSparqlEndpoint, SparqlEndpoint}
+import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, ParallelInstanceRetriever, RemoteSparqlEndpoint, SparqlEndpoint}
 
 case class Project(desc : SourceTargetPair[Description],
                    config : Configuration,//TODO remove and hold all variables in desc
@@ -59,8 +59,8 @@ case class Project(desc : SourceTargetPair[Description],
       {
         updateStatus("Loading instances into cache", 0.6)
 
-        val sourceRetriever = new ParallelInstanceRetriever(sourceEndpoint)
-        val targetRetriever = new ParallelInstanceRetriever(targetEndpoint)
+        val sourceRetriever = InstanceRetriever(sourceEndpoint)
+        val targetRetriever = InstanceRetriever(targetEndpoint)
 
         val positiveSourceInstances = sourceRetriever.retrieve(cache.instanceSpecs.source, positiveSamples.map(_.sourceUri)).toList
         val positiveTargetInstances = targetRetriever.retrieve(cache.instanceSpecs.target, positiveSamples.map(_.targetUri)).toList
