@@ -3,7 +3,10 @@ package de.fuberlin.wiwiss.silk.util.sparql
 import de.fuberlin.wiwiss.silk.instance.{Path, Instance, InstanceSpecification}
 import collection.mutable.SynchronizedQueue
 
-class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None)
+/**
+ * InstanceRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single instances.
+ */
+class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None) extends InstanceRetriever
 {
   private val varPrefix = "v"
 
@@ -16,7 +19,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
    * @param instances The URIs of the instances to be retrieved. If empty, all instances will be retrieved.
    * @return The retrieved instances
    */
-  def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
+  override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
   {
     new InstanceTraversable(instanceSpec, instances)
   }
