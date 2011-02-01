@@ -11,7 +11,7 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Single Mach
 <DL>
   <DT>This Version:
   <DD>
-    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/20101006/">http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/20101006/</a> </p>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/20110201/">http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/20110201/</a> </p>
     <DT>Latest Version:
   <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/">http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/</a><DT>
   <DT>Authors:
@@ -33,9 +33,8 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Single Mach
       <li>2.2 <a href="#api">Using the Silk API</a></li>
       </ul>
   </LI>
-  <LI>3. <A href="#architecture">Architecture</A> </LI>
-  <LI>4. <A href="#references">References</A></LI>
-  <LI>5. <A href="#change_log">Change Log</A></LI>
+  <LI>3. <A href="#references">References</A></LI>
+  <LI>4. <A href="#change_log">Change Log</A></LI>
 
 </UL>
 <HR>
@@ -114,34 +113,9 @@ xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Single Mach
   </LI>
 </OL>
 
-
-<HR title="Separator for header">
-<H1><A id=language name=architecture>3. Silk Architecture</A></H1>
-<img src="dataflow.png" alt="Silk Dataflow" />
-
-<p>The <b>DataSource</b> generates a stream of data items. </p>
-
-<p>The optional <b>Blocking</b> phase partitions the incoming data items in clusters.</p>
-
-<p>The <b>Link Generation</b> phase reads the incoming data items and computes a similarity value for each pair.<br/>
-The incoming data items, which might be allocated to a cluster by the preceding blocking phase, are written to an internal cache.
-From the cache, pairs of data items are generated. If blocking is disabled, this will generate the complete cartesian product of the two datasets.
-If blocking is enabled, only data items from the same cluster are compared.
-For each pair of data items, the link condition is evaluated, which computes a similarity value between 0.0 and 1.0.
-Each pair generates a preliminary link with a confidence according to the similarity of the source and target data item.</p>
-
-<p>The <b>Filtering</b> phase filters the incoming links in two stages:<br/>
-In the first stage, all links with a lower confidence than the user-defined threshold are removed.<br/>
-In the second stage, all links which originate from the same subject are grouped together.
-If a link limit is defined, only the links with the highest confidence are forwarded to the output.
-The number of links which are forwarded per source item, is specified by the link limit</p>
-
-<p>Finally, the <b>Output</b> phase is responsible for writing the generated and filtered links to a user-defined destination.
-</p>
-
 <hr>
 
-<H2><a name="references" />4. References</H2>
+<H2><a name="references" />3. References</H2>
 <p>
 <ul>
     <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
@@ -152,8 +126,9 @@ The number of links which are forwarded per source item, is specified by the lin
 
 <HR>
 
-<H1><a name="change_log"/>5. Change Log</H1>
+<H1><a name="change_log"/>4. Change Log</H1>
 <UL>
+  <LI>2011-02-01: Moved architecture section.</LI>
   <LI>2010-10-06: Initial version of this document. </LI>
 </UL>
 <HR>
