@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML lang=en
+xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><HEAD><TITLE>Silk Link Discovery Engine</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    
+</HEAD>
+<BODY>
+<DIV class=head>
+<H1 id=title>Silk Link Discovery Engine</H1>
+<DL>
+  <DT>This Version:
+  <DD>
+    <p><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/20110201/">http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/20110201/</a> </p>
+    <DT>Latest Version:
+  <DD><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/">http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/</a><DT>
+  <DT>Authors:
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin, Germany)
+  <DD>
+  <DD><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/BizerChristian.html">Chris Bizer</A> (Freie Universit&auml;t Berlin, Germany)
+  <DT></DT></DL>
+<P>&nbsp;</P>
+<HR title="Separator for header">
+</DIV>
+<H2 id=toc>Table of Contents</H2>
+<UL class=toc>
+  <LI>1. <A href="#introduction">Introduction</A>
+  <LI>2. <A href="#architecture">Architecture</A> </LI>
+  <LI>3. <A href="#architecture">Blocking</A> </LI>
+  <LI>4. <A href="#references">References</A></LI>
+  <LI>5. <A href="#change_log">Change Log</A></LI>
+
+</UL>
+<HR>
+
+<H1><A name=introduction>1. Introduction</A></H1>
+<p>The Silk Link Discovery Engine builds the core of the Silk Framework.
+It is responsible for loading the instances from the data sources as well as generating the links based on the user-provided Link Specifications.
+This page covers the architecture of the Silk Link Discovery Engine as well as the Blocking method used in Silk.</p>
+
+<HR title="Separator for header">
+<H1><A id=language name=architecture>2. Architecture</A></H1>
+<img src="dataflow.png" alt="Silk Dataflow" />
+
+<p>The <b>DataSource</b> generates a stream of data items. </p>
+
+<p>The optional <b>Blocking</b> phase partitions the incoming data items in clusters.</p>
+
+<p>The <b>Link Generation</b> phase reads the incoming data items and computes a similarity value for each pair.<br/>
+The incoming data items, which might be allocated to a cluster by the preceding blocking phase, are written to an internal cache.
+From the cache, pairs of data items are generated. If blocking is disabled, this will generate the complete cartesian product of the two datasets.
+If blocking is enabled, only data items from the same cluster are compared.
+For each pair of data items, the link condition is evaluated, which computes a similarity value between 0.0 and 1.0.
+Each pair generates a preliminary link with a confidence according to the similarity of the source and target data item.</p>
+
+<p>The <b>Filtering</b> phase filters the incoming links in two stages:<br/>
+In the first stage, all links with a lower confidence than the user-defined threshold are removed.<br/>
+In the second stage, all links which originate from the same subject are grouped together.
+If a link limit is defined, only the links with the highest confidence are forwarded to the output.
+The number of links which are forwarded per source item, is specified by the link limit</p>
+
+<p>Finally, the <b>Output</b> phase is responsible for writing the generated and filtered links to a user-defined destination.
+</p>
+
+<HR title="Separator for header">
+<H1><A name="blocking"></a>3. Blocking</H1>
+<p>As the Web of Data is growing fast there is an increasing need for link discovery tools which scale to very large datasets.
+A number of methods have been proposed to improve the efficiency of link discovery by dismissing definitive non-matches prior to comparison.
+The most well-known method to achieve this is known as \emph{blocking}.
+Unfortunately, traditional blocking methods need a separate configuration and in general lead to a decrease of recall due to false dismissals.</p>
+
+<p>Silk employs a novel blocking method which maps entities to a multidimensional index.
+The basic idea of the mapping function is that it preserves the distances of the entities i.e. similar entities will be located near to each other in the index space.
+Blocking works on arbitrary link specifications which aggregate multiple different similarity measures such as string, geographic or date similarity.
+No separate configuration is required as the indexing is directly based on the link specification and all parameters are configured automatically.
+Additionally, it guarantees that no false dismissals and thus no loss of recall can occur.</p>
+
+<img src="plotLabeled.png" alt="Index" />
+
+<p>Blocking is organized in three phases: <em>index generation</em>, <em>index aggregation</em> and <em>comparison pair generation</em>.
+
+<h2><a name="indexgeneration" />3.1 Index generation</h2>
+<p>For each similarity measure in the link specification, an index is built which consists of a set of vectors which define locations in the Euclidean space.
+The basic idea of the indexing method is that it preserves the distances of the entities i.e. similar entities will be located near each other in the index.</p>
+
+The specific indexing method which defines the number of index vectors which are generated per entity as well as their dimensionality depends on the data type of the field.
+For instance, for each numeric field a one-dimensional index is built and for each field which contains a geographic coordinate a two dimensional index is built using the latitude and longitude.</p>
+
+<h2><a name="indexaggregation" />3.2 Index aggregation</h2>
+<p>In the index aggregation phase, all indexes which have been built in the index generation phase are aggregated into one compound index.
+The aggregation funtion preserves the property of the index that two entities within a given distance share the same index vector.
+Generally, aggregating the indexes of multiple similarity measures will lead to an increase in dimensionality, but the concrete aggregation function depends on the specific aggregation type.
+For instance, when aggregating an 2-dimensional geographic index and an 1-dimensional string index using an average aggregation, the resulting index will be 3-dimensional:</p>
+
+<img src="indexing.png" alt="Indexing" />
+
+<h2><a name="pairgeneration" />3.3 Comparison pair generation</h2>
+<p>Finally, the comparison pair generation employs the index to generate the set of entitiy pairs which are potential links.
+These pairs are then evaluated using the link specification to compute the exact similarity and determine the actual links.
+
+
+<HR title="Separator for header">
+<H1><a name="references" />4. References</H1>
+<p>
+<ul>
+    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
+    <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
+    <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
+</ul>
+
+<HR title="Separator for header">
+<H1><a name="change_log"/>5. Change Log</H1>
+<UL>
+  <LI>2011-02-01: Initial version of this document. </LI>
+</UL>
+<HR>
+
+
+</BODY></HTML>
