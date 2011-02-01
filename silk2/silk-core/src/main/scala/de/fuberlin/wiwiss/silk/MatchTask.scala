@@ -173,7 +173,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
         for(s <- 0 until sourceInstances.size;
             t <- 0 until targetInstances.size;
-            if compareIndexes(sourceIndexes(s), targetIndexes(t)))
+            if !config.blocking.isDefined || compareIndexes(sourceIndexes(s), targetIndexes(t)))
         {
           val sourceInstance = sourceInstances(s)
           val targetInstance = targetInstances(t)
@@ -196,9 +196,16 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
       links
     }
 
-    def builtIndex(instances : Array[Instance]) =
+    def builtIndex(instances : Array[Instance]) : Array[Set[Int]] =
     {
-      instances.map(instance => HashSet(linkSpec.condition.index(instance, linkSpec.filter.threshold).toSeq : _*))
+      if(config.blocking.isDefined)
+      {
+        instances.map(instance => HashSet(linkSpec.condition.index(instance, linkSpec.filter.threshold).toSeq : _*))
+      }
+      else
+      {
+         Array.empty
+      }
     }
 
     def compareIndexes(index1 : Set[Int], index2 : Set[Int]) =
