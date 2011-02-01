@@ -37,7 +37,7 @@ class InstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphU
   private def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
   {
     //Prefixes
-    var sparql = instanceSpec.prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
+    var sparql = ""
 
     //Select
     sparql += "SELECT DISTINCT "

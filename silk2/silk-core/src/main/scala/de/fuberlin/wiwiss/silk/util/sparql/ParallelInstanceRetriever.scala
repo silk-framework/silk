@@ -82,7 +82,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
     private def queryPath(fixedSubject : Option[String] = None) =
     {
       //Prefixes
-      var sparql = instanceSpec.prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
+      var sparql = ""
 
       //Select
       sparql += "SELECT DISTINCT "
