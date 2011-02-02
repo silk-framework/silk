@@ -66,12 +66,20 @@ class XMLProject(linkSpec : Node) extends Project
 
     def update(task : SourceTask) = synchronized
     {
-      // TODO
+      // if this task exists
+      if ((doc \\ "DataSource").filter(n => (n \ "@id").text.equals(task.name)).length > 0){
+         // TODO  update interlink (better)
+         remove(task.name)
+      }
+      doc = new RuleTransformer(new AddChildrenTo("DataSources", task.source.toXML)).transform(doc).head
+      //TODO - validate?
     }
 
-    def remove(task : SourceTask) = synchronized
+    def remove(taskId : String) = synchronized
     {
-      // TODO
+       // Remove datasource with id = task.name
+       doc = new RuleTransformer(new RemoveNodeById("DataSource",taskId)).transform(doc).head
+      // TODO - validate?
     }
   }
 
@@ -97,34 +105,24 @@ class XMLProject(linkSpec : Node) extends Project
 
     def update(task : LinkingTask) = synchronized
     {
-
-      // if this task exists -> update
+      // if this task exists
       if ((doc \\ "Interlink").filter(n => (n \ "@id").text.equals(task.name)).length > 0){
          // TODO  update interlink (better)
-         remove(task)
+         remove(task.name)
       }
-
-      // else -> append
-      //else {
-       //(doc \ "Interlinks")(0).child ++ task.linkSpec.toXML
-       doc = new RuleTransformer(new AddChildrenTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
-      //}
+      doc = new RuleTransformer(new AddChildrenTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
     }
 
-    def remove(task : LinkingTask) = synchronized
+    def remove(taskId : String) = synchronized
     {
        // Remove interlink with id = task.name
-       doc = new RuleTransformer(new RemoveNodeById("Interlink",task.name)).transform(doc).head
-
-
-
+       doc = new RuleTransformer(new RemoveNodeById("Interlink",taskId)).transform(doc).head
     }
   }
 
-
   // Utils
 
-   // Change a specific node to add the new child
+  // Change a specific node to add the new child
   class AddChildrenTo(label: String, newChild: Node) extends RewriteRule {
     override def transform(n: Node) = n match {
       case e @ Elem(_, `label`, _, _, _*) => new Elem (e.prefix, e.label, e.attributes, e.scope, transform(e.child) ++ newChild :_*) 
@@ -135,16 +133,9 @@ class XMLProject(linkSpec : Node) extends Project
   // Remove a specific node
   class RemoveNodeById(label: String, id: String) extends RewriteRule {
     override def transform(n: Node) : NodeSeq = n match {
-       // TODO check interlink/source - noe checks only the tag id
-      //case e @ Elem(_, `label`, _, _, _*) => NodeSeq.Empty
-      case e : Elem if (e \ "@id").text == id => NodeSeq.Empty
+      case e @ Elem(_, `label`, _, _, _*) =>  if ((e \ "@id").text == id) NodeSeq.Empty else e
       case n => n
     }
   }
-
-
-
-
-
-
+  
 }

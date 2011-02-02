@@ -68,9 +68,9 @@ class FileProject(file : File) extends Project
       task.source.toXML.write(file + ("/" + task.name + ".xml"))
     }
 
-    def remove(task : SourceTask) = synchronized
+    def remove(taskId : String) = synchronized
     {
-      (file + task.name).deleteRecursive()
+      (file + taskId).deleteRecursive()
     }
   }
 
@@ -112,9 +112,9 @@ class FileProject(file : File) extends Project
       task.cache.toXML.write(taskDir +  "/cache.xml")
     }
 
-    def remove(task : LinkingTask) = synchronized
+    def remove(taskId : String) = synchronized
     {
-      (file + ("/" + task.name)).deleteRecursive()
+      (file + ("/" + taskId)).deleteRecursive()
     }
   }
 }

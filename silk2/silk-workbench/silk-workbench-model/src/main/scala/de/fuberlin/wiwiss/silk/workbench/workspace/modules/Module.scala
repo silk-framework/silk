@@ -28,5 +28,5 @@ trait Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask]
   /**
    * Removes a task from this project.
    */
-  def remove(task : TaskType) : Unit
+  def remove(taskId : String) : Unit
 }

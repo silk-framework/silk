@@ -10,12 +10,13 @@ class LDEProjectTest extends FlatSpec with ShouldMatchers
 {
     DefaultImplementations.register()
 
-
     // Test LDEProject class
 
     val xmlPath =  "de/fuberlin/wiwiss/silk/linkspec/examples/linkedmdb_directors.xml"
     val proj = new LDEProject(xmlPath)
     val lt = proj.linkingModule.tasks.last
+
+    // LinkingTask Tests
 
     "LDEProjectTest" should "- number of interlinks" in
     {
@@ -48,9 +49,18 @@ class LDEProjectTest extends FlatSpec with ShouldMatchers
     // test linkingModule remove
     "LDEProjectTest" should "- remove interlink" in
     {
-      proj.linkingModule.remove(lt)
+      proj.linkingModule.remove("movies")
       proj.linkingModule.tasks.filter(_.name == "movies").size should equal (0)
     }
+
+    // test linkingModule remove - wrong id value (from source)
+    "LDEProjectTest" should "- remove wrong interlink" in
+    {
+      proj.linkingModule.remove("linkedmdb")
+      proj.linkingModule.tasks.size should equal (1)
+    }
+
+    // DataSource Tests
 
     "LDEProjectTest" should "- number of sources" in
     {
@@ -62,8 +72,9 @@ class LDEProjectTest extends FlatSpec with ShouldMatchers
         proj.sourceModule.tasks.last.name should equal ("linkedmdb")
     }
 
-
-
-
-
+    "LDEProjectTest" should "- remove source" in
+    {
+        proj.sourceModule.remove("linkedmdb")
+        proj.linkingModule.tasks.filter(_.name == "linkedmdb").size should equal (0)
+    }
 }
