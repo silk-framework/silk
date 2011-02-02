@@ -98,7 +98,7 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
 
     //Disable logging of the subtask as this task will do the logging
     val subTaskLogLevel = subTask.logLevel
-    subTask.logLevel = Level.OFF
+    subTask.logLevel = Level.FINEST
 
     //Subscribe to status changes of the sub task
     val subscriber = new Subscriber[StatusMessage, Publisher[StatusMessage]]
