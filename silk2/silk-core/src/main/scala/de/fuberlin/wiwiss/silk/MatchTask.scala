@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk
 
-import config.Configuration
 import instance.{Instance, InstanceCache}
 import linkspec.LinkSpecification
 import java.util.logging.{Level, Logger}

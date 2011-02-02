@@ -1,18 +1,18 @@
 package de.fuberlin.wiwiss.silk
 
 import de.fuberlin.wiwiss.silk.util.Task
-import linkspec.LinkSpecification
+import linkspec.LinkFilter
 import output.Link
 import collection.mutable.{ArrayBuffer, Buffer}
 
 /**
  * Filters the links according to the link limit.
  */
-class FilterTask(linkSpec : LinkSpecification, links : Buffer[Link]) extends Task[Buffer[Link]]
+class FilterTask(links : Buffer[Link], filter : LinkFilter) extends Task[Buffer[Link]]
 {
   override def execute() : Buffer[Link] =
   {
-    linkSpec.filter.limit match
+    filter.limit match
     {
       case Some(limit) =>
       {
