@@ -23,7 +23,7 @@ object EvaluationServer
     private val sourceCache = new MemoryInstanceCache(Project().config.blocking.map(_.blocks).getOrElse(1), 100)
     private val targetCache = new MemoryInstanceCache(Project().config.blocking.map(_.blocks).getOrElse(1), 100)
 
-    private val matchTask = new MatchTask(Project().config, Project().linkSpec, sourceCache, targetCache, 8)
+    private val matchTask = new MatchTask(Project().linkSpec, sourceCache, targetCache, 8)
 
     def links = matchTask.links.map(link => (link, false))
 

@@ -15,13 +15,17 @@ import scala.math.max
  * Executes the matching.
  * Generates links between the instances according to the link specification.
  */
-class MatchTask(config : Configuration, linkSpec : LinkSpecification,
-                sourceCache : InstanceCache, targetCache : InstanceCache,
+class MatchTask(linkSpec : LinkSpecification,
+                sourceCache : InstanceCache,
+                targetCache : InstanceCache,
                 numThreads : Int) extends Task[Buffer[Link]]
 {
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
 
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
+
+  /* Enable indexing if blocking is enabled */
+  private val indexingEnabled = sourceCache.blockCount > 1 || targetCache.blockCount > 1
 
   def links : Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
 
@@ -173,7 +177,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
         for(s <- 0 until sourceInstances.size;
             t <- 0 until targetInstances.size;
-            if !config.blocking.isDefined || compareIndexes(sourceIndexes(s), targetIndexes(t)))
+            if !indexingEnabled || compareIndexes(sourceIndexes(s), targetIndexes(t)))
         {
           val sourceInstance = sourceInstances(s)
           val targetInstance = targetInstances(t)
@@ -198,7 +202,7 @@ class MatchTask(config : Configuration, linkSpec : LinkSpecification,
 
     def builtIndex(instances : Array[Instance]) : Array[Set[Int]] =
     {
-      if(config.blocking.isDefined)
+      if(indexingEnabled)
       {
         instances.map(instance => HashSet(linkSpec.condition.index(instance, linkSpec.filter.threshold).toSeq : _*))
       }

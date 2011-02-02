@@ -47,7 +47,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     var links : Buffer[Link] = new ArrayBuffer[Link]()
     if(instanceCache.instanceCount > 0)
     {
-      val matcher = new MatchTask(config, linkSpec, instanceCache, targetCache, 8)
+      val matcher = new MatchTask(linkSpec, instanceCache, targetCache, 8)
       links = matcher()
     }
 
