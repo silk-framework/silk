@@ -36,11 +36,8 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
    */
   private def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
   {
-    //Prefixes
-    var sparql = ""
-
     //Select
-    sparql += "SELECT DISTINCT "
+    var sparql = "SELECT DISTINCT "
     sparql += "?" + instanceSpec.variable + " "
     for(i <- 0 until instanceSpec.paths.size)
     {
@@ -106,11 +103,8 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
 
   private def retrievePaths(instanceUri : String, paths : Seq[Path], prefixes : Map[String, String] = Map.empty) =
   {
-    //Prefixes
-    var sparql = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
-
     //Select
-    sparql += "SELECT DISTINCT "
+    var sparql = "SELECT DISTINCT "
     for(i <- 0 until paths.size)
     {
       sparql += "?" + varPrefix + i + " "

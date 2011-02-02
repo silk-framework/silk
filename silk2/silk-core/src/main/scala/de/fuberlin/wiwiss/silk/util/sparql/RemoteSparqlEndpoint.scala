@@ -39,7 +39,7 @@ class RemoteSparqlEndpoint(val uri : URI, override val prefixes : Map[String, St
 
       for(offset <- 0 until limit by pageSize)
       {
-        val xml = executeQuery(sparqlPrefixes + "\n" + sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
+        val xml = executeQuery(sparqlPrefixes + sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
 
         val resultsXml = xml \ "results" \ "result"
 
@@ -99,7 +99,10 @@ class RemoteSparqlEndpoint(val uri : URI, override val prefixes : Map[String, St
           case ex : IOException =>
           {
             retries += 1
-            if(retries > retryCount) throw ex
+            if(retries > retryCount)
+            {
+              throw ex
+            }
 
             if(logger.isLoggable(Level.INFO))
             {
