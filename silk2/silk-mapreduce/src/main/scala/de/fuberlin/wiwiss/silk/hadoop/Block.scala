@@ -84,7 +84,7 @@ object Block
     val outputFS = FileSystem.get(outputPath.toUri, hadoopConfig)
 
     val numBlocks = config.blocking.map(_.blocks).getOrElse(1)
-    val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+    val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
     val inputCache = new HadoopInstanceCache(instanceSpecs.source, inputFS, inputPath.suffix("/" + linkSpec.id + "/"), 1)
     val outputCache = new HadoopInstanceCache(instanceSpecs.target, outputFS, outputPath.suffix("/" + linkSpec.id + "/"), numBlocks)
 

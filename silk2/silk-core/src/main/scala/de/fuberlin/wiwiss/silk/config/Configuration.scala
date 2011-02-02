@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
  * @param linkSpecs The Silk link specifications
  * @param outputs The global output
  */
-case class Configuration(prefixes : Map[String, String],
+case class Configuration(prefixes : Prefixes,
                          sources : Traversable[Source],
                          blocking : Option[Blocking],
                          linkSpecs : Traversable[LinkSpecification],
@@ -24,16 +24,20 @@ case class Configuration(prefixes : Map[String, String],
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
 
+  /**
+   * Selects a datasource by id.
+   */
   def source(id : String) = sourceMap(id)
 
+  /**
+   * Selects a link specification by id.
+   */
   def linkSpec(id : String) = linkSpecMap(id)
 
   def toXML : Node =
   {
     <Silk>
-      <Prefixes>
-        { prefixes.map{case (id, ns) => <Prefix id={id} namespace={ns} /> } }
-      </Prefixes>
+      { prefixes.toXML }
       <DataSources>
         { sources.map(_.toXML) }
       </DataSources>
@@ -55,7 +59,7 @@ object Configuration
 
   def fromXML(node : Node) =
   {
-    val prefixes = node \ "Prefixes" \ "Prefix" map(prefix => (prefix \ "@id" text, prefix \ "@namespace" text)) toMap
+    val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
     val blocking = (node \ "Blocking").headOption.map(Blocking.fromXML)
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, prefixes))

@@ -13,7 +13,7 @@ import util.Task
 class LoadTask(config : Configuration, linkSpec : LinkSpecification,
                sourceCache : Option[InstanceCache], targetCache : Option[InstanceCache]) extends Task[Unit]
 {
-  private val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+  private val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
 
   private val logger = Logger.getLogger(classOf[LoadTask].getName)
 
