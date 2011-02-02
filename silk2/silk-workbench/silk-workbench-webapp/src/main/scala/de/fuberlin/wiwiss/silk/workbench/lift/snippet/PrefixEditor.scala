@@ -4,16 +4,17 @@ import xml.NodeSeq
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JE.JsRaw
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 object PrefixEditor
 {
-  def readPrefixes(f : Map[String, String] => JsCmd) : JsCmd =
+  def readPrefixes(f : Prefixes => JsCmd) : JsCmd =
   {
     def update(str : String) =
     {
       val prefixes = for(Array(prefix, namespace) <- str.split(',').grouped(2)) yield (prefix, namespace)
 
-      f(prefixes.toMap)
+      f(Prefixes(prefixes.toMap))
     }
 
     SHtml.ajaxCall(JsRaw("$('#prefixTable tr td input').toArray().map(function (a) { return a.value; })"), update)._2.cmd

@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 class ProjectMenu
 {
@@ -74,7 +75,7 @@ class ProjectMenu
       "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
       "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
 
-    def submit(prefixes : Map[String, String]) =
+    def submit(prefixes : Prefixes) =
     {
       if(!Project.isOpen)
       {

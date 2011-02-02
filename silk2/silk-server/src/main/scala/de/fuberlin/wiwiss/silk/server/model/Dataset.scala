@@ -18,7 +18,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
   private val targetCache = new MemoryInstanceCache()
   new LoadTask(config, linkSpec, Some(sourceCache), Some(targetCache))()
 
-  private val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+  private val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
 
   /**
    * Matches a set of instances with all instances in this dataset.

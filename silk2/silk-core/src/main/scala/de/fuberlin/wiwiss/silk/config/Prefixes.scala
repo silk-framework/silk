@@ -2,8 +2,13 @@ package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
 
+/**
+ * Holds namespace prefixes.
+ */
 class Prefixes(private val map : Map[String, String])
 {
+  override def toString = "Prefixes(" + map.toString + ")"
+
   def toXML =
   {
     <Prefixes>
@@ -20,6 +25,8 @@ class Prefixes(private val map : Map[String, String])
 object Prefixes
 {
   implicit def toMap(prefixes : Prefixes) = prefixes.map
+
+  def apply(map : Map[String, String]) = new Prefixes(map)
 
   def fromXML(xml : Node) =
   {

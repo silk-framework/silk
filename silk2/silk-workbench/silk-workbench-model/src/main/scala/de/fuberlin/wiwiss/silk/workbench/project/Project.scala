@@ -1,17 +1,16 @@
 package de.fuberlin.wiwiss.silk.workbench.project
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.output.Link
 import java.io._
-import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec._
 import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.instancespec.{RelevantPropertiesCollector}
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, ParallelInstanceRetriever, RemoteSparqlEndpoint, SparqlEndpoint}
-import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceCache, InstanceSpecification, MemoryInstanceCache}
+import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, RemoteSparqlEndpoint, SparqlEndpoint}
+import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.config.{Prefixes, Configuration}
 
 case class Project(desc : SourceTargetPair[Description],
                    config : Configuration,//TODO remove and hold all variables in desc
@@ -123,7 +122,7 @@ object Project
     }
   }
 
-  def create(description : SourceTargetPair[Description], prefixes : Map[String, String])
+  def create(description : SourceTargetPair[Description], prefixes : Prefixes)
   {
     project = Some(ProjectCreator.create(description, prefixes))
   }

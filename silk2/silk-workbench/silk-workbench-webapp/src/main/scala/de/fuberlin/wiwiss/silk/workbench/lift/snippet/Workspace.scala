@@ -18,6 +18,7 @@ import de.fuberlin.wiwiss.silk.workbench.project.Cache
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.injectFunction
 
 class Workspace
 {
@@ -48,7 +49,7 @@ class Workspace
       "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
       "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
 
-    def submit(prefixes : Map[String, String]) =
+    def submit(prefixes : Prefixes) =
     {
       val linkSpec =
         LinkSpecification(
@@ -61,7 +62,7 @@ class Workspace
           outputs = Nil
         )
 
-      val linkingTask = LinkingTask(name, new Prefixes(prefixes), linkSpec, Alignment(), new Cache())
+      val linkingTask = LinkingTask(name, prefixes, linkSpec, Alignment(), new Cache())
 
       User().project.linkingModule.update(linkingTask)
 
@@ -81,11 +82,13 @@ class Workspace
 
   def content(xhtml : NodeSeq) : NodeSeq =
   {
+    val workspaceVar = Script(JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + ";").cmd)
+
     bind("entry", xhtml,
-         "workspaceVar" -> Script(JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateJson)) + ";").cmd))
+         "workspaceVar" -> (workspaceVar ++ injectFunction("openLinkingTask", openLinkingTask _)))
   }
 
-  private def generateJson : JValue =
+  private def generateWorkspaceJson : JValue =
   {
     val project = User().project
 
@@ -112,5 +115,22 @@ class Workspace
     }
 
     ("workspace" -> ("project" -> projects))
+  }
+
+  def openLinkingTask(name : String)
+  {
+    //throw new Exception("Task '" + name + "' not found.")
+
+//    User().project.linkingModule.tasks.find(_.name == name) match
+//    {
+//      case Some(task) =>
+//      {
+//
+//      }
+//      case None =>
+//      {
+//        throw new Exception("Task '" + name + "' not found.")
+//      }
+//    }
   }
 }

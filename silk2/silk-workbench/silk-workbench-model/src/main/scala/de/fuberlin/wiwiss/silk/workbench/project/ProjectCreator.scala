@@ -1,18 +1,15 @@
 package de.fuberlin.wiwiss.silk.workbench.project
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.impl.datasource.SparqlDataSource
-import de.fuberlin.wiwiss.silk.config.Configuration
-import java.io.File
 import de.fuberlin.wiwiss.silk.linkspec._
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench._
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
+import de.fuberlin.wiwiss.silk.config.{Prefixes, Configuration}
 
 private object ProjectCreator
 {
-  def create(description : SourceTargetPair[Description], prefixes : Map[String, String]) =
+  def create(description : SourceTargetPair[Description], prefixes : Prefixes) =
   {
     //Generate initial configuration
     val config : Configuration =
@@ -31,7 +28,7 @@ private object ProjectCreator
           outputs = Nil
         )
 
-      new Configuration(prefixes, Traversable(sourceDataSource, targetDataSource), None, Traversable(linkSpec))
+      Configuration(prefixes, Traversable(sourceDataSource, targetDataSource), None, Traversable(linkSpec))
     }
 
     //Generate project

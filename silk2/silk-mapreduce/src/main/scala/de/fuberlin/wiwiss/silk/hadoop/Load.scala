@@ -76,7 +76,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
     val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 
     val numBlocks = config.blocking.map(_.blocks).getOrElse(1)
-    val instanceSpecs = InstanceSpecification.retrieve(config, linkSpec)
+    val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
     val sourceCache = new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
     val targetCache = new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
 
