@@ -6,12 +6,12 @@ import java.io._
 import de.fuberlin.wiwiss.silk.config.Configuration
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec._
-import de.fuberlin.wiwiss.silk.instance.{InstanceCache, InstanceSpecification, MemoryInstanceCache}
 import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.instancespec.{RelevantPropertiesCollector}
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, ParallelInstanceRetriever, RemoteSparqlEndpoint, SparqlEndpoint}
+import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceCache, InstanceSpecification, MemoryInstanceCache}
 
 case class Project(desc : SourceTargetPair[Description],
                    config : Configuration,//TODO remove and hold all variables in desc
@@ -25,11 +25,12 @@ case class Project(desc : SourceTargetPair[Description],
 
   val cacheLoader : Task[Unit] = new CacheLoader()
 
+  //TODO catch exceptions which occur during filling the cache
   cacheLoader.runInBackground()
 
   private class CacheLoader() extends Task[Unit]
   {
-    private val sampleCount = 100
+    private val sampleCount = 10000
 
     private val positiveSamples = alignment.positiveLinks.take(sampleCount).toList
 
@@ -44,7 +45,7 @@ case class Project(desc : SourceTargetPair[Description],
 
       if(cache.instanceSpecs == null)
       {
-        updateStatus("Retrieving frequent property paths", 0.2)
+        updateStatus("Retrieving frequent property paths", 0.0)
         val sourcePaths = RelevantPropertiesCollector(sourceEndpoint, desc.source.restriction).map(_._1).toSeq
         val targetPaths = RelevantPropertiesCollector(targetEndpoint, desc.target.restriction).map(_._1).toSeq
 
@@ -52,27 +53,55 @@ case class Project(desc : SourceTargetPair[Description],
         val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, desc.target.restriction, targetPaths, config.prefixes)
 
         cache.instanceSpecs = new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
-        updateStatus("Retrieved frequent property paths", 0.4)
       }
 
       if(!positiveSamples.isEmpty && (cache.positiveInstances == null || cache.negativeInstances == null))
       {
-        updateStatus("Loading instances into cache", 0.6)
+        updateStatus(0.2)
 
-        val sourceRetriever = InstanceRetriever(sourceEndpoint)
-        val targetRetriever = InstanceRetriever(targetEndpoint)
+        //Create instance loading tasks
+        val positiveSourceInstancesTask = new LoadingInstancesTask(sourceEndpoint, cache.instanceSpecs.source, positiveSamples.map(_.sourceUri))
+        val positiveTargetInstancesTask = new LoadingInstancesTask(targetEndpoint, cache.instanceSpecs.target, positiveSamples.map(_.targetUri))
 
-        val positiveSourceInstances = sourceRetriever.retrieve(cache.instanceSpecs.source, positiveSamples.map(_.sourceUri)).toList
-        val positiveTargetInstances = targetRetriever.retrieve(cache.instanceSpecs.target, positiveSamples.map(_.targetUri)).toList
+        val negativeSourceInstancesTask =  new LoadingInstancesTask(sourceEndpoint, cache.instanceSpecs.source, negativeSamples.map(_.sourceUri))
+        val negativeTargetInstancesTask =  new LoadingInstancesTask(targetEndpoint, cache.instanceSpecs.target, negativeSamples.map(_.targetUri))
 
-        val negativeSourceInstances = sourceRetriever.retrieve(cache.instanceSpecs.source, negativeSamples.map(_.sourceUri)).toList
-        val negativeTargetInstances = targetRetriever.retrieve(cache.instanceSpecs.target, negativeSamples.map(_.targetUri)).toList
+        //Load instances
+        val positiveSourceInstances = executeSubTask(positiveSourceInstancesTask, 0.4)
+        val positiveTargetInstances = executeSubTask(positiveTargetInstancesTask, 0.6)
 
+        val negativeSourceInstances = executeSubTask(negativeSourceInstancesTask, 0.8)
+        val negativeTargetInstances = executeSubTask(negativeTargetInstancesTask, 1.0)
+
+        //Fill the cache with the loaded instances
         cache.positiveInstances = (positiveSourceInstances zip positiveTargetInstances).map(SourceTargetPair.fromPair)
         cache.negativeInstances = (negativeSourceInstances zip negativeTargetInstances).map(SourceTargetPair.fromPair)
-
-        updateStatus("Instances loaded into cache", 0.8)
       }
+    }
+  }
+
+  /**
+   * Task which loads a list of instances from an endpoint.
+   */
+  private class LoadingInstancesTask(endpoint : SparqlEndpoint, instanceSpec : InstanceSpecification, instanceUrls : Seq[String]) extends Task[List[Instance]]
+  {
+    override def execute() =
+    {
+      val instanceTraversable = InstanceRetriever(endpoint).retrieve(instanceSpec, instanceUrls)
+
+      var instanceList : List[Instance] = Nil
+      var instanceListSize = 0
+      val instanceCount = instanceUrls.size
+
+      updateStatus("Retrieving instances", 0.0)
+      for(instance <- instanceTraversable)
+      {
+        instanceList ::= instance
+        instanceListSize += 1
+        updateStatus(instanceListSize.toDouble / instanceCount)
+      }
+
+      instanceList.reverse
     }
   }
 }
