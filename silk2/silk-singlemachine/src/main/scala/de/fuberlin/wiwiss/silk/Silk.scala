@@ -136,11 +136,11 @@ object Silk
     val links = matchTask()
 
     //Filter links
-    val filterTask = new FilterTask(linkSpec, links)
+    val filterTask = new FilterTask(links, linkSpec.filter)
     val filteredLinks = filterTask()
 
     //Write links
-    val outputTask = new OutputTask(config, linkSpec, filteredLinks)
+    val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, config.outputs ++ linkSpec.outputs)
     outputTask()
 
     logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
