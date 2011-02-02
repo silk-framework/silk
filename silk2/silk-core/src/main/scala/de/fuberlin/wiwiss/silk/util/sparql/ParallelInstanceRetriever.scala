@@ -37,9 +37,9 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
       while(pathRetrievers.forall(_.hasNext))
       {
-        val values = for(pathRetriever <- pathRetrievers) yield pathRetriever.next()
+        val pathValues = for(pathRetriever <- pathRetrievers) yield pathRetriever.next()
 
-        f(new Instance(values.head.uri, values.map(_.values).toIndexedSeq, instanceSpec))
+        f(new Instance(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, instanceSpec))
       }
     }
   }
@@ -48,47 +48,60 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
   {
     private val queue = new SynchronizedQueue[PathValues]()
 
+    @volatile private var exception : Throwable = null
+
     def hasNext() : Boolean =
     {
-      while(isAlive && queue.isEmpty)
+      //If the queue is empty, wait until an element has been read
+      while(queue.isEmpty && isAlive)
       {
         Thread.sleep(100)
       }
+
+      //Throw exceptions which occurred during querying
+      if(exception != null) throw exception
 
       !queue.isEmpty
     }
 
     def next() : PathValues =
     {
+      //Throw exceptions which occurred during querying
+      if(exception != null) throw exception
+
       queue.dequeue
     }
 
     override def run()
     {
-      if(instanceUris.isEmpty)
+      try
       {
-        //Query for all instances
-        val sparqlResults = queryPath()
-        parseResults(sparqlResults)
-      }
-      else
-      {
-        //Query for a list of instances
-        for(instanceUri <- instanceUris)
+        if(instanceUris.isEmpty)
         {
-          val sparqlResults = queryPath(Some(instanceUri))
-          parseResults(sparqlResults, Some(instanceUri))
+          //Query for all instances
+          val sparqlResults = queryPath()
+          parseResults(sparqlResults)
         }
+        else
+        {
+          //Query for a list of instances
+          for(instanceUri <- instanceUris)
+          {
+            val sparqlResults = queryPath(Some(instanceUri))
+            parseResults(sparqlResults, Some(instanceUri))
+          }
+        }
+      }
+      catch
+      {
+        case ex : Throwable => exception = ex
       }
     }
 
     private def queryPath(fixedSubject : Option[String] = None) =
     {
-      //Prefixes
-      var sparql = ""
-
       //Select
-      sparql += "SELECT DISTINCT "
+      var sparql = "SELECT DISTINCT "
       sparql += "?" + instanceSpec.variable + " "
       sparql += "?" + varPrefix + "0\n"
 
