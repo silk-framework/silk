@@ -56,13 +56,31 @@ class Workspace
 
   def content(xhtml : NodeSeq) : NodeSeq =
   {
-    val updateWorkspace = Script(JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + "; updateWorkspace(workspaceVar);").cmd)
-
     bind("entry", xhtml,
-         "injectedJavascript" -> (updateWorkspace ++ injectFunction("removeLinkingTask", removeLinkingTask _)))
+         "injectedJavascript" -> (Script(updateWorkspaceCmd & injectFunction("removeLinkingTask", removeLinkingTask _))))
   }
 
-  private def generateWorkspaceJson : JValue =
+  /**
+   * Removes a linking task from the workspace.
+   */
+  private def removeLinkingTask(projectName : String, taskName : String)
+  {
+    //Ignoring the projectName for now until we have an complete workspace
+    User().project.linkingModule.remove(taskName)
+  }
+
+  /**
+   * JS Command which updates the workspace view.
+   */
+  private def updateWorkspaceCmd : JsCmd =
+  {
+    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateTreeview(workspaceVar);").cmd
+  }
+
+  /**
+   * Generates a JSON which contains the workspace contents.
+   */
+  private def workspaceJson : JValue =
   {
     val project = User().project
 
@@ -91,15 +109,10 @@ class Workspace
     ("workspace" -> ("project" -> projects))
   }
 
-  private def removeLinkingTask(projectName : String, taskName : String)
-  {
-    //Ignoring the projectName for now until we have an complete workspace
-    User().project.linkingModule.remove(taskName)
-  }
-
-  //Injects a Javascript function into HTML
-  //TODO generalize and move to JavaScriptUtils?
-  private def injectFunction(name : String, func : (String, String) => Unit) : Node =
+  /*
+   * Injects a Javascript function.
+   */
+  private def injectFunction(name : String, func : (String, String) => Unit) : JsCmd =
   {
     //Callback which executes the provided function
     def callback(args : String) : JsCmd =
@@ -110,8 +123,7 @@ class Workspace
 
         func(projectName, taskName)
 
-        //Update the workspace
-        JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + "; updateTreeview(workspaceVar").cmd
+        updateWorkspaceCmd
       }
       catch
       {
@@ -124,8 +136,6 @@ class Workspace
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
 
     //JavaScript function definition
-    val functionDef = JsCmds.Function(name, "projectName" :: "taskName" :: Nil, ajaxCall)
-
-    Script(functionDef)
+    JsCmds.Function(name, "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 }
