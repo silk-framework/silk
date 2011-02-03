@@ -93,8 +93,8 @@ class Workspace
     val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq) yield
     {
       ("name" -> task.name.toString) ~
-      ("source" -> task.linkSpec.datasets.source.sourceId) ~
-      ("target" -> task.linkSpec.datasets.target.sourceId) ~
+      ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
+      ("target" -> task.linkSpec.datasets.target.sourceId.toString) ~
       ("sourceDataset" -> task.linkSpec.datasets.source.restriction) ~
       ("targetDataset" -> task.linkSpec.datasets.target.restriction)
     }

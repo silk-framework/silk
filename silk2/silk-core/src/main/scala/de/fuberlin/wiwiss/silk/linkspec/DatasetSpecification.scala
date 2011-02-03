@@ -1,8 +1,9 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import xml.Node
+import de.fuberlin.wiwiss.silk.util.Identifier
 
-case class DatasetSpecification(val sourceId : String, val variable : String, val restriction : String)
+case class DatasetSpecification(sourceId : Identifier, variable : String, restriction : String)
 
 object DatasetSpecification
 {
