@@ -33,6 +33,11 @@ class LDEProject(projectUri : String) extends Project
   }
 
   /**
+   * The name of this project
+   */
+  override val name = xmlProj.name
+
+  /**
    * Reads the project configuration.
    */
   override def config =
