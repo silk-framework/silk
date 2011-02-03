@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
-import xml.NodeSeq
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml
 import net.liftweb.json.JsonAST.{JArray, JValue}
@@ -8,7 +7,6 @@ import net.liftweb.http.js.JE.{JsRaw, JsVar}
 import net.liftweb.json.JsonDSL._
 import net.liftweb.http.js.JsCmds.{Script, JsReturn}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import net.liftweb.http.js.{JE, JsCmds}
 import net.liftweb.json.JsonAST
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
@@ -18,8 +16,24 @@ import de.fuberlin.wiwiss.silk.workbench.project.Cache
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.injectFunction
+import xml.{Node, NodeSeq}
+import net.liftweb.http.js.{JsCmd, JE, JsCmds}
 
+/**
+ * Workspace snippet.
+ *
+ * Injects the following variables and functions:
+ *
+ * var workspaceVar : JSON representation of the workspace
+ *
+ * def removeLinkingTask(
+ *     projectName : The name of the project,
+ *     taskName : The name of the task to be removed,
+ *     callbackFunction(projectName, taskName) : The name of the callback function to be called on success.
+ * )
+ *
+ * TODO add remaining functions
+ */
 class Workspace
 {
   def toolbar(xhtml : NodeSeq) : NodeSeq =
@@ -85,7 +99,7 @@ class Workspace
     val workspaceVar = Script(JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + ";").cmd)
 
     bind("entry", xhtml,
-         "workspaceVar" -> (workspaceVar ++ injectFunction("openLinkingTask", openLinkingTask _)))
+         "injectedJavascript" -> (workspaceVar ++ injectDummyCallback ++ injectFunction("removeLinkingTask", removeLinkingTask _)))
   }
 
   private def generateWorkspaceJson : JValue =
@@ -109,7 +123,7 @@ class Workspace
 
     val projects : JArray = for(p <- project :: Nil) yield
     {
-      ("name" -> "project") ~
+      ("name" -> project.name) ~
       ("dataSource" -> sources) ~
       ("linkingTask" -> linkingTasks)
     }
@@ -117,20 +131,49 @@ class Workspace
     ("workspace" -> ("project" -> projects))
   }
 
-  def openLinkingTask(name : String)
+  private def removeLinkingTask(projectName : String, taskName : String)
   {
-    //throw new Exception("Task '" + name + "' not found.")
+    //Ignoring the projectName for now until we have an complete workspace
+    User().project.linkingModule.remove(taskName)
+  }
 
-//    User().project.linkingModule.tasks.find(_.name == name) match
-//    {
-//      case Some(task) =>
-//      {
-//
-//      }
-//      case None =>
-//      {
-//        throw new Exception("Task '" + name + "' not found.")
-//      }
-//    }
+  //TODO just for testing
+  private def injectDummyCallback : Node =
+  {
+    val functionDef = JsCmds.Function("dummyCallback", "projectName" :: "taskName" :: Nil, JsRaw("alert(projectName + ',' + taskName)").cmd)
+
+    Script(functionDef)
+  }
+
+  //Injects a Javascript function into HTML
+  //TODO generalize and move to JavaScriptUtils?
+  private def injectFunction(name : String, func : (String, String) => Unit) : Node =
+  {
+    //Callback which executes the provided function
+    def callback(args : String) : JsCmd =
+    {
+      val Array(projectName, taskName, successFunc) = args.split(',')
+
+      try
+      {
+        func(projectName, taskName)
+
+        //Call callback function
+        JsRaw(successFunc + "('" + projectName + "', '" + taskName + "')").cmd
+      }
+      catch
+      {
+        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+      }
+    }
+
+    //Ajax Call which executes the callback
+    //TODO serialize arguments correctly not using a comma as separator which might also be used in the argument value itself
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName + ',' + successFunc"), callback _)._2.cmd
+
+    //JavaScript function definition
+    val functionDef = JsCmds.Function(name, "projectName" :: "taskName" :: "successFunc" :: Nil, ajaxCall)
+
+    Script(functionDef)
   }
 }

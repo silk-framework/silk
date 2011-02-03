@@ -43,10 +43,10 @@
 
   <lift:bind-at name="content">
     <lift:workspace.content>
-      <entry:workspaceVar/>
-           <script type="text/javascript">
-              getWorkspace() ;
-          </script>
+      <entry:injectedJavascript/>
+      <script type="text/javascript">
+        getWorkspace() ;
+      </script>
     </lift:workspace.content>
   </lift:bind-at>
 
