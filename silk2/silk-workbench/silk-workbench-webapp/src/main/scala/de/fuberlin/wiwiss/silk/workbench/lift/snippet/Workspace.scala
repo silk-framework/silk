@@ -22,18 +22,31 @@ import net.liftweb.http.js.{JsCmd, JE, JsCmds}
 /**
  * Workspace snippet.
  *
- * Injects the following variables and functions:
- *
- * var workspaceVar : JSON representation of the workspace
+ * Injects the following functions:
  *
  * def removeLinkingTask(
  *     projectName : The name of the project,
  *     taskName : The name of the task to be removed,
- *     callbackFunction(projectName, taskName) : The name of the callback function to be called on success.
  * )
  *
- * TODO add remaining functions
+ * def loadLinkingTask(
+ *     projectName : The name of the project,
+ *     taskName : The name of the task to be removed,
+ * )
+ *
+ * def updateLinkingTask(
+ *     projectName : The name of the project,
+ *     taskName : The name of the task to be removed,
+ * )
+ *
+ * Whenever the workspace changes, the following function will be called:
+ *
+ * def updateWorkspace(
+ *     workspace : JSON containing the workspace contents
+ * )
+ *
  */
+//TODO implement loadLinkingTask and updateLinkingTask
 class Workspace
 {
   def toolbar(xhtml : NodeSeq) : NodeSeq =
@@ -96,10 +109,10 @@ class Workspace
 
   def content(xhtml : NodeSeq) : NodeSeq =
   {
-    val workspaceVar = Script(JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + ";").cmd)
+    val updateWorkspace = Script(JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + "; updateWorkspace(workspaceVar);").cmd)
 
     bind("entry", xhtml,
-         "injectedJavascript" -> (workspaceVar ++ injectDummyCallback ++ injectFunction("removeLinkingTask", removeLinkingTask _)))
+         "injectedJavascript" -> (updateWorkspace ++ injectDummyCallback ++ injectFunction("removeLinkingTask", removeLinkingTask _)))
   }
 
   private def generateWorkspaceJson : JValue =
@@ -140,7 +153,7 @@ class Workspace
   //TODO just for testing
   private def injectDummyCallback : Node =
   {
-    val functionDef = JsCmds.Function("dummyCallback", "projectName" :: "taskName" :: Nil, JsRaw("alert(projectName + ',' + taskName)").cmd)
+    val functionDef = JsCmds.Function("updateTreeview", "workspace" :: Nil, JsRaw("alert(workspace)").cmd)
 
     Script(functionDef)
   }
@@ -158,8 +171,8 @@ class Workspace
       {
         func(projectName, taskName)
 
-        //Call callback function
-        JsRaw(successFunc + "('" + projectName + "', '" + taskName + "')").cmd
+        //Update the workspace
+        JsRaw("var workspaceVar = " + pretty(JsonAST.render(generateWorkspaceJson)) + "; updateTreeview(workspaceVar").cmd
       }
       catch
       {
@@ -169,10 +182,10 @@ class Workspace
 
     //Ajax Call which executes the callback
     //TODO serialize arguments correctly not using a comma as separator which might also be used in the argument value itself
-    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName + ',' + successFunc"), callback _)._2.cmd
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
 
     //JavaScript function definition
-    val functionDef = JsCmds.Function(name, "projectName" :: "taskName" :: "successFunc" :: Nil, ajaxCall)
+    val functionDef = JsCmds.Function(name, "projectName" :: "taskName" :: Nil, ajaxCall)
 
     Script(functionDef)
   }
