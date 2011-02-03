@@ -2,13 +2,14 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.LinkingModule
 import modules.source.SourceModule
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 trait Project
 {
   /**
    * The name of this project
    */
-  val name : String
+  val name : Identifier
 
   /**
    * Retrieves the project configuration.

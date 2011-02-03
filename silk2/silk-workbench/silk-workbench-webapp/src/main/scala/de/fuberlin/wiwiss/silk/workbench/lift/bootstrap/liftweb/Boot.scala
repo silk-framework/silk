@@ -14,9 +14,9 @@ import net.liftweb.json.JsonAST._
 import de.fuberlin.wiwiss.silk.linkspec.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import xml.PrettyPrinter
-import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
-import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, StrategyDefinition, Strategy}
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
+import net.liftweb.widgets.autocomplete.AutoComplete
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -29,6 +29,8 @@ class Boot
     DefaultImplementations.register()
 
     LiftRules.jsArtifacts = JQuery14Artifacts
+
+    AutoComplete.init()
 
     // where to search snippet
     LiftRules.addToPackages("de.fuberlin.wiwiss.silk.workbench.lift")

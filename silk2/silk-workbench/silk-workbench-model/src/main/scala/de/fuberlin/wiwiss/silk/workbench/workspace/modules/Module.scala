@@ -1,5 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules
 
+import de.fuberlin.wiwiss.silk.util.Identifier
+
 /**
  * A project module.
  */
@@ -28,5 +30,5 @@ trait Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask]
   /**
    * Removes a task from this project.
    */
-  def remove(taskId : String) : Unit
+  def remove(taskId : Identifier) : Unit
 }

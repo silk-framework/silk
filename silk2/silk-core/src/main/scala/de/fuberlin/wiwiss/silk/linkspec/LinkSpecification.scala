@@ -2,24 +2,20 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
-import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, SourceTargetPair}
 import xml.Node
 import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader, SourceTargetPair}
 
 /**
  * @param id The id which identifies this link specification. May only contain alphanumeric characters (a - z, 0 - 9).
  */
-case class LinkSpecification(id : String,
+case class LinkSpecification(id : Identifier,
                              linkType : String,
                              datasets : SourceTargetPair[DatasetSpecification],
                              condition : LinkCondition,
                              filter : LinkFilter,
                              outputs : Traversable[Output])
 {
-  require(id.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')),
-          "A link specification ID may only contain alphanumeric characters (a - z, 0 - 9). The following id is not valid: '" + id + "'")
-
-
   def toXML : Node =
   {
     <Interlink id={id}>

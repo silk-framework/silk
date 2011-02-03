@@ -2,12 +2,12 @@ package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 import xml.Node
-import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
+import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 
 /**
  * A source of instances.
  */
-case class Source(id : String, dataSource : DataSource)
+case class Source(id : Identifier, dataSource : DataSource)
 {
   /**
    * Retrieves instances from this source which satisfy a specific instance specification.
