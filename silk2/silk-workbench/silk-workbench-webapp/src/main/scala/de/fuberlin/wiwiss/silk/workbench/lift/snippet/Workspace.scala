@@ -74,7 +74,7 @@ class Workspace
    */
   private def updateWorkspaceCmd : JsCmd =
   {
-    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateTreeview(workspaceVar);").cmd
+    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
   }
 
   /**
