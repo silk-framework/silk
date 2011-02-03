@@ -2,14 +2,13 @@ package de.fuberlin.wiwiss.silk
 
 import config.Configuration
 import impl.DefaultImplementations
-import instance.{InstanceSpecification, FileInstanceCache}
+import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
 import datasource.DataSource
 import java.io.File
 import java.util.logging.Logger
 import linkspec.{Aggregator, LinkSpecification}
 import util.StringUtils._
-import java.util.ServiceLoader
 
 /**
  * Executes the complete Silk workflow.
@@ -110,16 +109,23 @@ object Silk
     val startTime = System.currentTimeMillis()
     logger.info("Silk started")
 
-    //Create instance caches
+    //Retrieve Instance Specifications from Link Specification
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
+
+    //Create instance caches
     val sourceCache = new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
     val targetCache = new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
 
     //Load instances into cache
     if(reload)
     {
-      val loadSourceCacheTask = new LoadTask(config, linkSpec, Some(sourceCache), None)
-      val loadTargetCacheTask = new LoadTask(config, linkSpec, None, Some(targetCache))
+      val sourceSource = config.source(linkSpec.datasets.source.sourceId)
+      val targetSource = config.source(linkSpec.datasets.target.sourceId)
+
+      def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % config.blocking.map(_.blocks).getOrElse(1))
+
+      val loadSourceCacheTask = new LoadTask(sourceSource, sourceCache, instanceSpecs.source, if(config.blocking.isDefined) Some(blockingFunction _) else None)
+      val loadTargetCacheTask = new LoadTask(targetSource, targetCache, instanceSpecs.target, if(config.blocking.isDefined) Some(blockingFunction _) else None)
 
       loadSourceCacheTask.runInBackground()
       loadTargetCacheTask.runInBackground()
