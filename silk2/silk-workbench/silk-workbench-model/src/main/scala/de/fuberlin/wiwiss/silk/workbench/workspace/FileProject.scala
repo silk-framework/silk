@@ -89,6 +89,8 @@ class FileProject(file : File) extends Project
    */
   class FileLinkingModule(file : File) extends LinkingModule
   {
+    file.mkdir()
+
     def config = LinkingConfig()
 
     def config_=(c : LinkingConfig) {}
@@ -114,7 +116,7 @@ class FileProject(file : File) extends Project
     def update(task : LinkingTask) = synchronized
     {
       val taskDir = file + ("/" + task.name)
-      taskDir.mkdirs()
+      taskDir.mkdir()
 
       task.prefixes.toXML.write(taskDir + "/prefixes.xml")
       task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
