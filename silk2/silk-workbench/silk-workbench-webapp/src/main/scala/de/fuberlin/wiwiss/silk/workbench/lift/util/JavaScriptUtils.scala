@@ -11,35 +11,6 @@ import xml.Node
 
 object JavaScriptUtils
 {
-  //Injects a Javascript function into HTML
-  def injectFunction(name : String, func : String => Unit) : Node =
-  {
-    //Callback which executes the provided function
-    def callback(args : String) : JsCmd =
-    {
-      val Array(input, successFunc) = args.split(',')
-
-      try
-      {
-        func(input)
-
-        JsRaw("successFunc('" + input +  "')").cmd
-      }
-      catch
-      {
-        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
-      }
-    }
-
-    //Ajax Call which executes the callback
-    val ajaxCall = SHtml.ajaxCall(JsRaw("input + ',' + successFunc"), callback _)._2.cmd
-
-    //JavaScript function definition
-    val functionDef = JsCmds.Function(name, "input" :: "successFunc" :: Nil, ajaxCall)
-
-    Script(functionDef)
-  }
-
   def PeriodicUpdate(updateFunc : () => JsCmd, interval : Int = 1000) =
   {
     Function("update", Nil, SHtml.ajaxInvoke(updateFunc)._2.cmd & After(TimeSpan(interval), Call("update").cmd)) & Call("update").cmd
