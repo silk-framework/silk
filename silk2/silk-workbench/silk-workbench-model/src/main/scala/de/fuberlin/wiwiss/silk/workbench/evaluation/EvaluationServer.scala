@@ -3,9 +3,9 @@ package de.fuberlin.wiwiss.silk.workbench.evaluation
 import de.fuberlin.wiwiss.silk.output.Link
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
-import de.fuberlin.wiwiss.silk.instance.MemoryInstanceCache
 import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.workbench.project.Project
+import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification, MemoryInstanceCache}
 
 object EvaluationServer
 {
@@ -69,9 +69,20 @@ object EvaluationServer
 
     private def generateAllLinks() =
     {
+      val config = Project().config
+      val linkSpec = Project().linkSpec
+
+      val sourceSource = config.source(linkSpec.datasets.source.sourceId)
+      val targetSource = config.source(linkSpec.datasets.target.sourceId)
+
+      //Retrieve Instance Specifications from Link Specification
+      val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
+
+      def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % config.blocking.map(_.blocks).getOrElse(1))
+
       //Load instances into cache
-      val loadSourceCacheTask = new LoadTask(Project().config, Project().linkSpec, Some(sourceCache), None)
-      val loadTargetCacheTask = new LoadTask(Project().config, Project().linkSpec, None, Some(targetCache))
+      val loadSourceCacheTask = new LoadTask(sourceSource, sourceCache, instanceSpecs.source, if(config.blocking.isDefined) Some(blockingFunction _) else None)
+      val loadTargetCacheTask = new LoadTask(targetSource, targetCache, instanceSpecs.target, if(config.blocking.isDefined) Some(blockingFunction _) else None)
 
       loadSourceCacheTask.runInBackground()
       loadTargetCacheTask.runInBackground()

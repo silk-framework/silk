@@ -7,7 +7,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.LoadTask
-import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
+import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification}
 
 /**
  * Populates the instance cache.
@@ -75,12 +75,17 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
   {
     val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 
-    val numBlocks = config.blocking.map(_.blocks).getOrElse(1)
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
-    val sourceCache = new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), numBlocks)
-    val targetCache = new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), numBlocks)
+    val sourceSource = config.source(linkSpec.datasets.source.sourceId)
+    val targetSource = config.source(linkSpec.datasets.target.sourceId)
 
-    val loader = new LoadTask(config, linkSpec, Some(sourceCache), Some(targetCache))
-    loader()
+    val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
+
+    val sourceCache = new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
+    val targetCache = new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
+
+    def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % config.blocking.map(_.blocks).getOrElse(1))
+
+    new LoadTask(sourceSource, sourceCache, instanceSpecs.source, if(config.blocking.isDefined) Some(blockingFunction _) else None)()
+    new LoadTask(targetSource, targetCache, instanceSpecs.target, if(config.blocking.isDefined) Some(blockingFunction _) else None)()
   }
 }
