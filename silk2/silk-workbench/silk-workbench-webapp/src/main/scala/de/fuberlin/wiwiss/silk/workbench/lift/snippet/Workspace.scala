@@ -53,18 +53,18 @@ class Workspace
   {
     def showCreateDialog() =
     {
-      JsRaw("$('#createProjectDialog').dialog('open')").cmd
+      JsRaw("$('#createLinkingTaskDialog').dialog('open')").cmd
     }
 
-    val initCreateDialog = Script(OnLoad(JsRaw("$('#createProjectDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd))
+    val initCreateDialog = Script(OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd))
 
     bind("entry", xhtml,
          "new" -> (initCreateDialog ++ SHtml.ajaxButton("New", showCreateDialog _)))
   }
 
-  def createProjectDialog(xhtml : NodeSeq) : NodeSeq =
+  def createLinkingTaskDialog(xhtml : NodeSeq) : NodeSeq =
   {
-    var name = "New Project"
+    var name = ""
     var sourceId = "http://www4.wiwiss.fu-berlin.de/sider/sparql"
     var targetId = "http://www4.wiwiss.fu-berlin.de/drugbank/sparql"
     var sourceRestriction = "?a rdf:type sider:drugs"
@@ -93,7 +93,7 @@ class Workspace
 
       User().project.linkingModule.update(linkingTask)
 
-      JsRaw("$('#createProjectDialog').dialog('close'); document.forms['toolbarForm'].submit();").cmd
+      JsRaw("$('#createLinkingTaskDialog').dialog('close'); document.forms['toolbarForm'].submit();").cmd
     }
 
     SHtml.ajaxForm(

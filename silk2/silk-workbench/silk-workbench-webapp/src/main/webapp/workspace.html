@@ -7,15 +7,15 @@
           <entry:new />
         </li>
       </ul>
-      <div id="createProjectDialog" title="New Project">
-        <lift:workspace.createProjectDialog>
+      <div id="createLinkingTaskDialog" title="New Project">
+        <lift:workspace.createLinkingTaskDialog>
           <table border="0">
             <tr>
               <td>Name</td>
               <td><entry:name/></td>
             </tr>
             <tr>
-              <td>Source Endpoint</td>
+              <td>Source</td>
               <td><entry:sourceId/></td>
             </tr>
             <tr>
@@ -23,7 +23,7 @@
               <td><entry:sourceRestriction/></td>
             </tr>
             <tr>
-              <td>Target Endpoint</td>
+              <td>Target</td>
               <td><entry:targetId/></td>
             </tr>
             <tr>
@@ -36,7 +36,7 @@
             </tr>
           </table>
           <entry:prefixes/>
-        </lift:workspace.createProjectDialog>
+        </lift:workspace.createLinkingTaskDialog>
       </div>
     </lift:workspace.toolbar>
   </lift:bind-at>
