@@ -12,6 +12,7 @@ import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -23,7 +24,7 @@ class FileProject(file : File) extends Project
   /**
    * The name of this project
    */
-  override val name : String = file.getName
+  override val name : Identifier = file.getName
 
   /**
    * Reads the project configuration.
@@ -57,11 +58,11 @@ class FileProject(file : File) extends Project
   {
     file.mkdirs()
 
-    def config = SourceConfig()
+    override def config = SourceConfig()
 
-    def config_=(c : SourceConfig) {}
+    override def config_=(c : SourceConfig) {}
 
-    def tasks = synchronized
+    override def tasks = synchronized
     {
       for(fileName <- file.list.toList) yield
       {
@@ -71,13 +72,13 @@ class FileProject(file : File) extends Project
       }
     }
 
-    def update(task : SourceTask) = synchronized
+    override def update(task : SourceTask) = synchronized
     {
       task.source.toXML.write(file + ("/" + task.name + ".xml"))
       logger.info("Updated source '" + task.name + "' in project '" + name + "'")
     }
 
-    def remove(taskId : String) = synchronized
+    override def remove(taskId : Identifier) = synchronized
     {
       (file + taskId).deleteRecursive()
       logger.info("Removed source '" + taskId + "' from project '" + name + "'")
@@ -91,11 +92,11 @@ class FileProject(file : File) extends Project
   {
     file.mkdir()
 
-    def config = LinkingConfig()
+    override def config = LinkingConfig()
 
-    def config_=(c : LinkingConfig) {}
+    override def config_=(c : LinkingConfig) {}
 
-    def tasks = synchronized
+    override def tasks = synchronized
     {
       for(fileName <- file.list.toList) yield
       {
@@ -113,7 +114,7 @@ class FileProject(file : File) extends Project
       }
     }
 
-    def update(task : LinkingTask) = synchronized
+    override def update(task : LinkingTask) = synchronized
     {
       val taskDir = file + ("/" + task.name)
       taskDir.mkdir()
@@ -126,7 +127,7 @@ class FileProject(file : File) extends Project
       logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
 
-    def remove(taskId : String) = synchronized
+    override def remove(taskId : Identifier) = synchronized
     {
       (file + ("/" + taskId)).deleteRecursive()
       logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")

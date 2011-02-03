@@ -8,6 +8,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Node, Elem}
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 /**
  * Implementation of a project which maps an XML Silk Link Specification document.
@@ -23,7 +24,7 @@ class XMLProject(linkSpec : Node) extends Project
   /**
    * The name of this project
    */
-  override val name : String = doc \\ "Interlink" \\ "@id" text
+  override val name : Identifier = doc \\ "Interlink" \\ "@id" text
 
   /**
    * Reads the project configuration.
@@ -80,7 +81,7 @@ class XMLProject(linkSpec : Node) extends Project
       //TODO - validate?
     }
 
-    def remove(taskId : String) = synchronized
+    def remove(taskId : Identifier) = synchronized
     {
        // Remove datasource with id = task.name
        doc = new RuleTransformer(new RemoveNodeById("DataSource",taskId)).transform(doc).head
@@ -118,7 +119,7 @@ class XMLProject(linkSpec : Node) extends Project
       doc = new RuleTransformer(new AddChildrenTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
     }
 
-    def remove(taskId : String) = synchronized
+    def remove(taskId : Identifier) = synchronized
     {
        // Remove interlink with id = task.name
        doc = new RuleTransformer(new RemoveNodeById("Interlink",taskId)).transform(doc).head

@@ -5,6 +5,7 @@ import modules.source.{SourceConfig, SourceTask, SourceModule}
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import java.util.logging.Logger
 import xml.{Elem, XML}
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 
 /**
@@ -85,7 +86,7 @@ class LDEProject(projectUri : String) extends Project
       logger.info("[LDEProject: "+projectUri +"] [LinkingTask: "+task.name +"] UPDATE")
     }
 
-    def remove(taskId : String) = synchronized
+    def remove(taskId : Identifier) = synchronized
     {
       xmlProj.sourceModule.remove(taskId)
       // TODO - update TS using a proper REST call - is that supported?
@@ -119,7 +120,7 @@ class LDEProject(projectUri : String) extends Project
       logger.info("[LDEProject: "+projectUri +"] [LinkingTask: "+task.name +"] UPDATE")
     }
 
-    def remove(taskId : String) = synchronized
+    def remove(taskId : Identifier) = synchronized
     {
       xmlProj.linkingModule.remove(taskId)
       // TODO - update TS using a proper REST call
