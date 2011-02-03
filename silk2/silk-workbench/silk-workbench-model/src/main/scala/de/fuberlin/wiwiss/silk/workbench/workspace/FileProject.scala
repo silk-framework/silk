@@ -11,12 +11,20 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import java.util.logging.Logger
 
 /**
  * Implementation of a project which is stored on the local file system.
  */
 class FileProject(file : File) extends Project
 {
+  private val logger = Logger.getLogger(classOf[FileProject].getName)
+
+  /**
+   * The name of this project
+   */
+  override val name : String = file.getName
+
   /**
    * Reads the project configuration.
    */
@@ -66,11 +74,13 @@ class FileProject(file : File) extends Project
     def update(task : SourceTask) = synchronized
     {
       task.source.toXML.write(file + ("/" + task.name + ".xml"))
+      logger.info("Updated source '" + task.name + "' in project '" + name + "'")
     }
 
     def remove(taskId : String) = synchronized
     {
       (file + taskId).deleteRecursive()
+      logger.info("Removed source '" + taskId + "' from project '" + name + "'")
     }
   }
 
@@ -110,11 +120,14 @@ class FileProject(file : File) extends Project
       task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
       task.alignment.toXML.write(taskDir+ "/alignment.xml")
       task.cache.toXML.write(taskDir +  "/cache.xml")
+
+      logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
 
     def remove(taskId : String) = synchronized
     {
       (file + ("/" + taskId)).deleteRecursive()
+      logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")
     }
   }
 }

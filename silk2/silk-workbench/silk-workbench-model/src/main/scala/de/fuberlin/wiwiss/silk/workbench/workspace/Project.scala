@@ -6,6 +6,11 @@ import modules.source.SourceModule
 trait Project
 {
   /**
+   * The name of this project
+   */
+  val name : String
+
+  /**
    * Retrieves the project configuration.
    */
   def config : ProjectConfig

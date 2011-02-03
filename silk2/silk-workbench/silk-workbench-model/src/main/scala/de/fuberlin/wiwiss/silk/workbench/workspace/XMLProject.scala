@@ -21,6 +21,11 @@ class XMLProject(linkSpec : Node) extends Project
   def getLinkSpec = doc
 
   /**
+   * The name of this project
+   */
+  override val name : String = doc \\ "Interlink" \\ "@id" text
+
+  /**
    * Reads the project configuration.
    */
   override def config =
