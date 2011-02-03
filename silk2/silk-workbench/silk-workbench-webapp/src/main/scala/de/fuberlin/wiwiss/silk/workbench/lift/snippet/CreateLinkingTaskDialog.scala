@@ -44,6 +44,9 @@ class CreateLinkingTaskDialog
     {
       try
       {
+        require(sourceNames.contains(sourceId), "Source does not exist")
+        require(sourceNames.contains(targetId), "Target does not exist")
+
         val linkSpec =
           LinkSpecification(
             id = name,
