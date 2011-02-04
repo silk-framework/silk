@@ -26,7 +26,7 @@ case class LinkingTask(name : Identifier,
 
   private class CacheLoader() extends Task[Unit]
   {
-    private val sampleCount = 10000
+    private val sampleCount = 100
 
     private val positiveSamples = alignment.positiveLinks.take(sampleCount).toList
 
