@@ -24,6 +24,8 @@ class Prefixes(private val map : Map[String, String])
 
 object Prefixes
 {
+  implicit def fromMap(map : Map[String, String]) = new Prefixes(map)
+
   implicit def toMap(prefixes : Prefixes) = prefixes.map
 
   def apply(map : Map[String, String]) = new Prefixes(map)
