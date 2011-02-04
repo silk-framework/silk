@@ -15,6 +15,7 @@ class Identifier(private val name : String)
   override def equals(other : Any) = other match
   {
     case otherId : Identifier => name.equals(otherId.name)
+    case str : String => name.equals(str)
     case _ => false
   }
 

@@ -8,6 +8,8 @@ import modules.linking.LinkingTask
  */
 class User
 {
+  private var currentLinkingTask : Option[LinkingTask] = None
+
   /**
    * The current project of this user.
    */
@@ -19,15 +21,28 @@ class User
   }
 
   /**
+   * True, if a linking task is open at the moment.
+   */
+  def linkingTaskOpen = currentLinkingTask.isDefined
+
+  /**
    * The current linking tasks of this user.
    */
-  var linkingTask : Option[LinkingTask] = None
+  //TODO document exception
+  def linkingTask = currentLinkingTask.getOrElse(throw new IllegalStateException("No active linking task"))
+
+  def linkingTask_=(task : LinkingTask) =
+  {
+    currentLinkingTask = Some(task)
+  }
 }
 
 object User
 {
+  private val user = new User()
+
   /**
    *  Retrieves the current user.
    */
-  def apply() = new User
+  def apply() = user
 }
