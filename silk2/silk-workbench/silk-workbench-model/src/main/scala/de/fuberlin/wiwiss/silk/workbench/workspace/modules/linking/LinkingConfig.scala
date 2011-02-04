@@ -1,8 +1,9 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.ModuleConfig
+import de.fuberlin.wiwiss.silk.config.Blocking
 
 /**
  * Configuration of a linking task.
  */
-case class LinkingConfig() extends ModuleConfig
+case class LinkingConfig(blocking : Option[Blocking] = None) extends ModuleConfig

@@ -4,15 +4,14 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec.{LinkCondition, LinkFilter, DatasetSpecification, LinkSpecification}
-import de.fuberlin.wiwiss.silk.workbench.project.Cache
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.SHtml
 import net.liftweb.widgets.autocomplete.AutoComplete
 import net.liftweb.util.Helpers._
+import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 
 /**
  * A dialog to create new linking tasks.

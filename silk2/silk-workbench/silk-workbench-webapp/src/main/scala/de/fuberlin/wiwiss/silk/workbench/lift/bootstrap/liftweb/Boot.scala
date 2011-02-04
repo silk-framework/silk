@@ -7,7 +7,6 @@ import _root_.net.liftweb.sitemap._
 import _root_.net.liftweb.sitemap.Loc._
 import Helpers._
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
-import de.fuberlin.wiwiss.silk.workbench.project.Project
 import js.jquery.JQuery14Artifacts
 import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
@@ -17,6 +16,7 @@ import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import net.liftweb.widgets.autocomplete.AutoComplete
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -36,11 +36,10 @@ class Boot
     LiftRules.addToPackages("de.fuberlin.wiwiss.silk.workbench.lift")
 
     // Build SiteMap
-    val ifProjectOpen = If(() => Project.isOpen, () => RedirectResponse("/index"))
+    val ifProjectOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("/index"))
 
     val entries =
-        Menu(Loc("home", List("index"), "Home")) ::
-        Menu(Loc("Workspace", List("workspace"), "Workspace")) ::
+        Menu(Loc("Workspace", List("index"), "Workspace")) ::
         Menu(Loc("Link Specification", List("linkSpec"), "Link Specification", ifProjectOpen)) ::
         Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifProjectOpen)) ::
         Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifProjectOpen)) :: Nil
@@ -53,19 +52,13 @@ class Boot
 
   private def dispatch : LiftRules.DispatchPF =
   {
-    case req @ Req(List("project.silk"), "", GetRequest) =>
-    {
-      val outputStream = new ByteArrayOutputStream()
-      Project.save(outputStream)
-      () => Full(InMemoryResponse(outputStream.toByteArray, ("Content-Type", "application/zip") :: Nil, Nil, 200))
-    }
-    case req @ Req(List("config"), "", GetRequest) =>
-    {
-      val outputStream = new ByteArrayOutputStream()
-      val configXml = Project().config.toXML
-      val configStr = new PrettyPrinter(140, 2).format(configXml)
-      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
-    }
+//    case req @ Req(List("config"), "", GetRequest) =>
+//    {
+//      val outputStream = new ByteArrayOutputStream()
+//      val configXml = Project().config.toXML
+//      val configStr = new PrettyPrinter(140, 2).format(configXml)
+//      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
+//    }
     case req @ Req(List("api", "project", "paths"), "", GetRequest) => () => generatePaths(req)
     case req @ Req(List("api", "project", "operators"), "", GetRequest) => () => generateOperators()
   }
@@ -74,9 +67,10 @@ class Boot
   {
     val maxPathCount = req.param("max").map(_.toInt).getOrElse(Int.MaxValue)
 
-    val datasets = Project().linkSpec.datasets
-    val restrictions = Project().linkSpec.datasets.map(_.restriction)
-    val instanceSpecs = Project().cache.instanceSpecs
+    val linkingTask = User().linkingTask
+    val datasets = linkingTask.linkSpec.datasets
+    val restrictions = linkingTask.linkSpec.datasets.map(_.restriction)
+    val instanceSpecs = linkingTask.cache.instanceSpecs
     val sourcePaths = if(instanceSpecs != null) instanceSpecs.source.paths else List[Path]()
     val targetPaths = if(instanceSpecs != null) instanceSpecs.target.paths else List[Path]()
 

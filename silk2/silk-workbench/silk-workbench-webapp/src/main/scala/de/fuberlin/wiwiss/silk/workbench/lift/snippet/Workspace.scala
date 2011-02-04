@@ -16,17 +16,12 @@ import net.liftweb.http.js.{JsCmd, JsCmds}
  *
  * Injects the following functions:
  *
+ * def openLinkingTask(
+ *     projectName : The name of the project,
+ *     taskName : The name of the task to be removed,
+ * )
+ *
  * def removeLinkingTask(
- *     projectName : The name of the project,
- *     taskName : The name of the task to be removed,
- * )
- *
- * def loadLinkingTask(
- *     projectName : The name of the project,
- *     taskName : The name of the task to be removed,
- * )
- *
- * def updateLinkingTask(
  *     projectName : The name of the project,
  *     taskName : The name of the task to be removed,
  * )
@@ -38,7 +33,6 @@ import net.liftweb.http.js.{JsCmd, JsCmds}
  * )
  *
  */
-//TODO implement loadLinkingTask and updateLinkingTask
 class Workspace
 {
   def toolbar(xhtml : NodeSeq) : NodeSeq =
@@ -56,8 +50,26 @@ class Workspace
 
   def content(xhtml : NodeSeq) : NodeSeq =
   {
+    val injectedJavascript = updateWorkspaceCmd &
+                             injectFunction("openLinkingTask", openLinkingTask _, true) &
+                             injectFunction("removeLinkingTask", removeLinkingTask _)
+
+
     bind("entry", xhtml,
-         "injectedJavascript" -> (Script(updateWorkspaceCmd & injectFunction("removeLinkingTask", removeLinkingTask _))))
+         "injectedJavascript" -> (Script(injectedJavascript)))
+  }
+
+  /**
+   * Opens a linking task from the workspace.
+   */
+  private def openLinkingTask(projectName : String, taskName : String)
+  {
+    //Ignoring the projectName for now until we have an complete workspace
+    User().project.linkingModule.tasks.find(_.name == taskName) match
+    {
+      case Some(linkingTask) => User().linkingTask = linkingTask
+      case None => throw new IllegalArgumentException("Linking Task '" + taskName + "' not found in project '" + projectName + "'.")
+    }
   }
 
   /**
@@ -67,6 +79,38 @@ class Workspace
   {
     //Ignoring the projectName for now until we have an complete workspace
     User().project.linkingModule.remove(taskName)
+  }
+
+  /*
+   * Injects a Javascript function.
+   */
+  private def injectFunction(name : String, func : (String, String) => Unit, reload : Boolean = false) : JsCmd =
+  {
+    //Callback which executes the provided function
+    def callback(args : String) : JsCmd =
+    {
+      try
+      {
+        val Array(projectName, taskName) = args.split(',')
+
+        func(projectName, taskName)
+
+        if(reload)
+          updateWorkspaceCmd & JsRaw("window.location.reload();").cmd
+        else
+          updateWorkspaceCmd
+      }
+      catch
+      {
+        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+      }
+    }
+
+    //Ajax Call which executes the callback
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
+
+    //JavaScript function definition
+    JsCmds.Function(name, "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 
   /**
@@ -107,35 +151,5 @@ class Workspace
     }
 
     ("workspace" -> ("project" -> projects))
-  }
-
-  /*
-   * Injects a Javascript function.
-   */
-  private def injectFunction(name : String, func : (String, String) => Unit) : JsCmd =
-  {
-    //Callback which executes the provided function
-    def callback(args : String) : JsCmd =
-    {
-      try
-      {
-        val Array(projectName, taskName) = args.split(',')
-
-        func(projectName, taskName)
-
-        updateWorkspaceCmd
-      }
-      catch
-      {
-        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
-      }
-    }
-
-    //Ajax Call which executes the callback
-    //TODO serialize arguments correctly not using a comma as separator which might also be used in the argument value itself
-    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
-
-    //JavaScript function definition
-    JsCmds.Function(name, "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 }

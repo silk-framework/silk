@@ -2,13 +2,13 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.{S, SHtml, FileParamHolder}
-import de.fuberlin.wiwiss.silk.workbench.project.Project
 import de.fuberlin.wiwiss.silk.evaluation.AlignmentReader
 import java.io.ByteArrayInputStream
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 import de.fuberlin.wiwiss.silk.output.Link
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
 class Alignment
 {
@@ -46,11 +46,14 @@ class Alignment
 
             val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
 
-            Project.updateAlignment(alignment.copy(negativeLinks = negativeLinks.toSet))
+            val updatedAlignment = alignment.copy(negativeLinks = negativeLinks.toSet)
+
+            //Update alignment
+            User().linkingTask = User().linkingTask.copy(alignment = updatedAlignment)
           }
           else
           {
-            Project.updateAlignment(alignment)
+            User().linkingTask = User().linkingTask.copy(alignment = alignment)
           }
 
           S.redirectTo("alignment")
@@ -74,7 +77,7 @@ class Alignment
         <th>Type</th>
       </tr>
       {
-        for(link <- Project().alignment.positiveLinks) yield
+        for(link <- User().linkingTask.alignment.positiveLinks) yield
         {
           <tr>
             <td>{link.sourceUri}</td>
@@ -85,7 +88,7 @@ class Alignment
         }
       }
       {
-        for(link <- Project().alignment.negativeLinks) yield
+        for(link <- User().linkingTask.alignment.negativeLinks) yield
         {
           <tr>
             <td>{link.sourceUri}</td>

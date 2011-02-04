@@ -22,6 +22,14 @@
   </head>
   <body>
     <lift:msgs/>
+    <div id="tabbar">
+      <div id="title">Silk Workbench</div >
+      <lift:Menu.builder
+          outer_tag="span"
+          inner_tag="div"
+          li:class="tab"
+          li_item:class="tab selected"/>
+    </div>
     <div id="toolbar">
       <lift:bind name="toolbar" />
     </div>

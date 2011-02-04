@@ -1,11 +1,10 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
+import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.AlignmentReader
-import de.fuberlin.wiwiss.silk.workbench.project.Cache
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
