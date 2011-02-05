@@ -82,8 +82,7 @@ class LDEProject(projectUri : String) extends Project
       xmlProj.sourceModule.update(task)
       // TODO - update TS using a proper REST call - is that supported?
       writeLiskSpec
-
-      logger.info("[LDEProject: "+projectUri +"] [LinkingTask: "+task.name +"] UPDATE")
+      logger.info("Updated source '"+task.name +"' in project '"+projectUri)
     }
 
     def remove(taskId : Identifier) = synchronized
@@ -91,8 +90,7 @@ class LDEProject(projectUri : String) extends Project
       xmlProj.sourceModule.remove(taskId)
       // TODO - update TS using a proper REST call - is that supported?
       writeLiskSpec
-
-      logger.info("[LDEProject: "+projectUri +"] [LinkingTask: "+taskId +"] REMOVE")
+      logger.info("Removed source '"+taskId +"' in project '"+projectUri)
     }
   }
 
@@ -116,8 +114,7 @@ class LDEProject(projectUri : String) extends Project
       xmlProj.linkingModule.update(task)
       // TODO - update TS using a proper REST call
       writeLiskSpec
-
-      logger.info("[LDEProject: "+projectUri +"] [LinkingTask: "+task.name +"] UPDATE")
+      logger.info("Updated linking task '"+task.name +"' in project '"+projectUri)
     }
 
     def remove(taskId : Identifier) = synchronized
@@ -125,8 +122,7 @@ class LDEProject(projectUri : String) extends Project
       xmlProj.linkingModule.remove(taskId)
       // TODO - update TS using a proper REST call
       writeLiskSpec
-
-      logger.info("[LDEProject: "+projectUri +"] [LinkingTask: "+taskId +"] REMOVE")
+      logger.info("Updated linking task '"+taskId +"' in project '"+projectUri)
     }
   }
 

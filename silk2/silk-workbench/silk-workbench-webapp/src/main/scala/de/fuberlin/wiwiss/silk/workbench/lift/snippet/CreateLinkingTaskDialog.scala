@@ -21,8 +21,8 @@ class CreateLinkingTaskDialog
   def render(xhtml : NodeSeq) : NodeSeq =
   {
     var name = ""
-    var sourceId = ""
-    var targetId = ""
+    var sourceId = "dbpedia"
+    var targetId = "drugbank"
     var sourceRestriction = "?a rdf:type sider:drugs"
     var targetRestriction = "?b rdf:type drugbank:drugs"
     val prefixes = Map(
