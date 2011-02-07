@@ -2,14 +2,14 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml
-import net.liftweb.json.JsonAST.{JArray, JValue}
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.json.JsonDSL._
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
-import xml.{Node, NodeSeq}
+import xml.NodeSeq
 import net.liftweb.http.js.{JsCmd, JsCmds}
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 
 /**
  * Workspace snippet.
@@ -64,8 +64,7 @@ class Workspace
    */
   private def openLinkingTask(projectName : String, taskName : String)
   {
-    //Ignoring the projectName for now until we have an complete workspace
-    User().project.linkingModule.tasks.find(_.name == taskName) match
+    User().workspace.projects.filter(_.name.toString == projectName).last.linkingModule.tasks.find(_.name == taskName) match
     {
       case Some(linkingTask) => User().linkingTask = linkingTask
       case None => throw new IllegalArgumentException("Linking Task '" + taskName + "' not found in project '" + projectName + "'.")
@@ -77,8 +76,7 @@ class Workspace
    */
   private def removeLinkingTask(projectName : String, taskName : String)
   {
-    //Ignoring the projectName for now until we have an complete workspace
-    User().project.linkingModule.remove(taskName)
+    User().workspace.projects.filter(_.name == projectName).last.linkingModule.remove(taskName)
   }
 
   /*
@@ -126,30 +124,37 @@ class Workspace
    */
   private def workspaceJson : JValue =
   {
-    val project = User().project
 
-    val sources : JArray = for(task <- project.sourceModule.tasks.toSeq) yield
+    // TODO - Nested 'yield's seem to cause the (strange) compiler error: 'xxx is not an enclosing class'
+    var projectList : List[JValue] = List()
+
+    for(project <- User().workspace.projects.toSeq)
     {
-      ("name" -> task.name.toString) ~
-      ("url" -> task.source.dataSource.toString)
+      val sources : JArray = for(task <- project.sourceModule.tasks.toSeq) yield
+      {
+        ("name" -> task.name.toString) ~
+        ("url" -> task.source.dataSource.toString)
+      }
+
+      val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq) yield
+      {
+        ("name" -> task.name.toString) ~
+        ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
+        ("target" -> task.linkSpec.datasets.target.sourceId.toString) ~
+        ("sourceDataset" -> task.linkSpec.datasets.source.restriction) ~
+        ("targetDataset" -> task.linkSpec.datasets.target.restriction)
+      }
+
+      val proj : JObject =
+      {
+        ("name" -> project.name.toString) ~
+        ("dataSource" -> sources) ~
+        ("linkingTask" -> linkingTasks)
+      }
+      
+      projectList ::= proj
     }
 
-    val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq) yield
-    {
-      ("name" -> task.name.toString) ~
-      ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
-      ("target" -> task.linkSpec.datasets.target.sourceId.toString) ~
-      ("sourceDataset" -> task.linkSpec.datasets.source.restriction) ~
-      ("targetDataset" -> task.linkSpec.datasets.target.restriction)
-    }
-
-    val projects : JArray = for(p <- project :: Nil) yield
-    {
-      ("name" -> project.name.toString) ~
-      ("dataSource" -> sources) ~
-      ("linkingTask" -> linkingTasks)
-    }
-
-    ("workspace" -> ("project" -> projects))
+    ("workspace" -> ("project" -> JArray(projectList)))
   }
 }

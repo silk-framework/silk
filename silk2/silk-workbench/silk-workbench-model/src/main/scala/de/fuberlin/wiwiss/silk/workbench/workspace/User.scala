@@ -2,23 +2,22 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import java.io.File
 import modules.linking.LinkingTask
+import java.net.URI
 
 /**
  * Dummy user as there is no user management yet.
  */
-class User
+trait User
 {
   private var currentLinkingTask : Option[LinkingTask] = None
 
   /**
-   * The current project of this user.
+   * The current workspace of this user
    */
-  val project =
-  {
-    val projectFile = new File("./workspace/project/")
-    projectFile.mkdirs()
-    new FileProject(projectFile)
-  }
+  def workspace : Workspace
+
+  // TODO - to be remove - used as fake project selection for the workbench-model package
+  val project = workspace.projects.toSeq.last
 
   /**
    * True, if a linking task is open at the moment.
@@ -39,7 +38,7 @@ class User
 
 object User
 {
-  private val user = new User()
+  private val user = new FileUser()
 
   /**
    *  Retrieves the current user.

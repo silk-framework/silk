@@ -32,6 +32,8 @@ class CreateLinkingTaskDialog
       "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
       "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
 
+    // TODO - this dialog should take as input parameter 'projectName : String' - now use fake project selection
+    // val sourceNames = User().workspace.projects.filter(_.name == projectName).last.sourceModule.tasks.map(_.name.toString).toList
     val sourceNames = User().project.sourceModule.tasks.map(_.name.toString).toList
 
     def completeSourceId(current : String, limit: Int) =
