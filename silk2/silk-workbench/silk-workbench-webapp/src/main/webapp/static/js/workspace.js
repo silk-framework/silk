@@ -62,7 +62,7 @@ function updateWorkspace(obj){
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource){
                 var ds_name_ul = document.createElement("ul");
-                    ds_name_ul.setAttribute('id','datasource_'+obj.workspace.project[p].dataSource[d].name);
+                    ds_name_ul.setAttribute('id','datasource_'+obj.workspace.project[p].name+'_'+obj.workspace.project[p].dataSource[d].name);
                     proj.appendChild(ds_name_ul);
                 var ds_name_li = document.createElement("li");
                     ds_name_li.setAttribute('class', 'closed');
@@ -73,7 +73,7 @@ function updateWorkspace(obj){
                     ds_name_li.appendChild(ds_name_span);
 
                 addAction('edit',"editDataSource('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].dataSource[d].name+"')",ds_name_li);
-                addAction('remove',"removeNodeById('datasource_"+obj.workspace.project[p].dataSource[d].name+"')",ds_name_li);
+                addAction('remove',"removeNodeById('datasource_"+obj.workspace.project[p].name+"_"+obj.workspace.project[p].dataSource[d].name+"')",ds_name_li);
 
                 addLeaf(obj.workspace.project[p].dataSource[d].url,ds_name_li, 'url: ');
             }
@@ -82,7 +82,7 @@ function updateWorkspace(obj){
             for (var l in obj.workspace.project[p].linkingTask){
                 var lt_name_ul = document.createElement("ul");
                     // TODO id must be unique, that's not
-                    lt_name_ul.setAttribute('id','linkingtask_'+obj.workspace.project[p].linkingTask[l].name);
+                    lt_name_ul.setAttribute('id','linkingtask_'+obj.workspace.project[p].name+'_'+obj.workspace.project[p].linkingTask[l].name);
                     proj.appendChild(lt_name_ul);
                 var lt_name_li = document.createElement("li");
                     lt_name_li.setAttribute('class', 'closed');
@@ -93,10 +93,10 @@ function updateWorkspace(obj){
                     lt_name_li.appendChild(lt_name_span);
 
                 addAction('edit restriction',"editLinkngRestriction('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].linkingTask[l].name+"')",lt_name_li);
-                addAction('edit link',"loadLinkngTask('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].linkingTask[l].name+"')",lt_name_li);
+                addAction('edit link',"openLinkingTask('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].linkingTask[l].name+"')",lt_name_li);
                 addAction('remove',"removeLinkingTask('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].linkingTask[l].name+"')",lt_name_li);
                 // TODO using callback functions would be..
-                //addAction('remove',"removeLinkingTask('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].linkingTask[l].name+"',removeNodeById(linkingtask_"+obj.workspace.project[p].linkingTask[l].name+")",lt_name_li);
+                //addAction('remove',"removeLinkingTask('"+obj.workspace.project[p].name+"','"+ obj.workspace.project[p].linkingTask[l].name+"',removeNodeById(linkingtask_"+obj.workspace.project[p].name+"_"+obj.workspace.project[p].linkingTask[l].name+")",lt_name_li);
 
                 addLeaf(obj.workspace.project[p].linkingTask[l].source,lt_name_li, 'source: ');
                 addLeaf(obj.workspace.project[p].linkingTask[l].target,lt_name_li, 'target: ');
