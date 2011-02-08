@@ -1,7 +1,5 @@
 package de.fuberlin.wiwiss.silk.util.strategy
 
-import collection.mutable.{SynchronizedMap, WeakHashMap}
-
 /**
  * An abstract Factory.
  */
