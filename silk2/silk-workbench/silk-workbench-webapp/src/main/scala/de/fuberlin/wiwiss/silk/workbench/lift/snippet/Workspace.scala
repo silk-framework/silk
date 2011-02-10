@@ -16,18 +16,27 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  *
  * Injects the following functions:
  *
+ * def createSourceTask(
+ *     projectName : The name of the project
+ * )
+ *
+ * def removeSourceTask(
+ *     projectName : The name of the project
+ *     taskName : The name of the task to be removed
+ * )
+ *
  * def createLinkingTask(
  *     projectName : The name of the project
  * )
  *
  * def openLinkingTask(
- *     projectName : The name of the project,
- *     taskName : The name of the task to be removed,
+ *     projectName : The name of the project
+ *     taskName : The name of the task to be removed
  * )
  *
  * def removeLinkingTask(
- *     projectName : The name of the project,
- *     taskName : The name of the task to be removed,
+ *     projectName : The name of the project
+ *     taskName : The name of the task to be removed
  * )
  *
  * Whenever the workspace changes, the following function will be called:
@@ -51,6 +60,8 @@ object Workspace
   def javasScriptFunctions =
   {
     updateWorkspaceCmd &
+    createSourceTaskFunction &
+    injectFunction("removeSourceTask", removeSourceTask _) &
     createLinkingTaskFunction &
     injectFunction("openLinkingTask", openLinkingTask _, true) &
     injectFunction("removeLinkingTask", removeLinkingTask _)
@@ -65,13 +76,41 @@ object Workspace
   }
 
   /**
+   * JS Command which defines the createDataSourceTask function
+   */
+  private def createSourceTaskFunction : JsCmd =
+  {
+    def callback(projectName : String) : JsCmd =
+    {
+      User().project = User().workspace.projects.find(_.name == projectName).getOrElse(throw new Exception("Project '" + projectName + "' not found"))
+
+      JsRaw("$('#createSourceTaskDialog').dialog('open');").cmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+
+    val initSourceTaskDialog = OnLoad(JsRaw("$('#createSourceTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+    val openSourceTaskDialog =  JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
+
+    initSourceTaskDialog & openSourceTaskDialog
+  }
+
+  /**
+   * Removes a source task from the workspace.
+   */
+  private def removeSourceTask(projectName : String, taskName : String)
+  {
+    User().workspace.projects.filter(_.name == projectName).last.sourceModule.remove(taskName)
+  }
+
+  /**
    * JS Command which defines the createLinkingTask function
    */
   private def createLinkingTaskFunction : JsCmd =
   {
     def callback(projectName : String) : JsCmd =
     {
-      CreateLinkingTaskDialog.projectName = Some(projectName)
+      User().project = User().workspace.projects.find(_.name == projectName).getOrElse(throw new Exception("Project '" + projectName + "' not found"))
 
       JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
     }

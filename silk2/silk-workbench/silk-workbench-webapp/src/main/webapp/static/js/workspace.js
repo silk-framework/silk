@@ -55,10 +55,11 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
         ds_name_li.appendChild(ds_name_span);
 
+    addAction('edit',"createSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
+    addAction('remove',"removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
+
     // TODO - missing back-end function
-    addAction('edit',"editDataSource('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
-    // TODO - missing back-end function
-    addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
+    //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
 
     addLeaf(jsonDataSource.url,ds_name_li, 'url: ');
 }
@@ -79,7 +80,7 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
 
     // TODO - missing back-end function
     addAction('edit restriction',"editLinkngRestriction('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
-    // TODO - missing back-end function
+
     addAction('edit link',"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
     addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
     // TODO using callback functions would be..
@@ -139,7 +140,7 @@ function addAction(name, action, parent)
                     proj_span.innerHTML = project.name;
                     proj.appendChild(proj_span);
 
-                addAction('add DataSource',"newDataSource('','"+project.name+"')",proj);
+                addAction('add DataSource',"createSourceTask('"+project.name+"')",proj);
                 addAction('add LinkingTask',"createLinkingTask('"+project.name+"')",proj);
 
              // display dataSource

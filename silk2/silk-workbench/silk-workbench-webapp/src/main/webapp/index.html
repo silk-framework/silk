@@ -6,6 +6,36 @@
   <lift:bind-at name="content">
     <lift:workspace.content>
       <entry:injectedJavascript/>
+      <div id="createSourceTaskDialog" title="New Source Task">
+        <lift:createSourceTaskDialog>
+          <table border="0">
+            <tr>
+              <td>Name</td>
+              <td><entry:name/></td>
+            </tr>
+            <tr>
+              <td>Endpoint URI</td>
+              <td><entry:uri/></td>
+            </tr>
+            <tr>
+              <td>Graph URI</td>
+              <td><entry:graph/></td>
+            </tr>
+            <tr>
+              <td>Retry Count</td>
+              <td><entry:retryCount/></td>
+            </tr>
+            <tr>
+              <td>Retry Pause</td>
+              <td><entry:retryPause/></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td align="right"><entry:submit/></td>
+            </tr>
+          </table>
+        </lift:createSourceTaskDialog>
+      </div>
       <div id="createLinkingTaskDialog" title="New Linking Task">
         <lift:createLinkingTaskDialog>
           <table border="0">

@@ -17,7 +17,7 @@ trait User
   def workspace : Workspace
 
   // TODO - to be remove - used as fake project selection for the workbench-model package
-  val project = workspace.projects.toSeq.last
+  var project = workspace.projects.toSeq.last
 
   /**
    * True, if a linking task is open at the moment.
