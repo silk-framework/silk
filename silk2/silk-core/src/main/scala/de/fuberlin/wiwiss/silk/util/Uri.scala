@@ -13,7 +13,7 @@ class Uri(val uri : String, val qualifiedName : Option[String])
 
 object Uri
 {
-  def parse(str : String, prefixes : Map[String, String]) =
+  def parse(str : String, prefixes : Map[String, String] = Map.empty) =
   {
     if(str.startsWith("<"))
     {
@@ -25,7 +25,7 @@ object Uri
     }
   }
 
-  def fromURI(uri : String, prefixes : Map[String, String]) : Uri =
+  def fromURI(uri : String, prefixes : Map[String, String] = Map.empty) : Uri =
   {
     for((prefix, suffix) <- prefixes if uri.startsWith(suffix))
     {
@@ -34,7 +34,7 @@ object Uri
     new Uri(uri, None)
   }
 
-  def fromQualifiedName(qualifiedName : String, prefixes : Map[String, String]) =
+  def fromQualifiedName(qualifiedName : String, prefixes : Map[String, String] = Map.empty) =
   {
     new Uri(resolvePrefix(qualifiedName, prefixes), Some(qualifiedName))
   }

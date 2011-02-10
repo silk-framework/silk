@@ -32,12 +32,9 @@ class CreateLinkingTaskDialog
       "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
       "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
 
-    // TODO - this dialog should take as input parameter 'projectName : String' - now use fake project selection
-    // val sourceNames = User().workspace.projects.filter(_.name == projectName).last.sourceModule.tasks.map(_.name.toString).toList
-    val sourceNames = User().project.sourceModule.tasks.map(_.name.toString).toList
-
     def completeSourceId(current : String, limit: Int) =
     {
+      val sourceNames = CreateLinkingTaskDialog.project.sourceModule.tasks.map(_.name.toString).toList
       sourceNames.filter(_.startsWith(current)).take(limit)
     }
 
@@ -45,6 +42,7 @@ class CreateLinkingTaskDialog
     {
       try
       {
+        val sourceNames = CreateLinkingTaskDialog.project.sourceModule.tasks.map(_.name.toString).toList
         require(sourceNames.contains(sourceId), "Source does not exist")
         require(sourceNames.contains(targetId), "Target does not exist")
 
@@ -61,9 +59,9 @@ class CreateLinkingTaskDialog
 
         val linkingTask = LinkingTask(name, prefixes, linkSpec, Alignment(), new Cache())
 
-        User().project.linkingModule.update(linkingTask)
+        CreateLinkingTaskDialog.project.linkingModule.update(linkingTask)
 
-        JsRaw("$('#createLinkingTaskDialog').dialog('close'); document.forms['toolbarForm'].submit();").cmd
+        JsRaw("$('#createLinkingTaskDialog').dialog('close');").cmd & Workspace.updateWorkspaceCmd
       }
       catch
       {
@@ -80,5 +78,16 @@ class CreateLinkingTaskDialog
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
          "prefixes" -> PrefixEditor.prefixEditor(prefixes),
          "submit" -> SHtml.ajaxSubmit("Create", () => PrefixEditor.readPrefixes(submit))))
+  }
+}
+
+object CreateLinkingTaskDialog
+{
+  var projectName : Option[String] = None
+
+  def project =
+  {
+    val name = projectName.getOrElse(throw new Exception("No project selected"))
+    User().workspace.projects.find(_.name == name).getOrElse(throw new Exception("Project '" + name + "' not found"))
   }
 }
