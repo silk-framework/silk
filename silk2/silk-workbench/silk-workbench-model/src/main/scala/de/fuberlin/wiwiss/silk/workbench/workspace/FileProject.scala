@@ -79,7 +79,7 @@ class FileProject(file : File) extends Project
 
     override def remove(taskId : Identifier) = synchronized
     {
-      (file + taskId).deleteRecursive()
+      (file + ("/" + taskId + ".xml")).deleteRecursive()
       logger.info("Removed source '" + taskId + "' from project '" + name + "'")
     }
   }
