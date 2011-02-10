@@ -28,7 +28,6 @@ object InstanceRetriever
   def apply(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None) : InstanceRetriever =
   {
     //Always creates a parallel instance retriever as it is generally significantly faster.
-    //TODO using SimpleInstanceRetriever as there might be a bug in the ParallelRetriever class
     new ParallelInstanceRetriever(endpoint, pageSize, graphUri)
   }
 }
