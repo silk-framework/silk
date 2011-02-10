@@ -16,6 +16,10 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  *
  * Injects the following functions:
  *
+ * def createLinkingTask(
+ *     projectName : The name of the project
+ * )
+ *
  * def openLinkingTask(
  *     projectName : The name of the project,
  *     taskName : The name of the task to be removed,
@@ -35,28 +39,49 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  */
 class Workspace
 {
-  def toolbar(xhtml : NodeSeq) : NodeSeq =
-  {
-    def showCreateDialog() =
-    {
-      JsRaw("$('#createLinkingTaskDialog').dialog('open')").cmd
-    }
-
-    val initCreateDialog = Script(OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd))
-
-    bind("entry", xhtml,
-         "new" -> (initCreateDialog ++ SHtml.ajaxButton("New", showCreateDialog _)))
-  }
-
   def content(xhtml : NodeSeq) : NodeSeq =
   {
-    val injectedJavascript = updateWorkspaceCmd &
-                             injectFunction("openLinkingTask", openLinkingTask _, true) &
-                             injectFunction("removeLinkingTask", removeLinkingTask _)
-
-
     bind("entry", xhtml,
-         "injectedJavascript" -> (Script(injectedJavascript)))
+         "injectedJavascript" -> (Script(Workspace.javasScriptFunctions)))
+  }
+}
+
+object Workspace
+{
+  def javasScriptFunctions =
+  {
+    updateWorkspaceCmd &
+    createLinkingTaskFunction &
+    injectFunction("openLinkingTask", openLinkingTask _, true) &
+    injectFunction("removeLinkingTask", removeLinkingTask _)
+  }
+
+  /**
+   * JS Command which updates the workspace view.
+   */
+  def updateWorkspaceCmd : JsCmd =
+  {
+    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
+  }
+
+  /**
+   * JS Command which defines the createLinkingTask function
+   */
+  private def createLinkingTaskFunction : JsCmd =
+  {
+    def callback(projectName : String) : JsCmd =
+    {
+      CreateLinkingTaskDialog.projectName = Some(projectName)
+
+      JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+
+    val initLinkingTaskDialog = OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+    val openLinkingTaskDialog =  JsCmds.Function("createLinkingTask", "projectName" :: Nil, ajaxCall)
+
+    initLinkingTaskDialog & openLinkingTaskDialog
   }
 
   /**
@@ -112,14 +137,6 @@ class Workspace
   }
 
   /**
-   * JS Command which updates the workspace view.
-   */
-  private def updateWorkspaceCmd : JsCmd =
-  {
-    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
-  }
-
-  /**
    * Generates a JSON which contains the workspace contents.
    */
   private def workspaceJson : JValue =
@@ -151,7 +168,7 @@ class Workspace
         ("dataSource" -> sources) ~
         ("linkingTask" -> linkingTasks)
       }
-      
+
       projectList ::= proj
     }
 
