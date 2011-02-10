@@ -1,12 +1,11 @@
 <lift:surround with="workspace-template">
 
- <lift:bind-at name="toolbar">
-    <lift:workspace.toolbar form="POST" id="toolbarForm">
-      <ul>
-        <li>
-          <entry:new />
-        </li>
-      </ul>
+  <lift:bind-at name="toolbar">
+  </lift:bind-at>
+
+  <lift:bind-at name="content">
+    <lift:workspace.content>
+      <entry:injectedJavascript/>
       <div id="createLinkingTaskDialog" title="New Linking Task">
         <lift:createLinkingTaskDialog>
           <table border="0">
@@ -38,12 +37,6 @@
           <entry:prefixes/>
         </lift:createLinkingTaskDialog>
       </div>
-    </lift:workspace.toolbar>
-  </lift:bind-at>
-
-  <lift:bind-at name="content">
-    <lift:workspace.content>
-      <entry:injectedJavascript/>
     </lift:workspace.content>
   </lift:bind-at>
 

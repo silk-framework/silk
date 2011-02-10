@@ -140,7 +140,7 @@ function addAction(name, action, parent)
                     proj.appendChild(proj_span);
 
                 addAction('add DataSource',"newDataSource('','"+project.name+"')",proj);
-                addAction('add LinkingTask',"newLinkingTask('"+project.name+"')",proj);
+                addAction('add LinkingTask',"createLinkingTask('"+project.name+"')",proj);
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
