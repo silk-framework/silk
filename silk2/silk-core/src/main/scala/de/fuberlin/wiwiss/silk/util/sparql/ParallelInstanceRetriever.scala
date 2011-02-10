@@ -163,7 +163,10 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
         }
       }
 
-      queue.enqueue(PathValues(currentSubject.get, currentValues))
+      for(s <- currentSubject)
+      {
+        queue.enqueue(PathValues(s, currentValues))
+      }
     }
   }
 
