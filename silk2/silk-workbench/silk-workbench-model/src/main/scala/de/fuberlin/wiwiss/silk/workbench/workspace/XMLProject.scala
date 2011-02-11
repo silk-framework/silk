@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
+import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
@@ -9,6 +9,7 @@ import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Node, Elem}
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.evaluation.Alignment
 
 /**
  * Implementation of a project which maps an XML Silk Link Specification document.
@@ -24,6 +25,7 @@ class XMLProject(linkSpec : Node) extends Project
   /**
    * The name of this project
    */
+  // TODO - set a proper name
   override val name : Identifier = doc \\ "Interlink" \\ "@id" text
 
   /**
@@ -37,26 +39,26 @@ class XMLProject(linkSpec : Node) extends Project
   /**
    * Writes the updated project configuration.
    */
-  override def config_=(config : ProjectConfig)
-  {
-  }
+  override def config_=(config : ProjectConfig)     {}
 
   /**
    * The source module which encapsulates all data sources.
    */
   override val sourceModule = new XMLSourceModule()
+  
 
   /**
    * The linking module which encapsulates all linking tasks.
    */
   override val linkingModule = new XMLLinkingModule()
 
+
   /**
    * The source module which encapsulates all data sources.
    */
   class XMLSourceModule() extends SourceModule
   {
-    
+
     def config = SourceConfig()
 
     def config_=(c : SourceConfig) {}
@@ -77,15 +79,15 @@ class XMLProject(linkSpec : Node) extends Project
          // TODO  update interlink (better)
          remove(task.name)
       }
+      if ((doc \\ "DataSources").size == 0)
+            doc = new RuleTransformer(new AddChildrenTo("Silk", <DataSources />)).transform(doc).head
       doc = new RuleTransformer(new AddChildrenTo("DataSources", task.source.toXML)).transform(doc).head
-      //TODO - validate?
     }
 
     def remove(taskId : Identifier) = synchronized
     {
        // Remove datasource with id = task.name
        doc = new RuleTransformer(new RemoveNodeById("DataSource",taskId)).transform(doc).head
-      // TODO - validate?
     }
   }
 
@@ -101,11 +103,11 @@ class XMLProject(linkSpec : Node) extends Project
     def tasks = synchronized
     {
      val prefixes = Prefixes.fromXML((doc \\ "Prefixes") (0))
+
      for(lt <- doc \\ "Interlink" ) yield
       {
-        val projectConfig = XMLProject.this.config
-        val linkTask = LinkSpecification.fromXML(lt,(prefixes))
-        LinkingTask((lt \ "@id") text, prefixes, linkTask, null, null)
+        val linkT = LinkSpecification.fromXML(lt,(prefixes))
+        LinkingTask((lt \ "@id").text, prefixes, linkT, new Alignment(), new Cache())
       }
     }
 
@@ -121,6 +123,7 @@ class XMLProject(linkSpec : Node) extends Project
 
     def remove(taskId : Identifier) = synchronized
     {
+       logger.info("Removing LinkingTask: "+ taskId)
        // Remove interlink with id = task.name
        doc = new RuleTransformer(new RemoveNodeById("Interlink",taskId)).transform(doc).head
     }

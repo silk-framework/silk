@@ -1,21 +1,31 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import java.net.URI
+import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.util.sparql.{Node, RemoteSparqlEndpoint}
 
 
 class LDEWorkspace (workspaceUri : URI) extends Workspace
 {
 
-  // TODO - Get REST endpoint
-  val restEndpoint = Nil // = new RestClient(URI)      
+  private val logger = Logger.getLogger(classOf[LDEProject].getName)
 
-  // TODO - Retrieve projects from REST endpoint
-  val result : List[String] = restEndpoint //.getProjectList()
+  val prefixes = Prefixes (Map ("smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/", "smwDatasourceLinks" -> "http://www.example.org/smw-lde/smwDatasourceLinks/", "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#", "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#"  ))
+  
+  val storeEndpoint = new RemoteSparqlEndpoint(workspaceUri, prefixes)
+
+  val query = " SELECT  ?uri FROM smwGraphs:MappingRepository  WHERE  { ?uri rdf:type smw-lde:SilkMatchingDescription }"
+
+  val res = storeEndpoint.query(query,100)
+
+
 
   // Create a workspace as collection of LDEProjects
-  override def projects : List[Project] = for(projectUri <- result) yield
+  override def projects = for(projectRes <- res) yield
       {
-        new LDEProject(projectUri)
+        new LDEProject(projectRes("uri").value,storeEndpoint)
       }
+
 
 }
