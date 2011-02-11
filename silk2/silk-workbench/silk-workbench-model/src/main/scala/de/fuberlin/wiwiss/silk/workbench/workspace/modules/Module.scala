@@ -18,12 +18,22 @@ trait Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask]
   def config_=(c : ConfigType) : Unit
 
   /**
-   *  Retrieves the tasks in this module.
+   * Retrieves the tasks in this module.
    */
   def tasks : Traversable[TaskType]
 
   /**
-   * Updates a specific task.
+   * Retrieves a task by name.
+   *
+   * @throws java.util.NoSuchElementException If no task with the given name has been found
+   */
+  def task(name : String) : TaskType =
+  {
+    tasks.find(_.name == name).getOrElse(throw new NoSuchElementException("Task '" + name + "' not found."))
+  }
+
+  /**
+   *  Updates a specific task.
    */
   def update(task : TaskType) : Unit
 

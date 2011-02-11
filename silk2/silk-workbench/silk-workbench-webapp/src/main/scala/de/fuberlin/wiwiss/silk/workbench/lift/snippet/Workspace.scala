@@ -20,6 +20,11 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  *     projectName : The name of the project
  * )
  *
+ * def editSourceTask(
+ *     projectName : The name of the project
+ *     taskName : The name of the task to be edited
+ * )
+ *
  * def removeSourceTask(
  *     projectName : The name of the project
  *     taskName : The name of the task to be removed
@@ -61,6 +66,7 @@ object Workspace
   {
     updateWorkspaceCmd &
     createSourceTaskFunction &
+    editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
     createLinkingTaskFunction &
     injectFunction("openLinkingTask", openLinkingTask _, true) &
@@ -82,7 +88,7 @@ object Workspace
   {
     def callback(projectName : String) : JsCmd =
     {
-      User().project = User().workspace.projects.find(_.name == projectName).getOrElse(throw new Exception("Project '" + projectName + "' not found"))
+      User().project = User().workspace.project(projectName)
 
       JsRaw("$('#createSourceTaskDialog').dialog('open');").cmd
     }
@@ -93,6 +99,26 @@ object Workspace
     val openSourceTaskDialog =  JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
 
     initSourceTaskDialog & openSourceTaskDialog
+  }
+
+  /**
+   * JS Command which defines the editSourceTask function
+   */
+  private def editSourceTaskFunction : JsCmd =
+  {
+    def callback(args : String) : JsCmd =
+    {
+      val Array(projectName, taskName) = args.split(',')
+
+      User().project = User().workspace.project(projectName)
+      User().sourceTask = User().project.sourceModule.task(taskName)
+
+      EditSourceTaskDialog.openCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
+
+    EditSourceTaskDialog.initCmd & JsCmds.Function("editSourceTask", "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 
   /**
