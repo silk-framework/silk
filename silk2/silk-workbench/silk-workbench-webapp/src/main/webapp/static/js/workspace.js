@@ -18,6 +18,16 @@ function newDataSource(jsonDataSource,projectName)
     }
 }
 
+// - utils
+function getIcon(type){
+    if (type=='add') return "ui-icon-plusthick";
+    else if (type=='edit') return "ui-icon-wrench";
+    else if (type=='del') return "ui-icon-trash";
+    else if (type=='link') return "ui-icon-link";
+    else if (type=='source') return "ui-icon-cart";
+}
+
+
 // -- display functions --
 function addLeaf(leaf, parent, desc)
 {
@@ -33,12 +43,13 @@ function addLeaf(leaf, parent, desc)
           }
 }
 
-function addAction(name, action, parent)
+function addAction(type, desc, action, parent)
 {
-         var action_span = document.createElement("span");
-             action_span.setAttribute('class','action');
+        var icon = getIcon(type);
+        var action_span = document.createElement("span");
+             action_span.setAttribute('class','ui-icon '+icon );
              action_span.setAttribute('onclick',action);
-             action_span.innerHTML = name;
+             action_span.setAttribute('title', desc);
              parent.appendChild(action_span);
 }
 
@@ -55,8 +66,8 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
         ds_name_li.appendChild(ds_name_span);
 
-    addAction('edit',"createSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
-    addAction('remove',"removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
+    addAction('edit', "Edit DataSource "+jsonDataSource.name,"createSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
+    addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li);
 
     // TODO - missing back-end function
     //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
@@ -78,11 +89,8 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         lt_name_span.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
         lt_name_li.appendChild(lt_name_span);
 
-    // TODO - missing back-end function
-    addAction('edit restriction',"editLinkngRestriction('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
-
-    addAction('edit link',"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
-    addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
+    addAction('edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
+    addAction('del',"Remove LinkingTask "+jsonLinkingTask.name,"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
     // TODO using callback functions would be..
     //addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"',removeNodeById(linkingtask_"+projectName+"_"+jsonLinkingTask.name+")",lt_name_li);
 
@@ -102,28 +110,7 @@ function updateWorkspace(obj){
         var tree = document.createElement("div");
                 tree.id = "div_tree";
 
-        var root = document.createElement("ul");       function addLeaf(leaf, parent, desc)
-{
-          if (leaf){
-             var leaf_ul = document.createElement("ul");
-                 parent.appendChild(leaf_ul);
-             var leaf_li = document.createElement("li");
-                 leaf_ul.appendChild(leaf_li);
-             var leaf_span = document.createElement("span");
-                 leaf_span.setAttribute('class', 'file');
-                 leaf_span.innerHTML = desc+leaf;
-                 leaf_li.appendChild(leaf_span);
-          }
-}                                           var ds_name_li =
-
-function addAction(name, action, parent)
-{
-         var action_span = document.createElement("span");
-             action_span.setAttribute('class','action');
-             action_span.setAttribute('onclick',action);
-             action_span.innerHTML = name;
-             parent.appendChild(action_span);
-}
+        var root = document.createElement("ul");      
             root.id = 'tree';
             root.setAttribute('class','filetree');
             tree.appendChild(root);
@@ -140,8 +127,8 @@ function addAction(name, action, parent)
                     proj_span.innerHTML = project.name;
                     proj.appendChild(proj_span);
 
-                addAction('add DataSource',"createSourceTask('"+project.name+"')",proj);
-                addAction('add LinkingTask',"createLinkingTask('"+project.name+"')",proj);
+                addAction('source','Add DataSource',"createSourceTask('"+project.name+"')",proj);
+                addAction('link','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj);
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
@@ -160,3 +147,25 @@ function addAction(name, action, parent)
 
         $("#tree").treeview();          
     }
+
+
+// - dialogs
+function confirmDelete(action){
+     var confirmDialog = document.createElement("div");
+         confirmDialog.setAttribute('title','Delete');
+         confirmDialog.setAttribute('id','dialog');
+     var dialogText = document.createElement("p");
+         dialogText.innerHTML = "Do you really want to delete?";
+         confirmDialog.appendChild(dialogText);
+
+     document.getElementById("content").appendChild(confirmDialog);
+
+     $("#dialog").dialog({width: 400,
+         modal: true,
+         resizable: false,
+         buttons: {
+         "Yes, delete it": function() { action; },
+         "Cancel": function() {$(this).dialog("close");}
+        }
+        });
+}
