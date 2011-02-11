@@ -66,7 +66,7 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
         ds_name_li.appendChild(ds_name_span);
 
-    addAction('edit', "Edit DataSource "+jsonDataSource.name,"createSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
+    addAction('edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
     addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li);
 
     // TODO - missing back-end function
