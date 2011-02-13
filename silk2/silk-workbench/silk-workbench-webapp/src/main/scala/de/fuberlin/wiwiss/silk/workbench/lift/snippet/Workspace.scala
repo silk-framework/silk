@@ -16,6 +16,13 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  *
  * Injects the following functions:
  *
+ * def createProject(
+ * )
+ *
+ * def removeProject(
+ *     projectName : The name of the project
+ * )
+ *
  * def createSourceTask(
  *     projectName : The name of the project
  * )
@@ -65,6 +72,8 @@ object Workspace
   def javasScriptFunctions =
   {
     updateWorkspaceCmd &
+    createProjectFunction &
+    removeProjectFunction &
     createSourceTaskFunction &
     editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
@@ -79,6 +88,33 @@ object Workspace
   def updateWorkspaceCmd : JsCmd =
   {
     JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
+  }
+
+  /**
+   * JS Command which defines the createProject function
+   */
+  private def createProjectFunction : JsCmd =
+  {
+    val ajaxCall = SHtml.ajaxInvoke(CreateProjectDialog.openCmd _)._2.cmd
+
+    CreateProjectDialog.initCmd & JsCmds.Function("createProject", Nil, ajaxCall)
+  }
+
+  /**
+   * JS Command which defines the removeProject function
+   */
+  private def removeProjectFunction : JsCmd =
+  {
+    def callback(projectName : String) : JsCmd =
+    {
+      User().workspace.removeProject(projectName)
+
+      updateWorkspaceCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+
+    JsCmds.Function("removeProject", "projectName" :: Nil, ajaxCall)
   }
 
   /**

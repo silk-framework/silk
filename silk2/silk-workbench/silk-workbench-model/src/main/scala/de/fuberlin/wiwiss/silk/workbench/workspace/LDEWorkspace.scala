@@ -27,5 +27,13 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace
         new LDEProject(projectRes("uri").value,storeEndpoint)
       }
 
+  override def createProject(name : String) =
+  {
+    //TODO
+  }
 
+  override def removeProject(name : String) =
+  {
+    //TODO
+  }
 }

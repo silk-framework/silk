@@ -10,17 +10,31 @@ import modules.source.SourceTask
  */
 trait User
 {
+  private var currentProject : Option[Project] = None
+
   private var currentSourceTask : Option[SourceTask] = None
 
   private var currentLinkingTask : Option[LinkingTask] = None
 
   /**
-   * The current workspace of this user
+   * The current workspace of this user.
    */
   def workspace : Workspace
 
-  // TODO - to be remove - used as fake project selection for the workbench-model package
-  var project = workspace.projects.toSeq.last
+  def projectOpen = currentProject.isDefined
+
+  /**
+   * The current project of this user.
+   */
+  def project = currentProject.getOrElse(throw new NoSuchElementException("No active project"))
+
+  /**
+   * Sets the current project of this user.
+   */
+  def project_=(project : Project) =
+  {
+    currentProject = Some(project)
+  }
 
   /**
    * True, if a source task is open at the moment.
