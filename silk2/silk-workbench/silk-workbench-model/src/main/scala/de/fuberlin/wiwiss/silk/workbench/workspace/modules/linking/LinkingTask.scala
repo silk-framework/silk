@@ -11,6 +11,8 @@ import de.fuberlin.wiwiss.silk.util.sparql.{RemoteSparqlEndpoint, SparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import java.net.URI
+import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceModule
+import de.fuberlin.wiwiss.silk.datasource.Source
 
 /**
  * A linking task which interlinks two datasets.
@@ -22,11 +24,18 @@ case class LinkingTask(name : Identifier,
                        cache : Cache) extends ModuleTask
 {
   val cacheLoader : Task[Unit] = new CacheLoader()
-  //TODO
-  //cacheLoader.runInBackground()
+
+  def loadCache(sourceModule : SourceModule)
+  {
+    val sources = linkSpec.datasets.map(ds => sourceModule.task(ds.sourceId).source)
+    cacheLoader.asInstanceOf[CacheLoader].sources = sources
+    cacheLoader.runInBackground()
+  }
 
   private class CacheLoader() extends Task[Unit]
   {
+    var sources : SourceTargetPair[Source] = null
+
     private val sampleCount = 100
 
     private val positiveSamples = alignment.positiveLinks.take(sampleCount).toList
@@ -37,12 +46,8 @@ case class LinkingTask(name : Identifier,
 
     override protected def execute()
     {
-      //Retrieve sources
-      val sourceSource = User().project.sourceModule.tasks.find(_.name == linkSpec.datasets.source.sourceId).get.source
-      val targetSource = User().project.sourceModule.tasks.find(_.name == linkSpec.datasets.target.sourceId).get.source
-
-      val sourceEndpoint = new RemoteSparqlEndpoint(new URI(sourceSource.dataSource.toString), prefixes)
-      val targetEndpoint = new RemoteSparqlEndpoint(new URI(targetSource.dataSource.toString), prefixes)
+      val sourceEndpoint = new RemoteSparqlEndpoint(new URI(sources.source.dataSource.toString), prefixes)
+      val targetEndpoint = new RemoteSparqlEndpoint(new URI(sources.target.dataSource.toString), prefixes)
 
       if(cache.instanceSpecs == null)
       {
