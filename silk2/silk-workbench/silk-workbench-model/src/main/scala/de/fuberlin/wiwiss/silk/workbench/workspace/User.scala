@@ -66,7 +66,6 @@ trait User
    *
    * @throws java.util.NoSuchElementException If no linking task is open
    */
-  //TODO document exception
   def linkingTask = currentLinkingTask.getOrElse(throw new NoSuchElementException("No active linking task"))
 
   /**
@@ -80,10 +79,10 @@ trait User
 
 object User
 {
-  private val user = new FileUser()
+  var userManager : () => User = () => throw new Exception("No user manager registerd")
 
   /**
-   *  Retrieves the current user.
+   * Retrieves the current user.
    */
-  def apply() = user
+  def apply() =  userManager()
 }

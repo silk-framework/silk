@@ -22,7 +22,8 @@ case class LinkingTask(name : Identifier,
                        cache : Cache) extends ModuleTask
 {
   val cacheLoader : Task[Unit] = new CacheLoader()
-  cacheLoader.runInBackground()
+  //TODO
+  //cacheLoader.runInBackground()
 
   private class CacheLoader() extends Task[Unit]
   {

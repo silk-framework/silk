@@ -16,7 +16,7 @@ import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import net.liftweb.widgets.autocomplete.AutoComplete
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -24,8 +24,12 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
   */
 class Boot
 {
+  object UserManager extends SessionVar[User](new FileUser)
+
   def boot
   {
+    User.userManager = UserManager.is _
+
     DefaultImplementations.register()
 
     LiftRules.jsArtifacts = JQuery14Artifacts
