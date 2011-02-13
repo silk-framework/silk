@@ -16,8 +16,7 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  *
  * Injects the following functions:
  *
- * def createProject(
- * )
+ * def createProject()
  *
  * def removeProject(
  *     projectName : The name of the project
@@ -162,7 +161,7 @@ object Workspace
    */
   private def removeSourceTask(projectName : String, taskName : String)
   {
-    User().workspace.projects.filter(_.name == projectName).last.sourceModule.remove(taskName)
+    User().workspace.project(projectName).sourceModule.remove(taskName)
   }
 
   /**
@@ -172,7 +171,7 @@ object Workspace
   {
     def callback(projectName : String) : JsCmd =
     {
-      User().project = User().workspace.projects.find(_.name == projectName).getOrElse(throw new Exception("Project '" + projectName + "' not found"))
+      User().project = User().workspace.project(projectName)
 
       JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
     }
@@ -190,11 +189,8 @@ object Workspace
    */
   private def openLinkingTask(projectName : String, taskName : String)
   {
-    User().workspace.projects.filter(_.name.toString == projectName).last.linkingModule.tasks.find(_.name == taskName) match
-    {
-      case Some(linkingTask) => User().linkingTask = linkingTask
-      case None => throw new IllegalArgumentException("Linking Task '" + taskName + "' not found in project '" + projectName + "'.")
-    }
+    User().project = User().workspace.project(projectName)
+    User().linkingTask = User().project.linkingModule.task(taskName)
   }
 
   /**
@@ -202,7 +198,7 @@ object Workspace
    */
   private def removeLinkingTask(projectName : String, taskName : String)
   {
-    User().workspace.projects.filter(_.name == projectName).last.linkingModule.remove(taskName)
+    User().workspace.project(projectName).linkingModule.remove(taskName)
   }
 
   /*
