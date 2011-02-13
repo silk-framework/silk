@@ -6,6 +6,20 @@
   <lift:bind-at name="content">
     <lift:workspace.content>
       <entry:injectedJavascript/>
+      <div id="createProjectDialog" title="New Project">
+        <lift:createProjectDialog>
+          <table border="0">
+            <tr>
+              <td>Name</td>
+              <td><entry:name/></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td align="right"><entry:submit/></td>
+            </tr>
+          </table>
+        </lift:createProjectDialog>
+      </div>
       <div id="createSourceTaskDialog" title="New Source Task">
         <lift:createSourceTaskDialog>
           <table border="0">
