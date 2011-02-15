@@ -52,6 +52,17 @@ function addAction(type, desc, action, parent)
              action_span.setAttribute('title', desc);
              parent.appendChild(action_span);
 }
+ /* using imgs as icons
+function addAction(type, desc, action, parent)
+{
+        var img = getImg(type);
+        var action_img = document.createElement("img");
+             action_img.setAttribute('class','icon');
+             action_img.setAttribute('onclick',action);
+             action_img.setAttribute('title', desc);
+             action_img.setAttribute('src', 'static/img/icons/'+img+'.png)
+             parent.appendChild(action_img);
+}                */
 
 function addDataSource(jsonDataSource,projectNode,projectName)
 {
