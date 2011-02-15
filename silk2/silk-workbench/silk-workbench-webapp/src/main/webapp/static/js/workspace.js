@@ -1,4 +1,6 @@
 
+var activeProject = "";
+
 
 // -- callback functions --
 function removeNodeById(nodeId)
@@ -43,22 +45,24 @@ function addLeaf(leaf, parent, desc)
           }
 }
 
-function addAction(type, desc, action, parent)
+function addAction(type, desc, action, parent, projectName)
 {
         var icon = getIcon(type);
         var action_span = document.createElement("span");
              action_span.setAttribute('class','ui-icon '+icon );
-             action_span.setAttribute('onclick',action);
+             if (projectName!="") action_span.setAttribute('onclick', 'activeProject=\'project_'+projectName+'\';'+action);
+             else action_span.setAttribute('onclick', action);
              action_span.setAttribute('title', desc);
              parent.appendChild(action_span);
 }
  /* using imgs as icons
-function addAction(type, desc, action, parent)
+function addAction(type, desc, action, parent, projectName)
 {
         var img = getImg(type);
         var action_img = document.createElement("img");
              action_img.setAttribute('class','icon');
-             action_img.setAttribute('onclick',action);
+             if (projectName=="") action_img.setAttribute('onclick', 'activeProject=\'project_'+projectName+'\';'+action);
+             else action_img.setAttribute('onclick', action);   
              action_img.setAttribute('title', desc);
              action_img.setAttribute('src', 'static/img/icons/'+img+'.png)
              parent.appendChild(action_img);
@@ -77,8 +81,9 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
         ds_name_li.appendChild(ds_name_span);
 
-    addAction('edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li);
-    addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li);
+    addAction('edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li,projectName);
+   // addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li,projectName);
+   addAction('del',"Remove DataSource "+jsonDataSource.name,"removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li,projectName);
 
     // TODO - missing back-end function
     //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
@@ -103,8 +108,8 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         lt_name_span.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
         lt_name_li.appendChild(lt_name_span);
 
-    addAction('edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
-    addAction('del',"Remove LinkingTask "+jsonLinkingTask.name,"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li);
+    addAction('edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
+    addAction('del',"Remove LinkingTask "+jsonLinkingTask.name,"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
     // TODO using callback functions would be..
     //addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"',removeNodeById(linkingtask_"+projectName+"_"+jsonLinkingTask.name+")",lt_name_li);
 
@@ -125,7 +130,7 @@ function updateWorkspace(obj){
         // new project button
         var newProj = document.createElement("div");
             newProj.setAttribute('id','newproject');
-            addAction('add','Create new Project',"createProject()",newProj);
+            addAction('add','Create new Project',"createProject()",newProj,"");
             document.getElementById("content").appendChild(newProj);
     
         var tree = document.createElement("div");
@@ -148,9 +153,9 @@ function updateWorkspace(obj){
                     proj_span.innerHTML = project.name;
                     proj.appendChild(proj_span);
 
-                addAction('source','Add DataSource',"createSourceTask('"+project.name+"')",proj);
-                addAction('link','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj);
-                addAction('del','Remove Project '+project.name,"removeProject('"+project.name+"')",proj);
+                addAction('source','Add DataSource',"createSourceTask('"+project.name+"')",proj,project.name);
+                addAction('link','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj,project.name);
+                addAction('del','Remove Project '+project.name,"removeProject('"+project.name+"')",proj,"");
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
@@ -166,10 +171,11 @@ function updateWorkspace(obj){
         }
 
         document.getElementById("content").appendChild(tree);
+        // unfold active project
+        if (activeProject!="")  document.getElementById(activeProject).setAttribute('class','collapsable');
 
-        $("#tree").treeview();          
+        $("#tree").treeview();
     }
-
 
 // - dialogs
 function confirmDelete(action){
