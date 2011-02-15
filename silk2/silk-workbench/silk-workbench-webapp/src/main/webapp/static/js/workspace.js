@@ -72,7 +72,10 @@ function addDataSource(jsonDataSource,projectNode,projectName)
     // TODO - missing back-end function
     //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
 
-    addLeaf(jsonDataSource.url,ds_name_li, 'url: ');
+    for(var p in jsonDataSource.params) {
+      var param = jsonDataSource.params[p];
+      addLeaf(param.value,ds_name_li, param.key + ': ');
+    }
 }
 
 function addLinkingTask(jsonLinkingTask,projectNode,projectName)

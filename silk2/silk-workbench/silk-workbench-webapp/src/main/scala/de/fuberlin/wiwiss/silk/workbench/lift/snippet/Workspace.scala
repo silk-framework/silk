@@ -10,6 +10,7 @@ import xml.NodeSeq
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
+import de.fuberlin.wiwiss.silk.datasource.DataSource
 
 /**
  * Workspace snippet.
@@ -246,8 +247,14 @@ object Workspace
     {
       val sources : JArray = for(task <- project.sourceModule.tasks.toSeq) yield
       {
-        ("name" -> task.name.toString) ~
-        ("url" -> task.source.dataSource.toString)
+        task.source.dataSource match
+        {
+          case DataSource(_, params) =>
+          {
+            ("name" -> task.name.toString) ~
+            ("params" -> paramsToJson(params))
+          }
+        }
       }
 
       val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq) yield
@@ -270,5 +277,14 @@ object Workspace
     }
 
     ("workspace" -> ("project" -> JArray(projectList)))
+  }
+
+  private def paramsToJson(params : Map[String, String]) : JArray =
+  {
+    for((key, value) <- params.toSeq) yield
+    {
+      ("key" -> key) ~
+      ("value" -> value)
+    }
   }
 }

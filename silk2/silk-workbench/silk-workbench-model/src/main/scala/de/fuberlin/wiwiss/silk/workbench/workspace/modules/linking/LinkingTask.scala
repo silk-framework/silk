@@ -9,7 +9,6 @@ import de.fuberlin.wiwiss.silk.util.{SourceTargetPair, Task, Identifier}
 import de.fuberlin.wiwiss.silk.workbench.instancespec.RelevantPropertiesCollector
 import de.fuberlin.wiwiss.silk.util.sparql.{RemoteSparqlEndpoint, SparqlEndpoint, InstanceRetriever}
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import java.net.URI
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceModule
 import de.fuberlin.wiwiss.silk.datasource.Source
