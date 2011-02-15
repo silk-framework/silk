@@ -71,11 +71,11 @@ class LDEProject(projectUri : String, storeEndpoint : RemoteSparqlEndpoint) exte
         }
         else if (id.equals("TARGET")){
             // TODO - any def for WIKI dataSource..
-            SourceTask(Source(id,DataSource("sparqlEndpoint",Map("endpointURI" -> "http://wiki", "storeURI" -> null, "label" -> "WIKI"))))
+            SourceTask(Source(id,DataSource("sparqlEndpoint",Map("endpointURI" -> "http://www.example.org/nullvalue", "storeURI" -> null, "label" -> "WIKI"))))
         }
         else {
             // TODO Throw an exception?
-            SourceTask(Source("toChange",DataSource("sparqlEndpoint",Map("endpointURI" -> "http://tochange", "storeURI" -> null, "label" -> null))))
+            SourceTask(Source("toChange",DataSource("sparqlEndpoint",Map("endpointURI" -> "http://www.example.org/nullvalue", "storeURI" -> null, "label" -> null))))
         }
   }
 

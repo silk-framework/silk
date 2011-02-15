@@ -61,5 +61,4 @@
 .filetree li.expandable span.folder { background: url(images/folder-closed.gif) 0 0 no-repeat; }
 .filetree span.file { background: url(images/file.gif) 0 0 no-repeat; }
 
-
-.filetree span.ui-icon:hover { background-color: #cc3333; }
+span.ui-icon:hover { background-color: #cc3333; }

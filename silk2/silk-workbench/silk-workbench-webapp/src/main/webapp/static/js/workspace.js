@@ -20,7 +20,7 @@ function newDataSource(jsonDataSource,projectName)
 
 // - utils
 function getIcon(type){
-    if (type=='add') return "ui-icon-plusthick";
+    if (type=='add') return "ui-icon-circle-plus";
     else if (type=='edit') return "ui-icon-wrench";
     else if (type=='del') return "ui-icon-trash";
     else if (type=='link') return "ui-icon-link";
@@ -105,8 +105,15 @@ function updateWorkspace(obj){
         //var obj = jQuery.parseJSON('{"workspace": {   "project": [ {"name": "Project_1", "dataSource":[ {"name":"KEGG","url":"http://kegg.us"},{"name":"Wiki","url":"http://aba.com"}  ],  "linkingTask":[ {"name":"Gene","source":"KEGG","target":"Wiki","targetDataset":"rdf:type Wiki:Gene","sourceDataset":"rdf:type KEGG:gene"},{"name":"linkTask2","source":"KEGG","target":"Wiki"} ] }, {"name": "Project_2", "dataSource":[ {"name":"ABA","url":"http://aba.com"} ] }     ] } }');
 
         // TODO remove if using callback functions
-        removeNodeById("div_tree");       
+        removeNodeById("div_tree");
+        removeNodeById("newproject");
 
+        // new project button
+        var newProj = document.createElement("div");
+            newProj.setAttribute('id','newproject');
+            addAction('add','Create new Project',"createProject()",newProj);
+            document.getElementById("content").appendChild(newProj);
+    
         var tree = document.createElement("div");
                 tree.id = "div_tree";
 
@@ -129,6 +136,7 @@ function updateWorkspace(obj){
 
                 addAction('source','Add DataSource',"createSourceTask('"+project.name+"')",proj);
                 addAction('link','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj);
+                addAction('del','Remove Project '+project.name,"removeProject('"+project.name+"')",proj);
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
