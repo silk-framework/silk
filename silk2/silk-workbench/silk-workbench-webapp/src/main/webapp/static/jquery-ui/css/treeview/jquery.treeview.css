@@ -36,7 +36,7 @@
 
 .treeview .hover { color: grey; cursor: pointer; }
 
-.treeview li { background: url(images/treeview-default-line.gif) 0 0 no-repeat; }
+.treeview li { background: url(images/treeview-default-line.gif) 0 0 no-repeat; clear: both;}
 .treeview li.collapsable, .treeview li.expandable { background-position: 0 -176px; }
 
 .treeview .expandable-hitarea { background-position: -80px -3px; }
@@ -52,13 +52,16 @@
 	background: url(images/ajax-loader.gif) 0 0 no-repeat;
 	height: 16px;
 	width: 16px;
-	display: block;
+	display: block; 
 }
 
-.filetree li { padding: 3px 0 2px 16px; }
+.filetree li { padding: 3px 0 2px 16px; clear: both;}
 .filetree span.folder, .filetree span.file { padding: 1px 0 1px 16px; display: block; }
 .filetree span.folder { background: url(images/folder.gif) 0 0 no-repeat; }
 .filetree li.expandable span.folder { background: url(images/folder-closed.gif) 0 0 no-repeat; }
 .filetree span.file { background: url(images/file.gif) 0 0 no-repeat; }
 
-span.ui-icon:hover { background-color: #cc3333; }
+span.ui-icon:hover { background-color: #cc3333;}
+span.ui-icon {float:left; }
+
+img.icon {float:left; padding: 3px 10px 5px 2px;}
