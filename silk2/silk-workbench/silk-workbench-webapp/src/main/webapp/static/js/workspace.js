@@ -23,12 +23,12 @@ function newDataSource(jsonDataSource,projectName)
 // - utils
 function getIcon(type){
     if (type=='add') return "ui-icon-circle-plus";
-    else if (type=='edit') return "ui-icon-wrench";
-    else if (type=='del') return "ui-icon-trash";
-    else if (type=='link') return "ui-icon-link";
-    else if (type=='source') return "ui-icon-cart";
+    else if (type=='ds_add') return "ui-icon-cart";
+    else if (type=='ds_edit') return "ui-icon-wrench";  
+    else if (type=='link_add') return "ui-icon-link";
+    else if (type=='link_edit') return "ui-icon-wrench";
+    else if (type=='delete') return "ui-icon-trash";
 }
-
 
 // -- display functions --
 function addLeaf(leaf, parent, desc)
@@ -44,7 +44,7 @@ function addLeaf(leaf, parent, desc)
                  leaf_li.appendChild(leaf_span);
           }
 }
-
+// using jquery.ui icons
 function addAction(type, desc, action, parent, projectName)
 {
         var icon = getIcon(type);
@@ -55,18 +55,17 @@ function addAction(type, desc, action, parent, projectName)
              action_span.setAttribute('title', desc);
              parent.appendChild(action_span);
 }
- /* using imgs as icons
+/* // using imgs as icons
 function addAction(type, desc, action, parent, projectName)
 {
-        var img = getImg(type);
         var action_img = document.createElement("img");
              action_img.setAttribute('class','icon');
-             if (projectName=="") action_img.setAttribute('onclick', 'activeProject=\'project_'+projectName+'\';'+action);
+             if (projectName!="") action_img.setAttribute('onclick', 'activeProject=\'project_'+projectName+'\';'+action);
              else action_img.setAttribute('onclick', action);   
              action_img.setAttribute('title', desc);
-             action_img.setAttribute('src', 'static/img/icons/'+img+'.png)
+             action_img.setAttribute('src', 'static/img/icons/'+type+'.png');
              parent.appendChild(action_img);
-}                */
+}    */
 
 function addDataSource(jsonDataSource,projectNode,projectName)
 {
@@ -81,9 +80,9 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
         ds_name_li.appendChild(ds_name_span);
 
-    addAction('edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li,projectName);
+    addAction('ds_edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li,projectName);
    // addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li,projectName);
-   addAction('del',"Remove DataSource "+jsonDataSource.name,"removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li,projectName);
+   addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_name_li,projectName);
 
     // TODO - missing back-end function
     //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
@@ -108,8 +107,8 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         lt_name_span.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
         lt_name_li.appendChild(lt_name_span);
 
-    addAction('edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
-    addAction('del',"Remove LinkingTask "+jsonLinkingTask.name,"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
+    addAction('link_edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
+    addAction('delete',"Remove LinkingTask "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
     // TODO using callback functions would be..
     //addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"',removeNodeById(linkingtask_"+projectName+"_"+jsonLinkingTask.name+")",lt_name_li);
 
@@ -153,9 +152,9 @@ function updateWorkspace(obj){
                     proj_span.innerHTML = project.name;
                     proj.appendChild(proj_span);
 
-                addAction('source','Add DataSource',"createSourceTask('"+project.name+"')",proj,project.name);
-                addAction('link','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj,project.name);
-                addAction('del','Remove Project '+project.name,"removeProject('"+project.name+"')",proj,"");
+                addAction('ds_add','Add DataSource',"createSourceTask('"+project.name+"')",proj,project.name);
+                addAction('link_add','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj,project.name);
+                addAction('delete','Remove Project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj,"");
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
@@ -178,12 +177,23 @@ function updateWorkspace(obj){
     }
 
 // - dialogs
-function confirmDelete(action){
+function callAction(action,proj,res){
+    // (ugly) work-around : passing the action as parameter -> the action would be invoked anyway 
+    switch (action)
+        {
+        case 'removeProject' :  removeProject(proj);  break;
+        case 'removeSourceTask' :  removeSourceTask(proj,res);  break;
+        case 'removeLinkingTask' : removeLinkingTask(proj,res); break;
+        default : alert("Error: Action \'"+action+"\' not defined!");
+        }
+}
+
+function confirmDelete(action,proj,res){
      var confirmDialog = document.createElement("div");
          confirmDialog.setAttribute('title','Delete');
          confirmDialog.setAttribute('id','dialog');
      var dialogText = document.createElement("p");
-         dialogText.innerHTML = "Do you really want to delete?";
+         dialogText.innerHTML = "Delete resource: "+proj+" "+res;
          confirmDialog.appendChild(dialogText);
 
      document.getElementById("content").appendChild(confirmDialog);
@@ -192,7 +202,7 @@ function confirmDelete(action){
          modal: true,
          resizable: false,
          buttons: {
-         "Yes, delete it": function() { action; },
+         "Yes, delete it": function() {callAction(action,proj,res); $(this).dialog("close");},
          "Cancel": function() {$(this).dialog("close");}
         }
         });
