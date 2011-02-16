@@ -16,7 +16,7 @@ class CreateSourceTaskDialog
   def render(xhtml : NodeSeq) : NodeSeq =
   {
     var name = ""
-    var uri = "http://dbpedia.org/sparql"
+    var uri = ""
     var graph = ""
     var retryCount = "3"
     var retryPause = "1000"
