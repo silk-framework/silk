@@ -80,9 +80,12 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
         ds_name_li.appendChild(ds_name_span);
 
-    addAction('ds_edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_name_li,projectName);
+    var ds_actions = document.createElement("div");
+        ds_actions.setAttribute('class', 'actions');
+        ds_name_span.appendChild(ds_actions);
+    addAction('ds_edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName);
    // addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li,projectName);
-   addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_name_li,projectName);
+   addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName);
 
     // TODO - missing back-end function
     //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
@@ -107,8 +110,12 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         lt_name_span.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
         lt_name_li.appendChild(lt_name_span);
 
-    addAction('link_edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
-    addAction('delete',"Remove LinkingTask "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_name_li,projectName);
+
+    var lt_actions = document.createElement("div");
+        lt_actions.setAttribute('class', 'actions');
+        lt_name_span.appendChild(lt_actions);
+    addAction('link_edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
+    addAction('delete',"Remove LinkingTask "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
     // TODO using callback functions would be..
     //addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"',removeNodeById(linkingtask_"+projectName+"_"+jsonLinkingTask.name+")",lt_name_li);
 
@@ -152,9 +159,12 @@ function updateWorkspace(obj){
                     proj_span.innerHTML = project.name;
                     proj.appendChild(proj_span);
 
-                addAction('ds_add','Add DataSource',"createSourceTask('"+project.name+"')",proj,project.name);
-                addAction('link_add','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj,project.name);
-                addAction('delete','Remove Project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj,"");
+                var proj_actions = document.createElement("div");
+                    proj_actions.setAttribute('class', 'actions');
+                    proj_span.appendChild(proj_actions);
+                addAction('ds_add','Add DataSource',"createSourceTask('"+project.name+"')",proj_actions,project.name);
+                addAction('link_add','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj_actions,project.name);
+                addAction('delete','Remove Project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj_actions,"");
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
