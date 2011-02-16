@@ -30,6 +30,7 @@ function getIcon(type){
         case 'ds_edit' : icon = "ui-icon-wrench";  break;
         case 'link_add' : icon = "ui-icon-link";  break;
         case 'link_edit' : icon = "ui-icon-wrench";  break;
+        case 'link_spec': icon = "ui-icon-shuffle"; break;
         case 'delete' : icon = "ui-icon-trash";  break;
         case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
         case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
@@ -120,7 +121,8 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
     var lt_actions = document.createElement("div");
         lt_actions.setAttribute('class', 'actions');
         lt_name_span.appendChild(lt_actions);
-    addAction('link_edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
+    addAction('link_edit',"Edit "+jsonLinkingTask.name,"editLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
+    addAction('link_spec',"Edit Link Specification "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
     addAction('delete',"Remove LinkingTask "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
 
     addLeaf(jsonLinkingTask.source,lt_name_li, 'source: ');

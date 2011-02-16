@@ -17,8 +17,8 @@ class LinkSpec
   def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
     bind("entry", xhtml,
-         "update" -> SHtml.ajaxButton("Update", () => SHtml.ajaxCall(Call("serializeLinkSpec"), updateLinkSpec)._2.cmd),
-         "download" -> SHtml.submit("Download", () => S.redirectTo("config")))
+         "update" -> SHtml.ajaxButton("Save", () => SHtml.ajaxCall(Call("serializeLinkSpec"), updateLinkSpec)._2.cmd),
+         "download" -> SHtml.submit("Export as Silk-LS", () => S.redirectTo("config")))
   }
 
   def content(xhtml : NodeSeq) : NodeSeq =
