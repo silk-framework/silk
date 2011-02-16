@@ -22,12 +22,19 @@ function newDataSource(jsonDataSource,projectName)
 
 // - utils
 function getIcon(type){
-    if (type=='add') return "ui-icon-circle-plus";
-    else if (type=='ds_add') return "ui-icon-cart";
-    else if (type=='ds_edit') return "ui-icon-wrench";  
-    else if (type=='link_add') return "ui-icon-link";
-    else if (type=='link_edit') return "ui-icon-wrench";
-    else if (type=='delete') return "ui-icon-trash";
+    var icon;
+    switch (type)
+    {
+        case 'add' : icon = "ui-icon-circle-plus";  break;
+        case 'ds_add' : icon = "ui-icon-cart";  break;
+        case 'ds_edit' : icon = "ui-icon-wrench";  break;
+        case 'link_add' : icon = "ui-icon-link";  break;
+        case 'link_edit' : icon = "ui-icon-wrench";  break;
+        case 'delete' : icon = "ui-icon-trash";  break;
+        case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
+        case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
+    }
+    return icon;
 }
 
 // -- display functions --
@@ -84,8 +91,7 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         ds_actions.setAttribute('class', 'actions');
         ds_name_span.appendChild(ds_actions);
     addAction('ds_edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName);
-   // addAction('del',"Remove DataSource "+jsonDataSource.name,"confirmDelete(removeSourceTask('"+projectName+"','"+ jsonDataSource.name+"'))",ds_name_li,projectName);
-   addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName);
+    addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName);
 
     // TODO - missing back-end function
     //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
@@ -116,8 +122,6 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         lt_name_span.appendChild(lt_actions);
     addAction('link_edit',"Edit LinkingTask "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
     addAction('delete',"Remove LinkingTask "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
-    // TODO using callback functions would be..
-    //addAction('remove',"removeLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"',removeNodeById(linkingtask_"+projectName+"_"+jsonLinkingTask.name+")",lt_name_li);
 
     addLeaf(jsonLinkingTask.source,lt_name_li, 'source: ');
     addLeaf(jsonLinkingTask.target,lt_name_li, 'target: ');
@@ -164,7 +168,10 @@ function updateWorkspace(obj){
                     proj_span.appendChild(proj_actions);
                 addAction('ds_add','Add DataSource',"createSourceTask('"+project.name+"')",proj_actions,project.name);
                 addAction('link_add','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj_actions,project.name);
-                addAction('delete','Remove Project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj_actions,"");
+                addAction('import','Import Project','',proj_actions,project.name);
+                addAction('export','Export Project '+project.name,'',proj_actions,project.name);
+                addAction('delete','Remove Project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'');
+
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
