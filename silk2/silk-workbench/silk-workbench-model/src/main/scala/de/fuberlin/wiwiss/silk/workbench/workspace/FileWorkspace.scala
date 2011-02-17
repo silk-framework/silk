@@ -4,7 +4,7 @@ import java.io.File
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 
-class FileWorkspace (file : File) extends Workspace
+class FileWorkspace(file : File) extends Workspace
 {
   private val logger = Logger.getLogger(classOf[FileWorkspace].getName)
 
