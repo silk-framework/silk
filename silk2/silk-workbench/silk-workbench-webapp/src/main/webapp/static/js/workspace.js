@@ -1,23 +1,24 @@
 
-var activeProject = "";
+var activeNodesId = new Array();
 
+function saveOpenNodes(activeProject){
+    activeNodesId.length=0;
+    if (activeProject!="") activeNodesId.push('project_'+activeProject);
+    $('.collapsable').each(function(){if(this.getAttribute('id')) activeNodesId.push(this.getAttribute('id'));});
+  }
+
+function loadOpenNodes(){
+ for (var key in activeNodesId)
+  {
+    if (document.getElementById(activeNodesId[key])) document.getElementById(activeNodesId[key]).setAttribute('class', 'collapsable');
+  }
+}
 
 // -- callback functions --
 function removeNodeById(nodeId)
 {
    var node = document.getElementById(nodeId);
    if (node) node.parentNode.removeChild(node);
-}
-
-// TODO - this implementation would close/refresh the tree anyway -> therefore could be better to update workspaceVar and invoke UpdateWorkspace()
-function newDataSource(jsonDataSource,projectName)
-{
-    var projectNode =  document.getElementById("project_"+projectName);
-    if (projectNode)
-    {
-        //addDataSource(jsonDataSource, projectNode, projectName )
-        addDataSource(jQuery.parseJSON('{"name":"KEGG","url":"http://kegg.us"}'), projectNode, projectName );
-    }
 }
 
 // - utils
@@ -53,13 +54,12 @@ function addLeaf(leaf, parent, desc)
           }
 }
 // using jquery.ui icons
-function addAction(type, desc, action, parent, projectName)
+function addAction(type, desc, action, parent, activeProject)
 {
         var icon = getIcon(type);
         var action_span = document.createElement("span");
              action_span.setAttribute('class','ui-icon '+icon );
-             if (projectName!="") action_span.setAttribute('onclick', 'activeProject=\'project_'+projectName+'\';'+action);
-             else action_span.setAttribute('onclick', action);
+             action_span.setAttribute('onclick', 'saveOpenNodes(\''+activeProject+'\');'+action);
              action_span.setAttribute('title', desc);
              parent.appendChild(action_span);
 }
@@ -78,9 +78,9 @@ function addAction(type, desc, action, parent, projectName)
 function addDataSource(jsonDataSource,projectNode,projectName)
 {
     var ds_name_ul = document.createElement("ul");
-        ds_name_ul.setAttribute('id','datasource_'+projectName+'_'+jsonDataSource.name);
         projectNode.appendChild(ds_name_ul);
     var ds_name_li = document.createElement("li");
+        ds_name_li.setAttribute('id','datasource_'+projectName+'_'+jsonDataSource.name);
         ds_name_li.setAttribute('class', 'closed');
         ds_name_ul.appendChild(ds_name_li);
     var ds_name_span = document.createElement("span");
@@ -94,9 +94,6 @@ function addDataSource(jsonDataSource,projectNode,projectName)
     addAction('ds_edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName);
     addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName);
 
-    // TODO - missing back-end function
-    //addAction('remove',"removeNodeById('datasource_"+projectName+"_"+jsonDataSource.name+"')",ds_name_li);
-
     for(var p in jsonDataSource.params) {
       var param = jsonDataSource.params[p];
       addLeaf(param.value,ds_name_li, param.key + ': ');
@@ -106,17 +103,15 @@ function addDataSource(jsonDataSource,projectNode,projectName)
 function addLinkingTask(jsonLinkingTask,projectNode,projectName)
 {
     var lt_name_ul = document.createElement("ul");
-        // TODO id must be unique
-        lt_name_ul.setAttribute('id','linkingtask_'+projectName+'_'+jsonLinkingTask.name);
         projectNode.appendChild(lt_name_ul);
     var lt_name_li = document.createElement("li");
+        lt_name_li.setAttribute('id','linkingtask_'+projectName+'_'+jsonLinkingTask.name);
         lt_name_li.setAttribute('class', 'closed');
         lt_name_ul.appendChild(lt_name_li);
     var lt_name_span = document.createElement("span");
         lt_name_span.setAttribute('class', 'folder');
         lt_name_span.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
         lt_name_li.appendChild(lt_name_span);
-
 
     var lt_actions = document.createElement("div");
         lt_actions.setAttribute('class', 'actions');
@@ -190,7 +185,8 @@ function updateWorkspace(obj){
 
         document.getElementById("content").appendChild(tree);
         // unfold active project
-        if (activeProject!="")  document.getElementById(activeProject).setAttribute('class','collapsable');
+        //if (activeProject!="")  document.getElementById(activeProject).setAttribute('class','collapsable');
+        if (activeNodesId.length>0)  loadOpenNodes();
 
         $("#tree").treeview();
     }
