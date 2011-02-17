@@ -10,7 +10,7 @@ class FileWorkspace (file : File) extends Workspace
 
   file.mkdir()
 
-  override def projects : List[Project] =
+  private var projectList : List[Project] =
   {
     for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield
     {
@@ -19,13 +19,18 @@ class FileWorkspace (file : File) extends Workspace
     }
   }
 
+  override def projects : List[Project] = projectList
+
   override def createProject(name : String) =
   {
-    (file + ("/" + name)).mkdir()
+    val projectDir = (file + ("/" + name))
+    projectDir.mkdir()
+    projectList ::= new FileProject(projectDir)
   }
 
   override def removeProject(name : String) =
   {
     (file + ("/" + name)).deleteRecursive()
+    projectList = projectList.filterNot(_.name == name)
   }
 }
