@@ -12,6 +12,8 @@ import net.liftweb.http.SHtml
 import net.liftweb.widgets.autocomplete.AutoComplete
 import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
+import net.liftweb.http.js.JsCmds.OnLoad
+import net.liftweb.common.Empty
 
 /**
  * A dialog to create new linking tasks.
@@ -31,19 +33,13 @@ class CreateLinkingTaskDialog
       "owl" -> "http://www.w3.org/2002/07/owl#",
       "foaf" -> "http://xmlns.com/foaf/0.1/")
 
-    def completeSourceId(current : String, limit: Int) =
-    {
-      val sourceNames = User().project.sourceModule.tasks.map(_.name.toString).toList
-      sourceNames.filter(_.startsWith(current)).take(limit)
-    }
-
     def submit(prefixes : Prefixes) =
     {
       try
       {
         val sourceNames = User().project.sourceModule.tasks.map(_.name.toString).toList
-        require(sourceNames.contains(sourceId), "Source does not exist")
-        require(sourceNames.contains(targetId), "Target does not exist")
+        require(sourceNames.contains(sourceId), "Source '" + sourceId + "' does not exist")
+        require(sourceNames.contains(targetId), "Target '" + targetId + "' does not exist")
 
         val linkSpec =
           LinkSpecification(
@@ -71,11 +67,27 @@ class CreateLinkingTaskDialog
     SHtml.ajaxForm(
       bind("entry", xhtml,
          "name" -> SHtml.text(name, name = _, "size" -> "60"),
-         "sourceId" -> AutoComplete(sourceId, completeSourceId _, (id : String) => sourceId = id, "size" -> "60"),
+         "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId"),
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60"),
-         "targetId" -> AutoComplete(targetId, completeSourceId _, (id : String) => targetId = id, "size" -> "60"),
+         "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
          "prefixes" -> PrefixEditor.prefixEditor(prefixes),
          "submit" -> SHtml.ajaxSubmit("Create", () => PrefixEditor.readPrefixes(submit))))
+  }
+}
+
+object CreateLinkingTaskDialog
+{
+  def initCmd = OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+
+  def openCmd =
+  {
+    val sourceOptions = for(task <- User().project.sourceModule.tasks) yield <option value={task.name}>{task.name}</option>
+
+    JsRaw("$('#selectSourceId').children().remove();").cmd &
+    JsRaw("$('#selectSourceId').append('" + sourceOptions.toString + "');").cmd &
+    JsRaw("$('#selectTargetId').children().remove();").cmd &
+    JsRaw("$('#selectTargetId').append('" + sourceOptions.toString + "');").cmd &
+    JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
   }
 }
