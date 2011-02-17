@@ -276,10 +276,12 @@ object Workspace
       projectList ::= proj
     }
 
+    val projects = ("project" -> JArray(projectList))
     val activeProject = ("activeProject" -> (if(User().projectOpen) User().project.name.toString else ""))
     val activeTask = ("activeTask" -> (if(User().taskOpen) User().task.name.toString else ""))
+    val activeTaskType = ("activeTask" -> (if(User().taskOpen) User().task.getClass.getSimpleName else ""))
 
-    ("workspace" -> (("project" -> JArray(projectList)) ~ activeProject ~ activeTask))
+    ("workspace" -> projects ~ activeProject ~ activeTask ~ activeTaskType)
   }
 
   private def paramsToJson(params : Map[String, String]) : JArray =
