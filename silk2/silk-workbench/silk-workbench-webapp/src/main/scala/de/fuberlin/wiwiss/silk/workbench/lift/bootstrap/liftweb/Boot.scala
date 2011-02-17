@@ -17,6 +17,7 @@ import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import net.liftweb.widgets.autocomplete.AutoComplete
 import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
+import scala.xml.Text
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -40,14 +41,13 @@ class Boot
     LiftRules.addToPackages("de.fuberlin.wiwiss.silk.workbench.lift")
 
     // Build SiteMap
-    val ifProjectOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("/index"))
+    val ifLinkingTaskOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("/index"))
 
     val entries =
         Menu(Loc("Workspace", List("index"), "Workspace")) ::
-        Menu(Loc("Link Specification", List("linkSpec"), "Link Specification", ifProjectOpen)) ::
-        Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifProjectOpen)) ::
-        Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifProjectOpen)) :: Nil
-        //Menu(Loc("Learn", List("learn"), "Learn", ifProjectOpen)) :: Nil
+        Menu(Loc("Link Specification", List("linkSpec"), LinkText[Unit](_ => Text("Link Specification: " + User().linkingTask.name)), ifLinkingTaskOpen)) ::
+        Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifLinkingTaskOpen)) ::
+        Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifLinkingTaskOpen)) :: Nil
 
     LiftRules.setSiteMap(SiteMap(entries:_*))
 
