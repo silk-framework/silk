@@ -43,9 +43,12 @@ class Boot
     // Build SiteMap
     val ifLinkingTaskOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("/index"))
 
+    val workspaceText = LinkText[Unit](_ => Text(if(User().projectOpen) "Workspace: " + User().project.name else "Workspace"))
+    val linkSpecText = LinkText[Unit](_ => Text("Link Specification: " + User().linkingTask.name))
+
     val entries =
-        Menu(Loc("Workspace", List("index"), "Workspace")) ::
-        Menu(Loc("Link Specification", List("linkSpec"), LinkText[Unit](_ => Text("Link Specification: " + User().linkingTask.name)), ifLinkingTaskOpen)) ::
+        Menu(Loc("Workspace", List("index"), workspaceText)) ::
+        Menu(Loc("Link Specification", List("linkSpec"), linkSpecText, ifLinkingTaskOpen)) ::
         Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifLinkingTaskOpen)) ::
         Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifLinkingTaskOpen)) :: Nil
 
