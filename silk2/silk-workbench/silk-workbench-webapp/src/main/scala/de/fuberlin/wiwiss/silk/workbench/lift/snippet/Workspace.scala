@@ -174,15 +174,14 @@ object Workspace
     {
       User().project = User().workspace.project(projectName)
 
-      JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
+      CreateLinkingTaskDialog.openCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
 
-    val initLinkingTaskDialog = OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
     val openLinkingTaskDialog =  JsCmds.Function("createLinkingTask", "projectName" :: Nil, ajaxCall)
 
-    initLinkingTaskDialog & openLinkingTaskDialog
+    CreateLinkingTaskDialog.initCmd & openLinkingTaskDialog
   }
 
   /**
