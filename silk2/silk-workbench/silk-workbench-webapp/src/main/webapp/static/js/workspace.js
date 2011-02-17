@@ -1,4 +1,6 @@
 
+var activeProjectId ="";
+var activeTaskId = "";
 var activeNodesId = new Array();
 
 function saveOpenNodes(activeProject){
@@ -12,16 +14,19 @@ function loadOpenNodes(){
   {
     if (document.getElementById(activeNodesId[key])) document.getElementById(activeNodesId[key]).setAttribute('class', 'collapsable');
   }
+  if (activeTaskId) {
+      document.getElementById(activeTaskId).setAttribute('class', 'collapsable active');
+      document.getElementById(activeProjectId).setAttribute('class', 'collapsable');      
+  }
 }
 
-// -- callback functions --
+// - utils
 function removeNodeById(nodeId)
 {
    var node = document.getElementById(nodeId);
    if (node) node.parentNode.removeChild(node);
 }
 
-// - utils
 function getIcon(type){
     var icon;
     switch (type)
@@ -196,11 +201,19 @@ function updateWorkspace(obj){
         }
 
         document.getElementById("content").appendChild(tree);
+
         // unfold active project
-        //if (activeProject!="")  document.getElementById(activeProject).setAttribute('class','collapsable');
-        if (activeNodesId.length>0)  loadOpenNodes();
+        if(obj.workspace.activeTask)
+            {
+             activeProjectId = "project_"+obj.workspace.activeProject;
+             var idPrefix = (obj.workspace.activeTaskType == "LinkingTask") ?  'linkingtask_' : 'datasource_';
+             activeTaskId = idPrefix+obj.workspace.activeProject+"_"+obj.workspace.activeTask;                     
+            }
+        if (activeNodesId.length>0 || activeTaskId)  loadOpenNodes();
 
         $("#tree").treeview();
+
+
     }
 
 // - dialogs
