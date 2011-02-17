@@ -147,7 +147,7 @@ object Workspace
       val Array(projectName, taskName) = args.split(',')
 
       User().project = User().workspace.project(projectName)
-      User().sourceTask = User().project.sourceModule.task(taskName)
+      User().task = User().project.sourceModule.task(taskName)
 
       EditSourceTaskDialog.openCmd
     }
@@ -191,7 +191,7 @@ object Workspace
   private def openLinkingTask(projectName : String, taskName : String)
   {
     User().project = User().workspace.project(projectName)
-    User().linkingTask = User().project.linkingModule.task(taskName)
+    User().task = User().project.linkingModule.task(taskName)
   }
 
   /**
@@ -276,7 +276,10 @@ object Workspace
       projectList ::= proj
     }
 
-    ("workspace" -> ("project" -> JArray(projectList)))
+    val activeProject = ("activeProject" -> (if(User().projectOpen) User().project.name.toString else ""))
+    val activeTask = ("activeTask" -> (if(User().taskOpen) User().task.name.toString else ""))
+
+    ("workspace" -> (("project" -> JArray(projectList)) ~ activeProject ~ activeTask))
   }
 
   private def paramsToJson(params : Map[String, String]) : JArray =

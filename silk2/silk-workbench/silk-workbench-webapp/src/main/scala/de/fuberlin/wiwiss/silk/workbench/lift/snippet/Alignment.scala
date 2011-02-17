@@ -49,11 +49,11 @@ class Alignment
             val updatedAlignment = alignment.copy(negativeLinks = negativeLinks.toSet)
 
             //Update alignment
-            User().linkingTask = User().linkingTask.copy(alignment = updatedAlignment)
+            User().task = User().linkingTask.copy(alignment = updatedAlignment)
           }
           else
           {
-            User().linkingTask = User().linkingTask.copy(alignment = alignment)
+            User().task = User().linkingTask.copy(alignment = alignment)
           }
 
           S.redirectTo("alignment")
