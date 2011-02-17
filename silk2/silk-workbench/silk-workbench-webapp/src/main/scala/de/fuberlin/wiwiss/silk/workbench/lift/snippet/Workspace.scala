@@ -279,7 +279,7 @@ object Workspace
     val projects = ("project" -> JArray(projectList))
     val activeProject = ("activeProject" -> (if(User().projectOpen) User().project.name.toString else ""))
     val activeTask = ("activeTask" -> (if(User().taskOpen) User().task.name.toString else ""))
-    val activeTaskType = ("activeTask" -> (if(User().taskOpen) User().task.getClass.getSimpleName else ""))
+    val activeTaskType = ("activeTaskType" -> (if(User().taskOpen) User().task.getClass.getSimpleName else ""))
 
     ("workspace" -> projects ~ activeProject ~ activeTask ~ activeTaskType)
   }
