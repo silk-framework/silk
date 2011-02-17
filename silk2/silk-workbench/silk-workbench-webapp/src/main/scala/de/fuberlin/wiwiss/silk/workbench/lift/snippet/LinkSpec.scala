@@ -40,7 +40,7 @@ class LinkSpec
       val linkSpec = LinkSpecification.load(linkingTask.prefixes)(new StringReader(linkSpecStr))
 
       //Update linking task
-      User().linkingTask = linkingTask.copy(linkSpec = linkSpec)
+      User().task = linkingTask.copy(linkSpec = linkSpec)
 
       JsRaw("alert('Updated Link Specification')").cmd
     }

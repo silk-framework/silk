@@ -3,7 +3,9 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 import java.io.File
 import modules.linking.LinkingTask
 import java.net.URI
+import modules.ModuleTask
 import modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.util.Task
 
 /**
  * Dummy user as there is no user management yet.
@@ -12,9 +14,7 @@ trait User
 {
   private var currentProject : Option[Project] = None
 
-  private var currentSourceTask : Option[SourceTask] = None
-
-  private var currentLinkingTask : Option[LinkingTask] = None
+  private var currentTask : Option[ModuleTask] = None
 
   /**
    * The current workspace of this user.
@@ -37,43 +37,53 @@ trait User
   }
 
   /**
-   * True, if a source task is open at the moment.
+   * True if a task if open at the moment.
    */
-  def sourceTaskOpen = currentSourceTask.isDefined
+  def taskOpen = currentTask.isDefined
+
+  /**
+   * The current task of this user.
+   */
+  def task = currentTask.getOrElse(throw new NoSuchElementException("No active task"))
+
+  /**
+   * Sets the current task of this user.
+   */
+  def task_=(task : ModuleTask) =
+  {
+    currentTask = Some(task)
+  }
+
+  /**
+   *   True, if a source task is open at the moment.
+   */
+  def sourceTaskOpen = taskOpen && task.isInstanceOf[SourceTask]
 
   /**
    * The current source task of this user.
    *
    * @throws java.util.NoSuchElementException If no source task is open
    */
-  def sourceTask = currentSourceTask.getOrElse(throw new NoSuchElementException("No active source task"))
-
-  /**
-   * Sets the current source task of this user.
-   */
-  def sourceTask_=(task : SourceTask) =
+  def sourceTask = task match
   {
-    currentSourceTask = Some(task)
+    case t : SourceTask => t
+    case _ => throw new NoSuchElementException("No active task is no source task")
   }
 
   /**
    * True, if a linking task is open at the moment.
    */
-  def linkingTaskOpen = currentLinkingTask.isDefined
+  def linkingTaskOpen = taskOpen && task.isInstanceOf[LinkingTask]
 
   /**
-   *  The current linking tasks of this user.
+   * The current linking tasks of this user.
    *
    * @throws java.util.NoSuchElementException If no linking task is open
    */
-  def linkingTask = currentLinkingTask.getOrElse(throw new NoSuchElementException("No active linking task"))
-
-  /**
-   * Sets the current linking task of this user.
-   */
-  def linkingTask_=(task : LinkingTask) =
+  def linkingTask = task match
   {
-    currentLinkingTask = Some(task)
+    case t : LinkingTask => t
+    case _ => throw new NoSuchElementException("No active task is no linking task")
   }
 }
 
