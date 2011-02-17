@@ -91,11 +91,50 @@ class FileProject(file : File) extends Project
   {
     file.mkdir()
 
+    @volatile
+    private var cachedTasks : Option[Traversable[LinkingTask]] = None
+
     override def config = LinkingConfig()
 
     override def config_=(c : LinkingConfig) {}
 
     override def tasks = synchronized
+    {
+      if(cachedTasks.isEmpty)
+      {
+        cachedTasks = Some(loadTasks)
+      }
+
+      cachedTasks.get
+    }
+
+    override def update(task : LinkingTask) = synchronized
+    {
+      val taskDir = file + ("/" + task.name)
+      taskDir.mkdir()
+
+      task.prefixes.toXML.write(taskDir + "/prefixes.xml")
+      task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
+      task.alignment.toXML.write(taskDir+ "/alignment.xml")
+      task.cache.toXML.write(taskDir +  "/cache.xml")
+
+      task.loadCache(sourceModule)
+
+      cachedTasks = None
+
+      logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
+    }
+
+    override def remove(taskId : Identifier) = synchronized
+    {
+      (file + ("/" + taskId)).deleteRecursive()
+
+      cachedTasks = None
+
+      logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")
+    }
+
+    private def loadTasks : Traversable[LinkingTask] =
     {
       for(fileName <- file.list.toList) yield
       {
@@ -115,27 +154,6 @@ class FileProject(file : File) extends Project
 
         linkingTask
       }
-    }
-
-    override def update(task : LinkingTask) = synchronized
-    {
-      val taskDir = file + ("/" + task.name)
-      taskDir.mkdir()
-
-      task.prefixes.toXML.write(taskDir + "/prefixes.xml")
-      task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
-      task.alignment.toXML.write(taskDir+ "/alignment.xml")
-      task.cache.toXML.write(taskDir +  "/cache.xml")
-
-      task.loadCache(sourceModule)
-
-      logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
-    }
-
-    override def remove(taskId : Identifier) = synchronized
-    {
-      (file + ("/" + taskId)).deleteRecursive()
-      logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")
     }
   }
 }
