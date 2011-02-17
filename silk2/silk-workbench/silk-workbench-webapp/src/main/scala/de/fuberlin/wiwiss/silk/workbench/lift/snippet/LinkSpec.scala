@@ -6,11 +6,11 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.{Call, Str, Num, JsArray}
 import xml.NodeSeq
 import net.liftweb.http.{S, SHtml}
-import net.liftweb.http.js.{JsObj, JsCmds}
 import de.fuberlin.wiwiss.silk.instance.Path
 import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import net.liftweb.http.js.{JsCmd, JsObj, JsCmds}
 
 class LinkSpec
 {
@@ -24,7 +24,7 @@ class LinkSpec
   def content(xhtml : NodeSeq) : NodeSeq =
   {
     bind("entry", xhtml,
-         "linkSpecVar" -> Script(generateLinkSpecVar))
+         "linkSpecVar" -> Script(generateLinkSpecVar & reloadCacheFunction))
   }
 
   /**
@@ -58,6 +58,20 @@ class LinkSpec
     val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 
     JsRaw(linkSpecVar).cmd
+  }
+
+  /**
+   * JS Command which defines the reloadCache function
+   */
+  private def reloadCacheFunction : JsCmd =
+  {
+    def reloadCache =
+    {
+      User().linkingTask.reloadCache(User().project.sourceModule)
+      JsRaw("").cmd
+    }
+
+    JsCmds.Function("reloadCache", Nil, SHtml.ajaxInvoke(reloadCache _)._2.cmd)
   }
 
 //  private def generatePathsFunction() =

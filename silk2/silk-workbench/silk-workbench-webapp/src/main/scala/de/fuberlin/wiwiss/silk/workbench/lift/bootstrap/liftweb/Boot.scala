@@ -92,7 +92,24 @@ class Boot
 
     val isLoadingField = JField("isLoading", JBool(instanceSpecs == null))
 
-    val json = JObject(sourceField :: targetField :: isLoadingField :: Nil)
+    var errorMsg : Option[String] = None
+    if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isDone)
+    {
+      try
+      {
+        linkingTask.cacheLoading.get
+      }
+      catch
+      {
+        case ex : Exception => errorMsg = Some(ex.getMessage)
+      }
+    }
+
+    val json = errorMsg match
+    {
+      case None => JObject(sourceField :: targetField :: isLoadingField :: Nil)
+      case Some(error) => JObject(sourceField :: targetField :: isLoadingField :: JField("error", JString(error)) :: Nil)
+    }
 
     Full(JsonResponse(json))
   }

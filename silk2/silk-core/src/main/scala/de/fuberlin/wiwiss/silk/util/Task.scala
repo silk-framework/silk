@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.util
 
 import de.fuberlin.wiwiss.silk.util.Task._
-import java.util.concurrent.Callable
 import java.util.logging.{Level, Logger}
 import collection.mutable.{Subscriber, Publisher}
+import java.util.concurrent.{Future, Executors, Callable}
 
 /**
  * A task which computes a result.
@@ -60,10 +60,10 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
   /**
    * Executes this task in a background thread
    */
-  def runInBackground()
+  def runInBackground() : Future[_] =
   {
     running = true
-    new Thread(toRunnable(this)).start()
+    Task.backgroundExecutor.submit(toCallable(this))
   }
 
   /**
@@ -191,6 +191,8 @@ object Task
    * Converts a task to a Java Callable
    */
   implicit def toCallable[T](task : Task[T]) = new Callable[T] { override def call() = task.apply() }
+
+  private val backgroundExecutor = Executors.newCachedThreadPool()
 
   /**
    * A status message
