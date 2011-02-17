@@ -77,53 +77,61 @@ function addAction(type, desc, action, parent, projectName)
 
 function addDataSource(jsonDataSource,projectNode,projectName)
 {
-    var ds_name_ul = document.createElement("ul");
-        projectNode.appendChild(ds_name_ul);
-    var ds_name_li = document.createElement("li");
-        ds_name_li.setAttribute('id','datasource_'+projectName+'_'+jsonDataSource.name);
-        ds_name_li.setAttribute('class', 'closed');
-        ds_name_ul.appendChild(ds_name_li);
-    var ds_name_span = document.createElement("span");
-        ds_name_span.setAttribute('class', 'folder');
-        ds_name_span.innerHTML = 'Data Source: '+jsonDataSource.name;
-        ds_name_li.appendChild(ds_name_span);
+    var ds_ul = document.createElement("ul");
+        projectNode.appendChild(ds_ul);
+    var ds_li = document.createElement("li");
+        ds_li.setAttribute('id','datasource_'+projectName+'_'+jsonDataSource.name);
+        ds_li.setAttribute('class', 'closed');
+        ds_ul.appendChild(ds_li);
+    var ds_span = document.createElement("span");
+        ds_span.setAttribute('class', 'folder');
+        ds_li.appendChild(ds_span);
+
+    var ds_label= document.createElement("span");
+        ds_label.setAttribute('class', 'label');
+        ds_label.innerHTML = 'Data Source: '+jsonDataSource.name;
+        ds_span.appendChild(ds_label);
 
     var ds_actions = document.createElement("div");
         ds_actions.setAttribute('class', 'actions');
-        ds_name_span.appendChild(ds_actions);
+        ds_span.appendChild(ds_actions);
     addAction('ds_edit', "Edit DataSource "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName);
     addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName);
 
     for(var p in jsonDataSource.params) {
       var param = jsonDataSource.params[p];
-      addLeaf(param.value,ds_name_li, param.key + ': ');
+      addLeaf(param.value,ds_li, param.key + ': ');
     }
 }
 
 function addLinkingTask(jsonLinkingTask,projectNode,projectName)
 {
-    var lt_name_ul = document.createElement("ul");
-        projectNode.appendChild(lt_name_ul);
-    var lt_name_li = document.createElement("li");
-        lt_name_li.setAttribute('id','linkingtask_'+projectName+'_'+jsonLinkingTask.name);
-        lt_name_li.setAttribute('class', 'closed');
-        lt_name_ul.appendChild(lt_name_li);
-    var lt_name_span = document.createElement("span");
-        lt_name_span.setAttribute('class', 'folder');
-        lt_name_span.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
-        lt_name_li.appendChild(lt_name_span);
+    var lt_ul = document.createElement("ul");
+        projectNode.appendChild(lt_ul);
+    var lt_li = document.createElement("li");
+        lt_li.setAttribute('id','linkingtask_'+projectName+'_'+jsonLinkingTask.name);
+        lt_li.setAttribute('class', 'closed');
+        lt_ul.appendChild(lt_li);
+    var lt_span = document.createElement("span");
+        lt_span.setAttribute('class', 'folder');
+        lt_li.appendChild(lt_span);
+
+    var lt_label = document.createElement("span");
+        lt_label.setAttribute('class', 'label');
+        lt_label.innerHTML = 'Linking Task: '+jsonLinkingTask.name;
+        lt_span.appendChild(lt_label);
 
     var lt_actions = document.createElement("div");
         lt_actions.setAttribute('class', 'actions');
-        lt_name_span.appendChild(lt_actions);
+        lt_span.appendChild(lt_actions);
     addAction('link_edit',"Edit "+jsonLinkingTask.name,"editLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
     addAction('link_spec',"Edit Link Specification "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
     addAction('delete',"Remove LinkingTask "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName);
 
-    addLeaf(jsonLinkingTask.source,lt_name_li, 'source: ');
-    addLeaf(jsonLinkingTask.target,lt_name_li, 'target: ');
-    addLeaf(jsonLinkingTask.sourceDataset,lt_name_li, 'source dataset: ');
-    addLeaf(jsonLinkingTask.targetDataset,lt_name_li, 'target dataset: ');
+    addLeaf(jsonLinkingTask.source,lt_li, 'source: ');
+    addLeaf(jsonLinkingTask.target,lt_li, 'target: ');
+    addLeaf(jsonLinkingTask.sourceDataset,lt_li, 'source dataset: ');
+    addLeaf(jsonLinkingTask.targetDataset,lt_li, 'target dataset: ');
 }
 
 // -- display the workspace as treeview
@@ -157,8 +165,12 @@ function updateWorkspace(obj){
                 root.appendChild(proj);
                 var proj_span = document.createElement("span");
                     proj_span.setAttribute('class', 'folder');
-                    proj_span.innerHTML = project.name;
                     proj.appendChild(proj_span);
+
+                var proj_label = document.createElement("span");
+                    proj_label.setAttribute('class', 'label');
+                    proj_label.innerHTML = project.name;
+                    proj_span.appendChild(proj_label);
 
                 var proj_actions = document.createElement("div");
                     proj_actions.setAttribute('class', 'actions');
