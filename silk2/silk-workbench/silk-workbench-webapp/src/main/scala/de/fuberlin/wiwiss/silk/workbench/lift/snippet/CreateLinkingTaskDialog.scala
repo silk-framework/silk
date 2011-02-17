@@ -9,7 +9,6 @@ import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.SHtml
-import net.liftweb.widgets.autocomplete.AutoComplete
 import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 import net.liftweb.http.js.JsCmds.OnLoad

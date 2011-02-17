@@ -12,6 +12,7 @@ import de.fuberlin.wiwiss.silk.workbench.Constants
 import java.net.URI
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceModule
 import de.fuberlin.wiwiss.silk.datasource.Source
+import java.util.concurrent.Future
 
 /**
  * A linking task which interlinks two datasets.
@@ -22,13 +23,24 @@ case class LinkingTask(name : Identifier,
                        alignment : Alignment,
                        cache : Cache) extends ModuleTask
 {
+  var cacheLoading : Future[_] = null
+
   val cacheLoader : Task[Unit] = new CacheLoader()
 
   def loadCache(sourceModule : SourceModule)
   {
     val sources = linkSpec.datasets.map(ds => sourceModule.task(ds.sourceId).source)
     cacheLoader.asInstanceOf[CacheLoader].sources = sources
-    cacheLoader.runInBackground()
+    cacheLoading = cacheLoader.runInBackground()
+  }
+
+  def reloadCache(sourceModule : SourceModule)
+  {
+    cache.instanceSpecs = null
+    cache.negativeInstances = null
+    cache.positiveInstances = null
+
+    loadCache(sourceModule)
   }
 
   private class CacheLoader() extends Task[Unit]
