@@ -21,16 +21,15 @@ class CreateLinkingTaskDialog
   def render(xhtml : NodeSeq) : NodeSeq =
   {
     var name = ""
-    var sourceId = "dbpedia"
-    var targetId = "drugbank"
-    var sourceRestriction = "?a rdf:type sider:drugs"
-    var targetRestriction = "?b rdf:type drugbank:drugs"
+    var sourceId = ""
+    var targetId = ""
+    var sourceRestriction = ""
+    var targetRestriction = ""
     val prefixes = Map(
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
       "owl" -> "http://www.w3.org/2002/07/owl#",
-      "sider" -> "http://www4.wiwiss.fu-berlin.de/sider/resource/sider/",
-      "drugbank" -> "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/")
+      "foaf" -> "http://xmlns.com/foaf/0.1/")
 
     def completeSourceId(current : String, limit: Int) =
     {
