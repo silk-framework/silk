@@ -237,7 +237,7 @@ function parseXML(xml, level, level_y, last_element)
     box5.attr("value", $(this).attr("weight"));
     box2.append(box5);
 
-    // alert(comparators[$(this).attr("metric")]["parameters"]);
+    alert(comparators[$(this).attr("metric")]["parameters"]);
 /*
 			$.each(comparators[$(this).attr("metric")].parameters, function(j, parameter) {
 				var box4 = $(document.createElement('br'));
@@ -648,7 +648,7 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv sourcePath');
           box1.attr("id", "source_" + sourcecounter);
-          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "</h5><div class='content'></div>");
+          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + global_id+"');$('#source_" + global_id+"').remove();\"/></h5><div class='content'></div>");
           return box1;
         }
       });
@@ -670,7 +670,7 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
+        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/><img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + global_id+"');$('#source_" + global_id+"').remove();\"/></h5><div class='content'></div>");
         return box1;
       }
     });
@@ -709,7 +709,7 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv targetPath');
           box1.attr("id", "target_" + targetcounter);
-          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "</h5><div class='content'></div>");
+          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#target_" + targetcounter+"');$('#target_" + targetcounter+"').remove();\"/></h5><div class='content'></div>");
           return box1;
         }
       });
@@ -803,6 +803,14 @@ function getOperators()
               var mytext = document.createTextNode("Transformation: " + item.label);
               box2.append(mytext);
 
+              var img = $(document.createElement('img'));
+              img.attr("src", "static/img/delete.png");
+              img.attr("align", "right");
+              img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
+              box2.append(img);
+
+              box1.append(box2);
+
               box1.append(box2);
 
               var box2 = $(document.createElement('div'));
@@ -851,7 +859,7 @@ function getOperators()
         $.each(sourcepaths, function (i, item)
         {
           comparators[item.id] = item.label;
-          comparators[item.id]["parameters"] = item.parameters;
+          // comparators[item.id].parameters = item.parameters;
           var box = $(document.createElement('div'));
           box.addClass('draggable comparators');
           box.attr("id", "comparator" + global_id);
@@ -880,6 +888,13 @@ function getOperators()
               box2.addClass('handler');
               var mytext = document.createTextNode("Comparator: " + item.label);
               box2.append(mytext);
+
+              var img = $(document.createElement('img'));
+              img.attr("src", "static/img/delete.png");
+              img.attr("align", "right");
+              img.attr("onclick", "jsPlumb.removeAllEndpoints('#compare_" + comparecounter+"');$('#compare_" + comparecounter+"').remove();");
+              box2.append(img);
+
               box1.append(box2);
 
               var box2 = $(document.createElement('div'));
@@ -905,8 +920,10 @@ function getOperators()
               box2.append(box5);
 
 
+			  // comparators[item.id]["parameters"] = new Object();
               $.each(item.parameters, function (j, parameter)
               {
+			    // comparators[item.id]["parameters"][parameter.name] = parameter.type;
                 var box4 = $(document.createElement('br'));
                 box2.append(box4);
 
@@ -971,6 +988,13 @@ function getOperators()
               box2.addClass('handler');
               var mytext = document.createTextNode("Aggregator: " + item.label);
               box2.append(mytext);
+
+              var img = $(document.createElement('img'));
+              img.attr("src", "static/img/delete.png");
+              img.attr("align", "right");
+              img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate_" + aggregatecounter+"').remove();");
+              box2.append(img);
+
               box1.append(box2);
 
               var box2 = $(document.createElement('div'));
