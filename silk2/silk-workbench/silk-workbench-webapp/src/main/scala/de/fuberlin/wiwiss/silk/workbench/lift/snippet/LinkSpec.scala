@@ -1,26 +1,62 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
-import net.liftweb.http.js.JE.{JsRaw}
+import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.Script
 import net.liftweb.util.Helpers._
-import net.liftweb.http.js.JE.{Call, Str, Num, JsArray}
+import net.liftweb.http.js.JE.Call
 import xml.NodeSeq
 import net.liftweb.http.{S, SHtml}
-import de.fuberlin.wiwiss.silk.instance.Path
 import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import net.liftweb.http.js.{JsCmd, JsObj, JsCmds}
+import net.liftweb.http.js.{JsCmd, JsCmds}
+import net.liftweb.http.js.JsCmds.OnLoad
 
+/**
+ * LinkSpec snippet.
+ *
+ * Injects the 'linkSpec' variable which holds the current link spec.
+ * Defines the 'reloadCache()' function which reloads the current cache containing the property paths.
+ * Calls the serializeLinkSpec() function from the editor whenever the user saves the current link specification.
+ */
 class LinkSpec
 {
+  /**
+   * Renders the toolbar.
+   */
   def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
+    //JS Command which saves the current link specification
+    def saveCall = SHtml.ajaxCall(Call("serializeLinkSpec"), saveLinkSpec)._2.cmd
+
+    //JS Command which closes the current link specification
+    def closeCall = SHtml.ajaxInvoke(closeLinkSpec)._2.cmd
+
+    //Initializes the close dialog
+    def initDialog = Script(OnLoad(JsRaw("""
+      $('#dialog-confirm').dialog({
+        autoOpen: false,
+        resizable: false,
+        height: 140,
+        modal: true,
+        buttons: {
+          Yes: function() { """  + saveCall.toJsCmd + closeCall.toJsCmd + """ $(this).dialog('close'); },
+          No: function() { """ + closeCall.toJsCmd + """$(this).dialog('close'); }
+        }
+      });""").cmd))
+
+    //JS Command which opens the close dialog
+    def openDialog = JsRaw("$('#dialog-confirm').dialog('open');").cmd
+
     bind("entry", xhtml,
-         "update" -> SHtml.ajaxButton("Save", () => SHtml.ajaxCall(Call("serializeLinkSpec"), updateLinkSpec)._2.cmd),
-         "download" -> SHtml.submit("Export as Silk-LS", () => S.redirectTo("config")))
+         "close" -> (initDialog ++ SHtml.ajaxButton("Close", openDialog _)),
+         "save" -> SHtml.ajaxButton("Save", saveCall _),
+         "export" -> SHtml.submit("Export as Silk-LS", () => S.redirectTo("config")))
   }
 
+  /**
+   * Renders the content.
+   */
   def content(xhtml : NodeSeq) : NodeSeq =
   {
     bind("entry", xhtml,
@@ -28,9 +64,26 @@ class LinkSpec
   }
 
   /**
-   * Updates the Link Specification
+   * Closes the current link specification.
    */
-  private def updateLinkSpec(linkSpecStr : String) =
+  private def closeLinkSpec() =
+  {
+    try
+    {
+      User().closeTask()
+
+      JsRaw("window.location.href = '/index.html';").cmd
+    }
+    catch
+    {
+      case ex : Exception => JsRaw("alert('Error updating Link Specification. Details: " + ex.getMessage.encJs + "')").cmd
+    }
+  }
+
+  /**
+   * Saves the Link Specification.
+   */
+  private def saveLinkSpec(linkSpecStr : String) =
   {
     try
     {
@@ -40,9 +93,13 @@ class LinkSpec
       val linkSpec = LinkSpecification.load(linkingTask.prefixes)(new StringReader(linkSpecStr))
 
       //Update linking task
-      User().task = linkingTask.copy(linkSpec = linkSpec)
+      val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
 
-      JsRaw("alert('Updated Link Specification')").cmd
+      //Commit
+      User().project.linkingModule.update(updatedLinkingTask)
+      User().task = updatedLinkingTask
+
+      JsRaw("alert('Saved')").cmd
     }
     catch
     {
@@ -50,6 +107,9 @@ class LinkSpec
     }
   }
 
+  /**
+   * Generates the 'linkSpec' variable which holds the current link specification.
+   */
   private def generateLinkSpecVar() =
   {
     //Serialize the link condition to a JavaScript string
@@ -67,7 +127,7 @@ class LinkSpec
   {
     def reloadCache =
     {
-      User().linkingTask.reloadCache(User().project.sourceModule)
+      User().linkingTask.reloadCache(User().project)
       JsRaw("").cmd
     }
 

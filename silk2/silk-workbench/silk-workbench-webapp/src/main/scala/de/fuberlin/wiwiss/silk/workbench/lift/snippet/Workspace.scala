@@ -71,7 +71,7 @@ object Workspace
 {
   def javasScriptFunctions =
   {
-    updateWorkspaceCmd &
+    updateCmd &
     createProjectFunction &
     removeProjectFunction &
     createSourceTaskFunction &
@@ -85,7 +85,7 @@ object Workspace
   /**
    * JS Command which updates the workspace view.
    */
-  def updateWorkspaceCmd : JsCmd =
+  def updateCmd : JsCmd =
   {
     JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
   }
@@ -109,7 +109,7 @@ object Workspace
     {
       User().workspace.removeProject(projectName)
 
-      updateWorkspaceCmd
+      updateCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
@@ -232,7 +232,7 @@ object Workspace
 
         func(projectName, taskName)
 
-        updateWorkspaceCmd
+        updateCmd
       }
       catch
       {

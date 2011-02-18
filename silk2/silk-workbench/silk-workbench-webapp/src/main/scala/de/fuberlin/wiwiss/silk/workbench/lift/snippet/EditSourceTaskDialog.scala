@@ -33,7 +33,7 @@ class EditSourceTaskDialog
 
         User().project.sourceModule.update(updatedSourceTask)
 
-        JsRaw("$('#editSourceTaskDialog').dialog('close');").cmd & Workspace.updateWorkspaceCmd
+        JsRaw("$('#editSourceTaskDialog').dialog('close');").cmd & Workspace.updateCmd
       }
       catch
       {
