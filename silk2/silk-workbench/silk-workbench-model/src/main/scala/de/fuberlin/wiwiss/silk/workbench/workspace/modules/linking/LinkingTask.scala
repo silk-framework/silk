@@ -13,6 +13,7 @@ import java.net.URI
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceModule
 import de.fuberlin.wiwiss.silk.datasource.Source
 import java.util.concurrent.Future
+import de.fuberlin.wiwiss.silk.workbench.workspace.Project
 
 /**
  * A linking task which interlinks two datasets.
@@ -27,25 +28,24 @@ case class LinkingTask(name : Identifier,
 
   val cacheLoader : Task[Unit] = new CacheLoader()
 
-  def loadCache(sourceModule : SourceModule)
+  def loadCache(project : Project)
   {
-    val sources = linkSpec.datasets.map(ds => sourceModule.task(ds.sourceId).source)
-    cacheLoader.asInstanceOf[CacheLoader].sources = sources
+    cacheLoader.asInstanceOf[CacheLoader].project = project
     cacheLoading = cacheLoader.runInBackground()
   }
 
-  def reloadCache(sourceModule : SourceModule)
+  def reloadCache(project : Project)
   {
     cache.instanceSpecs = null
     cache.negativeInstances = null
     cache.positiveInstances = null
 
-    loadCache(sourceModule)
+    loadCache(project)
   }
 
   private class CacheLoader() extends Task[Unit]
   {
-    var sources : SourceTargetPair[Source] = null
+    var project : Project = null
 
     private val sampleCount = 100
 
@@ -57,6 +57,8 @@ case class LinkingTask(name : Identifier,
 
     override protected def execute()
     {
+      val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
+
       val sourceEndpoint = new RemoteSparqlEndpoint(new URI(sources.source.dataSource.toString), prefixes)
       val targetEndpoint = new RemoteSparqlEndpoint(new URI(sources.target.dataSource.toString), prefixes)
 

@@ -118,7 +118,7 @@ class FileProject(file : File) extends Project
       task.alignment.toXML.write(taskDir+ "/alignment.xml")
       task.cache.toXML.write(taskDir +  "/cache.xml")
 
-      task.loadCache(sourceModule)
+      task.loadCache(FileProject.this)
 
       cachedTasks = None
 
@@ -150,7 +150,7 @@ class FileProject(file : File) extends Project
 
         val linkingTask = LinkingTask(fileName, prefixes, linkSpec, alignment, cache)
 
-        linkingTask.loadCache(sourceModule)
+        linkingTask.loadCache(FileProject.this)
 
         linkingTask
       }

@@ -54,6 +54,11 @@ trait User
     currentTask = Some(task)
   }
 
+  def closeTask()
+  {
+    currentTask = None
+  }
+
   /**
    *   True, if a source task is open at the moment.
    */
