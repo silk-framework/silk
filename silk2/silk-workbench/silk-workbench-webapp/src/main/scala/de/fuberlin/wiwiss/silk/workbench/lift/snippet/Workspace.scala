@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import net.liftweb.util.Helpers._
-import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST
@@ -11,6 +10,7 @@ import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
+import net.liftweb.http.{S, SHtml}
 
 /**
  * Workspace snippet.
@@ -78,7 +78,7 @@ object Workspace
     editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
     createLinkingTaskFunction &
-    injectFunction("openLinkingTask", openLinkingTask _, true) &
+    openLinkingTaskFunction &
     injectFunction("removeLinkingTask", removeLinkingTask _)
   }
 
@@ -126,15 +126,14 @@ object Workspace
     {
       User().project = User().workspace.project(projectName)
 
-      JsRaw("$('#createSourceTaskDialog').dialog('open');").cmd
+      CreateSourceTaskDialog.openCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
 
-    val initSourceTaskDialog = OnLoad(JsRaw("$('#createSourceTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
     val openSourceTaskDialog =  JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
 
-    initSourceTaskDialog & openSourceTaskDialog
+    CreateSourceTaskDialog.initCmd & openSourceTaskDialog
   }
 
   /**
@@ -184,13 +183,31 @@ object Workspace
     CreateLinkingTaskDialog.initCmd & openLinkingTaskDialog
   }
 
-  /**
-   * Opens a linking task from the workspace.
+  /*
+   * JS Command which defines the openLinkingTask function
    */
-  private def openLinkingTask(projectName : String, taskName : String)
+  private def openLinkingTaskFunction : JsCmd =
   {
-    User().project = User().workspace.project(projectName)
-    User().task = User().project.linkingModule.task(taskName)
+    def openLinkingTask(args : String) : JsCmd =
+    {
+      val Array(projectName, taskName) = args.split(',')
+
+      try
+      {
+        User().project = User().workspace.project(projectName)
+        User().task = User().project.linkingModule.task(taskName)
+
+        JsRaw("window.location = '/linkSpec.html';").cmd
+      }
+      catch
+      {
+        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+      }
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), openLinkingTask _)._2.cmd
+
+    JsCmds.Function("openLinkingTask", "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 
   /**
@@ -204,7 +221,7 @@ object Workspace
   /*
    * Injects a Javascript function.
    */
-  private def injectFunction(name : String, func : (String, String) => Unit, reload : Boolean = false) : JsCmd =
+  private def injectFunction(name : String, func : (String, String) => Unit) : JsCmd =
   {
     //Callback which executes the provided function
     def callback(args : String) : JsCmd =
@@ -215,10 +232,7 @@ object Workspace
 
         func(projectName, taskName)
 
-        if(reload)
-          updateWorkspaceCmd & JsRaw("window.location.reload();").cmd
-        else
-          updateWorkspaceCmd
+        updateWorkspaceCmd
       }
       catch
       {
