@@ -7,6 +7,7 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import net.liftweb.http.js.JsCmds.OnLoad
 
 /**
  * A dialog to create new datasources.
@@ -49,4 +50,11 @@ class CreateSourceTaskDialog
          "submit" -> SHtml.ajaxSubmit("Create", submit _))
     )
   }
+}
+
+object CreateSourceTaskDialog
+{
+  def initCmd = OnLoad(JsRaw("$('#createSourceTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+
+  def openCmd = JsRaw("$('#createSourceTaskDialog').dialog('open');").cmd
 }
