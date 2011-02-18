@@ -55,7 +55,7 @@ class CreateLinkingTaskDialog
 
         User().project.linkingModule.update(linkingTask)
 
-        JsRaw("$('#createLinkingTaskDialog').dialog('close');").cmd & Workspace.updateWorkspaceCmd
+        JsRaw("$('#createLinkingTaskDialog').dialog('close');").cmd & Workspace.updateCmd
       }
       catch
       {

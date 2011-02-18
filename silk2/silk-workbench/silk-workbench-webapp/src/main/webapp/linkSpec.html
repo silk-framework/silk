@@ -4,12 +4,18 @@
     <lift:linkSpec.toolbar form="POST">
       <ul>
         <li>
-          <entry:update />
+          <entry:close />
         </li>
         <li>
-          <entry:download />
+          <entry:save />
+        </li>
+        <li>
+          <entry:export />
         </li>
       </ul>
+      <div id="dialog-confirm" title="Close">
+	     <p>Save before closing?</p>
+      </div>
     </lift:linkSpec.toolbar>
   </lift:bind-at>
 

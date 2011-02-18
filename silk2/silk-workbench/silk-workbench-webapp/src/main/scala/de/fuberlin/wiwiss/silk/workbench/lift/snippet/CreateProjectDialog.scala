@@ -22,7 +22,7 @@ class CreateProjectDialog
       {
         User().workspace.createProject(name)
 
-        JsRaw("$('#createProjectDialog').dialog('close');").cmd & Workspace.updateWorkspaceCmd
+        JsRaw("$('#createProjectDialog').dialog('close');").cmd & Workspace.updateCmd
       }
       catch
       {

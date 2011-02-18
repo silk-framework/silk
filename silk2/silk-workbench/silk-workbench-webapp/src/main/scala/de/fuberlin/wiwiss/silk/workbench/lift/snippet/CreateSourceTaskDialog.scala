@@ -32,7 +32,7 @@ class CreateSourceTaskDialog
 
         User().project.sourceModule.update(sourceTask)
 
-        JsRaw("$('#createSourceTaskDialog').dialog('close');").cmd & Workspace.updateWorkspaceCmd
+        CreateSourceTaskDialog.closeCmd & Workspace.updateCmd
       }
       catch
       {
@@ -57,4 +57,6 @@ object CreateSourceTaskDialog
   def initCmd = OnLoad(JsRaw("$('#createSourceTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
 
   def openCmd = JsRaw("$('#createSourceTaskDialog').dialog('open');").cmd
+
+  def closeCmd = JsRaw("$('#createSourceTaskDialog').dialog('close');").cmd
 }
