@@ -197,7 +197,7 @@ object Workspace
         User().project = User().workspace.project(projectName)
         User().task = User().project.linkingModule.task(taskName)
 
-        JsRaw("window.location = '/linkSpec.html';").cmd
+        JsRaw("window.location.href = '/linkSpec.html';").cmd
       }
       catch
       {
