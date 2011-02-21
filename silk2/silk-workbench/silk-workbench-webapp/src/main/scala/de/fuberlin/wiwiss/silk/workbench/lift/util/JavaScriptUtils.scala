@@ -15,4 +15,9 @@ object JavaScriptUtils
   {
     Function("update", Nil, SHtml.ajaxInvoke(updateFunc)._2.cmd & After(TimeSpan(interval), Call("update").cmd)) & Call("update").cmd
   }
+
+  def Redirect(url : String) =
+  {
+    JsRaw("window.location.href = '" + url + "';").cmd
+  }
 }
