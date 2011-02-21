@@ -1,22 +1,22 @@
-
-var activeProjectId ="";
-var activeTaskId = "";
-var activeNodesId = new Array();
+var ws = {};
+ws.activeProjectId ="";
+ws.activeTaskId = "";
+ws.activeNodesId = new Array();
 
 function saveOpenNodes(activeProject){
-    activeNodesId.length=0;
-    if (activeProject!="") activeNodesId.push('project_'+activeProject);
-    $('.collapsable').each(function(){if(this.getAttribute('id')) activeNodesId.push(this.getAttribute('id'));});
+    ws.activeNodesId.length=0;
+    if (activeProject!=="") ws.activeNodesId.push('project_'+activeProject);
+    $('.collapsable').each(function(){if(this.getAttribute('id')) ws.activeNodesId.push(this.getAttribute('id'));});
   }
 
 function loadOpenNodes(){
- for (var key in activeNodesId)
+ for (var key in ws.activeNodesId)
   {
-    if (document.getElementById(activeNodesId[key])) document.getElementById(activeNodesId[key]).setAttribute('class', 'collapsable');
+    if (document.getElementById(ws.activeNodesId[key])) document.getElementById(ws.activeNodesId[key]).setAttribute('class', 'collapsable');
   }
-  if (activeTaskId) {
-      document.getElementById(activeTaskId).setAttribute('class', 'collapsable active');
-      document.getElementById(activeProjectId).setAttribute('class', 'collapsable');      
+  if (ws.activeTaskId) {
+      document.getElementById(ws.activeTaskId).setAttribute('class', 'collapsable active');
+      document.getElementById(ws.activeProjectId).setAttribute('class', 'collapsable');
   }
 }
 
@@ -205,11 +205,11 @@ function updateWorkspace(obj){
         // unfold active project
         if(obj.workspace.activeTask)
             {
-             activeProjectId = "project_"+obj.workspace.activeProject;
-             var idPrefix = (obj.workspace.activeTaskType == "LinkingTask") ?  'linkingtask_' : 'datasource_';
-             activeTaskId = idPrefix+obj.workspace.activeProject+"_"+obj.workspace.activeTask;                     
+             ws.activeProjectId = "project_"+obj.workspace.activeProject;
+             var idPrefix = (obj.workspace.activeTaskType === "LinkingTask") ?  'linkingtask_' : 'datasource_';
+             ws.activeTaskId = idPrefix+obj.workspace.activeProject+"_"+obj.workspace.activeTask;
             }
-        if (activeNodesId.length>0 || activeTaskId)  loadOpenNodes();
+        if (ws.activeNodesId.length>0 || ws.activeTaskId)  loadOpenNodes();
 
         $("#tree").treeview();
 
