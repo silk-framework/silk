@@ -18,6 +18,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import net.liftweb.widgets.autocomplete.AutoComplete
 import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
 import scala.xml.Text
+import de.fuberlin.wiwiss.silk.workbench.lift.util.ConfigBuilder
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -59,13 +60,13 @@ class Boot
 
   private def dispatch : LiftRules.DispatchPF =
   {
-//    case req @ Req(List("config"), "", GetRequest) =>
-//    {
-//      val outputStream = new ByteArrayOutputStream()
-//      val configXml = Project().config.toXML
-//      val configStr = new PrettyPrinter(140, 2).format(configXml)
-//      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
-//    }
+    case req @ Req(List("config"), "", GetRequest) =>
+    {
+      val outputStream = new ByteArrayOutputStream()
+      val configXml = ConfigBuilder.build().toXML
+      val configStr = new PrettyPrinter(140, 2).format(configXml)
+      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
+    }
     case req @ Req(List("api", "project", "paths"), "", GetRequest) => () => generatePaths(req)
     case req @ Req(List("api", "project", "operators"), "", GetRequest) => () => generateOperators()
   }

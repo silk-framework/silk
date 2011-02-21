@@ -11,6 +11,7 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds.OnLoad
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.Redirect
 
 /**
  * LinkSpec snippet.
@@ -51,7 +52,7 @@ class LinkSpec
     bind("entry", xhtml,
          "close" -> (initDialog ++ SHtml.ajaxButton("Close", openDialog _)),
          "save" -> SHtml.ajaxButton("Save", saveCall _),
-         "export" -> SHtml.submit("Export as Silk-LS", () => S.redirectTo("config")))
+         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("/config")))
   }
 
   /**
@@ -72,7 +73,7 @@ class LinkSpec
     {
       User().closeTask()
 
-      JsRaw("window.location.href = '/index.html';").cmd
+      Redirect("/index.html")
     }
     catch
     {
