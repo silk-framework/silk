@@ -4,7 +4,7 @@ import java.net.URI
 
 class LDEUser extends User {
 
-  override def workspace =
+  override val workspace =
  {
     val workspaceUri = new URI("http://localhost:8092/sparql")
     new LDEWorkspace(workspaceUri)
