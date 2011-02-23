@@ -22,49 +22,36 @@ class XMLProject(linkSpec : Node) extends Project
 
   def getLinkSpec = doc
 
-  /**
-   * The name of this project
-   */
+  def getInterlinks = new RuleTransformer(new RemoveNodeByLabel("DataSources")).transform(doc).head
+  
+   // The name of this project
   // TODO - set a proper name
-  override val name : Identifier = doc \\ "Interlink" \\ "@id" text
+  override val name : Identifier = "silk_"
 
-  /**
-   * Reads the project configuration.
-   */
-  override def config =
-  {
-    ProjectConfig()
-  }
+   // Reads the project configuration.
+  override def config =   {  ProjectConfig()  }
 
-  /**
-   * Writes the updated project configuration.
-   */
+   // Writes the updated project configuration.
   override def config_=(config : ProjectConfig)     {}
 
-  /**
-   * The source module which encapsulates all data sources.
-   */
+   // The source module which encapsulates all data sources.
   override val sourceModule = new XMLSourceModule()
-  
 
-  /**
-   * The linking module which encapsulates all linking tasks.
-   */
+   // The linking module which encapsulates all linking tasks.
   override val linkingModule = new XMLLinkingModule()
 
 
-  /**
-   * The source module which encapsulates all data sources.
-   */
-  class XMLSourceModule() extends SourceModule
-  {
+  
+  /** ----------------------------------------------------------
+   *   The source module which encapsulates all data sources.
+   *  ---------------------------------------------------------- */
+  class XMLSourceModule() extends SourceModule {
 
     def config = SourceConfig()
 
     def config_=(c : SourceConfig) {}
 
-    def tasks = synchronized
-    {
+    def tasks = synchronized {
       for (ds <- doc \\ "DataSource")   yield
       {
         val source = Source.fromXML(ds)
@@ -72,40 +59,43 @@ class XMLProject(linkSpec : Node) extends Project
       }
     }
 
-    def update(task : SourceTask) = synchronized
-    {
-      // if this task exists
-      if ((doc \\ "DataSource").filter(n => (n \ "@id").text.equals(task.name)).length > 0){
+    def update(task : SourceTask) = synchronized {
+        // if any datasource is defined yet
+      if ((doc \\ "DataSources").size == 0)  {
+          doc = new RuleTransformer(new AddChildrenTo("Silk", <DataSources />)).transform(doc).head
+      }
+       // if this task exists
+      else if ((doc \\ "DataSource").filter(n => (n \ "@id").text.equals(task.name.toString)).size > 0){
          // TODO  update interlink (better)
          remove(task.name)
       }
-      if ((doc \\ "DataSources").size == 0)
-            doc = new RuleTransformer(new AddChildrenTo("Silk", <DataSources />)).transform(doc).head
       doc = new RuleTransformer(new AddChildrenTo("DataSources", task.source.toXML)).transform(doc).head
     }
 
-    def remove(taskId : Identifier) = synchronized
-    {
+    def remove(taskId : Identifier) = synchronized {
        // Remove datasource with id = task.name
        doc = new RuleTransformer(new RemoveNodeById("DataSource",taskId)).transform(doc).head
     }
   }
 
-  /**
-   * The linking module which encapsulates all linking tasks.
-   */
-  class XMLLinkingModule() extends LinkingModule
-  {
+
+  /** ----------------------------------------------------------
+   *   The linking module which encapsulates all linking tasks.
+   *  ----------------------------------------------------------- */
+  class XMLLinkingModule() extends LinkingModule {
+    
     def config = LinkingConfig()
 
     def config_=(c : LinkingConfig) {}
 
     def tasks = synchronized
     {
-     val prefixes = Prefixes.fromXML((doc \\ "Prefixes") (0))
+      var prefixes : Prefixes = null
+      if ((doc \\ "Prefixes").size>0) {
+          prefixes =  Prefixes.fromXML((doc \\ "Prefixes") (0))
+      }  else { prefixes = Prefixes.fromXML(<Prefixes />) }
 
-     for(lt <- doc \\ "Interlink" ) yield
-      {
+     for(lt <- doc \\ "Interlink" ) yield {
         val linkT = LinkSpecification.fromXML(lt,(prefixes))
         val linkingTask = LinkingTask((lt \ "@id").text, prefixes, linkT, new Alignment(), new Cache())
         linkingTask.loadCache(XMLProject.this)
@@ -113,22 +103,26 @@ class XMLProject(linkSpec : Node) extends Project
       }
     }
 
-    def update(task : LinkingTask) = synchronized
-    {
+    def update(task : LinkingTask) = synchronized {
+      // if any interlink is defined yet
+      if ((doc \\ "Interlinks").size == 0){
+         doc = new RuleTransformer(new AddChildrenTo("Silk", <Interlinks />)).transform(doc).head
+      }
       // if this task exists
-      if ((doc \\ "Interlink").filter(n => (n \ "@id").text.equals(task.name)).length > 0){
-         // TODO  update interlink (better)
+      else if ((doc \\ "Interlink").filter(n => (n \ "@id").text.equals(task.name.toString)).size > 0) {
          remove(task.name)
       }
       doc = new RuleTransformer(new AddChildrenTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
       task.loadCache(XMLProject.this)
     }
 
-    def remove(taskId : Identifier) = synchronized
-    {
+    def remove(taskId : Identifier) = synchronized  {
        logger.info("Removing LinkingTask: "+ taskId)
        // Remove interlink with id = task.name
-       doc = new RuleTransformer(new RemoveNodeById("Interlink",taskId)).transform(doc).head
+       doc = new RuleTransformer(new RemoveNodeById("Interlink",taskId.toString)).transform(doc).head
+       //if ((doc \\ "Interlink").size == 0){
+       //   doc = new RuleTransformer(new RemoveNodeByLabel("Interlinks")).transform(doc).head
+       //}
     }
   }
 
@@ -142,12 +136,19 @@ class XMLProject(linkSpec : Node) extends Project
     }
   }
 
-  // Remove a specific node
+  // Remove a specific node by id (and label)
   class RemoveNodeById(label: String, id: String) extends RewriteRule {
     override def transform(n: Node) : NodeSeq = n match {
-      case e @ Elem(_, `label`, _, _, _*) =>  if ((e \ "@id").text == id) NodeSeq.Empty else e
+      case e @ Elem(_, `label`, _, _, _*) =>  if ((e \ "@id").text.equals(id)) NodeSeq.Empty else e
       case n => n
     }
   }
-  
+
+  // Remove a (unique) node by label
+  class RemoveNodeByLabel(label: String) extends RewriteRule {
+    override def transform(n: Node) : NodeSeq = n match {
+      case e @ Elem(_, `label`, _, _, _*) => NodeSeq.Empty 
+      case n => n
+    }
+  }
 }
