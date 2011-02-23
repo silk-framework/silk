@@ -6,8 +6,7 @@ class LDEUser extends User {
 
   override val workspace =
  {
-    val workspaceUri = new URI("http://localhost:8092/sparql")
-    new LDEWorkspace(workspaceUri)
+    new LDEWorkspace(new URI("http://localhost:8092"))
   }
 
 }
