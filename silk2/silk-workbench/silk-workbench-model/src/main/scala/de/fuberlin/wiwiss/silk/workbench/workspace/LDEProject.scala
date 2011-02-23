@@ -12,14 +12,14 @@ import de.fuberlin.wiwiss.silk.workbench.util._
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
  */
-class LDEProject(projectUri : String, sparqlEndpoint : RemoteSparqlEndpoint, sparulEndpoint : RemoteSparulEndpoint) extends Project 
+class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sparulEndpoint : RemoteSparulEndpoint) extends Project
 {
   private val logger = Logger.getLogger(classOf[LDEProject].getName)
 
-  logger.info("Loading Project: "+projectUri)
-
    // The name of this project
-  override val name = new Identifier(cleanPath(projectUri))
+  override val name = new Identifier(projectName)
+
+  val projectUri = QueryFactory.dataSourceLinks+projectName
 
    // The source module which encapsulates all data sources.
   override val sourceModule = new LDESourceModule()
@@ -30,14 +30,7 @@ class LDEProject(projectUri : String, sparqlEndpoint : RemoteSparqlEndpoint, spa
    // The XML sub project
   var xmlProj : XMLProject = null
 
-  // - Import xml matching desc as input stream
-  val proj = sparqlEndpoint.query(QueryFactory.sProject(projectUri),1).last
-  sourceModule.tasks
-  linkingModule.tasks
-
-  def cleanPath (uri : String) =  {   uri.split("/").last  }
-
-   // Reads the project configuration.
+  // Reads the project configuration.
   override def config =  {    ProjectConfig()  }
 
    // Writes the updated project configuration.
@@ -55,20 +48,22 @@ class LDEProject(projectUri : String, sparqlEndpoint : RemoteSparqlEndpoint, spa
 
     override def tasks = synchronized  {
 
-      // load target datasource  -  Wiki
+       // load target datasource  -  Wiki
       logger.info("Loading TARGET Datasource: Wiki")
       val params = Map( "endpointURI" -> sparqlEndpoint.uri.toString,
                        // TODO - "graph" -> "http://www.example.org/nullvalue",
                        "tripleStoreUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
                        "label" -> "Wiki" )
-      var datasources : Seq[SourceTask] = Seq(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
+      var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
 
-         // load source datasource  - optional
-      if (proj.contains("from")){
-         val from = proj("from").value
-         logger.info("Loading SOURCE Datasource: "+from)
-         datasources = loadDatasource(from) +: datasources
-      }
+       // load source datasource  - optional
+      val res = sparqlEndpoint.query(QueryFactory.sProjectDataSource(projectUri),1)
+      if (res.size > 0 )
+        {
+          val from = res.last("from").value
+          logger.info("Loading SOURCE Datasource: "+from)
+          datasources ::= loadDatasource(from)
+        }
 
       datasources
     }
@@ -78,8 +73,8 @@ class LDEProject(projectUri : String, sparqlEndpoint : RemoteSparqlEndpoint, spa
        // delete
       //sparulEndpoint.query(QueryFactory.dDataSource(projectUri))
        // insert datasource link into TS
-      val dataSourceName = ((task.source.toXML \ "param").filter(n => (n \ "@name").text.equals("label")).first \ "@value").text
-      sparulEndpoint.query(QueryFactory.iDataSource(projectUri,dataSourceName))
+       // val dataSourceName = ((task.source.toXML \ "param").filter(n => (n \ "@name").text.equals("label")).first \ "@value").text
+      sparulEndpoint.query(QueryFactory.iDataSource(projectUri,task.name))
       logger.info("Updated source '"+task.name +"' in project '"+name)
     }
 
@@ -131,8 +126,12 @@ class LDEProject(projectUri : String, sparqlEndpoint : RemoteSparqlEndpoint, spa
 
     override def tasks = synchronized {
 
-      if (proj.contains("xml")) {
-        val linkSpec = XML.loadString(proj("xml").value)
+      val res = sparqlEndpoint.query(QueryFactory.sProjectSourceCode(projectUri),1)
+
+      if (res.size > 0 ){
+      
+        val sourceCode = res.last("xml").value
+        val linkSpec = XML.loadString(sourceCode)
         xmlProj = new XMLProject(linkSpec)
         logger.info("Loading LinkingTasks")
       }

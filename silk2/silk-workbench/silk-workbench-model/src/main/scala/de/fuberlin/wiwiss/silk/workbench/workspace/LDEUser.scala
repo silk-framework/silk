@@ -4,8 +4,7 @@ import java.net.URI
 
 class LDEUser extends User {
 
-  override val workspace =
- {
+  override val workspace =  {
     new LDEWorkspace(new URI("http://localhost:8092"))
   }
 
