@@ -2,19 +2,19 @@
 //
 //import net.liftweb.http.SHtml
 //import de.fuberlin.wiwiss.silk.workbench.lift.util.Widgets
-//import de.fuberlin.wiwiss.silk.workbench.project.Project
 //import net.liftweb.util.Helpers._
 //import xml.NodeSeq
 //import de.fuberlin.wiwiss.silk.workbench.learning.LearningServer
+//import de.fuberlin.wiwiss.silk.workbench.workspace.User
 //
 //class Learning
 //{
-//  def render(xhtml : NodeSeq) : NodeSeq =
+//  def toolbar(xhtml : NodeSeq) : NodeSeq =
 //  {
-//    if(Project().cacheLoader.isRunning)
+//    if(User().linkingTask.cacheLoader.isRunning)
 //    {
 //      bind("entry", chooseTemplate("choose", "loading", xhtml),
-//           "status" -> Widgets.taskProgress(Project().cacheLoader))
+//           "status" -> Widgets.taskProgress(User().linkingTask.cacheLoader))
 //    }
 //    else
 //    {
@@ -25,6 +25,18 @@
 //           "iterations" -> SHtml.number(iterations, iterations = _, 1, 100),
 //           "iterate" -> SHtml.submit("Iterate", () => LearningServer.iteratePopulation(iterations)),
 //           "progress" -> Widgets.currentTaskProgress(() => LearningServer.currentTask))
+//    }
+//  }
+//
+//  def content(xhtml : NodeSeq) : NodeSeq =
+//  {
+//    if(User().linkingTask.cacheLoader.isRunning)
+//    {
+//      chooseTemplate("choose", "loading", xhtml)
+//    }
+//    else
+//    {
+//      chooseTemplate("choose", "train", xhtml)
 //    }
 //  }
 //}
