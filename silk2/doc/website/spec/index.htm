@@ -638,13 +638,16 @@ The Silk framework currently supports the following similarity metrics, which re
   <DT>Weights
   <DD>
       <P>Some comparison operators might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types <tt>average</tt>, <tt>quadraticMean</tt> and <tt>geometricMean</tt>.</P>
+  <DT>Required operators
+  <DD>
+  <p> The required attribute can be set if the aggregation only should generate a result if a specific suboperator return a value</p>
 </DL>
 </p>
 
 <p>Example:</p>
 <pre>&lt;LinkCondition&gt;
   &lt;Aggregate type=&quot;average&quot;&gt;
-    &lt;Compare metric=&quot;jaro&quot;&gt;
+    &lt;Compare metric=&quot;jaro&quot; required=&quot;true&quot;&gt;
       &lt;Input path=&quot;?a/rdfs:label&quot; /&gt;
       &lt;Input path=&quot;?b/gn:name&quot; /&gt;
     &lt;/Compare&gt;

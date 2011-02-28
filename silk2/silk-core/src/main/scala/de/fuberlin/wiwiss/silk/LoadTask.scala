@@ -19,12 +19,12 @@ class LoadTask(source : Source,
   override def execute()
   {
     val startTime = System.currentTimeMillis()
-    logger.info("Loading instances of source dataset")
+    logger.info("Loading instances of dataset " + source.dataSource.toString)
 
     instanceCache.clear()
     instanceCache.write(source.retrieve(instanceSpec), blockingFunction)
     instanceCache.close()
 
-    logger.info("Loaded instances of source dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+    logger.info("Loaded instances of dataset in " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
   }
 }
