@@ -3,17 +3,26 @@ package de.fuberlin.wiwiss.silk.workbench.util
 
 object QueryFactory{
 
+  val wikiGraph = "http://halowiki/ob"
   val mappingGraph = "smwGraphs:MappingRepository"
   val datasourceGraph = "smwGraphs:DataSourceInformationGraph"
+
+
   val dataSources = "http://www.example.org/smw-lde/smwDatasources/"
   val dataSourceLinks = "http://www.example.org/smw-lde/smwDatasourceLinks/"
+  val smwCategory = wikiGraph + "/category/"
+  val smwProperty = wikiGraph + "/property/"
+  val haloProp = "http://www.ontoprise.de/smwplus/tsc/haloprop#"
+
 
   def getPrefixes = Map ( "smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/",
                           "smwDatasourceLinks" -> dataSourceLinks,
                           "smwDatasources" -> dataSources,
                           "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#",
-                          "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#"  )
-  
+                          "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+                         // "smwcat" -> smwCategory,
+                         // "smwprop" -> smwProperty  )
+
   //-- LDEWorkspace --
 
   // retrieve all mappings
@@ -56,5 +65,16 @@ object QueryFactory{
   def dSourceCode(projectUri : String) = "DELETE DATA FROM "+mappingGraph+" {<"+projectUri+"> smw-lde:sourceCode ?xml} "
   // create sourceCode mapping property 
   def iSourceCode(projectUri : String, sourceCode : String) = "INSERT DATA INTO "+mappingGraph+" {<"+projectUri+"> smw-lde:sourceCode \"<?xml version='1.0' encoding='utf-8' ?>"+sourceCode.replaceAll("\n","").replaceAll("\"","'") +"\" }    "
+
+
+  //-- Linking Task Editor --
+
+  // retrieve property paths from the wiki ontology
+  //def sPropertyPaths(categoryUri : String) = "SELECT ?p FROM <"+wikiGraph+"> WHERE {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ categoryUri + "}"
+  val hasDomainAndRange =  "<"+smwProperty+"Has_domain_and_range>"
+  val hasRange = "<"+smwProperty+"_1>"
+  // TODO - complicate handling - due to prefix ending with '#' - test again
+  def sPropertyPaths(categoryUri : String) = "SELECT ?p FROM <"+wikiGraph+"> WHERE {?p "+hasDomainAndRange+" ?x. ?x "+hasRange+" <"+categoryUri.replaceAll("smwcat:",smwCategory)+"> }"
+
 
 }
