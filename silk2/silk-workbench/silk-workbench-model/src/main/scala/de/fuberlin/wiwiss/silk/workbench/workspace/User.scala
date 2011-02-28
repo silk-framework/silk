@@ -72,7 +72,7 @@ trait User
   def sourceTask = task match
   {
     case t : SourceTask => t
-    case _ => throw new NoSuchElementException("No active task is no source task")
+    case _ => throw new NoSuchElementException("Active task is no source task")
   }
 
   /**
@@ -88,7 +88,7 @@ trait User
   def linkingTask = task match
   {
     case t : LinkingTask => t
-    case _ => throw new NoSuchElementException("No active task is no linking task")
+    case _ => throw new NoSuchElementException("Active task is no linking task")
   }
 }
 
