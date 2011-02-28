@@ -98,7 +98,6 @@ class XMLProject(linkSpec : Node) extends Project
      for(lt <- doc \\ "Interlink" ) yield {
         val linkT = LinkSpecification.fromXML(lt,(prefixes))
         val linkingTask = LinkingTask((lt \ "@id").text, prefixes, linkT, new Alignment(), new Cache())
-        linkingTask.loadCache(XMLProject.this)
         linkingTask
       }
     }
@@ -113,7 +112,6 @@ class XMLProject(linkSpec : Node) extends Project
          remove(task.name)
       }
       doc = new RuleTransformer(new AddChildrenTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
-      task.loadCache(XMLProject.this)
     }
 
     def remove(taskId : Identifier) = synchronized  {

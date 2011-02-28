@@ -120,16 +120,51 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
    *  ----------------------------------------------------------- */
   class LDELinkingModule() extends LinkingModule
   {
+    @volatile
+    private var cachedTasks : Option[Traversable[LinkingTask]] = None
+
     override def config = LinkingConfig()
 
     override def config_=(c : LinkingConfig) {}
 
     override def tasks = synchronized {
+      if(cachedTasks.isEmpty)  {
+        cachedTasks = Some(loadTasks)
+      }
+      cachedTasks.get
+    }
 
+    override def update(task : LinkingTask) = synchronized  {
+      // update XML
+      xmlProj.linkingModule.update(task)
+      // update TS via Sparql\Update
+      updateTripleStore
+      cachedTasks = None
+      logger.info("Updated linking task '"+task.name +"' in project '"+name+"'")
+    }
+
+    override def remove(taskId : Identifier) = synchronized {
+      // update XML
+      xmlProj.linkingModule.remove(taskId)
+      // update TS via Sparql\Update
+      updateTripleStore
+      cachedTasks = None
+      logger.info("Removed linking task '"+taskId +"' in project '"+name+"'")
+    }
+
+    private def updateTripleStore = {
+      // TODO - use stream - linkSpec.write()
+      // delete
+      sparulEndpoint.query(QueryFactory.dSourceCode(projectUri))
+      // insert updated
+      sparulEndpoint.query(QueryFactory.iSourceCode(projectUri,xmlProj.getLinkSpec.toString ))
+    }
+
+    private def loadTasks : Traversable[LinkingTask] = {      
       val res = sparqlEndpoint.query(QueryFactory.sProjectSourceCode(projectUri),1)
 
       if (res.size > 0 ){
-      
+
         val sourceCode = res.last("xml").value
         val linkSpec = XML.loadString(sourceCode)
         xmlProj = new XMLProject(linkSpec)
@@ -141,32 +176,17 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
         logger.warning("The TripleStore doesn't contain a proper Silk Link Specification for resource '"+projectUri+"'")
       }
 
-      xmlProj.linkingModule.tasks
+    val taskSeq = xmlProj.linkingModule.tasks
+    // XMLProject doesn't have datasouce info - since those are not in the sourceCode  
+    for (task <- taskSeq ){
+       task.loadCache(LDEProject.this) 
+      }
+
+    taskSeq
     }
 
-    override def update(task : LinkingTask) = synchronized  {
-      // update XML
-      xmlProj.linkingModule.update(task)
-      // update TS via Sparql\Update
-      updateTripleStore
-      logger.info("Updated linking task '"+task.name +"' in project '"+name+"'")
-    }
 
-    override def remove(taskId : Identifier) = synchronized {
-      // update XML
-      xmlProj.linkingModule.remove(taskId)
-      // update TS via Sparql\Update
-      updateTripleStore
-      logger.info("Removed linking task '"+taskId +"' in project '"+name+"'")
-    }
 
-    private def updateTripleStore = {
-      // TODO - use stream - linkSpec.write()
-      // delete
-      sparulEndpoint.query(QueryFactory.dSourceCode(projectUri))
-      // insert updated
-      sparulEndpoint.query(QueryFactory.iSourceCode(projectUri,xmlProj.getLinkSpec.toString ))
-    }
   }
 
 }
