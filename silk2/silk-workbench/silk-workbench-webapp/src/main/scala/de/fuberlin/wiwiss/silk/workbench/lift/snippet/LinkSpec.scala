@@ -28,7 +28,7 @@ class LinkSpec
   def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
     //JS Command which saves the current link specification
-    def saveCall = SHtml.ajaxCall(Call("serializeLinkSpec"), saveLinkSpec)._2.cmd
+    def saveCall(close : Boolean) = SHtml.ajaxCall(Call("serializeLinkSpec"), saveLinkSpec(close))._2.cmd
 
     //JS Command which closes the current link specification
     def closeCall = SHtml.ajaxInvoke(closeLinkSpec)._2.cmd
@@ -41,7 +41,7 @@ class LinkSpec
         height: 140,
         modal: true,
         buttons: {
-          Yes: function() { """  + saveCall.toJsCmd + closeCall.toJsCmd + """ $(this).dialog('close'); },
+          Yes: function() { """  + saveCall(true).toJsCmd + """ $(this).dialog('close'); },
           No: function() { """ + closeCall.toJsCmd + """$(this).dialog('close'); }
         }
       });""").cmd))
@@ -51,7 +51,7 @@ class LinkSpec
 
     bind("entry", xhtml,
          "close" -> (initDialog ++ SHtml.ajaxButton("Close", openDialog _)),
-         "save" -> SHtml.ajaxButton("Save", saveCall _),
+         "save" -> SHtml.ajaxButton("Save", () => saveCall(false)),
          "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("/config")))
   }
 
@@ -65,26 +65,9 @@ class LinkSpec
   }
 
   /**
-   * Closes the current link specification.
-   */
-  private def closeLinkSpec() =
-  {
-    try
-    {
-      User().closeTask()
-
-      Redirect("/index.html")
-    }
-    catch
-    {
-      case ex : Exception => JsRaw("alert('Error updating Link Specification. Details: " + ex.getMessage.encJs + "')").cmd
-    }
-  }
-
-  /**
    * Saves the Link Specification.
    */
-  private def saveLinkSpec(linkSpecStr : String) =
+  private def saveLinkSpec(closeOnSuccess : Boolean)(linkSpecStr : String) =
   {
     try
     {
@@ -100,11 +83,35 @@ class LinkSpec
       User().project.linkingModule.update(updatedLinkingTask)
       User().task = updatedLinkingTask
 
-      JsRaw("alert('Saved')").cmd
+      if(closeOnSuccess)
+      {
+        SHtml.ajaxInvoke(closeLinkSpec)._2.cmd
+      }
+      else
+      {
+        JsRaw("alert('Saved')").cmd
+      }
     }
     catch
     {
       case ex : Exception => JsRaw("alert('Error updating Link Specification. Details: " + ex.getMessage.encJs + "')").cmd
+    }
+  }
+
+  /**
+   * Closes the current link specification.
+   */
+  private def closeLinkSpec() =
+  {
+    try
+    {
+      User().closeTask()
+
+      Redirect("/index.html")
+    }
+    catch
+    {
+      case ex : Exception => JsRaw("alert('Error closing Editor. Details: " + ex.getMessage.encJs + "')").cmd
     }
   }
 
