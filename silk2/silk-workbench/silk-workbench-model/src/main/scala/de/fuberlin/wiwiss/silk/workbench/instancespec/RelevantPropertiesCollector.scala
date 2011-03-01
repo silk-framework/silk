@@ -41,7 +41,7 @@ object RelevantPropertiesCollector
     if(!results.isEmpty)
     {
       val maxCount = results.head("count").value.toDouble
-      for(result <- results) yield
+      for(result <- results if result.contains("p")) yield
       {
         (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value, endpoint.prefixes)) :: Nil),
          result("count").value.toDouble / maxCount)
