@@ -10,7 +10,9 @@ import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import net.liftweb.http.{S, SHtml}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
+import net.liftweb.sitemap.SiteMap
+import net.liftweb.http.{LiftRules, S, SHtml}
 
 /**
  * Workspace snippet.
@@ -39,6 +41,11 @@ import net.liftweb.http.{S, SHtml}
  *
  * def createLinkingTask(
  *     projectName : The name of the project
+ * )
+ *
+ * def editLinkingTask(
+ *     projectName : The name of the project
+ *     taskName : The name of the task to be removed
  * )
  *
  * def openLinkingTask(
@@ -78,6 +85,7 @@ object Workspace
     editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
     createLinkingTaskFunction &
+    editLinkingTaskFunction &
     openLinkingTaskFunction &
     injectFunction("removeLinkingTask", removeLinkingTask _)
   }
@@ -183,6 +191,26 @@ object Workspace
     CreateLinkingTaskDialog.initCmd & openLinkingTaskDialog
   }
 
+  /**
+   * JS Command which defines the editLinkingTask function
+   */
+  private def editLinkingTaskFunction : JsCmd =
+  {
+    def callback(args : String) : JsCmd = //JavaScriptUtils.Try("edit linking task")
+    {
+      val Array(projectName, taskName) = args.split(',')
+
+      User().project = User().workspace.project(projectName)
+      User().task = User().project.linkingModule.task(taskName)
+
+      EditLinkingTaskDialog.openCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
+
+    EditLinkingTaskDialog.initCmd & JsCmds.Function("editLinkingTask", "projectName" :: "taskName" :: Nil, ajaxCall)
+  }
+
   /*
    * JS Command which defines the openLinkingTask function
    */
@@ -197,7 +225,7 @@ object Workspace
         User().project = User().workspace.project(projectName)
         User().task = User().project.linkingModule.task(taskName)
 
-        JsRaw("window.location.href = '/linkSpec.html';").cmd
+        JavaScriptUtils.Redirect("/linkSpec.html")
       }
       catch
       {

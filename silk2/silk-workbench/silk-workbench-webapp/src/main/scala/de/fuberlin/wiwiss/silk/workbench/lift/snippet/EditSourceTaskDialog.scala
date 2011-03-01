@@ -8,6 +8,7 @@ import net.liftweb.http.js.JsCmds.OnLoad
 import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
 
 /**
  * A dialog to edit a source task.
@@ -32,8 +33,9 @@ class EditSourceTaskDialog
         val updatedSourceTask = SourceTask(source)
 
         User().project.sourceModule.update(updatedSourceTask)
+        User().closeTask()
 
-        JsRaw("$('#editSourceTaskDialog').dialog('close');").cmd & Workspace.updateCmd
+        EditSourceTaskDialog.closeCmd
       }
       catch
       {
@@ -73,5 +75,11 @@ object EditSourceTaskDialog
     JsRaw("$('#textboxRetryCount').attr('value', '" + retryCount + "');").cmd &
     JsRaw("$('#textboxRetryPause').attr('value', '" + retryPause + "');").cmd &
     JsRaw("$('#editSourceTaskDialog').dialog('open');").cmd
+  }
+
+  def closeCmd =
+  {
+    JsRaw("$('#editSourceTaskDialog').dialog('close');").cmd &
+    Workspace.updateCmd
   }
 }

@@ -36,10 +36,6 @@ class CreateLinkingTaskDialog
     {
       try
       {
-        val sourceNames = User().project.sourceModule.tasks.map(_.name.toString).toList
-        require(sourceNames.contains(sourceId), "Source '" + sourceId + "' does not exist")
-        require(sourceNames.contains(targetId), "Target '" + targetId + "' does not exist")
-
         val linkSpec =
           LinkSpecification(
             id = name,
@@ -55,7 +51,7 @@ class CreateLinkingTaskDialog
 
         User().project.linkingModule.update(linkingTask)
 
-        JsRaw("$('#createLinkingTaskDialog').dialog('close');").cmd & Workspace.updateCmd
+        CreateLinkingTaskDialog.closeCmd & Workspace.updateCmd
       }
       catch
       {
@@ -70,13 +66,15 @@ class CreateLinkingTaskDialog
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60"),
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
-         "prefixes" -> PrefixEditor.prefixEditor(prefixes),
-         "submit" -> SHtml.ajaxSubmit("Create", () => PrefixEditor.readPrefixes(submit))))
+         "prefixes" -> CreateLinkingTaskDialog.prefixEditor.show(prefixes),
+         "submit" -> SHtml.ajaxSubmit("Create", () => CreateLinkingTaskDialog.prefixEditor.read(submit))))
   }
 }
 
 object CreateLinkingTaskDialog
 {
+  private val prefixEditor = new PrefixEditor()
+
   def initCmd = OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
 
   def openCmd =
@@ -89,4 +87,6 @@ object CreateLinkingTaskDialog
     JsRaw("$('#selectTargetId').append('" + sourceOptions.toString + "');").cmd &
     JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
   }
+
+  def closeCmd = JsRaw("$('#createLinkingTaskDialog').dialog('close');").cmd
 }
