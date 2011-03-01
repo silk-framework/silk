@@ -82,9 +82,9 @@ object CreateLinkingTaskDialog
     val sourceOptions = for(task <- User().project.sourceModule.tasks) yield <option value={task.name}>{task.name}</option>
 
     JsRaw("$('#selectSourceId').children().remove();").cmd &
-    JsRaw("$('#selectSourceId').append('" + sourceOptions.toString + "');").cmd &
+    JsRaw("$('#selectSourceId').append('" + sourceOptions.mkString + "');").cmd &
     JsRaw("$('#selectTargetId').children().remove();").cmd &
-    JsRaw("$('#selectTargetId').append('" + sourceOptions.toString + "');").cmd &
+    JsRaw("$('#selectTargetId').append('" + sourceOptions.mkString + "');").cmd &
     JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
   }
 

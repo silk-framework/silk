@@ -104,9 +104,9 @@ object EditLinkingTaskDialog
 
     //Update source lists
     JsRaw("$('#editSourceId').children().remove();").cmd &
-    JsRaw("$('#editSourceId').append('" + sourceOptions.toString + "');").cmd &
+    JsRaw("$('#editSourceId').append('" + sourceOptions.mkString + "');").cmd &
     JsRaw("$('#editTargetId').children().remove();").cmd &
-    JsRaw("$('#editTargetId').append('" + targetOptions.toString + "');").cmd &
+    JsRaw("$('#editTargetId').append('" + targetOptions.mkString + "');").cmd &
     //Update restrictions
     JsRaw("$('#editSourceRes').attr('value', '" + datasets.source.restriction + "');").cmd &
     JsRaw("$('#editTargetRes').attr('value', '" + datasets.target.restriction + "');").cmd &
