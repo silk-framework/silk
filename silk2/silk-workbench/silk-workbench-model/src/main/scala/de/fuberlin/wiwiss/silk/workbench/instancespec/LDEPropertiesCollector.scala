@@ -34,7 +34,7 @@ object LDEPropertiesCollector
     val results = endpoint.query(sparql, MaxPropertyCount).toList
     if(!results.isEmpty)
     {
-      for(result <- results) yield
+      for(result <- results if result.contains("p")) yield
       {
         (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value, endpoint.prefixes)) :: Nil), 1.)
       }
