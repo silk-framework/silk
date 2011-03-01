@@ -237,7 +237,7 @@ function parseXML(xml, level, level_y, last_element)
     box5.attr("value", $(this).attr("weight"));
     box2.append(box5);
 
-    alert(comparators[$(this).attr("metric")]["parameters"]);
+    //alert(comparators[$(this).attr("metric")]["parameters"]);
 /*
 			$.each(comparators[$(this).attr("metric")].parameters, function(j, parameter) {
 				var box4 = $(document.createElement('br'));
