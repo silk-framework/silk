@@ -14,9 +14,11 @@ function loadOpenNodes(){
   {
     if (document.getElementById(ws.activeNodesId[key])) document.getElementById(ws.activeNodesId[key]).setAttribute('class', 'collapsable');
   }
+  if (ws.activeProjectId){
+      document.getElementById(ws.activeProjectId).setAttribute('class', 'collapsable');
+  }
   if (ws.activeTaskId) {
       document.getElementById(ws.activeTaskId).setAttribute('class', 'collapsable active');
-      document.getElementById(ws.activeProjectId).setAttribute('class', 'collapsable');
   }
 }
 
@@ -143,7 +145,6 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
 function updateWorkspace(obj){
         //var obj = jQuery.parseJSON('{"workspace": {   "project": [ {"name": "Project_1", "dataSource":[ {"name":"KEGG","url":"http://kegg.us"},{"name":"Wiki","url":"http://aba.com"}  ],  "linkingTask":[ {"name":"Gene","source":"KEGG","target":"Wiki","targetDataset":"rdf:type Wiki:Gene","sourceDataset":"rdf:type KEGG:gene"},{"name":"linkTask2","source":"KEGG","target":"Wiki"} ] }, {"name": "Project_2", "dataSource":[ {"name":"ABA","url":"http://aba.com"} ] }     ] } }');
 
-        // TODO remove if using callback functions
         removeNodeById("div_tree");
         removeNodeById("newproject");
 
@@ -202,14 +203,16 @@ function updateWorkspace(obj){
 
         document.getElementById("content").appendChild(tree);
 
-        // unfold active project
+        // uncollapse active project/task
+        if(obj.workspace.activeProject){
+             ws.activeProjectId = "project_"+obj.workspace.activeProject;
+        }
         if(obj.workspace.activeTask)
             {
-             ws.activeProjectId = "project_"+obj.workspace.activeProject;
              var idPrefix = (obj.workspace.activeTaskType === "LinkingTask") ?  'linkingtask_' : 'datasource_';
              ws.activeTaskId = idPrefix+obj.workspace.activeProject+"_"+obj.workspace.activeTask;
             }
-        if (ws.activeNodesId.length>0 || ws.activeTaskId)  loadOpenNodes();
+        if (ws.activeNodesId.length>0 || ws.activeTaskId || ws.activeProjectId)  loadOpenNodes();
 
         $("#tree").treeview();
 
@@ -218,7 +221,7 @@ function updateWorkspace(obj){
 
 // - dialogs
 function callAction(action,proj,res){
-    // (ugly) work-around : passing the action as parameter -> the action would be invoked anyway 
+    // work-around : passing the action as string parameter -> the action would be invoked anyway
     switch (action)
         {
         case 'removeProject' :  removeProject(proj);  break;
