@@ -32,7 +32,9 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
     logger.info ("Creating new Project: "+name  )
     // TODO check if it already exists..
     sparulEndpoint.query(QueryFactory.iNewProject(name))
-    projectList ::= new LDEProject(name,sparqlEndpoint,sparulEndpoint)
+    val newProject = new LDEProject(name,sparqlEndpoint,sparulEndpoint)
+    projectList ::= newProject
+    newProject
   }
 
   override def removeProject(name : String) =  {

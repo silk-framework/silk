@@ -147,12 +147,19 @@ function updateWorkspace(obj){
 
         removeNodeById("div_tree");
         removeNodeById("newproject");
+        removeNodeById("import");
 
         // new project button
         var newProj = document.createElement("div");
             newProj.setAttribute('id','newproject');
             addAction('add','Create new Project',"createProject()",newProj,"");
             document.getElementById("content").appendChild(newProj);
+
+        // import project button
+        var importProj = document.createElement("div");
+            importProj.setAttribute('id','import');
+            addAction('import','Import a Project',"importProject()",importProj,"");
+            document.getElementById("content").appendChild(importProj);
     
         var tree = document.createElement("div");
                 tree.id = "div_tree";
@@ -183,8 +190,7 @@ function updateWorkspace(obj){
                     proj_span.appendChild(proj_actions);
                 addAction('ds_add','Add DataSource',"createSourceTask('"+project.name+"')",proj_actions,project.name);
                 addAction('link_add','Add LinkingTask',"createLinkingTask('"+project.name+"')",proj_actions,project.name);
-                addAction('import','Import Project','',proj_actions,project.name);
-                addAction('export','Export Project '+project.name,'',proj_actions,project.name);
+                addAction('export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name);
                 addAction('delete','Remove Project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'');
 
 

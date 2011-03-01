@@ -20,6 +20,15 @@
           </table>
         </lift:createProjectDialog>
       </div>
+      <div id="importProjectDialog" title="Import Project">
+      <lift:importProjectDialog form="POST" multipart="true">
+        <entry:name/>
+        <br/>
+        <entry:file/>
+        <br/>
+        <entry:submit/>
+      </lift:importProjectDialog>
+    </div>
       <div id="createSourceTaskDialog" title="New Source Task">
         <lift:createSourceTaskDialog>
           <table border="0">

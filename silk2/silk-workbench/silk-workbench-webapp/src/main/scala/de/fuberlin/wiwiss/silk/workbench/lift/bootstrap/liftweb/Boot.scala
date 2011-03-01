@@ -16,9 +16,9 @@ import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import net.liftweb.widgets.autocomplete.AutoComplete
-import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
 import scala.xml.Text
 import de.fuberlin.wiwiss.silk.workbench.lift.util.ConfigBuilder
+import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectExporter, FileUser, User}
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -61,12 +61,19 @@ class Boot
 
   private def dispatch : LiftRules.DispatchPF =
   {
-    case req @ Req(List("config"), "", GetRequest) =>
+    case req @ Req(List("project"), "xml", GetRequest) =>
+    {
+      val outputStream = new ByteArrayOutputStream()
+      val projectXml = ProjectExporter(User().project)
+      val projectStr = new PrettyPrinter(140, 2).format(projectXml)
+      () => Full(InMemoryResponse(projectStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
+    }
+    case req @ Req(List("config"), "xml", GetRequest) =>
     {
       val outputStream = new ByteArrayOutputStream()
       val configXml = ConfigBuilder.build().toXML
       val configStr = new PrettyPrinter(140, 2).format(configXml)
-      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: Nil, Nil, 200))
+      () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
     }
     case req @ Req(List("api", "project", "paths"), "", GetRequest) => () => generatePaths(req)
     case req @ Req(List("api", "project", "operators"), "", GetRequest) => () => generateOperators()
