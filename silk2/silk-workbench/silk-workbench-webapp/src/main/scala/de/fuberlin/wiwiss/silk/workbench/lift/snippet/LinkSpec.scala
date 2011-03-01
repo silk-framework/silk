@@ -94,7 +94,8 @@ class LinkSpec
     }
     catch
     {
-      case ex : Exception => JsRaw("alert('Error updating Link Specification. Details: " + ex.getMessage.encJs + "')").cmd
+      case ex : Exception => JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + ex.getMessage.encJs +
+          ".\\n\\nLink Spec:\\n" + linkSpecStr.encJs + "');").cmd
     }
   }
 
