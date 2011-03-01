@@ -648,7 +648,7 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv sourcePath');
           box1.attr("id", "source_" + sourcecounter);
-          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + global_id+"');$('#source_" + global_id+"').remove();\"/></h5><div class='content'></div>");
+          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + sourcecounter +"');$('#source_" + sourcecounter +"').remove();\"/></h5><div class='content'></div>");
           return box1;
         }
       });
@@ -670,7 +670,7 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/><img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + global_id+"');$('#source_" + global_id+"').remove();\"/></h5><div class='content'></div>");
+        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/><img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + sourcecounter +"');$('#source_" + sourcecounter +"').remove();\"/></h5><div class='content'></div>");
         return box1;
       }
     });
@@ -679,9 +679,9 @@ function getPropertyPaths()
     var availablePaths = data.source.availablePaths;
     if (max_paths < availablePaths)
     {
-      var box = $(document.createElement('div'));
-      box.html('<a href="" class="more">&darr; more source paths...</a>').appendTo("#paths");
-      box.appendTo("#paths");
+      //var box = $(document.createElement('div'));
+      //box.html("<a href='/linkSpec' class='more'>&darr; more source paths...</a>");
+      //box.appendTo("#paths");
     }
 
     var box = $(document.createElement('div'));
@@ -730,7 +730,7 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/></h5><div class='content'></div>");
+        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/><img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();\"/></h5><div class='content'></div>");
         return box1;
       }
     });
