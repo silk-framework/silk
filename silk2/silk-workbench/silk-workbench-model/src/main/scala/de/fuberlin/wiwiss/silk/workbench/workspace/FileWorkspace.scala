@@ -23,9 +23,13 @@ class FileWorkspace(file : File) extends Workspace
 
   override def createProject(name : String) =
   {
+    require(!projectList.exists(_.name == name), "A project with the name '" + name + "' already exists")
+
     val projectDir = (file + ("/" + name))
     projectDir.mkdir()
-    projectList ::= new FileProject(projectDir)
+    val newProject = new FileProject(projectDir)
+    projectList ::= newProject
+    newProject
   }
 
   override def removeProject(name : String) =

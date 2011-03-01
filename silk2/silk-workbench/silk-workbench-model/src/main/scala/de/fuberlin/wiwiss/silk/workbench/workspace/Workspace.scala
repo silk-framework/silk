@@ -18,7 +18,7 @@ trait Workspace
     projects.find(_.name == name).getOrElse(throw new NoSuchElementException("Project '" + name + "' not found"))
   }
 
-  def createProject(name : String)
+  def createProject(name : String) : Project
 
   def removeProject(name : String)
 }

@@ -4,15 +4,14 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.JsonAST
-import net.liftweb.http.js.JsCmds.{Script, OnLoad}
+import net.liftweb.http.js.JsCmds.Script
 import xml.NodeSeq
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
-import net.liftweb.sitemap.SiteMap
-import net.liftweb.http.{LiftRules, S, SHtml}
+import net.liftweb.http.SHtml
 
 /**
  * Workspace snippet.
@@ -20,43 +19,18 @@ import net.liftweb.http.{LiftRules, S, SHtml}
  * Injects the following functions:
  *
  * def createProject()
+ * def removeProject(projectName)
+ * def importProject()
+ * def exportProject(projectName)
  *
- * def removeProject(
- *     projectName : The name of the project
- * )
+ * def createSourceTask(projectName)
+ * def editSourceTask(projectName, taskName)
+ * def removeSourceTask(projectName, taskName)
  *
- * def createSourceTask(
- *     projectName : The name of the project
- * )
- *
- * def editSourceTask(
- *     projectName : The name of the project
- *     taskName : The name of the task to be edited
- * )
- *
- * def removeSourceTask(
- *     projectName : The name of the project
- *     taskName : The name of the task to be removed
- * )
- *
- * def createLinkingTask(
- *     projectName : The name of the project
- * )
- *
- * def editLinkingTask(
- *     projectName : The name of the project
- *     taskName : The name of the task to be removed
- * )
- *
- * def openLinkingTask(
- *     projectName : The name of the project
- *     taskName : The name of the task to be removed
- * )
- *
- * def removeLinkingTask(
- *     projectName : The name of the project
- *     taskName : The name of the task to be removed
- * )
+ * def createLinkingTask(projectName)
+ * def editLinkingTask(projectName, taskName)
+ * def openLinkingTask(projectName, taskName)
+ * def removeLinkingTask(projectName, taskName)
  *
  * Whenever the workspace changes, the following function will be called:
  *
@@ -81,6 +55,8 @@ object Workspace
     updateCmd &
     createProjectFunction &
     removeProjectFunction &
+    importProjectFunction &
+    exportProjectFunction &
     createSourceTaskFunction &
     editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
@@ -123,6 +99,33 @@ object Workspace
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
 
     JsCmds.Function("removeProject", "projectName" :: Nil, ajaxCall)
+  }
+
+  /**
+   * JS Command which defines the importProject function
+   */
+  private def importProjectFunction : JsCmd =
+  {
+    val ajaxCall = SHtml.ajaxInvoke(ImportProjectDialog.openCmd _)._2.cmd
+
+    ImportProjectDialog.initCmd & JsCmds.Function("importProject", Nil, ajaxCall)
+  }
+
+  /**
+   * JS Command which defines the exportProject function
+   */
+  private def exportProjectFunction : JsCmd =
+  {
+    def callback(projectName : String) : JsCmd =
+    {
+      User().project = User().workspace.project(projectName)
+
+      JavaScriptUtils.Redirect("project.xml")
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+
+    JsCmds.Function("exportProject", "projectName" :: Nil, ajaxCall)
   }
 
   /**

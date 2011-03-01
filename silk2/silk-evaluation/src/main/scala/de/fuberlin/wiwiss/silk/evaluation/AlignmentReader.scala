@@ -30,7 +30,7 @@ object AlignmentReader
     readAlignment(XML.loadFile(file))
   }
 
-  private def readAlignment(xml : Node) : Alignment =
+  def readAlignment(xml : Node) : Alignment =
   {
     new Alignment(readLinks(xml, "=").toSet, readLinks(xml, "!=").toSet)
   }

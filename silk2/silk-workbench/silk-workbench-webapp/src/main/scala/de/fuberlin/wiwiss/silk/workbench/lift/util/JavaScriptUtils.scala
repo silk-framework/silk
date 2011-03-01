@@ -35,6 +35,11 @@ object JavaScriptUtils
   def Reload = JsRaw("window.location.reload();").cmd
 
   /**
+   * Shows message box to the user.
+   */
+  def Message(msg : String) = JsRaw("alert('" + msg + "');").cmd
+
+  /**
    * Tries to execute a function and shows an error box to the user in case it fails with an exception.
    *
    * @param description A short description of the function to be shown to the user.
@@ -47,7 +52,13 @@ object JavaScriptUtils
     }
     catch
     {
-      case ex : Exception => JsRaw("alert('Error while trying to " + description + ". Details: " + ex.getMessage.encJs + "');").cmd
+      case ex : Exception => Message("Error while trying to " + description + ". Details: " + ex.getMessage.encJs)
     }
   }
+
+  /**
+   * Empty command which does nothing.
+   */
+  def Empty = JsRaw("").cmd
+
 }
