@@ -11,8 +11,8 @@ body{
 	background-color:#fefefe;
 	border: 1px solid #eee;
 	height:90%;
-	padding:12px;
-	width:96%;
+	padding:5px;
+	width:100%;
 	margin: 10px;
 	float: left;
     /*position:absolute;*/
@@ -153,7 +153,7 @@ a.more {
 	padding: 5px;
 }
 .droppable_outer {
-	width: 60%;
+	width: 50%;
 	height: 650px;
 	margin: 25px 10px;
 	float: left;
