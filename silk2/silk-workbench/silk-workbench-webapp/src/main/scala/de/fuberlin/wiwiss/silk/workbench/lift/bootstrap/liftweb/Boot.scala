@@ -102,11 +102,11 @@ class Boot
     val isLoadingField = JField("isLoading", JBool(instanceSpecs == null))
 
     var errorMsg : Option[String] = None
-    if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isDone)
+    if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isSet)
     {
       try
       {
-        linkingTask.cacheLoading.get
+        linkingTask.cacheLoading()
       }
       catch
       {

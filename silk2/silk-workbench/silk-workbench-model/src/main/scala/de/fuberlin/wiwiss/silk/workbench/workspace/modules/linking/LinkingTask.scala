@@ -5,15 +5,12 @@ import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
-import de.fuberlin.wiwiss.silk.util.{SourceTargetPair, Task, Identifier}
 import de.fuberlin.wiwiss.silk.workbench.instancespec.RelevantPropertiesCollector
 import de.fuberlin.wiwiss.silk.util.sparql.{RemoteSparqlEndpoint, SparqlEndpoint, InstanceRetriever}
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import java.net.URI
-import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceModule
-import de.fuberlin.wiwiss.silk.datasource.Source
-import java.util.concurrent.Future
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
+import de.fuberlin.wiwiss.silk.util.{Future, SourceTargetPair, Task, Identifier}
 
 /**
  * A linking task which interlinks two datasets.
@@ -24,7 +21,7 @@ case class LinkingTask(name : Identifier,
                        alignment : Alignment,
                        cache : Cache) extends ModuleTask
 {
-  var cacheLoading : Future[_] = null
+  var cacheLoading : Future[Unit] = null
 
   val cacheLoader : Task[Unit] = new CacheLoader()
 
@@ -37,8 +34,7 @@ case class LinkingTask(name : Identifier,
   def reloadCache(project : Project)
   {
     cache.instanceSpecs = null
-    cache.negativeInstances = null
-    cache.positiveInstances = null
+    cache.instances = null
 
     loadCache(project)
   }
@@ -74,7 +70,7 @@ case class LinkingTask(name : Identifier,
         cache.instanceSpecs = new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
       }
 
-      if(!positiveSamples.isEmpty && (cache.positiveInstances == null || cache.negativeInstances == null))
+      if(!positiveSamples.isEmpty && (cache.instances == null))
       {
         updateStatus(0.2)
 
@@ -93,8 +89,9 @@ case class LinkingTask(name : Identifier,
         val negativeTargetInstances = executeSubTask(negativeTargetInstancesTask, 1.0)
 
         //Fill the cache with the loaded instances
-        cache.positiveInstances = (positiveSourceInstances zip positiveTargetInstances).map(SourceTargetPair.fromPair)
-        cache.negativeInstances = (negativeSourceInstances zip negativeTargetInstances).map(SourceTargetPair.fromPair)
+        val positiveInstances = (positiveSourceInstances zip positiveTargetInstances).map(SourceTargetPair.fromPair)
+        val negativeInstances = (negativeSourceInstances zip negativeTargetInstances).map(SourceTargetPair.fromPair)
+        cache.instances = ReferenceInstances(positiveInstances, negativeInstances)
       }
     }
   }

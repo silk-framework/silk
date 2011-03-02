@@ -8,8 +8,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, SparqlEndpoint}
 //TODO use options?
 //TODO store path frequencies
 class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
-            var positiveInstances : Traversable[SourceTargetPair[Instance]] = null,
-            var negativeInstances : Traversable[SourceTargetPair[Instance]] = null)
+            var instances : ReferenceInstances = null)
 {
   def toXML : Node =
   {
@@ -28,11 +27,11 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
         </InstanceSpecifications>)
     }
 
-    if(positiveInstances != null)
+    if(instances != null)
     {
       nodes.append(
           <PositiveInstances>{
-          for(SourceTargetPair(sourceInstance, targetInstance) <- positiveInstances) yield
+          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.positiveInstances) yield
           {
             <Pair>
               <Source>{sourceInstance.toXML}</Source>
@@ -40,13 +39,10 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
             </Pair>
           }
           }</PositiveInstances>)
-    }
 
-    if(negativeInstances != null)
-    {
       nodes.append(
         <NegativeInstances>{
-          for(SourceTargetPair(sourceInstance, targetInstance) <- negativeInstances) yield
+          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.negativeInstances) yield
           {
             <Pair>
               <Source>{sourceInstance.toXML}</Source>
@@ -112,6 +108,8 @@ object Cache
       }
     }
 
-    new Cache(instanceSpecs, positiveInstances, negativeInstances)
+    val instances = if(positiveInstances != null && negativeInstances != null) ReferenceInstances(positiveInstances, negativeInstances) else null
+
+    new Cache(instanceSpecs, instances)
   }
 }
