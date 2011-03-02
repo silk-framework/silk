@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.util
 import de.fuberlin.wiwiss.silk.util.Task._
 import java.util.logging.{Level, Logger}
 import collection.mutable.{Subscriber, Publisher}
-import java.util.concurrent.{Future, Executors, Callable}
+import java.util.concurrent._
 
 /**
  * A task which computes a result.
@@ -193,7 +193,18 @@ object Task
    */
   implicit def toCallable[T](task : Task[T]) = new Callable[T] { override def call() = task.apply() }
 
-  private val backgroundExecutor = Executors.newCachedThreadPool()
+  /**
+   * The executor service used to execute link specs in the background.
+   */
+  private val backgroundExecutor =
+  {
+    val executor = Executors.newCachedThreadPool()
+
+    //Reducing the keep-alive time of the executor, so it won't prevent the JVM from shutting down to long
+    executor.asInstanceOf[ThreadPoolExecutor].setKeepAliveTime(2, TimeUnit.SECONDS)
+
+    executor
+  }
 
   /**
    * A status message
