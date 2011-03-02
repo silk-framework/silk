@@ -38,7 +38,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
         if(!blockIndexes.isEmpty) instanceCount += 1
       }
 
-      logger.info("Written " + instanceCount + " instances.")
+      logger.info("Written " + instanceCount + " instances with type '" + instanceSpec.restrictions + "'.")
     }
     finally
     {
