@@ -251,7 +251,10 @@ Given a number of 40.000 books in the first dataset and 30.000 in the second dat
 If we block this datasets by publisher, each book will be allocated to a block based on its publisher.
 Using 100 blocks, if the books are uniformly distributed, there will be 400 respectively 300 books per block, which reduces the number of comparisons to 12 million.</p>
 
-<p>The <tt>&lt;Blocking&gt;</tt> statement specifies the properties according to which the data items are allocated to clusters.
+<p>The <tt>&lt;Blocking&gt;</tt> statement enables the blocking phase.
+Additional configuration is not required as Silk will automatically generate a blocking function from the link specification.
+The optional <tt>blocks</tt> attribute specifies the number of blocks which will be used.
+The default value of 100 blocks is appropriate for most use cases.
 If no <tt>&lt;Blocking&gt;</tt> statement is supplied in a link specification, the comparison will loop over all resource pairs (Cartesian product).</p>
 
 <TABLE borderColor=#cccccc cellSpacing=0 cellPadding=5 width="100%" border=1>
