@@ -134,7 +134,14 @@ function parseXML(xml, level, level_y, last_element)
     box2.addClass('handler');
     var mytext = document.createTextNode("Aggregator: " + aggregators[$(this).attr("type")]);
     box2.append(mytext);
-    box1.append(box2);
+	
+	var img = $(document.createElement('img'));
+	img.attr("src", "static/img/delete.png");
+	img.attr("align", "right");
+	img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate" + aggregatecounter+"').remove();");
+	box2.append(img);
+
+	box1.append(box2);
 
     var box2 = $(document.createElement('div'));
     box2.addClass('content');
@@ -209,6 +216,13 @@ function parseXML(xml, level, level_y, last_element)
     box2.addClass('handler');
     var mytext = document.createTextNode("Comparator: " + comparators[$(this).attr("metric")]);
     box2.append(mytext);
+
+	var img = $(document.createElement('img'));
+	img.attr("src", "static/img/delete.png");
+	img.attr("align", "right");
+	img.attr("onclick", "jsPlumb.removeAllEndpoints('#compare_" + comparecounter+"');$('#compare_" + comparecounter+"').remove();");
+	box2.append(img);
+
     box1.append(box2);
 
     var box2 = $(document.createElement('div'));
@@ -302,6 +316,13 @@ function parseXML(xml, level, level_y, last_element)
     box2.addClass('handler');
     var mytext = document.createTextNode("Transformation: " + transformations[$(this).attr("function")]);
     box2.append(mytext);
+
+	var img = $(document.createElement('img'));
+	img.attr("src", "static/img/delete.png");
+	img.attr("align", "right");
+	img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
+	box2.append(img);
+
     box1.append(box2);
 
     var box2 = $(document.createElement('div'));
@@ -356,6 +377,13 @@ function parseXML(xml, level, level_y, last_element)
     box2.addClass('handler');
     var mytext = document.createTextNode($(this).attr("path"));
     box2.append(mytext);
+
+	var img = $(document.createElement('img'));
+	img.attr("src", "static/img/delete.png");
+	img.attr("align", "right");
+	img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
+	box2.append(img);
+
     box1.append(box2);
 
     var box2 = $(document.createElement('div'));
@@ -808,8 +836,6 @@ function getOperators()
               img.attr("align", "right");
               img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
               box2.append(img);
-
-              box1.append(box2);
 
               box1.append(box2);
 
