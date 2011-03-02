@@ -43,7 +43,15 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
     projectList = projectList.filterNot(_.name == name)
   }
 
+  def dataSourceList : List[String] = {
+    val res = sparqlEndpoint.query(QueryFactory.sDataSources)
+    logger.warning(QueryFactory.sDataSources)
+    for(datasource <- res.toList) yield clean (datasource("uri").value )  
+  }
+
   // util
   def clean (uri : String) =  {   uri.split("/").last  }
+
+
 }
 
