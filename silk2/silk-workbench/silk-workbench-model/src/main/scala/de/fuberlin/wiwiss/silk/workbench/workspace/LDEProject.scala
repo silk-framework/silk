@@ -51,9 +51,8 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
        // load target datasource  -  Wiki
       logger.info("Loading TARGET Datasource: Wiki")
       val params = Map( "endpointURI" -> sparqlEndpoint.uri.toString,
-                       // TODO - "graph" -> "http://www.example.org/nullvalue",
-                       "tripleStoreUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
-                       "label" -> "Wiki" )
+                        "tripleStoreUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
+                        "label" -> "Wiki")
       var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
 
        // load source datasource  - optional
@@ -69,16 +68,16 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     }
 
     override def update(task : SourceTask) = synchronized {
-      // TODO - working in progress
-       // delete
-      //sparulEndpoint.query(QueryFactory.dDataSource(projectUri))
+       // delete datasource
+      sparulEndpoint.query(QueryFactory.dDataSource(projectUri))
        // insert datasource link into TS
-       // val dataSourceName = ((task.source.toXML \ "param").filter(n => (n \ "@name").text.equals("label")).first \ "@value").text
-      sparulEndpoint.query(QueryFactory.iDataSource(projectUri,task.name))
+      val label = task.source.dataSource match {case DataSource(_, p) => {p("label").toString}}
+      sparulEndpoint.query(QueryFactory.iDataSource(projectUri,label))
       logger.info("Updated source '"+task.name +"' in project '"+name)
     }
 
     override def remove(taskId : Identifier) = synchronized {
+      // it only allows to remove SOURCE
       if (taskId.equals("SOURCE")){
         // delete datasource link from TS
        sparulEndpoint.query(QueryFactory.dDataSource(projectUri))
@@ -94,20 +93,21 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
         if (res.size > 0) {
            val ds = res.last
            val label = ds("label").value
-            // 'url' contains the remote datasource SPARQL endpoint - but identity resolution works on local data, therefore TripleStore SPARQL endpoint is used as datasource endpoint
-            //  val url = ds("url").value
-           val url = sparqlEndpoint.uri.toString
+           // 'url' contains the remote datasource SPARQL endpoint - but identity resolution works on local data, therefore TripleStore SPARQL endpoint is used as datasource endpoint
+           val url = ds("url").value
+           val endpointUri = sparqlEndpoint.uri.toString
            val graph =  ds("graph").value
-           val params = Map( "endpointURI" -> url,
+           val params = Map( "endpointURI" -> endpointUri,
                             "label" -> label,
-                            "graph" -> graph,
-                            "tripleStoreURI" -> dataSourceUri )
+                            //"graph" -> graph,
+                            "tripleStoreURI" -> dataSourceUri,
+                            "remoteEndpoint" -> url)
            SourceTask(Source("SOURCE",DataSource("sparqlEndpoint",params)))
         }
         else {
            // Datasource definition not found
            // TODO - throw Exception 'Error in retrieving the datasource' ?
-           SourceTask(Source("Not_Found",DataSource("sparqlEndpoint",Map())))
+           SourceTask(Source("DataSource_Not_Found",DataSource("sparqlEndpoint",Map( "endpointURI" -> ""))))
         }
     }
     
