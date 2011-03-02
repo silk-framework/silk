@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.util
 import de.fuberlin.wiwiss.silk.util.Task._
 import java.util.logging.{Level, Logger}
 import collection.mutable.{Subscriber, Publisher}
-import java.util.concurrent._
+import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
 
 /**
  * A task which computes a result.
@@ -61,7 +61,7 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
   /**
    * Executes this task in a background thread
    */
-  def runInBackground() : Future[_] =
+  def runInBackground() : Future[T] =
   {
     running = true
     Task.backgroundExecutor.submit(toCallable(this))
