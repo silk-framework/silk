@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import java.util.logging.Logger
-import xml.{Elem, XML}
+import xml.XML
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
@@ -71,8 +71,8 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
        // delete datasource
       sparulEndpoint.query(QueryFactory.dDataSource(projectUri))
        // insert datasource link into TS
-      val label = task.source.dataSource match {case DataSource(_, p) => {p("label").toString}}
-      sparulEndpoint.query(QueryFactory.iDataSource(projectUri,label))
+      val datasourceUri = task.source.dataSource match {case DataSource(_, p) => {p("datasourceUri").toString}}
+      sparulEndpoint.query(QueryFactory.iDataSource(projectUri,datasourceUri))
       logger.info("Updated source '"+task.name +"' in project '"+name)
     }
 
@@ -92,16 +92,12 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
         if (res.size > 0) {
            val ds = res.last
-           val label = ds("label").value
-           // 'url' contains the remote datasource SPARQL endpoint - but identity resolution works on local data, therefore TripleStore SPARQL endpoint is used as datasource endpoint
-           val url = ds("url").value
+           val id = ds("id").value
            val endpointUri = sparqlEndpoint.uri.toString
-           val graph =  ds("graph").value
            val params = Map( "endpointURI" -> endpointUri,
-                            "label" -> label,
-                            //"graph" -> graph,
-                            "tripleStoreURI" -> dataSourceUri,
-                            "remoteEndpoint" -> url)
+                             "id" -> id,
+                            //"label" -> label,
+                            "datasourceUri" -> dataSourceUri)
            SourceTask(Source("SOURCE",DataSource("sparqlEndpoint",params)))
         }
         else {
