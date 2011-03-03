@@ -3,17 +3,11 @@ package de.fuberlin.wiwiss.silk.workbench.util
 
 object QueryFactory{
 
-  val wikiGraph = "http://mywiki/resource"
   val mappingGraph = "smwGraphs:MappingRepository"
   val datasourceGraph = "smwGraphs:DataSourceInformationGraph"
 
-
   val dataSources = "http://www.example.org/smw-lde/smwDatasources/"
   val dataSourceLinks = "http://www.example.org/smw-lde/smwDatasourceLinks/"
-  val smwCategory = wikiGraph + "/category/"
-  val smwProperty = wikiGraph + "/property/"
-  val haloProp = "http://www.ontoprise.de/smwplus/tsc/haloprop#"
-
 
   def getPrefixes = Map ( "smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/",
                           "smwDatasourceLinks" -> dataSourceLinks,
@@ -65,10 +59,9 @@ object QueryFactory{
   // create sourceCode mapping property 
   def iSourceCode(projectUri : String, sourceCode : String) = "INSERT DATA INTO "+mappingGraph+" {<"+projectUri+"> smw-lde:sourceCode \"<?xml version='1.0' encoding='utf-8' ?>"+sourceCode.replaceAll("\n","").replaceAll("\"","'") +"\" }    "
 
-
   //-- Linking Task Editor --
 
   // retrieve property paths from the wiki ontology
-  def sPropertyPaths(categoryUri : String) = "SELECT ?p FROM <"+wikiGraph+"> WHERE {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ categoryUri + "}"
+  def sPropertyPaths(categoryUri : String) = "SELECT ?p WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ categoryUri + "} } "
 
 }
