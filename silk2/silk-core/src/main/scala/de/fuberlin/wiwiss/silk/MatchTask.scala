@@ -54,8 +54,11 @@ class MatchTask(linkSpec : LinkSpecification,
         links.appendAll(result.get)
         finishedTasks += 1
 
-        val status = if(scheduler.isAlive) "Executing Matching (Still loading) (" else "Executing Matching ("
-        updateStatus(status + finishedTasks + " tasks finished)", finishedTasks.toDouble / scheduler.taskCount)
+        val statusPrefix = if(scheduler.isAlive) "Matching (Still loading)" else "Matching"
+        val statusTasks = " (" + finishedTasks + " tasks finished."
+        val statusLinks = " " + linkBuffer.size + " links generated.)"
+
+        updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
       }
     }
 
