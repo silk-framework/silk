@@ -44,7 +44,8 @@ object QueryFactory{
   def sProjectSourceCode(projectUri : String) = "SELECT ?xml FROM "+mappingGraph+" WHERE  {  <"+projectUri+"> smw-lde:sourceCode ?xml   }"
 
   // retrieve all datasources
-  def sDataSources  =   " SELECT ?uri ?id " +
+  def sDataSources  =   "PREFIX smw-lde: <http://www.example.org/smw-lde/smw-lde.owl#> " +
+                        " SELECT ?uri ?id " +
                         " FROM "+datasourceGraph+
                         " WHERE  { ?uri rdf:type smw-lde:Datasource . ?uri smw-lde:ID ?id }"
 
