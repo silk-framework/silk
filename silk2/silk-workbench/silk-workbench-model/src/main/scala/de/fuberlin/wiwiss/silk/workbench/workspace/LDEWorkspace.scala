@@ -45,10 +45,9 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
 
   def dataSourceList : Map[String,String] = {
     val res = sparqlEndpoint.query(QueryFactory.sDataSources)
-    logger.warning(QueryFactory.sDataSources)
-    val datasources : Map[String,String] = Map.empty
+    var datasources : Map[String,String] = Map.empty
     for(datasource <- res.toList) {
-      datasources + ( datasource("uri").value -> clean(datasource("id").value ) )
+      datasources = datasources + ( datasource("uri").value -> clean(datasource("id").value ) ) 
     }
     datasources
   }
