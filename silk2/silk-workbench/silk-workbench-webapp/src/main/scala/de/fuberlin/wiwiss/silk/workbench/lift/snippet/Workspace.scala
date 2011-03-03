@@ -287,9 +287,9 @@ object Workspace
     // TODO - Nested 'yield's seem to cause the (strange) compiler error: 'xxx is not an enclosing class'
     var projectList : List[JValue] = List()
 
-    for(project <- User().workspace.projects.toSeq)
+    for(project <- User().workspace.projects.toSeq.sortBy(n => (n.name.toString.toLowerCase)))
     {
-      val sources : JArray = for(task <- project.sourceModule.tasks.toSeq) yield
+      val sources : JArray = for(task <- project.sourceModule.tasks.toSeq.sortBy(n => (n.name.toString.toLowerCase))) yield
       {
         task.source.dataSource match
         {
@@ -301,7 +301,7 @@ object Workspace
         }
       }
 
-      val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq) yield
+      val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq.sortBy(n => (n.name.toString.toLowerCase))) yield
       {
         ("name" -> task.name.toString) ~
         ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
@@ -317,7 +317,7 @@ object Workspace
         ("linkingTask" -> linkingTasks)
       }
 
-      projectList ::= proj
+      projectList :+= proj
     }
 
     val projects = ("project" -> JArray(projectList))
