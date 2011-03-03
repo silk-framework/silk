@@ -27,7 +27,7 @@ object LDEPropertiesCollector
   private def getAllPaths(endpoint : SparqlEndpoint, restriction : String) : Traversable[(Path, Double)] =
   {
     val variable = restriction.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
-    val category = restriction.split(' ').last
+    val category = restriction.split(' ')(2)
 
     val sparql = QueryFactory.sPropertyPaths(category)
 

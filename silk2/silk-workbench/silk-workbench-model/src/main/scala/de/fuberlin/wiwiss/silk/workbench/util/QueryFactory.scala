@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.util
 
 object QueryFactory{
 
-  val wikiGraph = "http://halowiki/ob"
+  val wikiGraph = "http://mywiki/resource"
   val mappingGraph = "smwGraphs:MappingRepository"
   val datasourceGraph = "smwGraphs:DataSourceInformationGraph"
 
@@ -20,8 +20,6 @@ object QueryFactory{
                           "smwDatasources" -> dataSources,
                           "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#",
                           "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-                         // "smwcat" -> smwCategory,
-                         // "smwprop" -> smwProperty  )
 
   //-- LDEWorkspace --
 
@@ -46,19 +44,19 @@ object QueryFactory{
   def sProjectSourceCode(projectUri : String) = "SELECT ?xml FROM "+mappingGraph+" WHERE  {  <"+projectUri+"> smw-lde:sourceCode ?xml   }"
 
   // retrieve all datasources
-  def sDataSources  =   " SELECT ?uri " +
+  def sDataSources  =   " SELECT ?uri ?id " +
                         " FROM "+datasourceGraph+
-                        " WHERE  { ?uri rdf:type smw-lde:Datasource }"
+                        " WHERE  { ?uri rdf:type smw-lde:Datasource . ?uri smw-lde:ID ?id }"
 
   // retrieve a datasource by uri
-  def sDataSource(dataSourceUri : String) = "SELECT ?url ?label ?graph FROM "+datasourceGraph+" WHERE   { <"+dataSourceUri+"> smw-lde:sparqlEndpointLocation ?url . <"+dataSourceUri+"> smw-lde:ID ?label . <"+dataSourceUri+"> smw-lde:sparqlGraphName ?graph }"
+  def sDataSource(dataSourceUri : String) = "SELECT ?id ?desc FROM "+datasourceGraph+" WHERE   { <"+dataSourceUri+"> smw-lde:ID ?id . OPTIONAL {<"+dataSourceUri+"> smw-lde:description ?desc } }"
 
   // - Update DataSource
   // delete a SOURCE datasource link
   // SMW constraint - every link specification MUST have the WIKI datasource as TARGET source
   def dDataSource(projectUri : String) = "DELETE DATA FROM  "+mappingGraph+"  {<"+projectUri+"> smw-lde:linksFrom ?datasource} "
   // create a SOURCE datasource link
-  def iDataSource(projectUri : String, dataSourceId : String) = "INSERT DATA INTO  "+mappingGraph+" {<"+projectUri+"> smw-lde:linksFrom <"+dataSources+dataSourceId+"> } "
+  def iDataSource(projectUri : String, dataSourceId : String) = "INSERT DATA INTO  "+mappingGraph+" {<"+projectUri+"> smw-lde:linksFrom <"+dataSourceId+"> } "
 
   // - Update Link Spec 
   // delete sourceCode mapping property
@@ -70,11 +68,6 @@ object QueryFactory{
   //-- Linking Task Editor --
 
   // retrieve property paths from the wiki ontology
-  //def sPropertyPaths(categoryUri : String) = "SELECT ?p FROM <"+wikiGraph+"> WHERE {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ categoryUri + "}"
-  val hasDomainAndRange =  "<"+smwProperty+"Has_domain_and_range>"
-  val hasRange = "<"+smwProperty+"_1>"
-  // TODO - complicate handling - due to prefix ending with '#' - test again
-  def sPropertyPaths(categoryUri : String) = "SELECT ?p FROM <"+wikiGraph+"> WHERE {?p "+hasDomainAndRange+" ?x. ?x "+hasRange+" <"+categoryUri.replaceAll("smwcat:",smwCategory)+"> }"
-
+  def sPropertyPaths(categoryUri : String) = "SELECT ?p FROM <"+wikiGraph+"> WHERE {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ categoryUri + "}"
 
 }
