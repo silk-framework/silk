@@ -20,6 +20,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
 
   override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
   {
+    val startTime = System.currentTimeMillis()
     writing = true
     var instanceCount = 0
 
@@ -38,7 +39,8 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
         if(!blockIndexes.isEmpty) instanceCount += 1
       }
 
-      logger.info("Written " + instanceCount + " instances with type '" + instanceSpec.restrictions + "'.")
+      val time = ((System.currentTimeMillis - startTime) / 1000.0)
+      logger.info("Fnished writing " + instanceCount + " instances with type '" + instanceSpec.restrictions + "' in " + time + " seconds")
     }
     finally
     {

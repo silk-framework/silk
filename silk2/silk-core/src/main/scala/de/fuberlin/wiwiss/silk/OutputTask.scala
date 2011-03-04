@@ -9,6 +9,8 @@ import output.{Output, Link}
 */
 class OutputTask(links : Buffer[Link], linkType : String, outputs : Traversable[Output]) extends Task[Unit]
 {
+  taskName = "Writing output"
+
   override def execute()
   {
     outputs.foreach(_.open)

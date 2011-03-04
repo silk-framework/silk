@@ -8,6 +8,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.LoadTask
 import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
  * Populates the instance cache.
@@ -75,17 +76,17 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
   {
     val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 
-    val sourceSource = config.source(linkSpec.datasets.source.sourceId)
-    val targetSource = config.source(linkSpec.datasets.target.sourceId)
+    val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
 
-    val sourceCache = new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
-    val targetCache = new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
+    val caches = SourceTargetPair(
+      new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1)),
+      new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
+    )
 
     def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % config.blocking.map(_.blocks).getOrElse(1))
 
-    new LoadTask(sourceSource, sourceCache, instanceSpecs.source, if(config.blocking.isDefined) Some(blockingFunction _) else None)()
-    new LoadTask(targetSource, targetCache, instanceSpecs.target, if(config.blocking.isDefined) Some(blockingFunction _) else None)()
+    new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(blockingFunction _) else None)()
   }
 }

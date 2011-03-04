@@ -10,6 +10,8 @@ import collection.mutable.{ArrayBuffer, Buffer}
  */
 class FilterTask(links : Buffer[Link], filter : LinkFilter) extends Task[Buffer[Link]]
 {
+  taskName = "Filtering"
+
   override def execute() : Buffer[Link] =
   {
     filter.limit match

@@ -7,22 +7,20 @@ import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, MemoryInstanceCa
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.output.Link
 import collection.mutable.{Buffer, ArrayBuffer}
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
  * Holds the dataset of a link specification.
  */
 class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecification, writeUnmatchedInstances : Boolean)
 {
-  private val sourceSource = config.source(linkSpec.datasets.source.sourceId)
-  private val targetSource = config.source(linkSpec.datasets.target.sourceId)
+  private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
   private val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
 
-  private val sourceCache = new MemoryInstanceCache()
-  private val targetCache = new MemoryInstanceCache()
+  private val caches = SourceTargetPair.fill(new MemoryInstanceCache())
 
-  new LoadTask(sourceSource, sourceCache, instanceSpecs.source)()
-  new LoadTask(targetSource, targetCache, instanceSpecs.target)()
+  new LoadTask(sources, caches, instanceSpecs)()
 
   /**
    * Matches a set of instances with all instances in this dataset.
@@ -51,7 +49,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     var links : Buffer[Link] = new ArrayBuffer[Link]()
     if(instanceCache.instanceCount > 0)
     {
-      val matcher = new MatchTask(linkSpec, instanceCache, targetCache, 8)
+      val matcher = new MatchTask(linkSpec, SourceTargetPair(instanceCache, caches.target), 8)
       links = matcher()
     }
 
@@ -61,14 +59,14 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
     if(writeUnmatchedInstances)
     {
       //TODO enable blocking
-      targetCache.write(unmatchedInstances)
+      caches.target.write(unmatchedInstances)
       //targetCache.write(unmatchedInstances, linkSpec.blocking)
     }
 
     MatchResult(links, linkSpec.linkType, unmatchedInstances.map(_.uri).toSet)
   }
 
-  def sourceInstanceCount = sourceCache.instanceCount
+  def sourceInstanceCount = caches.source.instanceCount
 
-  def targetInstanceCount = targetCache.instanceCount
+  def targetInstanceCount = caches.target.instanceCount
 }

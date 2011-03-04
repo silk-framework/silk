@@ -6,9 +6,10 @@ import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
 import datasource.DataSource
 import java.io.File
-import java.util.logging.Logger
 import linkspec.{Aggregator, LinkSpecification}
 import util.StringUtils._
+import util.{Future, SourceTargetPair}
+import java.util.logging.{Level, Logger}
 
 /**
  * Executes the complete Silk workflow.
@@ -107,38 +108,30 @@ object Silk
   private def executeLinkSpec(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = DefaultThreads, reload : Boolean = true)
   {
     val startTime = System.currentTimeMillis()
-    logger.info("Silk started")
 
     //Retrieve Instance Specifications from Link Specification
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
 
     //Create instance caches
-    val sourceCache = new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
-    val targetCache = new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
+    val caches = SourceTargetPair(
+        new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/source/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1)),
+        new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/target/" + linkSpec.id + "/"), reload, config.blocking.map(_.blocks).getOrElse(1))
+      )
 
     //Load instances into cache
+    var loader : Future[Unit] = null
     if(reload)
     {
-      val sourceSource = config.source(linkSpec.datasets.source.sourceId)
-      val targetSource = config.source(linkSpec.datasets.target.sourceId)
+      val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
       def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % config.blocking.map(_.blocks).getOrElse(1))
 
-      val loadSourceCacheTask = new LoadTask(sourceSource, sourceCache, instanceSpecs.source, if(config.blocking.isDefined) Some(blockingFunction _) else None)
-      val loadTargetCacheTask = new LoadTask(targetSource, targetCache, instanceSpecs.target, if(config.blocking.isDefined) Some(blockingFunction _) else None)
-
-      loadSourceCacheTask.runInBackground()
-      loadTargetCacheTask.runInBackground()
-
-      //Wait until caches are being written
-      while((loadSourceCacheTask.isRunning && !sourceCache.isWriting) || (loadTargetCacheTask.isRunning && !targetCache.isWriting))
-      {
-        Thread.sleep(100)
-      }
+      val loadTask = new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(blockingFunction _) else None)
+      loader = loadTask.runInBackground()
     }
 
     //Execute matching
-    val matchTask = new MatchTask(linkSpec, sourceCache, targetCache, numThreads)
+    val matchTask = new MatchTask(linkSpec, caches, numThreads)
     val links = matchTask()
 
     //Filter links
@@ -150,6 +143,16 @@ object Silk
     outputTask()
 
     logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+
+    //Check loader for exceptions
+    try
+    {
+      if(loader != null) loader()
+    }
+    catch
+    {
+      case ex : Exception => logger.log(Level.WARNING, "Error occured while loading the resources (see previous warnings). Results may be incomplete")
+    }
   }
 
   /**

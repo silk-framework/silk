@@ -15,16 +15,17 @@ import scala.math.max
  * Generates links between the instances according to the link specification.
  */
 class MatchTask(linkSpec : LinkSpecification,
-                sourceCache : InstanceCache,
-                targetCache : InstanceCache,
+                caches : SourceTargetPair[InstanceCache],
                 numThreads : Int) extends Task[Buffer[Link]]
 {
+  taskName = "Matching"
+
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
 
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
   /* Enable indexing if blocking is enabled */
-  private val indexingEnabled = sourceCache.blockCount > 1 || targetCache.blockCount > 1
+  private val indexingEnabled = caches.source.blockCount > 1 || caches.target.blockCount > 1
 
   def links : Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
 
@@ -33,7 +34,7 @@ class MatchTask(linkSpec : LinkSpecification,
    */
   override def execute() : Buffer[Link] =
   {
-    require(sourceCache.blockCount == targetCache.blockCount, "sourceCache.blockCount == targetCache.blockCount")
+    require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     val startTime = System.currentTimeMillis()
     val executorService = Executors.newFixedThreadPool(numThreads)
@@ -51,13 +52,13 @@ class MatchTask(linkSpec : LinkSpecification,
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if(result != null)
       {
-        links.appendAll(result.get)
+        linkBuffer.appendAll(result.get)
         finishedTasks += 1
 
-        val statusPrefix = if(scheduler.isAlive) "Matching (Still loading)" else "Matching"
-        val statusTasks = " (" + finishedTasks + " tasks finished."
-        val statusLinks = " " + linkBuffer.size + " links generated.)"
-
+        //Update status
+        val statusPrefix = if(scheduler.isAlive) "Matching (Still loading):" else "Matching:"
+        val statusTasks = " " + finishedTasks + " tasks finished and"
+        val statusLinks = " " + linkBuffer.size + " links generated."
         updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
       }
     }
@@ -75,15 +76,15 @@ class MatchTask(linkSpec : LinkSpecification,
   {
     @volatile var taskCount = 0
 
-    private var sourcePartitions = new Array[Int](sourceCache.blockCount)
-    private var targetPartitions = new Array[Int](targetCache.blockCount)
+    private var sourcePartitions = new Array[Int](caches.source.blockCount)
+    private var targetPartitions = new Array[Int](caches.target.blockCount)
 
     override def run()
     {
       while(true)
       {
-        val sourceLoaded = !sourceCache.isWriting
-        val targetLoaded = !targetCache.isWriting
+        val sourceLoaded = !caches.source.isWriting
+        val targetLoaded = !caches.target.isWriting
 
         updateSourcePartitions(sourceLoaded)
         updateTargetPartitions(targetLoaded)
@@ -101,20 +102,20 @@ class MatchTask(linkSpec : LinkSpecification,
     {
       val newSourcePartitions =
       {
-        for(block <- 0 until sourceCache.blockCount) yield
+        for(block <- 0 until caches.source.blockCount) yield
         {
           if(includeLastPartitions)
           {
-            sourceCache.partitionCount(block)
+            caches.source.partitionCount(block)
           }
           else
           {
-            max(0, sourceCache.partitionCount(block) - 1)
+            max(0, caches.source.partitionCount(block) - 1)
           }
         }
       }.toArray
 
-      for(block <- 0 until sourceCache.blockCount;
+      for(block <- 0 until caches.source.blockCount;
           sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
           targetPartition <- 0 until targetPartitions(block))
       {
@@ -128,20 +129,20 @@ class MatchTask(linkSpec : LinkSpecification,
     {
       val newTargetPartitions =
       {
-        for(block <- 0 until targetCache.blockCount) yield
+        for(block <- 0 until caches.target.blockCount) yield
         {
           if(includeLastPartitions)
           {
-            targetCache.partitionCount(block)
+            caches.target.partitionCount(block)
           }
           else
           {
-            max(0, targetCache.partitionCount(block) - 1)
+            max(0, caches.target.partitionCount(block) - 1)
           }
         }
       }.toArray
 
-      for(block <- 0 until targetCache.blockCount;
+      for(block <- 0 until caches.target.blockCount;
           targetPartition <- targetPartitions(block) until newTargetPartitions(block);
           sourcePartition <- 0 until sourcePartitions(block))
       {
@@ -153,7 +154,7 @@ class MatchTask(linkSpec : LinkSpecification,
 
     private def newMatcher(block : Int, sourcePartition : Int, targetPartition : Int)
     {
-      executor.submit(new Matcher(taskCount + 1, block, sourcePartition, targetPartition))
+      executor.submit(new Matcher(block, sourcePartition, targetPartition))
       taskCount += 1
     }
   }
@@ -161,18 +162,16 @@ class MatchTask(linkSpec : LinkSpecification,
   /**
    * Matches the instances of two partitions.
    */
-  private class Matcher(id : Int, blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int) extends Callable[Traversable[Link]]
+  private class Matcher(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int) extends Callable[Traversable[Link]]
   {
     override def call() : Traversable[Link] =
     {
-      logger.info("Starting matcher " + id)
-
       var links = List[Link]()
 
       try
       {
-        val sourceInstances = sourceCache.read(blockIndex, sourcePartitionIndex)
-        val targetInstances = targetCache.read(blockIndex, targetPartitionIndex)
+        val sourceInstances = caches.source.read(blockIndex, sourcePartitionIndex)
+        val targetInstances = caches.target.read(blockIndex, targetPartitionIndex)
 
         val sourceIndexes = builtIndex(sourceInstances)
         val targetIndexes = builtIndex(targetInstances)
@@ -196,8 +195,6 @@ class MatchTask(linkSpec : LinkSpecification,
       {
         case ex : Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
       }
-
-      logger.info("Matcher " + id + " generated " + links.size + " links")
 
       links
     }
