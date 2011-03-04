@@ -40,7 +40,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
-      logger.info("Fnished writing " + instanceCount + " instances with type '" + instanceSpec.restrictions + "' in " + time + " seconds")
+      logger.info("Finished writing " + instanceCount + " instances with type '" + instanceSpec.restrictions + "' in " + time + " seconds")
     }
     finally
     {
@@ -118,6 +118,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
       {
         val readPartition = readPartitionFromFile(partitionCount - 1)
         Array.copy(readPartition, 0, lastPartition, 0, readPartition.size)
+        lastPartitionSize = readPartition.size
       }
     }
 
@@ -126,7 +127,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
       if(partition == partitionCount - 1)
       {
         val partition = new Array[Instance](lastPartitionSize)
-        Array.copy(lastPartition, 0, partition, 0, partition.size)
+        Array.copy(lastPartition, 0, partition, 0, lastPartitionSize)
         partition
       }
       else

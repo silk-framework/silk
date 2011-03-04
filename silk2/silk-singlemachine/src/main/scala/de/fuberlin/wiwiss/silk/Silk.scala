@@ -151,7 +151,7 @@ object Silk
     }
     catch
     {
-      case ex : Exception => logger.log(Level.WARNING, "Error occured while loading the resources (see previous warnings). Results may be incomplete")
+      case ex : Exception => logger.log(Level.WARNING, "Error occured while loading the resources (see previous warnings). Results may be incomplete!")
     }
   }
 
