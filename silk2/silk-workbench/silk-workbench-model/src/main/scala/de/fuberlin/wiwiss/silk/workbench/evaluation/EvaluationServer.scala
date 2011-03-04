@@ -2,9 +2,9 @@ package de.fuberlin.wiwiss.silk.workbench.evaluation
 
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
-import de.fuberlin.wiwiss.silk.util.Task
-import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification, MemoryInstanceCache}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import de.fuberlin.wiwiss.silk.util.{SourceTargetPair, Task}
+import de.fuberlin.wiwiss.silk.instance.{InstanceCache, Instance, InstanceSpecification, MemoryInstanceCache}
 
 object EvaluationServer
 {
@@ -24,10 +24,9 @@ object EvaluationServer
     private val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
 
     //Instance caches
-    private val sourceCache = new MemoryInstanceCache(blockCount, 100)
-    private val targetCache = new MemoryInstanceCache(blockCount, 100)
+    val caches = SourceTargetPair.fill[InstanceCache](new MemoryInstanceCache(blockCount, 100))
 
-    private val matchTask = new MatchTask(linkingTask.linkSpec, sourceCache, targetCache, 8)
+    private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8)
 
     def links = matchTask.links.map(link => (link, false))
 
@@ -74,8 +73,7 @@ object EvaluationServer
     private def generateAllLinks() =
     {
       //Retrieve sources
-      val sourceSource = project.sourceModule.tasks.find(_.name == linkSpec.datasets.source.sourceId).get.source
-      val targetSource = project.sourceModule.tasks.find(_.name == linkSpec.datasets.target.sourceId).get.source
+      val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
 
       //Retrieve Instance Specifications from Link Specification
       val instanceSpecs = InstanceSpecification.retrieve(linkSpec, linkingTask.prefixes)
@@ -83,17 +81,8 @@ object EvaluationServer
       def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
 
       //Load instances into cache
-      val loadSourceCacheTask = new LoadTask(sourceSource, sourceCache, instanceSpecs.source, if(blockCount > 0) Some(blockingFunction _) else None)
-      val loadTargetCacheTask = new LoadTask(targetSource, targetCache, instanceSpecs.target, if(blockCount > 0) Some(blockingFunction _) else None)
-
-      loadSourceCacheTask.runInBackground()
-      loadTargetCacheTask.runInBackground()
-
-      //Wait until caches are being written
-      while((loadSourceCacheTask.isRunning && !sourceCache.isWriting) || (loadTargetCacheTask.isRunning && !targetCache.isWriting))
-      {
-        Thread.sleep(100)
-      }
+      val loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
+      loadTask.runInBackground()
 
       //Execute matching
       executeSubTask(matchTask)
