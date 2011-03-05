@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.linkspec
+package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair

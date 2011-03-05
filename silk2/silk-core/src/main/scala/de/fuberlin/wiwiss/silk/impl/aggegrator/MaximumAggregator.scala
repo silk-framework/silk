@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkspec.FlatIndexAggregator
+import de.fuberlin.wiwiss.silk.linkspec.condition.FlatIndexAggregator
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "max", label = "Maximum", description = "Selects the maximum value.")

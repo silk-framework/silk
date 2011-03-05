@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.Metric
+import de.fuberlin.wiwiss.silk.linkspec.condition.Metric
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "inequality", label = "Inequality", description = "Return 0 if strings are equal, 1 otherwise.")

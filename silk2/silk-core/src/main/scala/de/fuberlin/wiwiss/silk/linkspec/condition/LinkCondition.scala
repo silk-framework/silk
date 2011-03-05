@@ -1,9 +1,9 @@
-package de.fuberlin.wiwiss.silk.linkspec
+package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import input.{Input, PathInput, TransformInput, Transformer}
 import xml.Elem
+import de.fuberlin.wiwiss.silk.linkspec.input.{Transformer, TransformInput, PathInput, Input}
 
 case class LinkCondition(rootOperator : Option[Operator])
 {

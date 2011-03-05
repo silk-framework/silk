@@ -1,5 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
+import condition._
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
 import xml.Node
