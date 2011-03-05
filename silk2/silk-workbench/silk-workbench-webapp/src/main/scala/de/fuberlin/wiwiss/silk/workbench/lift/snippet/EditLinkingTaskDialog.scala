@@ -58,7 +58,7 @@ class EditLinkingTaskDialog
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "editTargetId"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "editTargetRes", "size" -> "60"),
          "prefixes" -> <div id="editPrefixes" />,
-         "submit" -> SHtml.ajaxSubmit("Create", () => EditLinkingTaskDialog.prefixEditor.read(submit))))
+         "submit" -> SHtml.ajaxSubmit("Save", () => EditLinkingTaskDialog.prefixEditor.read(submit))))
   }
 }
 
