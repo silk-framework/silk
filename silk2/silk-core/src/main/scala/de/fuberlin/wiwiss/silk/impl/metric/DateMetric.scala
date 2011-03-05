@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.Metric
+import de.fuberlin.wiwiss.silk.linkspec.condition.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}

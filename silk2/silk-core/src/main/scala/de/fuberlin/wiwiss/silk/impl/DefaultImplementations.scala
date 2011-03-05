@@ -7,7 +7,7 @@ import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.{Metric, Aggregator}
+import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
 
 /**

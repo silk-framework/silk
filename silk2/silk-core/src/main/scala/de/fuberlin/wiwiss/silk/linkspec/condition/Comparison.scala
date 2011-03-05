@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.linkspec
+package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.instance.Instance
-import input.Input
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.linkspec.input.Input
 
 case class Comparison(required : Boolean, weight : Int, inputs : SourceTargetPair[Input], metric : Metric) extends Operator
 {

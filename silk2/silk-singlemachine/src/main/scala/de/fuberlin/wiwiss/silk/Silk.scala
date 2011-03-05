@@ -6,7 +6,8 @@ import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
 import datasource.DataSource
 import java.io.File
-import linkspec.{Aggregator, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator}
+import linkspec.{LinkSpecification}
 import util.StringUtils._
 import util.{Future, SourceTargetPair}
 import java.util.logging.{Level, Logger}
