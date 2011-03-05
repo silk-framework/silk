@@ -3,6 +3,9 @@ package de.fuberlin.wiwiss.silk.linkspec.input
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
+/**
+ * A TransformInput applies a transformation to input values.
+ */
 case class TransformInput(inputs : Seq[Input], transformer : Transformer) extends Input
 {
   require(inputs.size > 0, "Number of inputs must be > 0.")
@@ -13,7 +16,7 @@ case class TransformInput(inputs : Seq[Input], transformer : Transformer) extend
     for (sequence <- cartesianProduct(strings)) yield transformer.evaluate(sequence)
   }
 
-  def cartesianProduct(strings : Seq[Traversable[String]]) : Traversable[List[String]] =
+  private def cartesianProduct(strings : Seq[Traversable[String]]) : Traversable[List[String]] =
   {
     if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
     else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq

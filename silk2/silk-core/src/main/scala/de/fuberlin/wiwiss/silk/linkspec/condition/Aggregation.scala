@@ -5,6 +5,16 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 case class Aggregation(required : Boolean, weight : Int, operators : Traversable[Operator], aggregator : Aggregator) extends Operator
 {
+  /**
+   * Computes the similarity between two instances.
+   *
+   * @param instances The instances to be compared.
+   * @param threshold The similarity threshold.
+   *
+   * @return The similarity as a value between 0.0 and 1.0.
+   *         Returns 0.0 if the similarity is lower than the threshold.
+   *         None, if no similarity could be computed.
+   */
   override def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double] =
   {
     val totalWeights = operators.map(_.weight).sum
@@ -23,6 +33,14 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
     aggregator.evaluate(weightedValues)
   }
 
+  /**
+   * Indexes an instance.
+   *
+   * @param instance The instance to be indexed
+   * @param threshold The similarity threshold.
+   *
+   * @return A set of (multidimensional) indexes. Instances within the threshold will always get the same index.
+   */
   override def index(instance : Instance, threshold : Double) : Set[Seq[Int]] =
   {
     val totalWeights = operators.map(_.weight).sum
@@ -61,14 +79,12 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
     }
   }
 
+  /**
+   * The number of blocks in each dimension of the index.
+   */
   override val blockCounts : Seq[Int] =
   {
     operators.map(_.blockCounts)
              .foldLeft(Seq[Int]())((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
-  }
-
-  override def toString = aggregator match
-  {
-    case Aggregator(name, params) => "Aggregation(required=" + required + ", weight=" + weight + ", type=" + name + ", params=" + params + ", operators=" + operators + ")"
   }
 }

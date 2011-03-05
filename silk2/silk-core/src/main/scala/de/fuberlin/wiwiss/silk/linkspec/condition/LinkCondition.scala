@@ -5,8 +5,21 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Elem
 import de.fuberlin.wiwiss.silk.linkspec.input.{Transformer, TransformInput, PathInput, Input}
 
+/**
+ * A Link Condition specifies the conditions which must hold true so that a link is generated between two instances.
+ */
 case class LinkCondition(rootOperator : Option[Operator])
 {
+  /**
+   * Computes the similarity between two instances.
+   *
+   * @param instances The instances to be compared.
+   * @param threshold The similarity threshold.
+   *
+   * @return The similarity as a value between 0.0 and 1.0.
+   *         Returns 0.0 if the similarity is lower than the threshold.
+   *         None, if no similarity could be computed.
+   */
   def apply(instances : SourceTargetPair[Instance], threshold : Double) : Double =
   {
     rootOperator match
@@ -16,6 +29,14 @@ case class LinkCondition(rootOperator : Option[Operator])
     }
   }
 
+  /**
+   * Indexes an instance.
+   *
+   * @param instance The instance to be indexed
+   * @param threshold The similarity threshold.
+   *
+   * @return A set of (multidimensional) indexes. Instances within the threshold will always get the same index.
+   */
   def index(instance : Instance, threshold : Double) : Set[Int] =
   {
     rootOperator match
@@ -35,6 +56,9 @@ case class LinkCondition(rootOperator : Option[Operator])
 
   }
 
+  /**
+   * The number of blocks in each dimension of the index.
+   */
   val blockCount =
   {
     rootOperator match
@@ -44,6 +68,9 @@ case class LinkCondition(rootOperator : Option[Operator])
     }
   }
 
+  /**
+   * Serializes this Link Condition as XML.
+   */
   def toXML =
   {
     <LinkCondition>
@@ -51,6 +78,7 @@ case class LinkCondition(rootOperator : Option[Operator])
     </LinkCondition>
   }
 
+  //TODO move to respective classes
   private def serializeOperator(operator : Operator) : Elem = operator match
   {
     case Aggregation(required, weight, operators, Aggregator(aggregator, params)) =>
@@ -69,6 +97,7 @@ case class LinkCondition(rootOperator : Option[Operator])
     }
   }
 
+  //TODO move to input class
   private def serializeInput(param : Input) : Elem = param match
   {
     case PathInput(path) => <Input path={path.toString} />
