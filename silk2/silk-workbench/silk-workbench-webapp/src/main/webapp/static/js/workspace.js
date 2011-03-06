@@ -12,13 +12,19 @@ function saveOpenNodes(activeProject){
 function loadOpenNodes(){
  for (var key in ws.activeNodesId)
   {
-    if (document.getElementById(ws.activeNodesId[key])) document.getElementById(ws.activeNodesId[key]).setAttribute('class', 'collapsable');
-  }
+    if (document.getElementById(ws.activeNodesId[key]))
+        document.getElementById(ws.activeNodesId[key]).setAttribute('class', 'collapsable');
+    else ws.activeNodesId.splice(key,1);
+  }    
   if (ws.activeProjectId){
-      document.getElementById(ws.activeProjectId).setAttribute('class', 'collapsable');
+      if (document.getElementById(ws.activeProjectId))
+          document.getElementById(ws.activeProjectId).setAttribute('class', 'collapsable');
+      else ws.activeProjectId = '';
   }
   if (ws.activeTaskId) {
-      document.getElementById(ws.activeTaskId).setAttribute('class', 'collapsable active');
+      if (document.getElementById(ws.activeTaskId))
+          document.getElementById(ws.activeTaskId).setAttribute('class', 'collapsable active');
+      else ws.activeTaskId = '';
   }
 }
 
