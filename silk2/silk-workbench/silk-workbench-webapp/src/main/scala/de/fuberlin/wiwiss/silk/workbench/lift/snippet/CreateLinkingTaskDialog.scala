@@ -27,6 +27,7 @@ class CreateLinkingTaskDialog
     var targetId = ""
     var sourceRestriction = ""
     var targetRestriction = ""
+    var linkType = "http://www.w3.org/2002/07/owl#sameAs"
     val prefixes = Map(
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
@@ -40,7 +41,7 @@ class CreateLinkingTaskDialog
         val linkSpec =
           LinkSpecification(
             id = name,
-            linkType = "http://www.w3.org/2002/07/owl#sameAs",
+            linkType = linkType,
             datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, sourceRestriction),
                                         DatasetSpecification(targetId, Constants.TargetVariable, targetRestriction)),
             condition = LinkCondition(None),
@@ -67,6 +68,7 @@ class CreateLinkingTaskDialog
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60"),
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
+         "linkType" -> SHtml.text(linkType, linkType = _, "size" -> "60"),
          "prefixes" -> CreateLinkingTaskDialog.prefixEditor.show(prefixes),
          "submit" -> SHtml.ajaxSubmit("Create", () => CreateLinkingTaskDialog.prefixEditor.read(submit))))
   }

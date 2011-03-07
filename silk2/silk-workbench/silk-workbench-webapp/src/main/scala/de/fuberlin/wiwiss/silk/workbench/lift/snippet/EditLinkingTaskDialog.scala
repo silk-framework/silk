@@ -25,6 +25,7 @@ class EditLinkingTaskDialog
     var targetId = ""
     var sourceRestriction = ""
     var targetRestriction = ""
+    var linkType = ""
     val prefixes : Map[String, String] = Map.empty
 
     def submit(prefixes : Prefixes) =
@@ -36,7 +37,7 @@ class EditLinkingTaskDialog
         val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, sourceRestriction),
                                                DatasetSpecification(targetId, Constants.TargetVariable, targetRestriction))
 
-        val updatedLinkSpec = linkingTask.linkSpec.copy(datasets = updatedDatasets)
+        val updatedLinkSpec = linkingTask.linkSpec.copy(datasets = updatedDatasets, linkType = linkType)
 
         val updatedLinkingTask = linkingTask.copy(prefixes = prefixes, linkSpec = updatedLinkSpec, cache = new Cache())
 
@@ -57,6 +58,7 @@ class EditLinkingTaskDialog
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "editSourceRes", "size" -> "60"),
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "editTargetId"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "editTargetRes", "size" -> "60"),
+         "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "editLinkType", "size" -> "60"),
          "prefixes" -> <div id="editPrefixes" />,
          "submit" -> SHtml.ajaxSubmit("Save", () => EditLinkingTaskDialog.prefixEditor.read(submit))))
   }
@@ -110,6 +112,8 @@ object EditLinkingTaskDialog
     //Update restrictions
     JsRaw("$('#editSourceRes').attr('value', '" + datasets.source.restriction + "');").cmd &
     JsRaw("$('#editTargetRes').attr('value', '" + datasets.target.restriction + "');").cmd &
+    //Update link type
+    JsRaw("$('#editLinkType').attr('value', '" + linkingTask.linkSpec.linkType + "');").cmd &
     //Update prefixes
     SetHtml("editPrefixes", prefixEditor.show(linkingTask.prefixes)) &
     //Open dialog

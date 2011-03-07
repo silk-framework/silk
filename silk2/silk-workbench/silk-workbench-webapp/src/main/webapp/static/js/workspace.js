@@ -149,6 +149,7 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
     addLeaf(jsonLinkingTask.target,lt_li, 'target: ');
     addLeaf(jsonLinkingTask.sourceDataset,lt_li, 'source dataset: ');
     addLeaf(jsonLinkingTask.targetDataset,lt_li, 'target dataset: ');
+    addLeaf(jsonLinkingTask.linkType,lt_li, 'link type: ');
 }
 
 // -- display the workspace as treeview
