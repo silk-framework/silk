@@ -66,7 +66,7 @@ object EditLinkingTaskDialog
 {
   private val prefixEditor = new PrefixEditor()
 
-  def initCmd = OnLoad(JsRaw("$('#editLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+  def initCmd = OnLoad(JsRaw("$('#editLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true, close : closeTask })").cmd)
 
   def openCmd =
   {
