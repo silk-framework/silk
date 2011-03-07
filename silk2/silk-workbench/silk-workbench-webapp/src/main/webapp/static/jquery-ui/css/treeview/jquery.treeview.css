@@ -1,6 +1,6 @@
 .treeview, .treeview ul {
 	padding: 0;
-	margin: 0;
+	margin: 4px;
 	list-style: none;
 }
 
@@ -56,17 +56,20 @@
 }
 
 .filetree li { padding: 3px 0 2px 16px; }
-.filetree span.folder, .filetree span.file { padding: 1px 0 1px 16px; display: block; min-height:16px;}
-.filetree span.folder { background: url(images/folder.gif) 0 0 no-repeat; }
-.filetree li.expandable span.folder { background: url(images/folder-closed.gif) 0 0 no-repeat; }
-.filetree span.file { background: url(images/file.gif) 0 0 no-repeat; }
+.filetree span.folder, .filetree span.file, .filetree span.source, .filetree span.link { padding: 1px 0 1px 16px; display: block; min-height:16px;}
+.filetree span.folder { background: url(images/folder.png) 0 0 no-repeat; }
+.filetree span.source { background: url(images/source-net.png) 0 0 no-repeat; }
+.filetree span.link { background: url(images/link-arrow.png) 0 0 no-repeat; }
+.filetree li.expandable span.folder { background: url(images/folder-closed.png) 0 0 no-repeat; }
+.filetree span.file { background: url(images/file-tag.png) 0 0 no-repeat; }
 
 /* action icons */
 span.ui-icon:hover { background-color: #cc3333;}
+span.ui-state-disabled:hover { background-color: #ffffff;}
 span.ui-icon {float:left;}
 div.actions  {display:block;float:left;}
 
-/* img.icon {float:left; padding: 2px;} */
-
 .active .label { color: #cc3333;}
 span.label {float:left; cursor:default; margin-right: 5px;}
+
+div#root-folder {background: url(images/folders.png) 0 0 no-repeat; float:left;height: 16px;width: 16px; display: block; margin-left:3px; }
