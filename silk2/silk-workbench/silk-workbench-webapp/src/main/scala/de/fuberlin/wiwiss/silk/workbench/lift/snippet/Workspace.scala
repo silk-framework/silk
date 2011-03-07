@@ -324,7 +324,8 @@ object Workspace
         ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
         ("target" -> task.linkSpec.datasets.target.sourceId.toString) ~
         ("sourceDataset" -> task.linkSpec.datasets.source.restriction) ~
-        ("targetDataset" -> task.linkSpec.datasets.target.restriction)
+        ("targetDataset" -> task.linkSpec.datasets.target.restriction) ~
+        ("linkType" -> task.linkSpec.linkType)
       }
 
       val proj : JObject =
