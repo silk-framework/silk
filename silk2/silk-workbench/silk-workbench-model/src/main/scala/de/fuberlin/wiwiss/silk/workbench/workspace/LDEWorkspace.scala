@@ -43,13 +43,23 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
     projectList = projectList.filterNot(_.name == name)
   }
 
-  def dataSourceList : Map[String,String] = {
+  def getDatasources : Map[String,String] = {
     val res = sparqlEndpoint.query(QueryFactory.sDataSources)
     var datasources : Map[String,String] = Map.empty
     for(datasource <- res.toList) {
       datasources = datasources + ( datasource("uri").value -> clean(datasource("id").value ) ) 
     }
     datasources
+  }
+
+  //def getCategories : Map[String,String] = Map("smwcat:Gene"->"Gene","smwcat:Disease"->"Disease","smwcat:Pathway"->"Pathway")
+  def getCategories : Map[String,String] = {
+    val res = sparqlEndpoint.query(QueryFactory.sCategories)
+    var categories : Map[String,String] = Map.empty
+    for(category <- res.toList) {
+      categories = categories + ( category("c").value -> clean(category("c").value ) ) 
+    }
+    categories
   }
 
   // util

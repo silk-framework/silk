@@ -23,6 +23,16 @@ class XMLProject(linkSpec : Node) extends Project
   def getLinkSpec = doc
 
   def getInterlinks = new RuleTransformer(new RemoveNodeByLabel("DataSources")).transform(doc).head
+
+  def getPrefixes = doc \ "Prefixes" \ "Prefix" 
+
+  // append prefixes to the project - see http://www.assembla.com/spaces/silk/tickets/26
+  def appendPrefixes (prefixes : NodeSeq) {
+      if ((doc \ "Prefixes").size == 0){
+        doc = new RuleTransformer(new AddChildTo("Silk", <Prefixes />)).transform(doc).head
+      }
+      for (pref <- prefixes) doc = new RuleTransformer(new AddChildTo("Prefixes", pref)).transform(doc).head
+  }
   
    // The name of this project
   // TODO - set a proper name
@@ -61,15 +71,15 @@ class XMLProject(linkSpec : Node) extends Project
 
     def update(task : SourceTask) = synchronized {
         // if any datasource is defined yet
-      if ((doc \\ "DataSources").size == 0)  {
-          doc = new RuleTransformer(new AddChildrenTo("Silk", <DataSources />)).transform(doc).head
+      if ((doc \ "DataSources").size == 0)  {
+          doc = new RuleTransformer(new AddChildTo("Silk", <DataSources />)).transform(doc).head
       }
        // if this task exists
-      else if ((doc \\ "DataSource").filter(n => (n \ "@id").text.equals(task.name.toString)).size > 0){
+      else if ((doc \ "DataSources" \ "DataSource").filter(n => (n \ "@id").text.equals(task.name.toString)).size > 0){
          // TODO  update interlink (better)
          remove(task.name)
       }
-      doc = new RuleTransformer(new AddChildrenTo("DataSources", task.source.toXML)).transform(doc).head
+      doc = new RuleTransformer(new AddChildTo("DataSources", task.source.toXML)).transform(doc).head
     }
 
     def remove(taskId : Identifier) = synchronized {
@@ -91,11 +101,11 @@ class XMLProject(linkSpec : Node) extends Project
     def tasks = synchronized
     {
       var prefixes : Prefixes = null
-      if ((doc \\ "Prefixes").size>0) {
-          prefixes =  Prefixes.fromXML((doc \\ "Prefixes") (0))
+      if ((doc \ "Prefixes").size>0) {
+          prefixes =  Prefixes.fromXML((doc \ "Prefixes") (0))
       }  else { prefixes = Prefixes.fromXML(<Prefixes />) }
 
-     for(lt <- doc \\ "Interlink" ) yield {
+     for(lt <- doc \ "Interlinks" \ "Interlink" ) yield {
         val linkT = LinkSpecification.fromXML(lt,(prefixes))
         val linkingTask = LinkingTask((lt \ "@id").text, prefixes, linkT, new Alignment(), new Cache())
         linkingTask
@@ -104,14 +114,15 @@ class XMLProject(linkSpec : Node) extends Project
 
     def update(task : LinkingTask) = synchronized {
       // if any interlink is defined yet
-      if ((doc \\ "Interlinks").size == 0){
-         doc = new RuleTransformer(new AddChildrenTo("Silk", <Interlinks />)).transform(doc).head
+      if ((doc \ "Interlinks").size == 0){
+         doc = new RuleTransformer(new AddChildTo("Silk", <Interlinks />)).transform(doc).head
       }
       // if this task exists
-      else if ((doc \\ "Interlink").filter(n => (n \ "@id").text.equals(task.name.toString)).size > 0) {
+      else if ((doc \ "Interlinks" \ "Interlink").filter(n => (n \ "@id").text.equals(task.name.toString)).size > 0) {
          remove(task.name)
       }
-      doc = new RuleTransformer(new AddChildrenTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
+
+      doc = new RuleTransformer(new AddChildTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
     }
 
     def remove(taskId : Identifier) = synchronized  {
@@ -127,13 +138,13 @@ class XMLProject(linkSpec : Node) extends Project
   // Utils
 
   // Change a specific node to add the new child
-  class AddChildrenTo(label: String, newChild: Node) extends RewriteRule {
+  class AddChildTo(label: String, newChild: Node) extends RewriteRule {
     override def transform(n: Node) = n match {
-      case e @ Elem(_, `label`, _, _, _*) => new Elem (e.prefix, e.label, e.attributes, e.scope, transform(e.child) ++ newChild :_*) 
+      case e @ Elem(_, `label`, _, _, _*) => new Elem (e.prefix, e.label, e.attributes, e.scope, transform(e.child) ++ newChild :_*)
       case n => n
     }
   }
-
+  
   // Remove a specific node by id (and label)
   class RemoveNodeById(label: String, id: String) extends RewriteRule {
     override def transform(n: Node) : NodeSeq = n match {
