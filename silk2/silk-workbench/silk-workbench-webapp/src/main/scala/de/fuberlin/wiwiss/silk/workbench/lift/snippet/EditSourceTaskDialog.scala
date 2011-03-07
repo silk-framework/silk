@@ -56,7 +56,7 @@ class EditSourceTaskDialog
 
 object EditSourceTaskDialog
 {
-  def initCmd = OnLoad(JsRaw("$('#editSourceTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+  def initCmd = OnLoad(JsRaw("$('#editSourceTaskDialog').dialog({ autoOpen: false, width: 700, modal: true, close : closeTask })").cmd)
 
   def openCmd =
   {
