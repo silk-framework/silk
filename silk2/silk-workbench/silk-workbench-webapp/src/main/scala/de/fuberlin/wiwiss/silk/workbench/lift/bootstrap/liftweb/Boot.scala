@@ -46,7 +46,7 @@ class Boot
     val ifLinkingTaskClosed = If(() => !User().linkingTaskOpen, () => RedirectResponse("/linkSpec"))
 
     val workspaceText = LinkText[Unit](_ => Text(if(User().projectOpen) "Workspace: " + User().project.name else "Workspace"))
-    val linkSpecText = LinkText[Unit](_ => Text("Link Specification: " + User().linkingTask.name))
+    val linkSpecText = LinkText[Unit](_ => Text(User().project.name + ": " + User().linkingTask.name))
 
     val entries =
         Menu(Loc("Workspace", List("index"), workspaceText, ifLinkingTaskClosed)) ::
