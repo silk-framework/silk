@@ -5,7 +5,9 @@ object QueryFactory{
 
   val mappingGraph = "smwGraphs:MappingRepository"
   val datasourceGraph = "smwGraphs:DataSourceInformationGraph"
-
+  val smwprop  = "http://mywiki/resource/property/"
+  val smwcat  =  "http://mywiki/resource/category/"
+  
   val dataSources = "http://www.example.org/smw-lde/smwDatasources/"
   val dataSourceLinks = "http://www.example.org/smw-lde/smwDatasourceLinks/"
 
@@ -13,7 +15,9 @@ object QueryFactory{
                           "smwDatasourceLinks" -> dataSourceLinks,
                           "smwDatasources" -> dataSources,
                           "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#",
-                          "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+                          "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                          "smwprop" -> smwprop,
+                          "smwcat" -> smwcat )
 
   //-- LDEWorkspace --
 
@@ -61,7 +65,24 @@ object QueryFactory{
 
   //-- Linking Task Editor --
 
-  // retrieve property paths from the wiki ontology
-  def sPropertyPaths(categoryUri : String) = "SELECT ?p WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ categoryUri + "} } "
+  // retrieve property paths from the (wiki) ontology
+  def sPropertyPaths(categoryUri : String) = "SELECT ?p WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ urify(categoryUri) + "} } "
+
+  // retrieve categories from the (wiki) ontology
+  // <http://mywiki/resource/category/Gene>	rdf:type owl:Class                  -> too generic, we have to query all the graphs..
+  // <http://mywiki/property/exampleProperty> <http://mywiki/resource/property:Has_domain_and_range> ?x
+  // ?x <http://mywiki/resource/property/_1> <http://mywiki/category/Gene>      <- domain
+  // ?x <http://mywiki/resource/property/_2> <http://mywiki/category/Gene>      <- range
+  def sCategories = "SELECT DISTINCT ?c WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. {{?x smwprop:_1 ?c} UNION {?x smwprop:_2 ?c}} } } "
+  //def sCategories = "SELECT DISTINCT ?c WHERE { GRAPH ?g {?p haloprop:domainAndRange ?x. {{?x haloprop:domain ?c} UNION {?x haloprop:range ?c}} } } "
+
+  // if almostUri looks like an Uri -> add angle brackets or a proper prefix
+  def urify(almostUri : String) : String = {
+    if (almostUri.startsWith("http://"))
+      {//"<"+ almostUri +">"
+        "smwcat:"+ almostUri.split("/").last
+      }
+    else almostUri
+  }
 
 }

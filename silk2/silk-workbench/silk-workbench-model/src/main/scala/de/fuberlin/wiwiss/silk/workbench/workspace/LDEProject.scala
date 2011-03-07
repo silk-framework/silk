@@ -8,6 +8,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -49,10 +50,9 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     override def tasks = synchronized  {
 
        // load target datasource  -  Wiki
-      logger.info("Loading TARGET Datasource: Wiki")
       val params = Map( "endpointURI" -> sparqlEndpoint.uri.toString,
-                        "tripleStoreUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
-                        "label" -> "Wiki")
+                        "datasourceUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
+                        "id" -> "Wiki")
       var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
 
        // load source datasource  - optional
@@ -133,6 +133,14 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     override def update(task : LinkingTask) = synchronized  {
       // update XML
       xmlProj.linkingModule.update(task)
+      // append default prefixes to the project - in case of new project or linking spec without any prefix defined
+      if (xmlProj.getPrefixes.size == 0)   {
+        val defaultPrefixes = QueryFactory.getPrefixes
+        logger.info ("prefixes.. "+(Prefixes(defaultPrefixes).toXML).toString)
+        logger.info ("prefix.. "+(Prefixes(defaultPrefixes).toXML \ "Prefix").toString)
+          xmlProj.appendPrefixes(Prefixes(defaultPrefixes).toXML \ "Prefix")
+          logger.info("Added prefixes: " + xmlProj.getPrefixes.size)
+      }
       // update TS via Sparql\Update
       updateTripleStore
       cachedTasks = None
@@ -172,13 +180,13 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
         logger.warning("The TripleStore doesn't contain a proper Silk Link Specification for resource '"+projectUri+"'")
       }
 
-    val taskSeq = xmlProj.linkingModule.tasks
-    // XMLProject doesn't have datasouce info - since those are not in the sourceCode  
-    for (task <- taskSeq ){
-       task.loadCache(LDEProject.this) 
-      }
+      val taskSeq = xmlProj.linkingModule.tasks
+      // XMLProject doesn't have datasouce info - since those are not in the sourceCode
+      for (task <- taskSeq ){
+         task.loadCache(LDEProject.this)
+        }
 
-    taskSeq
+      taskSeq
     }
 
 
