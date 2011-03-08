@@ -67,7 +67,7 @@
 			// TODO use event delegation
 			this.filter(":has(>ul):not(:has(>a))").find(">span").unbind("click.treeview").bind("click.treeview", function(event) {
 				// don't handle click events on children, eg. checkboxes
-				if ( this == event.target )
+				if ( this == event.target || $(event.target).hasClass("label"))
 					toggler.apply($(this).next());
 			}).add( $("a", this) ).hoverClass();
 
@@ -96,7 +96,8 @@
 			}
 
 			// apply event to hitarea
-			this.find("div." + CLASSES.hitarea).click( toggler );
+            this.find("div." + CLASSES.hitarea).click( toggler );
+
 		},
 		treeview: function(settings) {
 

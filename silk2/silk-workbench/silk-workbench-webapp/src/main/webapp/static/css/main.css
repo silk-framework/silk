@@ -94,7 +94,8 @@ pre
 #toolbar
 {
   height: 40px;
-  background: url('/static/img/toolbar.png') repeat-x;
+  /* background: url('/static/img/toolbar.png') repeat-x;  */
+  margin-left: 10px;
   position: relative;
   width: 100%;
   clear: both;
@@ -127,7 +128,7 @@ input[type=file]
 
 .progresstext
 {
-  color: grey;
+  color: gray;
   font-weight: bold;
   position: relative;
   left: 10px;
