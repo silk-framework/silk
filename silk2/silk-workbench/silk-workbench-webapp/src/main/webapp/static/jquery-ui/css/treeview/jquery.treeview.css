@@ -64,12 +64,11 @@
 .filetree span.file { background: url(images/file-tag.png) 0 0 no-repeat; }
 
 /* action icons */
-span.ui-icon:hover { background-color: #cc3333;}
-span.ui-state-disabled:hover { background-color: #ffffff;}
-span.ui-icon {float:left;}
-div.actions  {display:block;float:left;}
+button.action {  margin:0 0 0 2px; font-size: 0.7em; padding:0; text-decoration:none; float:left; font-weight:normal;}
+/* hack jQuery ui button style  */
+.ui-button-text { margin: 0 0 0 2px; padding: .1em 1em .2em 1.9em !important ;}
 
 .active .label { color: #cc3333;}
-span.label {float:left; cursor:default; margin-right: 5px;}
+span.label {float:left; cursor:pointer; margin-right: 5px;}
 
 div#root-folder {background: url(images/folders.png) 0 0 no-repeat; float:left;height: 16px;width: 16px; display: block; margin-left:3px; }
