@@ -52,7 +52,7 @@ class LinkSpec
     bind("entry", xhtml,
          "close" -> (initDialog ++ SHtml.ajaxButton("Close", openDialog _)),
          "save" -> SHtml.ajaxButton("Save", () => saveCall(false)),
-         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("/config")))
+         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("/config.xml")))
   }
 
   /**
