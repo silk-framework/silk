@@ -67,6 +67,8 @@
 button.action {  margin:0 0 0 2px; font-size: 0.7em; padding:0; text-decoration:none; float:left; font-weight:normal;}
 /* hack jQuery ui button style  */
 .ui-button-text { margin: 0 0 0 2px; padding: .1em 1em .2em 1.9em !important ;}
+.ui-state-default { background: white !important ; }
+.ui-state-focus  { background: white !important ; text-decoration:none !important ;  }
 
 .active .label { color: #cc3333;}
 span.label {float:left; cursor:pointer; margin-right: 5px;}
