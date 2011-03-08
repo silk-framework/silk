@@ -173,7 +173,7 @@ function updateWorkspace(obj){
             document.getElementById("content").appendChild(newProj);
         }
 
-        import project button
+        // import project button
         if (!document.getElementById("newproject")) {
             var importProj = document.createElement("div");
             importProj.setAttribute('id','import');
