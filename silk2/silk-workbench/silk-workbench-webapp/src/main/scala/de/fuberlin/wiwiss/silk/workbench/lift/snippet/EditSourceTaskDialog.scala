@@ -28,7 +28,11 @@ class EditSourceTaskDialog
       {
         val sourceTask = User().sourceTask
 
-        val params = Map("endpointURI" -> uri, "graph" -> graph, "retryCount" -> retryCount, "retryPause" -> retryPause)
+        var params = Map("endpointURI" -> uri, "retryCount" -> retryCount, "retryPause" -> retryPause)
+        if(graph != "")
+        {
+          params += ("graph" -> graph)
+        }
         val source = Source(sourceTask.name, DataSource("sparqlEndpoint", params))
         val updatedSourceTask = SourceTask(source)
 
@@ -70,10 +74,10 @@ object EditSourceTaskDialog
     }
 
     //Fill textboxes with parameters and open the dialog
-    JsRaw("$('#textboxUri').attr('value', '" + uri + "');").cmd &
-    JsRaw("$('#textboxGraph').attr('value', '" + graph + "');").cmd &
-    JsRaw("$('#textboxRetryCount').attr('value', '" + retryCount + "');").cmd &
-    JsRaw("$('#textboxRetryPause').attr('value', '" + retryPause + "');").cmd &
+    JsRaw("$('#textboxUri').val('" + uri + "');").cmd &
+    JsRaw("$('#textboxGraph').val('" + graph + "');").cmd &
+    JsRaw("$('#textboxRetryCount').val('" + retryCount + "');").cmd &
+    JsRaw("$('#textboxRetryPause').val('" + retryPause + "');").cmd &
     JsRaw("$('#editSourceTaskDialog').dialog('open');").cmd
   }
 
