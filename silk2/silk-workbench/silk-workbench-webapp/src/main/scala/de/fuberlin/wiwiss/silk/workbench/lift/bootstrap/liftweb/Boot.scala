@@ -99,8 +99,6 @@ class Boot
                                                JField("availablePaths", JInt(targetPaths.size)) ::
                                                JField("restrictions", JString(restrictions.target)) :: Nil))
 
-    val isLoadingField = JField("isLoading", JBool(instanceSpecs == null))
-
     var errorMsg : Option[String] = None
     if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isSet)
     {
@@ -113,6 +111,8 @@ class Boot
         case ex : Exception => errorMsg = Some(ex.getMessage)
       }
     }
+
+    val isLoadingField = JField("isLoading", JBool(errorMsg.isEmpty && instanceSpecs == null))
 
     val json = errorMsg match
     {
