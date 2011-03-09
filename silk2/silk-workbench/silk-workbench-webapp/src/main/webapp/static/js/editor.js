@@ -1379,7 +1379,7 @@ function getOperators()
     },
     error: function (XMLHttpRequest, textStatus, errorThrown)
     {
-      alert("error:" + textStatus + " " + errorThrown);
+      alert("Error: " + textStatus + " " + errorThrown);
     }
   });
 }
