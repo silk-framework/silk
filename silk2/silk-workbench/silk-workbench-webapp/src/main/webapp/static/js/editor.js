@@ -100,16 +100,26 @@ document.onselectstart = function ()
   return false;
 };
 
+function findLongestPath(xml)
+{
+  length = 1;
+  $(xml).children().each(function ()
+  {
+    length = findLongestPath($(this)) + 1;
 
-function parseXML(xml, level, level_y, last_element)
+  });
+  return length;
+}
+
+function parseXML(xml, level, level_y, last_element, max_level)
 {
   $(xml).find("> Aggregate").each(function ()
   {
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", "aggregate_" + aggregatecounter);
-    var height = aggregatecounter * 100 + 150;
-    var left = 1300 - ((level + 1) * 250);
+    var height = aggregatecounter * 120 + 150;
+    var left = (max_level*250) - ((level + 1) * 250) + 300;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
     var number = "#aggregate_" + aggregatecounter;
@@ -119,29 +129,34 @@ function parseXML(xml, level, level_y, last_element)
     });
     box1.appendTo("#droppable_p");
 
-	var box2 = $(document.createElement('small'));
-	box2.addClass('name');
-	var mytext = document.createTextNode($(this).attr("type"));
-	box2.append(mytext);
-	box1.append(box2);
-	var box2 = $(document.createElement('small'));
-	box2.addClass('type');
-	var mytext = document.createTextNode("Aggregate");
-	box2.append(mytext);
-	box1.append(box2);
-
-	var box2 = $(document.createElement('h5'));
-    box2.addClass('handler');
-    var mytext = document.createTextNode("Aggregator: " + aggregators[$(this).attr("type")]);
+    var box2 = $(document.createElement('small'));
+    box2.addClass('name');
+    var mytext = document.createTextNode($(this).attr("type"));
     box2.append(mytext);
-	
-	var img = $(document.createElement('img'));
-	img.attr("src", "static/img/delete.png");
-	img.attr("align", "right");
-	img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate" + aggregatecounter+"').remove();");
-	box2.append(img);
+    box1.append(box2);
+    var box2 = $(document.createElement('small'));
+    box2.addClass('type');
+    var mytext = document.createTextNode("Aggregate");
+    box2.append(mytext);
+    box1.append(box2);
 
-	box1.append(box2);
+    var box2 = $(document.createElement('h5'));
+    box2.addClass('handler');
+
+    var span = $(document.createElement('div'));
+    span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+    span.attr("title", aggregators[$(this).attr("type")]["name"] + " (Aggregator)")
+    var mytext = document.createTextNode(aggregators[$(this).attr("type")]["name"] + " (Aggregator)");
+    span.append(mytext);
+    box2.append(span);
+	
+    var img = $(document.createElement('img'));
+    img.attr("src", "static/img/delete.png");
+    img.attr("align", "right");
+    img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate" + aggregatecounter+"').remove();");
+    box2.append(img);
+
+    box1.append(box2);
 
     var box2 = $(document.createElement('div'));
     box2.addClass('content');
@@ -150,6 +165,7 @@ function parseXML(xml, level, level_y, last_element)
     box2.append(mytext);
 
     var box3 = $(document.createElement('input'));
+    box3.attr("name", "required");
     box3.attr("type", "checkbox");
     if ($(this).attr("required") == "true")
     {
@@ -165,9 +181,33 @@ function parseXML(xml, level, level_y, last_element)
 
     var box5 = $(document.createElement('input'));
     box5.attr("type", "text");
+    box5.attr("name", "weight");
     box5.attr("size", "2");
     box5.attr("value", $(this).attr("weight"));
     box2.append(box5);
+
+    $params = Object();
+    $(this).find("> Param").each(function ()
+    {
+      $params[$(this).attr("name")] = $(this).attr("value");
+    });
+
+    $.each(aggregators[$(this).attr("type")]["parameters"], function(j, parameter) {
+      var box4 = $(document.createElement('br'));
+      box2.append(box4);
+
+      var mytext = document.createTextNode(parameter.name + ": ");
+      box2.append(mytext);
+
+      var box5 = $(document.createElement('input'));
+      box5.attr("type", "text");
+      box5.attr("name", parameter.name);
+      box5.attr("size", "10");
+      if ($params[parameter.name]) {
+        box5.attr("value", $params[parameter.name]);
+      }
+      box2.append(box5);
+    });
 
     box1.append(box2);
 
@@ -182,7 +222,7 @@ function parseXML(xml, level, level_y, last_element)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_left);
+    parseXML($(this), level + 1, 0, endp_left, max_level);
 
   });
   $(xml).find("> Compare").each(function ()
@@ -190,8 +230,8 @@ function parseXML(xml, level, level_y, last_element)
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
-    var height = comparecounter * 100 + 150;
-    var left = 1300 - ((level + 1) * 250);
+    var height = comparecounter * 120 + 150;
+    var left = (max_level*250) - ((level + 1) * 250) + 300;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
     var number = "#compare_" + comparecounter;
     box1.draggable(
@@ -200,28 +240,32 @@ function parseXML(xml, level, level_y, last_element)
     });
     box1.appendTo("#droppable_p");
 
-	var box2 = $(document.createElement('small'));
-	box2.addClass('name');
-	var mytext = document.createTextNode($(this).attr("metric"));
-	box2.append(mytext);
-	box1.append(box2);
-	var box2 = $(document.createElement('small'));
-	box2.addClass('type');
-	var mytext = document.createTextNode("Compare");
-	box2.append(mytext);
-	box1.append(box2);
-
+    var box2 = $(document.createElement('small'));
+    box2.addClass('name');
+    var mytext = document.createTextNode($(this).attr("metric"));
+    box2.append(mytext);
+    box1.append(box2);
+    var box2 = $(document.createElement('small'));
+    box2.addClass('type');
+    var mytext = document.createTextNode("Compare");
+    box2.append(mytext);
+    box1.append(box2);
 
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
-    var mytext = document.createTextNode("Comparator: " + comparators[$(this).attr("metric")]);
-    box2.append(mytext);
 
-	var img = $(document.createElement('img'));
-	img.attr("src", "static/img/delete.png");
-	img.attr("align", "right");
-	img.attr("onclick", "jsPlumb.removeAllEndpoints('#compare_" + comparecounter+"');$('#compare_" + comparecounter+"').remove();");
-	box2.append(img);
+    var span = $(document.createElement('div'));
+    span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+    span.attr("title", comparators[$(this).attr("metric")]["name"] + " (Comparator)")
+    var mytext = document.createTextNode(comparators[$(this).attr("metric")]["name"] + " (Comparator)");
+    span.append(mytext);
+    box2.append(span);
+
+    var img = $(document.createElement('img'));
+    img.attr("src", "static/img/delete.png");
+    img.attr("align", "right");
+    img.attr("onclick", "jsPlumb.removeAllEndpoints('#compare_" + comparecounter+"');$('#compare_" + comparecounter+"').remove();");
+    box2.append(img);
 
     box1.append(box2);
 
@@ -232,6 +276,7 @@ function parseXML(xml, level, level_y, last_element)
     box2.append(mytext);
 
     var box3 = $(document.createElement('input'));
+    box3.attr("name", "required");
     box3.attr("type", "checkbox");
     if ($(this).attr("required") == "true")
     {
@@ -247,25 +292,33 @@ function parseXML(xml, level, level_y, last_element)
 
     var box5 = $(document.createElement('input'));
     box5.attr("type", "text");
+    box5.attr("name", "weight");
     box5.attr("size", "2");
     box5.attr("value", $(this).attr("weight"));
     box2.append(box5);
 
-    //alert(comparators[$(this).attr("metric")]["parameters"]);
-/*
-			$.each(comparators[$(this).attr("metric")].parameters, function(j, parameter) {
-				var box4 = $(document.createElement('br'));
-				box2.append(box4);
+    $params = Object();
+    $(this).find("> Param").each(function ()
+    {
+        $params[$(this).attr("name")] = $(this).attr("value");
+    });
 
-				var mytext = document.createTextNode(parameter.name + ": ");
-				box2.append(mytext);
+    $.each(comparators[$(this).attr("metric")]["parameters"], function(j, parameter) {
+        var box4 = $(document.createElement('br'));
+        box2.append(box4);
 
-				var box5 = $(document.createElement('input'));
-				box5.attr("type", "text");
-				box5.attr("size", "10");;
-				box2.append(box5);
-			});
-			*/
+        var mytext = document.createTextNode(parameter.name + ": ");
+        box2.append(mytext);
+
+        var box5 = $(document.createElement('input'));
+        box5.attr("type", "text");
+        box5.attr("name", parameter.name);
+        box5.attr("size", "10");
+        if ($params[parameter.name]) {
+          box5.attr("value", $params[parameter.name]);
+        }
+        box2.append(box5);
+    });
 
     box1.append(box2);
 
@@ -280,18 +333,17 @@ function parseXML(xml, level, level_y, last_element)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_left);
+    parseXML($(this), level + 1, 0, endp_left, max_level);
   });
 
   $(xml).find("> TransformInput").each(function ()
   {
-
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", "transform_" + transformcounter);
 
-    var height = transformcounter * 100 + 150;
-    var left = 1300 - ((level + 1) * 250);
+    var height = transformcounter * 120 + 150;
+    var left = (max_level*250) - ((level + 1) * 250) + 300;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
     var number = "#transform_" + transformcounter;
@@ -301,32 +353,62 @@ function parseXML(xml, level, level_y, last_element)
     });
     box1.appendTo("#droppable_p");
 
-	var box2 = $(document.createElement('small'));
-	box2.addClass('name');
-	var mytext = document.createTextNode($(this).attr("function"));
-	box2.append(mytext);
-	box1.append(box2);
-	var box2 = $(document.createElement('small'));
-	box2.addClass('type');
-	var mytext = document.createTextNode("TransformInput");
-	box2.append(mytext);
-	box1.append(box2);
-	
+    var box2 = $(document.createElement('small'));
+    box2.addClass('name');
+    var mytext = document.createTextNode($(this).attr("function"));
+    box2.append(mytext);
+    box1.append(box2);
+    var box2 = $(document.createElement('small'));
+    box2.addClass('type');
+    var mytext = document.createTextNode("TransformInput");
+    box2.append(mytext);
+    box1.append(box2);
+
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
-    var mytext = document.createTextNode("Transformation: " + transformations[$(this).attr("function")]);
-    box2.append(mytext);
 
-	var img = $(document.createElement('img'));
-	img.attr("src", "static/img/delete.png");
-	img.attr("align", "right");
-	img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
-	box2.append(img);
+    var span = $(document.createElement('div'));
+    span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+    span.attr("title", transformations[$(this).attr("function")]["name"] + " (Transformation)")
+    var mytext = document.createTextNode(transformations[$(this).attr("function")]["name"] + " (Transformation)");
+    span.append(mytext);
+    box2.append(span);
+
+    var img = $(document.createElement('img'));
+    img.attr("src", "static/img/delete.png");
+    img.attr("align", "right");
+    img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
+    box2.append(img);
 
     box1.append(box2);
 
     var box2 = $(document.createElement('div'));
     box2.addClass('content');
+
+    $params = Object();
+    $(this).find("> Param").each(function ()
+    {
+        $params[$(this).attr("name")] = $(this).attr("value");
+    });
+
+    $.each(transformations[$(this).attr("function")]["parameters"], function(j, parameter) {
+        if (j > 0) {
+            var box4 = $(document.createElement('br'));
+        }
+        box2.append(box4);
+
+        var mytext = document.createTextNode(parameter.name + ": ");
+        box2.append(mytext);
+
+        var box5 = $(document.createElement('input'));
+        box5.attr("type", "text");
+        box5.attr("name", parameter.name);
+        box5.attr("size", "10");
+        if ($params[parameter.name]) {
+            box5.attr("value", $params[parameter.name]);
+        }
+        box2.append(box5);
+    });
 
     box1.append(box2);
 
@@ -341,7 +423,7 @@ function parseXML(xml, level, level_y, last_element)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_left);
+    parseXML($(this), level + 1, 0, endp_left, max_level);
   });
   $(xml).find("> Input").each(function ()
   {
@@ -350,8 +432,8 @@ function parseXML(xml, level, level_y, last_element)
     box1.addClass('dragDiv sourcePath');
     box1.attr("id", "source_" + sourcecounter);
 
-    var height = sourcecounter * 100 + 150;
-    var left = 1300 - ((level + 1) * 250);
+    var height = sourcecounter * 120 + 150;
+    var left = (max_level*250) - ((level + 1) * 250) + 300;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
     //box1.html("<h5 class='handler'>" + json.Input[sourcecounter].path + "</h5><div class='content'></div>");
@@ -375,8 +457,13 @@ function parseXML(xml, level, level_y, last_element)
 	
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
+
+    var span = $(document.createElement('div'));
+    span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+    span.attr("title", $(this).attr("path"))
     var mytext = document.createTextNode($(this).attr("path"));
-    box2.append(mytext);
+    span.append(mytext);
+    box2.append(span);
 
 	var img = $(document.createElement('img'));
 	img.attr("src", "static/img/delete.png");
@@ -401,7 +488,7 @@ function parseXML(xml, level, level_y, last_element)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_right);
+    parseXML($(this), level + 1, 0, endp_right, max_level);
   });
 }
 
@@ -431,7 +518,25 @@ function load()
   
   $(linkSpec).find("> LinkCondition").each(function ()
   {
-    parseXML($(this), 0, 0, "");
+    var max_level = findLongestPath($(this));
+
+    var userAgent = navigator.userAgent.toLowerCase();
+    // Figure out what browser is being used
+    jQuery.browser = {
+      version: (userAgent.match( /.+(?:rv|it|ra|ie|me)[\/: ]([\d.]+)/ ) || [])[1],
+      chrome: /chrome/.test( userAgent ),
+      safari: /webkit/.test( userAgent ) && !/chrome/.test( userAgent ),
+      opera: /opera/.test( userAgent ),
+      msie: /msie/.test( userAgent ) && !/opera/.test( userAgent ),
+      mozilla: /mozilla/.test( userAgent ) && !/(compatible|webkit)/.test( userAgent )
+    };
+    var is_chrome = /chrome/.test( navigator.userAgent.toLowerCase());
+    var is_safari = /safari/.test( navigator.userAgent.toLowerCase());
+    if (is_chrome || is_safari) {
+      max_level = max_level - 1;
+    }
+
+    parseXML($(this), 0, 0, "", max_level);
   });
   $(linkSpec).find("> LinkType").each(function ()
   {
@@ -465,28 +570,47 @@ function createNewElement(elementId)
 		xml.setAttribute("path", elName);
 	} else if (elType == "TransformInput") {
 		xml.setAttribute("function", elName);
-	} else if (elType == "Aggregate") {
+    } else if (elType == "Aggregate") {
 		xml.setAttribute("type", elName);
 	} else if (elType == "Compare") {
 		xml.setAttribute("metric", elName);
 	}
-	
+    var params = $(elementIdName+" > div.content > input");
+
 	var c = jsPlumb.getConnections();
 	for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
-  {
-	var source = c[jsPlumb.getDefaultScope()][i].sourceId;
-	var target = c[jsPlumb.getDefaultScope()][i].targetId;
-	if (target == elementId) 
-	{
-	  xml.appendChild(createNewElement(source));
-	}
-  }
-	return xml;
+    {
+        var source = c[jsPlumb.getDefaultScope()][i].sourceId;
+        var target = c[jsPlumb.getDefaultScope()][i].targetId;
+        if (target == elementId)
+        {
+          xml.appendChild(createNewElement(source));
+        }
+    }
+
+    for (var l = 0; l < params.length; l++) {
+        if ($(params[l]).attr("name") == "required") {
+            if (($(elementIdName+" > div.content > input[name=required]:checked").val()) == "on") {
+                xml.setAttribute("required", "true");
+            } else {
+                xml.setAttribute("required", "false");
+            }
+        }  else if ($(params[l]).attr("name") == "weight") {
+           xml.setAttribute("weight", $(params[l]).attr("value"));
+        }  else {
+            var xml_param = document.createElement("Param");
+            xml_param.setAttribute("name", $(params[l]).attr("name"));
+            xml_param.setAttribute("value", $(params[l]).val());
+            xml.appendChild(xml_param);
+        }
+    }
+
+    return xml;
 }
 
 function serializeLinkSpec() {
   //alert (JSON.stringify(c));
-  
+
   var c = jsPlumb.getConnections();
   var connections = "";
   for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
@@ -638,7 +762,7 @@ function encodeHtml(value)
 function getPropertyPaths()
 {
 
-  var url = "/api/project/paths?max=10";
+  var url = "/api/project/paths"; // ?max=10
   $.getJSON(url, function (data)
   {
     if(data.isLoading) {
@@ -662,13 +786,18 @@ function getPropertyPaths()
     box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.source.restrictions).appendTo("#paths");
     box.appendTo("#paths");
 
+    var box = $(document.createElement('div'));
+    box.attr("id", "sourcepaths");
+    box.appendTo("#paths");
+
     var sourcepaths = data.source.paths;
     $.each(sourcepaths, function (i, item)
     {
       var box = $(document.createElement('div'));
       box.addClass('draggable');
       box.attr("id", "source" + global_id);
-      box.html("<span></span><p>" + encodeHtml(item.path) + "</p>");
+      box.attr("title", encodeHtml(item.path));
+      box.html("<span></span><p style=\"white-space:nowrap; overflow:hidden;\">" + encodeHtml(item.path) + "</p>");
       box.draggable(
       {
         helper: function ()
@@ -676,11 +805,50 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv sourcePath');
           box1.attr("id", "source_" + sourcecounter);
-          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + sourcecounter +"');$('#source_" + sourcecounter +"').remove();\"/></h5><div class='content'></div>");
+          box1.attr("style", "z-index:10;");
+
+          var box2 = $(document.createElement('small'));
+          box2.addClass('name');
+          var mytext = document.createTextNode(encodeHtml(item.path));
+          box2.append(mytext);
+          box1.append(box2);
+
+          var box2 = $(document.createElement('small'));
+          box2.addClass('type');
+          var mytext = document.createTextNode("Input");
+          box2.append(mytext);
+          box1.append(box2);
+
+          var box2 = $(document.createElement('h5'));
+          box2.addClass('handler');
+
+          var span = $(document.createElement('div'));
+          span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+          span.attr("title", encodeHtml(item.path))
+          var mytext = document.createTextNode(encodeHtml(item.path));
+          span.append(mytext);
+          box2.append(span);
+
+          var img = $(document.createElement('img'));
+          img.attr("src", "static/img/delete.png");
+          img.attr("align", "right");
+          img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
+          box2.append(img);
+
+          box1.append(box2);
+
+          var box2 = $(document.createElement('div'));
+          box2.addClass('content');
+          box1.append(box2);
+
+          box1.draggable(
+          {
+            containment: '.droppable'
+          });
           return box1;
         }
       });
-      box.appendTo("#paths");
+      box.appendTo("#sourcepaths");
 
       //jsPlumb.addEndpoint('source'+global_id, endpointOptions);
       global_id = global_id + 1;
@@ -698,11 +866,46 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/><img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + sourcecounter +"');$('#source_" + sourcecounter +"').remove();\"/></h5><div class='content'></div>");
+        box1.attr("style", "z-index:10;");
+
+        var box2 = $(document.createElement('small'));
+        box2.addClass('name');
+        box1.append(box2);
+
+        var box2 = $(document.createElement('small'));
+        box2.addClass('type');
+        var mytext = document.createTextNode("Input");
+        box2.append(mytext);
+        box1.append(box2);
+
+        var box2 = $(document.createElement('h5'));
+        box2.addClass('handler');
+
+        var input = $(document.createElement('input'));
+        input.attr("style", "width: 165px;");
+        input.attr("type", "text");
+        box2.append(input);
+
+        var img = $(document.createElement('img'));
+        img.attr("src", "static/img/delete.png");
+        img.attr("align", "right");
+        img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
+        box2.append(img);
+
+        box1.append(box2);
+
+        var box2 = $(document.createElement('div'));
+        box2.addClass('content');
+        box1.append(box2);
+
+        box1.draggable(
+        {
+          containment: '.droppable'
+        });
         return box1;
       }
     });
-    box.appendTo("#paths");
+    box.appendTo("#sourcepaths");
 
     var availablePaths = data.source.availablePaths;
     if (max_paths < availablePaths)
@@ -723,13 +926,18 @@ function getPropertyPaths()
 
     var global_id = 0;
 
+    var box = $(document.createElement('div'));
+    box.attr("id", "targetpaths");
+    box.appendTo("#paths");
+
     var sourcepaths = data.target.paths;
     $.each(sourcepaths, function (i, item)
     {
       var box = $(document.createElement('div'));
       box.addClass('draggable');
       box.attr("id", "target" + global_id);
-      box.html("<span></span><small>" + encodeHtml(item.path) + "</small><p>" + encodeHtml(item.path) + "</p>");
+      box.attr("title", encodeHtml(item.path));
+      box.html("<span></span><small>" + encodeHtml(item.path) + "</small><p style=\"white-space:nowrap; overflow:hidden;\">" + encodeHtml(item.path) + "</p>");
       box.draggable(
       {
         helper: function ()
@@ -737,11 +945,51 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv targetPath');
           box1.attr("id", "target_" + targetcounter);
-          box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#target_" + targetcounter+"');$('#target_" + targetcounter+"').remove();\"/></h5><div class='content'></div>");
+          box1.attr("style", "z-index:10;");
+          //box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#target_" + targetcounter+"');$('#target_" + targetcounter+"').remove();\"/></h5><div class='content'></div>");
+
+          var box2 = $(document.createElement('small'));
+          box2.addClass('name');
+          var mytext = document.createTextNode(encodeHtml(item.path));
+          box2.append(mytext);
+          box1.append(box2);
+
+          var box2 = $(document.createElement('small'));
+          box2.addClass('type');
+          var mytext = document.createTextNode("Input");
+          box2.append(mytext);
+          box1.append(box2);
+
+          var box2 = $(document.createElement('h5'));
+          box2.addClass('handler');
+
+          var span = $(document.createElement('div'));
+          span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+          span.attr("title", encodeHtml(item.path))
+          var mytext = document.createTextNode(encodeHtml(item.path));
+          span.append(mytext);
+          box2.append(span);
+
+          var img = $(document.createElement('img'));
+          img.attr("src", "static/img/delete.png");
+          img.attr("align", "right");
+          img.attr("onclick", "jsPlumb.removeAllEndpoints('#target_" + targetcounter+"');$('#target_" + targetcounter+"').remove();");
+          box2.append(img);
+
+          box1.append(box2);
+
+          var box2 = $(document.createElement('div'));
+          box2.addClass('content');
+          box1.append(box2);
+
+          box1.draggable(
+          {
+            containment: '.droppable'
+          });
           return box1;
         }
       });
-      box.appendTo("#paths");
+      box.appendTo("#targetpaths");
 
       global_id = global_id + 1;
 
@@ -758,11 +1006,46 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.html("<small class=\"name\"></small><small class=\"type\">Input</small><h5 class='handler'><input type=\"text\" size=\"20\"/><img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();\"/></h5><div class='content'></div>");
+        box1.attr("style", "z-index:10;");
+
+        var box2 = $(document.createElement('small'));
+        box2.addClass('name');
+        box1.append(box2);
+
+        var box2 = $(document.createElement('small'));
+        box2.addClass('type');
+        var mytext = document.createTextNode("Input");
+        box2.append(mytext);
+        box1.append(box2);
+
+        var box2 = $(document.createElement('h5'));
+        box2.addClass('handler');
+
+        var input = $(document.createElement('input'));
+        input.attr("style", "width: 165px;");
+        input.attr("type", "text");
+        box2.append(input);
+
+        var img = $(document.createElement('img'));
+        img.attr("src", "static/img/delete.png");
+        img.attr("align", "right");
+        img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
+        box2.append(img);
+
+        box1.append(box2);
+
+        var box2 = $(document.createElement('div'));
+        box2.addClass('content');
+        box1.append(box2);
+
+        box1.draggable(
+        {
+          containment: '.droppable'
+        });
         return box1;
       }
     });
-    box.appendTo("#paths");
+    box.appendTo("#targetpaths");
 
     var availablePaths = data.target.availablePaths;
     if (max_paths < availablePaths)
@@ -801,7 +1084,10 @@ function getOperators()
         var sourcepaths = data.transformations;
         $.each(sourcepaths, function (i, item)
         {
-          transformations[item.id] = item.label;
+          transformations[item.id] = new Object();
+          transformations[item.id]["name"] = item.label;
+          transformations[item.id]["parameters"] = item.parameters;
+
           var box = $(document.createElement('div'));
           box.addClass('draggable tranformations');
           box.attr("id", "transformation" + global_id);
@@ -828,8 +1114,13 @@ function getOperators()
 
               var box2 = $(document.createElement('h5'));
               box2.addClass('handler');
-              var mytext = document.createTextNode("Transformation: " + item.label);
-              box2.append(mytext);
+
+              var span = $(document.createElement('div'));
+              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+              span.attr("title", item.label + " (Transformation)")
+              var mytext = document.createTextNode(item.label + " (Transformation)");
+              span.append(mytext);
+              box2.append(span);
 
               var img = $(document.createElement('img'));
               img.attr("src", "static/img/delete.png");
@@ -842,7 +1133,6 @@ function getOperators()
               var box2 = $(document.createElement('div'));
               box2.addClass('content');
 
-              transformations[item.id].parameters = item.parameters;
               $.each(item.parameters, function (j, parameter)
               {
                 if (j > 0)
@@ -855,8 +1145,9 @@ function getOperators()
                 box2.append(mytext);
 
                 var box5 = $(document.createElement('input'));
+                box5.attr("name", parameter.name);
                 box5.attr("type", "text");
-                box5.attr("size", "10");;
+                box5.attr("size", "10");
                 box2.append(box5);
               });
 
@@ -865,7 +1156,6 @@ function getOperators()
             }
           });
           box.appendTo("#operators");
-
 
           // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions1);
           // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions2);
@@ -884,8 +1174,9 @@ function getOperators()
         var sourcepaths = data.comparators;
         $.each(sourcepaths, function (i, item)
         {
-          comparators[item.id] = item.label;
-          // comparators[item.id].parameters = item.parameters;
+          comparators[item.id] = new Object();
+          comparators[item.id]["name"] = item.label;
+          comparators[item.id]["parameters"] = item.parameters;
           var box = $(document.createElement('div'));
           box.addClass('draggable comparators');
           box.attr("id", "comparator" + global_id);
@@ -912,8 +1203,13 @@ function getOperators()
 
               var box2 = $(document.createElement('h5'));
               box2.addClass('handler');
-              var mytext = document.createTextNode("Comparator: " + item.label);
-              box2.append(mytext);
+
+              var span = $(document.createElement('div'));
+              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+              span.attr("title", item.label + " (Comparator)")
+              var mytext = document.createTextNode(item.label + " (Comparator)");
+              span.append(mytext);
+              box2.append(span);
 
               var img = $(document.createElement('img'));
               img.attr("src", "static/img/delete.png");
@@ -931,6 +1227,7 @@ function getOperators()
 
               var box3 = $(document.createElement('input'));
               box3.attr("type", "checkbox");
+              box3.attr("name", "required");
               box2.append(box3);
 
               var box4 = $(document.createElement('br'));
@@ -940,23 +1237,22 @@ function getOperators()
               box2.append(mytext);
 
               var box5 = $(document.createElement('input'));
+              box5.attr("name", "weight");
               box5.attr("type", "text");
               box5.attr("size", "2");
               box5.attr("value", "1");
               box2.append(box5);
 
-
-			  // comparators[item.id]["parameters"] = new Object();
               $.each(item.parameters, function (j, parameter)
               {
-			    // comparators[item.id]["parameters"][parameter.name] = parameter.type;
-                var box4 = $(document.createElement('br'));
+			    var box4 = $(document.createElement('br'));
                 box2.append(box4);
 
                 var mytext = document.createTextNode(parameter.name + ": ");
                 box2.append(mytext);
 
                 var box5 = $(document.createElement('input'));
+                box5.attr("name", parameter.name);
                 box5.attr("type", "text");
                 box5.attr("size", "10");;
                 box2.append(box5);
@@ -1012,8 +1308,13 @@ function getOperators()
 
               var box2 = $(document.createElement('h5'));
               box2.addClass('handler');
-              var mytext = document.createTextNode("Aggregator: " + item.label);
-              box2.append(mytext);
+
+              var span = $(document.createElement('div'));
+              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+              span.attr("title", item.label + " (Aggregator)")
+              var mytext = document.createTextNode(item.label + " (Aggregator)");
+              span.append(mytext);
+              box2.append(span);
 
               var img = $(document.createElement('img'));
               img.attr("src", "static/img/delete.png");
@@ -1030,6 +1331,7 @@ function getOperators()
               box2.append(mytext);
 
               var box3 = $(document.createElement('input'));
+              box3.attr("name", "required");
               box3.attr("type", "checkbox");
               box2.append(box3);
 
@@ -1042,6 +1344,7 @@ function getOperators()
               var box5 = $(document.createElement('input'));
               box5.attr("type", "text");
               box5.attr("size", "2");
+              box5.attr("name", "weight");
               box5.attr("value", "1");
               box2.append(box5);
 
@@ -1055,6 +1358,7 @@ function getOperators()
                 box2.append(mytext);
 
                 var box5 = $(document.createElement('input'));
+                box5.attr("name", parameter.name);
                 box5.attr("type", "text");
                 box5.attr("size", "10");;
                 box2.append(box5);

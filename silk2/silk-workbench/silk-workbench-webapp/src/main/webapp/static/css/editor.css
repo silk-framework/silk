@@ -110,27 +110,37 @@ body{
 
 .sourcePath h5 {
 	background-color:#C354BF;
+    height: 15px;
 }
 
 .targetPath h5 {
 	background-color:#C354BF;
+    height: 15px;
 }
 
 .transformDiv h5 {
 	background-color:#0cc481;
+    height: 15px;
 }
 
 .compareDiv h5 {
 	background-color:#e59829;
+    height: 15px;
 }
 
 .aggregateDiv h5 {
 	background-color:#1484d4;
+    height: 15px;
 }
 
 .dragDiv div {
 	padding:3px 5px;
 	margin-bottom:5px;
+}
+
+.dragDiv h5 div {
+	padding:0px;
+	margin-bottom:0px;
 }
 
 .more {
