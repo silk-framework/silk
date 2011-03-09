@@ -110,10 +110,10 @@ object EditLinkingTaskDialog
     JsRaw("$('#editTargetId').children().remove();").cmd &
     JsRaw("$('#editTargetId').append('" + targetOptions.mkString + "');").cmd &
     //Update restrictions
-    JsRaw("$('#editSourceRes').attr('value', '" + datasets.source.restriction + "');").cmd &
-    JsRaw("$('#editTargetRes').attr('value', '" + datasets.target.restriction + "');").cmd &
+    JsRaw("$('#editSourceRes').val('" + datasets.source.restriction + "');").cmd &
+    JsRaw("$('#editTargetRes').val('" + datasets.target.restriction + "');").cmd &
     //Update link type
-    JsRaw("$('#editLinkType').attr('value', '" + linkingTask.linkSpec.linkType + "');").cmd &
+    JsRaw("$('#editLinkType').val('" + linkingTask.linkSpec.linkType + "');").cmd &
     //Update prefixes
     SetHtml("editPrefixes", prefixEditor.show(linkingTask.prefixes)) &
     //Open dialog
