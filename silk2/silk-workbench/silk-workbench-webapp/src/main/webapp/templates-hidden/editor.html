@@ -10,13 +10,15 @@
     <link type="text/css" href="static/css/editor-reset.css" rel="stylesheet" />
     <link type="text/css" href="static/css/editor.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="static/jquery-ui/css/smoothness/jquery-ui-1.8.10.custom.css" type="text/css" media="screen, projection"/>
+    <link rel="stylesheet" href="static/jquery-ui/css/ui-darkness/jquery-ui-1.8.6.custom.css" type="text/css" media="screen, projection"/>
 
+      <!--
     <script type="text/javascript" src="static/js/ui.core.js"></script>
     <script type="text/javascript" src="static/js/ui.draggable.js"></script>
     <script type="text/javascript" src="static/js/ui.droppable.js"></script>
+-->
 
-      <script type="text/javascript" src="static/jquery-ui/js/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery-1.4.2.min.js"></script>
       <script type="text/javascript" src="static/jquery-ui/js/jquery-ui-1.8.6.custom.min.js"></script>
 
     <script type="text/javascript" src="static/js/excanvas.js"></script>
@@ -25,7 +27,34 @@
 
     <script type="text/javascript" src="static/js/editor.js"></script>
 
-    <script type="text/javascript" >
+      <!--
+      <link type="text/css" href="static/css/jquery.jscrollpane.css" rel="stylesheet" media="all" />
+          -->
+
+    <style type="text/css" id="page-css">
+        #sourcepaths, #targetpaths
+        {
+            width: 230px;
+            height: 300px;
+            overflow: auto;
+        }
+	</style>
+
+    <!-- the mousewheel plugin -->
+    <script type="text/javascript" src="static/js/jquery.mousewheel.js"></script>
+    <!-- the jScrollPane script -->
+    <!--
+    <script type="text/javascript" src="static/js/jquery.jscrollpane.js"></script>
+
+    <script type="text/javascript" id="sourcecode">
+			$(function()
+			{
+				$('#paths').jScrollPane();
+			});
+	</script>
+    -->
+
+    <script>
         <![CDATA[
 	    $(function() {
 	    	$("button, input:submit").button();
@@ -45,7 +74,7 @@
     </div>
     <div id="toolbar">
       <lift:bind name="toolbar" />
-    </div> 
+    </div>
     <div id="content">
       <lift:bind name="content" />
     </div>
