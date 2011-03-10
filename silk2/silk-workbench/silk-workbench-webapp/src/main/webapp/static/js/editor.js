@@ -783,14 +783,20 @@ function getPropertyPaths()
   var url = "/api/project/paths"; // ?max=10
   $.getJSON(url, function (data)
   {
-    if(data.isLoading) {
-	  var dot = document.createTextNode(".");
+    if(data.isLoading)
+    {
+	    var dot = document.createTextNode(".");
       document.getElementById("loading").appendChild(dot);
       setTimeout("getPropertyPaths();", 1000);	  
     }
+    else if (data.error !== undefined)
+    {
+      document.getElementById("paths").removeChild(document.getElementById("loading"));
+      alert("Error: " + data.error);
+    }
     else
     {
-    document.getElementById("paths").removeChild(document.getElementById("loading"));
+      document.getElementById("paths").removeChild(document.getElementById("loading"));
 
     var global_id = 0;
 
