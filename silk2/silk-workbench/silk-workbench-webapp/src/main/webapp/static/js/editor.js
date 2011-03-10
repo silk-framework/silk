@@ -588,7 +588,11 @@ function createNewElement(elementId)
 	var elType = ($(elementIdName).children(".type").text());
 	var xml = document.createElement(elType);
 	if (elType == "Input") {
-		xml.setAttribute("path", elName);
+    if (elName == "") {
+      xml.setAttribute("path", $(elementIdName+" > h5 > input").val());
+    } else {
+      xml.setAttribute("path", elName);
+    }
 	} else if (elType == "TransformInput") {
 		xml.setAttribute("function", elName);
     } else if (elType == "Aggregate") {
