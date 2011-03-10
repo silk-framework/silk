@@ -873,7 +873,7 @@ function getPropertyPaths()
     var box = $(document.createElement('div'));
     box.addClass('draggable');
     box.attr("id", "source" + global_id);
-    box.html("<span> </span><small> </small><p> </p>");
+    box.html("<span> </span><small> </small><p>(custom path)</p>");
     box.draggable(
     {
       helper: function ()
@@ -1006,7 +1006,7 @@ function getPropertyPaths()
     var box = $(document.createElement('div'));
     box.addClass('draggable');
     box.attr("id", "target" + global_id);
-    box.html("<span> </span><small> </small><p> </p>");
+    box.html("<span> </span><small> </small><p>(custom path)</p>");
     box.draggable(
     {
       helper: function ()
