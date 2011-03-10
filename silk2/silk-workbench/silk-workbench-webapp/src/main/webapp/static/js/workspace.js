@@ -111,8 +111,8 @@ function addDataSource(jsonDataSource,projectNode,projectName)
     var ds_actions = document.createElement("div");
         $(ds_actions).addClass('actions');
         $(ds_span).append(ds_actions);
-        addAction('ds_edit', 'Edit', "Edit data source "+jsonDataSource.name,"editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName,true);
-        addAction('delete',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true); 
+        addAction('ds_edit', 'Edit', "Edit data source ","editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName,true);
+        addAction('delete',"Remove data source ","confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true);
 
     for(var p in jsonDataSource.params) {
       var param = jsonDataSource.params[p];
@@ -141,8 +141,8 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         $(lt_actions).addClass('actions');
         $(lt_span).append(lt_actions);
     addAction('link_edit', 'Metadata', "Edit metadata","editLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
-    addAction('link_spec', 'Open', "Edit link specification "+jsonLinkingTask.name,"openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
-    addAction('delete', 'Remove',"Remove task "+jsonLinkingTask.name,"confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
+    addAction('link_spec', 'Open', "Edit link specification","openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
+    addAction('delete', 'Remove',"Remove task","confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
 
     addLeaf(jsonLinkingTask.source,lt_li, 'source: ');
     addLeaf(jsonLinkingTask.target,lt_li, 'target: ');
@@ -207,10 +207,10 @@ function updateWorkspace(obj){
                 var proj_actions = document.createElement("div");
                     $(proj_actions).addClass('actions');
                     $(proj_span).append(proj_actions);
-                addAction('ds_add', 'Source','Add DataSource',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
+                addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('link_add', 'Task','Add linking task',"createLinkingTask('"+project.name+"')",proj_actions,project.name,true);
-                addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
-                addAction('delete', 'Remove','Remove project '+project.name,"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
+                addAction('export', 'Export','Export project',"exportProject('"+project.name+"')",proj_actions,project.name,true);
+                addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
 
 
              // display dataSource
