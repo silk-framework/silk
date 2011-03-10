@@ -112,7 +112,7 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         $(ds_actions).addClass('actions');
         $(ds_span).append(ds_actions);
         addAction('ds_edit', 'Edit', "Edit data source ","editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName,true);
-        addAction('delete',"Remove data source ","confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true);
+        addAction('delete','Remove',"Remove data source ","confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true);
 
     for(var p in jsonDataSource.params) {
       var param = jsonDataSource.params[p];
@@ -241,6 +241,7 @@ function updateWorkspace(obj){
 
         $("#tree").treeview();
 
+        $("#loading-dialog").dialog("close");
 
     }
 
