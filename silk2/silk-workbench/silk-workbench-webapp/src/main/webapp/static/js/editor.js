@@ -94,7 +94,7 @@ var endpointOptions2 =
     lineWidth: 5
   },
   isTarget: true,
-  maxConnections: 4,
+  maxConnections: 1,
   anchor: "RightMiddle"
 };
 
