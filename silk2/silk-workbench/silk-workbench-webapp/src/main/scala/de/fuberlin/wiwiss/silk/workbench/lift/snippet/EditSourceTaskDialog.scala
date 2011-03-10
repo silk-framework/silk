@@ -53,7 +53,7 @@ class EditSourceTaskDialog
          "graph" -> SHtml.text(graph, graph = _, "id" -> "textboxGraph", "size" -> "60"),
          "retryCount" -> SHtml.text(retryCount, retryCount = _, "id" -> "textboxRetryCount", "size" -> "60"),
          "retryPause" -> SHtml.text(retryPause, retryPause = _, "id" -> "textboxRetryPause", "size" -> "60"),
-         "submit" -> SHtml.ajaxSubmit("Edit", submit _))
+         "submit" -> SHtml.ajaxSubmit("Save", submit _))
     )
   }
 }
