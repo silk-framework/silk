@@ -630,60 +630,55 @@ function serializeLinkSpec() {
       root = key;
     }
   }
+  // alert(connections + "\n\n" + root);
+  var xml = document.createElement("Interlink");
+  xml.setAttribute("id", interlinkId);
+
+  var linktype = document.createElement("LinkType");
+  var linktypeText = document.createTextNode($("#linktype").val());
+  linktype.appendChild(linktypeText);
+  xml.appendChild(linktype);
+
+  var sourceDataset = document.createElement("SourceDataset");
+  sourceDataset.setAttribute("var", sourceDataSetVar);
+  sourceDataset.setAttribute("dataSource", sourceDataSet);
+  var restriction = document.createElement("RestrictTo");
+  var restrictionText = document.createTextNode(sourceDataSetRestriction);
+  restriction.appendChild(restrictionText);
+  sourceDataset.appendChild(restriction);
+  xml.appendChild(sourceDataset);
+
+  var targetDataset = document.createElement("TargetDataset");
+  targetDataset.setAttribute("var", targetDataSetVar);
+  targetDataset.setAttribute("dataSource", targetDataSet);
+  var restriction = document.createElement("RestrictTo");
+  var restrictionText = document.createTextNode(targetDataSetRestriction);
+  restriction.appendChild(restrictionText);
+  targetDataset.appendChild(restriction);
+  xml.appendChild(targetDataset);
+
+  var linkcondition = document.createElement("LinkCondition");
   if (root != null)
   {
-    // alert(connections + "\n\n" + root);
-    var xml = document.createElement("Interlink");
-	xml.setAttribute("id", interlinkId);
-	
-	var linktype = document.createElement("LinkType");
-	var linktypeText = document.createTextNode($("#linktype").val());
-	linktype.appendChild(linktypeText);
-	xml.appendChild(linktype);
-
-	var sourceDataset = document.createElement("SourceDataset");
-	sourceDataset.setAttribute("var", sourceDataSetVar);
-	sourceDataset.setAttribute("dataSource", sourceDataSet);
-	var restriction = document.createElement("RestrictTo");
-	var restrictionText = document.createTextNode(sourceDataSetRestriction);
-	restriction.appendChild(restrictionText);
-	sourceDataset.appendChild(restriction);
-	xml.appendChild(sourceDataset);
-
-	var targetDataset = document.createElement("TargetDataset");
-	targetDataset.setAttribute("var", targetDataSetVar);
-	targetDataset.setAttribute("dataSource", targetDataSet);
-	var restriction = document.createElement("RestrictTo");
-	var restrictionText = document.createTextNode(targetDataSetRestriction);
-	restriction.appendChild(restrictionText);
-	targetDataset.appendChild(restriction);
-	xml.appendChild(targetDataset);
-
-	var linkcondition = document.createElement("LinkCondition");
-	linkcondition.appendChild(createNewElement(root));
-	xml.appendChild(linkcondition);
-
-	var filter = document.createElement("Filter");
-	if ($("#linklimit").val().length > 0)
-	{
-	  filter.setAttribute("limit", $("#linklimit").val());
-    }
-	filter.setAttribute("threshold", $("#threshold").val());
-	xml.appendChild(filter);
-
-	var outputs = document.createElement("Outputs");
-	xml.appendChild(outputs);
-
-	var xmlString = getHTML(xml, true);
-	xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
-	// alert(xmlString);
-	return xmlString;
+    linkcondition.appendChild(createNewElement(root));
   }
-  else
+  xml.appendChild(linkcondition);
+
+  var filter = document.createElement("Filter");
+  if ($("#linklimit").val().length > 0)
   {
-    alert("No tree root found!");
-    return "Error";
+    filter.setAttribute("limit", $("#linklimit").val());
   }
+  filter.setAttribute("threshold", $("#threshold").val());
+  xml.appendChild(filter);
+
+  var outputs = document.createElement("Outputs");
+  xml.appendChild(outputs);
+
+  var xmlString = getHTML(xml, true);
+  xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
+  // alert(xmlString);
+  return xmlString;
 }
 
 $(function ()
