@@ -792,7 +792,7 @@ function getPropertyPaths()
     else if (data.error !== undefined)
     {
       document.getElementById("paths").removeChild(document.getElementById("loading"));
-      alert("Could not load property paths.\nError: " + data.error);
+      alert("Error when loading property paths", "Could not load property paths.\nError: " + data.error);
     }
     else
     {
