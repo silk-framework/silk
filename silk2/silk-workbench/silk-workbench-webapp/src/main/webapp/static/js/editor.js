@@ -880,6 +880,7 @@ function getPropertyPaths()
 
         var box2 = $(document.createElement('h5'));
         box2.addClass('handler');
+        box2.attr("style", "height: 19px;");
 
         var input = $(document.createElement('input'));
         input.attr("style", "width: 165px;");
@@ -1020,6 +1021,7 @@ function getPropertyPaths()
 
         var box2 = $(document.createElement('h5'));
         box2.addClass('handler');
+        box2.attr("style", "height: 19px;");
 
         var input = $(document.createElement('input'));
         input.attr("style", "width: 165px;");
@@ -1046,7 +1048,7 @@ function getPropertyPaths()
       }
     });
     box.appendTo("#targetpaths");
-
+    /*
     var availablePaths = data.target.availablePaths;
     if (max_paths < availablePaths)
     {
@@ -1055,6 +1057,7 @@ function getPropertyPaths()
       box.appendTo("#paths");
 
     }
+    */
     }
   });
 }
