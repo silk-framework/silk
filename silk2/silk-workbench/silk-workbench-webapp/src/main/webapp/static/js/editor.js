@@ -617,10 +617,19 @@ function createNewElement(elementId)
       } else if ($(params[l]).attr("name") == "weight") {
         xml.setAttribute("weight", $(params[l]).attr("value"));
       } else {
-        var xml_param = document.createElement("Param");
-        xml_param.setAttribute("name", $(params[l]).attr("name"));
-        xml_param.setAttribute("value", $(params[l]).val());
-        xml.appendChild(xml_param);
+        if (elType == "Compare") {
+          if ($(params[l]).val() != "") {
+            var xml_param = document.createElement("Param");
+            xml_param.setAttribute("name", $(params[l]).attr("name"));
+            xml_param.setAttribute("value", $(params[l]).val());
+            xml.appendChild(xml_param);
+          }
+        } else {
+          var xml_param = document.createElement("Param");
+          xml_param.setAttribute("name", $(params[l]).attr("name"));
+          xml_param.setAttribute("value", $(params[l]).val());
+          xml.appendChild(xml_param);
+        }
       }
     }
 
@@ -753,6 +762,10 @@ $(function ()
             containment: '#droppable'
           });
           sourcecounter = sourcecounter + 1;
+          /*
+          $(number).removeClass("ui-draggable-dragging");
+          $(number).addClass("ui-draggable");
+          */
         }
         if (ui.helper.attr('id').search(/target/) != -1)
         {
@@ -828,7 +841,6 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv sourcePath');
           box1.attr("id", "source_" + sourcecounter);
-          box1.attr("style", "z-index:10;");
 
           var box2 = $(document.createElement('small'));
           box2.addClass('name');
@@ -881,7 +893,6 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.attr("style", "z-index:10;");
 
         var box2 = $(document.createElement('small'));
         box2.addClass('name');
@@ -953,7 +964,6 @@ function getPropertyPaths()
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv targetPath');
           box1.attr("id", "target_" + targetcounter);
-          box1.attr("style", "z-index:10;");
 
           var box2 = $(document.createElement('small'));
           box2.addClass('name');
@@ -1005,7 +1015,6 @@ function getPropertyPaths()
         var box1 = $(document.createElement('div'));
         box1.addClass('dragDiv sourcePath');
         box1.attr("id", "source_" + sourcecounter);
-        box1.attr("style", "z-index:10;");
 
         var box2 = $(document.createElement('small'));
         box2.addClass('name');
