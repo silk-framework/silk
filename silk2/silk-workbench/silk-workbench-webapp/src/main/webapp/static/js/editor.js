@@ -21,7 +21,8 @@ var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
 
-jsPlumb.draggable($(".droppable"));
+// TODO: not needed?
+// jsPlumb.draggable($(".droppable"));
 
 var endpointOptions =
 {
@@ -534,9 +535,9 @@ function load()
     };
     var is_chrome = /chrome/.test( navigator.userAgent.toLowerCase());
     var is_safari = /safari/.test( navigator.userAgent.toLowerCase());
-    if (is_chrome || is_safari) {
+    //if (is_chrome || is_safari) {
       max_level = max_level - 1;
-    }
+    //}
 
     parseXML($(this), 0, 0, "", max_level);
   });
@@ -690,59 +691,61 @@ $(function ()
     drop: function (ev, ui)
     {
       //draggedNumber = ui.helper.attr('id').search(/([0-9])/);
-      $(this).append($(ui.helper).clone());
-      if (ui.helper.attr('id').search(/aggregate/) != -1)
-      {
-        jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
-        jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
-        var number = "#aggregate_" + aggregatecounter;
-        $(number).draggable(
+      if ($("#droppable").find("> #"+ui.helper.attr('id')+"").length == 0) {
+        $(this).append($(ui.helper).clone());
+        if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
-          containment: '#droppable'
-        });
-        aggregatecounter = aggregatecounter + 1;
-      }
-      if (ui.helper.attr('id').search(/transform/) != -1)
-      {
-        jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions1);
-        jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
-        var number = "#transform_" + transformcounter;
-        $(number).draggable(
+          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
+          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
+          var number = "#aggregate_" + aggregatecounter;
+          $(number).draggable(
+          {
+            containment: '#droppable'
+          });
+          aggregatecounter = aggregatecounter + 1;
+        }
+        if (ui.helper.attr('id').search(/transform/) != -1)
         {
-          containment: '#droppable'
-        });
-        transformcounter = transformcounter + 1;
-      }
-      if (ui.helper.attr('id').search(/compare/) != -1)
-      {
-        jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
-        jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
-        var number = "#compare_" + comparecounter;
-        $(number).draggable(
+          jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions1);
+          jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
+          var number = "#transform_" + transformcounter;
+          $(number).draggable(
+          {
+            containment: '#droppable'
+          });
+          transformcounter = transformcounter + 1;
+        }
+        if (ui.helper.attr('id').search(/compare/) != -1)
         {
-          containment: '#droppable'
-        });
-        comparecounter = comparecounter + 1;
-      }
-      if (ui.helper.attr('id').search(/source/) != -1)
-      {
-        jsPlumb.addEndpoint('source_' + sourcecounter, endpointOptions);
-        var number = "#source_" + sourcecounter;
-        $(number).draggable(
+          jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
+          jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
+          var number = "#compare_" + comparecounter;
+          $(number).draggable(
+          {
+            containment: '#droppable'
+          });
+          comparecounter = comparecounter + 1;
+        }
+        if (ui.helper.attr('id').search(/source/) != -1)
         {
-          containment: '#droppable'
-        });
-        sourcecounter = sourcecounter + 1;
-      }
-      if (ui.helper.attr('id').search(/target/) != -1)
-      {
-        jsPlumb.addEndpoint('target_' + targetcounter, endpointOptions);
-        var number = "#target_" + targetcounter;
-        $(number).draggable(
+          jsPlumb.addEndpoint('source_' + sourcecounter, endpointOptions);
+          var number = "#source_" + sourcecounter;
+          $(number).draggable(
+          {
+            containment: '#droppable'
+          });
+          sourcecounter = sourcecounter + 1;
+        }
+        if (ui.helper.attr('id').search(/target/) != -1)
         {
-          containment: '#droppable'
-        });
-        targetcounter = targetcounter + 1;
+          jsPlumb.addEndpoint('target_' + targetcounter, endpointOptions);
+          var number = "#target_" + targetcounter;
+          $(number).draggable(
+          {
+            containment: '#droppable'
+          });
+          targetcounter = targetcounter + 1;
+        }
       }
     }
   });
