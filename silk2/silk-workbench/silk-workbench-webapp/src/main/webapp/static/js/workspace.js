@@ -256,6 +256,17 @@ function callAction(action,proj,res){
         }
 }
 
+// display loading bar
+function loading(){
+  $("#loading-progressbar").progressbar({value: 100});
+  $("#loading-dialog").dialog({
+      title: 'Loading...',
+      width: 340, height: 80,
+      modal: true,
+      resizable: false,
+      buttons: {}});
+}
+
 function confirmDelete(action,proj,res){
      var confirmDialog = document.createElement("div");
          $(confirmDialog).attr("title",'Delete')
@@ -270,7 +281,10 @@ function confirmDelete(action,proj,res){
          modal: true,
          resizable: false,
          buttons: {
-         "Yes, delete it": function() {callAction(action,proj,res); $(this).dialog("close");},
+         "Yes, delete it": function() {
+            callAction(action,proj,res); 
+            $(this).dialog("close");
+            loading()},
          "Cancel": function() {$(this).dialog("close");}
         }
         });
