@@ -20,7 +20,9 @@ var sourceDataSetVar = "";
 var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
-  
+
+jsPlumb.draggable($(".droppable"));
+
 var endpointOptions =
 {
   endpoint: new jsPlumb.Endpoints.Dot(
@@ -125,7 +127,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#aggregate_" + aggregatecounter;
     box1.draggable(
     {
-      containment: '.droppable'
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -236,7 +238,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#compare_" + comparecounter;
     box1.draggable(
     {
-      containment: '.droppable'
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -349,7 +351,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#transform_" + transformcounter;
     box1.draggable(
     {
-      containment: '.droppable'
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -440,7 +442,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#source_" + sourcecounter;
     box1.draggable(
     {
-      containment: '.droppable'
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -696,7 +698,7 @@ $(function ()
         var number = "#aggregate_" + aggregatecounter;
         $(number).draggable(
         {
-          containment: '.droppable'
+          containment: '#droppable'
         });
         aggregatecounter = aggregatecounter + 1;
       }
@@ -707,7 +709,7 @@ $(function ()
         var number = "#transform_" + transformcounter;
         $(number).draggable(
         {
-          containment: '.droppable'
+          containment: '#droppable'
         });
         transformcounter = transformcounter + 1;
       }
@@ -718,7 +720,7 @@ $(function ()
         var number = "#compare_" + comparecounter;
         $(number).draggable(
         {
-          containment: '.droppable'
+          containment: '#droppable'
         });
         comparecounter = comparecounter + 1;
       }
@@ -728,7 +730,7 @@ $(function ()
         var number = "#source_" + sourcecounter;
         $(number).draggable(
         {
-          containment: '.droppable'
+          containment: '#droppable'
         });
         sourcecounter = sourcecounter + 1;
       }
@@ -738,7 +740,7 @@ $(function ()
         var number = "#target_" + targetcounter;
         $(number).draggable(
         {
-          containment: '.droppable'
+          containment: '#droppable'
         });
         targetcounter = targetcounter + 1;
       }
@@ -836,10 +838,6 @@ function getPropertyPaths()
           box2.addClass('content');
           box1.append(box2);
 
-          box1.draggable(
-          {
-            containment: '.droppable'
-          });
           return box1;
         }
       });
@@ -894,10 +892,6 @@ function getPropertyPaths()
         box2.addClass('content');
         box1.append(box2);
 
-        box1.draggable(
-        {
-          containment: '.droppable'
-        });
         return box1;
       }
     });
@@ -978,10 +972,6 @@ function getPropertyPaths()
           box2.addClass('content');
           box1.append(box2);
 
-          box1.draggable(
-          {
-            containment: '.droppable'
-          });
           return box1;
         }
       });
@@ -1035,10 +1025,6 @@ function getPropertyPaths()
         box2.addClass('content');
         box1.append(box2);
 
-        box1.draggable(
-        {
-          containment: '.droppable'
-        });
         return box1;
       }
     });
@@ -1278,7 +1264,10 @@ function getOperators()
         var sourcepaths = data.aggregators;
         $.each(sourcepaths, function (i, item)
         {
-          aggregators[item.id] = item.label;
+          aggregators[item.id] = new Object();
+          aggregators[item.id]["name"] = item.label;
+          aggregators[item.id]["parameters"] = item.parameters;
+
           var box = $(document.createElement('div'));
           box.addClass('draggable aggregators');
           box.attr("title", item.description);
@@ -1346,7 +1335,6 @@ function getOperators()
               box5.attr("value", "1");
               box2.append(box5);
 
-              aggregators[item.id].parameters = item.parameters;
               $.each(item.parameters, function (j, parameter)
               {
                 var box4 = $(document.createElement('br'));
