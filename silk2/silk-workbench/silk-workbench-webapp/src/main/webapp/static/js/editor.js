@@ -118,14 +118,24 @@ function getHelpIcon(description, marginTop) {
   var helpIcon = $(document.createElement('img'));
   helpIcon.attr("src", "static/img/help.png");
   if ((marginTop == null) || (marginTop > 0)) {
-    helpIcon.attr("style", "margin-top: 6px;");
+    helpIcon.attr("style", "margin-top: 6px; cursor:help;");
   } else {
-    helpIcon.attr("style", "margin-bottom: 3px;");
+    helpIcon.attr("style", "margin-bottom: 3px; cursor:help;");
   }
   helpIcon.attr("align", "right");
   helpIcon.attr("title", description);
   return helpIcon;
 }
+
+function getDeleteIcon(elementId) {
+  var img = $(document.createElement('img'));
+  img.attr("src", "static/img/delete.png");
+  img.attr("align", "right");
+  img.attr("style", "cursor:pointer;");
+  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove();");
+  return img;
+}
+
 function parseXML(xml, level, level_y, last_element, max_level)
 {
   $(xml).find("> Aggregate").each(function ()
@@ -165,11 +175,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     span.append(mytext);
     box2.append(span);
 	
-    var img = $(document.createElement('img'));
-    img.attr("src", "static/img/delete.png");
-    img.attr("align", "right");
-    img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate_" + aggregatecounter+"').remove();");
-    box2.append(img);
+    box2.append(getDeleteIcon("#aggregate_" + aggregatecounter));
 
     box1.append(box2);
 
@@ -278,11 +284,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     span.append(mytext);
     box2.append(span);
 
-    var img = $(document.createElement('img'));
-    img.attr("src", "static/img/delete.png");
-    img.attr("align", "right");
-    img.attr("onclick", "jsPlumb.removeAllEndpoints('#compare_" + comparecounter+"');$('#compare_" + comparecounter+"').remove();");
-    box2.append(img);
+    box2.append(getDeleteIcon("#compare_" + comparecounter));
 
     box1.append(box2);
 
@@ -393,11 +395,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     span.append(mytext);
     box2.append(span);
 
-    var img = $(document.createElement('img'));
-    img.attr("src", "static/img/delete.png");
-    img.attr("align", "right");
-    img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
-    box2.append(img);
+    box2.append(getDeleteIcon("#transform_" + transformcounter));
 
     box1.append(box2);
 
@@ -486,11 +484,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     span.append(mytext);
     box2.append(span);
 
-	var img = $(document.createElement('img'));
-	img.attr("src", "static/img/delete.png");
-	img.attr("align", "right");
-	img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
-	box2.append(img);
+    box2.append(getDeleteIcon("#source_" + sourcecounter));
 
     box1.append(box2);
 
@@ -852,11 +846,7 @@ function getPropertyPaths()
           span.append(mytext);
           box2.append(span);
 
-          var img = $(document.createElement('img'));
-          img.attr("src", "static/img/delete.png");
-          img.attr("align", "right");
-          img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
-          box2.append(img);
+          box2.append(getDeleteIcon("#source_" + sourcecounter));
 
           box1.append(box2);
 
@@ -906,11 +896,7 @@ function getPropertyPaths()
         input.attr("type", "text");
         box2.append(input);
 
-        var img = $(document.createElement('img'));
-        img.attr("src", "static/img/delete.png");
-        img.attr("align", "right");
-        img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
-        box2.append(img);
+        box2.append(getDeleteIcon("#source_" + sourcecounter));
 
         box1.append(box2);
 
@@ -962,7 +948,6 @@ function getPropertyPaths()
           box1.addClass('dragDiv targetPath');
           box1.attr("id", "target_" + targetcounter);
           box1.attr("style", "z-index:10;");
-          //box1.html("<small class=\"name\">" + encodeHtml(item.path) + "</small><small class=\"type\">Input</small><h5 class='handler'>" + encodeHtml(item.path) + "<img src=\"static/img/delete.png\" align=\"right\" onclick=\"jsPlumb.removeAllEndpoints('#target_" + targetcounter+"');$('#target_" + targetcounter+"').remove();\"/></h5><div class='content'></div>");
 
           var box2 = $(document.createElement('small'));
           box2.addClass('name');
@@ -986,11 +971,7 @@ function getPropertyPaths()
           span.append(mytext);
           box2.append(span);
 
-          var img = $(document.createElement('img'));
-          img.attr("src", "static/img/delete.png");
-          img.attr("align", "right");
-          img.attr("onclick", "jsPlumb.removeAllEndpoints('#target_" + targetcounter+"');$('#target_" + targetcounter+"').remove();");
-          box2.append(img);
+          box2.append(getDeleteIcon("#target_" + targetcounter));
 
           box1.append(box2);
 
@@ -1039,11 +1020,7 @@ function getPropertyPaths()
         input.attr("type", "text");
         box2.append(input);
 
-        var img = $(document.createElement('img'));
-        img.attr("src", "static/img/delete.png");
-        img.attr("align", "right");
-        img.attr("onclick", "jsPlumb.removeAllEndpoints('#source_" + sourcecounter+"');$('#source_" + sourcecounter+"').remove();");
-        box2.append(img);
+        box2.append(getDeleteIcon("#source_" + sourcecounter));
 
         box1.append(box2);
 
@@ -1133,11 +1110,7 @@ function getOperators()
               span.append(mytext);
               box2.append(span);
 
-              var img = $(document.createElement('img'));
-              img.attr("src", "static/img/delete.png");
-              img.attr("align", "right");
-              img.attr("onclick", "jsPlumb.removeAllEndpoints('#transform_" + transformcounter+"');$('#transform_" + transformcounter+"').remove();");
-              box2.append(img);
+              box2.append(getDeleteIcon("#transform_" + transformcounter));
 
               box1.append(box2);
 
@@ -1225,11 +1198,7 @@ function getOperators()
               span.append(mytext);
               box2.append(span);
 
-              var img = $(document.createElement('img'));
-              img.attr("src", "static/img/delete.png");
-              img.attr("align", "right");
-              img.attr("onclick", "jsPlumb.removeAllEndpoints('#compare_" + comparecounter+"');$('#compare_" + comparecounter+"').remove();");
-              box2.append(img);
+              box2.append(getDeleteIcon("#compare_" + comparecounter));
 
               box1.append(box2);
 
@@ -1336,11 +1305,7 @@ function getOperators()
               span.append(mytext);
               box2.append(span);
 
-              var img = $(document.createElement('img'));
-              img.attr("src", "static/img/delete.png");
-              img.attr("align", "right");
-              img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate_" + aggregatecounter+"').remove();");
-              box2.append(img);
+              box2.append(getDeleteIcon("#aggregate_" + aggregatecounter));
 
               box1.append(box2);
 
