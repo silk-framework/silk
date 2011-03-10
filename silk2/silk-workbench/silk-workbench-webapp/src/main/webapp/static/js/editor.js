@@ -127,7 +127,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     {
       containment: '.droppable'
     });
-    box1.appendTo("#droppable_p");
+    box1.appendTo("#droppable");
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -238,7 +238,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     {
       containment: '.droppable'
     });
-    box1.appendTo("#droppable_p");
+    box1.appendTo("#droppable");
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -351,7 +351,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     {
       containment: '.droppable'
     });
-    box1.appendTo("#droppable_p");
+    box1.appendTo("#droppable");
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -442,7 +442,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     {
       containment: '.droppable'
     });
-    box1.appendTo("#droppable_p");
+    box1.appendTo("#droppable");
 
 	var box2 = $(document.createElement('small'));
 	box2.addClass('name');
