@@ -114,6 +114,18 @@ function findLongestPath(xml)
   return length;
 }
 
+function getHelpIcon(description, marginTop) {
+  var helpIcon = $(document.createElement('img'));
+  helpIcon.attr("src", "static/img/help.png");
+  if ((marginTop == null) || (marginTop > 0)) {
+    helpIcon.attr("style", "margin-top: 6px;");
+  } else {
+    helpIcon.attr("style", "margin-bottom: 3px;");
+  }
+  helpIcon.attr("align", "right");
+  helpIcon.attr("title", description);
+  return helpIcon;
+}
 function parseXML(xml, level, level_y, last_element, max_level)
 {
   $(xml).find("> Aggregate").each(function ()
@@ -211,6 +223,8 @@ function parseXML(xml, level, level_y, last_element, max_level)
       }
       box2.append(box5);
     });
+
+    box2.append(getHelpIcon(aggregators[$(this).attr("type")]["description"]));
 
     box1.append(box2);
 
@@ -323,6 +337,8 @@ function parseXML(xml, level, level_y, last_element, max_level)
         box2.append(box5);
     });
 
+    box2.append(getHelpIcon(comparators[$(this).attr("metric")]["description"]));
+
     box1.append(box2);
 
     var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
@@ -412,6 +428,8 @@ function parseXML(xml, level, level_y, last_element, max_level)
         }
         box2.append(box5);
     });
+
+    box2.append(getHelpIcon(transformations[$(this).attr("function")]["description"], transformations[$(this).attr("function")]["parameters"].length));
 
     box1.append(box2);
 
@@ -630,7 +648,7 @@ function serializeLinkSpec() {
     for (var key in sources)
     {
       if (!targets[key])
-    {
+      {
         root = key;
       }
     }
@@ -1074,6 +1092,7 @@ function getOperators()
         {
           transformations[item.id] = new Object();
           transformations[item.id]["name"] = item.label;
+          transformations[item.id]["description"] = item.description;
           transformations[item.id]["parameters"] = item.parameters;
 
           var box = $(document.createElement('div'));
@@ -1164,6 +1183,7 @@ function getOperators()
         {
           comparators[item.id] = new Object();
           comparators[item.id]["name"] = item.label;
+          comparators[item.id]["description"] = item.description;
           comparators[item.id]["parameters"] = item.parameters;
           var box = $(document.createElement('div'));
           box.addClass('draggable comparators');
@@ -1270,6 +1290,7 @@ function getOperators()
         {
           aggregators[item.id] = new Object();
           aggregators[item.id]["name"] = item.label;
+          aggregators[item.id]["description"] = item.description;
           aggregators[item.id]["parameters"] = item.parameters;
 
           var box = $(document.createElement('div'));
