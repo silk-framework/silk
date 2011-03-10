@@ -615,22 +615,24 @@ function serializeLinkSpec() {
   //alert (JSON.stringify(c));
 
   var c = jsPlumb.getConnections();
-  var connections = "";
-  for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
-  {
-    var source = c[jsPlumb.getDefaultScope()][i].sourceId;
-    var target = c[jsPlumb.getDefaultScope()][i].targetId;
-    sources[target] = source;
-    targets[source] = target;
-    connections = connections + source + " -> " + target + ", ";
-  }
-  //alert (connections);
-  var root = null;
-  for (var key in sources)
-  {
-    if (!targets[key])
-	{
-      root = key;
+  if (c[jsPlumb.getDefaultScope()] !== undefined) {
+    var connections = "";
+    for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
+    {
+      var source = c[jsPlumb.getDefaultScope()][i].sourceId;
+      var target = c[jsPlumb.getDefaultScope()][i].targetId;
+      sources[target] = source;
+      targets[source] = target;
+      connections = connections + source + " -> " + target + ", ";
+    }
+    //alert (connections);
+    var root = null;
+    for (var key in sources)
+    {
+      if (!targets[key])
+    {
+        root = key;
+      }
     }
   }
   // alert(connections + "\n\n" + root);
