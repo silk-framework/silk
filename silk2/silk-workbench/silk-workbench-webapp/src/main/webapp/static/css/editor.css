@@ -72,6 +72,7 @@ body{
 	left:100px;
 	top:100px;
 	font-size: 9pt;
+    z-index: 10;
 }
 
 .dragDiv h5 {
@@ -136,7 +137,7 @@ body{
 .dragDiv div {
 	padding:3px 5px;
 	margin-bottom:5px;
-    z-index: 10;
+
 }
 
 .dragDiv h5 div {
