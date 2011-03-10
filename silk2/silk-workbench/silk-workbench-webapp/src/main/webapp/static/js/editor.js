@@ -1158,6 +1158,8 @@ function getOperators()
                 box2.append(box5);
               });
 
+              box2.append(getHelpIcon(item.description, item.parameters.length));
+
               box1.append(box2);
               return box1;
             }
@@ -1253,7 +1255,7 @@ function getOperators()
 
               $.each(item.parameters, function (j, parameter)
               {
-			    var box4 = $(document.createElement('br'));
+			          var box4 = $(document.createElement('br'));
                 box2.append(box4);
 
                 var mytext = document.createTextNode(parameter.name + ": ");
@@ -1265,6 +1267,8 @@ function getOperators()
                 box5.attr("size", "10");;
                 box2.append(box5);
               });
+
+              box2.append(getHelpIcon(item.description));
 
               box1.append(box2);
 
@@ -1374,6 +1378,8 @@ function getOperators()
                 box5.attr("size", "10");;
                 box2.append(box5);
               });
+
+              box2.append(getHelpIcon(item.description));
 
               box1.append(box2);
 			  
