@@ -774,7 +774,6 @@ function getPropertyPaths()
     {
     document.getElementById("paths").removeChild(document.getElementById("loading"));
 
-
     var global_id = 0;
 
     var box = $(document.createElement('div'));
