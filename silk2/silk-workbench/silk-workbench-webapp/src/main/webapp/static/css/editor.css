@@ -79,6 +79,9 @@ body{
 	font-size: 9pt;
 }
 
+.dragDiv .content {
+    min-height: 14px;
+}
 .sourcePath {
 	background-color:#f2d7ff;
 	border:1px solid #C354BF;
