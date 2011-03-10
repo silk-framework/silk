@@ -553,9 +553,9 @@ function load()
     };
     var is_chrome = /chrome/.test( navigator.userAgent.toLowerCase());
     var is_safari = /safari/.test( navigator.userAgent.toLowerCase());
-    //if (is_chrome || is_safari) {
+    if (is_chrome || is_safari) {
       max_level = max_level - 1;
-    //}
+    }
 
     parseXML($(this), 0, 0, "", max_level);
   });
