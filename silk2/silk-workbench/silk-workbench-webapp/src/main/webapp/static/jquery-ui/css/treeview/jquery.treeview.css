@@ -67,10 +67,15 @@
 button.action {  margin:0 0 0 2px; font-size: 0.7em; padding:0; text-decoration:none; float:left; font-weight:normal;}
 /* hack jQuery ui button style  */
 .ui-button-text { margin: 0 0 0 2px; padding: .1em 1em .2em 1.9em !important ;}
-.ui-state-default { background: white !important ; }
-.ui-state-focus  { background: white !important ; text-decoration:none !important ;  }
+.ui-state-default { background: white !important ; text-decoration:none !important ; }
+.ui-state-focus  { background: white !important ; text-decoration:none !important ; border: 1px solid #D3D3D3 !important; color: #555555 !important; }
+.ui-state-focus:hover  { background: white !important ; text-decoration:none !important; border: 1px solid #999999 !important; color: #212121 !important; }
 
 .active .label { color: #cc3333;}
-span.label {float:left; cursor:pointer; margin-right: 5px;}
+span.label {float:left; cursor:pointer; margin-right: 5px; display:block; }
 
+div#newproject {margin-top:15px;}
 div#root-folder {background: url(images/folders.png) 0 0 no-repeat; float:left;height: 16px;width: 16px; display: block; margin-left:3px; }
+
+.ui-dialog td {border:0; }
+.ui-dialog td input, select {margin-left: 15px;}
