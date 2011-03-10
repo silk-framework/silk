@@ -159,6 +159,7 @@ class Boot
     {
       JObject(JField("name", JString(parameter.name)) ::
               JField("type", JString(parameter.dataType.toString)) ::
+              JField("optional", JBool(parameter.defaultValue.isDefined)) ::
               /*JField("description", JString(parameter.description)) ::*/ Nil)
     }
   }
