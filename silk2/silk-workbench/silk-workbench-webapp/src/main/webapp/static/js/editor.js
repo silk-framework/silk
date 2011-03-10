@@ -155,7 +155,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var img = $(document.createElement('img'));
     img.attr("src", "static/img/delete.png");
     img.attr("align", "right");
-    img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate" + aggregatecounter+"').remove();");
+    img.attr("onclick", "jsPlumb.removeAllEndpoints('#aggregate_" + aggregatecounter+"');$('#aggregate_" + aggregatecounter+"').remove();");
     box2.append(img);
 
     box1.append(box2);
@@ -577,7 +577,7 @@ function createNewElement(elementId)
 	} else if (elType == "Compare") {
 		xml.setAttribute("metric", elName);
 	}
-    var params = $(elementIdName+" > div.content > input");
+  var params = $(elementIdName+" > div.content > input");
 
 	var c = jsPlumb.getConnections();
 	for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
@@ -591,20 +591,20 @@ function createNewElement(elementId)
     }
 
     for (var l = 0; l < params.length; l++) {
-        if ($(params[l]).attr("name") == "required") {
-            if (($(elementIdName+" > div.content > input[name=required]:checked").val()) == "on") {
-                xml.setAttribute("required", "true");
-            } else {
-                xml.setAttribute("required", "false");
-            }
-        }  else if ($(params[l]).attr("name") == "weight") {
-           xml.setAttribute("weight", $(params[l]).attr("value"));
-        }  else {
-            var xml_param = document.createElement("Param");
-            xml_param.setAttribute("name", $(params[l]).attr("name"));
-            xml_param.setAttribute("value", $(params[l]).val());
-            xml.appendChild(xml_param);
+      if ($(params[l]).attr("name") == "required") {
+        if (($(elementIdName+" > div.content > input[name=required]:checked").val()) == "on") {
+            xml.setAttribute("required", "true");
+        } else {
+            xml.setAttribute("required", "false");
         }
+      } else if ($(params[l]).attr("name") == "weight") {
+        xml.setAttribute("weight", $(params[l]).attr("value"));
+      } else {
+        var xml_param = document.createElement("Param");
+        xml_param.setAttribute("name", $(params[l]).attr("name"));
+        xml_param.setAttribute("value", $(params[l]).val());
+        xml.appendChild(xml_param);
+      }
     }
 
     return xml;
