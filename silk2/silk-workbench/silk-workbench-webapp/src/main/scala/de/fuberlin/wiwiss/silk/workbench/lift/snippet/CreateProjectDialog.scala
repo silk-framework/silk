@@ -32,7 +32,7 @@ class CreateProjectDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "name" -> SHtml.text(name, name = _, "size" -> "60"),
+         "name" -> SHtml.text(name, name = _, "size" -> "60","title" -> "Project name"),
          "submit" -> SHtml.ajaxSubmit("Create", submit)))
   }
 }

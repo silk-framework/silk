@@ -54,11 +54,11 @@ class EditLinkingTaskDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "editSourceId"),
-         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "editSourceRes", "size" -> "60"),
-         "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "editTargetId"),
-         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "editTargetRes", "size" -> "60"),
-         "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "editLinkType", "size" -> "60"),
+         "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "editSourceId", "title" -> "Source dataset"),
+         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "editSourceRes", "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
+         "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "editTargetId",  "title" -> "Target dataset"),
+         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "editTargetRes", "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
+         "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "editLinkType", "size" -> "60",  "title" -> "Type of the generated link"),
          "prefixes" -> <div id="editPrefixes" />,
          "submit" -> SHtml.ajaxSubmit("Save", () => EditLinkingTaskDialog.prefixEditor.read(submit))))
   }

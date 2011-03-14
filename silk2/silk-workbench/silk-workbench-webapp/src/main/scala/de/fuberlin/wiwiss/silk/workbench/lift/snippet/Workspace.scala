@@ -74,7 +74,7 @@ object Workspace
    */
   def updateCmd : JsCmd =
   {
-    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
+    JsRaw("loading(); var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
   }
 
   /**

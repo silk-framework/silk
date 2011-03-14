@@ -3,6 +3,12 @@ ws.activeProjectId ="";
 ws.activeTaskId = "";
 ws.activeNodesId = new Array();
 
+// -- init
+$(document).ready(
+       function(){initLoadingDialog();}
+);
+
+// -- active/unfold nodes handling functions
 function saveOpenNodes(activeProject){
     ws.activeNodesId.length=0;
     if (activeProject!=="") ws.activeNodesId.push('project_'+activeProject);
@@ -28,31 +34,7 @@ function loadOpenNodes(){
   }
 }
 
-// - utils
-function removeNodeById(nodeId)
-{
-   var node = document.getElementById(nodeId);
-   if (node) node.parentNode.removeChild(node);
-}
-
-function getIcon(type){
-    var icon;
-    switch (type)
-    {
-        case 'add' : icon = "ui-icon-plus";  break;
-        case 'ds_add' : icon = "ui-icon-plus";  break;
-        case 'ds_edit' : icon = "ui-icon-wrench";  break;
-        case 'link_add' : icon = "ui-icon-plus";  break;
-        case 'link_edit' : icon = "ui-icon-wrench";  break;
-        case 'link_spec': icon = "ui-icon-shuffle"; break;
-        case 'delete' : icon = "ui-icon-trash";  break;
-        case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
-        case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
-    }
-    return icon;
-}
-
-// -- display functions --
+// -- display functions
 function addLeaf(leaf, parent, desc)
 {
           if (leaf){
@@ -66,7 +48,7 @@ function addLeaf(leaf, parent, desc)
                  $(leaf_li).append(leaf_span);
           }
 }
-// using jquery.ui icons
+
 function addAction(type, label, desc, action, parent, activeProject, enabled)
 {
     var icon = getIcon(type);
@@ -164,12 +146,16 @@ function updateWorkspace(obj){
             $("#content").append(rootFolder);
         }
 
+        var proj_actions = document.createElement("div");
+            $(proj_actions).addClass('actions');
+            $("#content").append(proj_actions);
+
         // new project button
         if (!document.getElementById("newproject")) {
             var newProj = document.createElement("div");
             $(newProj).attr("id",'newproject');
             addAction('add', 'Project','Create new project',"createProject()",newProj,"",true);
-            $("#content").append(newProj);
+            $(proj_actions).append(newProj);
         }
 
         // import project button
@@ -177,7 +163,7 @@ function updateWorkspace(obj){
             var importProj = document.createElement("div");
             $(importProj).attr("id",'import');
             addAction('import','Import','Import a project',"importProject()",importProj,"",true);
-            $("#content").append(importProj);
+            $(proj_actions).append(importProj);
          }
     
         var tree = document.createElement("div");
@@ -246,28 +232,28 @@ function updateWorkspace(obj){
     }
 
 // - dialogs
-function callAction(action,proj,res){
-    // work-around : passing the action as string parameter -> the action would be invoked anyway
-    switch (action)
-        {
-        case 'removeProject' :  removeProject(proj);  break;
-        case 'removeSourceTask' :  removeSourceTask(proj,res);  break;
-        case 'removeLinkingTask' : removeLinkingTask(proj,res); break;
-        default : alert("Error: Action \'"+action+"\' not defined!");
-        }
-}
 
 // display loading bar
 function loading(){
-  $("#loading-progressbar").progressbar({value: 100});
-  $("#loading-dialog").dialog({
-      title: 'Loading...',
-      width: 340, height: 80,
-      modal: true,
-      resizable: false,
-      buttons: {}});
+  $("#loading-dialog").dialog("open");
 }
 
+// init loading dialog
+function initLoadingDialog(){
+    $("#loading-dialog").dialog({
+      title: 'Loading...',
+      width: 330, height: 85,
+      modal: true,
+      resizable: false,
+      closable: false,
+      autoOpen: false,
+      closeOnEscape: false,
+      open: function(event, ui) { $(".ui-dialog-titlebar-close", $(this).parent()).hide();}
+      });
+    $("#loading-progressbar").progressbar({value: 100});
+}
+
+// init and display the proper delete confirm dialog
 function confirmDelete(action,proj,res){
      var confirmDialog = document.createElement("div");
          $(confirmDialog).attr("title",'Delete')
@@ -289,4 +275,39 @@ function confirmDelete(action,proj,res){
          "Cancel": function() {$(this).dialog("close");}
         }
         });
+}
+
+// -- utils
+function removeNodeById(nodeId)
+{
+   var node = document.getElementById(nodeId);
+   if (node) node.parentNode.removeChild(node);
+}
+
+function getIcon(type){
+    var icon;
+    switch (type)
+    {
+        case 'add' : icon = "ui-icon-plus";  break;
+        case 'ds_add' : icon = "ui-icon-plus";  break;
+        case 'ds_edit' : icon = "ui-icon-wrench";  break;
+        case 'link_add' : icon = "ui-icon-plus";  break;
+        case 'link_edit' : icon = "ui-icon-wrench";  break;
+        case 'link_spec': icon = "ui-icon-shuffle"; break;
+        case 'delete' : icon = "ui-icon-trash";  break;
+        case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
+        case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
+    }
+    return icon;
+}
+
+function callAction(action,proj,res){
+    // work-around : passing the action as string parameter -> the action would be invoked anyway
+    switch (action)
+        {
+        case 'removeProject' :  removeProject(proj);  break;
+        case 'removeSourceTask' :  removeSourceTask(proj,res);  break;
+        case 'removeLinkingTask' : removeLinkingTask(proj,res); break;
+        default : alert("Error: Action \'"+action+"\' not defined!");
+        }
 }
