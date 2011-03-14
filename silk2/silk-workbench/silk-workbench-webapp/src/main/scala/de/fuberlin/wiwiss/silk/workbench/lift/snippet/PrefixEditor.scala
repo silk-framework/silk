@@ -27,7 +27,7 @@ class PrefixEditor
   {
     def addRow() =
     {
-      JsRaw("$('#" + id + "').append(\"<tr><td><input type='text' /></td><td><input type='text' size='50' /></td></tr>\");").cmd
+      JsRaw("$('#" + id + "').append(\"<tr><td><input type='text' title='Prefix id' /></td><td><input type='text' size='50' title='Prefix namespace'/></td></tr>\");").cmd
     }
 
     def removeRow() =
@@ -45,8 +45,8 @@ class PrefixEditor
         for((prefix, namespace) <- prefixes) yield
         {
           <tr>
-            <td><input type='text' value={prefix} /></td>
-            <td><input type='text' value={namespace} size="50" /></td>
+            <td><input type='text' value={prefix} title='Prefix id'/></td>
+            <td><input type='text' value={namespace} size="50" title='Prefix namespace' /></td>
           </tr>
         }
       }

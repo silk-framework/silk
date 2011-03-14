@@ -49,10 +49,10 @@ class EditSourceTaskDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "uri" -> SHtml.text(uri, uri = _, "id" -> "textboxUri", "size" -> "60"),
-         "graph" -> SHtml.text(graph, graph = _, "id" -> "textboxGraph", "size" -> "60"),
-         "retryCount" -> SHtml.text(retryCount, retryCount = _, "id" -> "textboxRetryCount", "size" -> "60"),
-         "retryPause" -> SHtml.text(retryPause, retryPause = _, "id" -> "textboxRetryPause", "size" -> "60"),
+         "uri" -> SHtml.text(uri, uri = _, "id" -> "textboxUri", "size" -> "60", "title" -> "The URI of the SPARQL endpoint"),
+         "graph" -> SHtml.text(graph, graph = _, "id" -> "textboxGraph", "size" -> "60", "title" -> "Only retrieve instances from a specific graph"),
+         "retryCount" -> SHtml.text(retryCount, retryCount = _, "id" -> "textboxRetryCount", "size" -> "60", "title" -> "To recover from intermittent SPARQL endpoint connection failures, the 'retryCount' parameter specifies the number of times to retry connecting. By default, 'retryCount' is set to 3"),
+         "retryPause" -> SHtml.text(retryPause, retryPause = _, "id" -> "textboxRetryPause", "size" -> "60", "title" -> "To recover from intermittent SPARQL endpoint connection failures, the 'retryPause' parameter specifies how long to wait between retries. By default, 'retryPause' is set to 1000"),
          "submit" -> SHtml.ajaxSubmit("Save", submit _))
     )
   }

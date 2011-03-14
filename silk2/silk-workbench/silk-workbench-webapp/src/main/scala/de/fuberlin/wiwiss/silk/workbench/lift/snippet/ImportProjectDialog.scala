@@ -46,7 +46,7 @@ class ImportProjectDialog
     }
 
       bind("entry", xhtml,
-           "name" -> SHtml.text(name, name = _, "size" -> "20"),
+           "name" -> SHtml.text(name, name = _, "size" -> "20", "title" -> "Project name"),
            "file" -> SHtml.fileUpload(fileHolder = _),
            "submit" -> SHtml.submit("Import", submit, "style" -> "float:right;"))
   }

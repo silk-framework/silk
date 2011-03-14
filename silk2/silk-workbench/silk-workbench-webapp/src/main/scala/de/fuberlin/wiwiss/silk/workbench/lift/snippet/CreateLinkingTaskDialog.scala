@@ -63,12 +63,12 @@ class CreateLinkingTaskDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "name" -> SHtml.text(name, name = _, "size" -> "60"),
-         "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId"),
-         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60"),
-         "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId"),
-         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60"),
-         "linkType" -> SHtml.text(linkType, linkType = _, "size" -> "60"),
+         "name" -> SHtml.text(name, name = _, "size" -> "60",  "title" -> "Linking task name"),
+         "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId", "title" -> "Source dataset"),
+         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
+         "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId",  "title" -> "Target dataset"),
+         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
+         "linkType" -> SHtml.text(linkType, linkType = _, "size" -> "60",  "title" -> "Type of the generated link"),
          "prefixes" -> CreateLinkingTaskDialog.prefixEditor.show(prefixes),
          "submit" -> SHtml.ajaxSubmit("Create", () => CreateLinkingTaskDialog.prefixEditor.read(submit))))
   }
