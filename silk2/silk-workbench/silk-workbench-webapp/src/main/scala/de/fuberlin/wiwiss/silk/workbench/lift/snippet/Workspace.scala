@@ -66,6 +66,7 @@ object Workspace
     editLinkingTaskFunction &
     openLinkingTaskFunction &
     injectFunction("removeLinkingTask", removeLinkingTask _) &
+    hideLoadingDialogCmd &
     closeTaskFunction
   }
 
@@ -74,7 +75,7 @@ object Workspace
    */
   def updateCmd : JsCmd =
   {
-    JsRaw("loading(); var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
+    JsRaw("var workspaceVar = " + pretty(JsonAST.render(workspaceJson)) + "; updateWorkspace(workspaceVar);").cmd
   }
 
   /**
@@ -250,6 +251,14 @@ object Workspace
   private def removeLinkingTask(projectName : String, taskName : String)
   {
     User().workspace.project(projectName).linkingModule.remove(taskName)
+  }
+
+  /**
+   * JS Command which hides the loading dialog.
+   */
+  def hideLoadingDialogCmd : JsCmd =
+  {
+    JsRaw("loadingHide();").cmd
   }
 
   /**
