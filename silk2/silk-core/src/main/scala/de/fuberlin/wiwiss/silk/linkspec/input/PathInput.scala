@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec.input
 
 import de.fuberlin.wiwiss.silk.instance.{Instance, Path}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transformation to them.
@@ -44,4 +45,6 @@ case class PathInput(path : Path) extends Input
       Traversable.empty
     }
   }
+
+  override def toXML(implicit prefixes : Prefixes) = <Input path={path.serialize} />
 }

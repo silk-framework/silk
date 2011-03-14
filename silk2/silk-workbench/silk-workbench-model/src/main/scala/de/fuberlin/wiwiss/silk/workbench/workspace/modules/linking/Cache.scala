@@ -4,13 +4,14 @@ import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 import xml.{NodeBuffer, Node}
 import de.fuberlin.wiwiss.silk.util.{Task, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, SparqlEndpoint}
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 //TODO use options?
 //TODO store path frequencies
 class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
             var instances : ReferenceInstances = null)
 {
-  def toXML : Node =
+  def toXML(implicit prefixes : Prefixes) : Node =
   {
     val nodes = new NodeBuffer()
 

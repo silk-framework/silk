@@ -1,42 +1,70 @@
 package de.fuberlin.wiwiss.silk.util
 
-class Uri(val uri : String, val qualifiedName : Option[String])
+import de.fuberlin.wiwiss.silk.config.Prefixes
+
+/**
+ * Represents a URI.
+ */
+class Uri(val uri : String)
 {
-  def toTurtle = qualifiedName match
+  /**
+   * The turtle representation of this Uri.
+   *
+   * Examples:
+   * - dbpedia:Berlin
+   * - <http://dbpedia.org/resource/Berlin>
+   */
+  def toTurtle(implicit prefixes : Prefixes) : String =
   {
-    case Some(qualifiedName) => qualifiedName
-    case None => "<" + uri + ">"
+    for((id, namespace) <- prefixes if uri.startsWith(namespace))
+    {
+      return id + ":" + uri.substring(namespace.length)
+    }
+
+    "<" + uri + ">"
   }
 
-  override def toString = toTurtle
+  override def toString = uri
 }
 
 object Uri
 {
+  /**
+   * Builds a URI from a string.
+   */
+  implicit def fromURI(uri : String) : Uri =
+  {
+    new Uri(uri)
+  }
+
+  /**
+   * Builds a URI from a qualified name.
+   *
+   * @param qualifiedName The qualified name e.g. dbpedia:Berlin
+   * @param prefixes The prefixes which will be used to resolve the qualified name
+   */
+  def fromQualifiedName(qualifiedName : String, prefixes : Map[String, String]) =
+  {
+    new Uri(resolvePrefix(qualifiedName, prefixes))
+  }
+
+  /**
+   * Parses an URI in turtle notation.
+   *
+   * Examples:
+   * - dbpedia:Berlin
+   * - <http://dbpedia.org/resource/Berlin>
+   */
   def parse(str : String, prefixes : Map[String, String] = Map.empty) =
   {
     if(str.startsWith("<"))
     {
-      fromURI(str.substring(1, str.length - 1), prefixes)
+      fromURI(str.substring(1, str.length - 1))
     }
     else
     {
       fromQualifiedName(str, prefixes)
     }
-  }
-
-  def fromURI(uri : String, prefixes : Map[String, String] = Map.empty) : Uri =
-  {
-    for((prefix, suffix) <- prefixes if uri.startsWith(suffix))
-    {
-      return new Uri(uri, Some(prefix + ":" + uri.substring(suffix.length)))
-    }
-    new Uri(uri, None)
-  }
-
-  def fromQualifiedName(qualifiedName : String, prefixes : Map[String, String] = Map.empty) =
-  {
-    new Uri(resolvePrefix(qualifiedName, prefixes), Some(qualifiedName))
   }
 
   private def resolvePrefix(qualifiedName : String, prefixes : Map[String, String]) = qualifiedName.split(":", 2) match

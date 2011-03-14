@@ -42,7 +42,7 @@ case class Configuration(prefixes : Prefixes,
         { sources.map(_.toXML) }
       </DataSources>
       <Interlinks>
-        { linkSpecs.map(_.toXML) }
+        { linkSpecs.map(_.toXML(prefixes)) }
       </Interlinks>
     </Silk>
   }
@@ -59,10 +59,10 @@ object Configuration
 
   def fromXML(node : Node) =
   {
-    val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
+    implicit val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
     val blocking = (node \ "Blocking").headOption.map(Blocking.fromXML)
-    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, prefixes))
+    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p))
     val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
 
     Configuration(prefixes, sources, blocking, linkSpecifications, outputs)

@@ -45,7 +45,7 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
     config.linkSpec(linkSpecId)
   }
 
-  lazy val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
+  lazy val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
   lazy val sourceCache =
   {

@@ -22,7 +22,7 @@ class FileDataSource(file : String, format : String) extends DataSource
     val model = ModelFactory.createDefaultModel
     model.read(new FileInputStream(file), null, format)
 
-    val endpoint = new JenaSparqlEndpoint(model, instanceSpec.prefixes)
+    val endpoint = new JenaSparqlEndpoint(model)
 
     val instanceRetriever = InstanceRetriever(endpoint)
 

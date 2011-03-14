@@ -68,6 +68,17 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
   }
 
   /**
+   * Tries to stop the execution of this task and blocks until the task has been stopped.
+   * There is no guarantee that the task will stop immediately.
+   * The default implementation blocks until the task has been finished.
+   * Subclasses may override stopExecution() to allow cancellation of this task.
+   */
+  def cancel()
+  {
+    stopExecution()
+  }
+
+  /**
    * The current status of this task.
    */
   def status = currentStatus
@@ -92,6 +103,14 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
    *  Must be overridden in subclasses to do the actual computation.
    */
   protected def execute() : T
+
+  /**
+   *  Can be overridden in subclasses to allow cancellation of the task.
+   */
+  protected def stopExecution() : Unit =
+  {
+    while(running) Thread.sleep(100)
+  }
 
   protected def executeSubTask[R](subTask : Task[R], finalProgress : Double = 1.0) : R =
   {

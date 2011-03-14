@@ -118,7 +118,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
         }
         case None =>
         {
-          sparql += instanceSpec.restrictions + "\n"
+          sparql += instanceSpec.restrictions.toSparql + "\n"
           sparql += SparqlPathBuilder(path :: Nil, "?" + instanceSpec.variable, "?" + varPrefix)
         }
       }

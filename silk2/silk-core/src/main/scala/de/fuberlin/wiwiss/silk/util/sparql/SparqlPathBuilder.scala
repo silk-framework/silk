@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
 import de.fuberlin.wiwiss.silk.instance._
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Builds a SPARQL pattern from Paths.
@@ -34,10 +35,12 @@ object SparqlPathBuilder
   {
     if(operators.isEmpty) return ""
 
+    implicit val prefixes = Prefixes.empty
+
     val operatorSparql = operators.head match
     {
-      case ForwardOperator(property) => subject + " " + property + " " + vars.newTempVar + " .\n"
-      case BackwardOperator(property) => vars.newTempVar + " " + property + " " + subject + " .\n"
+      case ForwardOperator(property) => subject + " " + property.toTurtle + " " + vars.newTempVar + " .\n"
+      case BackwardOperator(property) => vars.newTempVar + " " + property.toTurtle + " " + subject + " .\n"
       case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " " + lang + ") . \n"
       case PropertyFilter(property, op, value) => subject + " " + property + " " + vars.newFilterVar + " .\n" +
           "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"

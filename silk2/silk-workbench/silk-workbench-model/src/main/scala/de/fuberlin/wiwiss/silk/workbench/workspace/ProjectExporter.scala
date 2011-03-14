@@ -41,6 +41,9 @@ object ProjectExporter
 
   def exportLinkingTask(task : LinkingTask) =
   {
+    //TODO move prefixes to project
+    implicit val prefixes = task.prefixes
+
     <LinkingTask>
       <Name>{task.name}</Name>
       <Prefixes>{task.prefixes.toXML}</Prefixes>

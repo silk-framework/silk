@@ -16,14 +16,12 @@ import java.net._
  * @param retryCount The number of retries if a query fails
  * @param initialRetryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  */
-class RemoteSparqlEndpoint(val uri : URI, override val prefixes : Map[String, String],
+class RemoteSparqlEndpoint(val uri : URI,
                            login : Option[(String, String)] = None,
                            val pageSize : Int = 1000, val pauseTime : Int = 0,
                            val retryCount : Int = 3, val initialRetryPause : Int = 1000) extends SparqlEndpoint
 {
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
-
-  private val sparqlPrefixes = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
 
   private var lastQueryTime = 0L
 
@@ -39,7 +37,7 @@ class RemoteSparqlEndpoint(val uri : URI, override val prefixes : Map[String, St
 
       for(offset <- 0 until limit by pageSize)
       {
-        val xml = executeQuery(sparqlPrefixes + sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
+        val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
 
         val resultsXml = xml \ "results" \ "result"
 

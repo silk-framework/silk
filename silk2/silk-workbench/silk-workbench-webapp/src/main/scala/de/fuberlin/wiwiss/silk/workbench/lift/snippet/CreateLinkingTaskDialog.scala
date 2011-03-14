@@ -4,7 +4,6 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec.condition.{LinkCondition}
-import de.fuberlin.wiwiss.silk.linkspec.{LinkFilter, DatasetSpecification, LinkSpecification}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
@@ -14,6 +13,7 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.common.Empty
+import de.fuberlin.wiwiss.silk.linkspec.{Restrictions, LinkFilter, DatasetSpecification, LinkSpecification}
 
 /**
  * A dialog to create new linking tasks.
@@ -42,8 +42,8 @@ class CreateLinkingTaskDialog
           LinkSpecification(
             id = name,
             linkType = linkType,
-            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, sourceRestriction),
-                                        DatasetSpecification(targetId, Constants.TargetVariable, targetRestriction)),
+            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)(prefixes)),
+                                        DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction)(prefixes))),
             condition = LinkCondition(None),
             filter = LinkFilter(0.95, None),
             outputs = Nil

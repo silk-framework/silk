@@ -16,7 +16,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
 {
   private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
-  private val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
+  private val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
   private val caches = SourceTargetPair.fill(new MemoryInstanceCache())
 

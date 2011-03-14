@@ -36,7 +36,7 @@ object LDEPropertiesCollector
     {
       for(result <- results if result.contains("p")) yield
       {
-        (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value, endpoint.prefixes)) :: Nil), 1.)
+        (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value)) :: Nil), 1.)
       }
     }
     else

@@ -2,6 +2,8 @@ package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import xml.Node
 
 /**
  * An operator computes the similarity between two instances.
@@ -40,4 +42,6 @@ trait Operator
    */
   //TODO rename to indexSize?
   val blockCounts : Seq[Int]
+
+  def toXML(implicit prefixes : Prefixes) : Node
 }

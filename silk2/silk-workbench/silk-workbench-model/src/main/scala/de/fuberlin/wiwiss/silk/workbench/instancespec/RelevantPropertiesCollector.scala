@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.SparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.instance.{Path, ForwardOperator}
+import de.fuberlin.wiwiss.silk.linkspec.Restrictions
 
 /**
  * Retrieves the most frequent property paths.
@@ -21,17 +22,17 @@ object RelevantPropertiesCollector
   /**
    * Retrieves a list of properties which are defined on most instances.
    */
-  def apply(endpoint : SparqlEndpoint, restriction : String) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions) : Traversable[(Path, Double)] =
   {
-    val variable = restriction.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
+    val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
-    getAllPaths(endpoint, restriction, variable)
+    getAllPaths(endpoint, restrictions, variable)
   }
 
-  private def getAllPaths(endpoint : SparqlEndpoint, restriction : String, variable : String) : Traversable[(Path, Double)] =
+  private def getAllPaths(endpoint : SparqlEndpoint, restrictions : Restrictions, variable : String) : Traversable[(Path, Double)] =
   {
     val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
-      restriction + ".\n" +
+      restrictions.toSparql + ".\n" +
       "?" + variable + " ?p ?o\n" +
       "}\n" +
       "GROUP BY ?p\n" +
@@ -43,7 +44,7 @@ object RelevantPropertiesCollector
       val maxCount = results.head("count").value.toDouble
       for(result <- results if result.contains("p")) yield
       {
-        (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value, endpoint.prefixes)) :: Nil),
+        (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value)) :: Nil),
          result("count").value.toDouble / maxCount)
       }
     }
@@ -83,6 +84,6 @@ object RelevantPropertiesCollector
     sparql += "}"
 
     for(result <- endpoint.query(sparql); binding <- result.values)
-      yield new Path(variable, ForwardOperator(Uri.fromURI(binding.value, endpoint.prefixes)) :: Nil)
+      yield new Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
   }
 }

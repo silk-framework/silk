@@ -121,8 +121,10 @@ class LinkSpec
    */
   private def generateLinkSpecVar() =
   {
+    val linkingTask = User().linkingTask
+
     //Serialize the link condition to a JavaScript string
-    val linkSpecStr = User().linkingTask.linkSpec.toXML.toString.replace("\n", " ")
+    val linkSpecStr = linkingTask.linkSpec.toXML(linkingTask.prefixes).toString.replace("\n", " ")
 
     val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 

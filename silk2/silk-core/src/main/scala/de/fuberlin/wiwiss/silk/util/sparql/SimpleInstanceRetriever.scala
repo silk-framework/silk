@@ -50,13 +50,13 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
 
     //Body
     sparql += "WHERE {\n"
-    if(instanceSpec.restrictions.isEmpty && instanceSpec.paths.isEmpty)
+    if(instanceSpec.restrictions.toSparql.isEmpty && instanceSpec.paths.isEmpty)
     {
       sparql += "?" + instanceSpec.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o "
     }
     else
     {
-      sparql += instanceSpec.restrictions + "\n"
+      sparql += instanceSpec.restrictions.toSparql + "\n"
       sparql += SparqlPathBuilder(instanceSpec.paths, "?" + instanceSpec.variable, "?" + varPrefix)
     }
     sparql += "}"
@@ -92,7 +92,7 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
     val sparqlResults =
     {
       for((path, pathIndex) <- instanceSpec.paths.zipWithIndex;
-           results <- retrievePaths(instanceUri, Seq(path), instanceSpec.prefixes)) yield
+           results <- retrievePaths(instanceUri, Seq(path))) yield
       {
         results map { case (variable, node) => (varPrefix + pathIndex, node) }
       }
@@ -101,7 +101,7 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
     new InstanceTraversable(sparqlResults, instanceSpec, Some(instanceUri)).headOption
   }
 
-  private def retrievePaths(instanceUri : String, paths : Seq[Path], prefixes : Map[String, String] = Map.empty) =
+  private def retrievePaths(instanceUri : String, paths : Seq[Path]) =
   {
     //Select
     var sparql = "SELECT DISTINCT "

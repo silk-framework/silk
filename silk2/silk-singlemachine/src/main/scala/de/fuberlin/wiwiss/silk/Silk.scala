@@ -111,7 +111,7 @@ object Silk
     val startTime = System.currentTimeMillis()
 
     //Retrieve Instance Specifications from Link Specification
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec, config.prefixes)
+    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
     //Create instance caches
     val caches = SourceTargetPair(

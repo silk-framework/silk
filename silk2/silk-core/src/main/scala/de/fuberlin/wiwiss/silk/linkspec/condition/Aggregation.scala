@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class Aggregation(required : Boolean, weight : Int, operators : Traversable[Operator], aggregator : Aggregator) extends Operator
 {
@@ -86,5 +87,15 @@ case class Aggregation(required : Boolean, weight : Int, operators : Traversable
   {
     operators.map(_.blockCounts)
              .foldLeft(Seq[Int]())((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
+  }
+
+  override def toXML(implicit prefixes : Prefixes) = aggregator match
+  {
+    case Aggregator(id, params) =>
+    {
+      <Aggregate required={required.toString} weight={weight.toString} type={id}>
+        { operators.map(_.toXML) }
+      </Aggregate>
+    }
   }
 }

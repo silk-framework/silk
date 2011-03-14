@@ -329,12 +329,15 @@ object Workspace
 
       val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq.sortBy(n => (n.name.toString.toLowerCase))) yield
       {
+        //TODO move prefixes to project level
+        implicit val prefixes = task.prefixes
+
         ("name" -> task.name.toString) ~
         ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
         ("target" -> task.linkSpec.datasets.target.sourceId.toString) ~
-        ("sourceDataset" -> task.linkSpec.datasets.source.restriction) ~
-        ("targetDataset" -> task.linkSpec.datasets.target.restriction) ~
-        ("linkType" -> task.linkSpec.linkType)
+        ("sourceDataset" -> task.linkSpec.datasets.source.restriction.toSparql) ~
+        ("targetDataset" -> task.linkSpec.datasets.target.restriction.toSparql) ~
+        ("linkType" -> task.linkSpec.linkType.toTurtle)
       }
 
       val proj : JObject =

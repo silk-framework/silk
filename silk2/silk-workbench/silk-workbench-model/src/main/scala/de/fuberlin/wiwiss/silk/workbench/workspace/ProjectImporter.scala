@@ -34,8 +34,8 @@ object ProjectImporter
   private def readLinkingTask(xml : Node) =
   {
     val name = xml \ "Name" text
-    val prefixes = Prefixes.fromXML(xml \ "Prefixes" \ "_" head)
-    val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head, prefixes)
+    implicit val prefixes = Prefixes.fromXML(xml \ "Prefixes" \ "_" head)
+    val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val alignment = AlignmentReader.readAlignment(xml \ "Alignment" \ "_" head)
     val cache = Cache.fromXML(xml \ "Cache" \ "_" head)
 
