@@ -36,7 +36,7 @@ class CreateSourceTaskDialog
       }
       catch
       {
-        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+        case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
       }
     }
 

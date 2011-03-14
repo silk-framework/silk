@@ -5,7 +5,14 @@ ws.activeNodesId = new Array();
 
 // -- init
 $(document).ready(
-       function(){initLoadingDialog();}
+   function(){
+      initLoadingDialog();
+      // override forms 'onsubmit' attribute, in order to call loadingShow() before than ajax call
+      $("form").each(function() {
+            var onSubmitVal = $(this).attr("onsubmit");
+            $(this).attr("onsubmit", "loadingShow(); "+onSubmitVal);
+            });
+   }
 );
 
 // -- active/unfold nodes handling functions
@@ -227,16 +234,20 @@ function updateWorkspace(obj){
 
         $("#tree").treeview();
 
-        $("#loading-dialog").dialog("close");
-
+        loadingHide();
     }
 
 // - dialogs
 
 // display loading bar
-function loading(){
+function loadingShow(){
   $("#loading-dialog").dialog("open");
 }
+
+function loadingHide(){
+  $("#loading-dialog").dialog("close");
+}
+
 
 // init loading dialog
 function initLoadingDialog(){
@@ -269,9 +280,9 @@ function confirmDelete(action,proj,res){
          resizable: false,
          buttons: {
          "Yes, delete it": function() {
-            callAction(action,proj,res); 
+            callAction(action,proj,res);
             $(this).dialog("close");
-            loading()},
+            loadingShow()},
          "Cancel": function() {$(this).dialog("close");}
         }
         });
