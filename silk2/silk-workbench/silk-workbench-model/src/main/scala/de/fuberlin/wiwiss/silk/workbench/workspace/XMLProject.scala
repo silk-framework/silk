@@ -100,13 +100,13 @@ class XMLProject(linkSpec : Node) extends Project
 
     def tasks = synchronized
     {
-      var prefixes : Prefixes = null
+      implicit var prefixes : Prefixes = null
       if ((doc \ "Prefixes").size>0) {
           prefixes =  Prefixes.fromXML((doc \ "Prefixes") (0))
       }  else { prefixes = Prefixes.fromXML(<Prefixes />) }
 
      for(lt <- doc \ "Interlinks" \ "Interlink" ) yield {
-        val linkT = LinkSpecification.fromXML(lt,(prefixes))
+        val linkT = LinkSpecification.fromXML(lt)
         val linkingTask = LinkingTask((lt \ "@id").text, prefixes, linkT, new Alignment(), new Cache())
         linkingTask
       }
@@ -122,7 +122,7 @@ class XMLProject(linkSpec : Node) extends Project
          remove(task.name)
       }
 
-      doc = new RuleTransformer(new AddChildTo("Interlinks", task.linkSpec.toXML)).transform(doc).head
+      doc = new RuleTransformer(new AddChildTo("Interlinks", task.linkSpec.toXML(task.prefixes))).transform(doc).head
     }
 
     def remove(taskId : Identifier) = synchronized  {

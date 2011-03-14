@@ -10,9 +10,9 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
 
   private val logger = Logger.getLogger(classOf[LDEProject].getName)
 
-  private val prefixes = Prefixes (QueryFactory.getPrefixes)
+  private val prefixes = QueryFactory.getPrefixes
 
-  private val sparqlEndpoint = new RemoteSparqlEndpoint(new URI(workspaceUri+"/sparql"), prefixes)
+  private val sparqlEndpoint = new RemoteSparqlEndpoint(new URI(workspaceUri+"/sparql"))
   private val sparulEndpoint = new RemoteSparulEndpoint(new URI(workspaceUri+"/sparul"), prefixes)
 
   private var projectList : List[Project] = {

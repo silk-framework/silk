@@ -8,16 +8,14 @@ import de.fuberlin.wiwiss.silk.util.sparql.{SparqlEndpoint, Node}
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.
  */
-private class JenaSparqlEndpoint(model : Model, override val prefixes : Map[String, String]) extends SparqlEndpoint
+private class JenaSparqlEndpoint(model : Model) extends SparqlEndpoint
 {
-  private val sparqlPrefixes = prefixes.map{case (prefix, uri) => "PREFIX " + prefix + ": <" + uri + ">\n"}.mkString
-
   /**
    * Executes a SPARQL SELECT query.
    */
   override def query(sparql : String, limit : Int) : Traversable[Map[String, Node]] =
   {
-    val qe = QueryExecutionFactory.create(sparqlPrefixes + "\n" + sparql + " LIMIT " + limit, model)
+    val qe = QueryExecutionFactory.create(sparql + " LIMIT " + limit, model)
 
     try
     {

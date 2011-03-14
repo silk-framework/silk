@@ -5,7 +5,8 @@ import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
 import xml.Node
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.util.{Uri, Identifier, ValidatingXMLReader, SourceTargetPair}
 
 /**
  * Represents a Silk Link Specification.
@@ -13,7 +14,7 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader, SourceTarg
  * @param id The id which identifies this link specification. May only contain alphanumeric characters (a - z, 0 - 9).
  */
 case class LinkSpecification(id : Identifier,
-                             linkType : String,
+                             linkType : Uri,
                              datasets : SourceTargetPair[DatasetSpecification],
                              condition : LinkCondition,
                              filter : LinkFilter,
@@ -22,10 +23,10 @@ case class LinkSpecification(id : Identifier,
   /**
    * Serializes this Link Specification as XML.
    */
-  def toXML : Node =
+  def toXML(implicit prefixes : Prefixes) : Node =
   {
     <Interlink id={id}>
-      <LinkType>{"<" + linkType + ">"}</LinkType>
+      <LinkType>{linkType.toTurtle}</LinkType>
       { datasets.source.toXML(true) }
       { datasets.target.toXML(false) }
       { condition.toXML }
@@ -41,15 +42,15 @@ object LinkSpecification
 {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
 
-  def load(prefixes : Map[String, String]) =
+  def load(implicit prefixes : Prefixes) =
   {
-    new ValidatingXMLReader(node => fromXML(node, prefixes), schemaLocation)
+    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
   }
 
   /**
    * Reads a Link Specification from XML.
    */
-  def fromXML(node : Node, prefixes : Map[String, String]) : LinkSpecification =
+  def fromXML(node : Node)(implicit prefixes : Prefixes) : LinkSpecification =
   {
     new LinkSpecification(
       node \ "@id" text,

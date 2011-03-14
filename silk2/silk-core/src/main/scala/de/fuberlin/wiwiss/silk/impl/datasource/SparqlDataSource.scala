@@ -35,7 +35,7 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
   {
     val loginComplete =  if(login != null) Some((login, password)) else None
 
-    val endpoint = new RemoteSparqlEndpoint(uri, instanceSpec.prefixes, loginComplete, pageSize, pauseTime, retryCount, retryPause)
+    val endpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, retryCount, retryPause)
 
     val instanceRetriever = InstanceRetriever(endpoint, pageSize, graphUri)
 

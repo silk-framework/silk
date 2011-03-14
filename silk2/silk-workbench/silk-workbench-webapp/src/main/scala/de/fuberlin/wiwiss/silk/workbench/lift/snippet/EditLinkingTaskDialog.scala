@@ -34,8 +34,8 @@ class EditLinkingTaskDialog
       {
         val linkingTask = User().linkingTask
 
-        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, sourceRestriction),
-                                               DatasetSpecification(targetId, Constants.TargetVariable, targetRestriction))
+        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)(prefixes)),
+                                               DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction)(prefixes)))
 
         val updatedLinkSpec = linkingTask.linkSpec.copy(datasets = updatedDatasets, linkType = linkType)
 

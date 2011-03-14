@@ -55,8 +55,8 @@ case class LinkingTask(name : Identifier,
     {
       val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
 
-      val sourceEndpoint = new RemoteSparqlEndpoint(new URI(sources.source.dataSource.toString), prefixes)
-      val targetEndpoint = new RemoteSparqlEndpoint(new URI(sources.target.dataSource.toString), prefixes)
+      val sourceEndpoint = new RemoteSparqlEndpoint(new URI(sources.source.dataSource.toString))
+      val targetEndpoint = new RemoteSparqlEndpoint(new URI(sources.target.dataSource.toString))
 
       if(cache.instanceSpecs == null)
       {
@@ -64,8 +64,8 @@ case class LinkingTask(name : Identifier,
         val sourcePaths = RelevantPropertiesCollector(sourceEndpoint, linkSpec.datasets.source.restriction).map(_._1).toSeq
         val targetPaths = RelevantPropertiesCollector(targetEndpoint, linkSpec.datasets.target.restriction).map(_._1).toSeq
 
-        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, linkSpec.datasets.source.restriction, sourcePaths, prefixes)
-        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, linkSpec.datasets.target.restriction, targetPaths, prefixes)
+        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, linkSpec.datasets.source.restriction, sourcePaths)
+        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, linkSpec.datasets.target.restriction, targetPaths)
 
         cache.instanceSpecs = new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
       }

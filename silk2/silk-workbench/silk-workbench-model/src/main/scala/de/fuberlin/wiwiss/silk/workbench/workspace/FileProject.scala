@@ -113,6 +113,8 @@ class FileProject(file : File) extends Project
       val taskDir = file + ("/" + task.name)
       taskDir.mkdir()
 
+      implicit val prefixes = task.prefixes
+
       task.prefixes.toXML.write(taskDir + "/prefixes.xml")
       task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
       task.alignment.toXML.write(taskDir+ "/alignment.xml")

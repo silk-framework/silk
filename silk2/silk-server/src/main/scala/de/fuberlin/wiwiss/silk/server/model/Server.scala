@@ -105,7 +105,7 @@ private class Server
     val formattedLinks =
       for(matchResult <- matchResults;
           link <- matchResult.links)
-          yield formatter.format(link, matchResult.linkType)
+          yield formatter.format(link, matchResult.linkType.toString)
 
     if(!serverConfig.returnUnknownInstances)
     {

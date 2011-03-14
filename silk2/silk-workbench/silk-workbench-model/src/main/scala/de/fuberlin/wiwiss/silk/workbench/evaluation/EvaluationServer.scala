@@ -76,7 +76,7 @@ object EvaluationServer
       val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
 
       //Retrieve Instance Specifications from Link Specification
-      val instanceSpecs = InstanceSpecification.retrieve(linkSpec, linkingTask.prefixes)
+      val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
       def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
 

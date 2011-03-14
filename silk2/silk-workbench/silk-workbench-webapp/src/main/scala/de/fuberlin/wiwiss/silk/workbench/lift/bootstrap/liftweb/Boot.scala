@@ -19,6 +19,7 @@ import net.liftweb.widgets.autocomplete.AutoComplete
 import scala.xml.Text
 import de.fuberlin.wiwiss.silk.workbench.lift.util.ConfigBuilder
 import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectExporter, FileUser, User}
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -84,6 +85,7 @@ class Boot
     val maxPathCount = req.param("max").map(_.toInt).getOrElse(Int.MaxValue)
 
     val linkingTask = User().linkingTask
+    implicit val prefixes = linkingTask.prefixes
     val datasets = linkingTask.linkSpec.datasets
     val restrictions = linkingTask.linkSpec.datasets.map(_.restriction)
     val instanceSpecs = linkingTask.cache.instanceSpecs
@@ -93,11 +95,11 @@ class Boot
     val sourceField = JField("source", JObject(JField("id", JString(datasets.source.sourceId)) ::
                                                JField("paths", JArray(generateInstancePaths(sourcePaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(sourcePaths.size)) ::
-                                               JField("restrictions", JString(restrictions.source)) :: Nil))
+                                               JField("restrictions", JString(restrictions.source.toString)) :: Nil))
     val targetField = JField("target", JObject(JField("id", JString(datasets.target.sourceId)) ::
                                                JField("paths", JArray(generateInstancePaths(targetPaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(targetPaths.size)) ::
-                                               JField("restrictions", JString(restrictions.target)) :: Nil))
+                                               JField("restrictions", JString(restrictions.target.toString)) :: Nil))
 
     var errorMsg : Option[String] = None
     if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isSet)
@@ -123,11 +125,11 @@ class Boot
     Full(JsonResponse(json))
   }
 
-  private def generateInstancePaths(paths : Traversable[Path], maxPathCount : Int) =
+  private def generateInstancePaths(paths : Traversable[Path], maxPathCount : Int)(implicit prefixes : Prefixes) =
   {
     for(path <- paths.toSeq.take(maxPathCount)) yield
     {
-      JObject(JField("path", JString(path.toString)) :: JField("frequency", JDouble(1.0)) :: Nil)
+      JObject(JField("path", JString(path.serialize)) :: JField("frequency", JDouble(1.0)) :: Nil)
     }
   }
 

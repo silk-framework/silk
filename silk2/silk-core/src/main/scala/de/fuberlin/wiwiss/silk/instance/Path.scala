@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.instance
 
 import collection.mutable.{SynchronizedMap, WeakHashMap}
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Represents an RDF path.
@@ -10,7 +11,9 @@ case class Path(variable : String, operators : List[PathOperator])
   /**
    * Serializes this path using the Silk RDF path language.
    */
-  override def toString = "?" + variable + operators.mkString
+  def serialize(implicit prefixes : Prefixes) = "?" + variable + operators.map(_.serialize).mkString
+
+  override def toString = serialize(Prefixes.empty)
 
   /**
    * Tests if this path equals another path

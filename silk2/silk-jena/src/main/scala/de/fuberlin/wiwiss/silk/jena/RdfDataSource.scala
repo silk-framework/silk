@@ -24,7 +24,7 @@ class RdfDataSource(input : String, format : String) extends DataSource
     val model = ModelFactory.createDefaultModel
     model.read(reader, null, format)
 
-    val endpoint = new JenaSparqlEndpoint(model, instanceSpec.prefixes)
+    val endpoint = new JenaSparqlEndpoint(model)
 
     val instanceRetriever = InstanceRetriever(endpoint)
 
