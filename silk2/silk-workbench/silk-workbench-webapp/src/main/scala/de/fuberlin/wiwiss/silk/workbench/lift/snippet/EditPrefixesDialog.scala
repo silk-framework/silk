@@ -22,6 +22,7 @@ object EditPrefixesDialog
   /** The id of the prefix table */
   private val tableId = "prefixesTable"
 
+  /** Counts the added rows in order to generate unique ids for them */
   private var rowCounter = 0
 
   /**
@@ -55,26 +56,15 @@ object EditPrefixesDialog
    */
   def render(xhtml : NodeSeq) : NodeSeq =
   {
-    def submit(prefixes : Prefixes) =
-    {
-      try
-      {
-        User().project.config = User().project.config.copy(prefixes = prefixes)
-
-        EditPrefixesDialog.closeCmd & Workspace.updateCmd
-      }
-      catch
-      {
-        case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
-      }
-    }
-
     bind("entry", xhtml,
          "prefixTable" -> <table id={tableId}><tr><td></td><td>{SHtml.ajaxButton("add", () => addRowCmd())}</td></tr></table>,
-         "submit" -> SHtml.ajaxButton("Save", () => read(submit))
+         "submit" -> SHtml.ajaxButton("Save", updatePrefixesCmd _)
     )
   }
 
+  /**
+   * Command which adds a new row to the prefix table.
+   */
   private def addRowCmd(initialValue : String = "") =
   {
     //Generate a new row ID
@@ -104,21 +94,37 @@ object EditPrefixesDialog
   }
 
   /**
-   * Reads the prefix table.
+   * Command which reads the prefix table and updates the prefixes of the current project accordingly.
    */
-  private def read(f : Prefixes => JsCmd) : JsCmd =
+  private def updatePrefixesCmd() : JsCmd =
   {
     def update(str : String) =
     {
-      val prefixes = for(line <- str.split(',')) yield
+      try
       {
-        val id = line.takeWhile(_ != ':').trim
-        val namespace = line.dropWhile(_ != ':').drop(1).trim
+        val prefixList = for(line <- str.split(',')) yield
+        {
+          //Parse line
+          val id = line.takeWhile(_ != ':').trim
+          val namespace = line.dropWhile(_ != ':').drop(1).trim
 
-        (id, namespace)
+          //Validate
+          if(id.isEmpty) throw new IllegalArgumentException("Prefix must not be empty")
+          if(namespace.isEmpty) throw new IllegalArgumentException("Prefix muss have a valid namespace")
+
+          (id, namespace)
+        }
+
+        println(prefixList.toList)
+
+        User().project.config = User().project.config.copy(prefixes = prefixList.toMap)
+
+        EditPrefixesDialog.closeCmd & Workspace.updateCmd
       }
-
-      f(Prefixes(prefixes.toMap))
+      catch
+      {
+        case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+      }
     }
 
     SHtml.ajaxCall(JsRaw("$(\"#" + tableId + " tr td input[type='text']\").toArray().map(function (a) { return a.value; })"), update)._2.cmd
