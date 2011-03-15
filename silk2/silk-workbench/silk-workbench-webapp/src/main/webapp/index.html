@@ -35,62 +35,8 @@
           <entry:submit />
         </lift:editPrefixesDialog>
       </div>
-      <div id="createSourceTaskDialog" title="New source task">
-        <lift:createSourceTaskDialog>
-          <table border="0">
-            <tr>
-              <td>Name</td>
-              <td><entry:name/></td>
-            </tr>
-            <tr>
-              <td>Endpoint URI</td>
-              <td><entry:uri/></td>
-            </tr>
-            <tr>
-              <td>Graph URI</td>
-              <td><entry:graph/></td>
-            </tr>
-            <tr>
-              <td>Retry count</td>
-              <td><entry:retryCount/></td>
-            </tr>
-            <tr>
-              <td>Retry pause</td>
-              <td><entry:retryPause/></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td align="right"><entry:submit/></td>
-            </tr>
-          </table>
-        </lift:createSourceTaskDialog>
-      </div>
-      <div id="editSourceTaskDialog" title="Edit source task">
-        <lift:editSourceTaskDialog>
-          <table border="0">
-            <tr>
-              <td>Endpoint URI</td>
-              <td><entry:uri/></td>
-            </tr>
-            <tr>
-              <td>Graph URI</td>
-              <td><entry:graph/></td>
-            </tr>
-            <tr>
-              <td>Retry count</td>
-              <td><entry:retryCount/></td>
-            </tr>
-            <tr>
-              <td>Retry pause</td>
-              <td><entry:retryPause/></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td align="right"><entry:submit/></td>
-            </tr>
-          </table>
-        </lift:editSourceTaskDialog>
-      </div>
+      <lift:createSourceTaskDialog/>
+      <lift:editSourceTaskDialog/>
       <div id="createLinkingTaskDialog" title="New linking task">
         <lift:createLinkingTaskDialog>
           <table border="0">
