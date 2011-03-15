@@ -809,9 +809,18 @@ function encodeHtmlInput(value)
   return encodedHtml;
 }
 
-function getPropertyPaths()
+function getPropertyPaths(deleteExisting)
 {
-
+  if (deleteExisting)
+  {
+    $("#paths").empty();
+    var box = $(document.createElement('div'));
+    box.attr("id", "loading");
+    box.attr("style", "width: 230px;");
+    var text = document.createTextNode("loading ...");
+    box.append(text);
+    box.appendTo("#paths");
+  }
   var url = "/api/project/paths"; // ?max=10
   $.getJSON(url, function (data)
   {
@@ -819,11 +828,10 @@ function getPropertyPaths()
     {
 	    var dot = document.createTextNode(".");
       document.getElementById("loading").appendChild(dot);
-      setTimeout("getPropertyPaths();", 1000);	  
+      setTimeout("getPropertyPaths();", 1000);
     }
     else if (data.error !== undefined)
     {
-      document.getElementById("paths").removeChild(document.getElementById("loading"));
       alert("Could not load property paths.\nError: " + data.error);
     }
     else
