@@ -930,6 +930,7 @@ function getPropertyPaths()
         var input = $(document.createElement('input'));
         input.attr("style", "width: 165px;");
         input.attr("type", "text");
+        input.val("?" + sourceDataSetVar);
         box2.append(input);
 
         box2.append(getDeleteIcon("#source_" + sourcecounter));
@@ -1052,6 +1053,7 @@ function getPropertyPaths()
         var input = $(document.createElement('input'));
         input.attr("style", "width: 165px;");
         input.attr("type", "text");
+        input.val("?" + targetDataSetVar);
         box2.append(input);
 
         box2.append(getDeleteIcon("#source_" + sourcecounter));
