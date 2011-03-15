@@ -60,12 +60,12 @@ class CreateLinkingTaskDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "name" -> SHtml.text(name, name = _, "size" -> "60",  "title" -> "Linking task name"),
+         "name" -> SHtml.text(name, name = _, "id" -> "sourceName", "size" -> "60", "title" -> "Linking task name"),
          "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId", "title" -> "Source dataset"),
-         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
+         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "sourceRes", "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId",  "title" -> "Target dataset"),
-         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
-         "linkType" -> SHtml.text(linkType, linkType = _, "size" -> "60",  "title" -> "Type of the generated link"),
+         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "targetRes", "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
+         "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "linkType", "size" -> "60",  "title" -> "Type of the generated link"),
          "submit" -> SHtml.ajaxSubmit("Create", submit)))
   }
 }
@@ -78,10 +78,19 @@ object CreateLinkingTaskDialog
   {
     val sourceOptions = for(task <- User().project.sourceModule.tasks) yield <option value={task.name}>{task.name}</option>
 
+    //Clear name
+    JsRaw("$('#sourceName').val('');").cmd &
+    //Update source options
     JsRaw("$('#selectSourceId').children().remove();").cmd &
     JsRaw("$('#selectSourceId').append('" + sourceOptions.mkString + "');").cmd &
     JsRaw("$('#selectTargetId').children().remove();").cmd &
     JsRaw("$('#selectTargetId').append('" + sourceOptions.mkString + "');").cmd &
+    //Clear restrictions
+    JsRaw("$('#sourceRes').val('');").cmd &
+    JsRaw("$('#targetRes').val('');").cmd &
+    //Reset link type
+    JsRaw("$('#linkType').val('http://www.w3.org/2002/07/owl#sameAs');").cmd &
+    //Open dialog
     JsRaw("$('#createLinkingTaskDialog').dialog('open');").cmd
   }
 
