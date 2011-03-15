@@ -16,7 +16,6 @@ import de.fuberlin.wiwiss.silk.util.{Future, SourceTargetPair, Task, Identifier}
  * A linking task which interlinks two datasets.
  */
 case class LinkingTask(name : Identifier,
-                       prefixes : Prefixes,
                        linkSpec : LinkSpecification,
                        alignment : Alignment,
                        cache : Cache) extends ModuleTask

@@ -20,6 +20,8 @@ class FileProject(file : File) extends Project
 {
   private val logger = Logger.getLogger(classOf[FileProject].getName)
 
+  private var cachedConfig : Option[ProjectConfig] = None
+
   /**
    * The name of this project
    */
@@ -30,7 +32,23 @@ class FileProject(file : File) extends Project
    */
   override def config =
   {
-    ProjectConfig()
+    if(cachedConfig.isEmpty)
+    {
+      val configFile = file + "/config.xml"
+
+      if(configFile.exists)
+      {
+        val configXML = XML.loadFile(configFile)
+        val prefixes = Prefixes.fromXML(configXML \ "Prefixes" head)
+        cachedConfig = Some(ProjectConfig(prefixes))
+      }
+      else
+      {
+        cachedConfig = Some(ProjectConfig.default)
+      }
+    }
+
+    cachedConfig.get
   }
 
   /**
@@ -38,6 +56,14 @@ class FileProject(file : File) extends Project
    */
   override def config_=(config : ProjectConfig)
   {
+    val configXMl =
+      <ProjectConfig>
+      { config.prefixes.toXML }
+      </ProjectConfig>
+
+    configXMl.write(file + "/config.xml")
+
+    cachedConfig = Some(config)
   }
 
   /**
@@ -113,9 +139,9 @@ class FileProject(file : File) extends Project
       val taskDir = file + ("/" + task.name)
       taskDir.mkdir()
 
-      implicit val prefixes = task.prefixes
+      //Don't use any prefixes
+      implicit val prefixes = Prefixes.empty
 
-      task.prefixes.toXML.write(taskDir + "/prefixes.xml")
       task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
       task.alignment.toXML.write(taskDir+ "/alignment.xml")
       task.cache.toXML.write(taskDir +  "/cache.xml")
@@ -142,15 +168,13 @@ class FileProject(file : File) extends Project
       {
         val projectConfig = FileProject.this.config
 
-        val prefixes = Prefixes.fromXML(XML.loadFile(file + ("/" + fileName + "/prefixes.xml")))
-
-        val linkSpec = LinkSpecification.load(prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+        val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
 
         val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
 
         val cache = Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
 
-        val linkingTask = LinkingTask(fileName, prefixes, linkSpec, alignment, cache)
+        val linkingTask = LinkingTask(fileName, linkSpec, alignment, cache)
 
         linkingTask.loadCache(FileProject.this)
 

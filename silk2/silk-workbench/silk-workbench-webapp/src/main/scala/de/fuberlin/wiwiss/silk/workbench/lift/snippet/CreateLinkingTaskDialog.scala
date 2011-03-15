@@ -28,28 +28,25 @@ class CreateLinkingTaskDialog
     var sourceRestriction = ""
     var targetRestriction = ""
     var linkType = "http://www.w3.org/2002/07/owl#sameAs"
-    val prefixes = Map(
-      "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-      "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
-      "owl" -> "http://www.w3.org/2002/07/owl#",
-      "foaf" -> "http://xmlns.com/foaf/0.1/")
 
-    def submit(prefixes : Prefixes) =
+    def submit() =
     {
       try
       {
+        implicit val prefixes = User().project.config.prefixes
+
         val linkSpec =
           LinkSpecification(
             id = name,
             linkType = linkType,
-            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)(prefixes)),
-                                        DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction)(prefixes))),
+            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)),
+                                        DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction))),
             condition = LinkCondition(None),
             filter = LinkFilter(0.95, None),
             outputs = Nil
           )
 
-        val linkingTask = LinkingTask(name, prefixes, linkSpec, Alignment(), new Cache())
+        val linkingTask = LinkingTask(name, linkSpec, Alignment(), new Cache())
 
         User().project.linkingModule.update(linkingTask)
 
@@ -69,15 +66,12 @@ class CreateLinkingTaskDialog
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId",  "title" -> "Target dataset"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
          "linkType" -> SHtml.text(linkType, linkType = _, "size" -> "60",  "title" -> "Type of the generated link"),
-         "prefixes" -> CreateLinkingTaskDialog.prefixEditor.show(prefixes),
-         "submit" -> SHtml.ajaxSubmit("Create", () => CreateLinkingTaskDialog.prefixEditor.read(submit))))
+         "submit" -> SHtml.ajaxSubmit("Create", submit)))
   }
 }
 
 object CreateLinkingTaskDialog
 {
-  private val prefixEditor = new PrefixEditor()
-
   def initCmd = OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
 
   def openCmd =

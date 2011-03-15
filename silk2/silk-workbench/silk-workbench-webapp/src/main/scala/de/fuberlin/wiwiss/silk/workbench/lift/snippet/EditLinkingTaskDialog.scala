@@ -6,8 +6,7 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.evaluation.Alignment
-import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
+import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.Cache
 import net.liftweb.http.SHtml
 import net.liftweb.common.Empty
 import de.fuberlin.wiwiss.silk.linkspec._
@@ -28,18 +27,19 @@ class EditLinkingTaskDialog
     var linkType = ""
     val prefixes : Map[String, String] = Map.empty
 
-    def submit(prefixes : Prefixes) =
+    def submit() =
     {
       try
       {
         val linkingTask = User().linkingTask
+        implicit val prefixes = User().project.config.prefixes
 
-        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)(prefixes)),
-                                               DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction)(prefixes)))
+        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)),
+                                               DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction)))
 
         val updatedLinkSpec = linkingTask.linkSpec.copy(datasets = updatedDatasets, linkType = linkType)
 
-        val updatedLinkingTask = linkingTask.copy(prefixes = prefixes, linkSpec = updatedLinkSpec, cache = new Cache())
+        val updatedLinkingTask = linkingTask.copy(linkSpec = updatedLinkSpec, cache = new Cache())
 
         User().project.linkingModule.update(updatedLinkingTask)
         User().closeTask()
@@ -59,15 +59,12 @@ class EditLinkingTaskDialog
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "editTargetId",  "title" -> "Target dataset"),
          "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "editTargetRes", "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
          "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "editLinkType", "size" -> "60",  "title" -> "Type of the generated link"),
-         "prefixes" -> <div id="editPrefixes" />,
-         "submit" -> SHtml.ajaxSubmit("Save", () => EditLinkingTaskDialog.prefixEditor.read(submit))))
+         "submit" -> SHtml.ajaxSubmit("Save", submit)))
   }
 }
 
 object EditLinkingTaskDialog
 {
-  private val prefixEditor = new PrefixEditor()
-
   def initCmd = OnLoad(JsRaw("$('#editLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true, close : closeTask })").cmd)
 
   def openCmd =
@@ -114,8 +111,6 @@ object EditLinkingTaskDialog
     JsRaw("$('#editTargetRes').val('" + datasets.target.restriction + "');").cmd &
     //Update link type
     JsRaw("$('#editLinkType').val('" + linkingTask.linkSpec.linkType + "');").cmd &
-    //Update prefixes
-    SetHtml("editPrefixes", prefixEditor.show(linkingTask.prefixes)) &
     //Open dialog
     JsRaw("$('#editLinkingTaskDialog').dialog('open');").cmd
   }

@@ -22,6 +22,7 @@ import net.liftweb.http.SHtml
  * def removeProject(projectName)
  * def importProject()
  * def exportProject(projectName)
+ * def editPrefixes(projectName)
  *
  * def createSourceTask(projectName)
  * def editSourceTask(projectName, taskName)
@@ -59,6 +60,7 @@ object Workspace
     removeProjectFunction &
     importProjectFunction &
     exportProjectFunction &
+    editPrefixesFunction &
     createSourceTaskFunction &
     editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
@@ -130,6 +132,23 @@ object Workspace
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
 
     JsCmds.Function("exportProject", "projectName" :: Nil, ajaxCall)
+  }
+
+  /**
+   * JS Command which defines the editPrefixes function
+   */
+  private def editPrefixesFunction : JsCmd =
+  {
+    def callback(projectName : String) : JsCmd =
+    {
+      User().project = User().workspace.project(projectName)
+
+      EditPrefixesDialog.openCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback)._2.cmd
+
+    EditPrefixesDialog.initCmd & JsCmds.Function("editPrefixes", "projectName" :: Nil, ajaxCall)
   }
 
   /**
@@ -315,6 +334,8 @@ object Workspace
 
     for(project <- User().workspace.projects.toSeq.sortBy(n => (n.name.toString.toLowerCase)))
     {
+      implicit val prefixes = project.config.prefixes
+
       val sources : JArray = for(task <- project.sourceModule.tasks.toSeq.sortBy(n => (n.name.toString.toLowerCase))) yield
       {
         task.source.dataSource match
@@ -329,14 +350,11 @@ object Workspace
 
       val linkingTasks : JArray = for(task <- project.linkingModule.tasks.toSeq.sortBy(n => (n.name.toString.toLowerCase))) yield
       {
-        //TODO move prefixes to project level
-        implicit val prefixes = task.prefixes
-
         ("name" -> task.name.toString) ~
         ("source" -> task.linkSpec.datasets.source.sourceId.toString) ~
         ("target" -> task.linkSpec.datasets.target.sourceId.toString) ~
-        ("sourceDataset" -> task.linkSpec.datasets.source.restriction.toSparql) ~
-        ("targetDataset" -> task.linkSpec.datasets.target.restriction.toSparql) ~
+        ("sourceDataset" -> task.linkSpec.datasets.source.restriction.toString) ~
+        ("targetDataset" -> task.linkSpec.datasets.target.restriction.toString) ~
         ("linkType" -> task.linkSpec.linkType.toTurtle)
       }
 

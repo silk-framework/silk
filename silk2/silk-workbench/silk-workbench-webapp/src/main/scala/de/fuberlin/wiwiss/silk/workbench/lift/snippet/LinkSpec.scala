@@ -71,16 +71,19 @@ class LinkSpec
   {
     try
     {
+      val project = User().project
       val linkingTask = User().linkingTask
+      implicit val prefixes = project.config.prefixes
 
       //Load link specification
-      val linkSpec = LinkSpecification.load(linkingTask.prefixes)(new StringReader(linkSpecStr))
+      //TODO remove replace as soon as double encoding is fixed in editor
+      val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr.replace("&amp;", "&")))
 
       //Update linking task
       val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
 
       //Commit
-      User().project.linkingModule.update(updatedLinkingTask)
+      project.linkingModule.update(updatedLinkingTask)
       User().task = updatedLinkingTask
 
       if(closeOnSuccess)
@@ -122,9 +125,10 @@ class LinkSpec
   private def generateLinkSpecVar() =
   {
     val linkingTask = User().linkingTask
+    implicit val prefixes = User().project.config.prefixes
 
     //Serialize the link condition to a JavaScript string
-    val linkSpecStr = linkingTask.linkSpec.toXML(linkingTask.prefixes).toString.replace("\n", " ")
+    val linkSpecStr = linkingTask.linkSpec.toXML.toString.replace("\n", " ")
 
     val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 

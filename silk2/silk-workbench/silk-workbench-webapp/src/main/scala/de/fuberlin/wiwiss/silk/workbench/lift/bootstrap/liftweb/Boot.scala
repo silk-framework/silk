@@ -84,8 +84,8 @@ class Boot
   {
     val maxPathCount = req.param("max").map(_.toInt).getOrElse(Int.MaxValue)
 
+    implicit val prefixes = User().project.config.prefixes
     val linkingTask = User().linkingTask
-    implicit val prefixes = linkingTask.prefixes
     val datasets = linkingTask.linkSpec.datasets
     val restrictions = linkingTask.linkSpec.datasets.map(_.restriction)
     val instanceSpecs = linkingTask.cache.instanceSpecs
