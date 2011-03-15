@@ -121,6 +121,6 @@ object EditPrefixesDialog
       f(Prefixes(prefixes.toMap))
     }
 
-    SHtml.ajaxCall(JsRaw("$('#" + tableId + " tr td input').toArray().map(function (a) { return a.value; })"), update)._2.cmd
+    SHtml.ajaxCall(JsRaw("$(\"#" + tableId + " tr td input[type='text']\").toArray().map(function (a) { return a.value; })"), update)._2.cmd
   }
 }
