@@ -5,15 +5,15 @@ import xml.Node
 /**
  * Holds namespace prefixes.
  */
-class Prefixes(private val map : Map[String, String])
+class Prefixes(private val prefixMap : Map[String, String])
 {
-  override def toString = "Prefixes(" + map.toString + ")"
+  override def toString = "Prefixes(" + prefixMap.toString + ")"
 
   def toXML =
   {
     <Prefixes>
     {
-      for((key, value) <- map) yield
+      for((key, value) <- prefixMap) yield
       {
         <Prefix id={key} namespace={value} />
       }
@@ -28,7 +28,7 @@ object Prefixes
 
   implicit def fromMap(map : Map[String, String]) = new Prefixes(map)
 
-  implicit def toMap(prefixes : Prefixes) = prefixes.map
+  implicit def toMap(prefixes : Prefixes) = prefixes.prefixMap
 
   def apply(map : Map[String, String]) = new Prefixes(map)
 

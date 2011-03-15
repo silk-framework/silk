@@ -7,7 +7,9 @@ import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.util.Helpers._
-import net.liftweb.http.js.JsCmds.{SetHtml, OnLoad}
+import net.liftweb.http.js.JsCmds.OnLoad
+import net.liftweb.widgets.autocomplete.AutoComplete
+import de.fuberlin.wiwiss.silk.workbench.lift.util.PrefixRegistry
 
 /**
  * Dialog which allows the user to edit the current prefixes.
@@ -20,6 +22,8 @@ object EditPrefixesDialog
   /** The id of the prefix table */
   private val tableId = "prefixesTable"
 
+  private var rowCounter = 0
+
   /**
    * JavaScript command which initializes this dialog.
    */
@@ -30,12 +34,15 @@ object EditPrefixesDialog
    */
   def openCmd =
   {
-    val prefixes = User().project.config.prefixes
-
     //Update prefixes
-    SetHtml("editPrefixes", createTable(prefixes)) &
+    val prefixes = User().project.config.prefixes
+    val removePrefixesCmd = JsRaw("$('#" + tableId + " tr').not(':last').remove();").cmd
+    val addPrefixesCmd = prefixes.toSeq.sortBy(_._1)
+                                 .map{ case (id, namespace) => addRowCmd(id + ": " + namespace) }
+                                 .reduceLeft(_ & _)
+
     //Open dialog
-    JsRaw("$('#" + dialogId + "').dialog('open');").cmd
+    removePrefixesCmd & addPrefixesCmd & JsRaw("$('#" + dialogId + "').dialog('open');").cmd
   }
 
   /**
@@ -62,47 +69,38 @@ object EditPrefixesDialog
       }
     }
 
-    SHtml.ajaxForm(
-      bind("entry", xhtml,
-           "prefixTable" -> <div id="editPrefixes" />,
-           "submit" -> SHtml.ajaxSubmit("Save", () => read(submit)))
+    bind("entry", xhtml,
+         "prefixTable" -> <table id={tableId}><tr><td></td><td>{SHtml.ajaxButton("add", () => addRowCmd())}</td></tr></table>,
+         "submit" -> SHtml.ajaxButton("Save", () => read(submit))
     )
   }
 
-  /**
-   * Creates the prefix table.
-   */
-  private def createTable(prefixes : Map[String, String] = Map.empty) : NodeSeq =
+  private def addRowCmd(initialValue : String = "") =
   {
-    def addRow() =
+    //Generate a new row ID
+    val rowId = "prefixRow" + rowCounter
+    rowCounter += 1
+
+    //Function which generates prefix suggestions
+    def completePrefix(current : String, limit : Int) : Seq[String] =
     {
-      JsRaw("$('#" + tableId + "').append(\"<tr><td><input type='text' title='Prefix id' /></td><td><input type='text' size='50' title='Prefix namespace'/></td></tr>\");").cmd
+      val prefixes =
+        for((id, namespace) <- PrefixRegistry.all
+            if id.startsWith(current.takeWhile(_ != ':'))) yield
+            id + ": " + namespace
+
+      prefixes.toSeq.take(limit)
     }
 
-    def removeRow() =
-    {
-      JsRaw("$('#" + tableId + " tr td').parent().last().remove();").cmd
-    }
-
-    <p>
-    <table id={tableId}>
-      <tr>
-        <th>Prefix</th>
-        <th>Namespace</th>
+    //Creates a new table row
+    val row =
+      <tr id={rowId}>
+        <td>{AutoComplete(initialValue, completePrefix _, (v : String) => (), "size" -> "75")}</td>
+        <td><button onclick={"$('#" + rowId + "').remove()"}>Remove</button></td>
       </tr>
-      {
-        for((prefix, namespace) <- prefixes) yield
-        {
-          <tr>
-            <td><input type='text' value={prefix} title='Prefix id'/></td>
-            <td><input type='text' value={namespace} size="50" title='Prefix namespace' /></td>
-          </tr>
-        }
-      }
-    </table>
-    {SHtml.ajaxButton("add", addRow _)}
-    {SHtml.ajaxButton("remove", removeRow _)}
-    </p>
+
+    //Command which adds a new row
+    JsRaw("$('#" + tableId + " tr').last().before(" + row.toString.encJs + ");").cmd
   }
 
   /**
@@ -112,7 +110,13 @@ object EditPrefixesDialog
   {
     def update(str : String) =
     {
-      val prefixes = for(Array(prefix, namespace) <- str.split(',').grouped(2)) yield (prefix, namespace)
+      val prefixes = for(line <- str.split(',')) yield
+      {
+        val id = line.takeWhile(_ != ':').trim
+        val namespace = line.dropWhile(_ != ':').drop(1).trim
+
+        (id, namespace)
+      }
 
       f(Prefixes(prefixes.toMap))
     }
