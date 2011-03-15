@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.LinkingTask
 import modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Exports a project to a single XML file.
@@ -10,7 +11,12 @@ object ProjectExporter
 {
   def apply(project : Project) =
   {
+    implicit val prefixes = project.config.prefixes
+
     <Project>
+      <Config>
+      { prefixes.toXML }
+      </Config>
       <SourceModule>
         <Tasks>
         {
@@ -39,14 +45,10 @@ object ProjectExporter
 
   private
 
-  def exportLinkingTask(task : LinkingTask) =
+  def exportLinkingTask(task : LinkingTask)(implicit prefixes : Prefixes) =
   {
-    //TODO move prefixes to project
-    implicit val prefixes = task.prefixes
-
     <LinkingTask>
       <Name>{task.name}</Name>
-      <Prefixes>{task.prefixes.toXML}</Prefixes>
       <LinkSpecification>{task.linkSpec.toXML}</LinkSpecification>
       <Alignment>{task.alignment.toXML}</Alignment>
       <Cache>{task.cache.toXML}</Cache>

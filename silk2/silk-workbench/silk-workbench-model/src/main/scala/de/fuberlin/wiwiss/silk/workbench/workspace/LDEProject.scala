@@ -32,11 +32,13 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
   var xmlProj : XMLProject = null
 
   // Reads the project configuration.
-  override def config =  {    ProjectConfig()  }
+  override def config = xmlProj.config
 
    // Writes the updated project configuration.
-  override def config_=(config : ProjectConfig)   { }
-  
+  override def config_=(config : ProjectConfig)
+  {
+    xmlProj.config = config
+  }
 
   /** ----------------------------------------------------------
    *   The source module which encapsulates all data sources.

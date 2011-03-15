@@ -200,6 +200,7 @@ function updateWorkspace(obj){
                 var proj_actions = document.createElement("div");
                     $(proj_actions).addClass('actions');
                     $(proj_span).append(proj_actions);
+                addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
                 addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('link_add', 'Task','Add linking task',"createLinkingTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('export', 'Export','Export project',"exportProject('"+project.name+"')",proj_actions,project.name,true);
@@ -300,6 +301,7 @@ function getIcon(type){
     switch (type)
     {
         case 'add' : icon = "ui-icon-plus";  break;
+        case 'edit_prefixes' : icon = "ui-icon-wrench";  break;
         case 'ds_add' : icon = "ui-icon-plus";  break;
         case 'ds_edit' : icon = "ui-icon-wrench";  break;
         case 'link_add' : icon = "ui-icon-plus";  break;

@@ -21,7 +21,7 @@ sealed abstract class PathOperator
  */
 case class ForwardOperator(property : Uri) extends PathOperator
 {
-  override def serialize(implicit prefixes : Prefixes) = "/" + property.toTurtle(prefixes)
+  override def serialize(implicit prefixes : Prefixes) = "/" + property.toTurtle
 }
 
 /**
@@ -29,7 +29,7 @@ case class ForwardOperator(property : Uri) extends PathOperator
  */
 case class BackwardOperator(property : Uri) extends PathOperator
 {
-  override def serialize(implicit prefixes : Prefixes) = "\\" + property.toTurtle(prefixes)
+  override def serialize(implicit prefixes : Prefixes) = "\\" + property.toTurtle
 }
 
 /**

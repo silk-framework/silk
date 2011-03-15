@@ -15,6 +15,10 @@ object ProjectImporter
 {
   def apply(project : Project, xml : NodeSeq) =
   {
+    implicit val prefixes = Prefixes.fromXML(xml \ "Prefixes" head)
+
+    project.config = ProjectConfig(prefixes)
+
     for(taskNode <- xml \ "SourceModule" \ "Tasks" \ "SourceTask")
     {
       project.sourceModule.update(readSourceTask(taskNode))
@@ -31,14 +35,13 @@ object ProjectImporter
     SourceTask(Source.fromXML(xml \ "_" head))
   }
 
-  private def readLinkingTask(xml : Node) =
+  private def readLinkingTask(xml : Node)(implicit prefixes : Prefixes) =
   {
     val name = xml \ "Name" text
-    implicit val prefixes = Prefixes.fromXML(xml \ "Prefixes" \ "_" head)
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val alignment = AlignmentReader.readAlignment(xml \ "Alignment" \ "_" head)
     val cache = Cache.fromXML(xml \ "Cache" \ "_" head)
 
-    LinkingTask(name, prefixes, linkSpec, alignment, cache)
+    LinkingTask(name, linkSpec, alignment, cache)
   }
 }

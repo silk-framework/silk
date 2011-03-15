@@ -13,6 +13,6 @@ object ConfigBuilder
     val project = User().project
     val linkingTask = User().linkingTask
 
-    Configuration(linkingTask.prefixes, project.sourceModule.tasks.map(_.source), None, linkingTask.linkSpec :: Nil, Nil)
+    Configuration(project.config.prefixes, project.sourceModule.tasks.map(_.source), None, linkingTask.linkSpec :: Nil, Nil)
   }
 }
