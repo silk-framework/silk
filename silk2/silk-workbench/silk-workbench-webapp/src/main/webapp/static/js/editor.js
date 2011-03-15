@@ -479,9 +479,11 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
     // TODO
+    /*
     if (($(this).attr("path")).indexOf("\\") > 0) {
       alert($(this).attr("path"));
     }
+    */
     span.attr("title", encodeHtmlInput($(this).attr("path")));
     var mytext = document.createTextNode(encodeHtmlInput($(this).attr("path")));
     span.append(mytext);
