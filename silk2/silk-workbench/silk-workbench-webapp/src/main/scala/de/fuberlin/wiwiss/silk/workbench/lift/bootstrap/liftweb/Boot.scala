@@ -95,11 +95,13 @@ class Boot
     val sourceField = JField("source", JObject(JField("id", JString(datasets.source.sourceId)) ::
                                                JField("paths", JArray(generateInstancePaths(sourcePaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(sourcePaths.size)) ::
-                                               JField("restrictions", JString(restrictions.source.toString)) :: Nil))
+                                               JField("restrictions", JString(restrictions.source.toString)) ::
+                                               JField("variable", JString(datasets.source.variable)) :: Nil))
     val targetField = JField("target", JObject(JField("id", JString(datasets.target.sourceId)) ::
                                                JField("paths", JArray(generateInstancePaths(targetPaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(targetPaths.size)) ::
-                                               JField("restrictions", JString(restrictions.target.toString)) :: Nil))
+                                               JField("restrictions", JString(restrictions.target.toString)) ::
+                                               JField("variable", JString(datasets.target.variable)) :: Nil))
 
     var errorMsg : Option[String] = None
     if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isSet)
