@@ -32,7 +32,7 @@ class CreateProjectDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "name" -> SHtml.text(name, name = _, "size" -> "60","title" -> "Project name"),
+         "name" -> SHtml.text(name, name = _, "id" -> "projectName", "size" -> "60","title" -> "Project name"),
          "submit" -> SHtml.ajaxSubmit("Create", submit)))
   }
 }
@@ -41,5 +41,5 @@ object CreateProjectDialog
 {
   def initCmd = OnLoad(JsRaw("$('#createProjectDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
 
-  def openCmd = JsRaw("$('#createProjectDialog').dialog('open');").cmd
+  def openCmd = JsRaw("$('#projectName').val('');").cmd & JsRaw("$('#createProjectDialog').dialog('open');").cmd
 }
