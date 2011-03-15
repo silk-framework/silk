@@ -35,7 +35,6 @@ body{
 	cursor:move;
 	font-size: 9pt;
 	z-index:50;
-
 }
 
 ._jsPlumb_connector { z-index:1; }

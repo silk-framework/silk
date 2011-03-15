@@ -455,7 +455,6 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var left = (max_level*250) - ((level + 1) * 250) + 300;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
-    //box1.html("<h5 class='handler'>" + json.Input[sourcecounter].path + "</h5><div class='content'></div>");
     var number = "#source_" + sourcecounter;
     box1.draggable(
     {
@@ -463,24 +462,28 @@ function parseXML(xml, level, level_y, last_element, max_level)
     });
     box1.appendTo("#droppable");
 
-	var box2 = $(document.createElement('small'));
-	box2.addClass('name');
-	var mytext = document.createTextNode(encodeHtml($(this).attr("path")));
-	box2.append(mytext);
-	box1.append(box2);
-	var box2 = $(document.createElement('small'));
-	box2.addClass('type');
-	var mytext = document.createTextNode("Input");
-	box2.append(mytext);
-	box1.append(box2);
+    var box2 = $(document.createElement('small'));
+    box2.addClass('name');
+    var mytext = document.createTextNode(encodeHtml($(this).attr("path")));
+    box2.append(mytext);
+    box1.append(box2);
+    var box2 = $(document.createElement('small'));
+    box2.addClass('type');
+    var mytext = document.createTextNode("Input");
+    box2.append(mytext);
+    box1.append(box2);
 	
     var box2 = $(document.createElement('h5'));
     box2.addClass('handler');
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    span.attr("title", $(this).attr("path"))
-    var mytext = document.createTextNode($(this).attr("path"));
+    // TODO
+    if (($(this).attr("path")).indexOf("\\") > 0) {
+      alert($(this).attr("path"));
+    }
+    span.attr("title", encodeHtmlInput($(this).attr("path")));
+    var mytext = document.createTextNode(encodeHtmlInput($(this).attr("path")));
     span.append(mytext);
     box2.append(span);
 
@@ -515,20 +518,20 @@ function load()
   $(linkSpec).find("> SourceDataset").each(function ()
   {
     sourceDataSet = $(this).attr("dataSource");
-	sourceDataSetVar = $(this).attr("var");
-	$(this).find("> RestrictTo").each(function ()
-	{
-		sourceDataSetRestriction = $(this).text();
-	});
+    sourceDataSetVar = $(this).attr("var");
+    $(this).find("> RestrictTo").each(function ()
+    {
+      sourceDataSetRestriction = $(this).text();
+    });
   });
   $(linkSpec).find("> TargetDataset").each(function ()
   {
     targetDataSet = $(this).attr("dataSource");
-	targetDataSetVar = $(this).attr("var");
-	$(this).find("> RestrictTo").each(function ()
-	{
-		targetDataSetRestriction = $(this).text();
-	});
+    targetDataSetVar = $(this).attr("var");
+    $(this).find("> RestrictTo").each(function ()
+    {
+      targetDataSetRestriction = $(this).text();
+    });
   });
   
   $(linkSpec).find("> LinkCondition").each(function ()
@@ -585,7 +588,7 @@ function createNewElement(elementId)
     if (elName == "") {
       xml.setAttribute("path", $(elementIdName+" > h5 > input").val());
     } else {
-      xml.setAttribute("path", elName);
+      xml.setAttribute("path", decodeHtml(elName));
     }
 	} else if (elType == "TransformInput") {
 		xml.setAttribute("function", elName);
@@ -717,9 +720,10 @@ $(function ()
   {
     drop: function (ev, ui)
     {
-      //draggedNumber = ui.helper.attr('id').search(/([0-9])/);
       if ($("#droppable").find("> #"+ui.helper.attr('id')+"").length == 0) {
-        $(this).append($(ui.helper).clone());
+        //$(this).append($(ui.helper).clone());
+        $.ui.ddmanager.current.cancelHelperRemoval = true;
+        ui.helper.appendTo(this);
         if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
@@ -782,11 +786,24 @@ $(function ()
   });
 });
 
+function decodeHtml(value)
+{
+  encodedHtml = value.replace("&lt;", "<");
+  encodedHtml = encodedHtml.replace("&gt;", ">");
+  return encodedHtml;
+}
+
 function encodeHtml(value)
 {
   encodedHtml = value.replace("<", "&lt;");
   encodedHtml = encodedHtml.replace(">", "&gt;");
   encodedHtml = encodedHtml.replace("\"", '\\"');
+  return encodedHtml;
+}
+
+function encodeHtmlInput(value)
+{
+  var encodedHtml = value.replace('\\', "&#92;");
   return encodedHtml;
 }
 
@@ -859,8 +876,8 @@ function getPropertyPaths()
 
           var span = $(document.createElement('div'));
           span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-          span.attr("title", encodeHtml(item.path))
-          var mytext = document.createTextNode(encodeHtml(item.path));
+          span.attr("title", item.path);
+          var mytext = document.createTextNode(item.path);
           span.append(mytext);
           box2.append(span);
 
@@ -982,8 +999,8 @@ function getPropertyPaths()
 
           var span = $(document.createElement('div'));
           span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-          span.attr("title", encodeHtml(item.path))
-          var mytext = document.createTextNode(encodeHtml(item.path));
+          span.attr("title", item.path);
+          var mytext = document.createTextNode(item.path);
           span.append(mytext);
           box2.append(span);
 
