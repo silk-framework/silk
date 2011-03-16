@@ -60,7 +60,7 @@ class CreateLinkingTaskDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "name" -> SHtml.text(name, name = _, "id" -> "sourceName", "size" -> "60", "title" -> "Linking task name"),
+         "name" -> SHtml.text(name, name = _, "id" -> "linkName", "size" -> "60", "title" -> "Linking task name"),
          "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId", "title" -> "Source dataset"),
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "sourceRes", "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId",  "title" -> "Target dataset"),
@@ -79,15 +79,15 @@ object CreateLinkingTaskDialog
     val sourceOptions = for(task <- User().project.sourceModule.tasks) yield <option value={task.name}>{task.name}</option>
 
     //Clear name
-    JsRaw("$('#sourceName').val('');").cmd &
+    JsRaw("$('#linkName').val('');").cmd &
     //Update source options
     JsRaw("$('#selectSourceId').children().remove();").cmd &
     JsRaw("$('#selectSourceId').append('" + sourceOptions.mkString + "');").cmd &
     JsRaw("$('#selectTargetId').children().remove();").cmd &
     JsRaw("$('#selectTargetId').append('" + sourceOptions.mkString + "');").cmd &
     //Clear restrictions
-    JsRaw("$('#sourceRes').val('');").cmd &
-    JsRaw("$('#targetRes').val('');").cmd &
+    JsRaw("$('#sourceRes').val('?a rdf:type myprefix:myclass');").cmd &
+    JsRaw("$('#targetRes').val('?b rdf:type myprefix:myclass');").cmd &
     //Reset link type
     JsRaw("$('#linkType').val('http://www.w3.org/2002/07/owl#sameAs');").cmd &
     //Open dialog
