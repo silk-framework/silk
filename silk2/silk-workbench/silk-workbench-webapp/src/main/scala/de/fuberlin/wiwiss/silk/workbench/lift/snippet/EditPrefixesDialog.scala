@@ -56,10 +56,12 @@ object EditPrefixesDialog
    */
   def render(xhtml : NodeSeq) : NodeSeq =
   {
-    bind("entry", xhtml,
+    SHtml.ajaxForm(
+      bind("entry", xhtml,
          "prefixTable" -> <table id={tableId}><tr><td></td><td>{SHtml.ajaxButton("add", () => addRowCmd())}</td></tr></table>,
-         "submit" -> SHtml.ajaxButton("Save", updatePrefixesCmd _)
-    )
+         "submit" -> SHtml.ajaxSubmit("Save", updatePrefixesCmd _)
+      )
+    )    
   }
 
   /**

@@ -1,28 +1,39 @@
 package de.fuberlin.wiwiss.silk.workbench.util
 
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 object QueryFactory{
 
+  var ontoGraph = ""
   val mappingGraph = "smwGraphs:MappingRepository"
   val datasourceGraph = "smwGraphs:DataSourceInformationGraph"
-  val smwprop  = "http://mywiki/resource/property/"
-  val smwcat  =  "http://mywiki/resource/category/"
-  
+  val smwpropSuffix  = "/property/"
+  val smwcatSuffix  =  "/category/"
   val dataSources = "http://www.example.org/smw-lde/smwDatasources/"
   val dataSourceLinks = "http://www.example.org/smw-lde/smwDatasourceLinks/"
 
-  def getPrefixes = Map ( "smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/",
+
+  // default prefixes 
+  def getPrefixes = Map ("smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/",
                           "smwDatasourceLinks" -> dataSourceLinks,
                           "smwDatasources" -> dataSources,
                           "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#",
                           "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                          "smwprop" -> smwprop,
-                          "smwcat" -> smwcat )
+                          "smwprop" -> (ontoGraph+smwpropSuffix),
+                          "smwcat" -> (ontoGraph+smwcatSuffix))
+
+  def sparqlPrefixes :String  = Prefixes(getPrefixes).toSparql
+
+  def setOntoGraph (graph : String) {
+      ontoGraph = graph
+  }
+
 
   //-- LDEWorkspace --
 
   // retrieve all mappings
-  def sMappings =   " SELECT ?uri" +
+  def sMappings =   sparqlPrefixes +
+                    " SELECT ?uri" +
                     " FROM "+mappingGraph+
                     " WHERE  { ?uri rdf:type smw-lde:SilkMatchingDescription }"
 
@@ -35,17 +46,19 @@ object QueryFactory{
   // delete a project by uri
   def dProject(projectName : String) =  "DELETE DATA FROM  "+mappingGraph+"  { <"+dataSourceLinks+projectName+"> ?p ?o } "
 
+  // retrieve all datasources
+  def sDataSources  =  sparqlPrefixes +
+                        " SELECT ?uri ?id " +
+                        " FROM "+datasourceGraph+
+                        " WHERE  { ?uri rdf:type smw-lde:Datasource . ?uri smw-lde:ID ?id }"
+
+
+
   //-- LDEProject --
 
   // retrieve a project info by uri
   def sProjectDataSource(projectUri : String) = "SELECT ?from FROM "+mappingGraph+" WHERE  {   <"+projectUri+"> smw-lde:linksFrom ?from  }"
   def sProjectSourceCode(projectUri : String) = "SELECT ?xml FROM "+mappingGraph+" WHERE  {  <"+projectUri+"> smw-lde:sourceCode ?xml   }"
-
-  // retrieve all datasources
-  def sDataSources  =   "PREFIX smw-lde: <http://www.example.org/smw-lde/smw-lde.owl#> " +
-                        " SELECT ?uri ?id " +
-                        " FROM "+datasourceGraph+
-                        " WHERE  { ?uri rdf:type smw-lde:Datasource . ?uri smw-lde:ID ?id }"
 
   // retrieve a datasource by uri
   def sDataSource(dataSourceUri : String) = "SELECT ?id ?desc FROM "+datasourceGraph+" WHERE   { <"+dataSourceUri+"> smw-lde:ID ?id . OPTIONAL {<"+dataSourceUri+"> smw-lde:description ?desc } }"
@@ -63,17 +76,19 @@ object QueryFactory{
   // create sourceCode mapping property 
   def iSourceCode(projectUri : String, sourceCode : String) = "INSERT DATA INTO "+mappingGraph+" {<"+projectUri+"> smw-lde:sourceCode \"<?xml version='1.0' encoding='utf-8' ?>"+sourceCode.replaceAll("\n","").replaceAll("\"","'") +"\" }    "
 
+
+
   //-- Linking Task Editor --
 
   // retrieve property paths from the (wiki) ontology
-  def sPropertyPaths(categoryUri : String) = "SELECT ?p WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ urify(categoryUri) + "} } "
+  def sPropertyPaths(categoryUri : String) = sparqlPrefixes + "SELECT ?p WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. ?x smwprop:_1 "+ urify(categoryUri) + "} } "
 
   // retrieve categories from the (wiki) ontology
   // <http://mywiki/resource/category/Gene>	rdf:type owl:Class                  -> too generic, we have to query all the graphs..
   // <http://mywiki/property/exampleProperty> <http://mywiki/resource/property:Has_domain_and_range> ?x
   // ?x <http://mywiki/resource/property/_1> <http://mywiki/category/Gene>      <- domain
   // ?x <http://mywiki/resource/property/_2> <http://mywiki/category/Gene>      <- range
-  def sCategories = "SELECT DISTINCT ?c WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. {{?x smwprop:_1 ?c} UNION {?x smwprop:_2 ?c}} } } "
+  def sCategories = sparqlPrefixes +"SELECT DISTINCT ?c WHERE { GRAPH ?g {?p smwprop:Has_domain_and_range ?x. {{?x smwprop:_1 ?c} UNION {?x smwprop:_2 ?c}} } } "
   //def sCategories = "SELECT DISTINCT ?c WHERE { GRAPH ?g {?p haloprop:domainAndRange ?x. {{?x haloprop:domain ?c} UNION {?x haloprop:range ?c}} } } "
 
   // if almostUri looks like an Uri -> add angle brackets or a proper prefix

@@ -32,13 +32,44 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
   var xmlProj : XMLProject = null
 
   // Reads the project configuration.
-  override def config = xmlProj.config
+  override def config = {
+    if (xmlProj == null)
+      ProjectConfig(QueryFactory.getPrefixes)
+    else xmlProj.config
+  }
 
    // Writes the updated project configuration.
-  override def config_=(config : ProjectConfig)
-  {
+  override def config_=(config : ProjectConfig)   {
     xmlProj.config = config
+    updateTripleStore
   }
+
+   // Merge project and default prefixes
+   //  (in case of double id - project prefix has priority)
+  def mergePrefixes : Map[String,String] = {
+    var prefixesMap = config.prefixes.toMap
+    for((key, value) <- QueryFactory.getPrefixes)
+      {
+        if (!prefixesMap.contains(key))
+          prefixesMap += key -> value
+      }
+    prefixesMap
+  }
+
+  // Retrieve project prefixes in Sparql query format
+  def projectSparqlPrefixes = {
+    config.prefixes.toSparql
+  }
+
+   // Update the TripleStore
+  private def updateTripleStore = {
+    // TODO - use stream - linkSpec.write()
+    // delete
+    sparulEndpoint.query(QueryFactory.dSourceCode(projectUri))
+    // insert updated
+    sparulEndpoint.query(QueryFactory.iSourceCode(projectUri,xmlProj.getLinkSpec.toString ))
+  }
+
 
   /** ----------------------------------------------------------
    *   The source module which encapsulates all data sources.
@@ -58,7 +89,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
       var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
 
        // load source datasource  - optional
-      val res = sparqlEndpoint.query(QueryFactory.sProjectDataSource(projectUri),1)
+      val res = sparqlEndpoint.query(projectSparqlPrefixes + QueryFactory.sProjectDataSource(projectUri),1)
       if (res.size > 0 )
         {
           val from = res.last("from").value
@@ -90,7 +121,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     //-  Util functions
     def loadDatasource (dataSourceUri : String) = {
 
-        val res = sparqlEndpoint.query(QueryFactory.sDataSource(dataSourceUri),1)
+        val res = sparqlEndpoint.query(projectSparqlPrefixes + QueryFactory.sDataSource(dataSourceUri),1)
 
         if (res.size > 0) {
            val ds = res.last
@@ -157,23 +188,16 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
       cachedTasks = None
       logger.info("Removed linking task '"+taskId +"' in project '"+name+"'")
     }
-
-    private def updateTripleStore = {
-      // TODO - use stream - linkSpec.write()
-      // delete
-      sparulEndpoint.query(QueryFactory.dSourceCode(projectUri))
-      // insert updated
-      sparulEndpoint.query(QueryFactory.iSourceCode(projectUri,xmlProj.getLinkSpec.toString ))
-    }
-
+        
     private def loadTasks : Traversable[LinkingTask] = {      
-      val res = sparqlEndpoint.query(QueryFactory.sProjectSourceCode(projectUri),1)
+      val res = sparqlEndpoint.query(projectSparqlPrefixes + QueryFactory.sProjectSourceCode(projectUri),1)
 
       if (res.size > 0 ){
 
         val sourceCode = res.last("xml").value
         val linkSpec = XML.loadString(sourceCode)
         xmlProj = new XMLProject(linkSpec)
+        xmlProj.config = ProjectConfig(mergePrefixes)
         logger.info("Loading LinkingTasks")
       }
       else {
@@ -190,8 +214,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
       taskSeq
     }
-
-
 
   }
 

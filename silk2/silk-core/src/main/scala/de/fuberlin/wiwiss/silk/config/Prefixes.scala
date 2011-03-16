@@ -20,6 +20,17 @@ class Prefixes(private val prefixMap : Map[String, String])
     }
     </Prefixes>
   }
+  
+  def toSparql =
+  {
+    var sparql = ""
+    for ((key, value) <- prefixMap)
+       {
+         sparql += "PREFIX "+key+": <"+value +"> "
+       }
+    sparql
+  }
+
 }
 
 object Prefixes
