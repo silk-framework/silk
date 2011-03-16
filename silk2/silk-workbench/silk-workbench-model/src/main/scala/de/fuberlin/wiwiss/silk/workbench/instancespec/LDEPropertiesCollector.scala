@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.instance.{Path, ForwardOperator}
 import de.fuberlin.wiwiss.silk.workbench.util.QueryFactory
+import de.fuberlin.wiwiss.silk.linkspec.Restrictions
 
 /**
  * Retrieves property paths from the Wiki ontology
@@ -19,15 +20,15 @@ object LDEPropertiesCollector
   /**
    * Retrieves a list of properties which are defined on most instances.
    */
-  def apply(endpoint : SparqlEndpoint, restriction : String) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions) : Traversable[(Path, Double)] =
   {
-    getAllPaths(endpoint, restriction)
+    getAllPaths(endpoint, restrictions)
   }
 
-  private def getAllPaths(endpoint : SparqlEndpoint, restriction : String) : Traversable[(Path, Double)] =
+  private def getAllPaths(endpoint : SparqlEndpoint, restrictions : Restrictions) : Traversable[(Path, Double)] =
   {
-    val variable = restriction.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
-    val category = restriction.split(' ')(2)
+    val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
+    val category = restrictions.toString.split(' ')(2)
 
     val sparql = QueryFactory.sPropertyPaths(category)
 
