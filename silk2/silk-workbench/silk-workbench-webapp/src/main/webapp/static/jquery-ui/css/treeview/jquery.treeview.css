@@ -68,8 +68,11 @@ button.action {  margin:0 0 0 2px; font-size: 0.7em; padding:0; text-decoration:
 /* hack jQuery ui button style  */
 div.actions .ui-button-text { margin: 0 0 0 2px; padding: .1em 1em .2em 1.9em !important ;}
 div.actions .ui-state-default { background: white !important ; text-decoration:none !important ; }
-div.actions .ui-state-focus  { background: white !important ; text-decoration:none !important ; border: 1px solid #D3D3D3 !important; color: #555555 !important; }
+/* workaround - firefox keeps button on ui-state-focus - see https://www.assembla.com/spaces/silk/tickets/62-wrong-focus-on-treeview-action-buttons */
+div.actions .ui-state-focus  { background: white  !important ; text-decoration:none !important ; border: 1px solid #D3D3D3 !important; color: #555555 !important; }
+div.actions .ui-state-focus .ui-icon {background-image: url("../smoothness/images/ui-icons_888888_256x240.png") !important;}
 div.actions .ui-state-focus:hover  { background: white !important ; text-decoration:none !important; border: 1px solid #999999 !important; color: #212121 !important; }
+div.actions .ui-state-focus:hover .ui-icon {background-image: url("../smoothness/images/ui-icons_454545_256x240.png") !important;}
 
 .active .label { color: #cc3333;}
 span.label {float:left; cursor:pointer; margin-right: 5px; display:block; }
