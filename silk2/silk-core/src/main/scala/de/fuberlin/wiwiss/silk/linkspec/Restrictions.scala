@@ -25,7 +25,7 @@ object Restrictions
   {
     var restrictionsFull = restrictions
     var restrictionsQualified = restrictions
-    restrictionsFull = restrictionsFull.replaceAll("[^\\s]+:[^\\s]+", "<$0>")
+    restrictionsFull = restrictionsFull.replaceAll("[^\\s\\{\\}]+:[^\\s\\{\\}\\.]+", "<$0>")
     for((id, namespace) <- prefixes.toSeq.sortBy(_._1.length).reverse)
     {
       restrictionsFull = restrictionsFull.replace(id + ":", namespace)
