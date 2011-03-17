@@ -8,7 +8,6 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
-import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -33,8 +32,8 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
   // Reads the project configuration.
   override def config = {
-    if (xmlProj == null)
-      ProjectConfig(QueryFactory.getPrefixes)
+    if (xmlProj==null || xmlProj.config.prefixes.isEmpty)
+      ProjectConfig(QueryFactory.getLDEDefaultPrefixes)
     else xmlProj.config
   }
 
@@ -42,23 +41,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
   override def config_=(config : ProjectConfig)   {
     xmlProj.config = config
     updateTripleStore
-  }
-
-   // Merge project and default prefixes
-   //  (in case of double id - project prefix has priority)
-  def mergePrefixes : Map[String,String] = {
-    var prefixesMap = config.prefixes.toMap
-    for((key, value) <- QueryFactory.getPrefixes)
-      {
-        if (!prefixesMap.contains(key))
-          prefixesMap += key -> value
-      }
-    prefixesMap
-  }
-
-  // Retrieve project prefixes in Sparql query format
-  def projectSparqlPrefixes = {
-    config.prefixes.toSparql
   }
 
    // Update the TripleStore
@@ -89,7 +71,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
       var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
 
        // load source datasource  - optional
-      val res = sparqlEndpoint.query(projectSparqlPrefixes + QueryFactory.sProjectDataSource(projectUri),1)
+      val res = sparqlEndpoint.query(QueryFactory.sProjectDataSource(projectUri),1)
       if (res.size > 0 )
         {
           val from = res.last("from").value
@@ -121,7 +103,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     //-  Util functions
     def loadDatasource (dataSourceUri : String) = {
 
-        val res = sparqlEndpoint.query(projectSparqlPrefixes + QueryFactory.sDataSource(dataSourceUri),1)
+        val res = sparqlEndpoint.query(QueryFactory.sDataSource(dataSourceUri),1)
 
         if (res.size > 0) {
            val ds = res.last
@@ -166,14 +148,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     override def update(task : LinkingTask) = synchronized  {
       // update XML
       xmlProj.linkingModule.update(task)
-      // append default prefixes to the project - in case of new project or linking spec without any prefix defined
-      if (xmlProj.getPrefixes.size == 0)   {
-        val defaultPrefixes = QueryFactory.getPrefixes
-        logger.info ("prefixes.. "+(Prefixes(defaultPrefixes).toXML).toString)
-        logger.info ("prefix.. "+(Prefixes(defaultPrefixes).toXML \ "Prefix").toString)
-          xmlProj.appendPrefixes(Prefixes(defaultPrefixes).toXML \ "Prefix")
-          logger.info("Added prefixes: " + xmlProj.getPrefixes.size)
-      }
       // update TS via Sparql\Update
       updateTripleStore
       cachedTasks = None
@@ -190,18 +164,17 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
     }
         
     private def loadTasks : Traversable[LinkingTask] = {      
-      val res = sparqlEndpoint.query(projectSparqlPrefixes + QueryFactory.sProjectSourceCode(projectUri),1)
+      val res = sparqlEndpoint.query(QueryFactory.sProjectSourceCode(projectUri),1)
 
       if (res.size > 0 ){
 
         val sourceCode = res.last("xml").value
         val linkSpec = XML.loadString(sourceCode)
         xmlProj = new XMLProject(linkSpec)
-        xmlProj.config = ProjectConfig(mergePrefixes)
         logger.info("Loading LinkingTasks")
       }
       else {
-         // if property smw-lde:sourceCode is not defined - create an empty project
+         // if property smw-lde:sourceCode is not defined or create a new empty project
         xmlProj = new XMLProject(<Silk />)
         logger.warning("The TripleStore doesn't contain a proper Silk Link Specification for resource '"+projectUri+"'")
       }
