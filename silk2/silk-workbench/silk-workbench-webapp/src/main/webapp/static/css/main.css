@@ -97,7 +97,7 @@ pre
   /* background: url('/static/img/toolbar.png') repeat-x;  */
   margin-left: 10px;
   position: relative;
-  width: 100%;
+  /* width: 100%; */
   clear: both;
 }
 
