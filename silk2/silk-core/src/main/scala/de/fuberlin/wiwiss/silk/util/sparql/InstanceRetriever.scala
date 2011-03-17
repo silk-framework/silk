@@ -22,12 +22,21 @@ trait InstanceRetriever
  */
 object InstanceRetriever
 {
+  //Uses the parallel instance retriever by default as it is generally significantly faster.
+  var useParallelRetriever = true
+
   /**
    * Creates a new InstanceRetriever instance.
    */
   def apply(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None) : InstanceRetriever =
   {
-    //Always creates a parallel instance retriever as it is generally significantly faster.
-    new ParallelInstanceRetriever(endpoint, pageSize, graphUri)
+    if(useParallelRetriever)
+    {
+      new ParallelInstanceRetriever(endpoint, pageSize, graphUri)
+    }
+    else
+    {
+      new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
+    }
   }
 }
