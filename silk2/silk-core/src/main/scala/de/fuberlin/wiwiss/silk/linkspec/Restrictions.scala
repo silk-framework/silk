@@ -21,13 +21,15 @@ object Restrictions
     fromSparql(node \ "Restrictions" text)
   }
 
-  def fromSparql(restrictionsQualified : String)(implicit prefixes : Prefixes) =
+  def fromSparql(restrictions : String)(implicit prefixes : Prefixes) =
   {
-    var restrictionsFull = restrictionsQualified
+    var restrictionsFull = restrictions
+    var restrictionsQualified = restrictions
     restrictionsFull = restrictionsFull.replaceAll("[^\\s]+:[^\\s]+", "<$0>")
     for((id, namespace) <- prefixes.toSeq.sortBy(_._1.length).reverse)
     {
       restrictionsFull = restrictionsFull.replace(id + ":", namespace)
+      restrictionsQualified = restrictionsQualified.replace(namespace, id + ":")
     }
 
     new Restrictions(restrictionsFull, restrictionsQualified)

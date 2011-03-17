@@ -13,14 +13,20 @@ object QueryFactory{
   val dataSourceLinks = "http://www.example.org/smw-lde/smwDatasourceLinks/"
 
 
-  // default prefixes 
-  def getPrefixes = Map ("smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/",
-                          "smwDatasourceLinks" -> dataSourceLinks,
-                          "smwDatasources" -> dataSources,
-                          "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#",
-                          "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                          "smwprop" -> (ontoGraph+smwpropSuffix),
-                          "smwcat" -> (ontoGraph+smwcatSuffix))
+  // default prefixes
+  def getLDEDefaultPrefixes =  Map( "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                                    "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
+                                    "owl" -> "http://www.w3.org/2002/07/owl#",
+                                    "smwprop" -> (ontoGraph+smwpropSuffix),
+                                    "smwcat" -> (ontoGraph+smwcatSuffix))
+
+  def getPrefixes = getLDEDefaultPrefixes ++
+                         Map (  "smwGraphs" -> "http://www.example.org/smw-lde/smwGraphs/",
+                                "smwDatasourceLinks" -> dataSourceLinks,
+                                "smwDatasources" -> dataSources,
+                                "smw-lde" -> "http://www.example.org/smw-lde/smw-lde.owl#" )
+
+
 
   def sparqlPrefixes :String  = Prefixes(getPrefixes).toSparql
 
@@ -57,11 +63,11 @@ object QueryFactory{
   //-- LDEProject --
 
   // retrieve a project info by uri
-  def sProjectDataSource(projectUri : String) = "SELECT ?from FROM "+mappingGraph+" WHERE  {   <"+projectUri+"> smw-lde:linksFrom ?from  }"
-  def sProjectSourceCode(projectUri : String) = "SELECT ?xml FROM "+mappingGraph+" WHERE  {  <"+projectUri+"> smw-lde:sourceCode ?xml   }"
+  def sProjectDataSource(projectUri : String) = sparqlPrefixes + "SELECT ?from FROM "+mappingGraph+" WHERE  {   <"+projectUri+"> smw-lde:linksFrom ?from  }"
+  def sProjectSourceCode(projectUri : String) = sparqlPrefixes + "SELECT ?xml FROM "+mappingGraph+" WHERE  {  <"+projectUri+"> smw-lde:sourceCode ?xml   }"
 
   // retrieve a datasource by uri
-  def sDataSource(dataSourceUri : String) = "SELECT ?id ?desc FROM "+datasourceGraph+" WHERE   { <"+dataSourceUri+"> smw-lde:ID ?id . OPTIONAL {<"+dataSourceUri+"> smw-lde:description ?desc } }"
+  def sDataSource(dataSourceUri : String) = sparqlPrefixes + "SELECT ?id ?desc FROM "+datasourceGraph+" WHERE   { <"+dataSourceUri+"> smw-lde:ID ?id . OPTIONAL {<"+dataSourceUri+"> smw-lde:description ?desc } }"
 
   // - Update DataSource
   // delete a SOURCE datasource link
