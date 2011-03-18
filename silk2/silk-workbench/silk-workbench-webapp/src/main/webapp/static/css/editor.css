@@ -13,7 +13,7 @@ body{
 	height:90%;
 	padding:5px;
 	width:98%;
-    min-width: 1090px;
+    min-width: 1060px;
 	margin: 10px 5px;
 	float: left;
 
@@ -167,16 +167,16 @@ a.more {
 	padding: 5px;
 }
 .droppable_outer {
-	width: 80%;
-  min-width: 840px;
+	width: 75%;
+    min-width: 830px;
 	height: 800px;
-	margin: 25px 5px;
+	margin: 15px 5px;
 	float: left;
 }
 
 #droppable {
-	width: 80%;
-  min-width: 840px;
+	width: 75%;
+    min-width: 830px;
 	height: 800px;
 	padding: 5px;
 	/*
