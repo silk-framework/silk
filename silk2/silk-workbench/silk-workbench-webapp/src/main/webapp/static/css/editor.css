@@ -39,7 +39,7 @@ body{
 }
 
 .droppable_outer {
-	min-width: 850px;
+	min-width: 830px;
   width: auto;
   height: 800px;
 	margin: 0 10px;
