@@ -4,7 +4,7 @@ body{
 
 #content
 {
-	padding-left: 0px;
+	padding-left: 0;
 }
 
 .container  {
@@ -12,12 +12,11 @@ body{
 	border: 1px solid #eee;
 	height:90%;
 	padding:5px;
-	width:100%;
-	margin: 10px;
+	width:98%;
+    min-width: 1090px;
+	margin: 10px 5px;
 	float: left;
-    /*position:absolute;*/
-    /*left:18%;*/
-    /*top:71px;*/
+
 }
 
 .draggables {
@@ -37,8 +36,7 @@ body{
 	z-index:50;
 }
 
-._jsPlumb_connector { z-index:1; }
-._jsPlumb_endpoint { z-index:50; }
+._jsPlumb_endpoint { z-index: 2; }
 
 .draggable-inside {
 	width: 200px;
@@ -67,11 +65,11 @@ body{
 
 .dragDiv {
 	width:200px;
-	position:absolute;
+	position:relative;
 	left:100px;
 	top:100px;
 	font-size: 9pt;
-    z-index: 10;
+    z-index: 1;
 }
 
 .dragDiv h5 {
@@ -169,17 +167,23 @@ a.more {
 	padding: 5px;
 }
 .droppable_outer {
-	width: 50%;
-	height: 650px;
+	width: 80%;
+    min-width: 850px;
+	height: 800px;
 	margin: 25px 10px;
 	float: left;
 }
-.droppable {
-	width: 98%;
-	height: 600px;
+
+#droppable {
+	width: 80%;
+    min-width: 850px;
+	height: 800px;
 	padding: 5px;
-	overflow:auto;
-	background-color: #f8f8f8;
+	/*
+    overflow: scroll;
+    position: relative;
+    */
+    background-color: #f8f8f8;
 	border:1px dashed #d9d9d9;
 	margin-bottom: 10px;
 }
@@ -195,4 +199,20 @@ a.more {
 	background-color: #cae9ec;
 	border: 1px solid #b9d5d8;
 }
-.description{font-size:12px;text-align:center;}
+.description{
+    font-size:12px;
+    text-align:center;
+}
+
+.scrollboxes
+{
+    width: 230px;
+    height: 130px;
+    overflow: auto;
+}
+
+.boxheaders
+{
+  font-weight: bold;
+  margin-top: 5px;
+}
