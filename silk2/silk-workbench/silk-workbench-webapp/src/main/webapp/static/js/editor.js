@@ -103,15 +103,28 @@ document.onselectstart = function ()
   return false;
 };
 
+Array.max = function(array) {
+    return Math.max.apply(Math, array);
+};
+
 function findLongestPath(xml)
 {
-  length = 1;
-  $(xml).children().each(function ()
+  if ($(xml).children().length > 0)
   {
-    length = findLongestPath($(this)) + 1;
-
-  });
-  return length;
+    var xmlHeight = [];
+    var i = 0;
+    $(xml).children().each(function()
+    {
+      xmlHeight[i] = findLongestPath($(this));
+      i = i+1;
+    });
+    maxLength = Math.max.apply(null, xmlHeight);
+    return 1 + maxLength;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 function getHelpIcon(description, marginTop) {
@@ -143,14 +156,15 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", "aggregate_" + aggregatecounter);
-    var height = aggregatecounter * 120 + 150;
-    var left = (max_level*250) - ((level + 1) * 250) + 300;
+    var height = aggregatecounter * 120 + 10;
+    var left = (max_level*250) - ((level + 1) * 250) + 10;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
     var number = "#aggregate_" + aggregatecounter;
     box1.draggable(
     {
-      containment: '#droppable'
+      containment: '#droppable',
+      scroll: true
     });
     box1.appendTo("#droppable");
 
@@ -253,13 +267,14 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
-    var height = comparecounter * 120 + 150;
-    var left = (max_level*250) - ((level + 1) * 250) + 300;
+    var height = comparecounter * 120 + 10;
+    var left = (max_level*250) - ((level + 1) * 250) + 10;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
     var number = "#compare_" + comparecounter;
     box1.draggable(
     {
-      containment: '#droppable'
+      containment: '#droppable',
+      scroll: true
     });
     box1.appendTo("#droppable");
 
@@ -363,14 +378,15 @@ function parseXML(xml, level, level_y, last_element, max_level)
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", "transform_" + transformcounter);
 
-    var height = transformcounter * 120 + 150;
-    var left = (max_level*250) - ((level + 1) * 250) + 300;
+    var height = transformcounter * 120 + 10;
+    var left = (max_level*250) - ((level + 1) * 250) + 10;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
     var number = "#transform_" + transformcounter;
     box1.draggable(
     {
-      containment: '#droppable'
+      containment: '#droppable',
+      scroll: true
     });
     box1.appendTo("#droppable");
 
@@ -451,14 +467,15 @@ function parseXML(xml, level, level_y, last_element, max_level)
     box1.addClass('dragDiv sourcePath');
     box1.attr("id", "source_" + sourcecounter);
 
-    var height = sourcecounter * 120 + 150;
-    var left = (max_level*250) - ((level + 1) * 250) + 300;
+    var height = sourcecounter * 120 + 10;
+    var left = (max_level*250) - ((level + 1) * 250) + 10;
     box1.attr("style", "left: " + left + "px; top: " + height + "px;");
 
     var number = "#source_" + sourcecounter;
     box1.draggable(
     {
-      containment: '#droppable'
+      containment: '#droppable',
+      scroll: true
     });
     box1.appendTo("#droppable");
 
@@ -540,6 +557,7 @@ function load()
   {
     var max_level = findLongestPath($(this));
 
+    /*
     var userAgent = navigator.userAgent.toLowerCase();
     // Figure out what browser is being used
     jQuery.browser = {
@@ -555,6 +573,7 @@ function load()
     if (is_chrome || is_safari) {
       max_level = max_level - 1;
     }
+    */
 
     parseXML($(this), 0, 0, "", max_level);
   });
@@ -564,7 +583,9 @@ function load()
   });
   $(linkSpec).find("> Filter").each(function ()
   {
-    $("#linklimit").attr("value", $(this).attr("limit"));
+    if ($(this).attr("limit") > 0) {
+      $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
+    }
     $("#threshold").attr("value", $(this).attr("threshold"));
   });
 }
@@ -700,9 +721,9 @@ function serializeLinkSpec() {
   xml.appendChild(linkcondition);
 
   var filter = document.createElement("Filter");
-  if ($("#linklimit").val().length > 0)
+  if ($("#linklimit :selected").text() != "unlimited")
   {
-    filter.setAttribute("limit", $("#linklimit").val());
+    filter.setAttribute("limit", $("#linklimit :selected").text());
   }
   filter.setAttribute("threshold", $("#threshold").val());
   xml.appendChild(filter);
@@ -719,6 +740,7 @@ function serializeLinkSpec() {
 $(function ()
 {
   $("#droppable").droppable(
+  //{ tolerance: 'touch' },
   {
     drop: function (ev, ui)
     {
@@ -726,6 +748,12 @@ $(function ()
         //$(this).append($(ui.helper).clone());
         $.ui.ddmanager.current.cancelHelperRemoval = true;
         ui.helper.appendTo(this);
+
+        /*
+        styleString = $("#"+ui.helper.attr('id')).attr("style");
+        styleString = styleString.replace("position: absolute", "");
+        $("#"+ui.helper.attr('id')).attr("style", styleString);
+        */
         if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
@@ -733,7 +761,8 @@ $(function ()
           var number = "#aggregate_" + aggregatecounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            scroll: true
           });
           aggregatecounter = aggregatecounter + 1;
         }
@@ -744,7 +773,8 @@ $(function ()
           var number = "#transform_" + transformcounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            scroll: true
           });
           transformcounter = transformcounter + 1;
         }
@@ -755,7 +785,8 @@ $(function ()
           var number = "#compare_" + comparecounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            scroll: true
           });
           comparecounter = comparecounter + 1;
         }
@@ -765,7 +796,8 @@ $(function ()
           var number = "#source_" + sourcecounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            scroll: true
           });
           sourcecounter = sourcecounter + 1;
           /*
@@ -779,7 +811,8 @@ $(function ()
           var number = "#target_" + targetcounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            scroll: true
           });
           targetcounter = targetcounter + 1;
         }
@@ -1108,8 +1141,14 @@ function getOperators()
         var global_id = 0;
 
         var box = $(document.createElement('div'));
-        box.attr("style", "color: #0cc481; font-weight: bold;");
+        box.attr("style", "color: #0cc481;");
+        box.addClass("boxheaders");
         box.html("Transformations").appendTo("#operators");
+        box.appendTo("#operators");
+
+        var box = $(document.createElement('div'));
+        box.attr("id", "transformationbox");
+        box.addClass("scrollboxes");
         box.appendTo("#operators");
 
         var sourcepaths = data.transformations;
@@ -1185,7 +1224,7 @@ function getOperators()
               return box1;
             }
           });
-          box.appendTo("#operators");
+          box.appendTo("#transformationbox");
 
           // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions1);
           // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions2);
@@ -1197,8 +1236,14 @@ function getOperators()
         var global_id = 0;
 
         var box = $(document.createElement('div'));
-        box.attr("style", "color: #e59829; font-weight: bold;");
+        box.attr("style", "color: #e59829;");
+        box.addClass("boxheaders");
         box.html("Comparators").appendTo("#operators");
+        box.appendTo("#operators");
+
+        var box = $(document.createElement('div'));
+        box.attr("id", "comparatorbox");
+        box.addClass("scrollboxes");
         box.appendTo("#operators");
 
         var sourcepaths = data.comparators;
@@ -1293,7 +1338,7 @@ function getOperators()
               return box1;
             }
           });
-          box.appendTo("#operators");
+          box.appendTo("#comparatorbox");
           // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions1);
           // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions2);
           global_id = global_id + 1;
@@ -1302,8 +1347,14 @@ function getOperators()
         var global_id = 0;
 
         var box = $(document.createElement('div'));
-        box.attr("style", "color: #1484d4; font-weight: bold;");
+        box.attr("style", "color: #1484d4;");
+        box.addClass("boxheaders");
         box.html("Aggregators").appendTo("#operators");
+        box.appendTo("#operators");
+
+        var box = $(document.createElement('div'));
+        box.attr("id", "aggregatorbox");
+        box.addClass("scrollboxes");
         box.appendTo("#operators");
 
         var sourcepaths = data.aggregators;
@@ -1400,7 +1451,7 @@ function getOperators()
             }
 
           });
-          box.appendTo("#operators");
+          box.appendTo("#aggregatorbox");
 		  
           global_id = global_id + 1;
         });

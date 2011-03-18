@@ -33,25 +33,40 @@
                 getPropertyPaths();
             </script>
           </div>
+
+          <div id="operators">
+            <script type="text/javascript">
+              getOperators();
+            </script>
+          </div>
         </div>
 
         <div class="droppable_outer">
-          <div class="droppable" id="droppable">
-            <!--<p id="droppable_p"></p>-->
+          <div id="droppable"/>
+          <div style="width: 150px; float: left;">Threshold: <input type="text" id="threshold" size="4"/><img src="static/img/help.png" title="Defines the minimum similarity of two data items which is required to generate a link between them."/></div>
+          <div style="width: 180px; float: left;">Link Limit:
+              <select id="linklimit">
+                  <option>unlimited</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+                  <option>10</option>
+              </select>
+              <img src="static/img/help.png" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
           </div>
-          <div style="width: 20%; float: left;">Threshold: <input type="text" id="threshold" size="4"/><img src="static/img/help.png" title="Defines the minimum similarity of two data items which is required to generate a link between them."/></div>
-          <div style="width: 20%; float: left;">Link Limit: <input type="text" id="linklimit" size="4"/><img src="static/img/help.png" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering."/></div>
-          <div style="width: 0%; float: left; visibility:hidden;"><input type="text" id="linktype" size="145"/></div>
-
-        </div>
-
-        <div class="draggables" id="operators">
-          <script type="text/javascript">
-            getOperators();
-          </script>
+          <div style="width: 10px; float: left; visibility:hidden;">
+              <input type="text" id="linktype"/>
+          </div>
         </div>
 
       </div>
+
     </lift:linkSpec.content>
   </lift:bind-at>
 
