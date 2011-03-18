@@ -145,16 +145,17 @@ function getDeleteIcon(elementId) {
   return img;
 }
 
-function parseXML(xml, level, level_y, last_element, max_level)
+function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 {
   $(xml).find("> Aggregate").each(function ()
   {
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", "aggregate_" + aggregatecounter);
-    var height = aggregatecounter * 120 + 10;
-    var left = (max_level*250) - ((level + 1) * 250) + 10;
-    box1.attr("style", "left: " + left + "px; top: " + height + "px;");
+
+    var height = aggregatecounter * 120 + 120;
+    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#aggregate_" + aggregatecounter;
     box1.draggable(
@@ -254,7 +255,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_left, max_level);
+    parseXML($(this), level + 1, 0, endp_left, max_level, box1.attr("id"));
 
   });
   $(xml).find("> Compare").each(function ()
@@ -262,9 +263,11 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
-    var height = comparecounter * 120 + 10;
-    var left = (max_level*250) - ((level + 1) * 250) + 10;
-    box1.attr("style", "left: " + left + "px; top: " + height + "px;");
+
+    var height = comparecounter * 120 + 120;
+    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
+
     var number = "#compare_" + comparecounter;
     box1.draggable(
     {
@@ -363,7 +366,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_left, max_level);
+    parseXML($(this), level + 1, 0, endp_left, max_level, box1.attr("id"));
   });
 
   $(xml).find("> TransformInput").each(function ()
@@ -372,9 +375,9 @@ function parseXML(xml, level, level_y, last_element, max_level)
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", "transform_" + transformcounter);
 
-    var height = transformcounter * 120 + 10;
-    var left = (max_level*250) - ((level + 1) * 250) + 10;
-    box1.attr("style", "left: " + left + "px; top: " + height + "px;");
+    var height = transformcounter * 120 + 120;
+    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#transform_" + transformcounter;
     box1.draggable(
@@ -451,7 +454,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_left, max_level);
+    parseXML($(this), level + 1, 0, endp_left, max_level, box1.attr("id"));
   });
   $(xml).find("> Input").each(function ()
   {
@@ -460,9 +463,9 @@ function parseXML(xml, level, level_y, last_element, max_level)
     box1.addClass('dragDiv sourcePath');
     box1.attr("id", "source_" + sourcecounter);
 
-    var height = sourcecounter * 120 + 10;
-    var left = (max_level*250) - ((level + 1) * 250) + 10;
-    box1.attr("style", "left: " + left + "px; top: " + height + "px;");
+    var height = sourcecounter * 120 + 120;
+    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#source_" + sourcecounter;
     box1.draggable(
@@ -517,7 +520,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
         targetEndpoint: last_element
       });
     }
-    parseXML($(this), level + 1, 0, endp_right, max_level);
+    parseXML($(this), level + 1, 0, endp_right, max_level, box1.attr("id"));
   });
 }
 
@@ -564,7 +567,10 @@ function load()
     var is_safari = /safari/.test( navigator.userAgent.toLowerCase());
     */
 
-    parseXML($(this), 0, 0, "", max_level);
+    parseXML($(this), 0, 0, "", max_level, "");
+    if ((sourcecounter*120 + 20) > 800) {
+       $("#droppable").css( { "height": (sourcecounter*120 + 20) + "px" });
+    }
   });
   $(linkSpec).find("> LinkType").each(function ()
   {
