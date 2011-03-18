@@ -884,6 +884,7 @@ function getPropertyPaths(deleteExisting)
 
     var box = $(document.createElement('div'));
     box.attr("id", "sourcepaths");
+    box.addClass("scrollboxes");
     box.appendTo("#paths");
 
     var sourcepaths = data.source.paths;
@@ -1008,6 +1009,7 @@ function getPropertyPaths(deleteExisting)
 
     var box = $(document.createElement('div'));
     box.attr("id", "targetpaths");
+    box.addClass("scrollboxes");
     box.appendTo("#paths");
 
     var sourcepaths = data.target.paths;
