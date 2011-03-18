@@ -1,4 +1,3 @@
-var max_paths = 10;
 var aggregatecounter = 0;
 var transformcounter = 0;
 var comparecounter = 0;
@@ -20,9 +19,6 @@ var sourceDataSetVar = "";
 var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
-
-// TODO: not needed?
-// jsPlumb.draggable($(".droppable"));
 
 var endpointOptions =
 {
@@ -570,9 +566,6 @@ function load()
     };
     var is_chrome = /chrome/.test( navigator.userAgent.toLowerCase());
     var is_safari = /safari/.test( navigator.userAgent.toLowerCase());
-    if (is_chrome || is_safari) {
-      max_level = max_level - 1;
-    }
     */
 
     parseXML($(this), 0, 0, "", max_level);
@@ -800,10 +793,6 @@ $(function ()
             scroll: true
           });
           sourcecounter = sourcecounter + 1;
-          /*
-          $(number).removeClass("ui-draggable-dragging");
-          $(number).addClass("ui-draggable");
-          */
         }
         if (ui.helper.attr('id').search(/target/) != -1)
         {
@@ -871,7 +860,7 @@ function getPropertyPaths(deleteExisting)
     {
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
-    var global_id = 0;
+    var list_item_id = 0;
 
     var box = $(document.createElement('div'));
     box.html("<span style='font-weight: bold;'>Source:</span> " + data.source.id).appendTo("#paths");
@@ -892,7 +881,7 @@ function getPropertyPaths(deleteExisting)
     {
       var box = $(document.createElement('div'));
       box.addClass('draggable');
-      box.attr("id", "source" + global_id);
+      box.attr("id", "source" + list_item_id);
       box.attr("title", encodeHtml(item.path));
       box.html("<span></span><p style=\"white-space:nowrap; overflow:hidden;\">" + encodeHtml(item.path) + "</p>");
       box.draggable(
@@ -937,15 +926,13 @@ function getPropertyPaths(deleteExisting)
         }
       });
       box.appendTo("#sourcepaths");
-
-      //jsPlumb.addEndpoint('source'+global_id, endpointOptions);
-      global_id = global_id + 1;
+      list_item_id = list_item_id + 1;
 
     });
 
     var box = $(document.createElement('div'));
     box.addClass('draggable');
-    box.attr("id", "source" + global_id);
+    box.attr("id", "source" + list_item_id);
     box.html("<span> </span><small> </small><p>(custom path)</p>");
     box.draggable(
     {
@@ -988,13 +975,15 @@ function getPropertyPaths(deleteExisting)
     });
     box.appendTo("#sourcepaths");
 
+    /*
     var availablePaths = data.source.availablePaths;
     if (max_paths < availablePaths)
     {
-      //var box = $(document.createElement('div'));
-      //box.html("<a href='/linkSpec' class='more'>&darr; more source paths...</a>");
-      //box.appendTo("#paths");
+      var box = $(document.createElement('div'));
+      box.html("<a href='/linkSpec' class='more'>&darr; more source paths...</a>");
+      box.appendTo("#paths");
     }
+    */
 
     var box = $(document.createElement('div'));
     box.html("<span style='font-weight: bold;'>Target:</span> " + data.target.id).appendTo("#paths");
@@ -1005,7 +994,7 @@ function getPropertyPaths(deleteExisting)
     box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.target.restrictions).appendTo("#paths");
     box.appendTo("#paths");
 
-    var global_id = 0;
+    var list_item_id = 0;
 
     var box = $(document.createElement('div'));
     box.attr("id", "targetpaths");
@@ -1017,7 +1006,7 @@ function getPropertyPaths(deleteExisting)
     {
       var box = $(document.createElement('div'));
       box.addClass('draggable');
-      box.attr("id", "target" + global_id);
+      box.attr("id", "target" + list_item_id);
       box.attr("title", encodeHtml(item.path));
       box.html("<span></span><small>" + encodeHtml(item.path) + "</small><p style=\"white-space:nowrap; overflow:hidden;\">" + encodeHtml(item.path) + "</p>");
       box.draggable(
@@ -1063,13 +1052,13 @@ function getPropertyPaths(deleteExisting)
       });
       box.appendTo("#targetpaths");
 
-      global_id = global_id + 1;
+      list_item_id = list_item_id + 1;
 
     });
 
     var box = $(document.createElement('div'));
     box.addClass('draggable');
-    box.attr("id", "target" + global_id);
+    box.attr("id", "target" + list_item_id);
     box.html("<span> </span><small> </small><p>(custom path)</p>");
     box.draggable(
     {
@@ -1140,7 +1129,7 @@ function getOperators()
       // alert("success: " + data + " " + textStatus + " " + XMLHttpRequest.status);
       if (XMLHttpRequest.status >= 200 && XMLHttpRequest.status < 300)
       {
-        var global_id = 0;
+        var list_item_id = 0;
 
         var box = $(document.createElement('div'));
         box.attr("style", "color: #0cc481;");
@@ -1163,7 +1152,7 @@ function getOperators()
 
           var box = $(document.createElement('div'));
           box.addClass('draggable tranformations');
-          box.attr("id", "transformation" + global_id);
+          box.attr("id", "transformation" + list_item_id);
           box.attr("title", item.description);
           box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
           box.draggable(
@@ -1228,14 +1217,10 @@ function getOperators()
           });
           box.appendTo("#transformationbox");
 
-          // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions1);
-          // jsPlumb.addEndpoint('transformation'+global_id, endpointOptions2);
-          global_id = global_id + 1;
-
-
+          list_item_id = list_item_id + 1;
         });
 
-        var global_id = 0;
+        var list_item_id = 0;
 
         var box = $(document.createElement('div'));
         box.attr("style", "color: #e59829;");
@@ -1257,7 +1242,7 @@ function getOperators()
           comparators[item.id]["parameters"] = item.parameters;
           var box = $(document.createElement('div'));
           box.addClass('draggable comparators');
-          box.attr("id", "comparator" + global_id);
+          box.attr("id", "comparator" + list_item_id);
           box.attr("title", item.description);
           box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
           box.draggable(
@@ -1341,12 +1326,10 @@ function getOperators()
             }
           });
           box.appendTo("#comparatorbox");
-          // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions1);
-          // jsPlumb.addEndpoint('comparator'+global_id, endpointOptions2);
-          global_id = global_id + 1;
+          list_item_id = list_item_id + 1;
         });
 
-        var global_id = 0;
+        var list_item_id = 0;
 
         var box = $(document.createElement('div'));
         box.attr("style", "color: #1484d4;");
@@ -1370,7 +1353,7 @@ function getOperators()
           var box = $(document.createElement('div'));
           box.addClass('draggable aggregators');
           box.attr("title", item.description);
-          box.attr("id", "aggregator" + global_id);
+          box.attr("id", "aggregator" + list_item_id);
           box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
 
           box.draggable(
@@ -1455,7 +1438,7 @@ function getOperators()
           });
           box.appendTo("#aggregatorbox");
 		  
-          global_id = global_id + 1;
+          list_item_id = list_item_id + 1;
         });
         load();
       }
