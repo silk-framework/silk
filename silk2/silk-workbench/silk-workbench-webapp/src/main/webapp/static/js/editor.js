@@ -159,8 +159,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#aggregate_" + aggregatecounter;
     box1.draggable(
     {
-      containment: '#droppable',
-      scroll: true
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -269,8 +268,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#compare_" + comparecounter;
     box1.draggable(
     {
-      containment: '#droppable',
-      scroll: true
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -381,8 +379,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#transform_" + transformcounter;
     box1.draggable(
     {
-      containment: '#droppable',
-      scroll: true
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -470,8 +467,7 @@ function parseXML(xml, level, level_y, last_element, max_level)
     var number = "#source_" + sourcecounter;
     box1.draggable(
     {
-      containment: '#droppable',
-      scroll: true
+      containment: '#droppable'
     });
     box1.appendTo("#droppable");
 
@@ -754,8 +750,7 @@ $(function ()
           var number = "#aggregate_" + aggregatecounter;
           $(number).draggable(
           {
-            containment: '#droppable',
-            scroll: true
+            containment: '#droppable'
           });
           aggregatecounter = aggregatecounter + 1;
         }
@@ -766,8 +761,7 @@ $(function ()
           var number = "#transform_" + transformcounter;
           $(number).draggable(
           {
-            containment: '#droppable',
-            scroll: true
+            containment: '#droppable'
           });
           transformcounter = transformcounter + 1;
         }
@@ -778,8 +772,7 @@ $(function ()
           var number = "#compare_" + comparecounter;
           $(number).draggable(
           {
-            containment: '#droppable',
-            scroll: true
+            containment: '#droppable'
           });
           comparecounter = comparecounter + 1;
         }
@@ -789,8 +782,7 @@ $(function ()
           var number = "#source_" + sourcecounter;
           $(number).draggable(
           {
-            containment: '#droppable',
-            scroll: true
+            containment: '#droppable'
           });
           sourcecounter = sourcecounter + 1;
         }
@@ -800,8 +792,7 @@ $(function ()
           var number = "#target_" + targetcounter;
           $(number).draggable(
           {
-            containment: '#droppable',
-            scroll: true
+            containment: '#droppable'
           });
           targetcounter = targetcounter + 1;
         }

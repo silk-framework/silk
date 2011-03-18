@@ -4,19 +4,21 @@ body{
 
 #content
 {
-	padding-left: 0;
+	padding: 20px 10px;
+  /*
+  width: 1100px;
+  */
 }
 
 .container  {
-	background-color:#fefefe;
 	border: 1px solid #eee;
 	height:90%;
 	padding:5px;
-	width:98%;
-    min-width: 1060px;
+  width:auto;
+  min-width: 1090px;
+  max-width:100%;
 	margin: 10px 5px;
 	float: left;
-
 }
 
 .draggables {
@@ -34,6 +36,27 @@ body{
 	cursor:move;
 	font-size: 9pt;
 	z-index:50;
+}
+
+.droppable_outer {
+	min-width: 850px;
+  width: auto;
+  height: 800px;
+	margin: 0 10px;
+	float: left;
+}
+
+#droppable {
+	width: auto;
+  height: 800px;
+	padding: 5px;
+	/*
+  overflow: scroll;
+  position: relative;
+  */
+  background-color: #f8f8f8;
+	border:1px dashed #d9d9d9;
+	margin-bottom: 10px;
 }
 
 ._jsPlumb_endpoint { z-index: 2; }
@@ -74,12 +97,26 @@ body{
 
 .dragDiv h5 {
 	font-size: 9pt;
-    cursor: move;
+  cursor: move;
+  padding:5px;
+  margin:1px;
 }
 
 .dragDiv .content {
-    min-height: 14px;
+  min-height: 14px;
 }
+
+.dragDiv div {
+	padding:3px 5px;
+	margin-bottom:5px;
+
+}
+
+.dragDiv h5 div {
+	padding:0px;
+	margin-bottom:0px;
+}
+
 .sourcePath {
 	background-color:#f2d7ff;
 	border:1px solid #C354BF;
@@ -103,11 +140,6 @@ body{
 .aggregateDiv  {
 	background-color: #d6eeff;
 	border:1px solid #1484d4;
-}
-
-.dragDiv h5 {
-	padding:5px;
-	margin:1px;
 }
 
 .sourcePath h5 {
@@ -135,17 +167,6 @@ body{
     height: 15px;
 }
 
-.dragDiv div {
-	padding:3px 5px;
-	margin-bottom:5px;
-
-}
-
-.dragDiv h5 div {
-	padding:0px;
-	margin-bottom:0px;
-}
-
 .more {
 	font-size: 9pt;
     width: 230px;
@@ -166,39 +187,22 @@ a.more {
 	height: 15px;
 	padding: 5px;
 }
-.droppable_outer {
-	width: 75%;
-    min-width: 830px;
-	height: 800px;
-	margin: 15px 5px;
-	float: left;
-}
 
-#droppable {
-	width: 75%;
-    min-width: 830px;
-	height: 800px;
-	padding: 5px;
-	/*
-    overflow: scroll;
-    position: relative;
-    */
-    background-color: #f8f8f8;
-	border:1px dashed #d9d9d9;
-	margin-bottom: 10px;
-}
 .dragactive{
 	background-color: #ffcccc;
 	border: 1px dashed #e5a8a8;
 }
+
 .drophover{
 	background-color: #d5eca6;
 	border: 1px dotted #c7dd9b;
 }
+
 .drophighlight{
 	background-color: #cae9ec;
 	border: 1px solid #b9d5d8;
 }
+
 .description{
     font-size:12px;
     text-align:center;
