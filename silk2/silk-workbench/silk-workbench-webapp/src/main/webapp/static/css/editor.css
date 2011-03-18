@@ -168,15 +168,15 @@ a.more {
 }
 .droppable_outer {
 	width: 80%;
-    min-width: 850px;
+  min-width: 840px;
 	height: 800px;
-	margin: 25px 10px;
+	margin: 25px 5px;
 	float: left;
 }
 
 #droppable {
 	width: 80%;
-    min-width: 850px;
+  min-width: 840px;
 	height: 800px;
 	padding: 5px;
 	/*
