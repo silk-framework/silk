@@ -204,15 +204,15 @@ a.more {
 }
 
 .description{
-    font-size:12px;
-    text-align:center;
+  font-size:12px;
+  text-align:center;
 }
 
 .scrollboxes
 {
-    width: 230px;
-    height: 130px;
-    overflow: auto;
+  width: 230px;
+  height: 98px;
+  overflow: auto;
 }
 
 .boxheaders
