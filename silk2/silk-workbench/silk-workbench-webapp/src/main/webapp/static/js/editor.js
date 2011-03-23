@@ -583,8 +583,20 @@ function load()
     }
     $("#threshold").attr("value", $(this).attr("threshold"));
   });
+  updateWindowWidth();
 }
 
+
+function updateWindowWidth() {
+  var window_width =  $(window).width();
+  if (window_width>1100) {
+    $(".wrapper").width(window_width-10);
+    $("#droppable").width(window_width-290);
+  } else {
+    $(".wrapper").width(1000+1200-window_width);
+    $("#droppable").width(830);
+  }
+}
 
 function getHTML(who, deep)
 {
