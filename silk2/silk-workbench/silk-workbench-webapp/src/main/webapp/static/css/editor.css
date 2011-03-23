@@ -25,6 +25,10 @@ body{
 	float: left;
 }
 
+.wrapper {
+  width: 1100px;
+}
+
 .draggable {
 	width: 200px;
 	height: 13px;
