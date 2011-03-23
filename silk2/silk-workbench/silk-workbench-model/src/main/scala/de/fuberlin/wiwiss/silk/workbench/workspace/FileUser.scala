@@ -4,7 +4,12 @@ import java.io.File
 
 class FileUser extends User
 {
-  override val workspace =
+  override def workspace = FileUser.workspace
+}
+
+object FileUser
+{
+  val workspace =
   {
     val workspaceFile = new File("./workspace/")
     workspaceFile.mkdirs()
