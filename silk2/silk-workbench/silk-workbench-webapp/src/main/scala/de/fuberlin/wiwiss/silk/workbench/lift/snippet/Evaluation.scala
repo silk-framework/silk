@@ -30,8 +30,8 @@ class Evaluation
           for((link, correct) <- EvaluationServer.links) yield
           {
             <tr>
-              <td>{link.sourceUri}</td>
-              <td>{link.targetUri}</td>
+              <td><a href={link.sourceUri}>{link.sourceUri}</a></td>
+              <td><a href={link.targetUri}>{link.targetUri}</a></td>
               <td>{link.confidence}</td>
               <td>{correct}</td>
             </tr>
@@ -47,7 +47,7 @@ class Evaluation
          "table" ->
            <p>
              <div id="alignemtTable">Waiting...</div>
-             <div>{Script(OnLoad(PeriodicUpdate(update, 3000)))}</div>
+             <div>{Script(OnLoad(PeriodicUpdate(update, 300000)))}</div>
            </p>)
   }
 }
