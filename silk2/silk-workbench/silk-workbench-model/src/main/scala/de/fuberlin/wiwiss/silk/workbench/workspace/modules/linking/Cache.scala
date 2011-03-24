@@ -32,7 +32,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
     {
       nodes.append(
           <PositiveInstances>{
-          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.positiveInstances) yield
+          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.positive) yield
           {
             <Pair>
               <Source>{sourceInstance.toXML}</Source>
@@ -43,7 +43,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
       nodes.append(
         <NegativeInstances>{
-          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.negativeInstances) yield
+          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.negative) yield
           {
             <Pair>
               <Source>{sourceInstance.toXML}</Source>

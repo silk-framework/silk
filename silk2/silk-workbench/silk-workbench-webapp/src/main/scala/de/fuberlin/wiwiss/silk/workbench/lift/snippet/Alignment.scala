@@ -47,13 +47,16 @@ class Alignment
             val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
 
             val updatedAlignment = alignment.copy(negativeLinks = negativeLinks.toSet)
+            val updatedLinkingTask = User().linkingTask.copy(alignment = updatedAlignment)
 
-            //Update alignment
-            User().task = User().linkingTask.copy(alignment = updatedAlignment)
+            User().project.linkingModule.update(updatedLinkingTask)
+            User().task = updatedLinkingTask
           }
           else
           {
-            User().task = User().linkingTask.copy(alignment = alignment)
+            val updatedLinkingTask = User().linkingTask.copy(alignment = alignment)
+            User().project.linkingModule.update(updatedLinkingTask)
+            User().task = updatedLinkingTask
           }
 
           S.redirectTo("alignment")
