@@ -22,9 +22,11 @@ object EvaluationServer
     private val linkingTask = User().linkingTask
     private val linkSpec = linkingTask.linkSpec
     private val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
+    private val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
     //Instance caches
-    val caches = SourceTargetPair.fill[InstanceCache](new MemoryInstanceCache(blockCount, 100))
+    val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, 100),
+                                  new MemoryInstanceCache(instanceSpecs.target, blockCount, 100))
 
     private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8)
 
@@ -74,9 +76,6 @@ object EvaluationServer
     {
       //Retrieve sources
       val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
-
-      //Retrieve Instance Specifications from Link Specification
-      val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
       def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
 

@@ -18,7 +18,8 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
 
   private val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
-  private val caches = SourceTargetPair.fill(new MemoryInstanceCache())
+  private val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source),
+                                        new MemoryInstanceCache(instanceSpecs.target))
 
   new LoadTask(sources, caches, instanceSpecs)()
 
@@ -41,7 +42,7 @@ class Dataset(val name : String, config : Configuration, linkSpec : LinkSpecific
    */
   private def generateLinks(instanceSource : DataSource) =
   {
-    val instanceCache = new MemoryInstanceCache()
+    val instanceCache = new MemoryInstanceCache(instanceSpecs.source)
 
     val instances = instanceSource.retrieve(instanceSpecs.source).toList
     instanceCache.write(instances)
