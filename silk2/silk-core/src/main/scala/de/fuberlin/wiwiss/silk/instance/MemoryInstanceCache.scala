@@ -10,7 +10,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
 {
   private val logger = Logger.getLogger(getClass.getName)
 
-  private var blocks = IndexedSeq.fill(blockCount)(new Block)
+  private var blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
 
   private var allInstances = Set[String]()
 
@@ -63,7 +63,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   override def clear()
   {
     instanceCounter = 0
-    blocks = IndexedSeq.fill(blockCount)(new Block)
+    blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
     allInstances = Set[String]()
   }
 
@@ -83,7 +83,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
    */
   override def partitionCount(block : Int) = blocks(block).size
 
-  private class Block
+  private class Block(block : Int)
   {
     private val partitions = ArrayBuffer(ArrayBuffer[Instance]())
 
@@ -98,6 +98,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
       else
       {
         partitions.append(ArrayBuffer(instance))
+        logger.info("Written partition " + partitions.size + " of block " + block)
       }
     }
 
