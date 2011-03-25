@@ -98,7 +98,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
       else
       {
         partitions.append(ArrayBuffer(instance))
-        logger.info("Written partition " + partitions.size + " of block " + block)
+        logger.info("Written partition " + (partitions.size - 2) + " of block " + block)
       }
     }
 
