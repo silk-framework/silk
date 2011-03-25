@@ -20,24 +20,31 @@ class LoadTask(sources : SourceTargetPair[Source],
 
   @volatile var exception : Exception = null
 
+  @volatile var canceled = false
+
   override def execute()
   {
+    canceled = false
     val sourceLoader = new LoadingThread(true)
     val targetLoader = new LoadingThread(false)
 
     sourceLoader.start()
     targetLoader.start()
 
-    while((sourceLoader.isAlive || targetLoader.isAlive) && exception == null)
+    while((sourceLoader.isAlive || targetLoader.isAlive) && !canceled)
     {
       Thread.sleep(100)
     }
 
-    if(exception != null)
+    if(canceled)
     {
       sourceLoader.interrupt()
       targetLoader.interrupt()
-      throw exception
+
+      if(exception != null)
+      {
+        throw exception
+      }
     }
   }
 
@@ -56,6 +63,11 @@ class LoadTask(sources : SourceTargetPair[Source],
     }
 
     future
+  }
+
+  override def stopExecution()
+  {
+    canceled = true
   }
 
   class LoadingThread(selectSource : Boolean) extends Thread
@@ -80,6 +92,7 @@ class LoadTask(sources : SourceTargetPair[Source],
         {
           logger.log(Level.WARNING, "Error loading resources", ex)
           exception = ex
+          canceled = true
         }
       }
     }
