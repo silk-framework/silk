@@ -29,8 +29,8 @@ object EvaluationServer
     private def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
 
     //Instance caches
-    private val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, 100),
-                                  new MemoryInstanceCache(instanceSpecs.target, blockCount, 100))
+    private val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, 300),
+                                          new MemoryInstanceCache(instanceSpecs.target, blockCount, 300))
 
     private val loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
 

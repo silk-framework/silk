@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
 
-case class Blocking(blocks : Int)
+case class Blocking(blocks : Int = 100)
 {
   require(blocks > 0, "blocks > 0")
 
