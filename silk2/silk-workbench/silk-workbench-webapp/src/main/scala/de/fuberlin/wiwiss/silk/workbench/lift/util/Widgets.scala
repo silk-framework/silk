@@ -6,11 +6,11 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
 import JavaScriptUtils.PeriodicUpdate
 import net.liftweb.http.js.JE.JsRaw
-import scala.xml.Text
+import xml.{NodeBuffer, NodeSeq, Text}
 
 object Widgets
 {
-  def taskControl[T](task : Task[T]) =
+  def taskControl[T](task : Task[T], cancelable : Boolean = false) =
   {
     def startTask()
     {
@@ -20,8 +20,17 @@ object Widgets
       }
     }
 
+    var buttons = new NodeBuffer()
+
+    buttons += SHtml.submit("Start", startTask)
+
+    if(cancelable)
+    {
+      buttons += SHtml.submit("Cancel", () => task.cancel())
+    }
+
     <form method="POST">
-      {SHtml.submit("Start", startTask)}
+    { buttons }
     </form>
   }
 

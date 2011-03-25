@@ -10,6 +10,6 @@ class Evaluation
   def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
     bind("entry", xhtml,
-         "control" -> Widgets.taskControl(EvaluationServer.evaluationTask))
+         "control" -> Widgets.taskControl(EvaluationServer.evaluationTask, cancelable = true))
   }
 }

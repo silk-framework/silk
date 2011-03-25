@@ -24,9 +24,15 @@ object EvaluationServer
     private val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
     private val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
+    private val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
+
+    private def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
+
     //Instance caches
-    val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, 100),
+    private val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, 100),
                                   new MemoryInstanceCache(instanceSpecs.target, blockCount, 100))
+
+    private val loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
 
     private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8)
 
@@ -74,17 +80,15 @@ object EvaluationServer
 
     private def generateAllLinks() =
     {
-      //Retrieve sources
-      val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
-
-      def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
-
-      //Load instances into cache
-      val loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
       loadTask.runInBackground()
 
-      //Execute matching
       executeSubTask(matchTask)
+    }
+
+    override def stopExecution()
+    {
+      loadTask.cancel()
+      matchTask.cancel()
     }
   }
 }
