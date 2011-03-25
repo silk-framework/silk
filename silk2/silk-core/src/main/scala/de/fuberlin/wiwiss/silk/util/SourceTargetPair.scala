@@ -1,24 +1,39 @@
 package de.fuberlin.wiwiss.silk.util
 
-class SourceTargetPair[T](sourceValue : T, targetValue : T) extends Pair[T, T](sourceValue, targetValue)
+/**
+ * Represents a pair of source and target values.
+ */
+case class SourceTargetPair[+T](source : T, target : T)
 {
-  def source = _1
-  def target = _2
-
-  def map[U](f : (T) => U) = SourceTargetPair(f(sourceValue), f(targetValue))
+  def map[U](f : (T) => U) = SourceTargetPair(f(source), f(target))
 
   def select(selectSource : Boolean) = if(selectSource) source else target
 }
 
+/**
+ * Provides a number of functions to create SourceTargetPairs and to convert them from/to standard Scala classes.
+ */
 object SourceTargetPair
 {
+  /**
+   * Creates a SourceTargetPair from a Pair.
+   */
   implicit def fromPair[T](pair : (T, T)) = new SourceTargetPair(pair._1, pair._2)
 
+  /**
+   * Converts a SourceTargetPair to a Pair.
+   */
+  implicit def toPair[T](st : SourceTargetPair[T]) = Pair(st.source, st.target)
+
+  /**
+   * Creates a SourceTargetPair from a Sequence of 2 values.
+   */
   def fromSeq[T](seq : Seq[T]) = new SourceTargetPair(seq(0), seq(1))
 
-  def apply[T](sourceValue : T, targetValue : T) = new SourceTargetPair(sourceValue, targetValue)
-
-  def unapply[T](pair : SourceTargetPair[T]) : Option[(T, T)] = Some((pair.source, pair.target))
+  /**
+   * Converts a SourceTargetPair to a Sequence of 2 values.
+   */
+  implicit def toSeq[T](st : SourceTargetPair[T]) = Seq(st.source, st.target)
 
   def fill[T](f : => T) = SourceTargetPair(f, f)
 }

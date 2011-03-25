@@ -11,8 +11,10 @@ object ConfigBuilder
   def build() : Configuration =
   {
     val project = User().project
-    val linkingTask = User().linkingTask
+    val linkSpec = User().linkingTask.linkSpec
 
-    Configuration(project.config.prefixes, project.sourceModule.tasks.map(_.source), None, linkingTask.linkSpec :: Nil, Nil)
+    val sources = linkSpec.datasets.map(ds => project.sourceModule.tasks.find(_.name == ds.sourceId).get.source)
+
+    Configuration(project.config.prefixes, sources, None, linkSpec :: Nil, Nil)
   }
 }
