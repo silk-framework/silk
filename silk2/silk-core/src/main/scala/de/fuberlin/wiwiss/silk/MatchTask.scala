@@ -47,7 +47,6 @@ class MatchTask(linkSpec : LinkSpecification,
     //Start matching thread scheduler
     val scheduler = new SchedulerThread(executor)
     scheduler.start()
-    updateStatus("Loading", 0.0)
 
     //Process finished tasks
     var finishedTasks = 0
