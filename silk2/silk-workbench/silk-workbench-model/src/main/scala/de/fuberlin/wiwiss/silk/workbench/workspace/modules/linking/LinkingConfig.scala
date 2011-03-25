@@ -6,4 +6,4 @@ import de.fuberlin.wiwiss.silk.config.Blocking
 /**
  * Configuration of a linking task.
  */
-case class LinkingConfig(blocking : Option[Blocking] = None) extends ModuleConfig
+case class LinkingConfig(blocking : Option[Blocking] = Some(Blocking())) extends ModuleConfig
