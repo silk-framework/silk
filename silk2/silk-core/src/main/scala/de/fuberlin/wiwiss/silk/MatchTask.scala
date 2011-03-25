@@ -38,8 +38,11 @@ class MatchTask(linkSpec : LinkSpecification,
   {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
+    //Reset properties
+    linkBuffer.clear()
     cancelled = false
 
+    //Create execution service for the matching tasks
     val startTime = System.currentTimeMillis()
     val executorService = Executors.newFixedThreadPool(numThreads)
     val executor = new ExecutorCompletionService[Traversable[Link]](executorService)

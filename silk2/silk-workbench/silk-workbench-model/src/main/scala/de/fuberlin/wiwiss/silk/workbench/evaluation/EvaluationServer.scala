@@ -1,10 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.{SourceTargetPair, Task}
 import de.fuberlin.wiwiss.silk.instance.{InstanceCache, Instance, InstanceSpecification, MemoryInstanceCache}
+import de.fuberlin.wiwiss.silk.{FilterTask, MatchTask, LoadTask}
+import collection.mutable.Buffer
+import de.fuberlin.wiwiss.silk.output.Link
 
 object EvaluationServer
 {
@@ -36,7 +38,19 @@ object EvaluationServer
 
     private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8)
 
-    def links = matchTask.links.map(link => (link, false))
+    private var filteredLinks : Buffer[Link] = null
+
+    def links : Traversable[(Link, Boolean)] =
+    {
+      if(filteredLinks == null)
+      {
+        matchTask.links.map(link => (link, false))
+      }
+      else
+      {
+        filteredLinks.map(link => (link, false))
+      }
+    }
 
     override def execute() =
     {
@@ -80,9 +94,17 @@ object EvaluationServer
 
     private def generateAllLinks() =
     {
+      filteredLinks = null
+
+      //Load instances
       loadTask.runInBackground()
 
-      executeSubTask(matchTask)
+      //Execute matching
+      executeSubTask(matchTask, 0.95)
+
+      //Filter links
+      val filterTask = new FilterTask(matchTask.links, linkSpec.filter)
+      filteredLinks = executeSubTask(filterTask)
     }
 
     override def stopExecution()

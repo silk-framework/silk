@@ -5,6 +5,7 @@ import collection.mutable.{Publisher, Subscriber}
 import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.util.Task.Finished
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationServer
+import xml.Text
 
 /**
 * A widget which displays the generated links of the evaluation server.
@@ -36,17 +37,16 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
 
   override def render =
   {
-    if(!EvaluationServer.evaluationTask.isRunning)
+    if(EvaluationServer.links.isEmpty)
     {
       <p></p>
     }
-    else if(EvaluationServer.links.isEmpty)
-    {
-      <p>Waiting...</p>
-    }
     else
     {
-      <p>{renderTable}</p>
+      <p>
+        { renderTable }
+        { Text(EvaluationServer.links.size + " links") }
+      </p>
     }
   }
 
