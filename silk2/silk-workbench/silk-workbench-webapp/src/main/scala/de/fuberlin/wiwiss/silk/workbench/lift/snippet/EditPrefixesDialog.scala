@@ -87,7 +87,7 @@ object EditPrefixesDialog
     //Creates a new table row
     val row =
       <tr id={rowId}>
-        <td>{AutoComplete(initialValue, completePrefix _, (v : String) => (), "size" -> "75")}</td>
+        <td>{AutoComplete(initialValue, completePrefix _, (v : String) => (), "size" -> "75", "title" -> "Prefix id : namespace")}</td>
         <td><button onclick={"$('#" + rowId + "').remove()"}>Remove</button></td>
       </tr>
 
