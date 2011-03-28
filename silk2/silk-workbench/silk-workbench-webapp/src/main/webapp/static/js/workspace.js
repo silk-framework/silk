@@ -130,7 +130,7 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
         $(lt_actions).addClass('actions');
         $(lt_span).append(lt_actions);
     addAction('link_edit', 'Metadata', "Edit metadata","editLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
-    addAction('link_spec', 'Open', "Edit link specification","openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
+    addAction('link_spec', 'Open', "Edit linking task","openLinkingTask('"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
     addAction('delete', 'Remove',"Remove task","confirmDelete('removeLinkingTask','"+projectName+"','"+ jsonLinkingTask.name+"')",lt_actions,projectName,true);
 
     addLeaf(jsonLinkingTask.source,lt_li, 'source: ');
