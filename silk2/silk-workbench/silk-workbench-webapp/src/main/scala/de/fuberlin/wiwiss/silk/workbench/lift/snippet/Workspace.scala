@@ -251,7 +251,7 @@ object Workspace
         User().project = User().workspace.project(projectName)
         User().task = User().project.linkingModule.task(taskName)
 
-        JavaScriptUtils.Redirect("/linkSpec.html")
+        JavaScriptUtils.Redirect("linkSpec.html")
       }
       catch
       {

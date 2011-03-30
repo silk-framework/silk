@@ -52,7 +52,7 @@ class LinkSpec
     bind("entry", xhtml,
          "close" -> (initDialog ++ SHtml.ajaxButton("Close", openDialog _)),
          "save" -> SHtml.ajaxButton("Save", () => saveCall(false)),
-         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("/config.xml")))
+         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("config.xml")))
   }
 
   /**
@@ -111,7 +111,7 @@ class LinkSpec
     {
       User().closeTask()
 
-      Redirect("/index.html")
+      Redirect("index.html")
     }
     catch
     {
