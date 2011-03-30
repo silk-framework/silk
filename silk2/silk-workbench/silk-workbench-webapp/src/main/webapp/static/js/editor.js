@@ -852,7 +852,7 @@ function getPropertyPaths(deleteExisting)
     box.append(text);
     box.appendTo("#paths");
   }
-  var url = "/api/project/paths"; // ?max=10
+  var url = "api/project/paths"; // ?max=10
   $.getJSON(url, function (data)
   {
     if(data.isLoading)
@@ -1129,7 +1129,7 @@ function getOperators()
   $.ajax(
   {
     type: "GET",
-    url: "/api/project/operators",
+    url: "api/project/operators",
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     timeout: 2000,

@@ -8,7 +8,6 @@ import _root_.net.liftweb.sitemap.Loc._
 import Helpers._
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import js.jquery.JQuery14Artifacts
-import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
 import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
@@ -43,8 +42,8 @@ class Boot
     LiftRules.addToPackages("de.fuberlin.wiwiss.silk.workbench.lift")
 
     // Build SiteMap
-    val ifLinkingTaskOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("/index"))
-    val ifLinkingTaskClosed = If(() => !User().linkingTaskOpen, () => RedirectResponse("/linkSpec"))
+    val ifLinkingTaskOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("index"))
+    val ifLinkingTaskClosed = If(() => !User().linkingTaskOpen, () => RedirectResponse("linkSpec"))
 
     val workspaceText = LinkText[Unit](_ => Text(if(User().projectOpen) "Workspace: " + User().project.name else "Workspace"))
     val linkSpecText = LinkText[Unit](_ => Text(User().project.name + ": " + User().linkingTask.name))
