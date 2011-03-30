@@ -8,6 +8,7 @@ import _root_.net.liftweb.sitemap.Loc._
 import Helpers._
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import js.jquery.JQuery14Artifacts
+import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
 import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, Metric}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
