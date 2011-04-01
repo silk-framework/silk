@@ -19,6 +19,9 @@ trait SourceTaskDialog extends Dialog
   val retryPauseField = StringField("Retry pause", "To recover from intermittent SPARQL endpoint connection failures, " +
                    "the 'retryPause' parameter specifies how long to wait between retries.", () => getParam("retryPause"))
 
+  //Close the current task if the window is closed
+  override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
+
   /**
    * Gets a parameter.
    */
