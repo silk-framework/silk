@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import java.net.URI
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
 
