@@ -768,7 +768,10 @@ $(function ()
           var number = "#aggregate_" + aggregatecounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            }
           });
           aggregatecounter = aggregatecounter + 1;
         }
@@ -779,7 +782,10 @@ $(function ()
           var number = "#transform_" + transformcounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            }
           });
           transformcounter = transformcounter + 1;
         }
@@ -790,7 +796,10 @@ $(function ()
           var number = "#compare_" + comparecounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            }
           });
           comparecounter = comparecounter + 1;
         }
@@ -800,7 +809,10 @@ $(function ()
           var number = "#source_" + sourcecounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            }
           });
           sourcecounter = sourcecounter + 1;
         }
@@ -810,7 +822,10 @@ $(function ()
           var number = "#target_" + targetcounter;
           $(number).draggable(
           {
-            containment: '#droppable'
+            containment: '#droppable',
+            drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            }
           });
           targetcounter = targetcounter + 1;
         }
