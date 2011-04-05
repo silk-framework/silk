@@ -1,10 +1,11 @@
 package de.fuberlin.wiwiss.silk.impl.datasource
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 import java.net.URI
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, RemoteSparqlEndpoint}
+import de.fuberlin.wiwiss.silk.linkspec.Restrictions
+import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlPathsCollector, InstanceRetriever, RemoteSparqlEndpoint}
 
 /**
  * DataSource which retrieves all instances from a SPARQL endpoint
@@ -37,9 +38,21 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
 
     val endpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, retryCount, retryPause)
 
-    val instanceRetriever = InstanceRetriever(endpoint, pageSize, graphUri)
+    val instanceRetriever = InstanceRetriever(createEndpoint(), pageSize, graphUri)
 
     instanceRetriever.retrieve(instanceSpec, instanceUris union instances)
+  }
+
+  override def retrievePaths(restrictions : Restrictions, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
+  {
+    SparqlPathsCollector(createEndpoint(), restrictions, limit)
+  }
+
+  private def createEndpoint() =
+  {
+    val loginComplete = if(login != null) Some((login, password)) else None
+
+    new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, retryCount, retryPause)
   }
 
   override def toString = endpointURI
