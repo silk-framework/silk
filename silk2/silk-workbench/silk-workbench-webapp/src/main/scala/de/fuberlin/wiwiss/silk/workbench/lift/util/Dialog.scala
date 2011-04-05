@@ -20,13 +20,16 @@ trait Dialog
   /** The fields of this dialog. */
   val fields : List[StringField]
 
+  /** The parameters of this dialog e.g. ("with" -> "700") */
+  protected def dialogParams : List[(String, String)] = ("autoOpen" -> "false") :: ("width" -> "700") :: ("modal" -> "true") :: Nil
+
   /** The id of this dialog */
   private lazy val id : String = title.replace(" ", "")
 
   /**
    * Command which initializes this dialog.
    */
-  def initCmd = OnLoad(JsRaw("$('#" + id + "').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
+  def initCmd = OnLoad(JsRaw("$('#" + id + "').dialog({ " + dialogParams.map(_.productIterator.mkString(": ")).mkString(", ") + " })").cmd)
 
   /**
    * Command which opens this dialog.
