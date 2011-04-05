@@ -3,14 +3,11 @@ package de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
-import de.fuberlin.wiwiss.silk.workbench.instancespec.RelevantPropertiesCollector
-import de.fuberlin.wiwiss.silk.util.sparql.{RemoteSparqlEndpoint, SparqlEndpoint, InstanceRetriever}
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import java.net.URI
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
 import de.fuberlin.wiwiss.silk.util.{Future, SourceTargetPair, Task, Identifier}
+import de.fuberlin.wiwiss.silk.datasource.DataSource
 
 /**
  * A linking task which interlinks two datasets.
@@ -54,17 +51,14 @@ case class LinkingTask(name : Identifier,
     {
       val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
 
-      val sourceEndpoint = new RemoteSparqlEndpoint(new URI(sources.source.dataSource.toString))
-      val targetEndpoint = new RemoteSparqlEndpoint(new URI(sources.target.dataSource.toString))
-
       if(cache.instanceSpecs == null)
       {
         updateStatus("Retrieving frequent property paths", 0.0)
-        val sourcePaths = RelevantPropertiesCollector(sourceEndpoint, linkSpec.datasets.source.restriction).map(_._1).toSeq
-        val targetPaths = RelevantPropertiesCollector(targetEndpoint, linkSpec.datasets.target.restriction).map(_._1).toSeq
+        val sourcePaths = sources.source.dataSource.retrievePaths(linkSpec.datasets.source.restriction, 1, Some(50))
+        val targetPaths = sources.target.dataSource.retrievePaths(linkSpec.datasets.target.restriction, 1, Some(50))
 
-        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, linkSpec.datasets.source.restriction, sourcePaths)
-        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, linkSpec.datasets.target.restriction, targetPaths)
+        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, linkSpec.datasets.source.restriction, sourcePaths.map(_._1).toSeq)
+        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, linkSpec.datasets.target.restriction, targetPaths.map(_._1).toSeq)
 
         cache.instanceSpecs = new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
       }
@@ -74,11 +68,11 @@ case class LinkingTask(name : Identifier,
         updateStatus(0.2)
 
         //Create instance loading tasks
-        val positiveSourceInstancesTask = new LoadingInstancesTask(sourceEndpoint, cache.instanceSpecs.source, positiveSamples.map(_.sourceUri))
-        val positiveTargetInstancesTask = new LoadingInstancesTask(targetEndpoint, cache.instanceSpecs.target, positiveSamples.map(_.targetUri))
+        val positiveSourceInstancesTask = new LoadingInstancesTask(sources.source.dataSource, cache.instanceSpecs.source, positiveSamples.map(_.sourceUri))
+        val positiveTargetInstancesTask = new LoadingInstancesTask(sources.target.dataSource, cache.instanceSpecs.target, positiveSamples.map(_.targetUri))
 
-        val negativeSourceInstancesTask =  new LoadingInstancesTask(sourceEndpoint, cache.instanceSpecs.source, negativeSamples.map(_.sourceUri))
-        val negativeTargetInstancesTask =  new LoadingInstancesTask(targetEndpoint, cache.instanceSpecs.target, negativeSamples.map(_.targetUri))
+        val negativeSourceInstancesTask =  new LoadingInstancesTask(sources.source.dataSource, cache.instanceSpecs.source, negativeSamples.map(_.sourceUri))
+        val negativeTargetInstancesTask =  new LoadingInstancesTask(sources.target.dataSource, cache.instanceSpecs.target, negativeSamples.map(_.targetUri))
 
         //Load instances
         val positiveSourceInstances = executeSubTask(positiveSourceInstancesTask, 0.4)
@@ -98,11 +92,11 @@ case class LinkingTask(name : Identifier,
   /**
    * Task which loads a list of instances from an endpoint.
    */
-  private class LoadingInstancesTask(endpoint : SparqlEndpoint, instanceSpec : InstanceSpecification, instanceUrls : Seq[String]) extends Task[List[Instance]]
+  private class LoadingInstancesTask(source : DataSource, instanceSpec : InstanceSpecification, instanceUrls : Seq[String]) extends Task[List[Instance]]
   {
     override def execute() =
     {
-      val instanceTraversable = InstanceRetriever(endpoint).retrieve(instanceSpec, instanceUrls)
+      val instanceTraversable = source.retrieve(instanceSpec, instanceUrls)
 
       var instanceList : List[Instance] = Nil
       var instanceListSize = 0

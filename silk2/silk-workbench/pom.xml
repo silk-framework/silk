@@ -21,7 +21,7 @@
 
   <modules>
     <module>silk-workbench-model</module>
-	  <module>silk-workbench-webapp</module>
+	  <module>silk-workbench-webapp</module>  
   </modules>
 
 </project>

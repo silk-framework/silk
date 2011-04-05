@@ -37,7 +37,7 @@ class LDEWorkspaceTest extends FlatSpec with ShouldMatchers
 
 
         // test insert SOURCE datasource - user can only insert a datasource which exists in the TS - using/assuming ABA or KEGGGene
-        val newSource = SourceTask(Source("ABA", DataSource("sparqlEndpoint",  Map("endpointURI" -> ""))))
+        val newSource = SourceTask(Source("ABA", DataSource("LDEsparqlEndpoint",  Map("endpointURI" -> ""))))
         sources.update(newSource)
           // name 'SOURCE' is forced
         evaluating{sources.task("ABA")} should produce [NoSuchElementException]
