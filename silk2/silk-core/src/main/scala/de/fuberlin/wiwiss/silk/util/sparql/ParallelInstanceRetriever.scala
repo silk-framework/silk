@@ -102,7 +102,10 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
     {
       //Select
       var sparql = "SELECT DISTINCT "
-      sparql += "?" + instanceSpec.variable + " "
+      if(fixedSubject.isEmpty)
+      {
+        sparql += "?" + instanceSpec.variable + " "
+      }
       sparql += "?" + varPrefix + "0\n"
 
       //Graph
