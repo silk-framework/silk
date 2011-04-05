@@ -42,7 +42,6 @@ class XMLProject(linkSpec : Node) extends Project
   override def config =
   {
     val prefixes = (doc \ "Prefixes" headOption).map(Prefixes.fromXML).getOrElse(Prefixes.empty)
-
     ProjectConfig(prefixes)
   }
 
