@@ -48,7 +48,7 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
     SparqlPathsCollector(createEndpoint(), restrictions, limit)
   }
 
-  private def createEndpoint() =
+  protected def createEndpoint() =
   {
     val loginComplete = if(login != null) Some((login, password)) else None
 
