@@ -8,6 +8,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -32,9 +33,15 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
   // Reads the project configuration.
   override def config = {
-    if (xmlProj==null || xmlProj.config.prefixes.isEmpty)
+    if (xmlProj==null)
       ProjectConfig(QueryFactory.getLDEDefaultPrefixes)
-    else xmlProj.config
+    else {
+      if (xmlProj.getPrefixes.size==0){
+        val defaultPrefixes = Prefixes(QueryFactory.getLDEDefaultPrefixes).toXML \ "Prefix"
+        xmlProj.appendPrefixes(defaultPrefixes)
+      }
+      xmlProj.config
+    }
   }
 
    // Writes the updated project configuration.

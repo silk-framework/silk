@@ -6,9 +6,7 @@ import de.fuberlin.wiwiss.silk.linkspec.Restrictions
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "LDEsparqlEndpoint", label = "LDE SPARQL Endpoint", description = "DataSource in the LDE context")
-class LDEDataSource(endpointURI : String, login : String = null, password : String = null,
-                       graph : String = null, pageSize : Int = 1000, instanceList : String = null,
-                       pauseTime : Int = 0, retryCount : Int = 3, retryPause : Int = 1000) extends SparqlDataSource(endpointURI, login, password, graph, pageSize, instanceList, pauseTime, retryCount, retryPause){
+class LDEDataSource(endpointURI : String) extends SparqlDataSource(endpointURI){
 
   override def retrievePaths(restrictions : Restrictions, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
   {
