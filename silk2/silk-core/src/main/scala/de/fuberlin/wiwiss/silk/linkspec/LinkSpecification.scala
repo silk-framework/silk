@@ -68,7 +68,7 @@ object LinkSpecification
     LinkCondition(readOperators(node.child, prefixes).headOption)
   }
 
-  private def readOperators(nodes : Seq[Node], prefixes : Map[String, String]) : Traversable[Operator] =
+  private def readOperators(nodes : Seq[Node], prefixes : Map[String, String]) : Seq[Operator] =
   {
     nodes.collect
     {
