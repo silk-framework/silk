@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.util.strategy
 
 import java.lang.reflect.Constructor
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
+import de.fuberlin.wiwiss.silk.util.ValidationException
 
 class StrategyDefinition[+T <: Strategy](val id : String, val label : String, val description : String, val parameters : Seq[Parameter],
                                          constructor : Constructor[T])
@@ -21,13 +22,20 @@ class StrategyDefinition[+T <: Strategy](val id : String, val label : String, va
       {
         case Some(v) =>
         {
-          parameter.dataType match
+          try
           {
-            case Parameter.Type.String => v
-            case Parameter.Type.Char => Char.box(v(0))
-            case Parameter.Type.Int => Int.box(v.toInt)
-            case Parameter.Type.Double => Double.box(v.toDouble)
-            case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
+            parameter.dataType match
+            {
+              case Parameter.Type.String => v
+              case Parameter.Type.Char => Char.box(v(0))
+              case Parameter.Type.Int => Int.box(v.toInt)
+              case Parameter.Type.Double => Double.box(v.toDouble)
+              case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
+            }
+          }
+          catch
+          {
+            case ex : NumberFormatException => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be of type " + parameter.dataType, ex)
           }
         }
         case None if parameter.defaultValue.isDefined =>
@@ -36,7 +44,7 @@ class StrategyDefinition[+T <: Strategy](val id : String, val label : String, va
         }
         case None =>
         {
-          throw new IllegalArgumentException("Parameter '" + parameter.name + "' is required")
+          throw new ValidationException("Parameter '" + parameter.name + "' is required for " + label)
         }
       }
     }

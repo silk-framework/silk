@@ -12,6 +12,8 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds.OnLoad
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.Redirect
+import de.fuberlin.wiwiss.silk.MatchTask
+import java.util.logging.{Level, Logger}
 
 /**
  * LinkSpec snippet.
@@ -22,6 +24,8 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.Redirect
  */
 class LinkSpec
 {
+  private val logger = Logger.getLogger(classOf[LinkSpec].getName)
+
   /**
    * Renders the toolbar.
    */
@@ -97,8 +101,11 @@ class LinkSpec
     }
     catch
     {
-      case ex : Exception => JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + ex.getMessage.encJs +
-          ".\\n\\nLink Spec:\\n" + linkSpecStr.encJs + "');").cmd
+      case ex : Exception =>
+      {
+        logger.log(Level.INFO, "Failed to save link specification", ex)
+        JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + ex.getMessage.encJs + ".');").cmd
+      }
     }
   }
 
