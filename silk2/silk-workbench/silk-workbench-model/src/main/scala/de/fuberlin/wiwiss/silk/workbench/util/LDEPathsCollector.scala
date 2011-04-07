@@ -1,38 +1,34 @@
-package de.fuberlin.wiwiss.silk.workbench.instancespec
+package de.fuberlin.wiwiss.silk.workbench.util
 
 import de.fuberlin.wiwiss.silk.util.sparql.SparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.instance.{Path, ForwardOperator}
-import de.fuberlin.wiwiss.silk.workbench.util.QueryFactory
 import de.fuberlin.wiwiss.silk.linkspec.Restrictions
 
 /**
- * Retrieves property paths from the Wiki ontology
+ * Retrieves property paths from the Wiki ontology within the LDE context
  */
-object LDEPropertiesCollector
+object LDEPathsCollector
 {
-  private val logger = Logger.getLogger(LDEPropertiesCollector.getClass.getName)
-
-  /** The maximum number of properties */
-  private val MaxPropertyCount = 50
+  private val logger = Logger.getLogger(LDEPathsCollector.getClass.getName)
 
   /**
-   * Retrieves a list of properties which are defined on most instances.
+   * Retrieves a list of properties 
    */
-  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions,limit : Option[Int]) : Traversable[(Path, Double)] =
   {
-    getAllPaths(endpoint, restrictions)
+    getAllPaths(endpoint, restrictions, limit.getOrElse(100))
   }
 
-  private def getAllPaths(endpoint : SparqlEndpoint, restrictions : Restrictions) : Traversable[(Path, Double)] =
+  private def getAllPaths(endpoint : SparqlEndpoint, restrictions : Restrictions, limit : Int) : Traversable[(Path, Double)] =
   {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
     val category = restrictions.toString.split(' ')(2)
 
     val sparql = QueryFactory.sPropertyPaths(category)
 
-    val results = endpoint.query(sparql, MaxPropertyCount).toList
+    val results = endpoint.query(sparql, limit).toList
     if(!results.isEmpty)
     {
       for(result <- results if result.contains("p")) yield

@@ -8,6 +8,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -32,9 +33,15 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
   // Reads the project configuration.
   override def config = {
-    if (xmlProj==null || xmlProj.config.prefixes.isEmpty)
+    if (xmlProj==null)
       ProjectConfig(QueryFactory.getLDEDefaultPrefixes)
-    else xmlProj.config
+    else {
+      if (xmlProj.getPrefixes.size==0){
+        val defaultPrefixes = Prefixes(QueryFactory.getLDEDefaultPrefixes).toXML \ "Prefix"
+        xmlProj.appendPrefixes(defaultPrefixes)
+      }
+      xmlProj.config
+    }
   }
 
    // Writes the updated project configuration.
@@ -68,7 +75,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
       val params = Map( "endpointURI" -> sparqlEndpoint.uri.toString,
                         "datasourceUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
                         "id" -> "Wiki")
-      var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("sparqlEndpoint",params))))
+      var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("LDEsparqlEndpoint",params))))
 
        // load source datasource  - optional
       val res = sparqlEndpoint.query(QueryFactory.sProjectDataSource(projectUri),1)
@@ -113,12 +120,12 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
                              "id" -> id,
                             //"label" -> label,
                             "datasourceUri" -> dataSourceUri)
-           SourceTask(Source("SOURCE",DataSource("sparqlEndpoint",params)))
+           SourceTask(Source("SOURCE",DataSource("LDEsparqlEndpoint",params)))
         }
         else {
            // Datasource definition not found
            // TODO - throw Exception 'Error in retrieving the datasource' ?
-           SourceTask(Source("DataSource_Not_Found",DataSource("sparqlEndpoint",Map( "endpointURI" -> ""))))
+           SourceTask(Source("DataSource_Not_Found",DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
         }
     }
     
