@@ -1,0 +1,15 @@
+package de.fuberlin.wiwiss.silk.workbench.util
+
+import de.fuberlin.wiwiss.silk.impl.datasource.SparqlDataSource
+import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.linkspec.Restrictions
+import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+
+@StrategyAnnotation(id = "LDEsparqlEndpoint", label = "LDE SPARQL Endpoint", description = "DataSource in the LDE context")
+class LDEDataSource(endpointURI : String) extends SparqlDataSource(endpointURI){
+
+  override def retrievePaths(restrictions : Restrictions, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
+  {
+    LDEPathsCollector(createEndpoint(), restrictions, limit)
+  }
+}

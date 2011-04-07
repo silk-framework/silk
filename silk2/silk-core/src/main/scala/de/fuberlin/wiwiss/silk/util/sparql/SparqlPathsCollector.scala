@@ -17,9 +17,6 @@ object SparqlPathsCollector
   /** The minimum frequency of a property to be considered relevant */
   private val MinFrequency = 0.7
 
-  /** The maximum number of relevant properties */
-  private val MaxPropertyCount = 50
-
   private val logger = Logger.getLogger(SparqlPathsCollector.getClass.getName)
 
   /**
