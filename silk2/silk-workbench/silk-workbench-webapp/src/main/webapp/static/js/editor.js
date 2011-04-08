@@ -20,6 +20,8 @@ var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
 
+jsPlumb.Defaults.Container = "droppable";
+
 var endpointOptions =
 {
   endpoint: new jsPlumb.Endpoints.Dot(
