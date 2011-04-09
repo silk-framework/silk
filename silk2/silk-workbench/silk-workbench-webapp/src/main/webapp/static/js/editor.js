@@ -20,6 +20,8 @@ var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
 
+jsPlumb.Defaults.Container = "droppable";
+
 var endpointOptions =
 {
   endpoint: new jsPlumb.Endpoints.Dot(
@@ -1137,6 +1139,29 @@ function getPropertyPaths(deleteExisting)
     }
   });
 }
+
+
+jsPlumb.bind("jsPlumbConnection", {
+	jsPlumbConnection:function(data) {
+    if (!validate_connection(data.sourceId, data.targetId)) {
+      alert("Illegal connection!");
+      data.sourceEndpoint.detachFrom(data.targetEndpoint);
+    }
+	}
+});
+
+function validate_connection(source_id, target_id) {
+  var source = source_id.substr(0,source_id.indexOf('_'));
+  var target = target_id.substr(0,target_id.indexOf('_'));
+  var allowed_connections = new Array();
+  allowed_connections['source'] = new Array('compare','transform');
+  allowed_connections['target'] = new Array('compare','transform');
+  allowed_connections['compare'] = new Array('aggregate');
+  allowed_connections['transform'] = new Array('transform','compare');
+  allowed_connections['aggregate'] = new Array('aggregate');
+  return jQuery.inArray(target, allowed_connections[source])!=-1;
+}
+
 
 function getOperators()
 {
