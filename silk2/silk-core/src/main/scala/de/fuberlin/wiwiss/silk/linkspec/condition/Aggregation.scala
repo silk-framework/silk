@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
-case class Aggregation(required : Boolean, weight : Int, operators : Traversable[Operator], aggregator : Aggregator) extends Operator
+case class Aggregation(required : Boolean, weight : Int, operators : Seq[Operator], aggregator : Aggregator) extends Operator
 {
   /**
    * Computes the similarity between two instances.
