@@ -47,7 +47,7 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) exte
     {
       //Load XML Schema
       val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-      val schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)
+      val schemaStream = getClass.getClassLoader.getResourceAsStream(schemaPath)
       if(schemaStream == null) throw new ValidationException("XML Schema for Link Specification not found")
       val schema = schemaFactory.newSchema(new StreamSource(schemaStream))
 
@@ -57,7 +57,7 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) exte
       parserFactory.setFeature("http://xml.org/sax/features/namespace-prefixes", true)
       val parser = parserFactory.newSAXParser()
 
-      val xr = parser.getXMLReader()
+      val xr = parser.getXMLReader
       val vh = schema.newValidatorHandler()
       vh.setContentHandler(this)
       xr.setContentHandler(vh)
