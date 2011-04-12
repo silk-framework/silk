@@ -1140,7 +1140,7 @@ function getPropertyPaths(deleteExisting)
   });
 }
 
-
+/*
 jsPlumb.bind("jsPlumbConnection", {
 	jsPlumbConnection:function(data) {
     if (!validate_connection(data.sourceId, data.targetId)) {
@@ -1149,6 +1149,7 @@ jsPlumb.bind("jsPlumbConnection", {
     }
 	}
 });
+*/
 
 function validate_connection(source_id, target_id) {
   var source = source_id.substr(0,source_id.indexOf('_'));
