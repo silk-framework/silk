@@ -773,6 +773,9 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
           aggregatecounter = aggregatecounter + 1;
@@ -786,6 +789,9 @@ $(function ()
           {
             containment: '#droppable',
             drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
               jsPlumb.repaint(number);
             }
           });
@@ -801,6 +807,9 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
           comparecounter = comparecounter + 1;
@@ -814,8 +823,12 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
+
           sourcecounter = sourcecounter + 1;
         }
         if (ui.helper.attr('id').search(/target/) != -1)
@@ -826,6 +839,9 @@ $(function ()
           {
             containment: '#droppable',
             drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
               jsPlumb.repaint(number);
             }
           });
@@ -1140,16 +1156,14 @@ function getPropertyPaths(deleteExisting)
   });
 }
 
-/*
 jsPlumb.bind("jsPlumbConnection", {
-	jsPlumbConnection:function(data) {
+  jsPlumbConnection:function(data) {
     if (!validate_connection(data.sourceId, data.targetId)) {
-      alert("Illegal connection!");
       data.sourceEndpoint.detachFrom(data.targetEndpoint);
+      $("#invalid_connection").show().fadeOut(2000);
     }
-	}
+  }
 });
-*/
 
 function validate_connection(source_id, target_id) {
   var source = source_id.substr(0,source_id.indexOf('_'));
@@ -1166,7 +1180,6 @@ function validate_connection(source_id, target_id) {
 
 function getOperators()
 {
-
   $.ajax(
   {
     type: "GET",
