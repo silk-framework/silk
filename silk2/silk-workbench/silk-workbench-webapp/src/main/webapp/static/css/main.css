@@ -101,6 +101,13 @@ pre
   clear: both;
 }
 
+#toolbar ul
+{
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
 #toolbar li
 {
   margin-top: 3px;

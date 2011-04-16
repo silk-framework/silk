@@ -42,7 +42,7 @@ object InstanceSpecification
     new InstanceSpecification(
       variable = node \ "Variable" text,
       restrictions = Restrictions.fromXML(node \ "Restrictions" head)(Prefixes.empty),
-      paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text, Prefixes.empty)
+      paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text)
     )
   }
 
