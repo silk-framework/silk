@@ -40,14 +40,7 @@ class Alignment
           //If the alignment does not define any negative links -> generate some
           if(alignment.negativeLinks.isEmpty)
           {
-            val positiveLinksSeq = alignment.positiveLinks.toSeq
-            val sourceInstances = positiveLinksSeq.map(_.sourceUri)
-            val targetInstances = positiveLinksSeq.map(_.targetUri)
-
-            val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
-
-            val updatedAlignment = alignment.copy(negativeLinks = negativeLinks.toSet)
-            val updatedLinkingTask = User().linkingTask.copy(alignment = updatedAlignment)
+            val updatedLinkingTask = User().linkingTask.copy(alignment = alignment.generateNegative)
 
             User().project.linkingModule.update(updatedLinkingTask)
             User().task = updatedLinkingTask

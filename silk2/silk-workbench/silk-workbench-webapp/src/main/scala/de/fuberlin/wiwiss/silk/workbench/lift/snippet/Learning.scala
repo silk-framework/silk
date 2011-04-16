@@ -21,9 +21,10 @@
 //      var iterations = 1
 //
 //      bind("entry", chooseTemplate("choose", "train", xhtml),
-//           "create" -> SHtml.submit("Create", () => LearningServer.createPopulation()),
+//           "create" -> SHtml.submit("Create", () => LearningServer.generatePopulation()),
 //           "iterations" -> SHtml.number(iterations, iterations = _, 1, 100),
 //           "iterate" -> SHtml.submit("Iterate", () => LearningServer.iteratePopulation(iterations)),
+//           "clean" -> SHtml.submit("Clean", () => LearningServer.cleanPopulation()),
 //           "progress" -> Widgets.currentTaskProgress(() => LearningServer.currentTask))
 //    }
 //  }

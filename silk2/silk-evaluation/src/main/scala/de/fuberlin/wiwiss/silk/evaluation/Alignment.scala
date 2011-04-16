@@ -5,6 +5,17 @@ import xml.Node
 
 case class Alignment(positiveLinks : Set[Link] = Set.empty, negativeLinks : Set[Link] = Set.empty)
 {
+  def generateNegative =
+  {
+    val positiveLinksSeq = positiveLinks.toSeq
+    val sourceInstances = positiveLinksSeq.map(_.sourceUri)
+    val targetInstances = positiveLinksSeq.map(_.targetUri)
+
+    val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
+
+    copy(negativeLinks = negativeLinks.toSet)
+  }
+
   def toXML : Node =
   {
     <rdf:RDF xmlns='http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
