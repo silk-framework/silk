@@ -5,6 +5,7 @@ import xml.{NodeBuffer, Node}
 import de.fuberlin.wiwiss.silk.util.{Task, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, SparqlEndpoint}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 
 //TODO use options?
 //TODO store path frequencies
