@@ -234,3 +234,13 @@ a.more {
   font-size: 16px;
   z-index: 3;
 }
+
+.accepthighlight{
+    background-color: #9c2121;
+    border: 2px solid #9c2121;
+}
+
+.accepthoverhighlight {
+	background-color: #009948;
+    border: 2px solid #009948;
+}
