@@ -43,7 +43,9 @@ var endpointOptions =
     lineWidth: 5
   },
   isTarget: false,
-  anchor: "RightMiddle"
+  anchor: "RightMiddle",
+  dropOptions:{ disabled: true },
+  dragOptions:{ start: function(event, ui) { $("body").css('cursor','no-drop'); } }
 };
 
 var endpointOptions1 =
@@ -93,7 +95,9 @@ var endpointOptions2 =
   },
   isTarget: true,
   maxConnections: 1,
-  anchor: "RightMiddle"
+  anchor: "RightMiddle",
+  dropOptions:{ disabled: true },
+  dragOptions:{ start: function(event, ui) { $("body").css('cursor','no-drop'); } }
 };
 
 document.onselectstart = function ()
@@ -246,7 +250,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
+    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
     aggregatecounter = aggregatecounter + 1;
     if (last_element != "")
@@ -357,7 +361,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
+    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
     comparecounter = comparecounter + 1;
     if (last_element != "")
@@ -445,7 +449,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions1);
+    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
     transformcounter = transformcounter + 1;
     if (last_element != "")
@@ -765,7 +769,7 @@ $(function ()
         */
         if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
-          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
+          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
           var number = "#aggregate_" + aggregatecounter;
           $(number).draggable(
@@ -782,7 +786,7 @@ $(function ()
         }
         if (ui.helper.attr('id').search(/transform/) != -1)
         {
-          jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions1);
+          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
           var number = "#transform_" + transformcounter;
           $(number).draggable(
@@ -799,7 +803,7 @@ $(function ()
         }
         if (ui.helper.attr('id').search(/compare/) != -1)
         {
-          jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
+          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
           var number = "#compare_" + comparecounter;
           $(number).draggable(
@@ -1155,28 +1159,6 @@ function getPropertyPaths(deleteExisting)
     }
   });
 }
-
-jsPlumb.bind("jsPlumbConnection", {
-  jsPlumbConnection:function(data) {
-    if (!validate_connection(data.sourceId, data.targetId)) {
-      data.sourceEndpoint.detachFrom(data.targetEndpoint);
-      $("#invalid_connection").show().fadeOut(2000);
-    }
-  }
-});
-
-function validate_connection(source_id, target_id) {
-  var source = source_id.substr(0,source_id.indexOf('_'));
-  var target = target_id.substr(0,target_id.indexOf('_'));
-  var allowed_connections = new Array();
-  allowed_connections['source'] = new Array('compare','transform');
-  allowed_connections['target'] = new Array('compare','transform');
-  allowed_connections['compare'] = new Array('aggregate');
-  allowed_connections['transform'] = new Array('transform','compare');
-  allowed_connections['aggregate'] = new Array('aggregate');
-  return jQuery.inArray(target, allowed_connections[source])!=-1;
-}
-
 
 function getOperators()
 {
