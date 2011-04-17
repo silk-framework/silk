@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.evaluation
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.{SourceTargetPair, Task}
-import de.fuberlin.wiwiss.silk.instance.{InstanceCache, Instance, InstanceSpecification, MemoryInstanceCache}
+import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification, MemoryInstanceCache}
 import de.fuberlin.wiwiss.silk.{FilterTask, MatchTask, LoadTask}
 import collection.mutable.Buffer
 import de.fuberlin.wiwiss.silk.output.Link
@@ -13,6 +13,11 @@ object EvaluationServer
   private val logger = Logger.getLogger(getClass.getName)
 
   private val task = new EvaluationTask()
+
+  /** The number of concurrent matching threads */
+  private val numThreads = 8
+
+  @volatile var generateDetailedLinks = false
 
   val evaluationTask : Task[Unit] = task
 
@@ -36,7 +41,7 @@ object EvaluationServer
 
     private val loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
 
-    private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8)
+    private val matchTask = new MatchTask(linkingTask.linkSpec, caches, numThreads, generateDetailedLinks)
 
     private var filteredLinks : Buffer[Link] = null
 

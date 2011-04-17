@@ -16,7 +16,8 @@ import scala.math.max
  */
 class MatchTask(linkSpec : LinkSpecification,
                 caches : SourceTargetPair[InstanceCache],
-                numThreads : Int) extends Task[Buffer[Link]]
+                numThreads : Int,
+                generateDetailedLinks : Boolean = false) extends Task[Buffer[Link]]
 {
   taskName = "Matching"
 

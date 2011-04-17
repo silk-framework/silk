@@ -9,20 +9,20 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
  */
 trait LinkWriter extends Strategy
 {
-    /**
-     * Initializes this writer.
-     */
-    def open() : Unit = {}
+  /**
+   * Initializes this writer.
+   */
+  def open() : Unit = {}
 
-    /**
-     * Writes a new link to this writer.
-     */
-    def write(link : Link, predicateUri : String) : Unit
+  /**
+   * Writes a new link to this writer.
+   */
+  def write(link : Link, predicateUri : String) : Unit
 
-    /**
-     * Closes this writer.
-     */
-    def close() : Unit = {}
+  /**
+   * Closes this writer.
+   */
+  def close() : Unit = {}
 }
 
 object LinkWriter extends Factory[LinkWriter]
