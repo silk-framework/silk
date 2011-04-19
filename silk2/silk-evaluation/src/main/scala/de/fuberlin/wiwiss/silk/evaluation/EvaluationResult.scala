@@ -4,7 +4,8 @@ package de.fuberlin.wiwiss.silk.evaluation
  * TODO uses terms from information retrieval
  */
 class EvaluationResult(val truePositives : Int, val trueNegatives : Int,
-                       val falsePositives : Int, val falseNegatives : Int)
+                       val falsePositives : Int, val falseNegatives : Int,
+                       val score : Double)
 {
   /**
    * The '''specificity''' or '''true negative rate (TNR)''' is the proportion of the links which have not been generated of the negative links in the alignment.

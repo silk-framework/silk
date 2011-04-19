@@ -1,6 +1,5 @@
 //package de.fuberlin.wiwiss.silk.workbench.lift.comet
 //
-//import net.liftweb.util.Helpers
 //import net.liftweb.http.{SHtml, CometActor}
 //import de.fuberlin.wiwiss.silk.util.XMLUtils._
 //import net.liftweb.http.js.JsCmds.SetHtml
@@ -9,6 +8,7 @@
 //import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregation, LinkCondition}
 //import de.fuberlin.wiwiss.silk.workbench.workspace.User
 //import xml.{NodeBuffer, Text, NodeSeq}
+//import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
 //
 //class Population extends CometActor with Subscriber[PopulationUpdated, Publisher[PopulationUpdated]]
 //{
@@ -24,7 +24,7 @@
 //
 //  override def notify(pub : Publisher[PopulationUpdated], event : PopulationUpdated)
 //  {
-//    val sortedIndividuals = LearningServer.population.individuals.toSeq.sortBy(-_.fitness)
+//    val sortedIndividuals = LearningServer.population.individuals.toSeq.sortBy(-_.fitness.score)
 //    individuals = sortedIndividuals
 //    individualCount = sortedIndividuals.size
 //    partialUpdate(SetHtml(listId, displayList))
@@ -41,7 +41,9 @@
 //  {
 //    def line(individual : Individual) =
 //    {
-//      val link = SHtml.a(showCondition(individual) _, Text("Condition(fitness=" + individual.fitness + ")"))
+//      val formatted = "score=%.3f fmeasure=%.3f".format(individual.fitness.score, individual.fitness.fMeasure)
+//
+//      val link = SHtml.a(showCondition(individual) _, Text(formatted))
 //
 //      <div>{link}</div>
 //    }
@@ -53,7 +55,21 @@
 //
 //  private def showCondition(individual : Individual)() =
 //  {
-//    SetHtml(individualId, individualToHtml(individual))
+//    def load() =
+//    {
+//      val linkingTask = User().linkingTask
+//      val linkSpec = linkingTask.linkSpec
+//      val newLinkCondition = individual.node.build
+//
+//      User().task = linkingTask.copy(linkSpec = linkSpec.copy(condition = newLinkCondition))
+//
+//      JavaScriptUtils.Redirect("/linkSpec.html")
+//    }
+//
+//    val loadButton = SHtml.ajaxButton("Load", load _)
+//    val individualHtml = individualToHtml(individual)
+//
+//    SetHtml(individualId, <div>{loadButton ++ individualHtml}</div>)
 //  }
 //
 //  private def individualToHtml(individual : Individual) : NodeSeq =

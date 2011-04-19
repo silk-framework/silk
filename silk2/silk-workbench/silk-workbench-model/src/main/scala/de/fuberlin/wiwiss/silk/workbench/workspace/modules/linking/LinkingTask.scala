@@ -39,7 +39,7 @@ case class LinkingTask(name : Identifier,
   {
     var project : Project = null
 
-    private val sampleCount = 100
+    private val sampleCount = 200
 
     private val positiveSamples = alignment.positiveLinks.take(sampleCount).toList
 
