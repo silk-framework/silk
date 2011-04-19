@@ -21,6 +21,7 @@
 //      var iterations = 1
 //
 //      bind("entry", chooseTemplate("choose", "train", xhtml),
+//           "auto" -> SHtml.submit("Auto", () => LearningServer.startLearningTask()),
 //           "create" -> SHtml.submit("Create", () => LearningServer.generatePopulation()),
 //           "iterations" -> SHtml.number(iterations, iterations = _, 1, 100),
 //           "iterate" -> SHtml.submit("Iterate", () => LearningServer.iteratePopulation(iterations)),

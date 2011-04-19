@@ -14,39 +14,43 @@ object LinkConditionEvaluator
     var trueNegatives : Int = 0
     var falsePositives : Int = 0
     var falseNegatives : Int = 0
+    var positiveScore : Double = instances.positive.size
+    var negativeScore : Double = instances.negative.size
 
     for(instancePair <- instances.positive)
     {
-      //val sourceIndices = linkCondition.index(instancePair.source, threshold)
-      //val targetIndices = linkCondition.index(instancePair.target, threshold)
+      val confidence = linkCondition(instancePair, threshold)
 
-      if(//!sourceIndices.intersect(targetIndices).isEmpty &&
-         linkCondition(instancePair, threshold) >= threshold)
+      if(confidence >= threshold)
       {
         truePositives += 1
+        positiveScore += (confidence - threshold) / (1.0 - threshold)
       }
       else
       {
         falseNegatives += 1
+        positiveScore -= threshold - confidence / threshold
       }
     }
 
     for(instancePair <- instances.negative)
     {
-      //val sourceIndices = linkCondition.index(instancePair.source, threshold)
-      //val targetIndices = linkCondition.index(instancePair.target, threshold)
+      val confidence = linkCondition(instancePair, threshold)
 
-      if(//!sourceIndices.intersect(targetIndices).isEmpty &&
-         linkCondition(instancePair, threshold) >= threshold)
+      if(confidence >= threshold)
       {
         falsePositives += 1
+        negativeScore -= (confidence - threshold) / (1.0 - threshold)
       }
       else
       {
         trueNegatives += 1
+        negativeScore += threshold - confidence / threshold
       }
     }
 
-    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
+    val score = 2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
+
+    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives, score)
   }
 }
