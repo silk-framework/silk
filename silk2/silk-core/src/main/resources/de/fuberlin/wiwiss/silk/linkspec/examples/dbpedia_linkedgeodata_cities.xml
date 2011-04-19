@@ -14,7 +14,6 @@
   <DataSources>
     <DataSource id="dbpedia" type="sparqlEndpoint">
       <Param name="endpointURI" value="http://dbpedia.org/sparql" />
-      <Param name="graph" value="http://dbpedia.org" />
       <Param name="retryCount" value="500" />
       <Param name="retryPause" value="3000" />
     </DataSource>
@@ -24,15 +23,6 @@
       <Param name="retryPause" value="1000" />
     </DataSource>
   </DataSources>
-
-  <!-- DataSources>
-    <DataSource id="dbpedia" type="cache">
-      <Param name="dir" value="instanceCacheBackup/source/cities" />
-    </DataSource>
-    <DataSource id="lgdb" type="cache">
-      <Param name="dir" value="instanceCacheBackup/target/cities" />
-    </DataSource>
-  </DataSources -->
 
   <Interlinks>
     <Interlink id="cities">
