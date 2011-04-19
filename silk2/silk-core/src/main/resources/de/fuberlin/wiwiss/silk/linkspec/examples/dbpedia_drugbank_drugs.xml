@@ -13,7 +13,6 @@
   <DataSources>
     <DataSource id="dbpedia" type="sparqlEndpoint">
       <Param name="endpointURI" value="http://dbpedia.org/sparql" />
-      <Param name="graph" value="http://dbpedia.org" />
       <Param name="retryCount" value="100" />
       <Param name="retryPause" value="1000" />
     </DataSource>
@@ -187,7 +186,7 @@
         </Output>
         <Output minConfidence="0.98" type="file">
           <Param name="file" value="dbpedia_drugbank_drugs_accepted_links.xml"/>
-          <Param name="format" value="ntriples"/>
+          <Param name="format" value="alignment"/>
         </Output>
       </Outputs>
     </Interlink>
