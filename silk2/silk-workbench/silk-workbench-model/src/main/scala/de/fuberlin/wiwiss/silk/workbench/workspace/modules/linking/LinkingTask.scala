@@ -12,10 +12,11 @@ import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, Alignment}
 /**
  * A linking task which interlinks two datasets.
  */
+//TODO use linkSpec id as name?
 case class LinkingTask(name : Identifier,
                        linkSpec : LinkSpecification,
-                       alignment : Alignment,
-                       cache : Cache) extends ModuleTask
+                       alignment : Alignment = Alignment(),
+                       cache : Cache = new Cache) extends ModuleTask
 {
   var cacheLoading : Future[Unit] = null
 
