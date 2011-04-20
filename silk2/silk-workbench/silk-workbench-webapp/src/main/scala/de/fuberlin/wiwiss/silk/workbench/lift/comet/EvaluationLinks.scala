@@ -9,6 +9,9 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.js.JsCmds
 import net.liftweb.http.js.JsCmds.Script
 import net.liftweb.http.js.JE.JsRaw
+import de.fuberlin.wiwiss.silk.output.Link
+import xml.{NodeSeq, Elem}
+import de.fuberlin.wiwiss.silk.instance.Path
 
 /**
 * A widget which displays the generated links of the evaluation server.
@@ -61,16 +64,62 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
         {
           for((link, correct) <- EvaluationServer.links.view(page * pageSize, (page + 1) * pageSize)) yield
           {
-            <tr>
-              <td>{link.sourceUri}</td>
-              <td>{link.targetUri}</td>
-              <td>{link.confidence}</td>
-              <td>{correct}</td>
-            </tr>
+            renderLink(link, correct)
           }
         }
       </table>
 
     SetHtml("results", html)
   }
+
+  private def renderLink(link : Link, correct : Boolean) =
+  {
+    <tr>
+      <td>{link.sourceUri}</td>
+      <td>{link.targetUri}</td>
+      <td>{link.confidence}</td>
+      <td>{correct}</td>
+    </tr>
+    <tr>
+      <td colspan="4">
+        <div>
+          { renderSimilarity(link.details.get) }
+        </div>
+      </td>
+    </tr>
+  }
+
+  private def renderSimilarity(similarity : Link.Similarity) : NodeSeq = similarity match
+  {
+    case Link.AggregatorSimilarity(value, children) =>
+    {
+      <div id="aggregation">
+        { renderConfidence(value) }
+        { children.map(renderSimilarity) }
+      </div>
+    }
+    case Link.ComparisonSimilarity(value, input1, input2) =>
+    {
+      <div id="comparison">
+        { renderConfidence(value) }
+        { renderInputValue(input1) }
+        { renderInputValue(input2) }
+      </div>
+    }
+  }
+
+  private def renderConfidence(value : Option[Double]) = value match
+  {
+    case Some(v) => <div id="confidence">{ v.toString }</div>
+    case None => NodeSeq.Empty
+  }
+
+  private def renderInputValue(input : Link.InputValue) = input match
+  {
+    case Link.InputValue(path, values) =>
+    {
+      <div id="input">{ path.toString + ": " + values.mkString(", ") }</div>
+    }
+  }
+
 }

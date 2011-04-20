@@ -1,17 +1,19 @@
 package de.fuberlin.wiwiss.silk.linkspec.evaluation
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.linkspec.condition.{Comparison, Aggregation, Operator, LinkCondition}
 import de.fuberlin.wiwiss.silk.output.Link
+import de.fuberlin.wiwiss.silk.output.Link.InputValue
+import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput, Input}
+import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
 
 object DetailedEvaluator
 {
-  def evaluate(condition : LinkCondition, instances : SourceTargetPair[Instance], threshold : Double) : Option[Link] =
+  def apply(condition : LinkCondition, instances : SourceTargetPair[Instance], threshold : Double) : Option[Link] =
   {
     val similarity = evaluateOperator(condition.rootOperator.get, instances, threshold)
 
-    val confidence = similarity.similarity.getOrElse(0.0)
+    val confidence = similarity.value.getOrElse(0.0)
 
     if(confidence > threshold)
     {
@@ -23,13 +25,13 @@ object DetailedEvaluator
     }
   }
 
-  def evaluateOperator(operator : Operator, instances : SourceTargetPair[Instance], threshold : Double) = operator match
+  private def evaluateOperator(operator : Operator, instances : SourceTargetPair[Instance], threshold : Double) = operator match
   {
     case aggregation : Aggregation => evaluateAggregation(aggregation, instances, threshold)
     case comparison : Comparison => evaluateComparison(comparison, instances, threshold)
   }
 
-  def evaluateAggregation(aggregation : Aggregation, instances : SourceTargetPair[Instance], threshold : Double) : Link.AggregatorSimilarity =
+  private def evaluateAggregation(aggregation : Aggregation, instances : SourceTargetPair[Instance], threshold : Double) : Link.AggregatorSimilarity =
   {
     val totalWeights = aggregation.operators.map(_.weight).sum
 
@@ -41,13 +43,13 @@ object DetailedEvaluator
       {
         val updatedThreshold = aggregation.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
         val value = evaluateOperator(operator, instances, updatedThreshold)
-        if(operator.required && value.similarity.isEmpty) isNone = true
+        if(operator.required && value.value.isEmpty) isNone = true
 
         value
       }
     }
 
-    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.similarity.getOrElse(0.0))
+    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.value.getOrElse(0.0))
 
     val aggregatedValue = aggregation.aggregator.evaluate(weightedValues)
 
@@ -57,10 +59,22 @@ object DetailedEvaluator
       Link.AggregatorSimilarity(aggregatedValue, operatorValues)
   }
 
-  def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonSimilarity =
+  private def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonSimilarity =
   {
     val similarity = comparision.apply(instances, threshold)
 
-    Link.ComparisonSimilarity(similarity, null, null)
+    val sourcePath = findPath(comparision.inputs.source)
+    val targetPath = findPath(comparision.inputs.target)
+
+    val sourceInput = InputValue(sourcePath, comparision.inputs.source(instances))
+    val targetInput = InputValue(targetPath, comparision.inputs.target(instances))
+
+    Link.ComparisonSimilarity(similarity, sourceInput, targetInput)
+  }
+
+  private def findPath(input : Input) : Path = input match
+  {
+    case PathInput(path) => path
+    case TransformInput(inputs, _) => findPath(inputs.head)
   }
 }
