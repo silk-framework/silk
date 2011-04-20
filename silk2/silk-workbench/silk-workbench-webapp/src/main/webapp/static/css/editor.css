@@ -223,18 +223,6 @@ a.more {
   margin-top: 5px;
 }
 
-#invalid_connection {
-  position: fixed;
-  display: none;
-  border: 1px solid #cc0033;
-  background-color: #f2908d;
-  padding: 6px;
-  left: 50%;
-  top: 50%;
-  font-size: 16px;
-  z-index: 3;
-}
-
 .accepthighlight{
     background-color: #9c2121;
     border: 2px solid #9c2121;
