@@ -49,6 +49,7 @@
             <TransformInput function="lowerCase">
               <Input path="?b/rdfs:label"/>
             </TransformInput>
+            <Param name="maxDistance" value="10" />
           </Compare>
           <Compare metric="levenshtein">
             <TransformInput function="lowerCase">
@@ -57,6 +58,7 @@
             <TransformInput function="lowerCase">
               <Input path="?b/drugbank:synonym"/>
             </TransformInput>
+            <Param name="maxDistance" value="10" />
           </Compare>
         </Aggregate>
       </LinkCondition>
@@ -67,11 +69,11 @@
   </Interlinks>
 
   <Outputs>
-    <Output maxConfidence="0.99" type="file" >
+    <Output maxConfidence="0.90" type="file" >
       <Param name="file" value="sider_drugbank_drugs_verify_links.xml"/>
       <Param name="format" value="alignment"/>
     </Output>
-    <Output minConfidence="0.99" type="file">
+    <Output  type="file">
       <Param name="file" value="sider_drugbank_drugs_accepted_links.xml"/>
       <Param name="format" value="alignment"/>
     </Output>

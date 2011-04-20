@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.util.Task.Finished
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationServer
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.http.js.JsCmds
+import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds.Script
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link

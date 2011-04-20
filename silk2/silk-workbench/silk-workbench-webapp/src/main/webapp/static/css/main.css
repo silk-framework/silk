@@ -142,3 +142,10 @@ input[type=file]
   top: -22px;
   z-index: 1;
 }
+
+/* Link evaluation results
+----------------------------------*/
+
+#results {
+  margin-left: 10px;
+}
