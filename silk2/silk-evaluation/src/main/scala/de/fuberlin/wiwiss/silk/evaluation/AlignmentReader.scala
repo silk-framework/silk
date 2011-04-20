@@ -12,9 +12,10 @@ object AlignmentReader
 {
   def read(file : File) : Alignment =
   {
-    file.getName.split("\\.").last match
+    file.getName.split('.').last match
     {
-      case "n3debug" => readN3Debug(file)
+      case "nt" => readNTriples(Source.fromFile(file))
+      case "n3debug" => readN3Debug(Source.fromFile(file))
       case "xml" => readAlignment(file)
       case format => throw new IllegalArgumentException("Unsupported format: " + format)
     }
@@ -45,11 +46,23 @@ object AlignmentReader
     }
   }
 
+  private val NTriplesRegex = """<([^>]*)>\s*<[^>]*>\s*<([^>]*)>\s*\.\s*""".r
+
+  def readNTriples(source : Source) : Alignment =
+  {
+    val positiveLinks =
+      for(NTriplesRegex(sourceUri, targetUri) <- source.getLines()) yield
+      {
+        new Link(sourceUri, targetUri, 0.0)
+      }
+
+    new Alignment(positiveLinks.toSet, Set.empty)
+  }
+
   private val N3DebugRegex = """\[(\d*\.\d*)\]:\s*<([^>]*)>\s*<[^>]*>\s*<([^>]*)>\s*\.\s*""".r
 
-  def readN3Debug(file : File) : Alignment =
+  def readN3Debug(source : Source) : Alignment =
   {
-    val source = Source.fromFile(file)
     val positiveLinks =
       for(N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines()) yield
       {

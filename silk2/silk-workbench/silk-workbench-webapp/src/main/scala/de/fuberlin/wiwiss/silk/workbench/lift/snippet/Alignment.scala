@@ -9,6 +9,7 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import io.Source
 
 class Alignment
 {
@@ -33,9 +34,13 @@ class Alignment
     {
       fileHolder match
       {
-        case FileParamHolder(_, mime, _, data) =>
+        case FileParamHolder(_, _, fileName, data) =>
         {
-          val alignment = AlignmentReader.readAlignment(new ByteArrayInputStream(data))
+          val alignment = fileName.split('.').last match
+          {
+            case "xml" => AlignmentReader.readAlignment(new ByteArrayInputStream(data))
+            case "nt" => AlignmentReader.readNTriples(Source.fromBytes(data))
+          }
 
           //If the alignment does not define any negative links -> generate some
           if(alignment.negativeLinks.isEmpty)
