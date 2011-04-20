@@ -34,8 +34,8 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
     {
       status match
       {
-        case Task.StatusChanged(_, _) => reRender()
-        case Task.Finished(_, _) => reRender()
+        case Task.StatusChanged(_, _) => partialUpdate(updateLinks)
+        case Task.Finished(_, _) => partialUpdate(updateLinks)
         case _ =>
       }
 
@@ -49,6 +49,12 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
       { Script(JsCmds.Function("showLinks", "page" :: Nil, SHtml.ajaxCall(JsRaw("page"), (pageStr) => showLinks(pageStr.toInt))._2.cmd )) }
       { <div id="results" /> }
     </p>
+  }
+
+  private def updateLinks() : JsCmd =
+  {
+    JsRaw("initPagination(" + EvaluationServer.links.size + ");" +
+          "showLinks(current_page);").cmd
   }
 
   private def showLinks(page : Int) =
