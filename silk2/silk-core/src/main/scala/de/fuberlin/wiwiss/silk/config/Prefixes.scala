@@ -9,6 +9,14 @@ class Prefixes(private val prefixMap : Map[String, String])
 {
   override def toString = "Prefixes(" + prefixMap.toString + ")"
 
+  /**
+   * Combines two prefix objects.
+   */
+  def ++(prefixes : Prefixes) =
+  {
+    new Prefixes(prefixMap ++ prefixes.prefixMap)
+  }
+
   def toXML =
   {
     <Prefixes>
