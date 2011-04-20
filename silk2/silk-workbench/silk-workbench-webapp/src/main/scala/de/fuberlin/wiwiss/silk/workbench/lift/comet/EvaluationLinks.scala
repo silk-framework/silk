@@ -6,9 +6,9 @@ import de.fuberlin.wiwiss.silk.util.Task.Finished
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationServer
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.http.js.JsCmds
 import net.liftweb.http.js.JsCmds.Script
 import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.js.{JsCmd, JsCmds}
 
 /**
 * A widget which displays the generated links of the evaluation server.
@@ -31,8 +31,8 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
     {
       status match
       {
-        case Task.StatusChanged(_, _) => reRender()
-        case Task.Finished(_, _) => reRender()
+        case Task.StatusChanged(_, _) => partialUpdate(updateLinks)
+        case Task.Finished(_, _) => partialUpdate(updateLinks)
         case _ =>
       }
 
@@ -48,12 +48,18 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
     </p>
   }
 
+  private def updateLinks() : JsCmd =
+  {
+    JsRaw("initPagination(" + EvaluationServer.links.size + ");" +
+          "showLinks(current_page);").cmd
+  }
+
   private def showLinks(page : Int) =
   {
     val html =
       <table border="1">
         <tr>
-          <th>Source</th>
+          <th>Sourcee</th>
           <th>Target</th>
           <th>Confidence</th>
           <th>Correct?</th>
