@@ -53,8 +53,7 @@ class Boot
         Menu(Loc("Workspace", List("index"), workspaceText, ifLinkingTaskClosed)) ::
         Menu(Loc("Link Specification", List("linkSpec"), linkSpecText, ifLinkingTaskOpen)) ::
         Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifLinkingTaskOpen)) ::
-        Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifLinkingTaskOpen)) ::
-        Menu(Loc("Learn", List("learn"), "Learn", ifLinkingTaskOpen)) :: Nil
+        Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifLinkingTaskOpen)) :: Nil
 
     LiftRules.setSiteMap(SiteMap(entries:_*))
 
