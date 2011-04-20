@@ -38,7 +38,7 @@ object EvaluationServer
 
     private val loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
 
-    private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8)
+    private val matchTask = new MatchTask(linkingTask.linkSpec, caches, 8, true)
 
     private var filteredLinks : Buffer[Link] = null
 
