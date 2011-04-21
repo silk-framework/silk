@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 import modules.linking.LinkingTask
 import modules.ModuleTask
 import modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationTask
 
 /**
  * A user.
@@ -12,6 +13,8 @@ trait User
   private var currentProject : Option[Project] = None
 
   private var currentTask : Option[ModuleTask] = None
+
+  val evaluationTask : EvaluationTask = new EvaluationTask(this)
 
   /**
    * The current workspace of this user.
@@ -89,6 +92,14 @@ trait User
   {
     case t : LinkingTask => t
     case _ => throw new NoSuchElementException("Active task is no linking task")
+  }
+
+  /**
+   * Called when the user becomes inactive.
+   */
+  def dispose()
+  {
+    evaluationTask.cancel()
   }
 }
 

@@ -28,6 +28,12 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.io.{SilkConfigExporter, Proje
 class Boot
 {
   object UserManager extends SessionVar[User](new FileUser)
+  {
+    override protected def onShutdown(session : CleanUpParam)
+    {
+      is.dispose()
+    }
+  }
 
   def boot
   {
