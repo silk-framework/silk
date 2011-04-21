@@ -1,14 +1,11 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import java.io.File
 import modules.linking.LinkingTask
-import java.net.URI
 import modules.ModuleTask
 import modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.util.Task
 
 /**
- * Dummy user as there is no user management yet.
+ * A user.
  */
 trait User
 {
@@ -31,7 +28,7 @@ trait User
   /**
    * Sets the current project of this user.
    */
-  def project_=(project : Project) =
+  def project_=(project : Project)
   {
     currentProject = Some(project)
   }
@@ -49,18 +46,21 @@ trait User
   /**
    * Sets the current task of this user.
    */
-  def task_=(task : ModuleTask) =
+  def task_=(task : ModuleTask)
   {
     currentTask = Some(task)
   }
 
+  /**
+   * Closes the current task.
+   */
   def closeTask()
   {
     currentTask = None
   }
 
   /**
-   *   True, if a source task is open at the moment.
+   * True, if a source task is open at the moment.
    */
   def sourceTaskOpen = taskOpen && task.isInstanceOf[SourceTask]
 
@@ -94,7 +94,7 @@ trait User
 
 object User
 {
-  var userManager : () => User = () => throw new Exception("No user manager registerd")
+  var userManager : () => User = () => throw new Exception("No user manager registered")
 
   /**
    * Retrieves the current user.
