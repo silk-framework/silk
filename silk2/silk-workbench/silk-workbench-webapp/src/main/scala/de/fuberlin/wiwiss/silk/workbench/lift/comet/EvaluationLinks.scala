@@ -43,8 +43,10 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
 
   override def render =
   {
+    val showLinksFunc = JsCmds.Function("showLinks", "page" :: Nil, SHtml.ajaxCall(JsRaw("page"), (pageStr) => showLinks(pageStr.toInt))._2.cmd)
+
     <p>
-      { Script(JsCmds.Function("showLinks", "page" :: Nil, SHtml.ajaxCall(JsRaw("page"), (pageStr) => showLinks(pageStr.toInt))._2.cmd )) }
+      { Script(OnLoad(updateLinks) & showLinksFunc) }
       { <div id="results" /> }
     </p>
   }

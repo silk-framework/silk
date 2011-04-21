@@ -10,10 +10,6 @@
 
       var current_page = 0;
 
-      $(document).ready(function(){
-        initPagination(current_page);
-      });
-
       function handlePaginationClick(new_page_index, pagination_container) {
         showLinks(new_page_index);
         current_page = new_page_index;
@@ -31,7 +27,7 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:evaluation.toolbar>
+    <lift:evaluate.toolbar>
       <ul>
         <li>
           <entry:control/>
@@ -40,7 +36,7 @@
           <lift:comet type="EvaluationProgress" name="EvaluationProgress" />
         </li>
       </ul>
-    </lift:evaluation.toolbar>
+    </lift:evaluate.toolbar>
   </lift:bind-at>
 
   <lift:bind-at name="content">
