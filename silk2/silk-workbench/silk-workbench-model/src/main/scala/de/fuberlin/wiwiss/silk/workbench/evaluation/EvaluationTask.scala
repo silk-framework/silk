@@ -36,13 +36,17 @@ class EvaluationTask(user : User) extends Task[Unit]
    */
   def links : Traversable[(Link, Int)] =
   {
-    if(filteredLinks == null)
+    if(filteredLinks != null)
+    {
+      filteredLinks.view.map(checkLink)
+    }
+    else if(matchTask != null)
     {
       matchTask.links.view.map(checkLink)
     }
     else
     {
-      filteredLinks.view.map(checkLink)
+      Traversable.empty
     }
   }
 
