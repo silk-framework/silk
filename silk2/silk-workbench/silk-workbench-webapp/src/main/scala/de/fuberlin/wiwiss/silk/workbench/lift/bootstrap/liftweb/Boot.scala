@@ -17,9 +17,9 @@ import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import net.liftweb.widgets.autocomplete.AutoComplete
 import scala.xml.Text
-import de.fuberlin.wiwiss.silk.workbench.lift.util.ConfigBuilder
-import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectExporter, FileUser, User}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
+import de.fuberlin.wiwiss.silk.workbench.workspace.io.{SilkConfigExporter, ProjectExporter}
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -72,7 +72,7 @@ class Boot
     case req @ Req(List("config"), "xml", GetRequest) =>
     {
       val outputStream = new ByteArrayOutputStream()
-      val configXml = ConfigBuilder.build().toXML
+      val configXml = SilkConfigExporter.build().toXML
       val configStr = new PrettyPrinter(140, 2).format(configXml)
       () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
     }
