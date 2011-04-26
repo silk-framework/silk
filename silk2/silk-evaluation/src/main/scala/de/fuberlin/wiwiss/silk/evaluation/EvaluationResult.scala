@@ -3,10 +3,13 @@ package de.fuberlin.wiwiss.silk.evaluation
 /**
  * TODO uses terms from information retrieval
  */
+//TODO add Matthews_correlation_coefficient
 class EvaluationResult(val truePositives : Int, val trueNegatives : Int,
-                       val falsePositives : Int, val falseNegatives : Int,
-                       val score : Double)
+                       val falsePositives : Int, val falseNegatives : Int)
 {
+
+  def score : Double = fMeasure
+
   /**
    * The '''specificity''' or '''true negative rate (TNR)''' is the proportion of the links which have not been generated of the negative links in the alignment.
    */
@@ -27,5 +30,5 @@ class EvaluationResult(val truePositives : Int, val trueNegatives : Int,
    */
   def fMeasure = if(precision + recall > 0.0) 2.0 * precision * recall / (precision + recall) else 0.0
   
-  override def toString = "(precision=" + precision + ", recall=" + recall + ")"
+  override def toString = "(precision=" + precision + ", recall=" + recall + ", f-measure=" + fMeasure + ")"
 }
