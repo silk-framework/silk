@@ -51,6 +51,6 @@ object LinkConditionEvaluator
 
     val score = 2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
 
-    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives, score)
+    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
   }
 }

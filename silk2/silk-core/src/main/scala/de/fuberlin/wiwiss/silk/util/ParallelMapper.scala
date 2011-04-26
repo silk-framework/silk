@@ -57,6 +57,7 @@ class ParallelMapper[T](traversable : Traversable[T], threadCount : Int = 8)
       catch
       {
         case ex : InterruptedException =>
+        case ex : Exception => ex.printStackTrace()
       }
     }
   }
