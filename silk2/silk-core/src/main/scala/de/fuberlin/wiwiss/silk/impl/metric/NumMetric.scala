@@ -38,7 +38,7 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
       {
         if(maxDistance == 0.0)
         {
-          num1 == num2
+          if(num1 == num2) 1.0 else 0.0
         }
         else
         {
