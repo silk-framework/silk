@@ -60,22 +60,16 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   private def showLinks(page : Int) =
   {
     val html =
-      <table border="1">
-        <tr>
-          <th>Source</th>
-          <th>Target</th>
-          <th>Confidence</th>
-          <th>Correct?</th>
-        </tr>
+      <div>
         {
           for((link, correct) <- User().evaluationTask.links.view(page * pageSize, (page + 1) * pageSize)) yield
           {
             renderLink(link, correct)
           }
         }
-      </table>
+      </div>
 
-    SetHtml("results", html)
+    SetHtml("results", html) & JsRaw("initTree();").cmd
   }
 
   /**
@@ -86,43 +80,49 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
    */
   private def renderLink(link : Link, correct : Int) =
   {
-    <tr>
-      <td>{link.sourceUri}</td>
-      <td>{link.targetUri}</td>
-      <td>{link.confidence}</td>
-      <td>{correct}</td>
-    </tr>
-    <tr>
-      <td colspan="4">
-        <div>
+    <div class="link">
+      <span class="toggle" onclick={"toggleLinkDetails('" + getId(link, "details") + "');"} >o</span>
+      <span>{link.sourceUri}</span>
+      <span>{link.targetUri}</span>
+      <span>{link.confidence}</span>
+      <span>{correct}</span>
+
+      <div class="link_details" id={getId(link, "details")}>
+        <ul class="details_tree">
           { renderSimilarity(link.details.get) }
-        </div>
-      </td>
-    </tr>
+        </ul>
+      </div>
+    </div>
   }
 
   private def renderSimilarity(similarity : Link.Similarity) : NodeSeq = similarity match
   {
     case Link.AggregatorSimilarity(value, children) =>
     {
-      <div id="aggregation">
-        { renderConfidence(value) }
-        { children.map(renderSimilarity) }
-      </div>
+      <li>
+        <span class="aggregation">Aggregation</span>
+          <ul>
+            { renderConfidence(value) }
+            { children.map(renderSimilarity) }
+          </ul>
+      </li>
     }
     case Link.ComparisonSimilarity(value, input1, input2) =>
     {
-      <div id="comparison">
-        { renderConfidence(value) }
-        { renderInputValue(input1) }
-        { renderInputValue(input2) }
-      </div>
+      <li>
+        <span class="comparison">Comparison</span>
+          <ul>
+            { renderConfidence(value) }
+            { renderInputValue(input1) }
+            { renderInputValue(input2) }
+          </ul>
+      </li>
     }
   }
 
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <div id="confidence">{ v.toString }</div>
+    case Some(v) => <li><span class="confidence">Confidence:{ v.toString }</span></li>
     case None => NodeSeq.Empty
   }
 
@@ -130,8 +130,12 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   {
     case Link.InputValue(path, values) =>
     {
-      <div id="input">{ path.toString + ": " + values.mkString(", ") }</div>
+      <li><span class="input">{ path.toString + ": " + values.mkString(", ") }</span></li>
     }
   }
 
+  private def getId(link : Link, prefix : String = "") =
+  {
+    prefix + link.hashCode
+  }
 }

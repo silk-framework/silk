@@ -3,8 +3,10 @@
   <lift:bind-at name="definitions">
 
     <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
+    <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
 
     <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
 
     <script type="text/javascript" >
 
@@ -13,6 +15,7 @@
       function handlePaginationClick(new_page_index, pagination_container) {
         showLinks(new_page_index);
         current_page = new_page_index;
+        initTree();
         return false;
       }
 
@@ -23,7 +26,20 @@
         });
       }
 
+      function initTree() {
+        $(".details_tree").treeview();
+      }
+
+      function toggleLinkDetails(linkid) {
+        if ($("#"+linkid).is(":visible")) {
+          $("#"+linkid).slideUp(300);
+        } else {
+          $("#"+linkid).slideDown(300);
+        }
+      }
+
     </script>
+
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
