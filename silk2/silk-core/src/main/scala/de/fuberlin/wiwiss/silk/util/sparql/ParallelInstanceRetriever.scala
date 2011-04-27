@@ -29,7 +29,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
    */
   private class InstanceTraversable(instanceSpec : InstanceSpecification, instanceUris : Seq[String]) extends Traversable[Instance]
   {
-    override def foreach[U](f : Instance => U) : Unit =
+    override def foreach[U](f : Instance => U)
     {
       val pathRetrievers = for(path <- instanceSpec.paths) yield new PathRetriever(instanceUris, instanceSpec, path)
 
@@ -50,7 +50,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
     @volatile private var exception : Throwable = null
 
-    def hasNext() : Boolean =
+    def hasNext : Boolean =
     {
       //If the queue is empty, wait until an element has been read
       while(queue.isEmpty && isAlive)
@@ -101,7 +101,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
     private def queryPath(fixedSubject : Option[String] = None) =
     {
       //Select
-      var sparql = "SELECT DISTINCT "
+      var sparql = "SELECT "
       if(fixedSubject.isEmpty)
       {
         sparql += "?" + instanceSpec.variable + " "
