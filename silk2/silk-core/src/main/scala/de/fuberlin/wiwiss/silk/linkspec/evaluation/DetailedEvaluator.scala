@@ -15,7 +15,7 @@ object DetailedEvaluator
 
     val confidence = similarity.value.getOrElse(0.0)
 
-    if(confidence > threshold)
+    if(confidence >= threshold)
     {
       Some(new Link(instances.source.uri, instances.target.uri, confidence, Some(similarity)))
     }
