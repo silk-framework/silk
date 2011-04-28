@@ -224,11 +224,11 @@ a.more {
 }
 
 .accepthighlight{
-    background-color: #9c2121;
-    border: 2px solid #9c2121;
+    background-color: #66ff00;
+    border: 2px solid #009948;
 }
 
 .accepthoverhighlight {
-	background-color: #009948;
-    border: 2px solid #009948;
+	background-color: #ffff00;
+  border: 2px solid #f1d21e;
 }
