@@ -44,8 +44,7 @@ var endpointOptions =
   },
   isTarget: false,
   anchor: "RightMiddle",
-  dropOptions:{ disabled: true },
-  dragOptions:{ start: function(event, ui) { $("body").css('cursor','no-drop'); } }
+  dropOptions:{ disabled: true }
 };
 
 var endpointOptions1 =
@@ -96,8 +95,7 @@ var endpointOptions2 =
   isTarget: true,
   maxConnections: 1,
   anchor: "RightMiddle",
-  dropOptions:{ disabled: true },
-  dragOptions:{ start: function(event, ui) { $("body").css('cursor','no-drop'); } }
+  dropOptions:{ disabled: true }
 };
 
 document.onselectstart = function ()
@@ -250,7 +248,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
+    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
     aggregatecounter = aggregatecounter + 1;
     if (last_element != "")
@@ -361,7 +359,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
+    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
     comparecounter = comparecounter + 1;
     if (last_element != "")
@@ -449,7 +447,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
+    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
     transformcounter = transformcounter + 1;
     if (last_element != "")
@@ -769,7 +767,7 @@ $(function ()
         */
         if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
-          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
           var number = "#aggregate_" + aggregatecounter;
           $(number).draggable(
@@ -786,7 +784,7 @@ $(function ()
         }
         if (ui.helper.attr('id').search(/transform/) != -1)
         {
-          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
           var number = "#transform_" + transformcounter;
           $(number).draggable(
@@ -803,7 +801,7 @@ $(function ()
         }
         if (ui.helper.attr('id').search(/compare/) != -1)
         {
-          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','no-drop'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
           var number = "#compare_" + comparecounter;
           $(number).draggable(
