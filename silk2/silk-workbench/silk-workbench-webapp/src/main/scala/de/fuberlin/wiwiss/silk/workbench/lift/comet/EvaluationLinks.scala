@@ -83,8 +83,8 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
     <div class="link">
         <div class="link-header">
           <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e" onclick={"toggleLinkDetails('" + getId(link) + "');"} ></span></div>
-          <div class="source-link"><a href="{link.sourceUri}" target="_blank">{link.sourceUri}</a></div>
-          <div class="target-link"><a href="{link.targetUri}" target="_blank">{link.targetUri}</a></div>
+          <div class="source-link"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
+          <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
           <div class="confidencebar">{link.confidence}</div>
         </div>
         <div class="link-details" id={getId(link, "details")}>
