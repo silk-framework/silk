@@ -12,6 +12,7 @@ import net.liftweb.common.Empty
 import de.fuberlin.wiwiss.silk.linkspec._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.{SetHtml, OnLoad}
+import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
 
 /**
  * A dialog to edit linking tasks.
@@ -34,8 +35,8 @@ class EditLinkingTaskDialog
         val linkingTask = User().linkingTask
         implicit val prefixes = User().project.config.prefixes
 
-        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)),
-                                               DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction)))
+        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
+                                               DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction)))
 
         val updatedLinkSpec = linkingTask.linkSpec.copy(datasets = updatedDatasets, linkType = linkType)
 

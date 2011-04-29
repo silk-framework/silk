@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
 
 /**
  * Defines a dataset.
@@ -11,7 +12,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
  * @param variable Each data item will be bound to this variable.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSpecification(sourceId : Identifier, variable : String, restriction : Restrictions)
+case class DatasetSpecification(sourceId : Identifier, variable : String, restriction : SparqlRestriction)
 {
 
   /**
@@ -46,7 +47,7 @@ object DatasetSpecification
     new DatasetSpecification(
       node \ "@dataSource" text,
       node \ "@var" text,
-      Restrictions.fromSparql((node \ "RestrictTo").text.trim)
+      SparqlRestriction.fromSparql((node \ "RestrictTo").text.trim)
     )
   }
 }

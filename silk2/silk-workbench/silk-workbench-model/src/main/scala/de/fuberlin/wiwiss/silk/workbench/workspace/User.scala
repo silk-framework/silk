@@ -16,6 +16,8 @@ trait User
 
   val evaluationTask : EvaluationTask = new EvaluationTask(this)
 
+  var showAlignmentLinks = false
+
   /**
    * The current workspace of this user.
    */

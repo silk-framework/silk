@@ -1,9 +1,8 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.linkspec.Restrictions
-import de.fuberlin.wiwiss.silk.instance.{BackwardOperator, Path, ForwardOperator}
 import de.fuberlin.wiwiss.silk.util.{Timer, Uri}
+import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, BackwardOperator, Path, ForwardOperator}
 
 /**
  * Retrieves the most frequent property paths by issuing a SPARQL 1.1 aggregation query.
@@ -19,7 +18,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
   /**
    * Retrieves a list of properties which are defined on most instances.
    */
-  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions, limit : Option[Int]) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) : Traversable[(Path, Double)] =
   {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
@@ -29,7 +28,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
     forwardPaths ++ backwardPaths
   }
 
-  private def getForwardPaths(endpoint : SparqlEndpoint, restrictions : Restrictions, variable : String, limit : Int) : Traversable[(Path, Double)] =
+  private def getForwardPaths(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String, limit : Int) : Traversable[(Path, Double)] =
   {
     Timer("Retrieving forward pathes for '" + restrictions + "'")
     {
@@ -57,7 +56,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
     }
   }
 
-  private def getBackwardPaths(endpoint : SparqlEndpoint, restrictions : Restrictions, variable : String, limit : Int) : Traversable[(Path, Double)] =
+  private def getBackwardPaths(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String, limit : Int) : Traversable[(Path, Double)] =
   {
     Timer("Retrieving backward pathes for '" + restrictions + "'")
     {
