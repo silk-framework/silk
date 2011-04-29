@@ -69,7 +69,7 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
         }
       </div>
 
-    SetHtml("results", html) & JsRaw("initTree();").cmd
+    SetHtml("results", html) & JsRaw("initTrees();").cmd
   }
 
   /**
@@ -81,17 +81,17 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   private def renderLink(link : Link, correct : Int) =
   {
     <div class="link">
-      <span class="toggle" onclick={"toggleLinkDetails('" + getId(link, "details") + "');"} >o</span>
-      <span>{link.sourceUri}</span>
-      <span>{link.targetUri}</span>
-      <span>{link.confidence}</span>
-      <span>{correct}</span>
-
-      <div class="link_details" id={getId(link, "details")}>
-        <ul class="details_tree">
-          { renderSimilarity(link.details.get) }
-        </ul>
-      </div>
+        <div class="link-header">
+          <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e" onclick={"toggleLinkDetails('" + getId(link) + "');"} ></span></div>
+          <div class="source-link"><a href="{link.sourceUri}" target="_blank">{link.sourceUri}</a></div>
+          <div class="target-link"><a href="{link.targetUri}" target="_blank">{link.targetUri}</a></div>
+          <div class="confidencebar">{link.confidence}</div>
+        </div>
+        <div class="link-details" id={getId(link, "details")}>
+            <ul class="details-tree">
+              { renderSimilarity(link.details.get) }
+            </ul>
+        </div>
     </div>
   }
 

@@ -2,6 +2,7 @@
 
   <lift:bind-at name="definitions">
 
+    <link type="text/css" href="static/css/evaluation.css" rel="stylesheet" />
     <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
     <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
 
@@ -15,7 +16,7 @@
       function handlePaginationClick(new_page_index, pagination_container) {
         showLinks(new_page_index);
         current_page = new_page_index;
-        initTree();
+        initTrees();
         return false;
       }
 
@@ -26,15 +27,23 @@
         });
       }
 
-      function initTree() {
-        $(".details_tree").treeview();
+      function initTrees() {
+        $(".details-tree").treeview({
+            collapsed: true
+        });
+        $(".confidencebar").progressbar({
+			value: 37
+		});
+
       }
 
       function toggleLinkDetails(linkid) {
-        if ($("#"+linkid).is(":visible")) {
-          $("#"+linkid).slideUp(300);
+        if ($("#details" + linkid).is(":visible")) {
+            $("#toggle" + linkid + " > span").removeClass('ui-icon ui-icon-triangle-1-s').addClass('ui-icon ui-icon-triangle-1-e');
+            $("#details" + linkid).slideUp(300);
         } else {
-          $("#"+linkid).slideDown(300);
+            $("#toggle"+linkid + " > span").removeClass('ui-icon ui-icon-triangle-1-e').addClass('ui-icon ui-icon-triangle-1-s');
+            $("#details"+linkid).slideDown(300);
         }
       }
 
@@ -56,8 +65,6 @@
   </lift:bind-at>
 
   <lift:bind-at name="content">
-
-    <br />
 
     <div class="navigation"></div>
 
