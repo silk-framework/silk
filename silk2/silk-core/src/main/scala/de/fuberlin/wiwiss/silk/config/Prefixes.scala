@@ -17,6 +17,16 @@ class Prefixes(private val prefixMap : Map[String, String])
     new Prefixes(prefixMap ++ prefixes.prefixMap)
   }
 
+  def resolve(qualifiedName : String) = qualifiedName.split(":", 2) match
+  {
+    case Array(prefix, suffix) => prefixMap.get(prefix) match
+    {
+      case Some(resolvedPrefix) => resolvedPrefix + suffix
+      case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
+    }
+    case _ => throw new IllegalArgumentException("No prefix found in " + qualifiedName)
+  }
+
   def toXML =
   {
     <Prefixes>
