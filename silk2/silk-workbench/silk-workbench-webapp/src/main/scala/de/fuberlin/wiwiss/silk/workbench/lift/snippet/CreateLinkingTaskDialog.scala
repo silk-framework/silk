@@ -13,7 +13,8 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.common.Empty
-import de.fuberlin.wiwiss.silk.linkspec.{Restrictions, LinkFilter, DatasetSpecification, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkspec.{LinkFilter, DatasetSpecification, LinkSpecification}
+import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
 
 /**
  * A dialog to create new linking tasks.
@@ -39,8 +40,8 @@ class CreateLinkingTaskDialog
           LinkSpecification(
             id = name,
             linkType = linkType,
-            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, Restrictions.fromSparql(sourceRestriction)),
-                                        DatasetSpecification(targetId, Constants.TargetVariable, Restrictions.fromSparql(targetRestriction))),
+            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
+                                        DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction))),
             condition = LinkCondition(None),
             filter = LinkFilter(0.95, None),
             outputs = Nil

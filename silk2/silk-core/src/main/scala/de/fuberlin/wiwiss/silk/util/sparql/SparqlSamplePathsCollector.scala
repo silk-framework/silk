@@ -1,9 +1,8 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
-import de.fuberlin.wiwiss.silk.linkspec.Restrictions
-import de.fuberlin.wiwiss.silk.instance.{ForwardOperator, Path}
 import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, ForwardOperator, Path}
 
 /**
  * Retrieves the most frequent paths of a number of random sample instances.
@@ -22,7 +21,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
 
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
-  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions, limit : Option[Int]) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) : Traversable[(Path, Double)] =
   {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
@@ -31,7 +30,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     getInstancesPaths(endpoint, sampleInstances, variable, limit.getOrElse(100))
   }
 
-  private def getInstances(endpoint : SparqlEndpoint, restrictions : Restrictions, variable : String) : Traversable[String] =
+  private def getInstances(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String) : Traversable[String] =
   {
     val sparql = "SELECT ?" + variable + " WHERE {\n" +
       restrictions.toSparql + ".\n" +

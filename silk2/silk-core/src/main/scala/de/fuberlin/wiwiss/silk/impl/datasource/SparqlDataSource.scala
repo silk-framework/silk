@@ -3,10 +3,9 @@ package de.fuberlin.wiwiss.silk.impl.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.net.URI
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.linkspec.Restrictions
-import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
 import de.fuberlin.wiwiss.silk.util.sparql.{SparqlSamplePathsCollector, SparqlAggregatePathsCollector, InstanceRetriever, RemoteSparqlEndpoint}
 import java.util.logging.{Level, Logger}
+import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecification}
 
 /**
  * DataSource which retrieves all instances from a SPARQL endpoint
@@ -44,7 +43,7 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
     instanceRetriever.retrieve(instanceSpec, instanceUris union instances)
   }
 
-  override def retrievePaths(restrictions : Restrictions, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
+  override def retrievePaths(restrictions : SparqlRestriction, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
   {
     //Create an endpoint which fails after 3 retries
     val failFastEndpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, 3, 1000)
