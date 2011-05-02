@@ -7,16 +7,18 @@ import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link
-import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{UserData, User}
+import de.fuberlin.wiwiss.silk.linkspec.evaluation.DetailedEvaluator
+import xml.{Text, NodeSeq}
 
 /**
 * A widget which displays the generated links of the evaluation server.
 */
-class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
+class EvaluationLinks extends CometActor
 {
-  User().evaluationTask.subscribe(this)
+  /** The number of links shown on one page */
+  private val pageSize = 100
 
   /** Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
@@ -24,22 +26,38 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   /** The time of the last update */
   private var lastUpdateTime = 0L
 
-  private val pageSize = 100
-
-  override def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
+  /** Register to status messages of the evaluation task in order to be notified when new links are available */
+  User().evaluationTask.subscribe(new Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
   {
-    if(status.isInstanceOf[Finished] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod )
+    def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
     {
       status match
       {
-        case Task.StatusChanged(_, _) => partialUpdate(updateLinks)
-        case Task.Finished(_, _) => partialUpdate(updateLinks)
+        case Task.Started() =>
+        {
+        }
+        case Task.StatusChanged(_, _) if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
+        {
+          partialUpdate(updateLinks)
+          lastUpdateTime = System.currentTimeMillis
+        }
+        case Task.Finished(_, _) =>
+        {
+          partialUpdate(updateLinks)
+        }
         case _ =>
       }
-
-      lastUpdateTime = System.currentTimeMillis
     }
-  }
+  })
+
+  /** Register to updates to the ShowReferenceLinks variable */
+  ShowReferenceLinks.subscribe(new Subscriber[UserData.ValueUpdated[Boolean], Publisher[UserData.ValueUpdated[Boolean]]]
+  {
+    def notify(pub : Publisher[UserData.ValueUpdated[Boolean]], status : UserData.ValueUpdated[Boolean])
+    {
+      partialUpdate(updateLinks)
+    }
+  })
 
   override def render =
   {
@@ -53,28 +71,28 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
 
   private def updateLinks() : JsCmd =
   {
-    JsRaw("initPagination(" + User().evaluationTask.links.size + ");" +
+    JsRaw("initPagination(" + links.size + ");" +
           "showLinks(current_page);").cmd
   }
 
   private def showLinks(page : Int) =
   {
     val html =
-        <div>
-            <div class="link">
-                <div class="link-header heading">
-                    <div class="source-link">Source</div>
-                    <div class="target-link">Target</div>
-                    <div>Confidence</div>
-                </div>
-            </div>
-            {
-              for((link, correct) <- User().evaluationTask.links.view(page * pageSize, (page + 1) * pageSize)) yield
-              {
-                renderLink(link, correct)
-              }
-            }
+      <div>
+        <div class="link">
+          <div class="link-header heading">
+            <div class="source-link">Source</div>
+            <div class="target-link">Target</div>
+            <div>Confidence</div>
+          </div>
         </div>
+        {
+          for((link, correct) <- links.view(page * pageSize, (page + 1) * pageSize)) yield
+          {
+            renderLink(link, correct)
+          }
+        }
+      </div>
 
     SetHtml("results", html) & JsRaw("initTrees();").cmd
   }
@@ -95,11 +113,23 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
           <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
         </div>
         <div class="link-details" id={getId(link, "details")}>
-            <ul class="details-tree">
-              { renderSimilarity(link.details.get) }
-            </ul>
+        { renderDetails(link.details) }
         </div>
     </div>
+  }
+
+  private def renderDetails(details : Option[Link.Similarity]) : NodeSeq =
+  {
+    details match
+    {
+      case Some(similarity) =>
+      {
+        <ul class="details-tree">
+        { renderSimilarity(similarity) }
+        </ul>
+      }
+      case None => Text("No details")
+    }
   }
 
   private def renderSimilarity(similarity : Link.Similarity) : NodeSeq = similarity match
@@ -144,4 +174,35 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   {
     prefix + link.hashCode
   }
+
+  private def links : Traversable[(Link, Int)] =
+  {
+    if(ShowReferenceLinks())
+    {
+      val linkingTask = User().linkingTask
+      val condition = linkingTask.linkSpec.condition
+      val instances = User().linkingTask.cache.instances
+
+      if(instances != null)
+      {
+        val positiveLinks = instances.positive.flatMap(instance => DetailedEvaluator(condition, instance, 0.0)).map(link => (link, 1))
+        val negativeLinks = instances.negative.flatMap(instance => DetailedEvaluator(condition, instance, 0.0)).map(link => (link, -1))
+
+        positiveLinks ++ negativeLinks
+      }
+      else
+      {
+        val positiveLinks = linkingTask.alignment.positiveLinks.map(link => (link, 1))
+        val negativeLinks = linkingTask.alignment.negativeLinks.map(link => (link, -1))
+
+        positiveLinks ++ negativeLinks
+      }
+    }
+    else
+    {
+      User().evaluationTask.links
+    }
+  }
 }
+
+object ShowReferenceLinks extends UserData[Boolean](false)

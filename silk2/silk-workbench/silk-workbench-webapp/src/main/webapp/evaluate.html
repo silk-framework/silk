@@ -55,18 +55,25 @@
           $(".link-details").hide();
       }
 
+      $(function() {
+		    $("#selectLinks").buttonset();
+	    });
+
     </script>
 
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:evaluate.toolbar>
+    <lift:evaluate.toolbar form="POST">
       <ul>
         <li>
           <entry:control/>
         </li>
         <li>
           <lift:comet type="EvaluationProgress" name="EvaluationProgress" />
+        </li>
+        <li>
+          <entry:selectLinks/>
         </li>
       </ul>
     </lift:evaluate.toolbar>
