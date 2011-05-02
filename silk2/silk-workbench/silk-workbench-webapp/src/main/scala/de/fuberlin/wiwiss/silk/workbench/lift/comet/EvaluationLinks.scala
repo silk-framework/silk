@@ -63,9 +63,9 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
         <div>
             <div class="link">
                 <div class="link-header heading">
-                    <div class="source-link">Source</div>
-                    <div class="target-link">Target</div>
-                    <div>Confidence</div>
+                    <div class="source-link"><span>Source</span></div>
+                    <div class="target-link"><span>Target</span></div>
+                    <div><span>Confidence</span></div>
                 </div>
             </div>
             {
