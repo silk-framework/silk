@@ -30,8 +30,11 @@
 }
 
 .source-link, .target-link {
-    margin-left: 3px;
-    min-width: 450px;
+    width: 450px;
+    margin-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .link-details {
@@ -46,7 +49,8 @@
 
 .confidence {
     position: absolute;
-    font-size: 12px;
+    font-size: 11px;
+    margin-left: 14px;
 }
 
 .link-over {
@@ -54,7 +58,7 @@
 }
 
 .heading  {
-    padding-left: 15px;
+    padding-left: 18px;
 }
 
 .heading div {
@@ -85,4 +89,8 @@
 
 .toggle-all {
     padding-right: 8px;
+}
+
+.ui-icon {
+    margin-right: 3px;
 }
