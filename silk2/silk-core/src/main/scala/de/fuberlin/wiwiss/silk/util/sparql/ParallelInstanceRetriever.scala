@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.util.sparql
 
 import de.fuberlin.wiwiss.silk.instance.{Path, Instance, InstanceSpecification}
 import collection.mutable.SynchronizedQueue
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 /**
  * InstanceRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single instances.
@@ -14,6 +14,8 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
   private val maxQueueSize = 1000
 
   private val logger = Logger.getLogger(classOf[ParallelInstanceRetriever].getName)
+
+  private var failed = false
 
   /**
    * Retrieves instances with a given instance specification.
@@ -34,30 +36,42 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
   {
     override def foreach[U](f : Instance => U)
     {
-      var failed = false
+      var inconsistentOrder = false
       var counter = 0
 
       val pathRetrievers = for(path <- instanceSpec.paths) yield new PathRetriever(instanceUris, instanceSpec, path)
 
       pathRetrievers.foreach(_.start())
 
-      while(pathRetrievers.forall(_.hasNext) && !failed)
+      try
       {
-        val pathValues = for(pathRetriever <- pathRetrievers) yield pathRetriever.next()
-
-        if(pathValues.tail.forall(_.uri == pathValues.head.uri))
+        while(pathRetrievers.forall(_.hasNext) && !inconsistentOrder)
         {
-          f(new Instance(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, instanceSpec))
+          val pathValues = for(pathRetriever <- pathRetrievers) yield pathRetriever.next()
 
-          counter += 1
+          if(pathValues.tail.forall(_.uri == pathValues.head.uri))
+          {
+            f(new Instance(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, instanceSpec))
+
+            counter += 1
+          }
+          else
+          {
+            inconsistentOrder = true
+            failed = true
+          }
         }
-        else
+      }
+      catch
+      {
+        case ex : Exception =>
         {
+          logger.log(Level.WARNING, "Failed to execute query for '" + instanceSpec.restrictions + "'", ex)
           failed = true
         }
       }
 
-      if(failed)
+      if(inconsistentOrder)
       {
         logger.warning("Cannot execute queries in parallel because the endpoint returned the results in different orders.")
         val simpleInstanceRetriever = new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
@@ -160,6 +174,11 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
       for(result <- sparqlResults)
       {
+        if(failed)
+        {
+          return
+        }
+
         if(!fixedSubject.isDefined)
         {
           //Check if we are still reading values for the current subject
