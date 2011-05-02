@@ -23,7 +23,7 @@ trait InstanceRetriever
 object InstanceRetriever
 {
   //Uses the parallel instance retriever by default as it is generally significantly faster.
-  var useParallelRetriever = false
+  var useParallelRetriever = true
 
   /**
    * Creates a new InstanceRetriever instance.
