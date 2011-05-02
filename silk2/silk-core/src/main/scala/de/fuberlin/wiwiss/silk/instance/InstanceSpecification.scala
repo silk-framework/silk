@@ -41,7 +41,7 @@ object InstanceSpecification
   {
     new InstanceSpecification(
       variable = node \ "Variable" text,
-      restrictions = SparqlRestriction.fromXML(node \ "SparqlRestriction" head)(Prefixes.empty),
+      restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
       paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text)
     )
   }
