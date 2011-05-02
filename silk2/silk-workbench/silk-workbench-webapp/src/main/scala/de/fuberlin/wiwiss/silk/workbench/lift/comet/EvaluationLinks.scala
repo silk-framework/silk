@@ -92,7 +92,7 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
           <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
           <div class="source-link"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
           <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
-          <div class="confidencebar"><div class="confidence">{link.confidence*100}%</div></div>
+          <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
         </div>
         <div class="link-details" id={getId(link, "details")}>
             <ul class="details-tree">
@@ -128,7 +128,7 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   }
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <li><div class="confidencebar"><div class="confidence">{ v.toString }%</div></div></li>
+    case Some(v) => <li><div class="confidencebar"><div class="confidence">{"%.1f".format(v * 100)}%</div></div></li>
     case None => NodeSeq.Empty
   }
 
