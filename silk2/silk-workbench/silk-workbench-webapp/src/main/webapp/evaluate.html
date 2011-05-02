@@ -11,12 +11,12 @@
 
     <script type="text/javascript" >
 
-      var current_page = 0;
+      var current_page = 1;
 
       function handlePaginationClick(new_page_index, pagination_container) {
         showLinks(new_page_index);
         current_page = new_page_index;
-        initTrees();
+        //initTrees();
         return false;
       }
 
@@ -31,20 +31,28 @@
         $(".details-tree").treeview({
             collapsed: true
         });
-        $(".confidencebar").progressbar({
-			value: 37
-		});
-
+        $(".confidencebar").each(function(index) {
+            $(this).progressbar({
+			    value: parseInt($(this).text())
+		    });
+        });
       }
 
       function toggleLinkDetails(linkid) {
         if ($("#details" + linkid).is(":visible")) {
-            $("#toggle" + linkid + " > span").removeClass('ui-icon ui-icon-triangle-1-s').addClass('ui-icon ui-icon-triangle-1-e');
+            $("#toggle" + linkid + " > span").removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
             $("#details" + linkid).slideUp(300);
         } else {
-            $("#toggle"+linkid + " > span").removeClass('ui-icon ui-icon-triangle-1-e').addClass('ui-icon ui-icon-triangle-1-s');
+            $("#toggle"+linkid + " > span").removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
             $("#details"+linkid).slideDown(300);
         }
+      }
+
+      function expand_all() {
+          $(".link-details").show();
+      }
+      function hide_all() {
+          $(".link-details").hide();
       }
 
     </script>
@@ -69,6 +77,11 @@
     <div class="navigation"></div>
 
     <div style="clear:both;"></div>
+
+    <div id="tree-header">
+        <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+        <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+    </div>
 
     <lift:comet type="EvaluationLinks" name="EvaluationLinks" />
 
