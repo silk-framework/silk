@@ -2,25 +2,23 @@
 	padding: 20px 10px;
 }
 
-a {
+#results {
+    width: 1100px;
+    overflow: auto;
+}
+
+#results span {
     vertical-align: middle;
 }
 
-span {
+#results a {
     vertical-align: middle;
-}
-
-.link {
-    width: 100%;
 }
 
 .link-header {
     height: 20px;
-    width: 100%;
-    margin-bottom: 2px;
-    padding: 0px;
-
-    background: #ffffff; /* old browsers */
+    margin-bottom: 1px;
+    background: #f1f2f6; /* old browsers */
     background: -moz-linear-gradient(top, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100%); /* firefox */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#f1f1f1), color-stop(51%,#e1e1e1), color-stop(100%,#f6f6f6)); /* webkit */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f6f6f6',GradientType=0 ); /* ie */
@@ -29,29 +27,62 @@ span {
 
 .link-header div {
     float: left;
-    margin-right: 6px;
 }
+
+.source-link, .target-link {
+    margin-left: 3px;
+    min-width: 450px;
+}
+
 .link-details {
     display: none;
-}
-
-.source-link {
-    min-width: 450px;
-}
-
-.target-link {
-    margin-left: 20px;
-    min-width: 450px;
 }
 
 .confidencebar {
     width: 75px;
     height: 15px;
-    font-size: 12px;
     float: left;
 }
 
-#results {
-    overflow: auto;
-    width:1100px;
+.confidence {
+    position: absolute;
+    font-size: 12px;
+}
+
+.link-over {
+    background: #ededd3 !important;
+}
+
+.heading  {
+    padding-left: 15px;
+}
+
+.heading div {
+    vertical-align: middle;
+}
+
+.plus {
+    width: 9px;
+    height: 9px;
+    background-image:url('/static/jquery-ui/css/treeview/images/plus.gif');
+}
+
+.minus {
+    width: 9px;
+    height: 9px;
+    background-image:url('/static/jquery-ui/css/treeview/images/minus.gif');
+}
+
+#tree-header {
+    padding-top: 10px;
+    padding-bottom: 15px;
+}
+
+#tree-header div {
+    float: left;
+    margin-right: 4px;
+}
+
+.toggle-all {
+    padding-right: 8px;
 }

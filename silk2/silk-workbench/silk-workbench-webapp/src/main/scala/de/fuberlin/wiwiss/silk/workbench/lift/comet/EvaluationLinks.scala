@@ -60,14 +60,21 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   private def showLinks(page : Int) =
   {
     val html =
-      <div>
-        {
-          for((link, correct) <- User().evaluationTask.links.view(page * pageSize, (page + 1) * pageSize)) yield
-          {
-            renderLink(link, correct)
-          }
-        }
-      </div>
+        <div>
+            <div class="link">
+                <div class="link-header heading">
+                    <div class="source-link">Source</div>
+                    <div class="target-link">Target</div>
+                    <div>Confidence</div>
+                </div>
+            </div>
+            {
+              for((link, correct) <- User().evaluationTask.links.view(page * pageSize, (page + 1) * pageSize)) yield
+              {
+                renderLink(link, correct)
+              }
+            }
+        </div>
 
     SetHtml("results", html) & JsRaw("initTrees();").cmd
   }
@@ -81,11 +88,11 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
   private def renderLink(link : Link, correct : Int) =
   {
     <div class="link">
-        <div class="link-header">
-          <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e" onclick={"toggleLinkDetails('" + getId(link) + "');"} ></span></div>
+        <div class="link-header" onclick={"toggleLinkDetails('" + getId(link) + "');"} onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
+          <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
           <div class="source-link"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
           <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
-          <div class="confidencebar">{link.confidence}</div>
+          <div class="confidencebar"><div class="confidence">{link.confidence*100}%</div></div>
         </div>
         <div class="link-details" id={getId(link, "details")}>
             <ul class="details-tree">
@@ -119,10 +126,9 @@ class EvaluationLinks extends CometActor with Subscriber[Task.StatusMessage, Pub
       </li>
     }
   }
-
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <li><span class="confidence">Confidence:{ v.toString }</span></li>
+    case Some(v) => <li><div class="confidencebar"><div class="confidence">{ v.toString }%</div></div></li>
     case None => NodeSeq.Empty
   }
 
