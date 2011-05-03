@@ -10,17 +10,20 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.util.Identifier
+import java.util.logging.{Level, Logger}
+import collection.mutable.SynchronizedQueue
+import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 
 /**
  * Implementation of a project which is stored on the local file system.
  */
 class FileProject(file : File) extends Project
 {
-  private val logger = Logger.getLogger(classOf[FileProject].getName)
+  private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
   private var cachedConfig : Option[ProjectConfig] = None
+
+  private var changed = false
 
   /**
    * The name of this project
@@ -76,6 +79,8 @@ class FileProject(file : File) extends Project
    */
   override val linkingModule = new FileLinkingModule(file + "/linking")
 
+  new WriteThread().start()
+
   /**
    * The source module which encapsulates all data sources.
    */
@@ -118,67 +123,95 @@ class FileProject(file : File) extends Project
     file.mkdir()
 
     @volatile
-    private var cachedTasks : Option[Traversable[LinkingTask]] = None
+    private var cachedTasks : Map[Identifier, LinkingTask] = load()
+
+    @volatile
+    private var updatedTasks = new SynchronizedQueue[LinkingTask]()
 
     override def config = LinkingConfig()
 
     override def config_=(c : LinkingConfig) {}
 
-    override def tasks = synchronized
+    override def tasks =
     {
-      if(cachedTasks.isEmpty)
-      {
-        cachedTasks = Some(loadTasks)
-      }
-
-      cachedTasks.get
+      cachedTasks.values
     }
 
-    override def update(task : LinkingTask) = synchronized
+    override def update(task : LinkingTask)
     {
-      val taskDir = file + ("/" + task.name)
-      taskDir.mkdir()
-
-      //Don't use any prefixes
-      implicit val prefixes = Prefixes.empty
-
-      task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
-      task.alignment.toXML.write(taskDir+ "/alignment.xml")
-      task.cache.toXML.write(taskDir +  "/cache.xml")
-
-      task.loadCache(FileProject.this)
-
-      cachedTasks = None
+      cachedTasks += (task.name -> task)
+      updatedTasks.enqueue(task)
 
       logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
 
-    override def remove(taskId : Identifier) = synchronized
+    override def remove(taskId : Identifier)
     {
       (file + ("/" + taskId)).deleteRecursive()
 
-      cachedTasks = None
+      cachedTasks -= taskId
 
       logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")
     }
 
-    private def loadTasks : Traversable[LinkingTask] =
+    private def load() : Map[Identifier, LinkingTask] =
     {
-      for(fileName <- file.list.toList) yield
+      val tasks =
+        for(fileName <- file.list.toList) yield
+        {
+          val projectConfig = FileProject.this.config
+
+          val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+
+          val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
+
+          val cache = Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+
+          val linkingTask = LinkingTask(fileName, linkSpec, alignment, cache)
+
+          linkingTask.loadCache(FileProject.this)
+
+          linkingTask
+        }
+
+      tasks.map(task => (task.name, task)).toMap
+    }
+
+    def write()
+    {
+      for(task <- updatedTasks.dequeueAll(_ => true)) Timer("Writing task " + task.name + " to disk")
       {
-        val projectConfig = FileProject.this.config
+        val taskDir = file + ("/" + task.name)
+        taskDir.mkdir()
 
-        val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+        //Don't use any prefixes
+        implicit val prefixes = Prefixes.empty
 
-        val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
+        task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
+        task.alignment.toXML.write(taskDir+ "/alignment.xml")
+        task.cache.toXML.write(taskDir +  "/cache.xml")
 
-        val cache = Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+        task.loadCache(FileProject.this)
+      }
+    }
+  }
 
-        val linkingTask = LinkingTask(fileName, linkSpec, alignment, cache)
+  class WriteThread extends Thread
+  {
+    override def run()
+    {
+      while(true)
+      {
+        try
+        {
+          linkingModule.write()
+        }
+        catch
+        {
+          case ex : Exception => logger.log(Level.WARNING, "Error writing linking tasks", ex)
+        }
 
-        linkingTask.loadCache(FileProject.this)
-
-        linkingTask
+        Thread.sleep(10000)
       }
     }
   }
