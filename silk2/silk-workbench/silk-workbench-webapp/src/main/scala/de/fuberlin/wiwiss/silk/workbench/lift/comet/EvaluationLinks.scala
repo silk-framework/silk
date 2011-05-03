@@ -2,12 +2,11 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import collection.mutable.{Publisher, Subscriber}
 import de.fuberlin.wiwiss.silk.util.Task
-import de.fuberlin.wiwiss.silk.util.Task.Finished
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link
-import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
+import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{UserData, User}
 import de.fuberlin.wiwiss.silk.linkspec.evaluation.DetailedEvaluator
 import xml.{Text, NodeSeq}
@@ -106,15 +105,27 @@ class EvaluationLinks extends CometActor
   private def renderLink(link : Link, correct : Int) =
   {
     <div class="link">
-        <div class="link-header" onclick={"toggleLinkDetails('" + getId(link) + "');"} onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
-          <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
-          <div class="source-link"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
-          <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
-          <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
+      <div class="link-header" onclick={"toggleLinkDetails('" + getId(link) + "');"} onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
+        <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
+        <div class="source-link"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
+        <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
+        <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
+        <div class="link-buttons">
+          <div id={getId(link, "unknownLink")} style={if(correct == 0) "display:block" else "display:none"}>
+          {SHtml.a(() => declineLink(link), <img src="./static/img/decline.png" />)}
+          {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
+          </div>
+          <div id={getId(link, "confirmedLink")} style={if(correct == 1) "display:block" else "display:none"}>
+          {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
+          </div>
+          <div id={getId(link, "declinedLink")} style={if(correct == -1) "display:block" else "display:none"}>
+          {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
+          </div>
         </div>
-        <div class="link-details" id={getId(link, "details")}>
-        { renderDetails(link.details) }
-        </div>
+      </div>
+      <div class="link-details" id={getId(link, "details")}>
+      { renderDetails(link.details) }
+      </div>
     </div>
   }
 
@@ -168,6 +179,44 @@ class EvaluationLinks extends CometActor
     {
       <li><span class="input">{ path.toString + ": " + values.mkString(", ") }</span></li>
     }
+  }
+
+  private def confirmLink(link : Link) =
+  {
+    val linkingTask = User().linkingTask
+    val alignment = linkingTask.alignment
+    val positiveLinks = alignment.positiveLinks
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positiveLinks = positiveLinks + link))
+
+    User().project.linkingModule.update(updatedTask)
+    User().task = updatedTask
+
+    JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "unknownLink"))
+  }
+
+  private def declineLink(link : Link) =
+  {
+    val linkingTask = User().linkingTask
+    val alignment = linkingTask.alignment
+    val negativeLinks = alignment.negativeLinks
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(negativeLinks = negativeLinks + link))
+
+    User().project.linkingModule.update(updatedTask)
+    User().task = updatedTask
+
+    JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "unknownLink"))
+  }
+
+  private def resetLink(link : Link) =
+  {
+    val linkingTask = User().linkingTask
+    val alignment = linkingTask.alignment
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positiveLinks = alignment.positiveLinks - link, negativeLinks = alignment.negativeLinks - link))
+
+    User().project.linkingModule.update(updatedTask)
+    User().task = updatedTask
+
+    JsShowId(getId(link, "unknownLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))
   }
 
   private def getId(link : Link, prefix : String = "") =
