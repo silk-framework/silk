@@ -58,8 +58,7 @@ class Boot
     val entries =
         Menu(Loc("Workspace", List("index"), workspaceText, ifLinkingTaskClosed)) ::
         Menu(Loc("Link Specification", List("linkSpec"), linkSpecText, ifLinkingTaskOpen)) ::
-        Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifLinkingTaskOpen)) ::
-        Menu(Loc("Reference Links", List("alignment"), "Reference Links", ifLinkingTaskOpen)) :: Nil
+        Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifLinkingTaskOpen)) :: Nil
 
     LiftRules.setSiteMap(SiteMap(entries:_*))
 

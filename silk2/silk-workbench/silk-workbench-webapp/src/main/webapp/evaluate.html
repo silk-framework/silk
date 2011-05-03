@@ -75,8 +75,19 @@
         <li>
           <entry:selectLinks/>
         </li>
+        <li>
+          <entry:importReferenceLinks/>
+        </li>
       </ul>
+      <entry:scripts />
     </lift:evaluate.toolbar>
+    <div id="importReferenceLinksDialog" title="Open Alignment">
+      <lift:importReferenceLinksDialog form="POST" multipart="true">
+        <entry:file/>
+        <br/>
+        <entry:submit/>
+      </lift:importReferenceLinksDialog>
+    </div>
   </lift:bind-at>
 
   <lift:bind-at name="content">
