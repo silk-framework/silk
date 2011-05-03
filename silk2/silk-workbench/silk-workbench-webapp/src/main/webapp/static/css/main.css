@@ -116,12 +116,6 @@ pre
   float: left;
 }
 
-input[type=file]
-{
-  background-color: black;
-  color: white;
-}
-
 .ui-progressbar
 {
   margin-top: 3px;
