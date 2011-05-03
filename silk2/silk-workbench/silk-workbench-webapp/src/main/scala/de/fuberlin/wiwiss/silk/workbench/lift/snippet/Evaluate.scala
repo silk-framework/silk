@@ -4,6 +4,7 @@ import xml.NodeSeq
 import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.SHtml
+import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JavaScriptUtils, Widgets}
 import de.fuberlin.wiwiss.silk.workbench.lift.comet.ShowReferenceLinks
 
@@ -21,8 +22,11 @@ class Evaluate
              <input onchange={SHtml.ajaxInvoke(showReferenceLinks)._2.cmd.toJsCmd} id="showReferenceLinks" type="radio" name="selectLinks"/> ++
              <label for="showReferenceLinks">Reference Links</label>
            }
-           </div>)
-  }
+           </div>,
+         "importReferenceLinks" -> SHtml.ajaxButton("Import Reference Links", ImportReferenceLinksDialog.openCmd _),
+         "scripts" -> Script(OnLoad(ImportReferenceLinksDialog.initCmd))
+    )
+ }
 
   private def showReferenceLinks() =
   {
