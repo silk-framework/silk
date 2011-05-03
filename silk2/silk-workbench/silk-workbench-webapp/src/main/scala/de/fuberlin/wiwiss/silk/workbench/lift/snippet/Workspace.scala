@@ -23,6 +23,7 @@ import net.liftweb.http.SHtml
  * def importProject()
  * def exportProject(projectName)
  * def editPrefixes(projectName)
+ * def addLinkSpecification(projectName)
  *
  * def createSourceTask(projectName)
  * def editSourceTask(projectName, taskName)
@@ -68,6 +69,7 @@ object Workspace
     editLinkingTaskFunction &
     openLinkingTaskFunction &
     injectFunction("removeLinkingTask", removeLinkingTask _) &
+    addLinkSpecificationFunction &
     hideLoadingDialogCmd &
     closeTaskFunction
   }
@@ -270,6 +272,23 @@ object Workspace
   private def removeLinkingTask(projectName : String, taskName : String)
   {
     User().workspace.project(projectName).linkingModule.remove(taskName)
+  }
+
+  /**
+   * Adds a link specification to the project.
+   */
+  private def addLinkSpecificationFunction =
+  {
+    def addLinkSpecification(projectName : String) =
+    {
+      User().project = User().workspace.project(projectName)
+
+      AddLinkSpecificationDialog.openCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), addLinkSpecification _)._2.cmd
+
+    AddLinkSpecificationDialog.initCmd & JsCmds.Function("addLinkSpecification", "projectName" :: Nil, ajaxCall)
   }
 
   /**
