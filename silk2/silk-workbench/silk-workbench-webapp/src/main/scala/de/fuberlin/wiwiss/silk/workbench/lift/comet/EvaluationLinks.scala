@@ -70,8 +70,7 @@ class EvaluationLinks extends CometActor
 
   private def updateLinks() : JsCmd =
   {
-    JsRaw("initPagination(" + links.size + ");" +
-          "showLinks(current_page);").cmd
+    JsRaw("initPagination(" + linkCount + ");").cmd
   }
 
   private def showLinks(page : Int) =
@@ -86,7 +85,7 @@ class EvaluationLinks extends CometActor
           </div>
         </div>
         {
-          for((link, correct) <- links.view(page * pageSize, (page + 1) * pageSize)) yield
+          for((link, correct) <- links(page * pageSize, (page + 1) * pageSize)) yield
           {
             renderLink(link, correct)
           }
@@ -224,7 +223,21 @@ class EvaluationLinks extends CometActor
     prefix + link.hashCode
   }
 
-  private def links : Traversable[(Link, Int)] =
+  private def linkCount : Int =
+  {
+    if(ShowReferenceLinks())
+    {
+      val alignment = User().linkingTask.alignment
+
+      alignment.positiveLinks.size + alignment.negativeLinks.size
+    }
+    else
+    {
+      User().evaluationTask.links.size
+    }
+  }
+
+  private def links(from : Int, until : Int) : Traversable[(Link, Int)] =
   {
     if(ShowReferenceLinks())
     {
@@ -234,22 +247,21 @@ class EvaluationLinks extends CometActor
 
       if(instances != null)
       {
-        val positiveLinks = instances.positive.flatMap(instance => DetailedEvaluator(condition, instance, 0.0)).map(link => (link, 1))
-        val negativeLinks = instances.negative.flatMap(instance => DetailedEvaluator(condition, instance, 0.0)).map(link => (link, -1))
+        val allInstances = instances.positive.view.map(p => (p, 1)) ++ instances.negative.view.map(n => (n, -1))
 
-        positiveLinks ++ negativeLinks
+        for((instance, correct) <- allInstances.view(from, until); link <- DetailedEvaluator(condition, instance, 0.0)) yield (link, correct)
       }
       else
       {
-        val positiveLinks = linkingTask.alignment.positiveLinks.map(link => (link, 1))
-        val negativeLinks = linkingTask.alignment.negativeLinks.map(link => (link, -1))
+        val positiveLinks = linkingTask.alignment.positiveLinks.view.map(link => (link, 1))
+        val negativeLinks = linkingTask.alignment.negativeLinks.view.map(link => (link, -1))
 
-        positiveLinks ++ negativeLinks
+        (positiveLinks ++ negativeLinks).view(from, until)
       }
     }
     else
     {
-      User().evaluationTask.links
+      User().evaluationTask.links.view(from, until)
     }
   }
 }

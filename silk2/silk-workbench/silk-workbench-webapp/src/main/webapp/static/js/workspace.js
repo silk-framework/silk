@@ -306,7 +306,7 @@ function getIcon(type){
         case 'ds_add' : icon = "ui-icon-plus";  break;
         case 'ds_edit' : icon = "ui-icon-wrench";  break;
         case 'link_add' : icon = "ui-icon-plus";  break;
-        case 'add_linkspec' : icon = "ui-icon-plus";  break;
+        case 'add_linkspec' : icon = "ui-icon-arrowthickstop-1-s";  break;
         case 'link_edit' : icon = "ui-icon-wrench";  break;
         case 'link_spec': icon = "ui-icon-shuffle"; break;
         case 'delete' : icon = "ui-icon-trash";  break;
