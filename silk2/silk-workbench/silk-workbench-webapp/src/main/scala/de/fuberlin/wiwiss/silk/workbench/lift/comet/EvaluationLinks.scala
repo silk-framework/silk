@@ -125,6 +125,7 @@ class EvaluationLinks extends CometActor
       <div class="link-details" id={getId(link, "details")}>
       { renderDetails(link.details) }
       </div>
+      <div style="clear:both"></div>
     </div>
   }
 
@@ -147,9 +148,8 @@ class EvaluationLinks extends CometActor
     case Link.AggregatorSimilarity(value, children) =>
     {
       <li>
-        <span class="aggregation">Aggregation</span>
+        <span class="aggregation">Aggregation</span>{ renderConfidence(value) }
           <ul>
-            { renderConfidence(value) }
             { children.map(renderSimilarity) }
           </ul>
       </li>
@@ -157,9 +157,8 @@ class EvaluationLinks extends CometActor
     case Link.ComparisonSimilarity(value, input1, input2) =>
     {
       <li>
-        <span class="comparison">Comparison</span>
+        <span class="comparison">Comparison</span>{ renderConfidence(value) }
           <ul>
-            { renderConfidence(value) }
             { renderInputValue(input1) }
             { renderInputValue(input2) }
           </ul>
@@ -168,7 +167,7 @@ class EvaluationLinks extends CometActor
   }
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <li><div class="confidencebar"><div class="confidence">{"%.1f".format(v * 100)}%</div></div></li>
+    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format(v * 100)}%</div></div>
     case None => NodeSeq.Empty
   }
 

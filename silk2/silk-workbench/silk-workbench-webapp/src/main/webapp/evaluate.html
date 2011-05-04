@@ -28,13 +28,17 @@
       }
 
       function initTrees() {
-        $(".details-tree").treeview({
-            collapsed: true
-        });
+        $(".details-tree").treeview();
+
+        // fix '+' and '-' icons:
+        $("li.expandable").removeClass("expandable").addClass("collapsable");
+        $("li.lastExpandable").removeClass("lastExpandable").addClass("lastCollapsable");
+        $("div.expandable-hitarea").removeClass("expandable-hitarea").addClass("collapsable-hitarea");
+
         $(".confidencebar").each(function(index) {
             $(this).progressbar({
-			    value: parseInt($(this).text())
-		    });
+			        value: parseInt($(this).text())
+		        });
         });
       }
 
