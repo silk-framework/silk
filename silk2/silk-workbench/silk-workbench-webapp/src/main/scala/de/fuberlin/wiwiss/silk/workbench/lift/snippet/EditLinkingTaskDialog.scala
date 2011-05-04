@@ -40,7 +40,7 @@ class EditLinkingTaskDialog
 
         val updatedLinkSpec = linkingTask.linkSpec.copy(id = name, datasets = updatedDatasets, linkType = linkType)
 
-        val updatedLinkingTask = linkingTask.copy(name = name, linkSpec = updatedLinkSpec, cache = new Cache())
+        val updatedLinkingTask = linkingTask.copy(linkSpec = updatedLinkSpec, cache = new Cache())
 
         if(linkingTask.name != updatedLinkingTask.name)
         {
