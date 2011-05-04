@@ -115,10 +115,10 @@ class EvaluationLinks extends CometActor
           {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
           </div>
           <div id={getId(link, "confirmedLink")} style={if(correct == 1) "display:block" else "display:none"}>
-          {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
+          {SHtml.a(() => resetLink(link), <img src="./static/img/correct.png" />)}
           </div>
           <div id={getId(link, "declinedLink")} style={if(correct == -1) "display:block" else "display:none"}>
-          {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
+          {SHtml.a(() => resetLink(link), <img src="./static/img/uncorrect.png" />)}
           </div>
         </div>
       </div>
