@@ -6,11 +6,12 @@ import de.fuberlin.wiwiss.silk.util.{Task, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, SparqlEndpoint}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
+import de.fuberlin.wiwiss.silk.output.Link
 
 //TODO use options?
 //TODO store path frequencies
 class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
-            var instances : ReferenceInstances = null)
+            var instances : ReferenceInstances = ReferenceInstances.empty)
 {
   def toXML(implicit prefixes : Prefixes) : Node =
   {
@@ -33,7 +34,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
     {
       nodes.append(
           <PositiveInstances>{
-          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.positive) yield
+          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.positive.values) yield
           {
             <Pair>
               <Source>{sourceInstance.toXML}</Source>
@@ -44,7 +45,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
       nodes.append(
         <NegativeInstances>{
-          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.negative) yield
+          for(SourceTargetPair(sourceInstance, targetInstance) <- instances.negative.values) yield
           {
             <Pair>
               <Source>{sourceInstance.toXML}</Source>
@@ -76,11 +77,11 @@ object Cache
       }
     }
 
-    val positiveInstances =
+    val positiveInstances : Traversable[SourceTargetPair[Instance]] =
     {
       if(node \ "PositiveInstances" isEmpty)
       {
-        null
+        Traversable.empty
       }
       else
       {
@@ -93,11 +94,11 @@ object Cache
       }
     }
 
-    val negativeInstances =
+    val negativeInstances : Traversable[SourceTargetPair[Instance]] =
     {
       if(node \ "NegativeInstances" isEmpty)
       {
-        null
+        Traversable.empty
       }
       else
       {
@@ -110,8 +111,6 @@ object Cache
       }
     }
 
-    val instances = if(positiveInstances != null && negativeInstances != null) ReferenceInstances(positiveInstances, negativeInstances) else null
-
-    new Cache(instanceSpecs, instances)
+    new Cache(instanceSpecs, ReferenceInstances.fromInstances(positiveInstances, negativeInstances))
   }
 }

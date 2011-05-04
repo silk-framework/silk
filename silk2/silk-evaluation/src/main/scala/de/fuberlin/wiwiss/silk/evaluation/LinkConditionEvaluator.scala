@@ -17,7 +17,7 @@ object LinkConditionEvaluator
     var positiveScore : Double = instances.positive.size
     var negativeScore : Double = instances.negative.size
 
-    for(instancePair <- instances.positive)
+    for(instancePair <- instances.positive.values)
     {
       val confidence = linkCondition(instancePair, threshold)
 
@@ -33,7 +33,7 @@ object LinkConditionEvaluator
       }
     }
 
-    for(instancePair <- instances.negative)
+    for(instancePair <- instances.negative.values)
     {
       val confidence = linkCondition(instancePair, threshold)
 

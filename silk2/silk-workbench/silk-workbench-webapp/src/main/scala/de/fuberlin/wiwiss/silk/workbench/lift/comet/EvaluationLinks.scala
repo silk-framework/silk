@@ -243,21 +243,30 @@ class EvaluationLinks extends CometActor
     {
       val linkingTask = User().linkingTask
       val condition = linkingTask.linkSpec.condition
-      val instances = User().linkingTask.cache.instances
+      val alignment = linkingTask.alignment
+      val instances = linkingTask.cache.instances
 
-      if(instances != null)
+      val positiveLinks =
       {
-        val allInstances = instances.positive.view.map(p => (p, 1)) ++ instances.negative.view.map(n => (n, -1))
-
-        for((instance, correct) <- allInstances.view(from, until); link <- DetailedEvaluator(condition, instance, 0.0)) yield (link, correct)
+        for(link <- alignment.positiveLinks.view(from, until)) yield instances.positive.get(link) match
+        {
+          case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, 1)
+          case None => (link, 1)
+        }
       }
-      else
+
+      val negativeLinks =
       {
-        val positiveLinks = linkingTask.alignment.positiveLinks.view.map(link => (link, 1))
-        val negativeLinks = linkingTask.alignment.negativeLinks.view.map(link => (link, -1))
+        val offset = positiveLinks.size
 
-        (positiveLinks ++ negativeLinks).view(from, until)
+        for(link <- alignment.negativeLinks.view(from - offset, until - offset)) yield instances.positive.get(link) match
+        {
+          case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, -1)
+          case None => (link, -1)
+        }
       }
+
+      positiveLinks ++ negativeLinks
     }
     else
     {
