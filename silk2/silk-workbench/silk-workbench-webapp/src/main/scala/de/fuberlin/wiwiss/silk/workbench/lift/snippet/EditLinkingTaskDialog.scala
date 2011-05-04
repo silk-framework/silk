@@ -3,7 +3,6 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.Cache
@@ -26,6 +25,7 @@ class EditLinkingTaskDialog
     var sourceRestriction = ""
     var targetRestriction = ""
     var linkType = ""
+    var name = ""
     val prefixes : Map[String, String] = Map.empty
 
     def submit() =
@@ -38,10 +38,14 @@ class EditLinkingTaskDialog
         val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
                                                DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction)))
 
-        val updatedLinkSpec = linkingTask.linkSpec.copy(datasets = updatedDatasets, linkType = linkType)
+        val updatedLinkSpec = linkingTask.linkSpec.copy(id = name, datasets = updatedDatasets, linkType = linkType)
 
-        val updatedLinkingTask = linkingTask.copy(linkSpec = updatedLinkSpec, cache = new Cache())
+        val updatedLinkingTask = linkingTask.copy(name = name, linkSpec = updatedLinkSpec, cache = new Cache())
 
+        if(linkingTask.name != updatedLinkingTask.name)
+        {
+          User().project.linkingModule.remove(linkingTask.name)
+        }
         User().project.linkingModule.update(updatedLinkingTask)
         User().closeTask()
 
@@ -55,6 +59,7 @@ class EditLinkingTaskDialog
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
+         "name" -> SHtml.text(name, name = _, "id" -> "editLinkName", "size" -> "60", "title" -> "Linking task name"),
          "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "editSourceId", "title" -> "Source dataset"),
          "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "editSourceRes", "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
          "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "editTargetId",  "title" -> "Target dataset"),
@@ -102,6 +107,8 @@ object EditLinkingTaskDialog
         }
       }
 
+    //Update name
+    JsRaw("$('#editLinkName').val('" + linkingTask.name + "');").cmd &
     //Update source lists
     JsRaw("$('#editSourceId').children().remove();").cmd &
     JsRaw("$('#editSourceId').append('" + sourceOptions.mkString + "');").cmd &
