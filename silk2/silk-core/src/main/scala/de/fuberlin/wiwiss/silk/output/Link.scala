@@ -5,11 +5,11 @@ import de.fuberlin.wiwiss.silk.instance.Path
 /**
  * Represents a link between two instances.
  *
- * @sourceUri the source URI
- * @targetUri the target URI
- * @confidence the confidence that this link is correct. Allowed values: [0.0, 1.0]
+ * @param sourceUri the source URI
+ * @param targetUri the target URI
+ * @param confidence the confidence that this link is correct. Allowed values: [0.0, 1.0]
  */
-class Link(val sourceUri : String, val targetUri : String, val confidence : Double, val details : Option[Link.Similarity] = None)
+class Link(val sourceUri : String, val targetUri : String, val confidence : Double = 0.0, val details : Option[Link.Similarity] = None)
 {
   require(confidence >= 0.0 && confidence <= 1.0, "confidence >= 0.0 && confidence <= 1.0 (confidence=" + confidence)
 
@@ -18,7 +18,6 @@ class Link(val sourceUri : String, val targetUri : String, val confidence : Doub
   /**
    * Compares two Links for equality.
    * Two Links are considered equal if their source and target URIs match.
-   * The confidence is ignored in the comparison.
    */
   override def equals(other : Any) = other match
   {
