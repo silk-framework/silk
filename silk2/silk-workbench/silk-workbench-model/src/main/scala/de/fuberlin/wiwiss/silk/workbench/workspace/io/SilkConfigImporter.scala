@@ -24,7 +24,7 @@ object SilkConfigImporter
     //Add all linking tasks
     for(linkSpec <- config.linkSpecs)
     {
-      project.linkingModule.update(LinkingTask(linkSpec.id, linkSpec))
+      project.linkingModule.update(LinkingTask(linkSpec))
     }
   }
 }

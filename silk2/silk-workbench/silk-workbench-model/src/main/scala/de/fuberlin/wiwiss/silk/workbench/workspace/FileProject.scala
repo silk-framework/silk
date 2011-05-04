@@ -142,6 +142,8 @@ class FileProject(file : File) extends Project
       cachedTasks += (task.name -> task)
       updatedTasks.enqueue(task)
 
+      task.loadCache(FileProject.this)
+
       logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
 
@@ -167,7 +169,7 @@ class FileProject(file : File) extends Project
 
           val cache = Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
 
-          val linkingTask = LinkingTask(fileName, linkSpec, alignment, cache)
+          val linkingTask = LinkingTask(linkSpec, alignment, cache)
 
           linkingTask.loadCache(FileProject.this)
 
@@ -190,8 +192,6 @@ class FileProject(file : File) extends Project
         task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
         task.alignment.toXML.write(taskDir+ "/alignment.xml")
         task.cache.toXML.write(taskDir +  "/cache.xml")
-
-        task.loadCache(FileProject.this)
       }
     }
   }

@@ -38,11 +38,10 @@ object ProjectImporter
 
   private def readLinkingTask(xml : Node)(implicit prefixes : Prefixes) =
   {
-    val name = xml \ "Name" text
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val alignment = AlignmentReader.readAlignment(xml \ "Alignment" \ "_" head)
     val cache = Cache.fromXML(xml \ "Cache" \ "_" head)
 
-    LinkingTask(name, linkSpec, alignment, cache)
+    LinkingTask(linkSpec, alignment, cache)
   }
 }

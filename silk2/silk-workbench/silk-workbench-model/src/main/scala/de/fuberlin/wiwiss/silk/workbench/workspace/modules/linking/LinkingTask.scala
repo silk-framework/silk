@@ -12,12 +12,12 @@ import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, Alignment}
 /**
  * A linking task which interlinks two datasets.
  */
-//TODO use linkSpec id as name?
-case class LinkingTask(name : Identifier,
-                       linkSpec : LinkSpecification,
+case class LinkingTask(linkSpec : LinkSpecification,
                        alignment : Alignment = Alignment(),
                        cache : Cache = new Cache) extends ModuleTask
 {
+  val name = linkSpec.id
+
   var cacheLoading : Future[Unit] = null
 
   val cacheLoader : Task[Unit] = new CacheLoader()
@@ -68,24 +68,33 @@ case class LinkingTask(name : Identifier,
       {
         updateStatus(0.2)
 
-        //Create instance loading tasks
-        val positiveSourceInstancesTask = new LoadingInstancesTask(sources.source.dataSource, cache.instanceSpecs.source, positiveSamples.map(_.sourceUri))
-        val positiveTargetInstancesTask = new LoadingInstancesTask(sources.target.dataSource, cache.instanceSpecs.target, positiveSamples.map(_.targetUri))
+        //Determine which instances are already in the cache
+        val existingPositiveInstances = positiveSamples.map(cache.instances.positive.get).flatten
+        val existingNegativeInstances = negativeSamples.map(cache.instances.negative.get).flatten
 
-        val negativeSourceInstancesTask =  new LoadingInstancesTask(sources.source.dataSource, cache.instanceSpecs.source, negativeSamples.map(_.sourceUri))
-        val negativeTargetInstancesTask =  new LoadingInstancesTask(sources.target.dataSource, cache.instanceSpecs.target, negativeSamples.map(_.targetUri))
+        //Determine which instances are missing in the cache
+        val missingPositiveInstances = positiveSamples.filterNot(cache.instances.positive.contains)
+        val missingNegativeInstances = negativeSamples.filterNot(cache.instances.negative.contains)
+
+        //Create instance loading tasks
+        val positiveSourceInstancesTask = new LoadingInstancesTask(sources.source.dataSource, cache.instanceSpecs.source, missingPositiveInstances.map(_.sourceUri))
+        val positiveTargetInstancesTask = new LoadingInstancesTask(sources.target.dataSource, cache.instanceSpecs.target, missingPositiveInstances.map(_.targetUri))
+
+        val negativeSourceInstancesTask =  new LoadingInstancesTask(sources.source.dataSource, cache.instanceSpecs.source, missingNegativeInstances.map(_.sourceUri))
+        val negativeTargetInstancesTask =  new LoadingInstancesTask(sources.target.dataSource, cache.instanceSpecs.target, missingNegativeInstances.map(_.targetUri))
 
         //Load instances
-        val positiveSourceInstances = executeSubTask(positiveSourceInstancesTask, 0.4)
-        val positiveTargetInstances = executeSubTask(positiveTargetInstancesTask, 0.6)
+        val newPositiveSourceInstances = executeSubTask(positiveSourceInstancesTask, 0.4)
+        val newPositiveTargetInstances = executeSubTask(positiveTargetInstancesTask, 0.6)
 
-        val negativeSourceInstances = executeSubTask(negativeSourceInstancesTask, 0.8)
-        val negativeTargetInstances = executeSubTask(negativeTargetInstancesTask, 1.0)
+        val newNegativeSourceInstances = executeSubTask(negativeSourceInstancesTask, 0.8)
+        val newNegativeTargetInstances = executeSubTask(negativeTargetInstancesTask, 1.0)
 
-        //Fill the cache with the loaded instances
-        val positiveInstances = (positiveSourceInstances zip positiveTargetInstances).map(SourceTargetPair.fromPair)
-        val negativeInstances = (negativeSourceInstances zip negativeTargetInstances).map(SourceTargetPair.fromPair)
-        cache.instances = ReferenceInstances(positiveInstances, negativeInstances)
+        val newPositiveInstances = (newPositiveSourceInstances zip newPositiveTargetInstances).map(SourceTargetPair.fromPair)
+        val newNegativeInstances = (newNegativeSourceInstances zip newNegativeTargetInstances).map(SourceTargetPair.fromPair)
+
+        //Update cache
+        cache.instances = ReferenceInstances.fromInstances(existingPositiveInstances ++ newPositiveInstances, existingNegativeInstances ++ newNegativeInstances)
       }
     }
   }

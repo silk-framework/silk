@@ -49,7 +49,6 @@ object ProjectExporter
   def exportLinkingTask(task : LinkingTask)(implicit prefixes : Prefixes) =
   {
     <LinkingTask>
-      <Name>{task.name}</Name>
       <LinkSpecification>{task.linkSpec.toXML}</LinkSpecification>
       <Alignment>{task.alignment.toXML}</Alignment>
       <Cache>{task.cache.toXML}</Cache>
