@@ -109,11 +109,11 @@ class Boot
                                                JField("variable", JString(datasets.target.variable)) :: Nil))
 
     var errorMsg : Option[String] = None
-    if(linkingTask.cacheLoading != null && linkingTask.cacheLoading.isSet)
+    if(linkingTask.cache.isLoading != null && linkingTask.cache.isLoading.isSet)
     {
       try
       {
-        linkingTask.cacheLoading()
+        linkingTask.cache.isLoading()
       }
       catch
       {

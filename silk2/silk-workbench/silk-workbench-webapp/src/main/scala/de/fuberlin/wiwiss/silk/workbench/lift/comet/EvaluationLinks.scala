@@ -258,7 +258,7 @@ class EvaluationLinks extends CometActor
       {
         val offset = positiveLinks.size
 
-        for(link <- alignment.negativeLinks.view(from - offset, until - offset)) yield instances.positive.get(link) match
+        for(link <- alignment.negativeLinks.view(from - offset, until - offset)) yield instances.negative.get(link) match
         {
           case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, -1)
           case None => (link, -1)

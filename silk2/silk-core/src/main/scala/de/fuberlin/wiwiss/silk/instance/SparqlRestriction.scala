@@ -10,7 +10,7 @@ class SparqlRestriction private(restrictionsFull : String, restrictionsQualified
 
   def toSparql = restrictionsFull
 
-  def toXML = <Restrictions>{restrictionsQualified}</Restrictions>
+  def toXML= <Restrictions>{restrictionsFull}</Restrictions>
 }
 
 object SparqlRestriction

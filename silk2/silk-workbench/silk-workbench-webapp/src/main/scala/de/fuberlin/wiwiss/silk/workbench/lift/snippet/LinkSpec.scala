@@ -149,7 +149,7 @@ class LinkSpec
   {
     def reloadCache =
     {
-      User().linkingTask.reloadCache(User().project)
+      User().linkingTask.cache.reload(User().project, User().linkingTask)
       JsRaw("").cmd
     }
 

@@ -142,7 +142,7 @@ class FileProject(file : File) extends Project
       cachedTasks += (task.name -> task)
       updatedTasks.enqueue(task)
 
-      task.loadCache(FileProject.this)
+      task.cache.load(FileProject.this, task)
 
       logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
@@ -171,7 +171,7 @@ class FileProject(file : File) extends Project
 
           val linkingTask = LinkingTask(linkSpec, alignment, cache)
 
-          linkingTask.loadCache(FileProject.this)
+          linkingTask.cache.load(FileProject.this, linkingTask)
 
           linkingTask
         }
