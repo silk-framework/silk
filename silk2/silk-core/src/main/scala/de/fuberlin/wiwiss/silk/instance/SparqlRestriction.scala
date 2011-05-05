@@ -19,7 +19,7 @@ object SparqlRestriction
 
   def fromXML(node : Node)(implicit prefixes : Prefixes) =
   {
-    fromSparql(node \ "Restrictions" text)
+    fromSparql(node text)
   }
 
   def fromSparql(restrictions : String)(implicit prefixes : Prefixes) =
