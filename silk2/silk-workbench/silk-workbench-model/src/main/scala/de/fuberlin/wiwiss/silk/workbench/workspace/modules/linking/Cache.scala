@@ -114,9 +114,9 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
       updateStatus(0.2)
 
-      val positiveSamples = alignment.positiveLinks.take(sampleCount).toList
+      val positiveSamples = alignment.positive.take(sampleCount).toList
 
-      val negativeSamples = alignment.negativeLinks.take(sampleCount).toList
+      val negativeSamples = alignment.negative.take(sampleCount).toList
 
       //Determine which instances are already in the cache
       val existingPositiveInstances = positiveSamples.map(instances.positive.get).flatten

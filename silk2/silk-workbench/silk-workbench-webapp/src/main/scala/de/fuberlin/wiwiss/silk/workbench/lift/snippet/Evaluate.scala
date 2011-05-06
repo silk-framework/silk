@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JavaScriptUtils, Widgets}
-import de.fuberlin.wiwiss.silk.workbench.lift.comet.ShowReferenceLinks
+import de.fuberlin.wiwiss.silk.workbench.evaluation._
 
 class Evaluate
 {
@@ -17,10 +17,12 @@ class Evaluate
          "selectLinks" ->
            <div id="selectLinks">
            {
-             <input onchange={SHtml.ajaxInvoke(showGeneratedLinks)._2.cmd.toJsCmd} id="showGeneratedLinks" type="radio" name="selectLinks" checked="checked"/> ++
-             <label for="showGeneratedLinks">Generated Links</label> ++
-             <input onchange={SHtml.ajaxInvoke(showReferenceLinks)._2.cmd.toJsCmd} id="showReferenceLinks" type="radio" name="selectLinks"/> ++
-             <label for="showReferenceLinks">Reference Links</label>
+             <input onchange={SHtml.ajaxInvoke(showLinks(GeneratedLinks))._2.cmd.toJsCmd} id="showGeneratedLinks" type="radio" name="selectLinks" checked="checked"/> ++
+             <label for="showGeneratedLinks">Generated</label> ++
+             <input onchange={SHtml.ajaxInvoke(showLinks(PositiveLinks))._2.cmd.toJsCmd} id="showPositiveLinks" type="radio" name="selectLinks"/> ++
+             <label for="showPositiveLinks">Positive</label>
+             <input onchange={SHtml.ajaxInvoke(showLinks(NegativeLinks))._2.cmd.toJsCmd} id="showNegativeLinks" type="radio" name="selectLinks"/> ++
+             <label for="showNegativeLinks">Negative</label>
            }
            </div>,
          "importReferenceLinks" -> SHtml.ajaxButton("Import Reference Links", ImportReferenceLinksDialog.openCmd _),
@@ -28,15 +30,9 @@ class Evaluate
     )
  }
 
-  private def showReferenceLinks() =
+  private def showLinks(linkType : LinkType)() =
   {
-    ShowReferenceLinks() = true
-    JavaScriptUtils.Empty
-  }
-
-  private def showGeneratedLinks() =
-  {
-    ShowReferenceLinks() = false
+    ShowLinks() = linkType
     JavaScriptUtils.Empty
   }
 }

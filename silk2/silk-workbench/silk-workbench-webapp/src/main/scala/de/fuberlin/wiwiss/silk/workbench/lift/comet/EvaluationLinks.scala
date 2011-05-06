@@ -10,6 +10,7 @@ import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{UserData, User}
 import de.fuberlin.wiwiss.silk.linkspec.evaluation.DetailedEvaluator
 import xml.{Text, NodeSeq}
+import de.fuberlin.wiwiss.silk.workbench.evaluation._
 
 /**
 * A widget which displays the generated links of the evaluation server.
@@ -49,10 +50,10 @@ class EvaluationLinks extends CometActor
     }
   })
 
-  /** Register to updates to the ShowReferenceLinks variable */
-  ShowReferenceLinks.subscribe(new Subscriber[UserData.ValueUpdated[Boolean], Publisher[UserData.ValueUpdated[Boolean]]]
+  /** Register to updates to the ShowLinks variable */
+  ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[LinkType], Publisher[UserData.ValueUpdated[LinkType]]]
   {
-    def notify(pub : Publisher[UserData.ValueUpdated[Boolean]], status : UserData.ValueUpdated[Boolean])
+    def notify(pub : Publisher[UserData.ValueUpdated[LinkType]], status : UserData.ValueUpdated[LinkType])
     {
       partialUpdate(updateLinks)
     }
@@ -183,8 +184,7 @@ class EvaluationLinks extends CometActor
   {
     val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
-    val positiveLinks = alignment.positiveLinks
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positiveLinks = positiveLinks + link))
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive + link))
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
@@ -196,8 +196,7 @@ class EvaluationLinks extends CometActor
   {
     val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
-    val negativeLinks = alignment.negativeLinks
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(negativeLinks = negativeLinks + link))
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(negative = alignment.negative + link))
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
@@ -209,7 +208,7 @@ class EvaluationLinks extends CometActor
   {
     val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positiveLinks = alignment.positiveLinks - link, negativeLinks = alignment.negativeLinks - link))
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
@@ -224,54 +223,43 @@ class EvaluationLinks extends CometActor
 
   private def linkCount : Int =
   {
-    if(ShowReferenceLinks())
+    ShowLinks() match
     {
-      val alignment = User().linkingTask.alignment
-
-      alignment.positiveLinks.size + alignment.negativeLinks.size
-    }
-    else
-    {
-      User().evaluationTask.links.size
+      case GeneratedLinks => User().evaluationTask.links.size
+      case PositiveLinks => User().linkingTask.alignment.positive.size
+      case NegativeLinks => User().linkingTask.alignment.negative.size
     }
   }
 
   private def links(from : Int, until : Int) : Traversable[(Link, Int)] =
   {
-    if(ShowReferenceLinks())
-    {
-      val linkingTask = User().linkingTask
-      val condition = linkingTask.linkSpec.condition
-      val alignment = linkingTask.alignment
-      val instances = linkingTask.cache.instances
+    val linkingTask = User().linkingTask
+    def condition = linkingTask.linkSpec.condition
+    def alignment = linkingTask.alignment
+    def instances = linkingTask.cache.instances
 
-      val positiveLinks =
+    ShowLinks() match
+    {
+      case GeneratedLinks =>
       {
-        for(link <- alignment.positiveLinks.view(from, until)) yield instances.positive.get(link) match
+        User().evaluationTask.links.view(from, until)
+      }
+      case PositiveLinks =>
+      {
+        for(link <- alignment.positive.view(from, until)) yield instances.positive.get(link) match
         {
           case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, 1)
           case None => (link, 1)
         }
       }
-
-      val negativeLinks =
+      case NegativeLinks =>
       {
-        val offset = positiveLinks.size
-
-        for(link <- alignment.negativeLinks.view(from - offset, until - offset)) yield instances.negative.get(link) match
+        for(link <- alignment.negative.view(from, until)) yield instances.negative.get(link) match
         {
           case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, -1)
           case None => (link, -1)
         }
       }
-
-      positiveLinks ++ negativeLinks
-    }
-    else
-    {
-      User().evaluationTask.links.view(from, until)
     }
   }
 }
-
-object ShowReferenceLinks extends UserData[Boolean](false)

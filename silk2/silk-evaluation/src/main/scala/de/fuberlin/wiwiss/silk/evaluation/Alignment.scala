@@ -3,17 +3,17 @@ package de.fuberlin.wiwiss.silk.evaluation
 import de.fuberlin.wiwiss.silk.output.Link
 import xml.Node
 
-case class Alignment(positiveLinks : Set[Link] = Set.empty, negativeLinks : Set[Link] = Set.empty)
+case class Alignment(positive : Set[Link] = Set.empty, negative : Set[Link] = Set.empty)
 {
   def generateNegative =
   {
-    val positiveLinksSeq = positiveLinks.toSeq
+    val positiveLinksSeq = positive.toSeq
     val sourceInstances = positiveLinksSeq.map(_.sourceUri)
     val targetInstances = positiveLinksSeq.map(_.targetUri)
 
     val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
 
-    copy(negativeLinks = negativeLinks.toSet)
+    copy(negative = negativeLinks.toSet)
   }
 
   def toXML : Node =
@@ -23,8 +23,8 @@ case class Alignment(positiveLinks : Set[Link] = Set.empty, negativeLinks : Set[
              xmlns:xsd='http://www.w3.org/2001/XMLSchema#'
              xmlns:align='http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'>
       <Alignment>
-        { serializeLinks(positiveLinks, "=") }
-        { serializeLinks(negativeLinks, "!=") }
+        { serializeLinks(positive, "=") }
+        { serializeLinks(negative, "!=") }
       </Alignment>
     </rdf:RDF>
   }
