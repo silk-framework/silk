@@ -88,11 +88,11 @@ class EvaluationTask(user : User) extends Task[Unit]
 
   private def checkLink(link : Link) : (Link, Int) =
   {
-    if(alignment.positiveLinks.contains(link))
+    if(alignment.positive.contains(link))
     {
       (link, 1)
     }
-    else if(alignment.negativeLinks.contains(link))
+    else if(alignment.negative.contains(link))
     {
       (link, -1)
     }
