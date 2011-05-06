@@ -235,6 +235,7 @@ class EvaluationLinks extends CometActor
   {
     val linkingTask = User().linkingTask
     def condition = linkingTask.linkSpec.condition
+    def threshold = linkingTask.linkSpec.filter.threshold
     def alignment = linkingTask.alignment
     def instances = linkingTask.cache.instances
 
@@ -242,22 +243,48 @@ class EvaluationLinks extends CometActor
     {
       case GeneratedLinks =>
       {
-        User().evaluationTask.links.view(from, until)
+        for(link <- User().evaluationTask.links.view(from, until)) yield
+        {
+          if(alignment.positive.contains(link))
+          {
+            (link, 1)
+          }
+          else if(alignment.negative.contains(link))
+          {
+            (link, -1)
+          }
+          else
+          {
+            (link, 0)
+          }
+        }
       }
       case PositiveLinks =>
       {
         for(link <- alignment.positive.view(from, until)) yield instances.positive.get(link) match
         {
-          case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, 1)
-          case None => (link, 1)
+          case Some(instances) =>
+          {
+            val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
+            val correct = if(evaluatedLink.confidence >= threshold) 1 else -1
+
+            (evaluatedLink,  correct)
+          }
+          case None => (link, 0)
         }
       }
       case NegativeLinks =>
       {
         for(link <- alignment.negative.view(from, until)) yield instances.negative.get(link) match
         {
-          case Some(instances) => (DetailedEvaluator(condition, instances, 0.0).get, -1)
-          case None => (link, -1)
+          case Some(instances) =>
+          {
+            val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
+            val correct = if(evaluatedLink.confidence >= threshold) -1 else 1
+
+            (evaluatedLink,  correct)
+          }
+          case None => (link, 0)
         }
       }
     }

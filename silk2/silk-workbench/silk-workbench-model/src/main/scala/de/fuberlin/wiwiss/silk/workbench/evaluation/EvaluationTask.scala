@@ -34,15 +34,15 @@ class EvaluationTask(user : User) extends Task[Unit]
   /**
    * Retrieves the current links.
    */
-  def links : Traversable[(Link, Int)] =
+  def links : Traversable[Link] =
   {
     if(filteredLinks != null)
     {
-      filteredLinks.view.map(checkLink)
+      filteredLinks
     }
     else if(matchTask != null)
     {
-      matchTask.links.view.map(checkLink)
+      matchTask.links
     }
     else
     {
@@ -83,23 +83,6 @@ class EvaluationTask(user : User) extends Task[Unit]
     //Filter links
     val filterTask = new FilterTask(matchTask.links, linkSpec.filter)
     filteredLinks = executeSubTask(filterTask)
-  }
-
-
-  private def checkLink(link : Link) : (Link, Int) =
-  {
-    if(alignment.positive.contains(link))
-    {
-      (link, 1)
-    }
-    else if(alignment.negative.contains(link))
-    {
-      (link, -1)
-    }
-    else
-    {
-      (link, 0)
-    }
   }
 
   override def stopExecution()
