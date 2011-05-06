@@ -33,7 +33,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
     Timer("Retrieving forward pathes for '" + restrictions + "'")
     {
       val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
-        restrictions.toSparql + ".\n" +
+        restrictions.toSparql + "\n" +
         "?" + variable + " ?p ?o\n" +
         "}\n" +
         "GROUP BY ?p\n" +
@@ -61,7 +61,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
     Timer("Retrieving backward pathes for '" + restrictions + "'")
     {
       val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
-        restrictions.toSparql + ".\n" +
+        restrictions.toSparql + "\n" +
         "?s ?p ?" + variable + "\n" +
         "}\n" +
         "GROUP BY ?p\n" +
