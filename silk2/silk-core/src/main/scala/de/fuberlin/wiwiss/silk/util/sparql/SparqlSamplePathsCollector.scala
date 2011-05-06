@@ -33,7 +33,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
   private def getInstances(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String) : Traversable[String] =
   {
     val sparql = "SELECT ?" + variable + " WHERE {\n" +
-      restrictions.toSparql + ".\n" +
+      restrictions.toSparql + "\n" +
       "}"
 
     val results = endpoint.query(sparql, maxInstances)
