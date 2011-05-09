@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import de.fuberlin.wiwiss.silk.linkspec.condition.LinkCondition
+import scala.math.pow
 
 object LinkConditionEvaluator
 {
@@ -14,8 +15,12 @@ object LinkConditionEvaluator
     var trueNegatives : Int = 0
     var falsePositives : Int = 0
     var falseNegatives : Int = 0
+
     var positiveScore : Double = instances.positive.size
     var negativeScore : Double = instances.negative.size
+
+    var positiveError = 0.0
+    var negativeError = 0.0
 
     for(instancePair <- instances.positive.values)
     {
@@ -24,12 +29,13 @@ object LinkConditionEvaluator
       if(confidence >= threshold)
       {
         truePositives += 1
-        positiveScore += (confidence - threshold) / (1.0 - threshold)
+        positiveScore += pow((confidence - threshold) / (1.0 - threshold), 2.0)
       }
       else
       {
         falseNegatives += 1
-        positiveScore -= threshold - confidence / threshold
+        positiveScore -= pow(threshold - confidence / threshold, 2.0)
+        positiveError += pow(threshold - confidence / threshold, 2.0)
       }
     }
 
@@ -40,17 +46,26 @@ object LinkConditionEvaluator
       if(confidence >= threshold)
       {
         falsePositives += 1
-        negativeScore -= (confidence - threshold) / (1.0 - threshold)
+        negativeScore -= pow((confidence - threshold) / (1.0 - threshold), 2.0)
+        negativeError += pow((confidence - threshold) / (1.0 - threshold), 2.0)
       }
       else
       {
         trueNegatives += 1
-        negativeScore += threshold - confidence / threshold
+        negativeScore += pow(threshold - confidence / threshold, 2.0)
       }
     }
 
-    val score = 2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
+    //val score = -error//1.0 - error / (instances.positive.size + instances.negative.size)
 
-    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
+    positiveError = 1.0 - positiveError / instances.positive.size
+    negativeError = 1.0 - negativeError / instances.negative.size
+
+    val error = 2.0 * positiveError * negativeError / (positiveError + negativeError)
+    val score = error
+
+    //val score = 2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
+
+    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives, score)
   }
 }

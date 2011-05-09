@@ -11,7 +11,7 @@ case class Path(variable : String, operators : List[PathOperator])
   /**
    * Serializes this path using the Silk RDF path language.
    */
-  def serialize(implicit prefixes : Prefixes) = "?" + variable + operators.map(_.serialize).mkString
+  def serialize(implicit prefixes : Prefixes = Prefixes.empty) = "?" + variable + operators.map(_.serialize).mkString
 
   override def toString = serialize(Prefixes.empty)
 
