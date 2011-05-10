@@ -39,6 +39,7 @@
 
 .link-details {
   display: none;
+  font-size: 12px;
 }
 
 .confidencebar {
@@ -108,4 +109,16 @@
 
 #results .ui-progressbar-value {
   background-image: url('/static/img/confidencebar-bg.png');
+}
+
+.input .path {
+  background-color: #e7e2e2;
+  padding: 2px;
+}
+
+.input .value{
+  background-color: #dfebd2;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  padding: 2px;
 }
