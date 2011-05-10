@@ -531,8 +531,6 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 function load()
 {
   //alert(linkSpec);
-  interlinkId = $(linkSpec).attr("id");
-  
   $(linkSpec).find("> SourceDataset").each(function ()
   {
     sourceDataSet = $(this).attr("dataSource");
@@ -541,6 +539,7 @@ function load()
     {
       sourceDataSetRestriction = $(this).text();
     });
+
   });
   $(linkSpec).find("> TargetDataset").each(function ()
   {
@@ -551,7 +550,6 @@ function load()
       targetDataSetRestriction = $(this).text();
     });
   });
-  
   $(linkSpec).find("> LinkCondition").each(function ()
   {
     var max_level = findLongestPath($(this));
@@ -849,6 +847,13 @@ $(function ()
           });
           targetcounter = targetcounter + 1;
         }
+
+        /* todo: correct box position after dropping
+        var left = 100;
+        var top = 100;
+        //$(number).attr("style","left: " + left + "px; top: " + top + "px;");
+        jsPlumb.repaint(number); */
+
       }
     }
   });
