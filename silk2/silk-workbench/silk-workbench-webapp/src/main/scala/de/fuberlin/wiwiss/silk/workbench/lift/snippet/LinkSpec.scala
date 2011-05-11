@@ -80,8 +80,7 @@ class LinkSpec
       implicit val prefixes = project.config.prefixes
 
       //Load link specification
-      //TODO remove replace as soon as double encoding is fixed in editor
-      val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr.replace("&amp;", "&")))
+      val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
 
       //Update linking task
       val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
@@ -135,7 +134,7 @@ class LinkSpec
     implicit val prefixes = User().project.config.prefixes
 
     //Serialize the link condition to a JavaScript string
-    val linkSpecStr = linkingTask.linkSpec.toXML.toString.replace("\n", " ")
+    val linkSpecStr = linkingTask.linkSpec.toXML.toString.replace("\n", " ").replace("\\", "\\\\")
 
     val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
 
