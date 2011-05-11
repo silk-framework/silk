@@ -494,14 +494,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    // TODO
-    /*
-    if (($(this).attr("path")).indexOf("\\") > 0) {
-      alert($(this).attr("path"));
-    }
-    */
-    span.attr("title", encodeHtmlInput($(this).attr("path")));
-    var mytext = document.createTextNode(encodeHtmlInput($(this).attr("path")));
+    span.attr("title", $(this).attr("path"));
+    var mytext = document.createTextNode($(this).attr("path"));
     span.append(mytext);
     box2.append(span);
 
@@ -874,12 +868,6 @@ function encodeHtml(value)
   encodedHtml = value.replace("<", "&lt;");
   encodedHtml = encodedHtml.replace(">", "&gt;");
   encodedHtml = encodedHtml.replace("\"", '\\"');
-  return encodedHtml;
-}
-
-function encodeHtmlInput(value)
-{
-  var encodedHtml = value.replace('\\', "&#92;");
   return encodedHtml;
 }
 
