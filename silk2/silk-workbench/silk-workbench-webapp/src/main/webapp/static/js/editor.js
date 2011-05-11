@@ -848,11 +848,14 @@ $(function ()
           targetcounter = targetcounter + 1;
         }
 
-        /* todo: correct box position after dropping
-        var left = 100;
-        var top = 100;
-        //$(number).attr("style","left: " + left + "px; top: " + top + "px;");
-        jsPlumb.repaint(number); */
+        // fix the position of the new added box
+        var offset = $(number).offset();
+        var scrollleft = $("#droppable").scrollLeft();
+        var scrolltop = $("#droppable").scrollTop();
+        var top = offset.top-204+scrolltop+scrolltop;
+        var left = offset.left-502+scrollleft+scrollleft;
+        $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
+        jsPlumb.repaint(number);
 
       }
     }
