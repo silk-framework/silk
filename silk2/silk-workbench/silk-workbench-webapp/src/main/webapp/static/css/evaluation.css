@@ -112,13 +112,20 @@
 }
 
 .input .path {
-  background-color: #e7e2e2;
-  padding: 2px;
+  border: 1px solid #aebdbd;
+  background-color: #d6e0e2;
+  padding: 1px 3px;
+  margin-left: 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
 }
 
 .input .value{
+  border: 1px solid #a5b4a5;
   background-color: #dfebd2;
   margin-left: 4px;
   margin-bottom: 3px;
-  padding: 2px;
+  padding: 1px 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
 }
