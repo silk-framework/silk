@@ -1,0 +1,131 @@
+#content {
+	padding: 20px 10px;
+}
+
+#results {
+    width: 1100px;
+    overflow: auto;
+}
+
+#results span {
+    vertical-align: middle;
+}
+
+#results a {
+    vertical-align: middle;
+}
+
+.link-header {
+    height: 20px;
+    margin-bottom: 1px;
+    background: #f1f2f6; /* old browsers */
+    background: -moz-linear-gradient(top, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100%); /* firefox */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#f1f1f1), color-stop(51%,#e1e1e1), color-stop(100%,#f6f6f6)); /* webkit */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f6f6f6',GradientType=0 ); /* ie */
+    background: -o-linear-gradient(top, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%); /* opera */
+}
+
+.link-header div {
+    float: left;
+}
+
+.source-link, .target-link {
+    width: 450px;
+    margin-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.link-details {
+  display: none;
+  font-size: 12px;
+}
+
+.confidencebar {
+    width: 75px;
+    height: 15px;
+    margin-right: 18px;
+    float: left;
+}
+
+.confidence {
+    position: absolute;
+    font-size: 11px;
+    margin-left: 14px;
+}
+
+.link-over {
+    background: #ededd3 !important;
+}
+
+.heading  {
+    padding-left: 18px;
+}
+
+.heading div {
+    vertical-align: middle;
+}
+
+.plus {
+    width: 9px;
+    height: 9px;
+    background-image:url('/static/jquery-ui/css/treeview/images/plus.gif');
+}
+
+.minus {
+    width: 9px;
+    height: 9px;
+    background-image:url('/static/jquery-ui/css/treeview/images/minus.gif');
+}
+
+#tree-header {
+    padding-top: 10px;
+    padding-bottom: 15px;
+}
+
+#tree-header div {
+    float: left;
+    margin-right: 4px;
+}
+
+.toggle-all {
+    padding-right: 8px;
+}
+
+.ui-icon {
+    margin-right: 3px;
+}
+
+.aggregation, .comparison {
+  float: left;
+  margin-right: 6px;
+  margin-bottom: 5px;
+}
+
+.lastCollapsable-hitarea {
+  background-position: 60% 41% !important;
+}
+
+#results .ui-progressbar-value {
+  background-image: url('/static/img/confidencebar-bg.png');
+}
+
+.input .path {
+  border: 1px solid #aebdbd;
+  background-color: #d6e0e2;
+  padding: 1px 3px;
+  margin-left: 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.input .value{
+  border: 1px solid #a5b4a5;
+  background-color: #dfebd2;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  padding: 1px 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}

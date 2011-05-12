@@ -1,15 +1,14 @@
 //package de.fuberlin.wiwiss.silk.workbench.lift.comet
 //
-//import net.liftweb.util.Helpers
 //import net.liftweb.http.{SHtml, CometActor}
-//import xml.{Text, NodeSeq}
-//import net.liftweb.common.Box
 //import de.fuberlin.wiwiss.silk.util.XMLUtils._
 //import net.liftweb.http.js.JsCmds.SetHtml
 //import collection.mutable.{Publisher, Subscriber}
-//import de.fuberlin.wiwiss.silk.workbench.learning.tree.LinkConditionNode
-//import de.fuberlin.wiwiss.silk.linkspec.{LinkCondition, Aggregation}
 //import de.fuberlin.wiwiss.silk.workbench.learning.{Individual, LearningServer, PopulationUpdated}
+//import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregation, LinkCondition}
+//import de.fuberlin.wiwiss.silk.workbench.workspace.User
+//import xml.{NodeBuffer, Text, NodeSeq}
+//import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
 //
 //class Population extends CometActor with Subscriber[PopulationUpdated, Publisher[PopulationUpdated]]
 //{
@@ -17,41 +16,36 @@
 //
 //  private var individualCount = 0
 //
-//  private lazy val infoId = uniqueId + "_info"
-//
-//  private lazy val infoIn = uniqueId + "_in"
-//
-//  private lazy val inputArea = Helpers.findKids(defaultXml, "chat", "input")
-//
-//  private lazy val bodyArea = Helpers.findKids(defaultXml, "chat", "body")
-//
-//  private lazy val singleLine = Helpers.deepFindKids(bodyArea, "chat", "list")
-//
 //  LearningServer.subscribe(this)
+//
+//  private val listId = "individuals"
+//
+//  private val individualId = "individual"
 //
 //  override def notify(pub : Publisher[PopulationUpdated], event : PopulationUpdated)
 //  {
-//    val sortedIndividuals = LearningServer.population.individuals.toSeq.sortBy(-_.fitness)
-//    individuals = sortedIndividuals.take(50) ++ sortedIndividuals.takeRight(5)
+//    val sortedIndividuals = LearningServer.population.individuals.toSeq.sortBy(-_.fitness.score)
+//    individuals = sortedIndividuals
 //    individualCount = sortedIndividuals.size
-//    partialUpdate(SetHtml(infoId, displayList))
+//    partialUpdate(SetHtml(listId, displayList))
 //  }
 //
 //  override def render =
 //  {
-//    bind("chat", bodyArea,
-//      AttrBindParam("id", Text(infoId), "id"),
-//      "info" -> individualCount.toString,
-//      "list" -> displayList)
+//    bind("chat", defaultXml,
+//      "list" -> <div id={listId} style="float: left; height: 600px; width: 200px; overflow: auto;">{displayList}</div>,
+//      "individual" -> <div id={individualId} style="float: left; height: 600px; min-width: 200px; overflow: auto;"></div>)
 //  }
 //
 //  private def displayList =
 //  {
-//    def line(ind : Individual) =
+//    def line(individual : Individual) =
 //    {
-//      val condition = ind.node.build
+//      val formatted = "score=%.3f fmeasure=%.3f".format(individual.fitness.score, individual.fitness.fMeasure)
 //
-//      bind("list", singleLine, "name" -> SHtml.a(showCondition(condition) _, Text("Condition(size=" + condition.rootOperator.map{case Aggregation(_, _, ops, _) => ops.size}.getOrElse(0) + " fitness=" + ind.fitness + ")")))
+//      val link = SHtml.a(showCondition(individual) _, Text(formatted))
+//
+//      <div>{link}</div>
 //    }
 //
 //    val nodes = individuals.flatMap(line)
@@ -59,11 +53,46 @@
 //    NodeSeq.fromSeq(nodes)
 //  }
 //
-//  private def showCondition(condition : LinkCondition)() =
+//  private def showCondition(individual : Individual)() =
 //  {
-//    //Format the condition
-//    val formatted = condition.toXML.toFormattedString
+//    def load() =
+//    {
+//      val linkingTask = User().linkingTask
+//      val linkSpec = linkingTask.linkSpec
+//      val newLinkCondition = individual.node.build
 //
-//    SetHtml("condition_id", <pre><tt>{formatted}</tt></pre>)
+//      User().task = linkingTask.copy(linkSpec = linkSpec.copy(condition = newLinkCondition))
+//
+//      JavaScriptUtils.Redirect("/linkSpec.html")
+//    }
+//
+//    val loadButton = SHtml.ajaxButton("Load", load _)
+//    val individualHtml = individualToHtml(individual)
+//
+//    SetHtml(individualId, <div>{loadButton ++ individualHtml}</div>)
+//  }
+//
+//  private def individualToHtml(individual : Individual) : NodeSeq =
+//  {
+//    val nodes = new NodeBuffer()
+//
+//    //Format fitness
+//    nodes += <div>{"Fitness: " + individual.fitness}</div>
+//
+//    //Format the condition
+//    val linkCondition = individual.node.build
+//    implicit val prefixes = User().project.config.prefixes
+//
+//    nodes += <pre><tt>{linkCondition.toXML.toFormattedString}</tt></pre>
+//
+//    //Format the base operator
+//    for(Individual.Base(operator, baseIndividual) <- individual.base)
+//    {
+//      nodes += <div>{"Operator: " + operator}</div>
+//      nodes ++= individualToHtml(baseIndividual)
+//    }
+//
+//    //Return nodes
+//    nodes
 //  }
 //}

@@ -1,7 +1,8 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import net.liftweb.http.js.JE.JsRaw
-import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectImporter, User}
+import de.fuberlin.wiwiss.silk.workbench.workspace.io.{ProjectImporter}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{User}
 import xml.{XML, NodeSeq}
 import java.io.ByteArrayInputStream
 import net.liftweb.http.{SHtml, FileParamHolder}

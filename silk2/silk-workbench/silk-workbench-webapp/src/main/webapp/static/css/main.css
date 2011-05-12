@@ -35,6 +35,11 @@ pre
 	font-family: "Courier New", Courier, monospace;
 }
 
+button
+{
+  margin-top: 0;
+}
+
 /* Tabbar
 ----------------------------------*/
 #title
@@ -101,6 +106,13 @@ pre
   clear: both;
 }
 
+#toolbar ul
+{
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
 #toolbar li
 {
   margin-top: 3px;
@@ -109,15 +121,9 @@ pre
   float: left;
 }
 
-input[type=file]
-{
-  background-color: black;
-  color: white;
-}
-
 .ui-progressbar
 {
-  margin-top: 3px;
+  margin-top: 0;
   width: 300px;
 }
 

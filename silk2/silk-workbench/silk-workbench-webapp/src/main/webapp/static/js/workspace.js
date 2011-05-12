@@ -203,6 +203,7 @@ function updateWorkspace(obj){
                 addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
                 addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('link_add', 'Task','Add linking task',"createLinkingTask('"+project.name+"')",proj_actions,project.name,true);
+                addAction('add_linkspec', 'Link Spec', 'Add link specification', "addLinkSpecification('"+project.name+"')",proj_actions,project.name,true);
                 addAction('export', 'Export','Export project',"exportProject('"+project.name+"')",proj_actions,project.name,true);
                 addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
 
@@ -305,6 +306,7 @@ function getIcon(type){
         case 'ds_add' : icon = "ui-icon-plus";  break;
         case 'ds_edit' : icon = "ui-icon-wrench";  break;
         case 'link_add' : icon = "ui-icon-plus";  break;
+        case 'add_linkspec' : icon = "ui-icon-arrowthickstop-1-s";  break;
         case 'link_edit' : icon = "ui-icon-wrench";  break;
         case 'link_spec': icon = "ui-icon-shuffle"; break;
         case 'delete' : icon = "ui-icon-trash";  break;

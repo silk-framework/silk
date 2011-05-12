@@ -20,6 +20,8 @@ var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
 
+jsPlumb.Defaults.Container = "droppable";
+
 var endpointOptions =
 {
   endpoint: new jsPlumb.Endpoints.Dot(
@@ -41,7 +43,8 @@ var endpointOptions =
     lineWidth: 5
   },
   isTarget: false,
-  anchor: "RightMiddle"
+  anchor: "RightMiddle",
+  dropOptions:{ disabled: true }
 };
 
 var endpointOptions1 =
@@ -91,7 +94,8 @@ var endpointOptions2 =
   },
   isTarget: true,
   maxConnections: 1,
-  anchor: "RightMiddle"
+  anchor: "RightMiddle",
+  dropOptions:{ disabled: true }
 };
 
 document.onselectstart = function ()
@@ -244,7 +248,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
+    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
     aggregatecounter = aggregatecounter + 1;
     if (last_element != "")
@@ -355,7 +359,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
+    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
     comparecounter = comparecounter + 1;
     if (last_element != "")
@@ -443,7 +447,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions1);
+    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
     transformcounter = transformcounter + 1;
     if (last_element != "")
@@ -490,14 +494,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    // TODO
-    /*
-    if (($(this).attr("path")).indexOf("\\") > 0) {
-      alert($(this).attr("path"));
-    }
-    */
-    span.attr("title", encodeHtmlInput($(this).attr("path")));
-    var mytext = document.createTextNode(encodeHtmlInput($(this).attr("path")));
+    span.attr("title", $(this).attr("path"));
+    var mytext = document.createTextNode($(this).attr("path"));
     span.append(mytext);
     box2.append(span);
 
@@ -527,8 +525,6 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 function load()
 {
   //alert(linkSpec);
-  interlinkId = $(linkSpec).attr("id");
-  
   $(linkSpec).find("> SourceDataset").each(function ()
   {
     sourceDataSet = $(this).attr("dataSource");
@@ -537,6 +533,7 @@ function load()
     {
       sourceDataSetRestriction = $(this).text();
     });
+
   });
   $(linkSpec).find("> TargetDataset").each(function ()
   {
@@ -547,7 +544,6 @@ function load()
       targetDataSetRestriction = $(this).text();
     });
   });
-  
   $(linkSpec).find("> LinkCondition").each(function ()
   {
     var max_level = findLongestPath($(this));
@@ -763,7 +759,7 @@ $(function ()
         */
         if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
-          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions1);
+          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
           var number = "#aggregate_" + aggregatecounter;
           $(number).draggable(
@@ -771,13 +767,16 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
           aggregatecounter = aggregatecounter + 1;
         }
         if (ui.helper.attr('id').search(/transform/) != -1)
         {
-          jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions1);
+          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
           var number = "#transform_" + transformcounter;
           $(number).draggable(
@@ -785,19 +784,25 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
           transformcounter = transformcounter + 1;
         }
         if (ui.helper.attr('id').search(/compare/) != -1)
         {
-          jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions1);
+          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
           var number = "#compare_" + comparecounter;
           $(number).draggable(
           {
             containment: '#droppable',
             drag: function(event, ui) {
+              jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
               jsPlumb.repaint(number);
             }
           });
@@ -812,8 +817,12 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
+
           sourcecounter = sourcecounter + 1;
         }
         if (ui.helper.attr('id').search(/target/) != -1)
@@ -825,10 +834,23 @@ $(function ()
             containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
+            },
+            stop: function(event, ui) {
+              jsPlumb.repaint(number);
             }
           });
           targetcounter = targetcounter + 1;
         }
+
+        // fix the position of the new added box
+        var offset = $(number).offset();
+        var scrollleft = $("#droppable").scrollLeft();
+        var scrolltop = $("#droppable").scrollTop();
+        var top = offset.top-204+scrolltop+scrolltop;
+        var left = offset.left-502+scrollleft+scrollleft;
+        $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
+        jsPlumb.repaint(number);
+
       }
     }
   });
@@ -846,12 +868,6 @@ function encodeHtml(value)
   encodedHtml = value.replace("<", "&lt;");
   encodedHtml = encodedHtml.replace(">", "&gt;");
   encodedHtml = encodedHtml.replace("\"", '\\"');
-  return encodedHtml;
-}
-
-function encodeHtmlInput(value)
-{
-  var encodedHtml = value.replace('\\', "&#92;");
   return encodedHtml;
 }
 
@@ -1140,7 +1156,6 @@ function getPropertyPaths(deleteExisting)
 
 function getOperators()
 {
-
   $.ajax(
   {
     type: "GET",

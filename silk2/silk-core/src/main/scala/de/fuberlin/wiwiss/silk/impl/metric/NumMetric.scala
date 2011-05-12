@@ -34,7 +34,17 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
   {
     (str1, str2) match
     {
-      case (DoubleLiteral(num1), DoubleLiteral(num2)) => max(1.0 - abs(num1 - num2) / maxDistance, 0.0)
+      case (DoubleLiteral(num1), DoubleLiteral(num2)) =>
+      {
+        if(maxDistance == 0.0)
+        {
+          if(num1 == num2) 1.0 else 0.0
+        }
+        else
+        {
+          max(1.0 - abs(num1 - num2) / maxDistance, 0.0)
+        }
+      }
       case _ => 0.0
     }
   }

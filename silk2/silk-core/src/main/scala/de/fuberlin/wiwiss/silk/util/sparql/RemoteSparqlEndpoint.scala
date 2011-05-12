@@ -108,7 +108,7 @@ class RemoteSparqlEndpoint(val uri : URI,
               if(errorStream != null)
               {
                 val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-                logger.info("Query on " + uri + " failed. Error Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
+                logger.info("Query on " + uri + " failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
               }
               else
               {

@@ -16,7 +16,7 @@ case class LevenshteinMetric(maxDistance : Int = -1, minChar : Char = '0', maxCh
       case d => d
     }
 
-    if(abs(str1.length - str2.length) > k * (1.0 - threshold))
+    if(abs(str1.length - str2.length) >= k * (1.0 - threshold))
     {
       0.0
     }

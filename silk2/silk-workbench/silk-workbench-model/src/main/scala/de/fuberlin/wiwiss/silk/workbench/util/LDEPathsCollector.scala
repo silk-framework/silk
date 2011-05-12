@@ -3,8 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.util
 import de.fuberlin.wiwiss.silk.util.sparql.SparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.instance.{Path, ForwardOperator}
-import de.fuberlin.wiwiss.silk.linkspec.Restrictions
+import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, ForwardOperator}
 
 /**
  * Retrieves property paths from the Wiki ontology within the LDE context
@@ -16,12 +15,12 @@ object LDEPathsCollector
   /**
    * Retrieves a list of properties 
    */
-  def apply(endpoint : SparqlEndpoint, restrictions : Restrictions,limit : Option[Int]) : Traversable[(Path, Double)] =
+  def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction,limit : Option[Int]) : Traversable[(Path, Double)] =
   {
     getAllPaths(endpoint, restrictions, limit.getOrElse(100))
   }
 
-  private def getAllPaths(endpoint : SparqlEndpoint, restrictions : Restrictions, limit : Int) : Traversable[(Path, Double)] =
+  private def getAllPaths(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Int) : Traversable[(Path, Double)] =
   {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
     val category = restrictions.toString.split(' ')(2)

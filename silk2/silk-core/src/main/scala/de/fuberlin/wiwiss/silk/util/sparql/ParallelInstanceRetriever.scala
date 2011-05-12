@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.util.sparql
 
 import de.fuberlin.wiwiss.silk.instance.{Path, Instance, InstanceSpecification}
 import collection.mutable.SynchronizedQueue
+import java.util.logging.{Level, Logger}
 
 /**
  * InstanceRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single instances.
@@ -11,6 +12,10 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
   private val varPrefix = "v"
 
   private val maxQueueSize = 1000
+
+  private val logger = Logger.getLogger(classOf[ParallelInstanceRetriever].getName)
+
+  private var failed = false
 
   /**
    * Retrieves instances with a given instance specification.
@@ -29,17 +34,49 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
    */
   private class InstanceTraversable(instanceSpec : InstanceSpecification, instanceUris : Seq[String]) extends Traversable[Instance]
   {
-    override def foreach[U](f : Instance => U) : Unit =
+    override def foreach[U](f : Instance => U)
     {
+      var inconsistentOrder = false
+      var counter = 0
+
       val pathRetrievers = for(path <- instanceSpec.paths) yield new PathRetriever(instanceUris, instanceSpec, path)
 
       pathRetrievers.foreach(_.start())
 
-      while(pathRetrievers.forall(_.hasNext))
+      try
       {
-        val pathValues = for(pathRetriever <- pathRetrievers) yield pathRetriever.next()
+        while(pathRetrievers.forall(_.hasNext) && !inconsistentOrder)
+        {
+          val pathValues = for(pathRetriever <- pathRetrievers) yield pathRetriever.next()
 
-        f(new Instance(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, instanceSpec))
+          if(pathValues.tail.forall(_.uri == pathValues.head.uri))
+          {
+            f(new Instance(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, instanceSpec))
+
+            counter += 1
+          }
+          else
+          {
+            inconsistentOrder = true
+            failed = true
+          }
+        }
+      }
+      catch
+      {
+        case ex : Exception =>
+        {
+          logger.log(Level.WARNING, "Failed to execute query for '" + instanceSpec.restrictions + "'", ex)
+          failed = true
+        }
+      }
+
+      if(inconsistentOrder)
+      {
+        logger.warning("Cannot execute queries in parallel because the endpoint returned the results in different orders.")
+        val simpleInstanceRetriever = new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
+        val instances = simpleInstanceRetriever.retrieve(instanceSpec, instanceUris)
+        instances.drop(counter).foreach(f)
       }
     }
   }
@@ -50,7 +87,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
     @volatile private var exception : Throwable = null
 
-    def hasNext() : Boolean =
+    def hasNext : Boolean =
     {
       //If the queue is empty, wait until an element has been read
       while(queue.isEmpty && isAlive)
@@ -101,7 +138,7 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
     private def queryPath(fixedSubject : Option[String] = None) =
     {
       //Select
-      var sparql = "SELECT DISTINCT "
+      var sparql = "SELECT "
       if(fixedSubject.isEmpty)
       {
         sparql += "?" + instanceSpec.variable + " "
@@ -137,6 +174,11 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
       for(result <- sparqlResults)
       {
+        if(failed)
+        {
+          return
+        }
+
         if(!fixedSubject.isDefined)
         {
           //Check if we are still reading values for the current subject

@@ -8,6 +8,9 @@
       <choose:train>
         <ul id="toolbar">
           <li>
+            <entry:auto/>
+          </li>
+          <li>
             <entry:create/>
           </li>
           <li>
@@ -15,6 +18,9 @@
           </li>
           <li>
             <entry:iterations/>
+          </li>
+          <li>
+            <entry:clean/>
           </li>
           <li>
             <entry:progress/>
@@ -30,23 +36,10 @@
       </choose:loading>
       <choose:train>
         <lift:comet type="Population" name="Population">
-          <chat:input>
-          </chat:input>
-          <chat:body>
-            <chat:info/>
-            <table border="0">
-              <tr>
-                <td>
-                  <ul chat:id="na">
-                    <chat:list>
-                      <li><list:name/></li>
-                    </chat:list>
-                  </ul>
-                </td>
-                <td id='condition_id'>No Condition selected!</td>
-              </tr>
-            </table>
-          </chat:body>
+          <p>
+            <chat:list/>
+            <chat:individual/>
+          </p>
         </lift:comet>
       </choose:train>
     </lift:learning.content>
