@@ -494,14 +494,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    // TODO
-    /*
-    if (($(this).attr("path")).indexOf("\\") > 0) {
-      alert($(this).attr("path"));
-    }
-    */
-    span.attr("title", encodeHtmlInput($(this).attr("path")));
-    var mytext = document.createTextNode(encodeHtmlInput($(this).attr("path")));
+    span.attr("title", $(this).attr("path"));
+    var mytext = document.createTextNode($(this).attr("path"));
     span.append(mytext);
     box2.append(span);
 
@@ -531,8 +525,6 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 function load()
 {
   //alert(linkSpec);
-  interlinkId = $(linkSpec).attr("id");
-  
   $(linkSpec).find("> SourceDataset").each(function ()
   {
     sourceDataSet = $(this).attr("dataSource");
@@ -541,6 +533,7 @@ function load()
     {
       sourceDataSetRestriction = $(this).text();
     });
+
   });
   $(linkSpec).find("> TargetDataset").each(function ()
   {
@@ -551,7 +544,6 @@ function load()
       targetDataSetRestriction = $(this).text();
     });
   });
-  
   $(linkSpec).find("> LinkCondition").each(function ()
   {
     var max_level = findLongestPath($(this));
@@ -849,6 +841,16 @@ $(function ()
           });
           targetcounter = targetcounter + 1;
         }
+
+        // fix the position of the new added box
+        var offset = $(number).offset();
+        var scrollleft = $("#droppable").scrollLeft();
+        var scrolltop = $("#droppable").scrollTop();
+        var top = offset.top-204+scrolltop+scrolltop;
+        var left = offset.left-502+scrollleft+scrollleft;
+        $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
+        jsPlumb.repaint(number);
+
       }
     }
   });
@@ -866,12 +868,6 @@ function encodeHtml(value)
   encodedHtml = value.replace("<", "&lt;");
   encodedHtml = encodedHtml.replace(">", "&gt;");
   encodedHtml = encodedHtml.replace("\"", '\\"');
-  return encodedHtml;
-}
-
-function encodeHtmlInput(value)
-{
-  var encodedHtml = value.replace('\\', "&#92;");
   return encodedHtml;
 }
 
