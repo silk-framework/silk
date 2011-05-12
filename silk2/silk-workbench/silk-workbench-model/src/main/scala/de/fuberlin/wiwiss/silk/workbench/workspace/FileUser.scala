@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import java.io.File
+import java.io.{IOException, File}
 
 class FileUser extends User
 {
@@ -9,11 +9,13 @@ class FileUser extends User
 
 object FileUser
 {
+  private val workspaceDir = new File(System.getProperty("user.home") + "/.silk/workspace/")
+
   val workspace =
   {
-    val workspaceFile = new File("./workspace/")
-    workspaceFile.mkdirs()
-    new FileWorkspace(workspaceFile)
+    if(!workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
+
+    new FileWorkspace(workspaceDir)
   }
 }
 
