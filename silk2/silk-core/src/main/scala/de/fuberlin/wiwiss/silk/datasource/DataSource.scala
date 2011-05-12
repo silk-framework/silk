@@ -1,8 +1,7 @@
 package de.fuberlin.wiwiss.silk.datasource
 
 import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
-import de.fuberlin.wiwiss.silk.linkspec.Restrictions
-import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification, Instance}
+import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecification, Instance}
 
 /**
  * The base trait of a concrete source of instances.
@@ -30,7 +29,7 @@ trait DataSource extends Strategy
    *
    * @return A Traversable of the found paths and their frequency.
    */
-  def retrievePaths(restrictions : Restrictions = Restrictions.empty, depth : Int = 1, limit : Option[Int] = None) : Traversable[(Path, Double)] =
+  def retrievePaths(restrictions : SparqlRestriction = SparqlRestriction.empty, depth : Int = 1, limit : Option[Int] = None) : Traversable[(Path, Double)] =
   {
     Traversable.empty
   }

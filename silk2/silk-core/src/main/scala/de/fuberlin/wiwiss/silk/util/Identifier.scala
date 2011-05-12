@@ -7,8 +7,8 @@ package de.fuberlin.wiwiss.silk.util
 class Identifier(private val name : String)
 {
   require(!name.isEmpty, "Identifier must not be empty.")
-  require(name.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == ' ') || (c == '_')),
-          "An identifier may only contain the following characters (a - z, 0 - 9, Space, _). The following identifier is not valid: '" + name + "'.")
+  require(name.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == ' ') || (c == '_') ||  (c == '-')),
+          "An identifier may only contain the following characters (a - z, 0 - 9, Space, _, -). The following identifier is not valid: '" + name + "'.")
 
   override def toString = name
 

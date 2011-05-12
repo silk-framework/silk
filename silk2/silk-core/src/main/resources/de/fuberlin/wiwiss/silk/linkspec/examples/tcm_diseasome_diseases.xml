@@ -29,7 +29,7 @@
         <Interlink id="diseases">
             <LinkType>owl:sameAs</LinkType>
 
-            <SourceDataset dataSource="dbpedia" var="a">
+            <SourceDataset dataSource="diseasome" var="a">
                 <RestrictTo>
                     ?a rdf:type diseasome:diseases
                 </RestrictTo>

@@ -1,20 +1,22 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import java.io.File
 import modules.linking.LinkingTask
-import java.net.URI
 import modules.ModuleTask
 import modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.util.Task
+import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationTask
 
 /**
- * Dummy user as there is no user management yet.
+ * A user.
  */
 trait User
 {
   private var currentProject : Option[Project] = None
 
   private var currentTask : Option[ModuleTask] = None
+
+  val evaluationTask : EvaluationTask = new EvaluationTask(this)
+
+  var showAlignmentLinks = false
 
   /**
    * The current workspace of this user.
@@ -31,7 +33,7 @@ trait User
   /**
    * Sets the current project of this user.
    */
-  def project_=(project : Project) =
+  def project_=(project : Project)
   {
     currentProject = Some(project)
   }
@@ -49,18 +51,21 @@ trait User
   /**
    * Sets the current task of this user.
    */
-  def task_=(task : ModuleTask) =
+  def task_=(task : ModuleTask)
   {
     currentTask = Some(task)
   }
 
+  /**
+   * Closes the current task.
+   */
   def closeTask()
   {
     currentTask = None
   }
 
   /**
-   *   True, if a source task is open at the moment.
+   * True, if a source task is open at the moment.
    */
   def sourceTaskOpen = taskOpen && task.isInstanceOf[SourceTask]
 
@@ -90,11 +95,19 @@ trait User
     case t : LinkingTask => t
     case _ => throw new NoSuchElementException("Active task is no linking task")
   }
+
+  /**
+   * Called when the user becomes inactive.
+   */
+  def dispose()
+  {
+    evaluationTask.cancel()
+  }
 }
 
 object User
 {
-  var userManager : () => User = () => throw new Exception("No user manager registerd")
+  var userManager : () => User = () => throw new Exception("No user manager registered")
 
   /**
    * Retrieves the current user.

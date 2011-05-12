@@ -51,7 +51,7 @@ object Widgets
         val html =
         {
           <div id="progressbar"></div>
-          <div class="progresstext">{currentTask.statusWithProgress}</div>
+          <span class="progresstext">{currentTask.statusWithProgress}</span>
         }
 
         val javascript = "$('#progressbar').progressbar({value: " + (currentTask.progress * 95 + 5) + "});"
@@ -64,9 +64,7 @@ object Widgets
       }
     }
 
-    <div>
-      <div id="status">Waiting...</div>
-      <div>{Script(OnLoad(PeriodicUpdate(update, 1000)))}</div>
-    </div>
+    <span id="status">Waiting...</span>
+    <span>{Script(OnLoad(PeriodicUpdate(update, 1000)))}</span>
   }
 }

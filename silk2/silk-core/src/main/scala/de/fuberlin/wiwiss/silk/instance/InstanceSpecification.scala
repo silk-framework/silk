@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
-class InstanceSpecification(val variable : String, val restrictions : Restrictions, val paths : Seq[Path])
+class InstanceSpecification(val variable : String, val restrictions : SparqlRestriction, val paths : Seq[Path])
 {
   def pathIndex(path : Path) =
   {
@@ -41,8 +41,8 @@ object InstanceSpecification
   {
     new InstanceSpecification(
       variable = node \ "Variable" text,
-      restrictions = Restrictions.fromXML(node \ "Restrictions" head)(Prefixes.empty),
-      paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text, Prefixes.empty)
+      restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
+      paths = for(pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text)
     )
   }
 

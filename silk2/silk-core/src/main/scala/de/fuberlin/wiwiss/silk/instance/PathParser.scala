@@ -3,11 +3,12 @@ package de.fuberlin.wiwiss.silk.instance
 import util.parsing.input.CharSequenceReader
 import util.parsing.combinator.RegexParsers
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Uri}
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Parser for the Silk RDF path language.
  */
-private class PathParser(prefixes : Map[String, String]) extends RegexParsers
+private class PathParser(prefixes : Prefixes) extends RegexParsers
 {
   def parse(pathStr : String) : Path =
   {

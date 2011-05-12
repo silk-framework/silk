@@ -189,7 +189,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
       val taskSeq = xmlProj.linkingModule.tasks
       // XMLProject doesn't have datasouce info - since those are not in the sourceCode
       for (task <- taskSeq ){
-         task.loadCache(LDEProject.this)
+         task.cache.load(LDEProject.this, task)
         }
 
       taskSeq

@@ -100,21 +100,21 @@
           </connectors>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>net.sf.alchim</groupId>
-        <artifactId>yuicompressor-maven-plugin</artifactId>
-        <version>0.7.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compress</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <nosuffix>true</nosuffix>
-        </configuration>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>net.sf.alchim</groupId>-->
+        <!--<artifactId>yuicompressor-maven-plugin</artifactId>-->
+        <!--<version>0.7.1</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<goals>-->
+              <!--<goal>compress</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+        <!--</executions>-->
+        <!--<configuration>-->
+          <!--<nosuffix>true</nosuffix>-->
+        <!--</configuration>-->
+      <!--</plugin>-->
     </plugins>
   </build>
 </project>

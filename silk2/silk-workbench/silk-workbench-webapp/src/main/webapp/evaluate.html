@@ -1,7 +1,74 @@
 <lift:surround with="default">
 
+  <lift:bind-at name="definitions">
+
+    <link type="text/css" href="static/css/evaluation.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
+    <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
+
+    <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
+
+    <script type="text/javascript" >
+
+      var current_page = 1;
+
+      function handlePaginationClick(new_page_index, pagination_container) {
+        showLinks(new_page_index);
+        current_page = new_page_index;
+        //initTrees();
+        return false;
+      }
+
+      function initPagination(number_pages) {
+        $(".navigation").pagination(number_pages, {
+          items_per_page:100,
+          callback:handlePaginationClick
+        });
+      }
+
+      function initTrees() {
+        $(".details-tree").treeview();
+
+        // fix '+' and '-' icons:
+        $("li.expandable").removeClass("expandable").addClass("collapsable");
+        $("li.lastExpandable").removeClass("lastExpandable").addClass("lastCollapsable");
+        $("div.expandable-hitarea").removeClass("expandable-hitarea").addClass("collapsable-hitarea");
+
+        $(".confidencebar").each(function(index) {
+            $(this).progressbar({
+			        value: parseInt($(this).text())
+		        });
+        });
+      }
+
+      function toggleLinkDetails(linkid) {
+        if ($("#details" + linkid).is(":visible")) {
+            $("#toggle" + linkid + " > span").removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
+            $("#details" + linkid).slideUp(300);
+        } else {
+            $("#toggle"+linkid + " > span").removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
+            $("#details"+linkid).slideDown(300);
+        }
+      }
+
+      function expand_all() {
+          $(".link-details").show();
+      }
+      function hide_all() {
+          $(".link-details").hide();
+      }
+
+      $(function() {
+		    $("#selectLinks").buttonset();
+	    });
+
+    </script>
+
+  </lift:bind-at>
+
   <lift:bind-at name="toolbar">
-    <lift:evaluation.toolbar>
+    <lift:evaluate.toolbar form="POST">
       <ul>
         <li>
           <entry:control/>
@@ -9,12 +76,39 @@
         <li>
           <lift:comet type="EvaluationProgress" name="EvaluationProgress" />
         </li>
+        <li>
+          <entry:selectLinks/>
+        </li>
+        <li>
+          <entry:importReferenceLinks/>
+        </li>
       </ul>
-    </lift:evaluation.toolbar>
+      <entry:scripts />
+    </lift:evaluate.toolbar>
+    <div id="importReferenceLinksDialog" title="Open Alignment">
+      <lift:importReferenceLinksDialog form="POST" multipart="true">
+        <entry:file/>
+        <br/>
+        <entry:submit/>
+      </lift:importReferenceLinksDialog>
+    </div>
   </lift:bind-at>
 
   <lift:bind-at name="content">
+
+    <div class="navigation"></div>
+
+    <div style="clear:both;"></div>
+
+    <div id="tree-header">
+        <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+        <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+    </div>
+
     <lift:comet type="EvaluationLinks" name="EvaluationLinks" />
+
+    <div class="navigation"></div>
+
   </lift:bind-at>
 
 </lift:surround>

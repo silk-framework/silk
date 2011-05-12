@@ -36,4 +36,6 @@ object SourceTargetPair
   implicit def toSeq[T](st : SourceTargetPair[T]) = Seq(st.source, st.target)
 
   def fill[T](f : => T) = SourceTargetPair(f, f)
+
+  def generate[T](f : Boolean => T) = new SourceTargetPair(f(true), f(false))
 }
