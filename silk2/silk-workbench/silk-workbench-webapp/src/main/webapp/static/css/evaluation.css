@@ -39,6 +39,7 @@
 
 .link-details {
   display: none;
+  font-size: 12px;
 }
 
 .confidencebar {
@@ -108,4 +109,23 @@
 
 #results .ui-progressbar-value {
   background-image: url('/static/img/confidencebar-bg.png');
+}
+
+.input .path {
+  border: 1px solid #aebdbd;
+  background-color: #d6e0e2;
+  padding: 1px 3px;
+  margin-left: 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.input .value{
+  border: 1px solid #a5b4a5;
+  background-color: #dfebd2;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  padding: 1px 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
 }

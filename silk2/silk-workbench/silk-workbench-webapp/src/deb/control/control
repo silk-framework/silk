@@ -1,0 +1,9 @@
+Package: silk-workbench
+Version: 2.4
+Section: misc
+Priority: optional
+Architecture: all
+Depends: jetty, openjdk-6-jre | sun-java6-jre
+Maintainer: Robert Isele <robert.isele@fu-berlin.de>
+Description: Silk Workbench
+Distribution: development
