@@ -176,7 +176,7 @@ class EvaluationLinks extends CometActor
   {
     case Link.InputValue(path, values) =>
     {
-      <li><span class="input">{ path.toString + ": " + values.mkString(", ") }</span></li>
+      <li><span class="input">Input <span class="path">{path.toString}</span>{values.map(v => <span class="value">{v}</span>) }</span></li>
     }
   }
 
@@ -270,7 +270,7 @@ class EvaluationLinks extends CometActor
 
             (evaluatedLink,  correct)
           }
-          case None => (link, 0)
+          case None => (link, if(link.confidence >= threshold) 1 else -1)
         }
       }
       case NegativeLinks =>
@@ -284,7 +284,7 @@ class EvaluationLinks extends CometActor
 
             (evaluatedLink,  correct)
           }
-          case None => (link, 0)
+          case None => (link, if(link.confidence >= threshold) -1 else 1)
         }
       }
     }
