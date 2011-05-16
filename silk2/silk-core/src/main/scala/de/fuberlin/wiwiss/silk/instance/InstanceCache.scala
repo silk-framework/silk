@@ -19,6 +19,17 @@ trait InstanceCache
    */
   def read(block : Int, partition : Int) : Array[Instance]
 
+  def readAll() = new Traversable[Instance]
+  {
+    def foreach[U](f : Instance => U)
+    {
+      for(block <- 0 until blockCount;
+          partition <- 0 until partitionCount(block);
+          instance <- read(block, partition))
+          yield instance
+    }
+  }
+
   /**
    * Removes all instances from this cache.
    */
