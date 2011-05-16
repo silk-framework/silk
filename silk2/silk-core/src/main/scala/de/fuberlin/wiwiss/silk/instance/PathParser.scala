@@ -19,7 +19,8 @@ private class PathParser(prefixes : Prefixes) extends RegexParsers
     }
   }
 
-  private def path = variable ~ rep(forwardOperator | backwardOperator | filterOperator) ^^ { case variable ~ operators => Path(variable, operators) }
+  private def path = variable ~ rep(forwardOperator | backwardOperator | filterOperator) ^^
+    { case variable ~ operators => Path(variable, operators) }
 
   private def variable = "?" ~> literal
   private def forwardOperator = "/" ~> literal ^^ { s => ForwardOperator(Uri.parse(s, prefixes)) }
