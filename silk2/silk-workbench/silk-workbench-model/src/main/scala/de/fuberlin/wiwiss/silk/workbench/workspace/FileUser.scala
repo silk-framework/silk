@@ -13,7 +13,7 @@ object FileUser
 
   val workspace =
   {
-    if(!workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
+    if(!workspaceDir.exists && !workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
 
     new FileWorkspace(workspaceDir)
   }

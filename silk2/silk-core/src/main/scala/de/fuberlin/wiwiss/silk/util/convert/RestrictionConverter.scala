@@ -1,5 +1,6 @@
 package de.fuberlin.wiwiss.silk.util.convert
 
+
 import util.parsing.combinator.RegexParsers
 import de.fuberlin.wiwiss.silk.util.ValidationException
 import de.fuberlin.wiwiss.silk.instance.Restriction.{Or, Condition, And}
@@ -7,12 +8,16 @@ import de.fuberlin.wiwiss.silk.instance.{Path, Restriction, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import util.parsing.input.CharSequenceReader
 
+import de.fuberlin.wiwiss.silk.instance.{Restriction, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.config.Prefixes
+
+
 /**
  * Converts a SPARQL restriction to a Silk restriction.
  */
 object RestrictionConverter extends RegexParsers
 {
-  def apply(subjectVar : String, sparqlRestriction : SparqlRestriction) : Restriction =
+  def apply(subjectVar : String, sparqlRestriction : SparqlRestriction)(implicit prefixes : Prefixes) : Restriction =
   {
     parseAll(parser, new CharSequenceReader(sparqlRestriction.toString)) match {
       case Success(parsedPath, _) => parsedPath
