@@ -14,9 +14,9 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{LinkingTask,
  */
 object ProjectImporter
 {
-  def apply(project : Project, xml : NodeSeq) =
+  def apply(project : Project, xml : NodeSeq)
   {
-    implicit val prefixes = Prefixes.fromXML(xml \ "Prefixes" head)
+    implicit val prefixes = Prefixes.fromXML(xml \ "Config" \ "Prefixes" head)
 
     project.config = ProjectConfig(prefixes)
 
