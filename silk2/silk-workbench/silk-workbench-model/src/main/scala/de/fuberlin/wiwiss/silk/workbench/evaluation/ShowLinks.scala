@@ -5,17 +5,12 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.UserData
 /**
  * Keeps track of which links each user is currently viewing.
  */
-object ShowLinks extends UserData[LinkType](GeneratedLinks)
+object ShowLinks extends UserData[LinkType](PositiveLinks)
 
 /**
  * The type of the evaluation links.
  */
 sealed trait LinkType
-
-/**
- * Generated links.
- */
-case object GeneratedLinks extends LinkType
 
 /**
  * Positive reference links.

@@ -8,7 +8,7 @@ import java.io.{DataInputStream, DataOutputStream}
  */
 class Instance(val uri : String, values : IndexedSeq[Set[String]], val spec : InstanceSpecification)
 {
-  def evaluate(path : Path) : Set[String] = values(spec.pathIndex(path))
+  def evaluate(path : Path) : Set[String] = evaluate(spec.pathIndex(path))
 
   def evaluate(pathIndex : Int) : Set[String] = values(pathIndex)
 
