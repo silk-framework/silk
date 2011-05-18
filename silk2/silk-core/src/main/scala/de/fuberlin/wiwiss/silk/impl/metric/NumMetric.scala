@@ -15,13 +15,13 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
 {
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
 
-  private val maxBlockCount = 1000
+  private val maxBlockCount = 10000
 
   private val blockOverlap = 0.5
 
   private val indexEnabled =
   {
-    if(maxDistance != 0.0 && (minValue.isNegInfinity || maxValue.isPosInfinity))
+    if(minValue.isNegInfinity || maxValue.isPosInfinity)
     {
       logger.info("Blocking disabled for numeric comparison as minValue and maxValue is not defined")
       false
