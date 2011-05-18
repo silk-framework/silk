@@ -57,7 +57,7 @@ class LoadTask(sources : SourceTargetPair[Source],
     val future = super.runInBackground()
 
     //Wait until the caches are being written
-    while(!(caches.source.isWriting && caches.target.isWriting))
+    while(isRunning && !(caches.source.isWriting && caches.target.isWriting))
     {
       Thread.sleep(100)
     }
