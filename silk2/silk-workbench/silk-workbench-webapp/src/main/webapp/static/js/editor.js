@@ -525,6 +525,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 function load()
 {
   //alert(linkSpec);
+  interlinkId = $(linkSpec).attr("id");
+
   $(linkSpec).find("> SourceDataset").each(function ()
   {
     sourceDataSet = $(this).attr("dataSource");
@@ -575,7 +577,8 @@ function load()
   $(linkSpec).find("> Filter").each(function ()
   {
     if ($(this).attr("limit") > 0) {
-      $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
+      // $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
+      $("#linklimit").val($(this).attr("limit"));
     }
     $("#threshold").attr("value", $(this).attr("threshold"));
   });
