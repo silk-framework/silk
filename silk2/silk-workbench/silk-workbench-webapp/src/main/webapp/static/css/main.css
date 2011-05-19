@@ -99,8 +99,8 @@ button
 #toolbar
 {
   height: 40px;
-  /* background: url('/static/img/toolbar.png') repeat-x;  */
-  margin-left: 10px;
+  background: url('/static/img/toolbar-bg.png') repeat-x;
+  padding-left: 10px;
   position: relative;
   /* width: 100%; */
   clear: both;

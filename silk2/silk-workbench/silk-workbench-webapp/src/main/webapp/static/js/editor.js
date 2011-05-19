@@ -68,7 +68,7 @@ var endpointOptions1 =
     lineWidth: 5
   },
   isTarget: true,
-  maxConnections: 4,
+  maxConnections: 100,
   anchor: "LeftMiddle"
 };
 
@@ -349,8 +349,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
         box5.attr("type", "text");
         box5.attr("name", parameter.name);
         box5.attr("size", "10");
-        if ($params[parameter.name]) {
-          box5.attr("value", $params[parameter.name]);
+        if (parameter.optional) {
+          box5.attr("value", parameter.defaultValue);
         }
         box2.append(box5);
     });
@@ -437,8 +437,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
         box5.attr("type", "text");
         box5.attr("name", parameter.name);
         box5.attr("size", "10");
-        if ($params[parameter.name]) {
-            box5.attr("value", $params[parameter.name]);
+        if (parameter.optional) {
+          box5.attr("value", parameter.defaultValue);
         }
         box2.append(box5);
     });
@@ -525,6 +525,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 function load()
 {
   //alert(linkSpec);
+  interlinkId = $(linkSpec).attr("id");
+
   $(linkSpec).find("> SourceDataset").each(function ()
   {
     sourceDataSet = $(this).attr("dataSource");
@@ -575,7 +577,8 @@ function load()
   $(linkSpec).find("> Filter").each(function ()
   {
     if ($(this).attr("limit") > 0) {
-      $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
+      // $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
+      $("#linklimit").val($(this).attr("limit"));
     }
     $("#threshold").attr("value", $(this).attr("threshold"));
   });
@@ -1245,6 +1248,9 @@ function getOperators()
                 box5.attr("name", parameter.name);
                 box5.attr("type", "text");
                 box5.attr("size", "10");
+                if (parameter.optional) {
+                  box5.attr("value", parameter.defaultValue);
+                }
                 box2.append(box5);
               });
 
@@ -1352,7 +1358,10 @@ function getOperators()
                 var box5 = $(document.createElement('input'));
                 box5.attr("name", parameter.name);
                 box5.attr("type", "text");
-                box5.attr("size", "10");;
+                box5.attr("size", "10");
+                if (parameter.optional) {
+                  box5.attr("value", parameter.defaultValue);
+                }
                 box2.append(box5);
               });
 
@@ -1463,7 +1472,10 @@ function getOperators()
                 var box5 = $(document.createElement('input'));
                 box5.attr("name", parameter.name);
                 box5.attr("type", "text");
-                box5.attr("size", "10");;
+                box5.attr("size", "10");
+                if (parameter.optional) {
+                  box5.attr("value", parameter.defaultValue);
+                }
                 box2.append(box5);
               });
 
