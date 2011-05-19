@@ -49,7 +49,7 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
   //one or more whitespace or newline
   def spaceOrNewLine = """[\s\n]*""".r
 
-  // curly brace
+  // curly braces
   def brace = "{" | "}"
 
   def triplePatterns : Parser[Operator] = rep( triplePattern <~ opt(".") ) ^^ { r => r match
