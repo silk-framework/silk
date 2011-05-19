@@ -684,11 +684,14 @@ function serializeLinkSpec() {
     }
     //alert (connections);
     var root = null;
+    var root_counter = 0;
     for (var key in sources)
     {
       if (!targets[key])
       {
         root = key;
+        root_counter++;
+        if (root_counter>1) return false;
       }
     }
   }
