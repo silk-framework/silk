@@ -17,41 +17,47 @@ import de.fuberlin.wiwiss.silk.instance.Restriction.{Operator, Or, Condition, An
  */
 class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
 {
+
   def apply(subjectVar : String, sparqlRestriction : SparqlRestriction) : Restriction =
   {
     parseAll(parser, new CharSequenceReader(sparqlRestriction.toString)) match {
       case Success(parsedPath, _) => parsedPath
       case error : NoSuccess => throw new ValidationException(error.toString)
   }
-
-    //?a rdf:type dbpedia:Settlement
-
-//    Restriction.empty
   }
 
+   override val skipWhitespace = false
 
-  def parser: Parser[Restriction] = tripelPatterns ^^ { r => Restriction(Some(r)) }
+//  def parser: Parser[Restriction] = triplePatterns ^^ { r => Restriction(Some(r)) }
 
-  //TODO
-  /*
-  regex für:
-  beliebig viel whitespace + beliebig viele { + beliebig viel whitespace + triplePatterns + } + belebig viel whitepsace  + Union als String + ...
-   */
-  def unionPattern : Parser[Operator] = rep( anyWhitespace ~> tripelPatterns ~ "UNION" )
+  def parser: Parser[Restriction] = unionPatterns ^^ { r => Restriction(Some(r)) }
+
+  def unionPatterns : Parser[Operator] = rep(unionPattern <~ opt("UNION" <~ spaceOrNewLine) <~ opt(".")) ^^ { r => r match
+    {
+      case condition :: Nil => condition
+      case head :: tail => Or(r)
+    }}
+
+  def unionPattern = (( anyWhitespace ~> brace) ~> anyWhitespace) ~> triplePatterns <~ (anyWhitespace <~ brace <~ spaceOrNewLine) ^^
+  {
+    case patterns => patterns
+  }
 
   //one or more whitespace
-  def anyWhitespace = """ \s+ """.r
+  def anyWhitespace = """\s*""".r
 
-  // one or more curly brace
-  def brace =
+  //one or more whitespace or newline
+  def spaceOrNewLine = """[\s\n]*""".r
 
-  def tripelPatterns: Parser[Operator] = rep( triplePattern <~ opt(".") ) ^^ { r => r match
+  // curly brace
+  def brace = "{" | "}"
+
+  def triplePatterns : Parser[Operator] = rep( triplePattern <~ opt(".") ) ^^ { r => r match
   {
     case condition :: Nil => condition
     case head :: tail => And(r)
   }}
 
-  override val skipWhitespace = false
 
   def triplePattern = subj ~ predicateObjectFilter ~ predicateObjectFilter  ^^
     { case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + " " + p), Set(o)) }
@@ -63,8 +69,6 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
   def predicateObjectFilter = " " ~> wordCharFilter ~ ":" ~ wordCharFilter ^^ { case prefix ~ ":" ~ name => prefix + ":" + name}
 
   def wordCharFilter = """[a-zA-Z_]\w*""".r
-
-  //def end = predicateObjectFilter ~> pointFilter ^^ { e => e }
 
 
 }
