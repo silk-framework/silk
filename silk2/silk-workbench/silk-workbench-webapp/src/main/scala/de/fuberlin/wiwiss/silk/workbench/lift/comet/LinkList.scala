@@ -7,6 +7,7 @@ import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import xml.{Text, NodeSeq}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
 
 /**
 * A widget which displays a list of links.
@@ -15,6 +16,10 @@ trait LinkList extends CometActor
 {
   /** The number of links shown on one page */
   private val pageSize = 100
+
+  protected val showCorrect = true
+
+  protected val showConfirmButtons = true
 
   override def render =
   {
@@ -53,6 +58,13 @@ trait LinkList extends CometActor
     SetHtml("results", html) & JsRaw("initTrees();").cmd
   }
 
+  //          <div id={getId(link, "confirmedLink")} style={if(correct == 1) "display:block" else "display:none"}>
+//            <img src="./static/img/correct.png" />
+//          </div>
+//          <div id={getId(link, "declinedLink")} style={if(correct == -1) "display:block" else "display:none"}>
+//            <img src="./static/img/uncorrect.png" />
+//          </div>
+
   /**
    * Renders a link.
    *
@@ -68,15 +80,20 @@ trait LinkList extends CometActor
         <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
         <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
         <div class="link-buttons">
-          <div id={getId(link, "unknownLink")} style={if(correct == 0) "display:block" else "display:none"}>
-          {SHtml.a(() => declineLink(link), <img src="./static/img/decline.png" />)}
-          {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
+          <div id={getId(link, "confirmedLink")} style={if(showConfirmButtons && correct == 1) "display:block" else "display:none"}>
+            <a><img src="./static/img/confirm-disabled.png" /></a>
+            {SHtml.a(() => resetLink(link), <img src="./static/img/undecided.png" />)}
+            {SHtml.a(() => declineLink(link), <img src="./static/img/decline.png" />)}
           </div>
-          <div id={getId(link, "confirmedLink")} style={if(correct == 1) "display:block" else "display:none"}>
-          {SHtml.a(() => resetLink(link), <img src="./static/img/correct.png" />)}
+          <div id={getId(link, "declinedLink")} style={if(showConfirmButtons && correct == -1) "display:block" else "display:none"}>
+            {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
+            {SHtml.a(() => resetLink(link), <img src="./static/img/undecided.png" />)}
+             <a><img src="./static/img/decline-disabled.png" /></a>
           </div>
-          <div id={getId(link, "declinedLink")} style={if(correct == -1) "display:block" else "display:none"}>
-          {SHtml.a(() => resetLink(link), <img src="./static/img/uncorrect.png" />)}
+          <div id={getId(link, "undecidedLink")} style={if(showConfirmButtons && correct == 0) "display:block" else "display:none"}>
+            {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
+             <a><img src="./static/img/undecided-disabled.png" /></a>
+            {SHtml.a(() => declineLink(link), <img src="./static/img/decline.png" />)}
           </div>
         </div>
       </div>
@@ -141,24 +158,24 @@ trait LinkList extends CometActor
   {
     val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive + link))
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link))
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
 
-    JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "unknownLink"))
+    JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink")) & JsHideId(getId(link, "undecidedLink"))
   }
 
   private def declineLink(link : Link) =
   {
     val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(negative = alignment.negative + link))
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link))
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
 
-    JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "unknownLink"))
+    JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "undecidedLink"))
   }
 
   private def resetLink(link : Link) =
@@ -170,7 +187,7 @@ trait LinkList extends CometActor
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
 
-    JsShowId(getId(link, "unknownLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))
+    JsShowId(getId(link, "undecidedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))
   }
 
   private def getId(link : Link, prefix : String = "") =

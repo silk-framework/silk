@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.evaluation.Alignment
 class EvaluationTask(user : User) extends Task[Unit]
 {
   /** The number of concurrent threads used for matching */
-  private val numThreads = 4
+  private val numThreads = 8
 
   /** Generated links with detailed information */
   private val generateDetailedLinks = true
