@@ -58,7 +58,8 @@ class Boot
     val entries =
         Menu(Loc("Workspace", List("index"), workspaceText, ifLinkingTaskClosed)) ::
         Menu(Loc("Link Specification", List("linkSpec"), linkSpecText, ifLinkingTaskOpen)) ::
-        Menu(Loc("Evaluate", List("evaluate"), "Evaluate", ifLinkingTaskOpen)) :: Nil
+        Menu(Loc("Generate Links", List("generateLinks"), "Generate Links", ifLinkingTaskOpen)) ::
+        Menu(Loc("Reference Links", List("referenceLinks"), "Reference Links", ifLinkingTaskOpen)) :: Nil
 
     LiftRules.setSiteMap(SiteMap(entries:_*))
 
@@ -169,7 +170,7 @@ class Boot
       JObject(JField("name", JString(parameter.name)) ::
               JField("type", JString(parameter.dataType.toString)) ::
               JField("optional", JBool(parameter.defaultValue.isDefined)) ::
-              /*JField("description", JString(parameter.description)) ::*/ Nil)
+              parameter.defaultValue.map(value => JField("defaultValue", JString(value.toString))).toList)
     }
   }
 }

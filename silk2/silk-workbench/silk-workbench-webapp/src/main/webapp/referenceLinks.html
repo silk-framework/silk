@@ -1,0 +1,54 @@
+<lift:surround with="default">
+
+  <lift:bind-at name="definitions">
+
+    <link type="text/css" href="static/css/links.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
+    <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
+
+    <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
+
+    <script type="text/javascript" src="static/js/linklist.js"></script>
+
+  </lift:bind-at>
+
+  <lift:bind-at name="toolbar">
+    <lift:referenceLinks.toolbar form="POST">
+      <ul>
+        <li>
+          <entry:selectLinks/>
+        </li>
+        <li>
+          <entry:importReferenceLinks/>
+        </li>
+      </ul>
+      <entry:scripts />
+    </lift:referenceLinks.toolbar>
+    <div id="importReferenceLinksDialog" title="Open Alignment">
+      <lift:importReferenceLinksDialog form="POST" multipart="true">
+        <entry:file/>
+        <br/>
+        <entry:submit/>
+      </lift:importReferenceLinksDialog>
+    </div>
+  </lift:bind-at>
+
+  <lift:bind-at name="content">
+
+    <div class="navigation"></div>
+
+    <div style="clear:both;"></div>
+
+    <div id="tree-header">
+        <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+        <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+    </div>
+
+    <lift:comet type="ReferenceLinks" name="ReferenceLinks" />
+
+    <div class="navigation"></div>
+
+  </lift:bind-at>
+
+</lift:surround>

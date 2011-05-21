@@ -57,7 +57,7 @@
             <Compare metric="levenshtein" >
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='']" />
-              <Param name="maxDistance" value="10"/>
+              <Param name="maxDistance" value="20"/>
             </Compare>
           </Aggregate>
           <Compare metric="wgs84" required="true">

@@ -9,11 +9,13 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 @StrategyAnnotation(
   id = "num",
   label = "Numeric similarity",
-  description = "Computes the numeric distance between two numbers and normalizes it using the threshold." +
-    " The similarity score is 0.0 if the distance is bigger than threshold.")
+  description = "Computes the numeric distance between two numbers and normalizes it using the maxDistance." +
+    " The similarity score is 0.0 if the distance is bigger than maxDistance.")
 class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinity, maxValue : Double = Double.PositiveInfinity) extends Metric
 {
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
+
+  private val maxBlockCount = 10000
 
   private val blockOverlap = 0.5
 
@@ -82,6 +84,13 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
 
   private val blockCount =
   {
-    (blockOverlap * (maxValue - minValue) / maxDistance).toInt
+    if(maxDistance == 0.0)
+    {
+      maxBlockCount
+    }
+    else
+    {
+      min(maxBlockCount, (blockOverlap * (maxValue - minValue) / maxDistance).toInt)
+    }
   }
 }
