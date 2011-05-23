@@ -17,9 +17,17 @@ trait LinkList extends CometActor
   /** The number of links shown on one page */
   private val pageSize = 100
 
-  protected val showCorrect = true
+  protected val showStatus = true
 
-  protected val showConfirmButtons = true
+  protected val showButtons = true
+
+  protected def linkCount : Int
+
+  protected def links(from : Int, until : Int) : Traversable[(Link, Int)]
+
+  protected def renderStatus(link : Link, correct : Int) : NodeSeq = NodeSeq.Empty
+
+  protected def renderButtons(link : Link, correct : Int) : NodeSeq = NodeSeq.Empty
 
   override def render =
   {
@@ -42,9 +50,11 @@ trait LinkList extends CometActor
       <div>
         <div class="link">
           <div class="link-header heading">
-            <div class="source-link"><span>Source</span></div>
-            <div class="target-link"><span>Target</span></div>
-            <div><span>Confidence</span></div>
+            <div class="link-source"><span>Source</span></div>
+            <div class="link-target"><span>Target</span></div>
+            <div class="link-confidence"><span>Confidence</span></div>
+            { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
+            { if(showButtons) <div class="link-buttons"></div> else NodeSeq.Empty }
           </div>
         </div>
         {
@@ -58,13 +68,6 @@ trait LinkList extends CometActor
     SetHtml("results", html) & JsRaw("initTrees();").cmd
   }
 
-  //          <div id={getId(link, "confirmedLink")} style={if(correct == 1) "display:block" else "display:none"}>
-//            <img src="./static/img/correct.png" />
-//          </div>
-//          <div id={getId(link, "declinedLink")} style={if(correct == -1) "display:block" else "display:none"}>
-//            <img src="./static/img/uncorrect.png" />
-//          </div>
-
   /**
    * Renders a link.
    *
@@ -73,29 +76,15 @@ trait LinkList extends CometActor
    */
   private def renderLink(link : Link, correct : Int) =
   {
-    <div class="link">
+    <div class="link" id={getId(link)} >
       <div class="link-header" onclick={"toggleLinkDetails('" + getId(link) + "');"} onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
-        <div class="source-link"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
-        <div class="target-link"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
+        <div class="link-source"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
+        <div class="link-target"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
         <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
-        <div class="link-buttons">
-          <div id={getId(link, "confirmedLink")} style={if(showConfirmButtons && correct == 1) "display:block" else "display:none"}>
-            <a><img src="./static/img/confirm-disabled.png" /></a>
-            {SHtml.a(() => resetLink(link), <img src="./static/img/undecided.png" />)}
-            {SHtml.a(() => declineLink(link), <img src="./static/img/decline.png" />)}
-          </div>
-          <div id={getId(link, "declinedLink")} style={if(showConfirmButtons && correct == -1) "display:block" else "display:none"}>
-            {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
-            {SHtml.a(() => resetLink(link), <img src="./static/img/undecided.png" />)}
-             <a><img src="./static/img/decline-disabled.png" /></a>
-          </div>
-          <div id={getId(link, "undecidedLink")} style={if(showConfirmButtons && correct == 0) "display:block" else "display:none"}>
-            {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm.png" />)}
-             <a><img src="./static/img/undecided-disabled.png" /></a>
-            {SHtml.a(() => declineLink(link), <img src="./static/img/decline.png" />)}
-          </div>
-        </div>
+        { if(showStatus) <div class="link-status">{ renderStatus(link, correct) }</div> else NodeSeq.Empty }
+        { if(showButtons) <div class="link-buttons">{ renderButtons(link, correct) }</div> else NodeSeq.Empty }
+
       </div>
       <div class="link-details" id={getId(link, "details")}>
       { renderDetails(link.details) }
@@ -154,48 +143,8 @@ trait LinkList extends CometActor
     }
   }
 
-  private def confirmLink(link : Link) =
-  {
-    val linkingTask = User().linkingTask
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link))
-
-    User().project.linkingModule.update(updatedTask)
-    User().task = updatedTask
-
-    JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink")) & JsHideId(getId(link, "undecidedLink"))
-  }
-
-  private def declineLink(link : Link) =
-  {
-    val linkingTask = User().linkingTask
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link))
-
-    User().project.linkingModule.update(updatedTask)
-    User().task = updatedTask
-
-    JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "undecidedLink"))
-  }
-
-  private def resetLink(link : Link) =
-  {
-    val linkingTask = User().linkingTask
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
-
-    User().project.linkingModule.update(updatedTask)
-    User().task = updatedTask
-
-    JsShowId(getId(link, "undecidedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))
-  }
-
-  private def getId(link : Link, prefix : String = "") =
+  protected def getId(link : Link, prefix : String = "") =
   {
     prefix + link.hashCode
   }
-
-  protected def linkCount : Int
-
-  protected def links(from : Int, until : Int) : Traversable[(Link, Int)]
 }

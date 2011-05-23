@@ -29,8 +29,8 @@
     float: left;
 }
 
-.source-link, .target-link {
-    width: 450px;
+.link-source, .link-target {
+    width: 420px;
     margin-right: 12px;
     white-space: nowrap;
     overflow: hidden;
@@ -42,10 +42,10 @@
   font-size: 12px;
 }
 
-.confidencebar {
+.link-confidence, .confidencebar {
     width: 75px;
     height: 15px;
-    margin-right: 18px;
+    margin-right: 20px;
     float: left;
 }
 
@@ -53,6 +53,20 @@
     position: absolute;
     font-size: 11px;
     margin-left: 14px;
+}
+
+.confidencebar .ui-progressbar-value {
+  background-image: url('/static/img/confidencebar-bg.png');
+}
+
+.link-status {
+    width: 50px;
+    margin-right: 0px;
+}
+
+.link-buttons {
+    width: 60px;
+    margin-left: 10px;
 }
 
 .link-over {
@@ -105,10 +119,6 @@
 
 .lastCollapsable-hitarea {
   background-position: 60% 41% !important;
-}
-
-#results .ui-progressbar-value {
-  background-image: url('/static/img/confidencebar-bg.png');
 }
 
 .input .path {
