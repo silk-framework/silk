@@ -12,6 +12,7 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
 import net.liftweb.http.SHtml
+import net.liftweb.json.Printer.pretty
 
 /**
  * Workspace snippet.
