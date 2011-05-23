@@ -912,7 +912,7 @@ function getPropertyPaths(deleteExisting)
         var box = $(document.createElement('div'));
         box.attr("id", "sourcepaths");
         box.addClass("scrollboxes");
-        box.css("height","30px");
+        box.css("height","32px");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
@@ -973,7 +973,7 @@ function getPropertyPaths(deleteExisting)
         var box = $(document.createElement('div'));
         box.attr("id", "targetpaths");
         box.addClass("scrollboxes");
-        box.css("height","30px");
+        box.css("height","32px");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));

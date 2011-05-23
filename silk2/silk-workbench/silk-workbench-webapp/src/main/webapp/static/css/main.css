@@ -100,9 +100,10 @@ button
 #toolbar
 {
   height: 40px;
-  background: url('/static/img/toolbar-bg.png') repeat-x;
+  background: url('/static/img/toolbar.png') repeat-x;
   padding-left: 10px;
   position: relative;
+  border-bottom: solid 1px #d7d6d6;
   /* width: 100%; */
   clear: both;
 }
