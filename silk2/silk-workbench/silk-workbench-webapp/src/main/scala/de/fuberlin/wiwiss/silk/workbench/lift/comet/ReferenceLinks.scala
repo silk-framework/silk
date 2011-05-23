@@ -5,6 +5,9 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserData}
 import de.fuberlin.wiwiss.silk.linkspec.evaluation.DetailedEvaluator
+import net.liftweb.http.SHtml
+import xml.NodeSeq
+import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 
 class ReferenceLinks extends LinkList
 {
@@ -45,9 +48,9 @@ class ReferenceLinks extends LinkList
             val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
             val correct = if(evaluatedLink.confidence >= threshold) 1 else -1
 
-            (evaluatedLink,  correct)
+            (new ReferenceLink(evaluatedLink, true),  correct)
           }
-          case None => (link, if(link.confidence >= threshold) 1 else -1)
+          case None => (new ReferenceLink(link, true), if(link.confidence >= threshold) 1 else -1)
         }
       }
       case NegativeLinks =>
@@ -59,11 +62,44 @@ class ReferenceLinks extends LinkList
             val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
             val correct = if(evaluatedLink.confidence >= threshold) -1 else 1
 
-            (evaluatedLink,  correct)
+            (new ReferenceLink(evaluatedLink, false),  correct)
           }
-          case None => (link, if(link.confidence >= threshold) -1 else 1)
+          case None => (new ReferenceLink(link, false), if(link.confidence >= threshold) -1 else 1)
         }
       }
     }
   }
+
+  override protected def renderStatus(link : Link, correct : Int) : NodeSeq =
+  {
+    ShowLinks() match
+    {
+      case PositiveLinks if correct ==  1 => <div>found</div>
+      case PositiveLinks if correct == -1 => <div>not-found</div>
+      case NegativeLinks if correct ==  1 => <div>found</div>
+      case NegativeLinks if correct == -1 => <div>not-found</div>
+      case _ => <div>unknown</div>
+    }
+  }
+
+  override protected def renderButtons(link : Link, correct : Int)  : NodeSeq =
+  {
+    <div>
+      {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
+    </div>
+  }
+
+  private def resetLink(link : Link) =
+  {
+    val linkingTask = User().linkingTask
+    val alignment = linkingTask.alignment
+    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
+
+    User().project.linkingModule.update(updatedTask)
+    User().task = updatedTask
+
+    JsHideId(getId(link))
+  }
+
+  private class ReferenceLink(link : Link, val isPositive : Boolean) extends Link(link.sourceUri, link.targetUri, link.confidence, link.details)
 }
