@@ -43,7 +43,7 @@ class ImportReferenceLinksDialog
             User().task = updatedLinkingTask
           }
 
-          S.redirectTo("alignment")
+          S.redirectTo("referenceLinks")
         }
         case _ =>
       }
