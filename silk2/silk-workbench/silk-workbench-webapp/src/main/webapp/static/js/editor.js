@@ -20,6 +20,8 @@ var targetDataSetVar = "";
 var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
 
+var customPropertyPathsCreated = false;
+
 jsPlumb.Defaults.Container = "droppable";
 
 var endpointOptions =
@@ -895,6 +897,134 @@ function getPropertyPaths(deleteExisting)
     box.append(text);
     box.appendTo("#paths");
   }
+
+    if (!customPropertyPathsCreated || deleteExisting) {
+
+        var box = $(document.createElement('div'));
+        box.html("<span style='font-weight: bold;'>Source:</span> <span id='source_id'></span>").appendTo("#paths");
+        box.appendTo("#paths");
+
+        var box = $(document.createElement('div'));
+        box.addClass('more');
+        box.html("<span class='restriction'><span style='font-weight: bold;'>Restriction:</span> <span id='source_restriction'></span></span>").appendTo("#paths");
+        box.appendTo("#paths");
+
+        var box = $(document.createElement('div'));
+        box.attr("id", "sourcepaths");
+        box.addClass("scrollboxes");
+        box.css("height","30px");
+        box.appendTo("#paths");
+
+        var box = $(document.createElement('div'));
+        box.addClass('draggable');
+        box.attr("id", "source0");
+        box.html("<span> </span><small> </small><p>(custom path)</p>");
+        box.draggable(
+        {
+          helper: function ()
+          {
+            var box1 = $(document.createElement('div'));
+            box1.addClass('dragDiv sourcePath');
+            box1.attr("id", "source_" + sourcecounter);
+
+            var box2 = $(document.createElement('small'));
+            box2.addClass('name');
+            box1.append(box2);
+
+            var box2 = $(document.createElement('small'));
+            box2.addClass('type');
+            var mytext = document.createTextNode("Input");
+            box2.append(mytext);
+            box1.append(box2);
+
+            var box2 = $(document.createElement('h5'));
+            box2.addClass('handler');
+            box2.attr("style", "height: 19px;");
+
+            var input = $(document.createElement('input'));
+            input.attr("style", "width: 165px;");
+            input.attr("type", "text");
+            input.val("?" + sourceDataSetVar);
+            box2.append(input);
+
+            box2.append(getDeleteIcon("#source_" + sourcecounter));
+
+            box1.append(box2);
+
+            var box2 = $(document.createElement('div'));
+            box2.addClass('content');
+            box1.append(box2);
+
+            return box1;
+          }
+        });
+        box.appendTo("#sourcepaths");
+
+        var box = $(document.createElement('div'));
+        box.html("<span style='font-weight: bold;'>Target:</span> <span id='target_id'></span>").appendTo("#paths");
+        box.appendTo("#paths");
+
+        var box = $(document.createElement('div'));
+        box.addClass('more');
+        box.html("<span class='restriction'><span style='font-weight: bold;'>Restriction:</span> <span id='target_restriction'></span></span>").appendTo("#paths");
+        box.appendTo("#paths");
+
+
+        var box = $(document.createElement('div'));
+        box.attr("id", "targetpaths");
+        box.addClass("scrollboxes");
+        box.css("height","30px");
+        box.appendTo("#paths");
+
+        var box = $(document.createElement('div'));
+        box.addClass('draggable');
+        box.attr("id", "target0");
+        box.html("<span> </span><small> </small><p>(custom path)</p>");
+        box.draggable(
+        {
+          helper: function ()
+          {
+            var box1 = $(document.createElement('div'));
+            box1.addClass('dragDiv sourcePath');
+            box1.attr("id", "source_" + sourcecounter);
+
+            var box2 = $(document.createElement('small'));
+            box2.addClass('name');
+            box1.append(box2);
+
+            var box2 = $(document.createElement('small'));
+            box2.addClass('type');
+            var mytext = document.createTextNode("Input");
+            box2.append(mytext);
+            box1.append(box2);
+
+            var box2 = $(document.createElement('h5'));
+            box2.addClass('handler');
+            box2.attr("style", "height: 19px;");
+
+            var input = $(document.createElement('input'));
+            input.attr("style", "width: 165px;");
+            input.attr("type", "text");
+            input.val("?" + targetDataSetVar);
+            box2.append(input);
+
+            box2.append(getDeleteIcon("#source_" + sourcecounter));
+
+            box1.append(box2);
+
+            var box2 = $(document.createElement('div'));
+            box2.addClass('content');
+            box1.append(box2);
+
+            return box1;
+          }
+        });
+        box.appendTo("#targetpaths");
+    }
+
+    $(".restriction").hide();
+    customPropertyPathsCreated = true;
+
   var url = "api/project/paths"; // ?max=10
   $.getJSON(url, function (data)
   {
@@ -912,21 +1042,12 @@ function getPropertyPaths(deleteExisting)
     {
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
-    var list_item_id = 0;
+    $(".restriction").show();
+    $("#sourcepaths, #targetpaths").css("height","98px");
+    $("#source_id").html(data.source.id);
+    $("#source_restriction").html(data.source.restrictions);
 
-    var box = $(document.createElement('div'));
-    box.html("<span style='font-weight: bold;'>Source:</span> " + data.source.id).appendTo("#paths");
-    box.appendTo("#paths");
-
-    var box = $(document.createElement('div'));
-    box.addClass('more');
-    box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.source.restrictions).appendTo("#paths");
-    box.appendTo("#paths");
-
-    var box = $(document.createElement('div'));
-    box.attr("id", "sourcepaths");
-    box.addClass("scrollboxes");
-    box.appendTo("#paths");
+    var list_item_id = 1;
 
     var sourcepaths = data.source.paths;
     $.each(sourcepaths, function (i, item)
@@ -982,51 +1103,6 @@ function getPropertyPaths(deleteExisting)
 
     });
 
-    var box = $(document.createElement('div'));
-    box.addClass('draggable');
-    box.attr("id", "source" + list_item_id);
-    box.html("<span> </span><small> </small><p>(custom path)</p>");
-    box.draggable(
-    {
-      helper: function ()
-      {
-        var box1 = $(document.createElement('div'));
-        box1.addClass('dragDiv sourcePath');
-        box1.attr("id", "source_" + sourcecounter);
-
-        var box2 = $(document.createElement('small'));
-        box2.addClass('name');
-        box1.append(box2);
-
-        var box2 = $(document.createElement('small'));
-        box2.addClass('type');
-        var mytext = document.createTextNode("Input");
-        box2.append(mytext);
-        box1.append(box2);
-
-        var box2 = $(document.createElement('h5'));
-        box2.addClass('handler');
-        box2.attr("style", "height: 19px;");
-
-        var input = $(document.createElement('input'));
-        input.attr("style", "width: 165px;");
-        input.attr("type", "text");
-        input.val("?" + sourceDataSetVar);
-        box2.append(input);
-
-        box2.append(getDeleteIcon("#source_" + sourcecounter));
-
-        box1.append(box2);
-
-        var box2 = $(document.createElement('div'));
-        box2.addClass('content');
-        box1.append(box2);
-
-        return box1;
-      }
-    });
-    box.appendTo("#sourcepaths");
-
     /*
     var availablePaths = data.source.availablePaths;
     if (max_paths < availablePaths)
@@ -1037,21 +1113,10 @@ function getPropertyPaths(deleteExisting)
     }
     */
 
-    var box = $(document.createElement('div'));
-    box.html("<span style='font-weight: bold;'>Target:</span> " + data.target.id).appendTo("#paths");
-    box.appendTo("#paths");
+    $("#target_id").html(data.target.id);
+    $("#target_restriction").html(data.target.restrictions);
 
-    var box = $(document.createElement('div'));
-    box.addClass('more');
-    box.html("<span style='font-weight: bold;'>Restriction:</span> " + data.target.restrictions).appendTo("#paths");
-    box.appendTo("#paths");
-
-    var list_item_id = 0;
-
-    var box = $(document.createElement('div'));
-    box.attr("id", "targetpaths");
-    box.addClass("scrollboxes");
-    box.appendTo("#paths");
+    var list_item_id = 1;
 
     var sourcepaths = data.target.paths;
     $.each(sourcepaths, function (i, item)
@@ -1107,51 +1172,6 @@ function getPropertyPaths(deleteExisting)
       list_item_id = list_item_id + 1;
 
     });
-
-    var box = $(document.createElement('div'));
-    box.addClass('draggable');
-    box.attr("id", "target" + list_item_id);
-    box.html("<span> </span><small> </small><p>(custom path)</p>");
-    box.draggable(
-    {
-      helper: function ()
-      {
-        var box1 = $(document.createElement('div'));
-        box1.addClass('dragDiv sourcePath');
-        box1.attr("id", "source_" + sourcecounter);
-
-        var box2 = $(document.createElement('small'));
-        box2.addClass('name');
-        box1.append(box2);
-
-        var box2 = $(document.createElement('small'));
-        box2.addClass('type');
-        var mytext = document.createTextNode("Input");
-        box2.append(mytext);
-        box1.append(box2);
-
-        var box2 = $(document.createElement('h5'));
-        box2.addClass('handler');
-        box2.attr("style", "height: 19px;");
-
-        var input = $(document.createElement('input'));
-        input.attr("style", "width: 165px;");
-        input.attr("type", "text");
-        input.val("?" + targetDataSetVar);
-        box2.append(input);
-
-        box2.append(getDeleteIcon("#source_" + sourcecounter));
-
-        box1.append(box2);
-
-        var box2 = $(document.createElement('div'));
-        box2.addClass('content');
-        box1.append(box2);
-
-        return box1;
-      }
-    });
-    box.appendTo("#targetpaths");
     /*
     var availablePaths = data.target.availablePaths;
     if (max_paths < availablePaths)
