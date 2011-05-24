@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.util.Task
 import net.liftweb.http.SHtml
 
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
-import JavaScriptUtils.PeriodicUpdate
+import JS.PeriodicUpdate
 import net.liftweb.http.js.JE.JsRaw
 import xml.{NodeBuffer, NodeSeq, Text}
 

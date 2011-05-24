@@ -4,7 +4,7 @@ import xml.NodeSeq
 import net.liftweb.util.Helpers._
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
 
 class ReferenceLinks
@@ -29,6 +29,6 @@ class ReferenceLinks
   private def showLinks(linkType : LinkType)() =
   {
     ShowLinks() = linkType
-    JavaScriptUtils.Empty
+    JS.Empty
   }
 }

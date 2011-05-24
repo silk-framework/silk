@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream
 import net.liftweb.http.{SHtml, FileParamHolder}
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.util.Helpers._
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import net.liftweb.http.js.JsCmd
 
 /**
