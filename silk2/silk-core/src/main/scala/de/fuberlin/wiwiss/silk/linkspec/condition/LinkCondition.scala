@@ -2,9 +2,8 @@ package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import xml.Elem
-import de.fuberlin.wiwiss.silk.linkspec.input.{Transformer, TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import math.abs
 
 /**
  * A Link Condition specifies the conditions which must hold true so that a link is generated between two instances.
@@ -46,10 +45,12 @@ case class LinkCondition(rootOperator : Option[Operator])
       {
         val indexes = operator.index(instance, threshold)
 
-        //Convert the index vectors to scalars
+        //Convert the index vectors to scalars in the range [0, Int.MaxValue]
         for(index <- indexes) yield
         {
-          (index zip operator.blockCounts).foldLeft(0){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
+          val flatIndex = (index zip operator.blockCounts).foldLeft(0){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
+
+          if(flatIndex == Int.MinValue) 0 else abs(flatIndex)
         }
       }
       case None => Set.empty
