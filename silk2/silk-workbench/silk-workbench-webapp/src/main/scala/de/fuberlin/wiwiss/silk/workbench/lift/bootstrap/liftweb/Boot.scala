@@ -52,7 +52,7 @@ class Boot
     val ifLinkingTaskOpen = If(() => User().linkingTaskOpen, () => RedirectResponse("index"))
 
     val workspaceText = LinkText[Unit](_ => Text(if(User().projectOpen) "Workspace: " + User().project.name else "Workspace"))
-    val linkSpecText = LinkText[Unit](_ => Text(User().linkingTask.name))
+    val linkSpecText = LinkText[Unit](_ => Text("Editor: " + User().linkingTask.name))
 
     val entries =
         Menu(Loc("Workspace", List("index"), workspaceText)) ::
