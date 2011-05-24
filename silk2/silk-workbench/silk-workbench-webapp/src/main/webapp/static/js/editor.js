@@ -22,6 +22,9 @@ var targetDataSetRestriction = "";
 
 var customPropertyPathsCreated = false;
 
+//TODO Set to true if the link specification has been modified
+var modified = true;
+
 jsPlumb.Defaults.Container = "droppable";
 
 var endpointOptions =
@@ -104,6 +107,17 @@ document.onselectstart = function ()
 {
   return false;
 };
+
+// Warn the user when he leaves the editor that any unsaved modifications are lost.
+window.onbeforeunload = confirmExit;
+
+function confirmExit()
+{
+  if(modified)
+  {
+    return "Unsaved modifications will be lost when leaving the editor";
+  }
+}
 
 Array.max = function(array) {
     return Math.max.apply(Math, array);

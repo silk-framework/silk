@@ -48,6 +48,8 @@ class Workspace
 {
   def content(xhtml : NodeSeq) : NodeSeq =
   {
+    User().closeTask()
+
     bind("entry", xhtml,
          "injectedJavascript" -> (Script(Workspace.javasScriptFunctions)))
   }

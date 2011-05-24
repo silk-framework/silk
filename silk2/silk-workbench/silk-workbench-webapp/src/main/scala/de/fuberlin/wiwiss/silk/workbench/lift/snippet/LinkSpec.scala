@@ -10,10 +10,10 @@ import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import net.liftweb.http.js.JsCmds.OnLoad
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.Redirect
 import de.fuberlin.wiwiss.silk.MatchTask
 import java.util.logging.{Level, Logger}
+import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 
 /**
  * LinkSpec snippet.
@@ -32,30 +32,10 @@ class LinkSpec
   def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
     //JS Command which saves the current link specification
-    def saveCall(close : Boolean) = SHtml.ajaxCall(Call("serializeLinkSpec"), saveLinkSpec(close))._2.cmd
-
-    //JS Command which closes the current link specification
-    def closeCall = SHtml.ajaxInvoke(closeLinkSpec)._2.cmd
-
-    //Initializes the close dialog
-    def initDialog = Script(OnLoad(JsRaw("""
-      $('#dialog-confirm').dialog({
-        autoOpen: false,
-        resizable: false,
-        height: 140,
-        modal: true,
-        buttons: {
-          Yes: function() { """  + saveCall(true).toJsCmd + """ $(this).dialog('close'); },
-          No: function() { """ + closeCall.toJsCmd + """$(this).dialog('close'); }
-        }
-      });""").cmd))
-
-    //JS Command which opens the close dialog
-    def openDialog = JsRaw("$('#dialog-confirm').dialog('open');").cmd
+    def saveCall = SHtml.ajaxCall(Call("serializeLinkSpec"), saveLinkSpec)._2.cmd
 
     bind("entry", xhtml,
-         "close" -> (initDialog ++ SHtml.ajaxButton("Close", openDialog _)),
-         "save" -> SHtml.ajaxButton("Save", () => saveCall(false)),
+         "save" -> SHtml.ajaxButton("Save", () => saveCall),
          "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("config.xml")))
   }
 
@@ -65,13 +45,13 @@ class LinkSpec
   def content(xhtml : NodeSeq) : NodeSeq =
   {
     bind("entry", xhtml,
-         "linkSpecVar" -> Script(generateLinkSpecVar & reloadCacheFunction))
+         "linkSpecVar" -> Script(linkSpecVarCmd & reloadCacheFunction))
   }
 
   /**
    * Saves the Link Specification.
    */
-  private def saveLinkSpec(closeOnSuccess : Boolean)(linkSpecStr : String) =
+  private def saveLinkSpec(linkSpecStr : String) =
   {
     try
     {
@@ -89,14 +69,7 @@ class LinkSpec
       project.linkingModule.update(updatedLinkingTask)
       User().task = updatedLinkingTask
 
-      if(closeOnSuccess)
-      {
-        SHtml.ajaxInvoke(closeLinkSpec)._2.cmd
-      }
-      else
-      {
-        JsRaw("alert('Saved')").cmd
-      }
+      linkSpecVarCmd & JsRaw("alert('Saved')").cmd
     }
     catch
     {
@@ -109,26 +82,9 @@ class LinkSpec
   }
 
   /**
-   * Closes the current link specification.
+   * Command which sets the 'linkSpec' variable which holds the current link specification.
    */
-  private def closeLinkSpec() =
-  {
-    try
-    {
-      User().closeTask()
-
-      Redirect("index.html")
-    }
-    catch
-    {
-      case ex : Exception => JsRaw("alert('Error closing Editor. Details: " + ex.getMessage.encJs + "')").cmd
-    }
-  }
-
-  /**
-   * Generates the 'linkSpec' variable which holds the current link specification.
-   */
-  private def generateLinkSpecVar() =
+  private def linkSpecVarCmd =
   {
     val linkingTask = User().linkingTask
     implicit val prefixes = User().project.config.prefixes
