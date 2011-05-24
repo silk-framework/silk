@@ -10,7 +10,7 @@ import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils.Redirect
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.Redirect
 import de.fuberlin.wiwiss.silk.MatchTask
 import java.util.logging.{Level, Logger}
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}

@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import xml.{Text, NodeSeq}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
 /**
 * A widget which displays a list of links.
@@ -44,7 +44,7 @@ trait LinkList extends CometActor
     JsRaw("initPagination(" + linkCount + ");").cmd
   }
 
-  private def showLinks(page : Int) =
+  private def showLinks(page : Int) = JS.Try("show links")
   {
     val html =
       <div>
