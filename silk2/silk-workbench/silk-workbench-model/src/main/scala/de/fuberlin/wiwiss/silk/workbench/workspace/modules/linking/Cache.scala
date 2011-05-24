@@ -12,6 +12,7 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, ReferenceInstances}
 import de.fuberlin.wiwiss.silk.util.{Future, Task, SourceTargetPair}
+import sun.awt.SunHints.Value
 
 //TODO use options?
 //TODO store path frequencies
@@ -103,13 +104,15 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
       if(instanceSpecs == null)
       {
         updateStatus("Retrieving frequent property paths", 0.0)
-        val sourcePaths = sources.source.dataSource.retrievePaths(linkSpec.datasets.source.restriction, 1, Some(50))
-        val targetPaths = sources.target.dataSource.retrievePaths(linkSpec.datasets.target.restriction, 1, Some(50))
 
-        val sourceInstanceSpec = new InstanceSpecification(Constants.SourceVariable, linkSpec.datasets.source.restriction, sourcePaths.map(_._1).toSeq)
-        val targetInstanceSpec = new InstanceSpecification(Constants.TargetVariable, linkSpec.datasets.target.restriction, targetPaths.map(_._1).toSeq)
+        //Retrieve most frequent paths
+        val paths = for((source, dataset) <- sources zip linkSpec.datasets) yield source.dataSource.retrievePaths(dataset.restriction, 1, Some(50))
 
-        instanceSpecs = new SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
+        //Create an instance spec from the link specification
+        val currentInstanceSpecs = InstanceSpecification.retrieve(linkSpec)
+
+        //Add the frequent paths to the instance specification
+        instanceSpecs = for((instanceSpec, paths) <- currentInstanceSpecs zip paths) yield instanceSpec.copy(paths = instanceSpec.paths ++ paths.map(_._1))
       }
 
       updateStatus(0.2)
