@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
-class InstanceSpecification(val variable : String, val restrictions : SparqlRestriction, val paths : Seq[Path])
+case class InstanceSpecification(variable : String, restrictions : SparqlRestriction, paths : Seq[Path])
 {
   def pathIndex(path : Path) =
   {
@@ -17,8 +17,6 @@ class InstanceSpecification(val variable : String, val restrictions : SparqlRest
       case index => index
     }
   }
-
-  override def toString = "InstanceSpecification(variable='" + variable + "' restrictions='" + restrictions + "' paths=" + paths + ")"
 
   def toXML =
   {

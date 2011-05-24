@@ -8,6 +8,8 @@ case class SourceTargetPair[+T](source : T, target : T)
   def map[U](f : (T) => U) = SourceTargetPair(f(source), f(target))
 
   def select(selectSource : Boolean) = if(selectSource) source else target
+
+  def zip[U](pair : SourceTargetPair[U]) = SourceTargetPair((source, pair.source), (target, pair.target))
 }
 
 /**
@@ -28,7 +30,7 @@ object SourceTargetPair
   /**
    * Creates a SourceTargetPair from a Sequence of 2 values.
    */
-  def fromSeq[T](seq : Seq[T]) = new SourceTargetPair(seq(0), seq(1))
+  implicit def fromSeq[T](seq : Seq[T]) = new SourceTargetPair(seq(0), seq(1))
 
   /**
    * Converts a SourceTargetPair to a Sequence of 2 values.
