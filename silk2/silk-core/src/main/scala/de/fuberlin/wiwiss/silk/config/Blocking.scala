@@ -14,10 +14,23 @@ case class Blocking(blocks : Int = 100)
 
 object Blocking
 {
-  def fromXML(node : Node) =
+  def fromXML(node : Node) : Option[Blocking] =
   {
-    new Blocking(
-      (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(100)
-    )
+    val enabled = (node \ "@enabled").headOption.map(_.text.toBoolean) match
+    {
+      case Some(e) => e
+      case None => true
+    }
+
+    if(enabled)
+    {
+      Some(Blocking(
+        (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(100)
+      ))
+    }
+    else
+    {
+      None
+    }
   }
 }
