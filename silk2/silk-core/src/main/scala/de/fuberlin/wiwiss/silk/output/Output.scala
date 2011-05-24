@@ -34,8 +34,8 @@ case class Output(writer : LinkWriter, minConfidence : Option[Double] = None, ma
   {
     require(isOpen, "Output must be opened befored writing statements to it")
 
-    if((minConfidence.isEmpty || link.confidence > minConfidence.get) &&
-        (maxConfidence.isEmpty || link.confidence <= maxConfidence.get))
+    if((minConfidence.isEmpty || link.confidence >= minConfidence.get) &&
+       (maxConfidence.isEmpty || link.confidence < maxConfidence.get))
     {
       writer.write(link, predicateUri)
       linkCount += 1
