@@ -61,7 +61,11 @@ object Configuration
   {
     implicit val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
-    val blocking = (node \ "Blocking").headOption.map(Blocking.fromXML)
+    val blocking = (node \ "Blocking").headOption match
+    {
+      case Some(blockingNode) => Blocking.fromXML(blockingNode)
+      case None => Some(Blocking())
+    }
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p))
     val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
 

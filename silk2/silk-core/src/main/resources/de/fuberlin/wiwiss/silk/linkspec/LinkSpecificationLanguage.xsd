@@ -155,6 +155,7 @@
 
         <xs:element name="Blocking" minOccurs="0">
           <xs:complexType>
+            <xs:attribute name="enabled" type="xs:boolean" use="optional" />
             <xs:attribute name="blocks" type="xs:unsignedShort" use="optional" />
           </xs:complexType>
         </xs:element>
