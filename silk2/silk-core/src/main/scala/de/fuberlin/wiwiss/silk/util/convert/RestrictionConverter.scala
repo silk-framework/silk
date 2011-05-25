@@ -32,13 +32,13 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
 
   def parser: Parser[Restriction] = unionPatterns ^^ { r => Restriction(Some(r)) }
 
-  def unionPatterns : Parser[Operator] = rep(unionPattern <~ opt("UNION" <~ spaceOrNewLine) <~ opt(".")) ^^ { r => r match
+  def unionPatterns : Parser[Operator] = rep1(unionPattern <~ opt("UNION" <~ spaceOrNewLine) <~ opt(".")) ^^ { r => r match
     {
-      case condition :: Nil => condition
-      case head :: tail => Or(r)
+      case operator :: Nil => operator
+      case operators => Or(operators)
     }}
 
-  def unionPattern = (( anyWhitespace ~> brace) ~> anyWhitespace) ~> triplePatterns <~ (anyWhitespace <~ brace <~ spaceOrNewLine) ^^
+  def unionPattern = (( anyWhitespace ~> opt(brace)) ~> anyWhitespace) ~> triplePatterns <~ (anyWhitespace <~ opt(brace) <~ spaceOrNewLine) ^^
   {
     case patterns => patterns
   }
@@ -52,12 +52,11 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
   // curly brace
   def brace = "{" | "}"
 
-  def triplePatterns : Parser[Operator] = rep( triplePattern <~ opt(".") ) ^^ { r => r match
+  def triplePatterns : Parser[Operator] = rep1( triplePattern <~ anyWhitespace <~ opt(".") ) ^^ { r  => r match
   {
     case condition :: Nil => condition
-    case head :: tail => And(r)
+    case conditions => And(conditions)
   }}
-
 
   def triplePattern = subj ~ predicateObjectFilter ~ predicateObjectFilter  ^^
     { case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + " " + p), Set(o)) }
