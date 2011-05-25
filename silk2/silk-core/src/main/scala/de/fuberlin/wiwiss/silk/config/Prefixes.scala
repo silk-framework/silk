@@ -5,7 +5,7 @@ import xml.Node
 /**
  * Holds namespace prefixes.
  */
-class Prefixes(private val prefixMap : Map[String, String])
+class Prefixes(val prefixMap : Map[String, String])
 {
   override def toString = "Prefixes(" + prefixMap.toString + ")"
 

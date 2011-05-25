@@ -34,6 +34,20 @@ case class Configuration(prefixes : Prefixes,
    */
   def linkSpec(id : String) = linkSpecMap(id)
 
+  /**
+   * Merges this configuration with another configuration.
+   */
+  def merge(config : Configuration) =
+  {
+    Configuration(
+      prefixes = prefixes ++ config.prefixes,
+      sources = sources ++ config.sources,
+      blocking = blocking,
+      linkSpecs = linkSpecs ++ config.linkSpecs,
+      outputs = outputs ++ config.outputs
+    )
+  }
+
   def toXML : Node =
   {
     <Silk>
@@ -51,6 +65,8 @@ case class Configuration(prefixes : Prefixes,
 object Configuration
 {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+
+  def empty = Configuration(Prefixes.empty, Nil, Some(Blocking()), Nil, Nil)
 
   def load =
   {
