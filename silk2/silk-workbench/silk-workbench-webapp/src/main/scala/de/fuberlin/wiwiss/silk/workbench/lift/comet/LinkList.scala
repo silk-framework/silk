@@ -77,7 +77,7 @@ trait LinkList extends CometActor
   private def renderLink(link : Link, correct : Int) =
   {
     <div class="link" id={getId(link)} >
-      <div class="link-header" onclick={"toggleLinkDetails('" + getId(link) + "');"} onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
+      <div class="link-header" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
         <div class="link-source"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
         <div class="link-target"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
