@@ -9,3 +9,11 @@ trait SparqlPathsCollector
 {
   def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) : Traversable[(Path, Double)]
 }
+
+object SparqlPathsCollector
+{
+  def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) =
+  {
+    SparqlSamplePathsCollector(endpoint, restrictions, limit)
+  }
+}
