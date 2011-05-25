@@ -24,7 +24,7 @@ object SparqlRestriction
 
   def fromSparql(restrictions : String)(implicit prefixes : Prefixes) =
   {
-    val cleanedRestrictions = restrictions.stripSuffix(".") + "."
+    val cleanedRestrictions = restrictions.trim.stripSuffix(".").trim + " ."
     var restrictionsFull = cleanedRestrictions
     var restrictionsQualified = cleanedRestrictions
     for((id, namespace) <- prefixes.toSeq.sortBy(_._1.length).reverse)
