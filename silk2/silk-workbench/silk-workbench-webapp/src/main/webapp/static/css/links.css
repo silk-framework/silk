@@ -3,7 +3,7 @@
 }
 
 #results {
-    width: 1100px;
+    width: 1110px;
     overflow: auto;
 }
 
@@ -60,7 +60,7 @@
 }
 
 .link-status {
-    width: 50px;
+    width: 55px;
     margin-right: 0px;
 }
 
@@ -139,3 +139,5 @@
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
+
+a img { border: none; }
