@@ -161,7 +161,7 @@ function getDeleteIcon(elementId) {
   img.attr("src", "static/img/delete.png");
   img.attr("align", "right");
   img.attr("style", "cursor:pointer;");
-  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove();");
+  img.attr("onclick", "alert('delete"+elementId+"');jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove();");
   return img;
 }
 
@@ -692,7 +692,6 @@ function createNewElement(elementId)
 
 function serializeLinkSpec() {
   //alert (JSON.stringify(c));
-
   var c = jsPlumb.getConnections();
   if (c[jsPlumb.getDefaultScope()] !== undefined) {
     var connections = "";
@@ -717,7 +716,7 @@ function serializeLinkSpec() {
       }
     }
   }
-  // alert(connections + "\n\n" + root);
+  //alert(connections + "\n\n" + root);
   var xml = document.createElement("Interlink");
   xml.setAttribute("id", interlinkId);
 
@@ -745,7 +744,7 @@ function serializeLinkSpec() {
   xml.appendChild(targetDataset);
 
   var linkcondition = document.createElement("LinkCondition");
-  if (root != null)
+  if ((root != null) && (connections != ""))
   {
     linkcondition.appendChild(createNewElement(root));
   }
