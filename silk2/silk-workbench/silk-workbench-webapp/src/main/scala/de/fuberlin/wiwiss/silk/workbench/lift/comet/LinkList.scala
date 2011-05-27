@@ -8,6 +8,7 @@ import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import xml.{Text, NodeSeq}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
+import de.fuberlin.wiwiss.silk.workbench.evaluation._
 
 /**
 * A widget which displays a list of links.
@@ -21,27 +22,25 @@ trait LinkList extends CometActor
 
   protected val showButtons = true
 
-  protected def linkCount : Int
+  protected def links : Seq[EvalLink]
 
-  protected def links(from : Int, until : Int) : Traversable[(Link, Int)]
+  protected def renderStatus(link : EvalLink) : NodeSeq = NodeSeq.Empty
 
-  protected def renderStatus(link : Link, correct : Int) : NodeSeq = NodeSeq.Empty
-
-  protected def renderButtons(link : Link, correct : Int) : NodeSeq = NodeSeq.Empty
+  protected def renderButtons(link : EvalLink) : NodeSeq = NodeSeq.Empty
 
   override def render =
   {
     val showLinksFunc = JsCmds.Function("showLinks", "page" :: Nil, SHtml.ajaxCall(JsRaw("page"), (pageStr) => showLinks(pageStr.toInt))._2.cmd)
 
     <p>
-      { Script(OnLoad(updateLinks) & showLinksFunc) }
+      { Script(OnLoad(updateLinksCmd) & showLinksFunc) }
       { <div id="results" /> }
     </p>
   }
 
-  protected def updateLinks() : JsCmd =
+  protected def updateLinksCmd : JsCmd =
   {
-    JsRaw("initPagination(" + linkCount + ");").cmd
+    JsRaw("initPagination(" + links.size + ");").cmd
   }
 
   private def showLinks(page : Int) = JS.Try("show links")
@@ -52,15 +51,15 @@ trait LinkList extends CometActor
           <div class="link-header heading">
             <div class="link-source"><span>Source</span></div>
             <div class="link-target"><span>Target</span></div>
-            <div class="link-confidence"><span>Confidence</span></div>
+            <div class="link-confidence">{SHtml.a(sortByConfidence _, <span>Confidence</span>)}</div>
             { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
             { if(showButtons) <div class="link-buttons"></div> else NodeSeq.Empty }
           </div>
         </div>
         {
-          for((link, correct) <- links(page * pageSize, (page + 1) * pageSize)) yield
+          for(link <- CurrentLinkFilter()(links).view(page * pageSize, (page + 1) * pageSize)) yield
           {
-            renderLink(link, correct)
+            renderLink(link)
           }
         }
       </div>
@@ -68,13 +67,26 @@ trait LinkList extends CometActor
     SetHtml("results", html) & JsRaw("initTrees();").cmd
   }
 
+  private def sortByConfidence =
+  {
+    if(CurrentLinkFilter() == ConfidenceSorterAscending)
+    {
+      CurrentLinkFilter() = ConfidenceSorterDescending
+    }
+    else
+    {
+      CurrentLinkFilter() = ConfidenceSorterAscending
+    }
+
+    updateLinksCmd
+  }
+
   /**
    * Renders a link.
    *
    * @param link The link to be rendered
-   * @param correct 1 if this link is correct. -1 if it is wrong. 0 if unknown.
    */
-  private def renderLink(link : Link, correct : Int) =
+  private def renderLink(link : EvalLink) =
   {
     <div class="link" id={getId(link)} >
       <div class="link-header" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
@@ -82,8 +94,8 @@ trait LinkList extends CometActor
         <div class="link-source"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
         <div class="link-target"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
         <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
-        { if(showStatus) <div class="link-status">{ renderStatus(link, correct) }</div> else NodeSeq.Empty }
-        { if(showButtons) <div class="link-buttons">{ renderButtons(link, correct) }</div> else NodeSeq.Empty }
+        { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
+        { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }
 
       </div>
       <div class="link-details" id={getId(link, "details")}>
