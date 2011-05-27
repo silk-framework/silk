@@ -32,13 +32,13 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
 
   def parser: Parser[Restriction] = unionPatterns ^^ { r => Restriction(Some(r)) }
 
-  def unionPatterns : Parser[Operator] = rep1(unionPattern <~ opt("UNION" <~ spaceOrNewLine) <~ opt(".")) ^^ { r => r match
+  def unionPatterns : Parser[Operator] = rep1(unionPattern <~ opt("UNION" <~ anyWhitespace) <~ opt(".")) ^^ { r => r match
     {
       case operator :: Nil => operator
       case operators => Or(operators)
     }}
 
-  def unionPattern = (( anyWhitespace ~> opt(brace)) ~> anyWhitespace) ~> triplePatterns <~ (anyWhitespace <~ opt(brace) <~ spaceOrNewLine) ^^
+  def unionPattern = ( anyWhitespace ~> opt(repsep(fowbrace,anyWhitespace)) ~> anyWhitespace) ~> triplePatterns <~ (anyWhitespace <~ opt(repsep(revbrace, anyWhitespace)) <~ anyWhitespace)   ^^
   {
     case patterns => patterns
   }
@@ -46,11 +46,12 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
   //one or more whitespace
   def anyWhitespace = """\s*""".r
 
-  //one or more whitespace or newline
-  def spaceOrNewLine = """[\s\n]*""".r
+  // curly brace forward
+  def fowbrace = """\{+""".r
 
-  // curly brace
-  def brace = "{" | "}"
+// curly brace reward
+  def revbrace = """\}+""".r
+
 
   def triplePatterns : Parser[Operator] = rep1( triplePattern <~ anyWhitespace <~ opt(".") ) ^^ { r  => r match
   {
@@ -58,17 +59,22 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
     case conditions => And(conditions)
   }}
 
-  def triplePattern = subj ~ predicateObjectFilter ~ predicateObjectFilter  ^^
-    { case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + " " + p), Set(o)) }
+  def triplePattern = subj ~ predicate ~ objectt  ^^
+    { case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + " " + p), o) }
 
-  def subj = "?" ~> varAB ^^ { v => v }
+  def subj = "?" ~> wordCharFilter ^^ { v => v }
 
-  def varAB = "a" | "b"
+  def predicate = predicateObjectFilter | rdfTypeReplacement
 
-  def predicateObjectFilter = " " ~> wordCharFilter ~ ":" ~ wordCharFilter ^^ { case prefix ~ ":" ~ name => prefix + ":" + name}
+  def predicateObjectFilter = " " ~> wordCharFilter ~ ":" ~ wordCharFilter ^^ { case prefix ~ ":" ~ name => Set(prefix + ":" + name)}
+
+  def rdfTypeReplacement = " a" ^^ { rdftype => "rdf:type" }
+
+  def objectt = specialObj | predicateObjectFilter
+
+  def specialObj = " " ~> "?" ~ wordCharFilter ^^ { case "?" ~ name => Set[String]() }
 
   def wordCharFilter = """[a-zA-Z_]\w*""".r
-
 
 }
 

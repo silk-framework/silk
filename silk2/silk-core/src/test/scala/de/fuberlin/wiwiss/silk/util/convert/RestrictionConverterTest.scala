@@ -14,6 +14,7 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers
     "lgdo" -> "http://linkedgeodata.org/ontology/"
   )
 
+
   val restrictionConverter = new RestrictionConverter
 
   "RestrictionConverter" should "convert simple patterns" in
@@ -25,16 +26,46 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers
     restrictionConverter("a", sparqlRestriction) should equal (restriction)
   }
 
+  "RestrictionConverter" should "convert simple patterns with any variable name" in
+  {
+    val sparqlRestriction = SparqlRestriction.fromSparql("?x rdf:type dbpedia:Settlement")
+
+    val restriction = Restriction(Some(Condition.resolve(Path.parse("?x/rdf:type"), Set("dbpedia:Settlement"))))
+
+    restrictionConverter("x", sparqlRestriction) should equal (restriction)
+  }
+
+  "RestrictionConverter" should "convert simple patterns with replacement" in
+  {
+    val sparqlRestriction = SparqlRestriction.fromSparql("?a a dbpedia:Settlement")
+
+    val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), Set("dbpedia:Settlement"))))
+
+    restrictionConverter("a", sparqlRestriction) should equal (restriction)
+  }
+
+   "RestrictionConverter" should "convert simple patterns with special object" in
+  {
+    val sparqlRestriction = SparqlRestriction.fromSparql("?a rdf:type ?Settlement")
+
+    val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), Set())))
+
+    restrictionConverter("a", sparqlRestriction) should equal (restriction)
+
+  }
+
+
+
   "RestrictionConverter" should "convert union patterns" in
   {
     val sparqlRestriction = SparqlRestriction.fromSparql("""
-
-       { ?b rdf:type lgdo:City }
+       {{
+        { ?b rdf:type lgdo:City }}
        UNION
        { ?b rdf:type lgdo:Town }
        UNION
-       { ?b rdf:type lgdo:Village }
-
+       {  { ?b rdf:type lgdo:Village }
+       } }
     """)
 
     val restriction = Restriction(Some(Or(
