@@ -34,7 +34,7 @@ class EvaluationTask(user : User) extends Task[Unit]
   /**
    * Retrieves the current links.
    */
-  def links : Traversable[Link] =
+  def links : Seq[Link] =
   {
     if(filteredLinks != null)
     {
@@ -46,7 +46,7 @@ class EvaluationTask(user : User) extends Task[Unit]
     }
     else
     {
-      Traversable.empty
+      Seq.empty
     }
   }
 

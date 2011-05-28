@@ -8,28 +8,24 @@ import de.fuberlin.wiwiss.silk.linkspec.evaluation.DetailedEvaluator
 import net.liftweb.http.SHtml
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
+import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.util.Timer
+import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
 
 class ReferenceLinks extends LinkList
 {
+  private implicit val logger = Logger.getLogger(classOf[ReferenceLinks].getName)
+
   /** Register to updates to the ShowLinks variable */
-  ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[LinkType], Publisher[UserData.ValueUpdated[LinkType]]]
+  ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.Reference], Publisher[UserData.ValueUpdated[EvalLink.Reference]]]
   {
-    def notify(pub : Publisher[UserData.ValueUpdated[LinkType]], status : UserData.ValueUpdated[LinkType])
+    def notify(pub : Publisher[UserData.ValueUpdated[EvalLink.Reference]], status : UserData.ValueUpdated[EvalLink.Reference])
     {
-      partialUpdate(updateLinks)
+      partialUpdate(updateLinksCmd)
     }
   })
 
-  override protected def linkCount : Int =
-  {
-    ShowLinks() match
-    {
-      case PositiveLinks => User().linkingTask.alignment.positive.size
-      case NegativeLinks => User().linkingTask.alignment.negative.size
-    }
-  }
-
-  override protected def links(from : Int, until : Int) : Traversable[(Link, Int)] =
+  override protected def links : Seq[EvalLink] =
   {
     val linkingTask = User().linkingTask
     def condition = linkingTask.linkSpec.condition
@@ -39,50 +35,70 @@ class ReferenceLinks extends LinkList
 
     ShowLinks() match
     {
-      case PositiveLinks =>
+      case Positive =>
       {
-        for(link <- alignment.positive.view(from, until)) yield instances.positive.get(link) match
+        for(link <- alignment.positive.toSeq.view) yield instances.positive.get(link) match
         {
           case Some(instances) =>
           {
             val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
-            val correct = if(evaluatedLink.confidence >= threshold) 1 else -1
 
-            (new ReferenceLink(evaluatedLink, true),  correct)
+            new EvalLink(
+              link = evaluatedLink,
+              correct = if(evaluatedLink.confidence >= threshold) Correct else Incorrect,
+              linkType = Positive
+            )
           }
-          case None => (new ReferenceLink(link, true), if(link.confidence >= threshold) 1 else -1)
+          case None =>
+          {
+            new EvalLink(
+              link = link,
+              correct = if(link.confidence >= threshold) Correct else Incorrect,
+              linkType = Positive
+            )
+          }
         }
       }
-      case NegativeLinks =>
+      case Negative =>
       {
-        for(link <- alignment.negative.view(from, until)) yield instances.negative.get(link) match
+        for(link <- alignment.negative.toSeq.view) yield instances.negative.get(link) match
         {
           case Some(instances) =>
           {
             val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
-            val correct = if(evaluatedLink.confidence >= threshold) -1 else 1
 
-            (new ReferenceLink(evaluatedLink, false),  correct)
+            new EvalLink(
+              link = evaluatedLink,
+              correct = if(evaluatedLink.confidence >= threshold) Incorrect else Correct,
+              linkType = Negative
+            )
           }
-          case None => (new ReferenceLink(link, false), if(link.confidence >= threshold) -1 else 1)
+          case None =>
+          {
+            new EvalLink(
+              link = link,
+              correct = if(link.confidence >= threshold) Incorrect else Correct,
+              linkType = Negative
+            )
+          }
         }
       }
     }
   }
 
-  override protected def renderStatus(link : Link, correct : Int) : NodeSeq =
+  override protected def renderStatus(link : EvalLink) : NodeSeq =
   {
     ShowLinks() match
     {
-      case PositiveLinks if correct ==  1 => <div>found</div>
-      case PositiveLinks if correct == -1 => <div>not-found</div>
-      case NegativeLinks if correct ==  1 => <div>found</div>
-      case NegativeLinks if correct == -1 => <div>not-found</div>
+      case Positive if link.correct == Correct => <div>found</div>
+      case Positive if link.correct == Incorrect => <div>not-found</div>
+      case Negative if link.correct == Correct => <div>found</div>
+      case Negative if link.correct == Incorrect => <div>not-found</div>
       case _ => <div>unknown</div>
     }
   }
 
-  override protected def renderButtons(link : Link, correct : Int)  : NodeSeq =
+  override protected def renderButtons(link : EvalLink)  : NodeSeq =
   {
     <div>
       {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
@@ -100,6 +116,4 @@ class ReferenceLinks extends LinkList
 
     JsHideId(getId(link))
   }
-
-  private class ReferenceLink(link : Link, val isPositive : Boolean) extends Link(link.sourceUri, link.targetUri, link.confidence, link.details)
 }
