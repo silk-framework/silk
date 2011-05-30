@@ -2,6 +2,9 @@
 	padding: 20px 10px;
 }
 
+#filter {
+}
+
 #results {
     width: 1110px;
     overflow: auto;

@@ -28,18 +28,26 @@
 
   <lift:bind-at name="content">
 
-    <div class="navigation"></div>
+    <lift:comet type="GeneratedLinks" name="GeneratedLinks">
 
-    <div style="clear:both;"></div>
+      <entry:script/>
 
-    <div id="tree-header">
-      <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
-      <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
-    </div>
+      <div class="navigation"></div>
 
-    <lift:comet type="GeneratedLinks" name="GeneratedLinks" />
+      <entry:filter/>
 
-    <div class="navigation"></div>
+      <div style="clear:both;"></div>
+
+      <div id="tree-header">
+        <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+        <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+      </div>
+
+      <entry:list/>
+
+      <div class="navigation"></div>
+
+    </lift:comet>
 
   </lift:bind-at>
 
