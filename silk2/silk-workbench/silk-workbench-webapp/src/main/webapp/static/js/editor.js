@@ -588,9 +588,6 @@ function load()
     */
 
     parseXML($(this), 0, 0, "", max_level, "");
-    if ((sourcecounter*120 + 20) > 800) {
-       $("#droppable").css( { "height": (sourcecounter*120 + 20) + "px" });
-    }
   });
   $(linkSpec).find("> LinkType").each(function ()
   {

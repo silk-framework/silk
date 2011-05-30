@@ -50,7 +50,7 @@ $(function() {
 
   $(".link-header").live('click', function(e) {
     var link_id = $(this).parent().attr('id');
-    if ($(e.target).is('a')) return;
+    if ($(e.target).is('a, img')) return;
     toggleLinkDetails(link_id);
   });
 
