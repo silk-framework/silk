@@ -52,7 +52,7 @@ class EvaluationTask(user : User) extends Task[Unit]
 
   def clear()
   {
-    matchTask.links.clear()
+    if(matchTask != null) matchTask.links.clear()
     if(filteredLinks != null) filteredLinks.clear()
   }
 
