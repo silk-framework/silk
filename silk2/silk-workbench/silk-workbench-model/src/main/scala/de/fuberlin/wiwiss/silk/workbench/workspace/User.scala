@@ -62,6 +62,7 @@ trait User
   def closeTask()
   {
     currentTask = None
+    evaluationTask.clear()
   }
 
   /**
