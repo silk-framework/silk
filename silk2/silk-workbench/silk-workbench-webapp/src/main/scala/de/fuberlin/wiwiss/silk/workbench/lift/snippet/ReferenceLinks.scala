@@ -23,6 +23,7 @@ class ReferenceLinks
            }
            </div>,
          "importReferenceLinks" -> SHtml.ajaxButton("Import Reference Links", ImportReferenceLinksDialog.openCmd _),
+         "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Evaluation" target="_help">Help</a>,
          "scripts" -> Script(OnLoad(ImportReferenceLinksDialog.initCmd))
     )
  }

@@ -10,7 +10,7 @@ import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.Redirect
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.{Redirect}
 import de.fuberlin.wiwiss.silk.MatchTask
 import java.util.logging.{Level, Logger}
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
@@ -36,7 +36,8 @@ class LinkSpec
 
     bind("entry", xhtml,
          "save" -> SHtml.ajaxButton("Save", () => saveCall),
-         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("config.xml")))
+         "export" -> SHtml.ajaxButton("Export as Silk-LS", () => Redirect("config.xml")),
+         "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Link_Specification_Editor" target="_help">Help</a>)
   }
 
   /**
