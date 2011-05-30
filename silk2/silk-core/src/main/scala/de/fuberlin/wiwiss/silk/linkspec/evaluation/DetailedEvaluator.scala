@@ -53,10 +53,12 @@ object DetailedEvaluator
 
     val aggregatedValue = aggregation.aggregator.evaluate(weightedValues)
 
+    val name = aggregation.aggregator.strategyName
+
     if(isNone)
-      Link.AggregatorSimilarity(None, operatorValues)
+      Link.AggregatorSimilarity(name, None, operatorValues)
     else
-      Link.AggregatorSimilarity(aggregatedValue, operatorValues)
+      Link.AggregatorSimilarity(name, aggregatedValue, operatorValues)
   }
 
   private def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonSimilarity =
@@ -69,7 +71,9 @@ object DetailedEvaluator
     val sourceInput = InputValue(sourcePath, comparision.inputs.source(instances))
     val targetInput = InputValue(targetPath, comparision.inputs.target(instances))
 
-    Link.ComparisonSimilarity(similarity, sourceInput, targetInput)
+    val name = comparision.metric.strategyName
+
+    Link.ComparisonSimilarity(name, similarity, sourceInput, targetInput)
   }
 
   private def findPath(input : Input) : Path = input match

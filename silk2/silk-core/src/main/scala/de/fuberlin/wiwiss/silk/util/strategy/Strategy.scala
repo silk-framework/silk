@@ -8,6 +8,8 @@ trait Strategy
   private[strategy] var id = ""
   private[strategy] var parameters = Map[String, String]()
 
+  def strategyName = id
+
   override def toString =
   {
     getClass.getSimpleName + "(" + parameters.map{ case(key, value) => key + "=" + value}.mkString + ")"
