@@ -6,8 +6,9 @@ import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import xml.{Text, NodeSeq}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
 
 /**
 * A widget which displays a list of links.
@@ -26,6 +27,9 @@ trait LinkList extends CometActor
   protected def renderStatus(link : EvalLink) : NodeSeq = NodeSeq.Empty
 
   protected def renderButtons(link : EvalLink) : NodeSeq = NodeSeq.Empty
+
+  /** Prefixes used to shorten URIs. We use known prefixes from the global registry and from the project */
+  private implicit val prefixes = PrefixRegistry.all ++ User().project.config.prefixes
 
   override def render =
   {
@@ -101,8 +105,8 @@ trait LinkList extends CometActor
     <div class="link" id={getId(link)} >
       <div class="link-header" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
-        <div class="link-source"><a href={link.sourceUri} target="_blank">{link.sourceUri}</a></div>
-        <div class="link-target"><a href={link.targetUri} target="_blank">{link.targetUri}</a></div>
+        <div class="link-source"><a href={link.sourceUri} target="_blank">{prefixes.shorten(link.sourceUri)}</a></div>
+        <div class="link-target"><a href={link.targetUri} target="_blank">{prefixes.shorten(link.targetUri)}</a></div>
         <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
         { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
         { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }
@@ -161,7 +165,7 @@ trait LinkList extends CometActor
   {
     case Link.InputValue(path, values) =>
     {
-      <li><span class="input">Input <span class="path">{path.toString}</span>{values.map(v => <span class="value">{v}</span>) }</span></li>
+      <li><span class="input">Input <span class="path">{path.serialize}</span>{values.map(v => <span class="value">{v}</span>) }</span></li>
     }
   }
 
