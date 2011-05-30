@@ -161,7 +161,7 @@ function getDeleteIcon(elementId) {
   img.attr("src", "static/img/delete.png");
   img.attr("align", "right");
   img.attr("style", "cursor:pointer;");
-  img.attr("onclick", "alert('delete"+elementId+"');jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove();");
+  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove();");
   return img;
 }
 
