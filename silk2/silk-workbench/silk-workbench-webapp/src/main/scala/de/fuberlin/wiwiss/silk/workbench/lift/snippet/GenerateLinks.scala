@@ -10,7 +10,8 @@ class GenerateLinks
   def toolbar(xhtml : NodeSeq) : NodeSeq =
   {
     bind("entry", xhtml,
-         "control" -> Widgets.taskControl(User().evaluationTask, cancelable = true)
+         "control" -> Widgets.taskControl(User().evaluationTask, cancelable = true),
+         "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Evaluation" target="_help">Help</a>
     )
  }
 }
