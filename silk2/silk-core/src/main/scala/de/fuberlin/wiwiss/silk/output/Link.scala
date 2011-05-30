@@ -32,12 +32,13 @@ object Link
 {
   sealed trait Similarity
   {
+    val function : String
     val value : Option[Double]
   }
 
-  case class AggregatorSimilarity(value : Option[Double], children : Seq[Similarity]) extends Similarity
+  case class AggregatorSimilarity(function : String, value : Option[Double], children : Seq[Similarity]) extends Similarity
 
-  case class ComparisonSimilarity(value : Option[Double], sourceInput : InputValue, targetInput : InputValue) extends Similarity
+  case class ComparisonSimilarity(function : String, value : Option[Double], sourceInput : InputValue, targetInput : InputValue) extends Similarity
 
   case class InputValue(path : Path, values : Traversable[String])
 }

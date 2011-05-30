@@ -43,9 +43,9 @@ object Uri
    * @param qualifiedName The qualified name e.g. dbpedia:Berlin
    * @param prefixes The prefixes which will be used to resolve the qualified name
    */
-  def fromQualifiedName(qualifiedName : String, prefixes : Map[String, String]) =
+  def fromQualifiedName(qualifiedName : String, prefixes : Prefixes) =
   {
-    new Uri(resolvePrefix(qualifiedName, prefixes))
+    new Uri(prefixes.resolve(qualifiedName))
   }
 
   /**
@@ -55,7 +55,7 @@ object Uri
    * - dbpedia:Berlin
    * - <http://dbpedia.org/resource/Berlin>
    */
-  def parse(str : String, prefixes : Map[String, String] = Map.empty) =
+  def parse(str : String, prefixes : Prefixes = Prefixes.empty) =
   {
     if(str.startsWith("<"))
     {
@@ -65,15 +65,5 @@ object Uri
     {
       fromQualifiedName(str, prefixes)
     }
-  }
-
-  private def resolvePrefix(qualifiedName : String, prefixes : Map[String, String]) = qualifiedName.split(":", 2) match
-  {
-    case Array(prefix, suffix) => prefixes.get(prefix) match
-    {
-      case Some(resolvedPrefix) => resolvedPrefix + suffix
-      case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
-    }
-    case _ => throw new IllegalArgumentException("No prefix found in " + qualifiedName)
   }
 }
