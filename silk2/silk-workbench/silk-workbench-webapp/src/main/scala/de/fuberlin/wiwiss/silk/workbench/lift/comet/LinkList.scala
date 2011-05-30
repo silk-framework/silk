@@ -135,19 +135,19 @@ trait LinkList extends CometActor
 
   private def renderSimilarity(similarity : Link.Similarity) : NodeSeq = similarity match
   {
-    case Link.AggregatorSimilarity(value, children) =>
+    case Link.AggregatorSimilarity(function, value, children) =>
     {
       <li>
-        <span class="aggregation">Aggregation</span>{ renderConfidence(value) }
+        <span class="aggregation">Aggregation({function})</span>{ renderConfidence(value) }
           <ul>
             { children.map(renderSimilarity) }
           </ul>
       </li>
     }
-    case Link.ComparisonSimilarity(value, input1, input2) =>
+    case Link.ComparisonSimilarity(function, value, input1, input2) =>
     {
       <li>
-        <span class="comparison">Comparison</span>{ renderConfidence(value) }
+        <span class="comparison">Comparison({function})</span>{ renderConfidence(value) }
           <ul>
             { renderInputValue(input1) }
             { renderInputValue(input2) }
