@@ -2,9 +2,6 @@
 	padding: 20px 10px;
 }
 
-#filter {
-}
-
 #results {
     width: 1110px;
     overflow: auto;
@@ -16,6 +13,11 @@
 
 #results a {
     vertical-align: middle;
+}
+
+#filter {
+  float: right !important;
+  margin-right: 0px !important;
 }
 
 .link-header {
@@ -97,6 +99,7 @@
 }
 
 #tree-header {
+    width: 1110px;
     padding-top: 10px;
     padding-bottom: 15px;
 }
