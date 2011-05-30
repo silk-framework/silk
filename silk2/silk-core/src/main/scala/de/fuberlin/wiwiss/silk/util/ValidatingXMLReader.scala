@@ -71,7 +71,7 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) exte
     }
     catch
     {
-      case ex : SAXException => throw new ValidationException("Invalid XML. Details: " + ex.getMessage, ex)
+      case ex : SAXException => throw new ValidationException(ex.getMessage, ex)
     }
   }
 }
