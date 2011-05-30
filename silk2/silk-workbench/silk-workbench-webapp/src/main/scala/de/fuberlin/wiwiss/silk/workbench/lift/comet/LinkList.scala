@@ -4,8 +4,7 @@ import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link
-import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import xml.{Text, NodeSeq}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
@@ -32,10 +31,11 @@ trait LinkList extends CometActor
   {
     val showLinksFunc = JsCmds.Function("showLinks", "page" :: Nil, SHtml.ajaxCall(JsRaw("page"), (pageStr) => showLinks(pageStr.toInt))._2.cmd)
 
-    <p>
-      { Script(OnLoad(updateLinksCmd) & showLinksFunc) }
-      { <div id="results" /> }
-    </p>
+    bind("entry", defaultHtml,
+      "script" -> Script(OnLoad(updateLinksCmd) & showLinksFunc),
+      "filter" -> <div id="filter">Filter:{SHtml.ajaxText("", applyFilter)}</div>,
+      "list" -> <div id="results" />
+    )
   }
 
   protected def updateLinksCmd : JsCmd =
@@ -57,7 +57,10 @@ trait LinkList extends CometActor
           </div>
         </div>
         {
-          for(link <- CurrentLinkFilter()(links).view(page * pageSize, (page + 1) * pageSize)) yield
+          val filteredLinks = LinkFilter.filter(links)
+          val sortedLinks = LinkSorter.sort(filteredLinks)
+
+          for(link <- sortedLinks.view(page * pageSize, (page + 1) * pageSize)) yield
           {
             renderLink(link)
           }
@@ -69,14 +72,21 @@ trait LinkList extends CometActor
 
   private def sortByConfidence =
   {
-    if(CurrentLinkFilter() == ConfidenceSorterAscending)
+    if(LinkSorter() == ConfidenceSorterAscending)
     {
-      CurrentLinkFilter() = ConfidenceSorterDescending
+      LinkSorter() = ConfidenceSorterDescending
     }
     else
     {
-      CurrentLinkFilter() = ConfidenceSorterAscending
+      LinkSorter() = ConfidenceSorterAscending
     }
+
+    updateLinksCmd
+  }
+
+  private def applyFilter(value : String) =
+  {
+    LinkFilter() = value
 
     updateLinksCmd
   }
