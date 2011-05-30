@@ -50,6 +50,12 @@ class EvaluationTask(user : User) extends Task[Unit]
     }
   }
 
+  def clear()
+  {
+    matchTask.links.clear()
+    if(filteredLinks != null) filteredLinks.clear()
+  }
+
   override protected def execute()
   {
     val project = user.project
