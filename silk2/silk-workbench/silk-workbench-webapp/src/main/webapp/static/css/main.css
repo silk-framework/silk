@@ -143,3 +143,7 @@ button
   top: -22px;
   z-index: 1;
 }
+
+#about_dialog p {
+  margin-top: 10px;
+}
