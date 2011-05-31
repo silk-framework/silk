@@ -22,7 +22,7 @@ object Main
 
     val protectionDomain = Main.getClass.getProtectionDomain()
    val location = protectionDomain.getCodeSource().getLocation().toExternalForm
-  //  context.setWar("C:\\Users\\Robert\\repositories\\silk2\\silk2\\silk-workbench\\silk-workbench-webapp\\src\\main\\webapp")
+    context.setWar(location)
 
     println("Location: " + location)
 
