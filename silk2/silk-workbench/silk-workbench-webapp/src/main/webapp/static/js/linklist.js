@@ -22,9 +22,16 @@ function initTrees() {
   $("div.expandable-hitarea").removeClass("expandable-hitarea").addClass("collapsable-hitarea");
 
   $(".confidencebar").each(function(index) {
+    var confidence = parseInt($(this).text());
+    var progressbar = $(this).children(".ui-progressbar-value");
     $(this).progressbar({
-      value: parseInt($(this).text())
+      value: confidence
     });
+    if (confidence < 25) $(this).children(".ui-progressbar-value").addClass("confidence-red");
+    if (confidence > 24 && confidence < 50) $(this).children(".ui-progressbar-value").addClass("confidence-orange");
+    if (confidence > 49 && confidence < 75) $(this).children(".ui-progressbar-value").addClass("confidence-yellow");
+    if (confidence > 74) $(this).children(".ui-progressbar-value").addClass("confidence-green");
+
   });
 }
 
