@@ -29,10 +29,12 @@ trait LinkList extends CometActor
   protected def renderButtons(link : EvalLink) : NodeSeq = NodeSeq.Empty
 
   /** Prefixes used to shorten URIs. We use known prefixes from the global registry and from the project */
-  private implicit val prefixes = PrefixRegistry.all ++ User().project.config.prefixes
+  private implicit var prefixes = PrefixRegistry.all ++ User().project.config.prefixes
 
   override def render =
   {
+    prefixes = PrefixRegistry.all ++ User().project.config.prefixes
+
     val showLinksFunc = JsCmds.Function("showLinks", "page" :: Nil, SHtml.ajaxCall(JsRaw("page"), (pageStr) => showLinks(pageStr.toInt))._2.cmd)
 
     bind("entry", defaultHtml,
