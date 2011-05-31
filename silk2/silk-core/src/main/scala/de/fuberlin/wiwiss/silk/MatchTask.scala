@@ -9,8 +9,7 @@ import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import collection.immutable.HashSet
 import util.{SourceTargetPair, Task}
-import scala.math.max
-import collection.immutable.List._
+import scala.math.{min, max}
 
 /**
  * Executes the matching.
@@ -19,6 +18,7 @@ import collection.immutable.List._
 class MatchTask(linkSpec : LinkSpecification,
                 caches : SourceTargetPair[InstanceCache],
                 numThreads : Int,
+                sourceEqualsTarget : Boolean = false,
                 generateDetailedLinks : Boolean = false) extends Task[Buffer[Link]]
 {
   taskName = "Matching"
@@ -73,7 +73,7 @@ class MatchTask(linkSpec : LinkSpecification,
     }
 
     //Shutdown
-    if(scheduler.isAlive())
+    if(scheduler.isAlive)
     {
       scheduler.interrupt()
     }
@@ -160,7 +160,8 @@ class MatchTask(linkSpec : LinkSpecification,
 
       for(block <- 0 until caches.source.blockCount;
           sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
-          targetPartition <- 0 until targetPartitions(block))
+          targetStart = if(!sourceEqualsTarget) 0 else sourcePartition;
+          targetPartition <- targetStart until targetPartitions(block))
       {
         newMatcher(block, sourcePartition, targetPartition)
       }
@@ -187,7 +188,8 @@ class MatchTask(linkSpec : LinkSpecification,
 
       for(block <- 0 until caches.target.blockCount;
           targetPartition <- targetPartitions(block) until newTargetPartitions(block);
-          sourcePartition <- 0 until sourcePartitions(block))
+          sourceEnd = if(!sourceEqualsTarget) sourcePartitions(block) else min(sourcePartitions(block), targetPartition + 1);
+          sourcePartition <- 0 until sourceEnd)
       {
         newMatcher(block, sourcePartition, targetPartition)
       }
@@ -220,7 +222,8 @@ class MatchTask(linkSpec : LinkSpecification,
         val targetIndexes = builtIndex(targetInstances)
 
         for(s <- 0 until sourceInstances.size;
-            t <- 0 until targetInstances.size;
+            tStart = if(sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
+            t <- tStart until targetInstances.size;
             if !indexingEnabled || compareIndexes(sourceIndexes(s), targetIndexes(t)))
         {
           val sourceInstance = sourceInstances(s)

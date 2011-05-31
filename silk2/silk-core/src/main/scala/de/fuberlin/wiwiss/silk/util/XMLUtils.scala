@@ -38,7 +38,7 @@ class XMLUtils(xml : NodeSeq)
 
   def write(writer : Writer)
   {
-    val printer = new PrettyPrinter(140, 2)
+    val printer = new PrettyPrinter(Int.MaxValue, 2)
 
     writer.write(printer.formatNodes(xml))
     writer.write("\n")
