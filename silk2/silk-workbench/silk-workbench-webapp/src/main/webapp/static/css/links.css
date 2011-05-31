@@ -20,6 +20,10 @@
   margin-right: 0px !important;
 }
 
+#filter input {
+  border: 1px solid #48587d;
+}
+
 .link-header {
     height: 20px;
     margin-bottom: 1px;
@@ -161,4 +165,9 @@
   border-radius: 5px;
 }
 
+.treeview li {
+  padding: 1px 0pt 3px 16px !important;
+}
+
 a img { border: none; }
+
