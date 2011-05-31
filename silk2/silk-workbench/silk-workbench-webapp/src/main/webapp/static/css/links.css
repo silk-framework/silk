@@ -60,8 +60,17 @@
     margin-left: 14px;
 }
 
-.confidencebar .ui-progressbar-value {
-  background-image: url('/static/img/confidencebar-bg.png');
+.confidence-red {
+  background: #f24040;
+}
+.confidence-orange {
+  background: #ffd281;
+}
+.confidence-yellow {
+  background: #fefe7f;
+}
+.confidence-green {
+  background: #74aa74;
 }
 
 .link-status {
