@@ -20,6 +20,10 @@
   margin-right: 0px !important;
 }
 
+#filter input {
+  border: 1px solid #48587d;
+}
+
 .link-header {
     height: 20px;
     margin-bottom: 1px;
@@ -60,8 +64,17 @@
     margin-left: 14px;
 }
 
-.confidencebar .ui-progressbar-value {
-  background-image: url('/static/img/confidencebar-bg.png');
+.confidence-red {
+  background: #f24040;
+}
+.confidence-orange {
+  background: #ffd281;
+}
+.confidence-yellow {
+  background: #fefe7f;
+}
+.confidence-green {
+  background: #74aa74;
 }
 
 .link-status {
@@ -127,7 +140,12 @@
   background-position: 60% 41% !important;
 }
 
+.input {
+  line-height: 22px;
+}
+
 .input .path {
+  color: #1a3636;
   border: 1px solid #aebdbd;
   background-color: #d6e0e2;
   padding: 1px 3px;
@@ -137,6 +155,7 @@
 }
 
 .input .value{
+  color: #1f3b1f;
   border: 1px solid #a5b4a5;
   background-color: #dfebd2;
   margin-left: 4px;
@@ -146,4 +165,9 @@
   border-radius: 5px;
 }
 
+.treeview li {
+  padding: 1px 0pt 3px 16px !important;
+}
+
 a img { border: none; }
+
