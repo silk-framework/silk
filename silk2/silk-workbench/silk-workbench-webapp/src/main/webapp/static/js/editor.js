@@ -173,8 +173,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", "aggregate_" + aggregatecounter);
 
-    var height = aggregatecounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = aggregatecounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#aggregate_" + aggregatecounter;
@@ -284,8 +284,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
 
-    var height = comparecounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = comparecounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#compare_" + comparecounter;
@@ -398,8 +398,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", "transform_" + transformcounter);
 
-    var height = transformcounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = transformcounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#transform_" + transformcounter;
@@ -489,8 +489,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv sourcePath');
     box1.attr("id", "source_" + sourcecounter);
 
-    var height = sourcecounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = sourcecounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#source_" + sourcecounter;
