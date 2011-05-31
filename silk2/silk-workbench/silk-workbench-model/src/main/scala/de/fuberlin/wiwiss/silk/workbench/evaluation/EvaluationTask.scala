@@ -76,7 +76,7 @@ class EvaluationTask(user : User) extends Task[Unit]
 
     //Create tasks
     loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
-    matchTask = new MatchTask(linkingTask.linkSpec, caches, numThreads, generateDetailedLinks)
+    matchTask = new MatchTask(linkingTask.linkSpec, caches, numThreads, false, generateDetailedLinks)
     alignment = linkingTask.alignment
     filteredLinks = null
 
