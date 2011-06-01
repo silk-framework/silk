@@ -24,8 +24,8 @@
 
 <H2 id=news>News</H2>
 <ul>
-  <li><strong>2010-06-01:</strong> Version 2.4 released including the new Silk Workbench, a web application which guides the user through the process of interlinking different data sources.</li>
-  <li><strong>2010-01-31:</strong> Version 2.3 released with improved performance employing parallel data loading and a new blocking method.</li>
+  <li><strong>2011-06-01:</strong> Version 2.4 released including the new Silk Workbench, a web application which guides the user through the process of interlinking different data sources.</li>
+  <li><strong>2011-01-31:</strong> Version 2.3 released with improved performance employing parallel data loading and a new blocking method.</li>
   <li><strong>2010-12-20:</strong> Version 2.3 beta released offering an increased performance by using a new blocking method.</li>
   <li><strong>2010-10-06:</strong> Version 2.2 released. This release includes Silk MapReduce which is based on Hadoop and enables Silk to scale out to very large datasets by distributing the link generation to multiple machines.</li>
   <li><strong>2010-09-15:</strong> Version 2.1 released. The main addition is Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</li>
@@ -61,7 +61,7 @@ using an RDF path language. Silk accesses the data sources that should be interl
 
 <p>Silk is provided in three different variants which address different use cases:
 <ul>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk Single Machine</em> provides multithreading and caching. In addition, the performance can be further enhanced using an optional blocking feature.</li>
+  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk Single Machine</em> provides multithreading and caching. In addition, the performance is further enhanced using the <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf">MultiBlock</a> blocking algorithm.</li>
   <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk MapReduce</em></a> is used to generate RDF links between data sets using a cluster of multiple machines. <em>Silk MapReduce</em> is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. <em>Silk MapReduce</em> enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</li> 
   <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk Server</em></a> can be used as an identity resolution component within applications that consume Linked Data from the Web. <em>Silk Server</em> provides an HTTP API for matching instances from an incoming stream of RDF data while keeping track of known entities. It can be used for instance together with a Linked Data crawler to populate a local duplicate-free cache with data from the Web.</li>
 </ul></p>
@@ -188,7 +188,7 @@ The framework can be used under the terms of the <a href="http://www.apache.org/
 <H2><a name="references" />References</H2>
 <p>
 <ul>
-  <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf" title="IseleJentzschBizer-WebDB2011">Efficient Multidimensional   Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
+    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf">Efficient Multidimensional Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
     <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
     <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
     <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
@@ -197,5 +197,5 @@ The framework can be used under the terms of the <a href="http://www.apache.org/
 </ul>
 </p>
 
-<DIV id=footer><SMALL>Last change: 2011-01-31</SMALL>
+<DIV id=footer><SMALL>Last change: 2011-06-01</SMALL>
 </DIV></DIV></BODY></HTML>
