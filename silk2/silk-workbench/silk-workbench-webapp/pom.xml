@@ -116,6 +116,21 @@
           </archive>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2.1</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>de.fuberlin.wiwiss.silk.workbench.lift.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
         <!--<groupId>net.sf.alchim</groupId>-->
         <!--<artifactId>yuicompressor-maven-plugin</artifactId>-->
         <!--<version>0.7.1</version>-->
