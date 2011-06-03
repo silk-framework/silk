@@ -7,7 +7,7 @@ import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, Metric}
+import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, SimilarityMeasure}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
 
 /**
@@ -37,15 +37,15 @@ object DefaultImplementations
         Transformer.register(classOf[ConvertCharsetTransformer])
         Transformer.register(classOf[RemoveEmptyValues])
 
-        Metric.register(classOf[LevenshteinMetric])
-        Metric.register(classOf[JaroDistanceMetric])
-        Metric.register(classOf[JaroWinklerMetric])
-        Metric.register(classOf[QGramsMetric])
-        Metric.register(classOf[EqualityMetric])
-        Metric.register(classOf[InequalityMetric])
-        Metric.register(classOf[NumMetric])
-        Metric.register(classOf[DateMetric])
-        Metric.register(classOf[GeographicDistanceMetric])
+        SimilarityMeasure.register(classOf[LevenshteinMetric])
+        SimilarityMeasure.register(classOf[JaroDistanceMetric])
+        SimilarityMeasure.register(classOf[JaroWinklerSimilarity])
+        SimilarityMeasure.register(classOf[QGramsMetric])
+        SimilarityMeasure.register(classOf[EqualityMetric])
+        SimilarityMeasure.register(classOf[InequalityMetric])
+        SimilarityMeasure.register(classOf[NumMetric])
+        SimilarityMeasure.register(classOf[DateMetric])
+        SimilarityMeasure.register(classOf[GeographicDistanceMetric])
 
         Aggregator.register(classOf[AverageAggregator])
         Aggregator.register(classOf[MaximumAggregator])

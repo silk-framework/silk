@@ -6,12 +6,12 @@ import de.fuberlin.wiwiss.silk.impl.util.approximatelyEqualTo
 
 class JaroWinklerMetricTest extends FlatSpec with ShouldMatchers
 {
-    val metric = new JaroWinklerMetric()
+    val metric = new JaroWinklerSimilarity()
     val t = 0.9
 
     //Use cases from William E. Winkler : Overview of Record Linkage and Current Research Directions
     //Some tests are disabled because many web sources report different results
-    "JaroWinklerMetric" should "pass the original test cases from William E. Winkler" in
+    "JaroWinklerSimilarity" should "pass the original test cases from William E. Winkler" in
     {
         //metric.evaluate("SHACKLEFORD", "SHACKELFORD") should be (approximatelyEqualTo (0.982))
         metric.evaluate("DUNNINGHAM", "CUNNIGHAM", t) should be (approximatelyEqualTo (0.896))
@@ -32,7 +32,7 @@ class JaroWinklerMetricTest extends FlatSpec with ShouldMatchers
         //metric.evaluate("JON", "JAN", t) should be (approximatelyEqualTo (0.000))
     }
 
-    "JaroWinklerMetric" should "be commutative" in
+    "JaroWinklerSimilarity" should "be commutative" in
     {
         metric.evaluateDistance("JONES", "JOHNSON") should be (approximatelyEqualTo (0.832))
         metric.evaluateDistance("JOHNSON", "JONES") should be (approximatelyEqualTo (0.832))

@@ -96,7 +96,7 @@ object LinkSpecification
   {
     val requiredStr = node \ "@required" text
     val weightStr = node \ "@weight" text
-    val metric = Metric(node \ "@metric" text, readParams(node))
+    val metric = SimilarityMeasure(node \ "@metric" text, readParams(node))
     val inputs = readInputs(node.child)
 
     new Comparison(
