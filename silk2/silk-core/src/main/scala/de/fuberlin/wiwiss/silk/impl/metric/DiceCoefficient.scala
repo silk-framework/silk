@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.impl.metric
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 import de.fuberlin.wiwiss.silk.linkspec.condition.SimilarityMeasure
 
-@StrategyAnnotation(id = "jaccard", label = "Jaccard", description = "Jaccard similarity coefficient.")
+@StrategyAnnotation(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
 class DiceCoefficient extends SimilarityMeasure
 {
   override def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double) : Double =
