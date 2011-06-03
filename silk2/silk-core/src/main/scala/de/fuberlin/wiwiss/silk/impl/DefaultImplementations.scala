@@ -35,6 +35,7 @@ object DefaultImplementations
         Transformer.register(classOf[RemoveSpecialCharsTransformer])
         Transformer.register(classOf[LogarithmTransformer])
         Transformer.register(classOf[ConvertCharsetTransformer])
+        Transformer.register(classOf[RemoveEmptyValues])
 
         Metric.register(classOf[LevenshteinMetric])
         Metric.register(classOf[JaroDistanceMetric])
