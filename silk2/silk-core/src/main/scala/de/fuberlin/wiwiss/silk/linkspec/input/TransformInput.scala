@@ -13,14 +13,9 @@ case class TransformInput(inputs : Seq[Input], transformer : Transformer) extend
 
   def apply(instances : SourceTargetPair[Instance]) : Traversable[String] =
   {
-    val strings = for (input <- inputs) yield input.apply(instances)
-    for (sequence <- cartesianProduct(strings)) yield transformer.evaluate(sequence)
-  }
+    val values = for (input <- inputs) yield input(instances)
 
-  private def cartesianProduct(strings : Seq[Traversable[String]]) : Traversable[List[String]] =
-  {
-    if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
-    else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
+    transformer(values)
   }
 
   override def toString = transformer match

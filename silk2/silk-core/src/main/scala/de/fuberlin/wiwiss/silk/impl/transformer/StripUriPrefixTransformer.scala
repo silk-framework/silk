@@ -1,18 +1,18 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
-import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.linkspec.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import math.max
 
 @StrategyAnnotation(id = "stripUriPrefix", label = "Strip URI prefix", description = "Strips the URI prefix of a string.")
-class StripUriPrefixTransformer() extends Transformer
+class StripUriPrefixTransformer() extends SimpleTransformer
 {
-  override def evaluate(strings : Seq[String]) : String =
+  override def evaluate(value : String) : String =
   {
-    val word = strings.toList.head
-    val uriPrefixEnd = math.max(word.lastIndexOf("/"), word.lastIndexOf("#"))
+    val uriPrefixEnd = max(value.lastIndexOf("/"), value.lastIndexOf("#"))
     if (uriPrefixEnd > -1)
-      return word.substring(uriPrefixEnd + 1, word.size)
+      value.substring(uriPrefixEnd + 1, value.size)
     else
-      return word
+      value
   }
 }
