@@ -8,7 +8,7 @@
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
     <artifactId>silk</artifactId>
-    <version>2.4-SNAPSHOT</version>
+    <version>2.4</version>
   </parent>
 
   <artifactId>silk-singlemachine</artifactId>
@@ -43,7 +43,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-5</version>
+        <version>2.2.1</version>
         <configuration>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
