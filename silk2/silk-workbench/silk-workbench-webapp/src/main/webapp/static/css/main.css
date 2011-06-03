@@ -147,3 +147,11 @@ button
 #about_dialog p {
   margin-top: 10px;
 }
+
+#about_dialog p a {
+  text-decoration: underline;
+}
+
+a {
+  cursor: pointer;
+}
