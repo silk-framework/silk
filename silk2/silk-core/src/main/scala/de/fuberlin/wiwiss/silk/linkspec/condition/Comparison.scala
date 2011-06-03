@@ -24,7 +24,7 @@ case class Comparison(required : Boolean, weight : Int,
     val values1 = inputs.source(instances)
     val values2 = inputs.target(instances)
 
-    if(values1.isEmpty || values1.isEmpty)
+    if(values1.isEmpty || values2.isEmpty)
     {
       None
     }
