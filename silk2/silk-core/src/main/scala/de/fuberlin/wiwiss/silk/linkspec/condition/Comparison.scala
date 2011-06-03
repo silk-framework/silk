@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
  * A comparison computes the similarity of two inputs.
  */
 case class Comparison(required : Boolean, weight : Int,
-                      inputs : SourceTargetPair[Input], metric : Metric) extends Operator
+                      inputs : SourceTargetPair[Input], metric : SimilarityMeasure) extends Operator
 {
   /**
    * Computes the similarity between two instances.
@@ -21,19 +21,18 @@ case class Comparison(required : Boolean, weight : Int,
    */
   override def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double] =
   {
-    val set1 = inputs.source(instances)
-    val set2 = inputs.target(instances)
+    val values1 = inputs.source(instances)
+    val values2 = inputs.target(instances)
 
-    if(!set1.isEmpty && !set2.isEmpty)
-    {
-      val similarities = for (str1 <- set1; str2 <- set2) yield metric.evaluate(str1, str2, threshold)
-
-      Some(similarities.max)
-    }
-    else
+    if(values1.isEmpty || values1.isEmpty)
     {
       None
     }
+    else
+    {
+      Some(metric(values1, values2, threshold))
+    }
+
   }
 
   /**
@@ -58,7 +57,7 @@ case class Comparison(required : Boolean, weight : Int,
 
   override def toXML(implicit prefixes : Prefixes) = metric match
   {
-    case Metric(id, params) =>
+    case SimilarityMeasure(id, params) =>
     {
       <Compare required={required.toString} weight={weight.toString} metric={id}>
         { inputs.source.toXML }
