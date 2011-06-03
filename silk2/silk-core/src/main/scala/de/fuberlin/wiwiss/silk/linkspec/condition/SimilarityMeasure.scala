@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
 
 trait SimilarityMeasure extends Strategy
 {
-  def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double) : Double
+  def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double = 0.0) : Double
 
   def index(value : String, threshold : Double = 0.0) : Set[Seq[Int]] = Set(Seq(0))
 
