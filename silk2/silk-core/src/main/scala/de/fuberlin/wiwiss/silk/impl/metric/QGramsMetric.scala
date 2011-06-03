@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
  * - '''q''' (optional): The size of the sliding window. Default: 2
  */
 @StrategyAnnotation(id = "qGrams", label = "qGrams", description = "String similarity based on q-grams (by default q=2).")
-//TODO this is actually just a jaccard similarity with a qGrams tokenizer, if we add a qGrams tokenizer we could remove it...
+//TODO this is actually the Dice’s Coefficient with a qGrams tokenizer, if we add a qGrams tokenizer we could remove it...
 class QGramsMetric(q : Int = 2) extends SimpleSimilarityMeasure
 {
   override def evaluate(str1 : String, str2 : String, threshold : Double) =

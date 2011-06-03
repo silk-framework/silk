@@ -36,6 +36,7 @@ object DefaultImplementations
         Transformer.register(classOf[LogarithmTransformer])
         Transformer.register(classOf[ConvertCharsetTransformer])
         Transformer.register(classOf[RemoveEmptyValues])
+        Transformer.register(classOf[Tokenizer])
 
         SimilarityMeasure.register(classOf[LevenshteinMetric])
         SimilarityMeasure.register(classOf[JaroDistanceMetric])
@@ -46,6 +47,8 @@ object DefaultImplementations
         SimilarityMeasure.register(classOf[NumMetric])
         SimilarityMeasure.register(classOf[DateMetric])
         SimilarityMeasure.register(classOf[GeographicDistanceMetric])
+        SimilarityMeasure.register(classOf[JaccardSimilarity])
+        SimilarityMeasure.register(classOf[DiceCoefficient])
 
         Aggregator.register(classOf[AverageAggregator])
         Aggregator.register(classOf[MaximumAggregator])

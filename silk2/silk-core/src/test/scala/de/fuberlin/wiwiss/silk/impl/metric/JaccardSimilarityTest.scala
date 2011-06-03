@@ -11,7 +11,7 @@ class JaccardSimilarityTest extends FlatSpec with ShouldMatchers
   "JaccardSimilarity" should "return jaccard coefficient" in
   {
     similarity("A" :: "B" :: Nil, "C" :: "D" :: Nil) should be (approximatelyEqualTo (0.0))
-    similarity("Same" :: "Different1" :: Nil, "Same" :: "Different2" :: Nil) should be (approximatelyEqualTo (0.3333333))
+    similarity("Same" :: "Different1" :: Nil, "Same" :: "Different2" :: Nil) should be (approximatelyEqualTo (1.0 / 3.0))
     similarity("A" :: "B" :: "C" :: Nil, "A" :: "B" :: "D" :: Nil) should be (approximatelyEqualTo (0.5))
     similarity("A" :: "B" :: "C" :: Nil, "A" :: "B" :: "C" :: Nil) should be (approximatelyEqualTo (1.0))
   }
