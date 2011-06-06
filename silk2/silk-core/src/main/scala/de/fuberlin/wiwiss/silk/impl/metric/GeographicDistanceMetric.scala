@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import math._
-import de.fuberlin.wiwiss.silk.linkspec.condition.Metric
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleSimilarityMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
   id = "wgs84",
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
-class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveStyle : String = "linear") extends Metric
+class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveStyle : String = "linear") extends SimpleSimilarityMeasure
 {
   require(threshold >= 0.0, "Threshold must be positive.")
 

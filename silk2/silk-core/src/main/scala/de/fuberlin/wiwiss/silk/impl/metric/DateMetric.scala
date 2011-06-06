@@ -1,17 +1,17 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleSimilarityMeasure
 
 @StrategyAnnotation(
   id = "date",
   label = "Date",
   description = "Computes the similarity between two dates ('YYYY-MM-DD' format). " +
                 "At a difference of 'maxDays', the metric evaluates to 0 and progresses towards 1 with a lower difference.")
-class DateMetric(maxDays : Int) extends Metric
+class DateMetric(maxDays : Int) extends SimpleSimilarityMeasure
 {
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
