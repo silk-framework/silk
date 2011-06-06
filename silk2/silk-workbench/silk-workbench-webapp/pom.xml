@@ -27,13 +27,13 @@
 
     <dependency>
       <groupId>net.liftweb</groupId>
-      <artifactId>lift-webkit_2.8.1</artifactId>
-      <version>2.3</version>
+      <artifactId>lift-webkit_2.9.0-1 </artifactId>
+      <version>2.4-M1</version>
     </dependency>
     <dependency>
       <groupId>net.liftweb</groupId>
-      <artifactId>lift-widgets_2.8.1</artifactId>
-      <version>2.3</version>
+      <artifactId>lift-widgets_2.9.0-1</artifactId>
+      <version>2.4-M1</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
