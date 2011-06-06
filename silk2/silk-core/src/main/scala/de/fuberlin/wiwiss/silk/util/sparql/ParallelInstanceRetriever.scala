@@ -182,11 +182,15 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
         if(!fixedSubject.isDefined)
         {
           //Check if we are still reading values for the current subject
-          val Resource(subject) = result(instanceSpec.variable)
+          val subject = result.get(instanceSpec.variable) match
+          {
+            case Some(Resource(value)) => Some(value)
+            case _ => None
+          }
 
           if(currentSubject.isEmpty)
           {
-            currentSubject = Some(subject)
+            currentSubject = subject
           }
           else if(subject != currentSubject.get)
           {
@@ -197,14 +201,17 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
             queue.enqueue(PathValues(currentSubject.get, currentValues))
 
-            currentSubject = Some(subject)
+            currentSubject = subject
             currentValues = Set.empty
           }
         }
 
-        for(node <- result.get(varPrefix + "0"))
+        if(currentSubject.isDefined)
         {
-          currentValues += node.value
+          for(node <- result.get(varPrefix + "0"))
+          {
+            currentValues += node.value
+          }
         }
       }
 
