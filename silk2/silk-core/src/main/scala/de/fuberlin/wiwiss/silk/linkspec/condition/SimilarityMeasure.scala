@@ -74,7 +74,7 @@ trait SimpleSimilarityMeasure extends SimilarityMeasure
   /**
    * Evaluates the similarity of a pair of similarity values.
    */
-  def evaluate(value1 : String, value2 : String, threshold : Double) : Double
+  def evaluate(value1 : String, value2 : String, threshold : Double = 0.0) : Double
 }
 
 object SimilarityMeasure extends Factory[SimilarityMeasure]
