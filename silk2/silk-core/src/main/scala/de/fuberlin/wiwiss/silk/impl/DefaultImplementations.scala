@@ -46,6 +46,7 @@ object DefaultImplementations
         SimilarityMeasure.register(classOf[InequalityMetric])
         SimilarityMeasure.register(classOf[NumMetric])
         SimilarityMeasure.register(classOf[DateMetric])
+        SimilarityMeasure.register(classOf[DateTimeMetric])
         SimilarityMeasure.register(classOf[GeographicDistanceMetric])
         SimilarityMeasure.register(classOf[JaccardSimilarity])
         SimilarityMeasure.register(classOf[DiceCoefficient])

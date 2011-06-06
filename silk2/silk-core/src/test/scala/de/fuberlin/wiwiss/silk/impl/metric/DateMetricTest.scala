@@ -22,6 +22,6 @@ class DateMetricTest extends FlatSpec with ShouldMatchers
   "DateMetric" should "ignore the time of day" in
   {
     metric.evaluate("2010-09-24", "2010-09-30", 0.9) should be (approximatelyEqualTo (0.4))
-    metric.evaluate("2010-09-24-06:00", "2010-09-30-06:00", 0.9) should be (approximatelyEqualTo (0.4))
+    metric.evaluate("2010-09-24T06:00:00", "2010-09-30T06:00:00", 0.9) should be (approximatelyEqualTo (0.4))
   }
 }
