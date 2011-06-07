@@ -284,7 +284,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
 
-    var height = comparecounter * 120 + 20;
+    var height = 2 * comparecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
@@ -870,7 +870,7 @@ $(function ()
         var offset = $(number).offset();
         var scrollleft = $("#droppable").scrollLeft();
         var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-204+scrolltop+scrolltop;
+        var top = offset.top-206+scrolltop+scrolltop;
         var left = offset.left-502+scrollleft+scrollleft;
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
@@ -1053,7 +1053,7 @@ function getPropertyPaths(deleteExisting)
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
     $(".restriction").show();
-    $("#sourcepaths, #targetpaths").css("height","98px");
+    $("#sourcepaths, #targetpaths").css("height","126px");
     $("#source_id").html(data.source.id);
     $("#source_restriction").html(data.source.restrictions);
 
