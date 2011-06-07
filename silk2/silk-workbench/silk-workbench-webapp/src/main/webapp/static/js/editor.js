@@ -1053,9 +1053,11 @@ function getPropertyPaths(deleteExisting)
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
     $(".restriction").show();
-    $("#sourcepaths, #targetpaths").css("height","126px");
+    $("#sourcepaths, #targetpaths").css("height","130px");
     $("#source_id").html(data.source.id);
     $("#source_restriction").html(data.source.restrictions);
+
+    if ($("#source_restriction").height()>18) $("#sourcepaths").css("height","112px");
 
     var list_item_id = 1;
 
@@ -1125,6 +1127,7 @@ function getPropertyPaths(deleteExisting)
 
     $("#target_id").html(data.target.id);
     $("#target_restriction").html(data.target.restrictions);
+    if ($("#target_restriction").height()>18) $("#targetpaths").css("height","112px");
 
     var list_item_id = 1;
 
