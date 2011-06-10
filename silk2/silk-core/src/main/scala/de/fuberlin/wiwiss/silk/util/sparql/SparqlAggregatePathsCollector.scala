@@ -20,7 +20,9 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
    */
   def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) : Traversable[(Path, Double)] =
   {
-    val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
+    val restrictionVariable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
+
+    val variable = if(restrictionVariable.isEmpty) "a" else restrictionVariable
 
     val forwardPaths = getForwardPaths(endpoint, restrictions, variable, limit.getOrElse(100))
     val backwardPaths = getBackwardPaths(endpoint, restrictions, variable, 10)
