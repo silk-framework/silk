@@ -10,6 +10,7 @@ var aggregators = new Object();
 
 var sources = new Array();
 var targets = new Array();
+var boxes = new Array();
 
 var interlinkId = "";
 
@@ -167,6 +168,8 @@ function getDeleteIcon(elementId) {
 
 function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 {
+  if (typeof(boxes[level]) === 'undefined') boxes[level] = new Array();
+
   $(xml).find("> Aggregate").each(function ()
   {
     var box1 = $(document.createElement('div'));
@@ -183,6 +186,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -294,6 +299,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -409,6 +416,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     });
     box1.appendTo("#droppable");
 
+    boxes[level].push(box1);
+
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
     var mytext = document.createTextNode($(this).attr("function"));
@@ -499,6 +508,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -602,6 +613,7 @@ function load()
     $("#threshold").attr("value", $(this).attr("threshold"));
   });
   updateWindowWidth();
+  rearrangeBoxes();
 }
 
 
@@ -614,6 +626,32 @@ function updateWindowWidth() {
     $(".wrapper").width(1000+1200-window_width);
     $("#droppable").width(830);
   }
+}
+
+function rearrangeBoxes() {
+
+    for (var i = boxes.length - 1; i >= 0; i--) {
+        for (var j = 0; j < boxes[i].length; j++) {
+
+            var box = boxes[i][j];
+            var box_id = box.attr("id");
+            var child_conns = jsPlumb.getConnections({target: box_id});
+            var children = child_conns[jsPlumb.getDefaultScope()];
+            if (children.length == 1) {
+                var child = children[0].source;
+                child.css("top",box.css("top"));
+            }
+            if (children.length > 1) {
+                var first_child = children[0].source;
+                var last_child = children[children.length-1].source;
+                var top_first = parseInt(first_child.css("top"));
+                var bottom_last = parseInt(last_child.css("top")) + parseInt(last_child.height());
+                var middle = parseInt((top_first+bottom_last)/2);
+                box.css("top",middle-parseInt(box.height()*0.5));
+            }
+        }
+    }
+    jsPlumb.repaintEverything();
 }
 
 function getHTML(who, deep)
