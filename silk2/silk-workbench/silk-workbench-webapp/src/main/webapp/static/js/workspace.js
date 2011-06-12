@@ -100,8 +100,8 @@ function addDataSource(jsonDataSource,projectNode,projectName)
     var ds_actions = document.createElement("div");
         $(ds_actions).addClass('actions');
         $(ds_span).append(ds_actions);
-        addAction('ds_edit', 'Edit', "Edit data source ","editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName,true);
-        addAction('delete','Remove',"Remove data source ","confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true);
+        addAction('ds_edit', 'Edit', "Edit data source","editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName,true);
+    /*  addAction('delete','Remove',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true); */
 
     for(var p in jsonDataSource.params) {
       var param = jsonDataSource.params[p];
@@ -149,7 +149,7 @@ function updateWorkspace(obj){
         // root folder
         if (!document.getElementById("root-folder")){
             var rootFolder = document.createElement("div");
-            $(rootFolder).attr("id",'root-folder');  
+            $(rootFolder).attr("id",'root-folder');
             $("#content").append(rootFolder);
         }
 
@@ -165,23 +165,23 @@ function updateWorkspace(obj){
             $(proj_actions).append(newProj);
         }
 
-        // import project button
-        if (!document.getElementById("import")) {
-            var importProj = document.createElement("div");
-            $(importProj).attr("id",'import');
-            addAction('import','Import','Import a project',"importProject()",importProj,"",true);
-            $(proj_actions).append(importProj);
-         }
-    
+        // // import project button
+        // if (!document.getElementById("import")) {
+        //    var importProj = document.createElement("div");
+        //    $(importProj).attr("id",'import');
+        //    addAction('import','Import','Import a project',"importProject()",importProj,"",true);
+        //    $(proj_actions).append(importProj);
+        // }
+
         var tree = document.createElement("div");
             tree.id = "div_tree";
 
-        var root = document.createElement("ul");      
+        var root = document.createElement("ul");
             $(root).attr("id", 'tree')
             .addClass('filetree');
             $(tree).append(root);
 
-        // for each project                                  
+        // for each project
         for (var p in obj.workspace.project) {
             var project = obj.workspace.project[p];
             var  proj = document.createElement("li");
@@ -201,17 +201,18 @@ function updateWorkspace(obj){
                     $(proj_actions).addClass('actions');
                     $(proj_span).append(proj_actions);
                 addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
-                addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
+                if (project.dataSource.length == 1) addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
+                //    else addAction('ds_add', 'Source','Action disabled: a project can contain max two sources',"",proj_actions,project.name,false);
                 addAction('link_add', 'Task','Add linking task',"createLinkingTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('add_linkspec', 'Link Spec', 'Add link specification', "addLinkSpecification('"+project.name+"')",proj_actions,project.name,true);
-                addAction('export', 'Export','Export project',"exportProject('"+project.name+"')",proj_actions,project.name,true);
+             // addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
                 addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
 
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
             {
-                addDataSource(project.dataSource[d],proj,project.name);
+                if (project.dataSource[d].name != "TARGET") addDataSource(project.dataSource[d],proj,project.name);
             }
 
             // display linkingTask
@@ -234,7 +235,7 @@ function updateWorkspace(obj){
             }
         if (ws.activeNodesId.length>0 || ws.activeTaskId || ws.activeProjectId)  loadOpenNodes();
 
-        $("#tree").treeview();
+        $("#tree").treeview({animated:"fast"});
 
         loadingHide();
     }
@@ -249,7 +250,6 @@ function loadingShow(){
 function loadingHide(){
   $("#loading-dialog").dialog("close");
 }
-
 
 // init loading dialog
 function initLoadingDialog(){
@@ -284,7 +284,7 @@ function confirmDelete(action,proj,res){
          "Yes, delete it": function() {
             callAction(action,proj,res);
             $(this).dialog("close");
-            loadingShow()},
+            loadingShow() },
          "Cancel": function() {$(this).dialog("close");}
         }
         });
@@ -306,12 +306,12 @@ function getIcon(type){
         case 'ds_add' : icon = "ui-icon-plus";  break;
         case 'ds_edit' : icon = "ui-icon-wrench";  break;
         case 'link_add' : icon = "ui-icon-plus";  break;
-        case 'add_linkspec' : icon = "ui-icon-arrowthickstop-1-s";  break;
         case 'link_edit' : icon = "ui-icon-wrench";  break;
         case 'link_spec': icon = "ui-icon-shuffle"; break;
         case 'delete' : icon = "ui-icon-trash";  break;
         case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
         case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
+        case 'add_linkspec' : icon = "ui-icon-arrowthickstop-1-s";  break;
     }
     return icon;
 }
