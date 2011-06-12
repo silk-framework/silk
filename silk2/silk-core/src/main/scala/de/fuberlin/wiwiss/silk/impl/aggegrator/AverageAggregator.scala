@@ -26,4 +26,9 @@ class AverageAggregator() extends MultiIndexAggregator
       None
     }
   }
+
+  override def computeThreshold(threshold : Double, weight : Double) : Double =
+  {
+    1.0 - ((1.0 - threshold) / weight)
+  }
 }

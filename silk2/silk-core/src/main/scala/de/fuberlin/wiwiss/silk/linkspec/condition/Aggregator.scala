@@ -18,7 +18,10 @@ trait Aggregator extends Strategy
    */
   def combineBlockCounts(blockCounts1 : Seq[Int], blockCounts2 : Seq[Int]) : Seq[Int]
 
-  def computeThreshold(threshold : Double, weight : Double) : Double
+  def computeThreshold(threshold : Double, weight : Double) : Double =
+  {
+    threshold
+  }
 }
 
 object Aggregator extends Factory[Aggregator]
@@ -34,15 +37,9 @@ trait FlatIndexAggregator extends Aggregator
     newIndexSet1 ++ newIndexSet2
   }
 
-
   override def combineBlockCounts(blockCounts1 : Seq[Int], blockCounts2 : Seq[Int]) : Seq[Int] =
   {
     blockCounts1.zipAll(blockCounts2, 0, 0).map{case (c1, c2) => c1 + c2}
-  }
-
-  override def computeThreshold(threshold : Double, weight : Double) : Double =
-  {
-    threshold
   }
 }
 
@@ -64,10 +61,5 @@ trait MultiIndexAggregator extends Aggregator
   override def combineBlockCounts(blockCounts1 : Seq[Int], blockCounts2 : Seq[Int]) : Seq[Int] =
   {
     blockCounts1 ++ blockCounts2
-  }
-
-  override def computeThreshold(threshold : Double, weight : Double) : Double =
-  {
-    1.0 - ((1.0 - threshold) / weight)
   }
 }
