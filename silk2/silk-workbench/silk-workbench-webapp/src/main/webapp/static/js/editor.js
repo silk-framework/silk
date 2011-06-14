@@ -1081,6 +1081,7 @@ function getPropertyPaths(deleteExisting)
 	    var dot = document.createTextNode(".");
       document.getElementById("loading").appendChild(dot);
       setTimeout("getPropertyPaths();", 1000);
+      if ($("#loading").html().length>40) $("#loading").html("loading ...");
     }
     else if (data.error !== undefined)
     {
