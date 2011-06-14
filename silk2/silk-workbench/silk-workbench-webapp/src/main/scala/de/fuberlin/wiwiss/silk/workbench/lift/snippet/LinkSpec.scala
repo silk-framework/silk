@@ -77,8 +77,10 @@ class LinkSpec
       case ex : Exception =>
       {
         logger.log(Level.INFO, "Failed to save link specification", ex)
-        val message = ex.getMessage.split(':').tail.mkString
-        JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + message.encJs + ".');").cmd
+        val msg = ex.getMessage
+        //Strip prefixes like this: "cvc-complex-type.2.4.b:"
+        val cleanMsg = if(msg.contains(':')) msg.split(':').tail.mkString else msg
+        JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + cleanMsg.encJs + ".');").cmd
       }
     }
   }
