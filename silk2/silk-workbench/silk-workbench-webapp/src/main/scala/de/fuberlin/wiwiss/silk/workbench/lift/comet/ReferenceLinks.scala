@@ -64,7 +64,7 @@ class ReferenceLinks extends LinkList
         {
           case Some(instances) =>
           {
-            val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
+            val evaluatedLink = DetailedEvaluator(condition, instances, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
