@@ -232,16 +232,16 @@ class MatchTask(linkSpec : LinkSpecification,
 
           if(!generateDetailedLinks)
           {
-            val confidence = linkSpec.condition(instances, linkSpec.filter.threshold)
+            val confidence = linkSpec.condition(instances, 0.0)
 
-            if(confidence >= linkSpec.filter.threshold)
+            if(confidence >= 0.0)
             {
               links ::= new Link(sourceInstance.uri, targetInstance.uri, confidence)
             }
           }
           else
           {
-            for(link <- DetailedEvaluator(linkSpec.condition, instances, linkSpec.filter.threshold))
+            for(link <- DetailedEvaluator(linkSpec.condition, instances, 0.0))
             {
               links ::= link
             }
@@ -260,7 +260,7 @@ class MatchTask(linkSpec : LinkSpecification,
     {
       if(indexingEnabled)
       {
-        instances.map(instance => HashSet(linkSpec.condition.index(instance, linkSpec.filter.threshold).toSeq : _*))
+        instances.map(instance => HashSet(linkSpec.condition.index(instance).toSeq : _*))
       }
       else
       {
@@ -271,11 +271,6 @@ class MatchTask(linkSpec : LinkSpecification,
     def compareIndexes(index1 : Set[Int], index2 : Set[Int]) =
     {
       index1.exists(index2.contains(_))
-    }
-
-    def evaluateCondition(instances : SourceTargetPair[Instance]) =
-    {
-      linkSpec.condition(instances, linkSpec.filter.threshold)
     }
   }
 }

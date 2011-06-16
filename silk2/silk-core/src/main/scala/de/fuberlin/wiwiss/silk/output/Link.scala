@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.instance.Path
  */
 class Link(val sourceUri : String, val targetUri : String, val confidence : Double = 0.0, val details : Option[Link.Similarity] = None)
 {
-  require(confidence >= 0.0 && confidence <= 1.0, "confidence >= 0.0 && confidence <= 1.0 (confidence=" + confidence)
+  require(confidence >= -1.0 && confidence <= 1.0, "confidence >= -1.0 && confidence <= 1.0 (confidence=" + confidence)
 
   override def toString = "<" + sourceUri + ">  <" + targetUri + "> (" + confidence + ")"
 

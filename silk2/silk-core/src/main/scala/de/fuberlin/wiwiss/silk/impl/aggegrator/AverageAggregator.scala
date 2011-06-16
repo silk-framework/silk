@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.condition.MultiIndexAggregator
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "average", label = "Average", description = "Computes the weighted average.")
-class AverageAggregator() extends MultiIndexAggregator
+class AverageAggregator(positiveWeight : Int = 9, negativeWeight : Int = 10) extends MultiIndexAggregator
 {
   override def evaluate(values : Traversable[(Int, Double)]) =
   {
@@ -15,11 +15,21 @@ class AverageAggregator() extends MultiIndexAggregator
 
       for((weight, value) <- values)
       {
-        sumWeights += weight
-        sumValues += weight * value
+        if(value > 0.0)
+        {
+          sumWeights += weight * positiveWeight
+          sumValues += weight * positiveWeight * value
+        }
+        else if(value < 0.0)
+        {
+          sumWeights += weight * negativeWeight
+          sumValues += weight * negativeWeight * value
+        }
       }
 
-      Some(sumValues / sumWeights)
+      val average = sumValues / sumWeights
+
+      Some(average)
     }
     else
     {
@@ -27,8 +37,8 @@ class AverageAggregator() extends MultiIndexAggregator
     }
   }
 
-  override def computeThreshold(threshold : Double, weight : Double) : Double =
+  override def computeThreshold(limit : Double, weight : Double) : Double =
   {
-    1.0 - ((1.0 - threshold) / weight)
+    1.0 - ((1.0 - limit) / weight) + positiveWeight.toDouble / negativeWeight
   }
 }

@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimilarityMeasure
+import de.fuberlin.wiwiss.silk.linkspec.condition.DistanceMeasure
 
 @StrategyAnnotation(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
-class DiceCoefficient extends SimilarityMeasure
+class DiceCoefficient extends DistanceMeasure
 {
   override def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double) : Double =
   {
@@ -14,6 +14,6 @@ class DiceCoefficient extends SimilarityMeasure
     val intersectionSize = (set1 intersect set2).size * 2
     val totalSize = set1.size + set2.size
 
-    intersectionSize.toDouble / totalSize
+    1.0 - intersectionSize.toDouble / totalSize
   }
 }

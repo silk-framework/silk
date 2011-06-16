@@ -1,46 +1,60 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import math._
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleSimilarityMeasure
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import java.util.logging.Logger
 
 /**
  * This metric takes geographical coordinates of two points,
  * given in degrees of longitude and latitude, and creates a score measuring
  * the nearness of those two points in air line distance. The default metric is the distance of the two points in meters but its behaviour is configurable
  * via the following parameters:
- * unit = "meter" or "m" (default) , "kilometer" or "km" - the unit in which the distance is measured
- * threshold = t -  will result in a 0 for all bigger values than t, values below are varying with the curveStyle
- * curveStyle = "discreet" (default) "linear" gives a linear transition, "logistic" uses the logistic function f(x)=1/(1+e^(x) gives a more soft curve with a slow slope 
- * at the start and the end of the curve but a  steep one in the middle.
+ * unit = "meter" or "m" , "kilometer" or "km" (default) - the unit in which the distance is measure
  * @autor Konrad Höffner (AKSW, Uni Leipzig)
  */
 @StrategyAnnotation(
   id = "wgs84",
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
-class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveStyle : String = "linear") extends SimpleSimilarityMeasure
+class GeographicDistanceMetric(unit : String = "km", threshold : Double = Double.NaN) extends SimpleDistanceMeasure
 {
-  require(threshold >= 0.0, "Threshold must be positive.")
+  private val logger = Logger.getLogger(classOf[GeographicDistanceMetric].getName)
 
-  val multipliers = Map("km"->0.001,"kilometer"->0.001,"meter"->1.0,"m"->1.0)
+  private val scale = threshold match
+  {
+    case Double.NaN =>
+    {
+      1.0
+    }
+    case _ =>
+    {
+      logger.warning("The use of the 'threshold' parameter on the wgs84 metric is deprecated.\n" +
+        "Please use the threshold paramter on the comparison instead.\n" +
+        "Example: <Compare metric=\"wgs84\" threshold=\"...\">")
 
-  val unitMultiplier : Double = multipliers.get(unit).getOrElse(1)
+      threshold
+    }
+  }
+
+  private val multipliers = Map("km"->0.001,"kilometer"->0.001,"meter"->1.0,"m"->1.0)
+
+  private val unitMultiplier : Double = multipliers.get(unit).getOrElse(1)
 
   private val blockOverlap = 0.5
 
-  override def evaluate(str1 : String, str2 : String, threshold : Double) : Double =
+  override def evaluate(str1 : String, str2 : String, limit : Double) : Double =
   {
     //Parse the coordinates and return a similarity value if both coordinates could be extracted.
     (getCoordinates(str1), getCoordinates(str2)) match
     {
-      case (Some(loc1), Some(loc2)) => scale(getGeometricDistance(loc1, loc2))
-      case _ => 0.0
+      case (Some(loc1), Some(loc2)) => getGeometricDistance(loc1, loc2) / scale
+      case _ => Double.PositiveInfinity
     }
   }
 
-  override def index(str : String, threshold : Double) : Set[Seq[Int]] =
+  override def index(str : String, limit : Double) : Set[Seq[Int]] =
   {
     getCoordinates(str) match
     {
@@ -49,37 +63,37 @@ class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveSt
         val latIndex = (coords.lat + 90.0) / 180.0
         val longIndex = (coords.long + 180.0) / 360.0 * cos(deg2rad(coords.lat))
 
-        getBlocks(Seq(latIndex, longIndex), blockOverlap)
+        getBlocks(Seq(latIndex, longIndex), blockOverlap, limit * scale)
       }
       case None => Set.empty
     }
   }
 
-  private val latitudeBlockCount =
+  override def blockCounts(limit : Double) : Seq[Int] =
+  {
+    Seq(latitudeBlockCount(limit * scale), longitudeBlockCount(limit * scale))
+  }
+
+  private def latitudeBlockCount(limit : Double) =
   {
     val earthCircumferenceEquatorial = 40075160.0
 
-    val distInMeters = threshold / unitMultiplier
+    val distInMeters = limit / unitMultiplier
 
     val latitudeBlocks = earthCircumferenceEquatorial / distInMeters * blockOverlap
 
     latitudeBlocks.toInt
   }
 
-  private val longitudeBlockCount =
+  private def longitudeBlockCount(limit : Double) =
   {
     val earthCircumferenceMeridional = 40008000.0
 
-    val distInMeters = threshold / unitMultiplier
+    val distInMeters = limit / unitMultiplier
 
     val longitudeBlocks = earthCircumferenceMeridional / distInMeters * blockOverlap
 
     longitudeBlocks.toInt
-  }
-
-  override val blockCounts : Seq[Int] =
-  {
-    Seq(latitudeBlockCount, longitudeBlockCount)
   }
 
   /**
@@ -130,7 +144,7 @@ class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveSt
    */
   private def deg2rad(deg : Double) : Double =
   {
-    return (deg * java.lang.Math.PI / 180.0)
+    (deg * java.lang.Math.PI / 180.0)
   }
 
   /**
@@ -138,34 +152,7 @@ class GeographicDistanceMetric(threshold : Double, unit : String = "km", curveSt
    */
   private def rad2deg(rad : Double) : Double =
   {
-    return (rad * 180.0 / java.lang.Math.PI)
-  }
-
-  /**
-   * Scales the input distance to a similarity value between 0.0 and 1.0.
-   */
-  private def scale(distance : Double) : Double =
-  {
-    //First check for boundary cases
-    if(distance==0) {return 1}
-    if(distance>=threshold) {return 0}
-
-    // curveStyle = "discreet" or no curveStyle set
-    // -> no curve, just return 1
-    if(curveStyle == "discreet") {return 1}
-
-    // other curveStyle specified -> use a transition
-
-    // linear transition
-    if(curveStyle == "linear")
-    {
-
-      val m = - 1/threshold;
-      return 1 + m * distance;
-    }
-
-    // logistic transition
-    return 1 / (1+ exp((distance)*10/threshold-5));
+    (rad * 180.0 / java.lang.Math.PI)
   }
 
   /**

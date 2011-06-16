@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleSimilarityMeasure
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import java.util.logging.Logger
@@ -11,9 +11,25 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers and normalizes it using the maxDistance." +
     " The similarity score is 0.0 if the distance is bigger than maxDistance.")
-class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinity, maxValue : Double = Double.PositiveInfinity) extends SimpleSimilarityMeasure
+class NumMetric(minValue : Double = Double.NegativeInfinity, maxValue : Double = Double.PositiveInfinity, maxDistance : Double = Double.NaN) extends SimpleDistanceMeasure
 {
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
+
+  private val scale = maxDistance match
+  {
+    case Double.NaN =>
+    {
+      1.0
+    }
+    case _ =>
+    {
+      logger.warning("The use of the 'maxDistance' parameter on the num metric is deprecated.\n" +
+        "Please use the threshold paramter on the comparison instead.\n" +
+        "Example: <Compare metric=\"num\" threshold=\"...\">")
+
+      maxDistance
+    }
+  }
 
   private val maxBlockCount = 10000
 
@@ -32,26 +48,19 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
     }
   }
 
-  override def evaluate(str1 : String, str2 : String, threshold : Double) =
+  override def evaluate(str1 : String, str2 : String, limit : Double) =
   {
     (str1, str2) match
     {
       case (DoubleLiteral(num1), DoubleLiteral(num2)) =>
       {
-        if(maxDistance == 0.0)
-        {
-          if(num1 == num2) 1.0 else 0.0
-        }
-        else
-        {
-          max(1.0 - abs(num1 - num2) / maxDistance, 0.0)
-        }
+        abs(num1 - num2) / limit
       }
-      case _ => 0.0
+      case _ => Double.PositiveInfinity
     }
   }
 
-  override def index(str : String, threshold : Double) : Set[Seq[Int]] =
+  override def index(str : String, limit : Double) : Set[Seq[Int]] =
   {
     if(indexEnabled)
     {
@@ -59,7 +68,7 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
       {
         case DoubleLiteral(num) =>
         {
-          getBlocks(Seq((num - minValue).toDouble / maxValue), blockOverlap)
+          getBlocks(Seq((num - minValue).toDouble / maxValue), blockOverlap, limit * scale)
         }
         case _ => Set.empty
       }
@@ -70,7 +79,7 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
     }
   }
 
-  override val blockCounts : Seq[Int] =
+  override def blockCounts(limit : Double) : Seq[Int] =
   {
     if(indexEnabled)
     {
@@ -78,19 +87,12 @@ class NumMetric(maxDistance : Double, minValue : Double = Double.NegativeInfinit
     }
     else
     {
-      Seq(blockCount)
+      Seq(blockCount(limit * scale))
     }
   }
 
-  private val blockCount =
+  private def blockCount(limit : Double) =
   {
-    if(maxDistance == 0.0)
-    {
-      maxBlockCount
-    }
-    else
-    {
-      min(maxBlockCount, (blockOverlap * (maxValue - minValue) / maxDistance).toInt)
-    }
+    min(maxBlockCount, ((maxValue - minValue) / limit * blockOverlap).toInt)
   }
 }
