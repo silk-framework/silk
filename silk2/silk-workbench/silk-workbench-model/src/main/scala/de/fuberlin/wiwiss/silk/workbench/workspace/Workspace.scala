@@ -1,5 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
+import de.fuberlin.wiwiss.silk.util.Identifier
+
 
 trait Workspace
 {
@@ -13,12 +15,12 @@ trait Workspace
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
-  def project(name : String) : Project =
+  def project(name : Identifier) : Project =
   {
     projects.find(_.name == name).getOrElse(throw new NoSuchElementException("Project '" + name + "' not found"))
   }
 
-  def createProject(name : String) : Project
+  def createProject(name : Identifier) : Project
 
-  def removeProject(name : String)
+  def removeProject(name : Identifier)
 }
