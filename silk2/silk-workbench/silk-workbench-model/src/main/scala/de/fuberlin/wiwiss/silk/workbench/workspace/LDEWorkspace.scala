@@ -4,6 +4,7 @@ import java.net.URI
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 class LDEWorkspace (workspaceUri : URI) extends Workspace    {
 
@@ -27,7 +28,7 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
 
   override def projects : List[Project] = projectList
 
-  override def createProject(name : String) = {
+  override def createProject(name : Identifier) = {
     logger.info ("Creating new Project: "+name  )
     // TODO check if it already exists..
     sparulEndpoint.query(QueryFactory.iNewProject(name))
@@ -36,7 +37,7 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
     newProject
   }
 
-  override def removeProject(name : String) =  {
+  override def removeProject(name : Identifier) =  {
     logger.info ("Deleting Project: "+name  )
     sparulEndpoint.query(QueryFactory.dProject(name))
     projectList = projectList.filterNot(_.name == name)
