@@ -109,7 +109,7 @@ trait LinkList extends CometActor
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
         <div class="link-source"><a href={link.sourceUri} target="_blank">{prefixes.shorten(link.sourceUri)}</a></div>
         <div class="link-target"><a href={link.targetUri} target="_blank">{prefixes.shorten(link.targetUri)}</a></div>
-        <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
+        <div class="confidencebar"><div class="confidence">{"%.1f".format((link.confidence + 1.0) * 50)}%</div></div>
         { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
         { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }
 

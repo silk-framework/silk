@@ -68,7 +68,7 @@ class EvaluationTask(user : User) extends Task[Unit]
 
     //Blocking function
     val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
-    def blockingFunction(instance : Instance) = linkSpec.condition.index(instance, linkSpec.filter.threshold).map(_ % blockCount)
+    def blockingFunction(instance : Instance) = linkSpec.condition.index(instance).map(_ % blockCount)
 
     //Instance caches
     val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, partitionSize),

@@ -7,7 +7,7 @@ import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, SimilarityMeasure}
+import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
 
 /**
@@ -38,18 +38,19 @@ object DefaultImplementations
         Transformer.register(classOf[RemoveEmptyValues])
         Transformer.register(classOf[Tokenizer])
 
-        SimilarityMeasure.register(classOf[LevenshteinMetric])
-        SimilarityMeasure.register(classOf[JaroDistanceMetric])
-        SimilarityMeasure.register(classOf[JaroWinklerSimilarity])
-        SimilarityMeasure.register(classOf[QGramsMetric])
-        SimilarityMeasure.register(classOf[EqualityMetric])
-        SimilarityMeasure.register(classOf[InequalityMetric])
-        SimilarityMeasure.register(classOf[NumMetric])
-        SimilarityMeasure.register(classOf[DateMetric])
-        SimilarityMeasure.register(classOf[DateTimeMetric])
-        SimilarityMeasure.register(classOf[GeographicDistanceMetric])
-        SimilarityMeasure.register(classOf[JaccardSimilarity])
-        SimilarityMeasure.register(classOf[DiceCoefficient])
+        DistanceMeasure.register(classOf[LevenshteinMetric])
+        DistanceMeasure.register(classOf[LevenshteinDistance])
+        DistanceMeasure.register(classOf[JaroDistanceMetric])
+        DistanceMeasure.register(classOf[JaroWinklerDistance])
+        DistanceMeasure.register(classOf[QGramsMetric])
+        DistanceMeasure.register(classOf[EqualityMetric])
+        DistanceMeasure.register(classOf[InequalityMetric])
+        DistanceMeasure.register(classOf[NumMetric])
+        DistanceMeasure.register(classOf[DateMetric])
+        DistanceMeasure.register(classOf[DateTimeMetric])
+        DistanceMeasure.register(classOf[GeographicDistanceMetric])
+        DistanceMeasure.register(classOf[JaccardDistance])
+        DistanceMeasure.register(classOf[DiceCoefficient])
 
         Aggregator.register(classOf[AverageAggregator])
         Aggregator.register(classOf[MaximumAggregator])

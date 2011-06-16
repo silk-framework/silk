@@ -9,13 +9,13 @@ import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
 
 object DetailedEvaluator
 {
-  def apply(condition : LinkCondition, instances : SourceTargetPair[Instance], threshold : Double) : Option[Link] =
+  def apply(condition : LinkCondition, instances : SourceTargetPair[Instance], limit : Double = -1.0) : Option[Link] =
   {
-    val similarity = evaluateOperator(condition.rootOperator.get, instances, threshold)
+    val similarity = evaluateOperator(condition.rootOperator.get, instances, limit)
 
     val confidence = similarity.value.getOrElse(0.0)
 
-    if(confidence >= threshold)
+    if(confidence >= limit)
     {
       Some(new Link(instances.source.uri, instances.target.uri, confidence, Some(similarity)))
     }
@@ -63,7 +63,7 @@ object DetailedEvaluator
 
   private def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonSimilarity =
   {
-    val similarity = comparision.apply(instances, threshold)
+    val distance = comparision.apply(instances, threshold)
 
     val sourcePath = findPath(comparision.inputs.source)
     val targetPath = findPath(comparision.inputs.target)
@@ -73,7 +73,7 @@ object DetailedEvaluator
 
     val name = comparision.metric.strategyName
 
-    Link.ComparisonSimilarity(name, similarity, sourceInput, targetInput)
+    Link.ComparisonSimilarity(name, distance, sourceInput, targetInput)
   }
 
   private def findPath(input : Input) : Path = input match

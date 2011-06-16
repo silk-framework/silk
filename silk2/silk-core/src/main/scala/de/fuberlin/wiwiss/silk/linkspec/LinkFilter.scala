@@ -28,7 +28,8 @@ object LinkFilter
   def fromXML(node : Node) : LinkFilter =
   {
     val limitStr = (node \ "@limit").text
+    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0)
 
-    LinkFilter((node \ "@threshold").text.toDouble, if(limitStr.isEmpty) None else Some(limitStr.toInt))
+    LinkFilter(threshold, if(limitStr.isEmpty) None else Some(limitStr.toInt))
   }
 }
