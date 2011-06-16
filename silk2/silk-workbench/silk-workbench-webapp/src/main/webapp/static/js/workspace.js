@@ -101,7 +101,7 @@ function addDataSource(jsonDataSource,projectNode,projectName)
         $(ds_actions).addClass('actions');
         $(ds_span).append(ds_actions);
         addAction('ds_edit', 'Edit', "Edit data source","editSourceTask('"+projectName+"','"+ jsonDataSource.name+"')",ds_actions,projectName,true);
-    /*  addAction('delete','Remove',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true); */
+        addAction('delete','Remove',"Remove DataSource "+jsonDataSource.name,"confirmDelete('removeSourceTask','"+projectName+"','"+jsonDataSource.name+"')",ds_actions,projectName,true);
 
     for(var p in jsonDataSource.params) {
       var param = jsonDataSource.params[p];
@@ -165,13 +165,13 @@ function updateWorkspace(obj){
             $(proj_actions).append(newProj);
         }
 
-        // // import project button
-        // if (!document.getElementById("import")) {
-        //    var importProj = document.createElement("div");
-        //    $(importProj).attr("id",'import');
-        //    addAction('import','Import','Import a project',"importProject()",importProj,"",true);
-        //    $(proj_actions).append(importProj);
-        // }
+        // import project button
+        if (!document.getElementById("import")) {
+            var importProj = document.createElement("div");
+            $(importProj).attr("id",'import');
+            addAction('import','Import','Import a project',"importProject()",importProj,"",true);
+            $(proj_actions).append(importProj);
+         }
 
         var tree = document.createElement("div");
             tree.id = "div_tree";
@@ -201,18 +201,17 @@ function updateWorkspace(obj){
                     $(proj_actions).addClass('actions');
                     $(proj_span).append(proj_actions);
                 addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
-                if (project.dataSource.length == 1) addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
-                //    else addAction('ds_add', 'Source','Action disabled: a project can contain max two sources',"",proj_actions,project.name,false);
+                addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('link_add', 'Task','Add linking task',"createLinkingTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('add_linkspec', 'Link Spec', 'Add link specification', "addLinkSpecification('"+project.name+"')",proj_actions,project.name,true);
-             // addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
+                addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
                 addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
 
 
              // display dataSource
             for (var d in obj.workspace.project[p].dataSource)
             {
-                if (project.dataSource[d].name != "TARGET") addDataSource(project.dataSource[d],proj,project.name);
+                addDataSource(project.dataSource[d],proj,project.name);
             }
 
             // display linkingTask
