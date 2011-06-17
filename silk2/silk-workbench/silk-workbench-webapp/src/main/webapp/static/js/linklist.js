@@ -6,11 +6,15 @@ function handlePaginationClick(new_page_index, pagination_container) {
   return false;
 }
 
-function initPagination(number_pages) {
-  $(".navigation").pagination(number_pages, {
+function initPagination(number_results) {
+  $(".navigation").pagination(number_results, {
     items_per_page:100,
     callback:handlePaginationClick
   });
+  var navi_width = 82 + (number_results/100)*34;
+  if (number_results == 0) navi_width = 116;
+  if (number_results > 1100) navi_width = 525;
+  $(".navigation").css("width", navi_width + "px").css("float", "none").css("margin", "0 auto");
 }
 
 function initTrees() {
@@ -31,7 +35,6 @@ function initTrees() {
     if (confidence > 24 && confidence < 50) $(this).children(".ui-progressbar-value").addClass("confidence-orange");
     if (confidence > 49 && confidence < 75) $(this).children(".ui-progressbar-value").addClass("confidence-yellow");
     if (confidence > 74) $(this).children(".ui-progressbar-value").addClass("confidence-green");
-
   });
 }
 

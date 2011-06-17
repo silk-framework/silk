@@ -65,10 +65,11 @@ trait LinkList extends CometActor
         {
           val filteredLinks = LinkFilter.filter(links)
           val sortedLinks = LinkSorter.sort(filteredLinks)
-
+          // var counter = 0
           for(link <- sortedLinks.view(page * pageSize, (page + 1) * pageSize)) yield
           {
             renderLink(link)
+            // counter = counter + 1
           }
         }
       </div>
@@ -104,6 +105,7 @@ trait LinkList extends CometActor
    */
   private def renderLink(link : EvalLink) =
   {
+    //val cl = if (counter%2==0) { "link-header grey" } else { "link-header" }
     <div class="link" id={getId(link)} >
       <div class="link-header" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
