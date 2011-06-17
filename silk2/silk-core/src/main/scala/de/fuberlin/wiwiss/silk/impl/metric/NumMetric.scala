@@ -54,7 +54,7 @@ class NumMetric(minValue : Double = Double.NegativeInfinity, maxValue : Double =
     {
       case (DoubleLiteral(num1), DoubleLiteral(num2)) =>
       {
-        abs(num1 - num2) / limit
+        abs(num1 - num2) / (limit * scale)
       }
       case _ => Double.PositiveInfinity
     }
