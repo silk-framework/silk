@@ -1,6 +1,6 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-   <!-- <xsl:import href="de/fuberlin/wiwiss/silk/linkspec/identity.xsl"/>-->
 
+    <!-- identity -->
      <xsl:template match="node()|@*">
         <!-- Copy the current node -->
         <xsl:copy>
@@ -9,7 +9,7 @@
         </xsl:copy>
       </xsl:template>
 
-    <!-- add new Attribute to the Compare-Element-->
+    <!-- add new attribute to the Compare-element-->
     <xsl:template match="Compare">
         <xsl:choose>
             <xsl:when test="@metric = 'levenshtein' or @metric = 'wgs84' or @metric= 'num'">
@@ -34,16 +34,29 @@
         </xsl:choose>
     </xsl:template>
 
-    <!-- Remove the Filter-element-->
+    <!-- Remove parts of the Filter-element-->
     <xsl:template match="Filter">
-        <xsl:copy>
-            <xsl:copy-of select="@limit"/>
-        </xsl:copy>
+        <xsl:choose>
+            <xsl:when test="ancestor::Interlink/LinkCondition/Aggregate/Compare[@metric = 'levenshtein' or @metric = 'wgs84' or @metric= 'num']">
+                <xsl:copy>
+                    <xsl:copy-of select="@limit"/>
+                </xsl:copy>
+            </xsl:when>
+        <xsl:otherwise>
+            <xsl:copy>
+                <xsl:apply-templates select="@*|node()"/>
+            </xsl:copy>
+        </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
-    <!-- Remove Param-node with old attributes [name = 'threshold' or name = 'maxDistance']
-    <xsl:template match="Compare[child::Param]">
-         <xsl:apply-templates/>
-    </xsl:template>-->
+    <!-- FIX ME Remove Param-node with old attributes [name = 'threshold' or name = 'maxDistance']
+    <xsl:template match="Interlink/LinkCondition/Aggregate/Aggregate/Compare/Param">
+        <xsl:choose>
+            <xsl:when test="@name = 'maxDistance' or @name = 'threshold'">
+                <xsl:apply-templates/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template> -->
 
 </xsl:stylesheet>
