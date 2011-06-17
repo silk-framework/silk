@@ -159,7 +159,7 @@ trait LinkList extends CometActor
   }
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format(v * 100)}%</div></div>
+    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v + 1.0) * 50)}%</div></div>
     case None => NodeSeq.Empty
   }
 
