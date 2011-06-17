@@ -42,28 +42,26 @@
 
       <LinkCondition>
         <Aggregate type="max">
-          <Compare metric="levenshtein">
+          <Compare metric="levenshteinDistance" threshold="1">
             <TransformInput function="lowerCase">
               <Input path="?a/rdfs:label"/>
             </TransformInput>
             <TransformInput function="lowerCase">
               <Input path="?b/rdfs:label"/>
             </TransformInput>
-            <Param name="maxDistance" value="10" />
           </Compare>
-          <Compare metric="levenshtein">
+          <Compare metric="levenshteinDistance" threshold="1">
             <TransformInput function="lowerCase">
               <Input path="?a/rdfs:label"/>
             </TransformInput>
             <TransformInput function="lowerCase">
               <Input path="?b/drugbank:synonym"/>
             </TransformInput>
-            <Param name="maxDistance" value="10" />
           </Compare>
         </Aggregate>
       </LinkCondition>
 
-      <Filter threshold="0.90" limit="1"/>
+      <Filter limit="1"/>
 
     </Interlink>
   </Interlinks>
