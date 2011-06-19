@@ -15,13 +15,13 @@ class NumMetric(minValue : Double = Double.NegativeInfinity, maxValue : Double =
 {
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
 
-  private val scale = maxDistance match
+  private val scale =
   {
-    case Double.NaN =>
+    if(maxDistance.isNaN)
     {
       1.0
     }
-    case _ =>
+    else
     {
       logger.warning("The use of the 'maxDistance' parameter on the num metric is deprecated.\n" +
         "Please use the threshold paramter on the comparison instead.\n" +
