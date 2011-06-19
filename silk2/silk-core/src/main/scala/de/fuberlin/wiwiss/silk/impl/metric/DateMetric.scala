@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
   id = "date",
   label = "Date",
   description = "The distance in days between two dates ('YYYY-MM-DD' format).")
-class DateMetric(maxDays : Int) extends SimpleDistanceMeasure
+class DateMetric() extends SimpleDistanceMeasure
 {
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {

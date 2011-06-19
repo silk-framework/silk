@@ -22,13 +22,13 @@ class GeographicDistanceMetric(unit : String = "km", threshold : Double = Double
 {
   private val logger = Logger.getLogger(classOf[GeographicDistanceMetric].getName)
 
-  private val scale = threshold match
+  private val scale =
   {
-    case Double.NaN =>
+    if(threshold.isNaN)
     {
       1.0
     }
-    case _ =>
+    else
     {
       logger.warning("The use of the 'threshold' parameter on the wgs84 metric is deprecated.\n" +
         "Please use the threshold paramter on the comparison instead.\n" +
@@ -127,7 +127,7 @@ class GeographicDistanceMetric(unit : String = "km", threshold : Double = Double
   /**
    * Computes the distance between two geo points.
    */
-  private def getGeometricDistance(loc1 : GeoPoint, loc2 : GeoPoint): Double =
+  private def getGeometricDistance(loc1 : GeoPoint, loc2 : GeoPoint) : Double =
   {
     // formula from http://www.zipcodeworld.com/samples/distance.java.html
     val theta = loc1.long - loc2.long // 180
@@ -136,7 +136,7 @@ class GeographicDistanceMetric(unit : String = "km", threshold : Double = Double
     dist = rad2deg(dist)
     dist = dist * 60 * 1.1515 * 1.609344 * 1000; // in meters
     dist = dist * unitMultiplier
-    return (dist);
+    dist
   }
 
   /**
