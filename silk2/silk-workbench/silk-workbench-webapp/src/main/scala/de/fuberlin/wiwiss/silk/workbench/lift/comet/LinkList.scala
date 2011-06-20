@@ -65,10 +65,11 @@ trait LinkList extends CometActor
         {
           val filteredLinks = LinkFilter.filter(links)
           val sortedLinks = LinkSorter.sort(filteredLinks)
-
+          // var counter = 0
           for(link <- sortedLinks.view(page * pageSize, (page + 1) * pageSize)) yield
           {
             renderLink(link)
+            // counter = counter + 1
           }
         }
       </div>
@@ -104,12 +105,13 @@ trait LinkList extends CometActor
    */
   private def renderLink(link : EvalLink) =
   {
+    //val cl = if (counter%2==0) { "link-header grey" } else { "link-header" }
     <div class="link" id={getId(link)} >
       <div class="link-header" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
         <div class="link-source"><a href={link.sourceUri} target="_blank">{prefixes.shorten(link.sourceUri)}</a></div>
         <div class="link-target"><a href={link.targetUri} target="_blank">{prefixes.shorten(link.targetUri)}</a></div>
-        <div class="confidencebar"><div class="confidence">{"%.1f".format(link.confidence * 100)}%</div></div>
+        <div class="confidencebar"><div class="confidence">{"%.1f".format((link.confidence + 1.0) * 50)}%</div></div>
         { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
         { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }
 
@@ -159,7 +161,7 @@ trait LinkList extends CometActor
   }
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format(v * 100)}%</div></div>
+    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v + 1.0) * 50)}%</div></div>
     case None => NodeSeq.Empty
   }
 

@@ -43,6 +43,7 @@
         <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="metric" type="xs:string" use="required" />
+      <xs:attribute name="threshold" type="xs:double" />
       <xs:attribute name="weight" type="xs:unsignedShort" />
       <xs:attribute name="required" type="xs:boolean" />
     </xs:complexType>
@@ -116,7 +117,7 @@
 
         <xs:element name="Filter">
           <xs:complexType>
-            <xs:attribute name="threshold" type="xs:decimal" use="required" />
+            <xs:attribute name="threshold" type="xs:decimal" use="optional" />
             <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
           </xs:complexType>
         </xs:element>

@@ -2,16 +2,16 @@ package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
 
-trait SimilarityMeasure extends Strategy
+trait DistanceMeasure extends Strategy
 {
   def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double = 0.0) : Double
 
-  def index(value : String, threshold : Double = 0.0) : Set[Seq[Int]] = Set(Seq(0))
+  def index(value : String, threshold : Double) : Set[Seq[Int]] = Set(Seq(0))
 
-  val blockCounts : Seq[Int] = Seq(1)
+  def blockCounts(threshold : Double) : Seq[Int] = Seq(1)
 
   //TODO replace by function blockIndex which calls index on default?
-  protected def getBlocks(index : Seq[Double], overlap : Double) : Set[Seq[Int]] =
+  protected def getBlocks(index : Seq[Double], overlap : Double, threshold : Double) : Set[Seq[Int]] =
   {
     def addIndex(blockSet : Set[Seq[Int]], newIndex : (Double, Int)) : Set[Seq[Int]] =
     {
@@ -22,7 +22,7 @@ trait SimilarityMeasure extends Strategy
       }
     }
 
-    (index zip blockCounts).foldLeft(Set(Seq[Int]()))(addIndex)
+    (index zip blockCounts(threshold)).foldLeft(Set(Seq[Int]()))(addIndex)
   }
 
   /**
@@ -62,13 +62,13 @@ trait SimilarityMeasure extends Strategy
 /**
  * A simple similarity measure which compares pairs of values.
  */
-trait SimpleSimilarityMeasure extends SimilarityMeasure
+trait SimpleDistanceMeasure extends DistanceMeasure
 {
   def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double) : Double =
   {
-    val similarities = for (str1 <- values1; str2 <- values2) yield evaluate(str1, str2, threshold)
+    val distances = for (str1 <- values1; str2 <- values2) yield evaluate(str1, str2, threshold)
 
-    similarities.max
+    distances.min
   }
 
   /**
@@ -77,4 +77,4 @@ trait SimpleSimilarityMeasure extends SimilarityMeasure
   def evaluate(value1 : String, value2 : String, threshold : Double = 0.0) : Double
 }
 
-object SimilarityMeasure extends Factory[SimilarityMeasure]
+object DistanceMeasure extends Factory[DistanceMeasure]

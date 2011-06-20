@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.impl.util.approximatelyEqualTo
 
 class DateMetricTest extends FlatSpec with ShouldMatchers
 {
-  val metric = new DateMetric(10)
+  val metric = new DateMetric()
   val t = 0.9
 
   "DateMetric" should "not return values under 0.0" in
