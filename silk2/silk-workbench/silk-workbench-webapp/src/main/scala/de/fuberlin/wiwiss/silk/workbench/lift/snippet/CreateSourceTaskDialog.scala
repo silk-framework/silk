@@ -27,6 +27,8 @@ object CreateSourceTaskDialog extends SourceTaskDialog
     User().project.sourceModule.update(sourceTask)
   }
 
+  override protected def getName = ""
+
   /**
    * Gets a parameter.
    */

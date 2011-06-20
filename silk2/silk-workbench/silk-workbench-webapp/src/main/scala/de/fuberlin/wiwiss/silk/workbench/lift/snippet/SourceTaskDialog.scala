@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.Dialog
  */
 trait SourceTaskDialog extends Dialog
 {
-  val nameField = StringField("Name", "The name of this source task", () => "")
+  val nameField = StringField("Name", "The name of this source task", () => getName)
 
   val uriField = StringField("Endpoint URI", "The URI of the SPARQL endpoint", () => getParam("endpointURI"))
 
@@ -21,6 +21,8 @@ trait SourceTaskDialog extends Dialog
 
   //Close the current task if the window is closed
   override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
+
+  protected def getName : String
 
   /**
    * Gets a parameter.
