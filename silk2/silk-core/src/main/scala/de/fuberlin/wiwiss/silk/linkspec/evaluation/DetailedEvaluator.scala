@@ -13,7 +13,7 @@ object DetailedEvaluator
   {
     val similarity = evaluateOperator(condition.rootOperator.get, instances, limit)
 
-    val confidence = similarity.value.getOrElse(0.0)
+    val confidence = similarity.value.getOrElse(-1.0)
 
     if(confidence >= limit)
     {
@@ -49,7 +49,7 @@ object DetailedEvaluator
       }
     }
 
-    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.value.getOrElse(0.0))
+    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.value.getOrElse(-1.0))
 
     val aggregatedValue = aggregation.aggregator.evaluate(weightedValues)
 
