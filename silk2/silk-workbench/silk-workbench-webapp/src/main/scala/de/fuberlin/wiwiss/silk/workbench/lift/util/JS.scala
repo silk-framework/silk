@@ -5,12 +5,15 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmds.{After, Function}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
+import java.util.logging.{Level, Logger}
 
 /**
  * Various useful JavaScript commands.
  */
 object JS
 {
+  private val logger = Logger.getLogger(JS.getClass.getName)
+
   /**
    * Periodically executes a specific JavaScript Command.
    */
@@ -52,7 +55,11 @@ object JS
     }
     catch
     {
-      case ex : Exception => Message("Error while trying to " + description + ". Details: " + ex.getMessage.encJs)
+      case ex : Exception =>
+      {
+        logger.log(Level.INFO, "Error while trying to " + description, ex)
+        Message("Error while trying to " + description + ". Details: " + ex.getMessage.encJs)
+      }
     }
   }
 

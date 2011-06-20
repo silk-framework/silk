@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import js.jquery.JQuery14Artifacts
 import java.io.ByteArrayOutputStream
 import net.liftweb.json.JsonAST._
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, SimilarityMeasure}
+import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.Path
@@ -143,7 +143,7 @@ class Boot
   private def generateOperators() =
   {
     val transformations = JField("transformations", JArray(generateFactoryOperators(Transformer).toList))
-    val comparators = JField("comparators", JArray(generateFactoryOperators(SimilarityMeasure).toList))
+    val comparators = JField("comparators", JArray(generateFactoryOperators(DistanceMeasure).toList))
     val aggregators = JField("aggregators", JArray(generateFactoryOperators(Aggregator).toList))
 
     val json = JObject(transformations :: comparators :: aggregators :: Nil)

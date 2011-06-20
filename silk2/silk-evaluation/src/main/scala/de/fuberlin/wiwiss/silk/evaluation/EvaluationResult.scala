@@ -9,9 +9,6 @@ class EvaluationResult(val truePositives : Int, val trueNegatives : Int,
                        val falsePositives : Int, val falseNegatives : Int,
                        val score : Double)
 {
-
-  //def score : Double = score
-
   /**
    * The '''specificity''' or '''true negative rate (TNR)''' is the proportion of the links which have not been generated of the negative links in the alignment.
    */
@@ -35,7 +32,7 @@ class EvaluationResult(val truePositives : Int, val trueNegatives : Int,
   /**
    * Matthews correlation coefficient.
    */
-  def mcc
+  def mcc =
   {
     val cross = truePositives * trueNegatives - falsePositives * falseNegatives
     val sum = (truePositives + falsePositives) * (truePositives + falseNegatives ) * (trueNegatives + falsePositives) * (trueNegatives + falseNegatives)

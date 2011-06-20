@@ -59,7 +59,6 @@ class ReferenceLinks extends LinkList
   {
     val linkingTask = User().linkingTask
     def condition = linkingTask.linkSpec.condition
-    def threshold = linkingTask.linkSpec.filter.threshold
     def alignment = linkingTask.alignment
     def instances = linkingTask.cache.instances
 
@@ -71,11 +70,11 @@ class ReferenceLinks extends LinkList
         {
           case Some(instances) =>
           {
-            val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
+            val evaluatedLink = DetailedEvaluator(condition, instances, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
-              correct = if(evaluatedLink.confidence >= threshold) Correct else Incorrect,
+              correct = if(evaluatedLink.confidence >= 0.0) Correct else Incorrect,
               linkType = Positive
             )
           }
@@ -83,7 +82,7 @@ class ReferenceLinks extends LinkList
           {
             new EvalLink(
               link = link,
-              correct = if(link.confidence >= threshold) Correct else Incorrect,
+              correct = if(link.confidence >= 0.0) Correct else Incorrect,
               linkType = Positive
             )
           }
@@ -95,11 +94,11 @@ class ReferenceLinks extends LinkList
         {
           case Some(instances) =>
           {
-            val evaluatedLink = DetailedEvaluator(condition, instances, 0.0).get
+            val evaluatedLink = DetailedEvaluator(condition, instances, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
-              correct = if(evaluatedLink.confidence >= threshold) Incorrect else Correct,
+              correct = if(evaluatedLink.confidence >= 0.0) Incorrect else Correct,
               linkType = Negative
             )
           }
@@ -107,7 +106,7 @@ class ReferenceLinks extends LinkList
           {
             new EvalLink(
               link = link,
-              correct = if(link.confidence >= threshold) Incorrect else Correct,
+              correct = if(link.confidence >= 0.0) Incorrect else Correct,
               linkType = Negative
             )
           }

@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleSimilarityMeasure
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "jaroWinkler", label = "Jaro-Winkler distance", description = "String similarity based on the Jaro-Winkler metric.")
-class JaroWinklerSimilarity() extends SimpleSimilarityMeasure
+class JaroWinklerDistance() extends SimpleDistanceMeasure
 {
   // maximum prefix length to use
   private final val MINPREFIXTESTLENGTH: Int = 4 //using value from lingpipe (was 6)
@@ -27,8 +27,8 @@ class JaroWinklerSimilarity() extends SimpleSimilarityMeasure
   def evaluateDistance(string1: String, string2: String): Double =
   {
     val dist = JaroDinstanceMetric.jaro(string1, string2)
-    val prefixLength: Int = getPrefixLength(string1, string2)
-    dist + (prefixLength.asInstanceOf[Double] * PREFIXADUSTMENTSCALE * (1.0 - dist))
+    val prefixLength = getPrefixLength(string1, string2)
+    dist - (prefixLength.toDouble * PREFIXADUSTMENTSCALE * dist)
   }
 
   /**
