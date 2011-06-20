@@ -12,7 +12,7 @@ function initPagination(number_results) {
     callback:handlePaginationClick
   });
   var navi_width = 82 + (number_results/100)*34;
-  if (number_results == 0) navi_width = 116;
+  if (number_results < 101) navi_width = 116;
   if (number_results > 1100) navi_width = 525;
   $(".navigation").css("width", navi_width + "px").css("float", "none").css("margin", "0 auto");
 }

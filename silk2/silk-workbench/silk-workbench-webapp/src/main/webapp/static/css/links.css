@@ -71,8 +71,8 @@ a:hover {
 .link-details {
   display: none;
   background: none repeat scroll 0 0 #f2f2f4;
-  border-top: 2px solid #dadadb;
-  border-bottom: 2px solid #dadadb;
+  border-top: 2px solid #d4d4d5;
+  border-bottom: 2px solid #d4d4d5;
   font-size: 12px;
 }
 
@@ -225,9 +225,17 @@ a:hover {
 }
 
 .treeview li {
-  padding: 1px 0pt 3px 16px !important;
+  padding: 1px 0px 1px 16px !important;
 }
 
 .treeview ul {
   background: none !important;
+}
+
+.treeview {
+  padding: 1px 2px 16px 4px !important;
+}
+
+.treeview li.lastCollapsable {
+  background-position: 0 -113px !important;
 }
