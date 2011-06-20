@@ -9,12 +9,18 @@ import net.liftweb.http.SHtml
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.util.Timer
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
+import de.fuberlin.wiwiss.silk.util.{Task, Timer}
 
 class ReferenceLinks extends LinkList
 {
   private implicit val logger = Logger.getLogger(classOf[ReferenceLinks].getName)
+
+  /** Minimum time in milliseconds between two successive updates*/
+  private val minUpdatePeriod = 3000L
+
+  /** The time of the last update */
+  private var lastUpdateTime = 0L
 
   /** Register to updates to the ShowLinks variable */
   ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.Reference], Publisher[UserData.ValueUpdated[EvalLink.Reference]]]
@@ -22,6 +28,30 @@ class ReferenceLinks extends LinkList
     def notify(pub : Publisher[UserData.ValueUpdated[EvalLink.Reference]], status : UserData.ValueUpdated[EvalLink.Reference])
     {
       partialUpdate(updateLinksCmd)
+    }
+  })
+
+  /** Register to status messages of the cache loader task in order to be notified when new links are available */
+  User().linkingTask.cache.loader.subscribe(new Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
+  {
+    def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
+    {
+      status match
+      {
+        case Task.Started() =>
+        {
+        }
+        case Task.StatusChanged(_, _) if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
+        {
+          partialUpdate(updateLinksCmd)
+          lastUpdateTime = System.currentTimeMillis
+        }
+        case Task.Finished(_, _) =>
+        {
+          partialUpdate(updateLinksCmd)
+        }
+        case _ =>
+      }
     }
   })
 
