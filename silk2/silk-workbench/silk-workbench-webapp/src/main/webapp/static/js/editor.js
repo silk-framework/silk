@@ -318,7 +318,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    span.attr("title", comparators[$(this).attr("metric")]["name"] + " (Comparator)")
+    span.attr("title", comparators[$(this).attr("metric")]["name"] + " (Comparator)");
     var mytext = document.createTextNode(comparators[$(this).attr("metric")]["name"] + " (Comparator)");
     span.append(mytext);
     box2.append(span);
@@ -341,6 +341,19 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       box3.attr("checked", "checked");
     }
     box2.append(box3);
+
+    var box4 = $(document.createElement('br'));
+    box2.append(box4);
+
+    var mytext = document.createTextNode("threshold: ");
+    box2.append(mytext);
+
+    var box5 = $(document.createElement('input'));
+    box5.attr("name", "threshold");
+    box5.attr("type", "text");
+    box5.attr("size", "2");
+    box5.attr("value", $(this).attr("threshold"));
+    box2.append(box5);
 
     var box4 = $(document.createElement('br'));
     box2.append(box4);
@@ -610,7 +623,6 @@ function load()
       // $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
       $("#linklimit").val($(this).attr("limit"));
     }
-    $("#threshold").attr("value", $(this).attr("threshold"));
   });
   updateWindowWidth();
   rearrangeBoxes();
@@ -703,6 +715,8 @@ function createNewElement(elementId)
         } else {
             xml.setAttribute("required", "false");
         }
+      } else if ($(params[l]).attr("name") == "threshold") {
+        xml.setAttribute("threshold", $(params[l]).attr("value"));
       } else if ($(params[l]).attr("name") == "weight") {
         xml.setAttribute("weight", $(params[l]).attr("value"));
       } else {
@@ -790,7 +804,6 @@ function serializeLinkSpec() {
   {
     filter.setAttribute("limit", $("#linklimit :selected").text());
   }
-  filter.setAttribute("threshold", $("#threshold").val());
   xml.appendChild(filter);
 
   var outputs = document.createElement("Outputs");
@@ -1414,6 +1427,19 @@ function getOperators()
               box3.attr("type", "checkbox");
               box3.attr("name", "required");
               box2.append(box3);
+
+              var box4 = $(document.createElement('br'));
+              box2.append(box4);
+
+              var mytext = document.createTextNode("threshold: ");
+              box2.append(mytext);
+
+              var box5 = $(document.createElement('input'));
+              box5.attr("name", "threshold");
+              box5.attr("type", "text");
+              box5.attr("size", "2");
+              box5.attr("value", "0.0");
+              box2.append(box5);
 
               var box4 = $(document.createElement('br'));
               box2.append(box4);
