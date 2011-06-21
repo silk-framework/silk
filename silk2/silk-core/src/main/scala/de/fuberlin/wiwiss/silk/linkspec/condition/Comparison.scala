@@ -32,8 +32,23 @@ case class Comparison(required : Boolean, threshold : Double, weight : Int,
     else
     {
       val distance = metric(values1, values2, threshold * (1.0 - limit))
-      val confidence = max(1.0 - distance / threshold, -1.0)
-      Some(confidence)
+
+      if(distance == 0.0 && threshold == 0.0)
+      {
+        Some(1.0)
+      }
+      if(distance <= threshold)
+      {
+        Some(1.0 - distance / threshold)
+      }
+      else if(!required)
+      {
+        Some(-1.0)
+      }
+      else
+      {
+        None
+      }
     }
   }
 
