@@ -14,6 +14,8 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.{Redirect}
 import de.fuberlin.wiwiss.silk.MatchTask
 import java.util.logging.{Level, Logger}
 import net.liftweb.http.js.JsCmds.{Script, OnLoad}
+import de.fuberlin.wiwiss.silk.util.CollectLogs._
+import de.fuberlin.wiwiss.silk.util.CollectLogs
 
 /**
  * LinkSpec snippet.
@@ -60,17 +62,35 @@ class LinkSpec
       val linkingTask = User().linkingTask
       implicit val prefixes = project.config.prefixes
 
-      //Load link specification
-      val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
+      //Collect warnings while saving link spec
+      val warnings = CollectLogs(Level.WARNING)
+      {
+        //Load link specification
+        val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
 
-      //Update linking task
-      val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
+        //Update linking task
+        val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
 
-      //Commit
-      project.linkingModule.update(updatedLinkingTask)
-      User().task = updatedLinkingTask
+        //Commit
+        project.linkingModule.update(updatedLinkingTask)
+        User().task = updatedLinkingTask
+      }
 
-      linkSpecVarCmd & JsRaw("alert('Saved')").cmd
+      //Generate a message for the user
+      val message =
+      {
+        if(warnings.isEmpty)
+        {
+          "Saved"
+        }
+        else
+        {
+          "Saved.\\nWarnings:\\n" + warnings.map(_.getMessage).mkString("\\n")
+        }
+      }
+
+      //Update link spec variable and notify user
+      linkSpecVarCmd & JsRaw("alert('" + message + "')").cmd
     }
     catch
     {
