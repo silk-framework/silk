@@ -37,6 +37,7 @@ object DefaultImplementations
         Transformer.register(classOf[ConvertCharsetTransformer])
         Transformer.register(classOf[RemoveEmptyValues])
         Transformer.register(classOf[Tokenizer])
+        Transformer.register(classOf[MergeTransformer])
 
         DistanceMeasure.register(classOf[LevenshteinMetric])
         DistanceMeasure.register(classOf[LevenshteinDistance])
