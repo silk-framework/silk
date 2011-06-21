@@ -51,6 +51,7 @@ object DefaultImplementations
         DistanceMeasure.register(classOf[GeographicDistanceMetric])
         DistanceMeasure.register(classOf[JaccardDistance])
         DistanceMeasure.register(classOf[DiceCoefficient])
+        DistanceMeasure.register(classOf[TokenwiseStringDistance])
 
         Aggregator.register(classOf[AverageAggregator])
         Aggregator.register(classOf[MaximumAggregator])
