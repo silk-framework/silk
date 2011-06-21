@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import de.fuberlin.wiwiss.silk.linkspec.condition.LinkCondition
-import scala.math.pow
 
 object LinkConditionEvaluator
 {
@@ -15,9 +14,6 @@ object LinkConditionEvaluator
     var falsePositives : Int = 0
     var falseNegatives : Int = 0
 
-    var positiveScore : Double = instances.positive.size
-    var negativeScore : Double = instances.negative.size
-
     var positiveError = 0.0
     var negativeError = 0.0
 
@@ -28,13 +24,11 @@ object LinkConditionEvaluator
       if(confidence >= 0.0)
       {
         truePositives += 1
-        positiveScore += pow(confidence, 2.0)
       }
       else
       {
         falseNegatives += 1
-        positiveScore -= pow(confidence, 2.0)
-        positiveError += pow(confidence, 2.0)
+        positiveError += -confidence
       }
     }
 
@@ -45,34 +39,28 @@ object LinkConditionEvaluator
       if(confidence >= 0.0)
       {
         falsePositives += 1
-        negativeScore -= pow(confidence, 2.0)
-        negativeError += pow(confidence, 2.0)
+        negativeError += confidence
       }
       else
       {
         trueNegatives += 1
-        negativeScore += pow(confidence, 2.0)
       }
     }
 
-    //val score = -error//1.0 - error / (instances.positive.size + instances.negative.size)
-
     val score =
     {
-      val positive = 1.0 - positiveError / instances.positive.size
-      val negative = 1.0 - negativeError / instances.negative.size
+      val positiveScore = 1.0 - positiveError / instances.positive.size
+      val negativeScore = 1.0 - negativeError / instances.negative.size
 
-      if(positive + negative == 0.0)
+      if(positiveScore + negativeScore == 0.0)
       {
         0.0
       }
       else
       {
-        2.0 * positive * negative / (positive + negative)
+        2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
       }
     }
-
-    //val score = 2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
 
     new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives, score)
   }
