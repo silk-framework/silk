@@ -4,14 +4,14 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
 
 trait DistanceMeasure extends Strategy
 {
-  def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double = 0.0) : Double
+  def apply(values1 : Traversable[String], values2 : Traversable[String], limit : Double = 0.0) : Double
 
-  def index(value : String, threshold : Double) : Set[Seq[Int]] = Set(Seq(0))
+  def index(value : String, limit : Double) : Set[Seq[Int]] = Set(Seq(0))
 
-  def blockCounts(threshold : Double) : Seq[Int] = Seq(1)
+  def blockCounts(limit : Double) : Seq[Int] = Seq(1)
 
   //TODO replace by function blockIndex which calls index on default?
-  protected def getBlocks(index : Seq[Double], overlap : Double, threshold : Double) : Set[Seq[Int]] =
+  protected def getBlocks(index : Seq[Double], overlap : Double, limit : Double) : Set[Seq[Int]] =
   {
     def addIndex(blockSet : Set[Seq[Int]], newIndex : (Double, Int)) : Set[Seq[Int]] =
     {
@@ -22,7 +22,7 @@ trait DistanceMeasure extends Strategy
       }
     }
 
-    (index zip blockCounts(threshold)).foldLeft(Set(Seq[Int]()))(addIndex)
+    (index zip blockCounts(limit)).foldLeft(Set(Seq[Int]()))(addIndex)
   }
 
   /**
@@ -64,9 +64,9 @@ trait DistanceMeasure extends Strategy
  */
 trait SimpleDistanceMeasure extends DistanceMeasure
 {
-  def apply(values1 : Traversable[String], values2 : Traversable[String], threshold : Double) : Double =
+  def apply(values1 : Traversable[String], values2 : Traversable[String], limit : Double) : Double =
   {
-    val distances = for (str1 <- values1; str2 <- values2) yield evaluate(str1, str2, threshold)
+    val distances = for (str1 <- values1; str2 <- values2) yield evaluate(str1, str2, limit)
 
     distances.min
   }
@@ -74,7 +74,7 @@ trait SimpleDistanceMeasure extends DistanceMeasure
   /**
    * Evaluates the similarity of a pair of similarity values.
    */
-  def evaluate(value1 : String, value2 : String, threshold : Double = 0.0) : Double
+  def evaluate(value1 : String, value2 : String, limit : Double = 0.0) : Double
 }
 
 object DistanceMeasure extends Factory[DistanceMeasure]
