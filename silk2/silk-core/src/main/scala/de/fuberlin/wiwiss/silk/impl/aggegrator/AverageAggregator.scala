@@ -18,7 +18,7 @@ class AverageAggregator() extends MultiIndexAggregator
 
       for((weight, value) <- values)
       {
-        if(value > 0.0)
+        if(value >= 0.0)
         {
           sumWeights += weight * positiveWeight
           sumValues += weight * positiveWeight * value
