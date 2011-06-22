@@ -119,7 +119,6 @@ object Silk
       )
 
     //Load instances into cache
-    var loader : Future[Unit] = null
     if(reload)
     {
       val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
@@ -127,7 +126,7 @@ object Silk
       def blockingFunction(instance : Instance) = linkSpec.condition.index(instance).map(_ % config.blocking.map(_.blocks).getOrElse(1))
 
       val loadTask = new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(blockingFunction _) else None)
-      loader = loadTask.runInBackground()
+      loadTask.runInBackground()
     }
 
     //Execute matching
@@ -143,16 +142,6 @@ object Silk
     outputTask()
 
     logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
-
-    //Check loader for exceptions
-    try
-    {
-      if(loader != null) loader()
-    }
-    catch
-    {
-      case ex : Exception => logger.log(Level.WARNING, "Error occured while loading the resources (see previous warnings). Results may be incomplete!")
-    }
   }
 
   /**
