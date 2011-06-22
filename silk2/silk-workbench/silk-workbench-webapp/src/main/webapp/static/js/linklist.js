@@ -11,8 +11,8 @@ function initPagination(number_results) {
     items_per_page:100,
     callback:handlePaginationClick
   });
-  var navi_width = 82 + (number_results/100)*34;
-  if (number_results < 101) navi_width = 116;
+  var navi_width = 90 + (number_results/100)*34;
+  if (number_results < 101) navi_width = 124;
   if (number_results > 1100) navi_width = 525;
   $(".navigation").css("width", navi_width + "px").css("float", "none").css("margin", "0 auto");
 }
@@ -27,14 +27,20 @@ function initTrees() {
 
   $(".confidencebar").each(function(index) {
     var confidence = parseInt($(this).text());
-    var progressbar = $(this).children(".ui-progressbar-value");
-    $(this).progressbar({
-      value: confidence
-    });
-    if (confidence < 25) $(this).children(".ui-progressbar-value").addClass("confidence-red");
-    if (confidence > 24 && confidence < 50) $(this).children(".ui-progressbar-value").addClass("confidence-orange");
-    if (confidence > 49 && confidence < 75) $(this).children(".ui-progressbar-value").addClass("confidence-yellow");
-    if (confidence > 74) $(this).children(".ui-progressbar-value").addClass("confidence-green");
+
+    if (confidence >= 0) {
+      $(this).progressbar({
+        value: confidence/2
+      });
+      $(this).children(".ui-progressbar-value").addClass("confidence-green").css("margin-left", "50%");
+    } else {
+      $(this).progressbar({
+        value: -confidence/2
+      });
+      var left = 48 + confidence/2;
+      $(this).children(".ui-progressbar-value").addClass("confidence-red").css("margin-left", left+"%");
+    }
+
   });
 }
 

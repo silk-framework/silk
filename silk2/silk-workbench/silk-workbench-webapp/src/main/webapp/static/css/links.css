@@ -25,7 +25,7 @@ a:hover {
 }
 
 #results {
-  width: 1110px;
+  width: 1125px;
   overflow: auto;
   border-bottom: 1px solid #DBDBDB;
   margin: 0px auto;
@@ -76,16 +76,18 @@ a:hover {
   font-size: 12px;
 }
 
-.link-confidence, .confidencebar {
+.link-confidence {
+  border-right: 1px solid #DBDBDB;
+  width: 90px;
+  height: 22px;
+  padding-top: 4px;
+}
+
+.confidencebar {
   width: 75px;
   height: 15px;
   margin-right: 20px;
-  margin-top: 4px;
   float: left;
-}
-
-.link-details .confidencebar {
-  margin-top: 0px;
 }
 
 .confidence {
@@ -96,7 +98,7 @@ a:hover {
 }
 
 .confidence-red {
-  background: #f24040;
+  background: #f14e4e;
 }
 
 .confidence-orange {
@@ -116,14 +118,15 @@ a:hover {
 }
 
 .link-status {
-  width: 55px;
-  margin-top: 4px;
+  border-right: 1px solid #DBDBDB;
+  width: 65px;
+  margin-left: 10px;
+  padding: 4px 0;
 }
 
 .link-buttons {
-  width: 60px;
   margin-left: 10px;
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 .link-over {
@@ -155,8 +158,8 @@ a:hover {
   background-image: url('/static/jquery-ui/css/treeview/images/minus.gif');
 }
 
-#tree-header {
-  width: 1110px;
+#tree-header, #tree-footer {
+  width: 1125px;
   margin:  0px auto;
 }
 
@@ -169,7 +172,7 @@ a:hover {
 }
 
 #tree-header .middle {
-  width: 709px;
+  width: 724px;
 }
 
 #tree-header .right {
@@ -238,4 +241,12 @@ a:hover {
 
 .treeview li.lastCollapsable {
   background-position: 0 -113px !important;
+}
+
+#results .ui-corner-all {
+  border-radius: 0;
+}
+
+#results .ui-corner-left {
+  border-radius: 0;
 }
