@@ -2,6 +2,9 @@ package de.fuberlin.wiwiss.silk.util
 
 import java.util.logging.{Handler, LogRecord, Logger, Level}
 
+/**
+ * Collects all log message which occur in a specific scope.
+ */
 object CollectLogs
 {
   def apply(level : Level = Level.WARNING)(f : => Unit) : Seq[LogRecord] =

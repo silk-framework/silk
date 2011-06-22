@@ -6,10 +6,9 @@ import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
 import datasource.DataSource
 import java.io.File
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator}
 import linkspec.{LinkSpecification}
 import util.StringUtils._
-import util.{Future, SourceTargetPair}
+import util.{CollectLogs, Future, SourceTargetPair}
 import java.util.logging.{Level, Logger}
 
 /**
@@ -161,6 +160,18 @@ object Silk
    */
   def main(args : Array[String])
   {
-    execute()
+    val logs = CollectLogs()
+    {
+      execute()
+    }
+
+    if(logs.isEmpty)
+    {
+      logger.info("Finished execution successfully")
+    }
+    else
+    {
+      logger.warning("The following warnings haven been generated during the execution:\n- " + logs.map(_.getMessage).mkString("\n- "))
+    }
   }
 }
