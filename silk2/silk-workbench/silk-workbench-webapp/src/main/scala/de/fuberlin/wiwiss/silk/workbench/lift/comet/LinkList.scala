@@ -15,6 +15,8 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
 */
 trait LinkList extends CometActor
 {
+  protected val linkingTask = User().linkingTask
+
   /** The number of links shown on one page */
   private val pageSize = 100
 
@@ -120,6 +122,18 @@ trait LinkList extends CometActor
       </div>
       <div style="clear:both"></div>
     </div>
+  }
+
+    //TODO
+  private def renderConfidence(link : Link) : NodeSeq = link.details match
+  {
+    case None => <div class="confidencebar">Unkown</div>
+    case Some(sim) =>
+    {
+      <div class="confidencebar">
+        <div class="confidence">{"%.1f".format(sim.value.getOrElse(0.0) * 100)}%</div>
+      </div>
+    }
   }
 
   private def renderDetails(details : Option[Link.Similarity]) : NodeSeq =
