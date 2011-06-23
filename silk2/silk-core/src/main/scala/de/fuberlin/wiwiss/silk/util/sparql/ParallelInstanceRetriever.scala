@@ -7,7 +7,7 @@ import java.util.logging.{Level, Logger}
 /**
  * InstanceRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single instances.
  */
-class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None) extends InstanceRetriever
+class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None, useOrderBy : Boolean = false) extends InstanceRetriever
 {
   private val varPrefix = "v"
 
@@ -73,10 +73,20 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
       if(inconsistentOrder)
       {
-        logger.warning("Cannot execute queries in parallel because the endpoint returned the results in different orders.")
-        val simpleInstanceRetriever = new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
-        val instances = simpleInstanceRetriever.retrieve(instanceSpec, instanceUris)
-        instances.drop(counter).foreach(f)
+        if(!useOrderBy)
+        {
+          logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
+          val instanceRetriever = new ParallelInstanceRetriever(endpoint, pageSize, graphUri, true)
+          val instances = instanceRetriever.retrieve(instanceSpec, instanceUris)
+          instances.drop(counter).foreach(f)
+        }
+        else
+        {
+          logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders.")
+          val simpleInstanceRetriever = new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
+          val instances = simpleInstanceRetriever.retrieve(instanceSpec, instanceUris)
+          instances.drop(counter).foreach(f)
+        }
       }
     }
   }
@@ -164,6 +174,11 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
       }
       sparql += "}"
 
+      if(useOrderBy && fixedSubject.isEmpty)
+      {
+        sparql += " ORDER BY " + "?" + instanceSpec.variable
+      }
+
       endpoint.query(sparql)
     }
 
@@ -182,13 +197,17 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
         if(!fixedSubject.isDefined)
         {
           //Check if we are still reading values for the current subject
-          val Resource(subject) = result(instanceSpec.variable)
+          val subject = result.get(instanceSpec.variable) match
+          {
+            case Some(Resource(value)) => Some(value)
+            case _ => None
+          }
 
           if(currentSubject.isEmpty)
           {
-            currentSubject = Some(subject)
+            currentSubject = subject
           }
-          else if(subject != currentSubject.get)
+          else if(subject.isDefined && subject != currentSubject)
           {
             while(queue.size > maxQueueSize)
             {
@@ -197,14 +216,17 @@ class ParallelInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000
 
             queue.enqueue(PathValues(currentSubject.get, currentValues))
 
-            currentSubject = Some(subject)
+            currentSubject = subject
             currentValues = Set.empty
           }
         }
 
-        for(node <- result.get(varPrefix + "0"))
+        if(currentSubject.isDefined)
         {
-          currentValues += node.value
+          for(node <- result.get(varPrefix + "0"))
+          {
+            currentValues += node.value
+          }
         }
       }
 

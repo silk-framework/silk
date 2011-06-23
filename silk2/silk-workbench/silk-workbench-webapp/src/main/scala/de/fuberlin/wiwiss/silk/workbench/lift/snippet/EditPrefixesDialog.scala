@@ -117,8 +117,6 @@ object EditPrefixesDialog
           (id, namespace)
         }
 
-        println(prefixList.toList)
-
         User().project.config = User().project.config.copy(prefixes = prefixList.toMap)
 
         EditPrefixesDialog.closeCmd & Workspace.updateCmd

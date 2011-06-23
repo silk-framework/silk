@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import java.io.File
-import de.fuberlin.wiwiss.silk.output.Link
 
 object Evaluation
 {

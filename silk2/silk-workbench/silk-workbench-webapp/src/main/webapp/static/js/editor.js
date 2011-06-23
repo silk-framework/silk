@@ -10,6 +10,7 @@ var aggregators = new Object();
 
 var sources = new Array();
 var targets = new Array();
+var boxes = new Array();
 
 var interlinkId = "";
 
@@ -167,14 +168,16 @@ function getDeleteIcon(elementId) {
 
 function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 {
+  if (typeof(boxes[level]) === 'undefined') boxes[level] = new Array();
+
   $(xml).find("> Aggregate").each(function ()
   {
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", "aggregate_" + aggregatecounter);
 
-    var height = aggregatecounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = aggregatecounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#aggregate_" + aggregatecounter;
@@ -183,6 +186,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -284,8 +289,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
 
-    var height = comparecounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = 2 * comparecounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#compare_" + comparecounter;
@@ -294,6 +299,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -311,7 +318,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    span.attr("title", comparators[$(this).attr("metric")]["name"] + " (Comparator)")
+    span.attr("title", comparators[$(this).attr("metric")]["name"] + " (Comparator)");
     var mytext = document.createTextNode(comparators[$(this).attr("metric")]["name"] + " (Comparator)");
     span.append(mytext);
     box2.append(span);
@@ -334,6 +341,19 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       box3.attr("checked", "checked");
     }
     box2.append(box3);
+
+    var box4 = $(document.createElement('br'));
+    box2.append(box4);
+
+    var mytext = document.createTextNode("threshold: ");
+    box2.append(mytext);
+
+    var box5 = $(document.createElement('input'));
+    box5.attr("name", "threshold");
+    box5.attr("type", "text");
+    box5.attr("size", "2");
+    box5.attr("value", $(this).attr("threshold"));
+    box2.append(box5);
 
     var box4 = $(document.createElement('br'));
     box2.append(box4);
@@ -398,8 +418,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", "transform_" + transformcounter);
 
-    var height = transformcounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = transformcounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#transform_" + transformcounter;
@@ -408,6 +428,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -489,8 +511,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv sourcePath');
     box1.attr("id", "source_" + sourcecounter);
 
-    var height = sourcecounter * 120 + 120;
-    var left = (max_level*250) - ((level + 1) * 250) + 260;
+    var height = sourcecounter * 120 + 20;
+    var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#source_" + sourcecounter;
@@ -499,6 +521,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
       containment: '#droppable'
     });
     box1.appendTo("#droppable");
+
+    boxes[level].push(box1);
 
     var box2 = $(document.createElement('small'));
     box2.addClass('name');
@@ -588,9 +612,6 @@ function load()
     */
 
     parseXML($(this), 0, 0, "", max_level, "");
-    if ((sourcecounter*120 + 20) > 800) {
-       $("#droppable").css( { "height": (sourcecounter*120 + 20) + "px" });
-    }
   });
   $(linkSpec).find("> LinkType").each(function ()
   {
@@ -602,9 +623,9 @@ function load()
       // $("select[id=linklimit] option[text="+$(this).attr("limit")+"]").attr("selected", true);
       $("#linklimit").val($(this).attr("limit"));
     }
-    $("#threshold").attr("value", $(this).attr("threshold"));
   });
   updateWindowWidth();
+  rearrangeBoxes();
 }
 
 
@@ -617,6 +638,32 @@ function updateWindowWidth() {
     $(".wrapper").width(1000+1200-window_width);
     $("#droppable").width(830);
   }
+}
+
+function rearrangeBoxes() {
+
+    for (var i = boxes.length - 1; i >= 0; i--) {
+        for (var j = 0; j < boxes[i].length; j++) {
+
+            var box = boxes[i][j];
+            var box_id = box.attr("id");
+            var child_conns = jsPlumb.getConnections({target: box_id});
+            var children = child_conns[jsPlumb.getDefaultScope()];
+            if (children.length == 1) {
+                var child = children[0].source;
+                child.css("top",box.css("top"));
+            }
+            if (children.length > 1) {
+                var first_child = children[0].source;
+                var last_child = children[children.length-1].source;
+                var top_first = parseInt(first_child.css("top"));
+                var bottom_last = parseInt(last_child.css("top")) + parseInt(last_child.height());
+                var middle = parseInt((top_first+bottom_last)/2);
+                box.css("top",middle-parseInt(box.height()*0.5));
+            }
+        }
+    }
+    jsPlumb.repaintEverything();
 }
 
 function getHTML(who, deep)
@@ -668,6 +715,8 @@ function createNewElement(elementId)
         } else {
             xml.setAttribute("required", "false");
         }
+      } else if ($(params[l]).attr("name") == "threshold") {
+        xml.setAttribute("threshold", $(params[l]).attr("value"));
       } else if ($(params[l]).attr("name") == "weight") {
         xml.setAttribute("weight", $(params[l]).attr("value"));
       } else {
@@ -692,7 +741,6 @@ function createNewElement(elementId)
 
 function serializeLinkSpec() {
   //alert (JSON.stringify(c));
-
   var c = jsPlumb.getConnections();
   if (c[jsPlumb.getDefaultScope()] !== undefined) {
     var connections = "";
@@ -717,7 +765,7 @@ function serializeLinkSpec() {
       }
     }
   }
-  // alert(connections + "\n\n" + root);
+  //alert(connections + "\n\n" + root);
   var xml = document.createElement("Interlink");
   xml.setAttribute("id", interlinkId);
 
@@ -745,7 +793,7 @@ function serializeLinkSpec() {
   xml.appendChild(targetDataset);
 
   var linkcondition = document.createElement("LinkCondition");
-  if (root != null)
+  if ((root != null) && (connections != ""))
   {
     linkcondition.appendChild(createNewElement(root));
   }
@@ -756,7 +804,6 @@ function serializeLinkSpec() {
   {
     filter.setAttribute("limit", $("#linklimit :selected").text());
   }
-  filter.setAttribute("threshold", $("#threshold").val());
   xml.appendChild(filter);
 
   var outputs = document.createElement("Outputs");
@@ -874,7 +921,7 @@ $(function ()
         var offset = $(number).offset();
         var scrollleft = $("#droppable").scrollLeft();
         var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-204+scrolltop+scrolltop;
+        var top = offset.top-206+scrolltop+scrolltop;
         var left = offset.left-502+scrollleft+scrollleft;
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
@@ -1047,6 +1094,7 @@ function getPropertyPaths(deleteExisting)
 	    var dot = document.createTextNode(".");
       document.getElementById("loading").appendChild(dot);
       setTimeout("getPropertyPaths();", 1000);
+      if ($("#loading").html().length>40) $("#loading").html("loading ...");
     }
     else if (data.error !== undefined)
     {
@@ -1057,9 +1105,11 @@ function getPropertyPaths(deleteExisting)
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
     $(".restriction").show();
-    $("#sourcepaths, #targetpaths").css("height","98px");
+    $("#sourcepaths, #targetpaths").css("height","130px");
     $("#source_id").html(data.source.id);
     $("#source_restriction").html(data.source.restrictions);
+
+    if ($("#source_restriction").height()>18) $("#sourcepaths").css("height","112px");
 
     var list_item_id = 1;
 
@@ -1129,6 +1179,7 @@ function getPropertyPaths(deleteExisting)
 
     $("#target_id").html(data.target.id);
     $("#target_restriction").html(data.target.restrictions);
+    if ($("#target_restriction").height()>18) $("#targetpaths").css("height","112px");
 
     var list_item_id = 1;
 
@@ -1376,6 +1427,19 @@ function getOperators()
               box3.attr("type", "checkbox");
               box3.attr("name", "required");
               box2.append(box3);
+
+              var box4 = $(document.createElement('br'));
+              box2.append(box4);
+
+              var mytext = document.createTextNode("threshold: ");
+              box2.append(mytext);
+
+              var box5 = $(document.createElement('input'));
+              box5.attr("name", "threshold");
+              box5.attr("type", "text");
+              box5.attr("size", "2");
+              box5.attr("value", "0.0");
+              box2.append(box5);
 
               var box4 = $(document.createElement('br'));
               box2.append(box4);

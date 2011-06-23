@@ -25,9 +25,24 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
   {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
-    val sampleInstances = getInstances(endpoint, restrictions, variable)
+    val sampleInstances =
+    {
+      if(variable.isEmpty)
+        getAllInstances(endpoint)
+      else
+        getInstances(endpoint, restrictions, variable)
+    }
 
     getInstancesPaths(endpoint, sampleInstances, variable, limit.getOrElse(100))
+  }
+
+  private def getAllInstances(endpoint : SparqlEndpoint) : Traversable[String] =
+  {
+    val sparql = "SELECT ?s WHERE { ?s ?p ?o }"
+
+    val results = endpoint.query(sparql, maxInstances)
+
+    results.map(_("s").value)
   }
 
   private def getInstances(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String) : Traversable[String] =

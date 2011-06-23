@@ -7,7 +7,7 @@ import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, Metric}
+import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
 
 /**
@@ -35,16 +35,24 @@ object DefaultImplementations
         Transformer.register(classOf[RemoveSpecialCharsTransformer])
         Transformer.register(classOf[LogarithmTransformer])
         Transformer.register(classOf[ConvertCharsetTransformer])
+        Transformer.register(classOf[RemoveEmptyValues])
+        Transformer.register(classOf[Tokenizer])
+        Transformer.register(classOf[MergeTransformer])
 
-        Metric.register(classOf[LevenshteinMetric])
-        Metric.register(classOf[JaroDistanceMetric])
-        Metric.register(classOf[JaroWinklerMetric])
-        Metric.register(classOf[QGramsMetric])
-        Metric.register(classOf[EqualityMetric])
-        Metric.register(classOf[InequalityMetric])
-        Metric.register(classOf[NumMetric])
-        Metric.register(classOf[DateMetric])
-        Metric.register(classOf[GeographicDistanceMetric])
+        DistanceMeasure.register(classOf[LevenshteinMetric])
+        DistanceMeasure.register(classOf[LevenshteinDistance])
+        DistanceMeasure.register(classOf[JaroDistanceMetric])
+        DistanceMeasure.register(classOf[JaroWinklerDistance])
+        DistanceMeasure.register(classOf[QGramsMetric])
+        DistanceMeasure.register(classOf[EqualityMetric])
+        DistanceMeasure.register(classOf[InequalityMetric])
+        DistanceMeasure.register(classOf[NumMetric])
+        DistanceMeasure.register(classOf[DateMetric])
+        DistanceMeasure.register(classOf[DateTimeMetric])
+        DistanceMeasure.register(classOf[GeographicDistanceMetric])
+        DistanceMeasure.register(classOf[JaccardDistance])
+        DistanceMeasure.register(classOf[DiceCoefficient])
+        DistanceMeasure.register(classOf[TokenwiseStringDistance])
 
         Aggregator.register(classOf[AverageAggregator])
         Aggregator.register(classOf[MaximumAggregator])

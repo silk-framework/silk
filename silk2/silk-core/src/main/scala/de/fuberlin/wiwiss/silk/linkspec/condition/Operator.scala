@@ -19,29 +19,28 @@ trait Operator
    * Computes the similarity between two instances.
    *
    * @param instances The instances to be compared.
-   * @param threshold The similarity threshold.
+   * @param limit Only returns values if the confidence is higher than the limit
    *
-   * @return The similarity as a value between 0.0 and 1.0.
-   *         Returns 0.0 if the similarity is lower than the threshold.
+   * @return The confidence as a value between -1.0 and 1.0.
    *         None, if no similarity could be computed.
    */
-  def apply(instances : SourceTargetPair[Instance], threshold : Double = 0.0) : Option[Double]
+  def apply(instances : SourceTargetPair[Instance], limit : Double = 0.0) : Option[Double]
 
   /**
    * Indexes an instance.
    *
    * @param instance The instance to be indexed
-   * @param threshold The similarity threshold.
+   * @param limit The confidence limit.
    *
    * @return A set of (multidimensional) indexes. Instances within the threshold will always get the same index.
    */
-  def index(instance : Instance, threshold : Double) : Set[Seq[Int]]
+  def index(instance : Instance, limit : Double) : Set[Seq[Int]]
 
   /**
    * The number of blocks in each dimension of the index.
    */
   //TODO rename to indexSize?
-  val blockCounts : Seq[Int]
+  def blockCounts(limit : Double) : Seq[Int]
 
   def toXML(implicit prefixes : Prefixes) : Node
 }

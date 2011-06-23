@@ -9,13 +9,13 @@ import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
 
 object DetailedEvaluator
 {
-  def apply(condition : LinkCondition, instances : SourceTargetPair[Instance], threshold : Double) : Option[Link] =
+  def apply(condition : LinkCondition, instances : SourceTargetPair[Instance], limit : Double = -1.0) : Option[Link] =
   {
-    val similarity = evaluateOperator(condition.rootOperator.get, instances, threshold)
+    val similarity = evaluateOperator(condition.rootOperator.get, instances, limit)
 
-    val confidence = similarity.value.getOrElse(0.0)
+    val confidence = similarity.value.getOrElse(-1.0)
 
-    if(confidence >= threshold)
+    if(confidence >= limit)
     {
       Some(new Link(instances.source.uri, instances.target.uri, confidence, Some(similarity)))
     }
@@ -49,19 +49,21 @@ object DetailedEvaluator
       }
     }
 
-    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.value.getOrElse(0.0))
+    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.value.getOrElse(-1.0))
 
     val aggregatedValue = aggregation.aggregator.evaluate(weightedValues)
 
+    val name = aggregation.aggregator.strategyName
+
     if(isNone)
-      Link.AggregatorSimilarity(None, operatorValues)
+      Link.AggregatorSimilarity(name, None, operatorValues)
     else
-      Link.AggregatorSimilarity(aggregatedValue, operatorValues)
+      Link.AggregatorSimilarity(name, aggregatedValue, operatorValues)
   }
 
   private def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonSimilarity =
   {
-    val similarity = comparision.apply(instances, threshold)
+    val distance = comparision.apply(instances, threshold)
 
     val sourcePath = findPath(comparision.inputs.source)
     val targetPath = findPath(comparision.inputs.target)
@@ -69,7 +71,9 @@ object DetailedEvaluator
     val sourceInput = InputValue(sourcePath, comparision.inputs.source(instances))
     val targetInput = InputValue(targetPath, comparision.inputs.target(instances))
 
-    Link.ComparisonSimilarity(similarity, sourceInput, targetInput)
+    val name = comparision.metric.strategyName
+
+    Link.ComparisonSimilarity(name, distance, sourceInput, targetInput)
   }
 
   private def findPath(input : Input) : Path = input match
