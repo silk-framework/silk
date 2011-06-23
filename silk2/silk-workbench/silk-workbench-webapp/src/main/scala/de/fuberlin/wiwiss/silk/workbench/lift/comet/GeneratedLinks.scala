@@ -7,9 +7,9 @@ import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.SHtml
 import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.workspace.UserData._
-import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Undecided, Positive, Negative, Generated}
+import net.liftweb.http.js.JsCmds._
+import de.fuberlin.wiwiss.silk.workbench.evaluation.{EvaluationTask, EvalLink}
 
 class GeneratedLinks extends LinkList
 {
@@ -21,10 +21,12 @@ class GeneratedLinks extends LinkList
 
   override protected val showStatus = false
 
+  protected val evaluationTask = User().evaluationTask
+
   /** Register to status messages of the evaluation task in order to be notified when new links are available */
-  User().evaluationTask.subscribe(new Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
+  evaluationTask.subscribe(new Subscriber[Task.StatusMessage, EvaluationTask#Pub]
   {
-    def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
+    def notify(pub : EvaluationTask#Pub, status : Task.StatusMessage)
     {
       status match
       {
@@ -38,7 +40,20 @@ class GeneratedLinks extends LinkList
         }
         case Task.Finished(_, _) =>
         {
-          partialUpdate(updateLinksCmd)
+          val cmd =
+          {
+            val warnings = evaluationTask.warnings
+            if(warnings.isEmpty)
+            {
+              updateLinksCmd
+            }
+            else
+            {
+              updateLinksCmd & Alert("Warnings have been raised during execution:\n- " + warnings.map(_.getMessage).mkString("\n- "))
+            }
+          }
+
+          partialUpdate(cmd)
         }
         case _ =>
       }
@@ -47,7 +62,6 @@ class GeneratedLinks extends LinkList
 
   override protected def links : Seq[EvalLink] =
   {
-    val linkingTask = User().linkingTask
     def alignment = linkingTask.alignment
 
     for(link <- User().evaluationTask.links.view) yield
