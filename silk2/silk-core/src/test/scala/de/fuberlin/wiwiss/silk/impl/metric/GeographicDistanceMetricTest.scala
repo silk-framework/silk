@@ -24,18 +24,18 @@ object GeographicDistanceMetricTest
 //		}
 
 		// distance between (0,0) and (180,0)
-		println(new GeographicDistanceMetric(threshold = 50.0).evaluate("POINT(0 0)","POINT(180 0)", 0.9))
+		println(new GeographicDistanceMetric().evaluate("POINT(0 0)","POINT(180 0)"))
 		// distance between London and Berlin in Kilometers
-		println(new GeographicDistanceMetric(threshold = 50.0, unit = "kilometer").evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)", 0.9))
+		println(new GeographicDistanceMetric(unit = "kilometer").evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)"))
 		// between London and London
-		println(new GeographicDistanceMetric(threshold = 50.0).evaluate("POINT(-0.124722 51.5081)","POINT(-0.124722 51.5081)", 0.9))
+		println(new GeographicDistanceMetric().evaluate("POINT(-0.124722 51.5081)","POINT(-0.124722 51.5081)"))
 		// between London and London, some insignificant digits changed
-		println(new GeographicDistanceMetric(threshold = 50.0).evaluate("POINT(-0.124 51.4)","POINT(-0.124722 51.5081)", 0.9))
+		println(new GeographicDistanceMetric().evaluate("POINT(-0.124 51.4)","POINT(-0.124722 51.5081)"))
 
 		// distance between London and Berlin with parameter
-		println(new GeographicDistanceMetric(threshold = 50.0, unit = "km").evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)", 0.9))
+		println(new GeographicDistanceMetric(unit = "km").evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)"))
 		// distance between London and Berlin with threshold 50 km
-		println(new GeographicDistanceMetric(threshold = 50.0, unit = "km").evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)", 0.9))
+		println(new GeographicDistanceMetric(unit = "km").evaluate("POINT(-0.124722 51.5081)","POINT(13.3989 52.5006)"))
 
 	}
 }

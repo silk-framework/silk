@@ -1,114 +1,195 @@
+body {
+  color: #656565;
+}
+
 #content {
-	padding: 20px 10px;
+  padding: 20px 10px;
+}
+
+p {
+  margin-top: 4px;
+}
+
+a img {
+  border: none;
+}
+
+a {
+  color: #656565;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #1c1c1c;
+  text-decoration: none;
 }
 
 #results {
-    width: 1110px;
-    overflow: auto;
+  width: 1125px;
+  overflow: auto;
+  border-bottom: 1px solid #DBDBDB;
+  margin: 0px auto;
 }
 
-#results span {
-    vertical-align: middle;
+#results .link {
+  clear: both;
 }
 
-#results a {
-    vertical-align: middle;
+#filter {
+  float: right !important;
+  margin-right: 0px !important;
+}
+
+#filter input {
+  background: none repeat scroll 0 0 #F9F9F9;
+  border: 1px solid #CCCCCC;
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1) inset;
+  padding: 2px;
+  color: #555555;
 }
 
 .link-header {
-    height: 20px;
-    margin-bottom: 1px;
-    background: #f1f2f6; /* old browsers */
-    background: -moz-linear-gradient(top, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100%); /* firefox */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#f1f1f1), color-stop(51%,#e1e1e1), color-stop(100%,#f6f6f6)); /* webkit */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f6f6f6',GradientType=0 ); /* ie */
-    background: -o-linear-gradient(top, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%); /* opera */
+  border-top: 1px solid #DBDBDB;
+  height: 26px;
+  line-height: 18px;
 }
 
 .link-header div {
-    float: left;
+  float: left;
 }
 
 .link-source, .link-target {
-    width: 420px;
-    margin-right: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  border-right: 1px solid #DBDBDB;
+  padding: 4px 0;
+  width: 420px;
+  margin-right: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .link-details {
   display: none;
+  background: none repeat scroll 0 0 #f2f2f4;
+  border-top: 2px solid #d4d4d5;
+  border-bottom: 2px solid #d4d4d5;
   font-size: 12px;
 }
 
-.link-confidence, .confidencebar {
-    width: 75px;
-    height: 15px;
-    margin-right: 20px;
-    float: left;
+.link-confidence {
+  border-right: 1px solid #DBDBDB;
+  width: 90px;
+  height: 22px;
+  padding-top: 4px;
+}
+
+.confidencebar {
+  width: 75px;
+  height: 15px;
+  margin-right: 20px;
+  float: left;
 }
 
 .confidence {
-    position: absolute;
-    font-size: 11px;
-    margin-left: 14px;
+  position: absolute;
+  font-size: 11px;
+  margin-left: 17px;
+  line-height: 14px;
 }
 
-.confidencebar .ui-progressbar-value {
-  background-image: url('/static/img/confidencebar-bg.png');
+.confidence-red {
+  background: #f14e4e;
+}
+
+.confidence-orange {
+  background: #ffd281;
+}
+
+.confidence-yellow {
+  background: #fefe7f;
+}
+
+.confidence-green {
+  background: #87dd87;
+}
+
+.grey {
+  background: #F8F8F8;
 }
 
 .link-status {
-    width: 55px;
-    margin-right: 0px;
+  border-right: 1px solid #DBDBDB;
+  width: 65px;
+  margin-left: 10px;
+  padding: 4px 0;
 }
 
 .link-buttons {
-    width: 60px;
-    margin-left: 10px;
+  margin-left: 10px;
+  margin-top: 4px;
 }
 
 .link-over {
-    background: #ededd3 !important;
+  background: #f0f0df !important;
 }
 
-.heading  {
-    padding-left: 18px;
+.heading {
+  padding-left: 19px;
 }
 
 .heading div {
-    vertical-align: middle;
+  font-weight: bold;
+  line-height: 18px;
 }
 
 .plus {
-    width: 9px;
-    height: 9px;
-    background-image:url('/static/jquery-ui/css/treeview/images/plus.gif');
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('/static/jquery-ui/css/treeview/images/plus.gif');
 }
 
 .minus {
-    width: 9px;
-    height: 9px;
-    background-image:url('/static/jquery-ui/css/treeview/images/minus.gif');
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('/static/jquery-ui/css/treeview/images/minus.gif');
 }
 
-#tree-header {
-    padding-top: 10px;
-    padding-bottom: 15px;
+#tree-header, #tree-footer {
+  width: 1125px;
+  margin:  0px auto;
 }
 
 #tree-header div {
-    float: left;
-    margin-right: 4px;
+  float: left;
 }
 
-.toggle-all {
-    padding-right: 8px;
+#tree-header .left {
+  width: 200px;
+}
+
+#tree-header .middle {
+  width: 724px;
+}
+
+#tree-header .right {
+  width: 200px;
+}
+
+#tree-header .toggle-all {
+  border: 1px solid #cdcccc;
+  background-color: #f2f1f1;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  padding: 0.2em 0.4em;
+  margin-right: 6px;
 }
 
 .ui-icon {
-    margin-right: 3px;
+  margin-right: 3px;
+  margin-top: 4px;
 }
 
 .aggregation, .comparison {
@@ -121,7 +202,12 @@
   background-position: 60% 41% !important;
 }
 
+.input {
+  line-height: 22px;
+}
+
 .input .path {
+  color: #1a3636;
   border: 1px solid #aebdbd;
   background-color: #d6e0e2;
   padding: 1px 3px;
@@ -130,7 +216,8 @@
   border-radius: 5px;
 }
 
-.input .value{
+.input .value {
+  color: #1f3b1f;
   border: 1px solid #a5b4a5;
   background-color: #dfebd2;
   margin-left: 4px;
@@ -140,4 +227,26 @@
   border-radius: 5px;
 }
 
-a img { border: none; }
+.treeview li {
+  padding: 1px 0px 1px 16px !important;
+}
+
+.treeview ul {
+  background: none !important;
+}
+
+.treeview {
+  padding: 1px 2px 16px 4px !important;
+}
+
+.treeview li.lastCollapsable {
+  background-position: 0 -113px !important;
+}
+
+#results .ui-corner-all {
+  border-radius: 0;
+}
+
+#results .ui-corner-left {
+  border-radius: 0;
+}

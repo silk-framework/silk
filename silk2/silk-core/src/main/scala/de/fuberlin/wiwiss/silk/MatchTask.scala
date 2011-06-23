@@ -9,8 +9,7 @@ import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import collection.immutable.HashSet
 import util.{SourceTargetPair, Task}
-import scala.math.max
-import collection.immutable.List._
+import scala.math.{min, max}
 
 /**
  * Executes the matching.
@@ -19,6 +18,7 @@ import collection.immutable.List._
 class MatchTask(linkSpec : LinkSpecification,
                 caches : SourceTargetPair[InstanceCache],
                 numThreads : Int,
+                sourceEqualsTarget : Boolean = false,
                 generateDetailedLinks : Boolean = false) extends Task[Buffer[Link]]
 {
   taskName = "Matching"
@@ -65,15 +65,15 @@ class MatchTask(linkSpec : LinkSpecification,
         finishedTasks += 1
 
         //Update status
-        val statusPrefix = if(scheduler.isAlive) "Matching (Still loading):" else "Matching:"
-        val statusTasks = " " + finishedTasks + " tasks finished and"
-        val statusLinks = " " + linkBuffer.size + " links generated."
+        val statusPrefix = if(scheduler.isAlive) "Matching (loading):" else "Matching:"
+        val statusTasks = " " + finishedTasks + " tasks "
+        val statusLinks = " " + linkBuffer.size + " links."
         updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
       }
     }
 
     //Shutdown
-    if(scheduler.isAlive())
+    if(scheduler.isAlive)
     {
       scheduler.interrupt()
     }
@@ -160,7 +160,8 @@ class MatchTask(linkSpec : LinkSpecification,
 
       for(block <- 0 until caches.source.blockCount;
           sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
-          targetPartition <- 0 until targetPartitions(block))
+          targetStart = if(!sourceEqualsTarget) 0 else sourcePartition;
+          targetPartition <- targetStart until targetPartitions(block))
       {
         newMatcher(block, sourcePartition, targetPartition)
       }
@@ -187,7 +188,8 @@ class MatchTask(linkSpec : LinkSpecification,
 
       for(block <- 0 until caches.target.blockCount;
           targetPartition <- targetPartitions(block) until newTargetPartitions(block);
-          sourcePartition <- 0 until sourcePartitions(block))
+          sourceEnd = if(!sourceEqualsTarget) sourcePartitions(block) else min(sourcePartitions(block), targetPartition + 1);
+          sourcePartition <- 0 until sourceEnd)
       {
         newMatcher(block, sourcePartition, targetPartition)
       }
@@ -220,7 +222,8 @@ class MatchTask(linkSpec : LinkSpecification,
         val targetIndexes = builtIndex(targetInstances)
 
         for(s <- 0 until sourceInstances.size;
-            t <- 0 until targetInstances.size;
+            tStart = if(sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
+            t <- tStart until targetInstances.size;
             if !indexingEnabled || compareIndexes(sourceIndexes(s), targetIndexes(t)))
         {
           val sourceInstance = sourceInstances(s)
@@ -229,16 +232,16 @@ class MatchTask(linkSpec : LinkSpecification,
 
           if(!generateDetailedLinks)
           {
-            val confidence = linkSpec.condition(instances, linkSpec.filter.threshold)
+            val confidence = linkSpec.condition(instances, 0.0)
 
-            if(confidence >= linkSpec.filter.threshold)
+            if(confidence >= 0.0)
             {
               links ::= new Link(sourceInstance.uri, targetInstance.uri, confidence)
             }
           }
           else
           {
-            for(link <- DetailedEvaluator(linkSpec.condition, instances, linkSpec.filter.threshold))
+            for(link <- DetailedEvaluator(linkSpec.condition, instances, 0.0))
             {
               links ::= link
             }
@@ -257,7 +260,7 @@ class MatchTask(linkSpec : LinkSpecification,
     {
       if(indexingEnabled)
       {
-        instances.map(instance => HashSet(linkSpec.condition.index(instance, linkSpec.filter.threshold).toSeq : _*))
+        instances.map(instance => HashSet(linkSpec.condition.index(instance).toSeq : _*))
       }
       else
       {
@@ -268,11 +271,6 @@ class MatchTask(linkSpec : LinkSpecification,
     def compareIndexes(index1 : Set[Int], index2 : Set[Int]) =
     {
       index1.exists(index2.contains(_))
-    }
-
-    def evaluateCondition(instances : SourceTargetPair[Instance]) =
-    {
-      linkSpec.condition(instances, linkSpec.filter.threshold)
     }
   }
 }

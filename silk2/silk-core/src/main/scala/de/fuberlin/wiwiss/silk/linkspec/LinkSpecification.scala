@@ -52,23 +52,26 @@ object LinkSpecification
    */
   def fromXML(node : Node)(implicit prefixes : Prefixes) : LinkSpecification =
   {
+    val filter = LinkFilter.fromXML(node \ "Filter" head)
+    implicit val globalThreshold = filter.threshold
+
     new LinkSpecification(
       node \ "@id" text,
       resolveQualifiedName(node \ "LinkType" text, prefixes),
       new SourceTargetPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
                            DatasetSpecification.fromXML(node \ "TargetDataset" head)),
       readLinkCondition(node \ "LinkCondition" head),
-      LinkFilter.fromXML(node \ "Filter" head),
+      filter,
       (node \ "Outputs" \ "Output").map(Output.fromXML)
     )
   }
 
-  private def readLinkCondition(node : Node)(implicit prefixes : Prefixes) =
+  private def readLinkCondition(node : Node)(implicit prefixes : Prefixes, globalThreshold : Double) =
   {
     LinkCondition(readOperators(node.child).headOption)
   }
 
-  private def readOperators(nodes : Seq[Node])(implicit prefixes : Prefixes) : Seq[Operator] =
+  private def readOperators(nodes : Seq[Node])(implicit prefixes : Prefixes, globalThreshold : Double) : Seq[Operator] =
   {
     nodes.collect
     {
@@ -77,7 +80,7 @@ object LinkSpecification
     }
   }
 
-  private def readAggregation(node : Node)(implicit prefixes : Prefixes) : Aggregation =
+  private def readAggregation(node : Node)(implicit prefixes : Prefixes, globalThreshold : Double) : Aggregation =
   {
     val requiredStr = node \ "@required" text
     val weightStr = node \ "@weight" text
@@ -92,15 +95,18 @@ object LinkSpecification
     )
   }
 
-  private def readComparison(node : Node)(implicit prefixes : Prefixes) : Comparison =
+  private def readComparison(node : Node)(implicit prefixes : Prefixes, globalThreshold : Double) : Comparison =
   {
     val requiredStr = node \ "@required" text
+    //TODO print warning if no local threshold is set
+    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold)
     val weightStr = node \ "@weight" text
-    val metric = Metric(node \ "@metric" text, readParams(node))
+    val metric = DistanceMeasure(node \ "@metric" text, readParams(node))
     val inputs = readInputs(node.child)
 
     new Comparison(
       if(requiredStr.isEmpty) false else requiredStr.toBoolean,
+      threshold,
       if(weightStr.isEmpty) 1 else weightStr.toInt,
       SourceTargetPair(inputs(0), inputs(1)),
       metric

@@ -1,17 +1,16 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.Metric
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
 
 @StrategyAnnotation(
   id = "date",
   label = "Date",
-  description = "Computes the similarity between two dates ('YYYY-MM-DD' format). " +
-                "At a difference of 'maxDays', the metric evaluates to 0 and progresses towards 1 with a lower difference.")
-class DateMetric(maxDays : Int) extends Metric
+  description = "The distance in days between two dates ('YYYY-MM-DD' format).")
+class DateMetric() extends SimpleDistanceMeasure
 {
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
@@ -22,13 +21,11 @@ class DateMetric(maxDays : Int) extends Metric
       val date1 = datatypeFactory.newXMLGregorianCalendar(str1)
       val date2 = datatypeFactory.newXMLGregorianCalendar(str2)
 
-      val days = abs(totalDays(date1) - totalDays(date2))
-
-      max(1.0 - days.toDouble / maxDays.toDouble, 0.0)
+      abs(totalDays(date1) - totalDays(date2)).toDouble
     }
     catch
     {
-      case ex : IllegalArgumentException => 0.0
+      case ex : IllegalArgumentException => Double.PositiveInfinity
     }
   }
 

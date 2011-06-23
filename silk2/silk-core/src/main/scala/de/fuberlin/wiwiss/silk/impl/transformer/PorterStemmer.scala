@@ -10,7 +10,7 @@ import scala.io.Source
    A few methods were borrowed from the existing Java port from the above page.
 */
 
-class PorterStemmer
+private class PorterStemmer
 {
     var word : String = ""
 

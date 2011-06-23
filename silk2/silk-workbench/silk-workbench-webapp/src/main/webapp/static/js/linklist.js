@@ -6,11 +6,15 @@ function handlePaginationClick(new_page_index, pagination_container) {
   return false;
 }
 
-function initPagination(number_pages) {
-  $(".navigation").pagination(number_pages, {
+function initPagination(number_results) {
+  $(".navigation").pagination(number_results, {
     items_per_page:100,
     callback:handlePaginationClick
   });
+  var navi_width = 90 + (number_results/100)*34;
+  if (number_results < 101) navi_width = 124;
+  if (number_results > 1100) navi_width = 525;
+  $(".navigation").css("width", navi_width + "px").css("float", "none").css("margin", "0 auto");
 }
 
 function initTrees() {
@@ -22,9 +26,21 @@ function initTrees() {
   $("div.expandable-hitarea").removeClass("expandable-hitarea").addClass("collapsable-hitarea");
 
   $(".confidencebar").each(function(index) {
-    $(this).progressbar({
-      value: parseInt($(this).text())
-    });
+    var confidence = parseInt($(this).text());
+
+    if (confidence >= 0) {
+      $(this).progressbar({
+        value: confidence/2
+      });
+      $(this).children(".ui-progressbar-value").addClass("confidence-green").css("margin-left", "50%");
+    } else {
+      $(this).progressbar({
+        value: -confidence/2
+      });
+      var left = 48 + confidence/2;
+      $(this).children(".ui-progressbar-value").addClass("confidence-red").css("margin-left", left+"%");
+    }
+
   });
 }
 
@@ -50,7 +66,7 @@ $(function() {
 
   $(".link-header").live('click', function(e) {
     var link_id = $(this).parent().attr('id');
-    if ($(e.target).is('a')) return;
+    if ($(e.target).is('a, img')) return;
     toggleLinkDetails(link_id);
   });
 

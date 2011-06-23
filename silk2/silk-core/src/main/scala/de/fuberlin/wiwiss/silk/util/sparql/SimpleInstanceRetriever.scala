@@ -127,7 +127,7 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
    */
   private class InstanceTraversable(sparqlResults : Traversable[Map[String, Node]], instanceSpec : InstanceSpecification, subject : Option[String]) extends Traversable[Instance]
   {
-    override def foreach[U](f : Instance => U) : Unit =
+    override def foreach[U](f : Instance => U)
     {
       //Remember current subject
       var curSubject : Option[String] = subject

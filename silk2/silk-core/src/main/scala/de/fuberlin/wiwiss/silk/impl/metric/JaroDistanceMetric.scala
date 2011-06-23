@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.Metric
+import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "jaro", label = "Jaro distance", description = "String similarity based on the Jaro distance metric.")
-class JaroDistanceMetric() extends Metric
+class JaroDistanceMetric() extends SimpleDistanceMeasure
 {
   override def evaluate(str1 : String, str2 : String, threshold : Double) =
   {
@@ -25,7 +25,7 @@ object JaroDinstanceMetric
 
     //check for zero in common
     if (common1.length == 0 || common2.length == 0) {
-      return 0.0
+      return 1.0
     }
     /*
     //check for same length common strings returning 0.0 is not the same
@@ -48,7 +48,7 @@ object JaroDinstanceMetric
     transpositions = transpositions / 2
 
     //calculate jaro metric
-    (common1.length / (string1.length.toDouble) + common2.length / (string2.length.toDouble) + (common1.length - transpositions) / (common1.length.toDouble)) / 3.0
+    1.0 - ((common1.length / (string1.length.toDouble) + common2.length / (string2.length.toDouble) + (common1.length - transpositions) / (common1.length.toDouble)) / 3.0)
   }
 
 

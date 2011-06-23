@@ -22,24 +22,45 @@
         <li>
           <lift:comet type="EvaluationProgress" name="EvaluationProgress" />
         </li>
+        <li>
+          <entry:help />
+        </li>
       </ul>
     </lift:generateLinks.toolbar>
   </lift:bind-at>
 
   <lift:bind-at name="content">
 
-    <div class="navigation"></div>
+    <lift:comet type="GeneratedLinks" name="GeneratedLinks">
 
-    <div style="clear:both;"></div>
+      <entry:script/>
 
-    <div id="tree-header">
-      <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
-      <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
-    </div>
+      <div id="tree-header">
+        <div class="left">
+          <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+          <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+        </div>
+        <div class="middle">
+          <div class="navigation"></div>
+        </div>
+        <div class="right">
+          <entry:filter/>
+        </div>
+      </div>
 
-    <lift:comet type="GeneratedLinks" name="GeneratedLinks" />
+      <div style="clear: both"></div>
 
-    <div class="navigation"></div>
+      <p>
+        <entry:list/>
+      </p>
+
+      <div style="clear:both;"></div>
+
+      <div id="tree-footer">
+        <div class="navigation"></div>
+      </div>
+
+    </lift:comet>
 
   </lift:bind-at>
 

@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 import java.io.File
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.FileUtils._
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 class FileWorkspace(file : File) extends Workspace
 {
@@ -21,7 +22,7 @@ class FileWorkspace(file : File) extends Workspace
 
   override def projects : List[Project] = projectList
 
-  override def createProject(name : String) =
+  override def createProject(name : Identifier) =
   {
     require(!projectList.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
@@ -32,7 +33,7 @@ class FileWorkspace(file : File) extends Workspace
     newProject
   }
 
-  override def removeProject(name : String) =
+  override def removeProject(name : Identifier) =
   {
     (file + ("/" + name)).deleteRecursive()
     projectList = projectList.filterNot(_.name == name)

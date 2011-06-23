@@ -14,18 +14,18 @@ case class LinkCondition(rootOperator : Option[Operator])
    * Computes the similarity between two instances.
    *
    * @param instances The instances to be compared.
-   * @param threshold The similarity threshold.
+   * @param limit If the confidence is below this limit, it will be capped to -1.0.
    *
-   * @return The similarity as a value between 0.0 and 1.0.
-   *         Returns 0.0 if the similarity is lower than the threshold.
-   *         None, if no similarity could be computed.
+   * @return The confidence as a value between -1.0 and 1.0.
+   *         -1.0 for definitive non-matches.
+   *         +1.0 for definitive matches.
    */
-  def apply(instances : SourceTargetPair[Instance], threshold : Double) : Double =
+  def apply(instances : SourceTargetPair[Instance], limit : Double) : Double =
   {
     rootOperator match
     {
-      case Some(operator) => operator(instances, threshold).getOrElse(0.0)
-      case None => 0.0
+      case Some(operator) => operator(instances, limit).getOrElse(-1.0)
+      case None => -1.0
     }
   }
 
@@ -33,22 +33,22 @@ case class LinkCondition(rootOperator : Option[Operator])
    * Indexes an instance.
    *
    * @param instance The instance to be indexed
-   * @param threshold The similarity threshold.
+   * @param limit The confidence limit.
    *
    * @return A set of (multidimensional) indexes. Instances within the threshold will always get the same index.
    */
-  def index(instance : Instance, threshold : Double) : Set[Int] =
+  def index(instance : Instance, limit : Double = 0.0) : Set[Int] =
   {
     rootOperator match
     {
       case Some(operator) =>
       {
-        val indexes = operator.index(instance, threshold)
+        val indexes = operator.index(instance, limit)
 
         //Convert the index vectors to scalars in the range [0, Int.MaxValue]
         for(index <- indexes) yield
         {
-          val flatIndex = (index zip operator.blockCounts).foldLeft(0){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
+          val flatIndex = (index zip operator.blockCounts(limit)).foldLeft(0){case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight}
 
           if(flatIndex == Int.MinValue) 0 else abs(flatIndex)
         }
@@ -61,11 +61,11 @@ case class LinkCondition(rootOperator : Option[Operator])
   /**
    * The number of blocks in each dimension of the index.
    */
-  val blockCount =
+  def blockCount(threshold : Double) =
   {
     rootOperator match
     {
-      case Some(operator) => operator.blockCounts.foldLeft(1)(_ * _)
+      case Some(operator) => operator.blockCounts(threshold).foldLeft(1)(_ * _)
       case None => 1
     }
   }

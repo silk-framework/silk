@@ -10,13 +10,12 @@ case class Aggregation(required : Boolean, weight : Int, operators : Seq[Operato
    * Computes the similarity between two instances.
    *
    * @param instances The instances to be compared.
-   * @param threshold The similarity threshold.
+   * @param limit The similarity threshold.
    *
-   * @return The similarity as a value between 0.0 and 1.0.
-   *         Returns 0.0 if the similarity is lower than the threshold.
+   * @return The similarity as a value between -1.0 and 1.0.
    *         None, if no similarity could be computed.
    */
-  override def apply(instances : SourceTargetPair[Instance], threshold : Double) : Option[Double] =
+  override def apply(instances : SourceTargetPair[Instance], limit : Double) : Option[Double] =
   {
     val totalWeights = operators.map(_.weight).sum
 
@@ -24,10 +23,10 @@ case class Aggregation(required : Boolean, weight : Int, operators : Seq[Operato
     {
       for(operator <- operators) yield
       {
-        val value = operator(instances, aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights))
+        val value = operator(instances, aggregator.computeThreshold(limit, operator.weight.toDouble / totalWeights))
         if(operator.required && value.isEmpty) return None
 
-        (operator.weight, value.getOrElse(0.0))
+        (operator.weight, value.getOrElse(-1.0))
       }
     }
 
@@ -51,7 +50,7 @@ case class Aggregation(required : Boolean, weight : Int, operators : Seq[Operato
       for(op <- operators) yield
       {
         val index = op.index(instance, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights))
-        val blockCounts = op.blockCounts
+        val blockCounts = op.blockCounts(threshold)
 
         if(op.required && index.isEmpty) return Set.empty;
 
@@ -83,9 +82,11 @@ case class Aggregation(required : Boolean, weight : Int, operators : Seq[Operato
   /**
    * The number of blocks in each dimension of the index.
    */
-  override val blockCounts : Seq[Int] =
+  override def blockCounts(threshold : Double) : Seq[Int] =
   {
-    operators.map(_.blockCounts)
+    val totalWeights = operators.map(_.weight).sum
+
+    operators.map(op => op.blockCounts(aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)))
              .foldLeft(Seq[Int]())((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
   }
 
