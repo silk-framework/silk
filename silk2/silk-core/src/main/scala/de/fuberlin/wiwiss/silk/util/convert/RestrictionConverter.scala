@@ -60,7 +60,7 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
   }}
 
   def triplePattern = subj ~ predicate ~ objectt  ^^
-    { case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + " " + p), o) }
+    { case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + p.head), o) }
 
   def subj = "?" ~> wordCharFilter ^^ { v => v }
 
@@ -68,7 +68,7 @@ class RestrictionConverter(implicit prefixes : Prefixes) extends RegexParsers
 
   def predicateObjectFilter = " " ~> wordCharFilter ~ ":" ~ wordCharFilter ^^ { case prefix ~ ":" ~ name => Set(prefix + ":" + name)}
 
-  def rdfTypeReplacement = " a" ^^ { rdftype => "rdf:type" }
+  def rdfTypeReplacement = " a" ^^ { rdftype => Set("rdf:type") }
 
   def objectt = specialObj | predicateObjectFilter
 
