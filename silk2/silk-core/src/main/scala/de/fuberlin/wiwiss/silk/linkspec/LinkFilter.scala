@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import xml.Node
+import java.util.logging.Logger
 
 /**
  * A Link Filter specifies the parameters of the filtering phase.
@@ -22,14 +23,21 @@ case class LinkFilter(threshold : Double = 0.0, limit : Option[Int] = None)
 
 object LinkFilter
 {
+  private val logger = Logger.getLogger(LinkFilter.getClass.getName)
+
   /**
    * Creates a Link Filter from XML.
    */
   def fromXML(node : Node) : LinkFilter =
   {
     val limitStr = (node \ "@limit").text
-    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0)
+    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble)
 
-    LinkFilter(threshold, if(limitStr.isEmpty) None else Some(limitStr.toInt))
+    if(threshold.isDefined)
+    {
+      logger.warning("The use of a global threshold is deprecated. Please use per-comparison thresholds.")
+    }
+
+    LinkFilter(threshold.getOrElse(1.0), if(limitStr.isEmpty) None else Some(limitStr.toInt))
   }
 }
