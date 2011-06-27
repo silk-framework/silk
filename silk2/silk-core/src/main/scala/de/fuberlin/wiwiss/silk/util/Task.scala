@@ -40,8 +40,8 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
       running = false
       currentProgress = 1.0
       currentStatus = "Done"
-      publish(Finished(true))
       logger.log(logLevel, taskName + " done")
+      publish(Finished(true))
       result
     }
     catch
@@ -51,8 +51,8 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
         running = false
         currentProgress = 1.0
         currentStatus = "Failed: " + ex.getMessage
-        publish(Finished(false, Some(ex)))
         logger.log(logLevel, taskName + " failed", ex)
+        publish(Finished(false, Some(ex)))
         throw ex
       }
     }

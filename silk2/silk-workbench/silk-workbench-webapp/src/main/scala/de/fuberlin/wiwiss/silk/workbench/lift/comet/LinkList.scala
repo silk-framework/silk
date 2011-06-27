@@ -15,6 +15,8 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
 */
 trait LinkList extends CometActor
 {
+  protected val linkingTask = User().linkingTask
+
   /** The number of links shown on one page */
   private val pageSize = 100
 
@@ -59,7 +61,7 @@ trait LinkList extends CometActor
             <div class="link-target"><span>Target</span></div>
             <div class="link-confidence">{SHtml.a(sortByConfidence _, <span>Confidence</span>)}</div>
             { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
-            { if(showButtons) <div class="link-buttons"></div> else NodeSeq.Empty }
+            { if(showButtons) <div class="link-buttons"><span>Correct?</span></div> else NodeSeq.Empty }
           </div>
         </div>
         {
@@ -110,7 +112,7 @@ trait LinkList extends CometActor
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
         <div class="link-source"><a href={link.sourceUri} target="_blank">{prefixes.shorten(link.sourceUri)}</a></div>
         <div class="link-target"><a href={link.targetUri} target="_blank">{prefixes.shorten(link.targetUri)}</a></div>
-        <div class="confidencebar"><div class="confidence">{"%.1f".format((link.confidence + 1.0) * 50)}%</div></div>
+        <div class="link-confidence"><div class="confidencebar"><div class="confidence">{"%.1f".format((link.confidence) * 100)}%</div></div></div>
         { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
         { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }
 
@@ -120,6 +122,18 @@ trait LinkList extends CometActor
       </div>
       <div style="clear:both"></div>
     </div>
+  }
+
+    //TODO
+  private def renderConfidence(link : Link) : NodeSeq = link.details match
+  {
+    case None => <div class="confidencebar">Unkown</div>
+    case Some(sim) =>
+    {
+      <div class="confidencebar">
+        <div class="confidence">{"%.1f".format(sim.value.getOrElse(0.0) * 100)}%</div>
+      </div>
+    }
   }
 
   private def renderDetails(details : Option[Link.Similarity]) : NodeSeq =
@@ -160,7 +174,7 @@ trait LinkList extends CometActor
   }
   private def renderConfidence(value : Option[Double]) = value match
   {
-    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v + 1.0) * 50)}%</div></div>
+    case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v) * 100)}%</div></div>
     case None => NodeSeq.Empty
   }
 
