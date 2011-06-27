@@ -37,7 +37,7 @@ case class Comparison(required : Boolean, threshold : Double, weight : Int,
       {
         Some(1.0)
       }
-      if(distance <= threshold)
+      else if(distance <= threshold)
       {
         Some(1.0 - distance / threshold)
       }
