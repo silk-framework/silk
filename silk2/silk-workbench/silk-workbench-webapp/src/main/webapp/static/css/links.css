@@ -3,7 +3,7 @@ body {
 }
 
 #content {
-  padding: 20px 10px;
+  padding: 14px 14px;
 }
 
 p {
@@ -28,7 +28,6 @@ a:hover {
   width: 1125px;
   overflow: auto;
   border-bottom: 1px solid #DBDBDB;
-  margin: 0px auto;
 }
 
 #results .link {
@@ -160,7 +159,6 @@ a:hover {
 
 #tree-header, #tree-footer {
   width: 1125px;
-  margin:  0px auto;
 }
 
 #tree-header div {
