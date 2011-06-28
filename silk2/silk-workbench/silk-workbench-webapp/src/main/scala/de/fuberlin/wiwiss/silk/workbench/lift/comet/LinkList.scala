@@ -76,7 +76,7 @@ trait LinkList extends CometActor
         }
       </div>
 
-    SetHtml("results", html) & JsRaw("initTrees();").cmd
+    SetHtml("results", html) & JsRaw("initTrees();").cmd & JsRaw("updateResultsWidth();").cmd
   }
 
   private def sortByConfidence =
@@ -166,8 +166,8 @@ trait LinkList extends CometActor
       <li>
         <span class="comparison">Comparison({function})</span>{ renderConfidence(value) }
           <ul>
-            { renderInputValue(input1) }
-            { renderInputValue(input2) }
+            { renderInputValue(input1, "value") }
+            { renderInputValue(input2, "value") }
           </ul>
       </li>
     }
@@ -178,11 +178,11 @@ trait LinkList extends CometActor
     case None => NodeSeq.Empty
   }
 
-  private def renderInputValue(input : Link.InputValue) = input match
+  private def renderInputValue(input : Link.InputValue, divClass : String) = input match
   {
     case Link.InputValue(path, values) =>
     {
-      <li><span class="input">Input <span class="path">{path.serialize}</span>{values.map(v => <span class="value">{v}</span>) }</span></li>
+      <li><span class="input">Input <span class="path">{path.serialize}</span>{values.map(v => <span class={divClass}>{v}</span>) }</span></li>
     }
   }
 

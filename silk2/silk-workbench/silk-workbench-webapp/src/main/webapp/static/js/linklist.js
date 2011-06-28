@@ -61,6 +61,20 @@ function hide_all() {
   $(".link-details").hide();
 }
 
+function updateResultsWidth() {
+  var window_width =  $(window).width();
+  if (window_width<1000) {
+    $("#results, #tree-header, #tree-footer").width(962);
+    $(".link-source, .link-target").width(336);
+    $(".middle").width(561);
+  } else {
+    var new_links_width = (window_width-320)/2;
+    $("#results, #tree-header, #tree-footer").width(window_width-30);
+    $(".link-source, .link-target").width(new_links_width);
+    $(".middle").width(window_width-431);
+  }
+}
+
 $(function() {
   $("#selectLinks").buttonset();
 
@@ -68,6 +82,10 @@ $(function() {
     var link_id = $(this).parent().attr('id');
     if ($(e.target).is('a, img')) return;
     toggleLinkDetails(link_id);
+  });
+
+  $(window).resize(function() {
+    updateResultsWidth();
   });
 
 });
