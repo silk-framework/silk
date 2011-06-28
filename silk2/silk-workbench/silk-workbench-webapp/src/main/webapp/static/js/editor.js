@@ -716,9 +716,9 @@ function createNewElement(elementId)
             xml.setAttribute("required", "false");
         }
       } else if ($(params[l]).attr("name") == "threshold") {
-        xml.setAttribute("threshold", $(params[l]).attr("value"));
+        xml.setAttribute("threshold", $(params[l]).val());
       } else if ($(params[l]).attr("name") == "weight") {
-        xml.setAttribute("weight", $(params[l]).attr("value"));
+        xml.setAttribute("weight", $(params[l]).val());
       } else {
         if (elType == "Compare") {
           if ($(params[l]).val() != "") {
