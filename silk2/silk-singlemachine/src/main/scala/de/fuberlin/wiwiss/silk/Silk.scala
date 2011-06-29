@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
-import config.Configuration
+import config.SilkConfig
 import impl.DefaultImplementations
 import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
@@ -42,6 +42,17 @@ object Silk
    */
   def execute()
   {
+    System.getProperty("logQueries") match
+    {
+      case BooleanLiteral(b) if b =>
+      {
+        Logger.getLogger("de.fuberlin.wiwiss.silk.util.sparql").setLevel(Level.FINE)
+        Logger.getLogger("").getHandlers.foreach(_.setLevel(Level.FINE))
+      }
+      case str : String => throw new IllegalArgumentException("Property 'logQueries' must be a boolean")
+      case _ =>
+    }
+
     val configFile = System.getProperty("configFile") match
     {
       case fileName : String => new File(fileName)
@@ -60,7 +71,7 @@ object Silk
     val reload = System.getProperty("reload") match
     {
       case BooleanLiteral(b) => b
-      case str : String => throw new IllegalArgumentException("Property 'reload' must be an boolean")
+      case str : String => throw new IllegalArgumentException("Property 'reload' must be a boolean")
       case _ => true
     }
 
@@ -77,7 +88,7 @@ object Silk
    */
   def executeFile(configFile : File, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
   {
-    executeConfig(Configuration.load(configFile), linkSpecID, numThreads, reload)
+    executeConfig(SilkConfig.load(configFile), linkSpecID, numThreads, reload)
   }
 
   /**
@@ -88,7 +99,7 @@ object Silk
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
    */
-  def executeConfig(config : Configuration, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
+  def executeConfig(config : SilkConfig, linkSpecID : String = null, numThreads : Int = DefaultThreads, reload : Boolean = true)
   {
     if(linkSpecID != null)
     {
@@ -105,7 +116,7 @@ object Silk
     }
   }
 
-  private def executeLinkSpec(config : Configuration, linkSpec : LinkSpecification, numThreads : Int = DefaultThreads, reload : Boolean = true)
+  private def executeLinkSpec(config : SilkConfig, linkSpec : LinkSpecification, numThreads : Int = DefaultThreads, reload : Boolean = true)
   {
     val startTime = System.currentTimeMillis()
 

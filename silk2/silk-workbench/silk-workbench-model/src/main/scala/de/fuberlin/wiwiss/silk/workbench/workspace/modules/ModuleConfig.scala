@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules
 
 /**
- * Module Configuration.
+ * Module SilkConfig.
  */
 trait ModuleConfig
