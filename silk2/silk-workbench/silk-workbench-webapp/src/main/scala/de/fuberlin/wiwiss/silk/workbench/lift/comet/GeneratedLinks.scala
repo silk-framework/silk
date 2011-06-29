@@ -64,7 +64,7 @@ class GeneratedLinks extends LinkList
   {
     def alignment = linkingTask.alignment
 
-    for(link <- User().evaluationTask.links.view) yield
+    for(link <- evaluationTask.links.view) yield
     {
       if(alignment.positive.contains(link))
       {
