@@ -4,7 +4,7 @@ import impl.HadoopInstanceCache
 import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
-import de.fuberlin.wiwiss.silk.config.Configuration
+import de.fuberlin.wiwiss.silk.config.SilkConfig
 
 object SilkConfiguration
 {
@@ -16,7 +16,7 @@ object SilkConfiguration
 
   def get(hadoopConfig : org.apache.hadoop.conf.Configuration) =
   {
-    //This method is not synchronized, because multiple instantiations of SilkConfiguration are not a problem
+    //This method is not synchronized, because multiple instantiations of SilkConfig are not a problem
     if(config == null)
     {
       config = new SilkConfiguration(hadoopConfig)
@@ -36,7 +36,7 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
   lazy val config =
   {
     DefaultImplementations.register()
-    Configuration.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
+    SilkConfiguration.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
   }
 
   lazy val linkSpec =

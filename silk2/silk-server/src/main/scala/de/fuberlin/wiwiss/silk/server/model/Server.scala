@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.impl.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.jena.{FileDataSource, RdfDataSource}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.config.Configuration
+import de.fuberlin.wiwiss.silk.config.SilkConfig
 
 /**
  * The Silk Server.
@@ -72,7 +72,7 @@ private class Server
   {
     //Iterate through all configuration files and create a dataset for each link spec
     for( file <- serverConfig.configDir.listFiles if file.getName.endsWith("xml");
-         config = Configuration.load(file);
+         config = SilkConfig.load(file);
          linkSpec <- config.linkSpecs) yield
     {
       new Dataset(name = file.getName.takeWhile(_ != '.'),

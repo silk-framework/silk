@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopInstanceCache
-import de.fuberlin.wiwiss.silk.config.Configuration
+import de.fuberlin.wiwiss.silk.config.SilkConfig
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
@@ -35,7 +35,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
     }
   }
 
-  private def loadConfig(filePath : Path, instanceCachePath : Path) : Configuration =
+  private def loadConfig(filePath : Path, instanceCachePath : Path) : SilkConfig =
   {
     //Create two FileSystem objects, because the config file and the instance cache might be located in different file systems
     val configFS = FileSystem.get(filePath.toUri, hadoopConfig)
@@ -64,7 +64,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
     val stream = configFS.open(filePath)
     try
     {
-      Configuration.load(stream)
+      SilkConfig.load(stream)
     }
     finally
     {
@@ -72,7 +72,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
     }
   }
 
-  private def write(config : Configuration, linkSpec : LinkSpecification, instanceCachePath : Path)
+  private def write(config : SilkConfig, linkSpec : LinkSpecification, instanceCachePath : Path)
   {
     val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
 

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.io
 
-import de.fuberlin.wiwiss.silk.config.Configuration
+import de.fuberlin.wiwiss.silk.config.SilkConfig
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
 /**
@@ -8,13 +8,13 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
  */
 object SilkConfigExporter
 {
-  def build() : Configuration =
+  def build() : SilkConfig =
   {
     val project = User().project
     val linkSpec = User().linkingTask.linkSpec
 
     val sources = linkSpec.datasets.map(ds => project.sourceModule.tasks.find(_.name == ds.sourceId).get.source)
 
-    Configuration(project.config.prefixes, sources, None, linkSpec :: Nil, Nil)
+    SilkConfig(project.config.prefixes, sources, None, linkSpec :: Nil, Nil)
   }
 }

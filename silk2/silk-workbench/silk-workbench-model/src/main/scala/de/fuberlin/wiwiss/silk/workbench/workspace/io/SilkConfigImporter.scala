@@ -1,16 +1,16 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.io
 
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
-import de.fuberlin.wiwiss.silk.config.Configuration
+import de.fuberlin.wiwiss.silk.config.SilkConfig
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 
 /**
- * Imports a Silk Configuration into a project.
+ * Imports a Silk SilkConfig into a project.
  */
 object SilkConfigImporter
 {
-  def apply(config : Configuration, project : Project)
+  def apply(config : SilkConfig, project : Project)
   {
     //Add all prefixes
     project.config = project.config.copy(prefixes = project.config.prefixes ++ config.prefixes)

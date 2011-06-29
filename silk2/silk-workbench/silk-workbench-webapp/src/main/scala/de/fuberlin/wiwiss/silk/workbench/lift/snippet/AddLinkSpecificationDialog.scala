@@ -10,7 +10,7 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import net.liftweb.http.js.JsCmd
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.{SilkConfigImporter, ProjectImporter}
-import de.fuberlin.wiwiss.silk.config.Configuration
+import de.fuberlin.wiwiss.silk.config.SilkConfig
 
 /**
  * Dialog to add link specifications to a project.
@@ -27,7 +27,7 @@ class AddLinkSpecificationDialog
       {
         case FileParamHolder(_, mime, _, data) =>
         {
-          val config = Configuration.load(new ByteArrayInputStream(data))
+          val config = SilkConfig.load(new ByteArrayInputStream(data))
 
           SilkConfigImporter(config, User().project)
         }
