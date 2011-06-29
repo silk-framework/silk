@@ -204,25 +204,38 @@ a:hover {
   line-height: 22px;
 }
 
-.input .path {
-  color: #1a3636;
-  border: 1px solid #aebdbd;
-  background-color: #d6e0e2;
+.input .source-path,
+.input .target-path,
+.input .source-value,
+.input .target-value  {
   padding: 1px 3px;
   margin-left: 3px;
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
 
-.input .value {
-  color: #1f3b1f;
-  border: 1px solid #a5b4a5;
-  background-color: #dfebd2;
-  margin-left: 4px;
-  margin-bottom: 3px;
-  padding: 1px 3px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
+.input .target-path {
+  color: #3b3b1f;
+  border: 1px solid #9d9d90;
+  background-color: #e2dabf;
+}
+
+.input .target-value {
+  color: #3b3b1f;
+  border: 1px solid #b5b5a7;
+  background-color: #f1f1df;
+}
+
+.input .source-path {
+  color: #1f313b;
+  border: 1px solid #929b9f;
+  background-color: #cddbdd;
+}
+
+.input .source-value {
+  color: #1f313b;
+  border: 1px solid #a7b0b5;
+  background-color: #e4ecf1;
 }
 
 .treeview li {

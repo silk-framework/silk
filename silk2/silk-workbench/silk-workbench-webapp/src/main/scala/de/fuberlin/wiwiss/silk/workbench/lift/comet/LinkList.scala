@@ -166,8 +166,8 @@ trait LinkList extends CometActor
       <li>
         <span class="comparison">Comparison({function})</span>{ renderConfidence(value) }
           <ul>
-            { renderInputValue(input1, "value") }
-            { renderInputValue(input2, "value") }
+            { renderInputValue(input1, "source") }
+            { renderInputValue(input2, "target") }
           </ul>
       </li>
     }
@@ -178,11 +178,11 @@ trait LinkList extends CometActor
     case None => NodeSeq.Empty
   }
 
-  private def renderInputValue(input : Link.InputValue, divClass : String) = input match
+  private def renderInputValue(input : Link.InputValue, divClassPrefix : String) = input match
   {
     case Link.InputValue(path, values) =>
     {
-      <li><span class="input">Input <span class="path">{path.serialize}</span>{values.map(v => <span class={divClass}>{v}</span>) }</span></li>
+      <li><span class="input">Input <span class={divClassPrefix+"-path"}>{path.serialize}</span>{values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span></li>
     }
   }
 
