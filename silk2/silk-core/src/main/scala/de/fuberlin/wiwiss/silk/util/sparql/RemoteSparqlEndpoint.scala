@@ -129,7 +129,7 @@ class RemoteSparqlEndpoint(val uri : URI,
       }
 
       //Return result
-      if(logger.isLoggable(Level.FINE)) logger.fine("Query Result\n" + result)
+      if(logger.isLoggable(Level.FINER)) logger.finer("Query Result\n" + result)
       result
     }
   }
