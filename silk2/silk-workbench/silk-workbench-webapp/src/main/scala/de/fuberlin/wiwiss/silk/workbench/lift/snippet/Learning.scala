@@ -11,10 +11,10 @@
 //{
 //  def toolbar(xhtml : NodeSeq) : NodeSeq =
 //  {
-//    if(User().linkingTask.cacheLoader.isRunning)
+//    if(User().linkingTask.cache.loader.isRunning)
 //    {
 //      bind("entry", chooseTemplate("choose", "loading", xhtml),
-//           "status" -> Widgets.taskProgress(User().linkingTask.cacheLoader))
+//           "status" -> Widgets.taskProgress(User().linkingTask.cache.loader))
 //    }
 //    else
 //    {
@@ -32,7 +32,7 @@
 //
 //  def content(xhtml : NodeSeq) : NodeSeq =
 //  {
-//    if(User().linkingTask.cacheLoader.isRunning)
+//    if(User().linkingTask.cache.loader.isRunning)
 //    {
 //      chooseTemplate("choose", "loading", xhtml)
 //    }
