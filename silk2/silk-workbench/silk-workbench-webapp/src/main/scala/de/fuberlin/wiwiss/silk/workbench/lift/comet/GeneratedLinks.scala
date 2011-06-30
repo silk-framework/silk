@@ -1,13 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import collection.mutable.{Publisher, Subscriber}
+import collection.mutable.Subscriber
 import de.fuberlin.wiwiss.silk.util.Task
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.SHtml
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.workbench.workspace.UserData._
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Undecided, Positive, Negative, Generated}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{EvaluationTask, EvalLink}
 
@@ -76,7 +75,7 @@ class GeneratedLinks extends LinkList
       }
       else
       {
-        new EvalLink(link, Undecided, Generated)
+        new EvalLink(link, Unknown, Generated)
       }
     }
   }
@@ -87,7 +86,7 @@ class GeneratedLinks extends LinkList
     {
       case Correct => <div>correct</div>
       case Incorrect => <div>wrong</div>
-      case Undecided => <div>unknown</div>
+      case Unknown => <div>unknown</div>
     }
   }
 
@@ -103,7 +102,7 @@ class GeneratedLinks extends LinkList
       {SHtml.a(() => resetLink(link), <img src="./static/img/undecided-disabled.png" />)}
        <a><img src="./static/img/decline.png" /></a>
     </div>
-    <div id={getId(link, "undecidedLink")} style={if(link.correct == Undecided) "display:block" else "display:none"}>
+    <div id={getId(link, "undecidedLink")} style={if(link.correct == Unknown) "display:block" else "display:none"}>
       {SHtml.a(() => confirmLink(link), <img src="./static/img/confirm-disabled.png" />)}
        <a><img src="./static/img/undecided.png" /></a>
       {SHtml.a(() => declineLink(link), <img src="./static/img/decline-disabled.png" />)}
