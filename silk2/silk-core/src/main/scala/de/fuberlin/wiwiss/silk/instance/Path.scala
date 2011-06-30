@@ -18,7 +18,15 @@ case class Path(variable : String, operators : List[PathOperator])
   /**
    * Tests if this path equals another path
    */
-  override def equals(other : Any) = other.isInstanceOf[Path] && toString == other.toString
+  override def equals(other : Any) =
+  {
+    //Because of the path cache it is sufficient to compare by reference
+    other match
+    {
+      case otherPath : Path => this eq otherPath
+      case _ => false
+    }
+  }
 
   override def hashCode = toString.hashCode
 }
