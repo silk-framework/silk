@@ -15,20 +15,17 @@ import de.fuberlin.wiwiss.silk.util.{Future, Task, SourceTargetPair}
 class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
             var instances : ReferenceInstances = ReferenceInstances.empty)
 {
-  var isLoading : Future[Unit] = null
+  @volatile var isLoading : Future[Unit] = null
 
   val loader : Task[Unit] = new CacheLoader()
 
   def load(project : Project, linkingTask : LinkingTask)
   {
-    if(!loader.isRunning)
-    {
-      loader.asInstanceOf[CacheLoader].project = project
-      loader.asInstanceOf[CacheLoader].alignment = linkingTask.alignment
-      loader.asInstanceOf[CacheLoader].linkSpec = linkingTask.linkSpec
+    loader.asInstanceOf[CacheLoader].project = project
+    loader.asInstanceOf[CacheLoader].alignment = linkingTask.alignment
+    loader.asInstanceOf[CacheLoader].linkSpec = linkingTask.linkSpec
 
-      isLoading = loader.runInBackground()
-    }
+    loader.runInBackground()
   }
 
   def reload(project : Project, linkingTask : LinkingTask)
@@ -89,11 +86,35 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
     var project : Project = null
 
-    private val sampleCount = 2000
-
     taskName = "CacheLoaderTask"
 
+    @volatile var loading = false
+
+    @volatile var changedWhileLoading = false
+
     override protected def execute()
+    {
+      if(!loading)
+      {
+        loading = true
+        changedWhileLoading = false
+
+        load()
+
+        loading = false
+
+        if(changedWhileLoading)
+        {
+          execute()
+        }
+      }
+      else
+      {
+        changedWhileLoading = true
+      }
+    }
+
+    private def load()
     {
       val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
 
@@ -113,9 +134,8 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
       updateStatus(0.2)
 
-      val positiveSamples = alignment.positive.take(sampleCount).toList
-
-      val negativeSamples = alignment.negative.take(sampleCount).toList
+      val positiveSamples = alignment.positive.toList
+      val negativeSamples = alignment.negative.toList
 
       //Determine which instances are already in the cache
       val existingPositiveInstances = positiveSamples.map(instances.positive.get).flatten
