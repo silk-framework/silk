@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
 */
 trait LinkList extends CometActor
 {
-  protected val linkingTask = User().linkingTask
+  protected def linkingTask = User().linkingTask
 
   /** The number of links shown on one page */
   private val pageSize = 100
