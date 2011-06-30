@@ -28,9 +28,9 @@ object EvalLink
   case object Incorrect extends Correctness
 
   /**
-   * Correctness undecided.
+   * Correctness unknown.
    */
-  case object Undecided extends Correctness
+  case object Unknown extends Correctness
 
   /**
    * The type of link.

@@ -2,17 +2,13 @@ package de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
 import xml.{NodeBuffer, Node}
-import de.fuberlin.wiwiss.silk.util.sparql.{InstanceRetriever, SparqlEndpoint}
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
-import de.fuberlin.wiwiss.silk.workbench.Constants
 import collection.immutable.List._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, ReferenceInstances}
 import de.fuberlin.wiwiss.silk.util.{Future, Task, SourceTargetPair}
-import sun.awt.SunHints.Value
 
 //TODO use options?
 //TODO store path frequencies
