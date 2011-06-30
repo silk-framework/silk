@@ -82,7 +82,7 @@ class ReferenceLinks extends LinkList
           {
             new EvalLink(
               link = link,
-              correct = if(link.confidence >= 0.0) Correct else Incorrect,
+              correct = Unknown,
               linkType = Positive
             )
           }
@@ -106,7 +106,7 @@ class ReferenceLinks extends LinkList
           {
             new EvalLink(
               link = link,
-              correct = if(link.confidence >= 0.0) Incorrect else Correct,
+              correct = Unknown,
               linkType = Negative
             )
           }

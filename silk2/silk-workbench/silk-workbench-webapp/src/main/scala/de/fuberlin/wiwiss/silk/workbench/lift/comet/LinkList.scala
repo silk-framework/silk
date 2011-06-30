@@ -112,7 +112,7 @@ trait LinkList extends CometActor
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
         <div class="link-source"><a href={link.sourceUri} target="_blank">{prefixes.shorten(link.sourceUri)}</a></div>
         <div class="link-target"><a href={link.targetUri} target="_blank">{prefixes.shorten(link.targetUri)}</a></div>
-        <div class="link-confidence"><div class="confidencebar"><div class="confidence">{"%.1f".format((link.confidence) * 100)}%</div></div></div>
+        <div class="link-confidence">{renderConfidence(link)}</div>
         { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
         { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }
 
@@ -124,14 +124,13 @@ trait LinkList extends CometActor
     </div>
   }
 
-    //TODO
   private def renderConfidence(link : Link) : NodeSeq = link.details match
   {
-    case None => <div class="confidencebar">Unkown</div>
+    case None => <div class="confidencebar">Pending...</div>
     case Some(sim) =>
     {
       <div class="confidencebar">
-        <div class="confidence">{"%.1f".format(sim.value.getOrElse(0.0) * 100)}%</div>
+        <div class="confidence">{"%.1f".format(sim.value.getOrElse(-1.0) * 100)}%</div>
       </div>
     }
   }
