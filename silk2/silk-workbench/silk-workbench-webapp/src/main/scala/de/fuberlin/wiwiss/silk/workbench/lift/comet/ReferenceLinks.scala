@@ -80,8 +80,10 @@ class ReferenceLinks extends LinkList
           }
           case None =>
           {
+            val cleanLink = new Link(link.sourceUri, link.targetUri)
+
             new EvalLink(
-              link = link,
+              link = cleanLink,
               correct = Unknown,
               linkType = Positive
             )
@@ -104,8 +106,10 @@ class ReferenceLinks extends LinkList
           }
           case None =>
           {
+            val cleanLink = new Link(link.sourceUri, link.targetUri)
+
             new EvalLink(
-              link = link,
+              link = cleanLink,
               correct = Unknown,
               linkType = Negative
             )
@@ -119,15 +123,15 @@ class ReferenceLinks extends LinkList
   {
     ShowLinks() match
     {
-      case Positive if link.correct == Correct => <div>found</div>
-      case Positive if link.correct == Incorrect => <div>not-found</div>
-      case Negative if link.correct == Correct => <div>found</div>
-      case Negative if link.correct == Incorrect => <div>not-found</div>
+      case Positive if link.correct == Correct => <div>correct</div>
+      case Positive if link.correct == Incorrect => <div>incorrect</div>
+      case Negative if link.correct == Correct => <div>correct</div>
+      case Negative if link.correct == Incorrect => <div>incorrect</div>
       case _ => <div>unknown</div>
     }
   }
 
-  override protected def renderButtons(link : EvalLink)  : NodeSeq =
+  override protected def renderButtons(link : EvalLink) : NodeSeq =
   {
     <div>
       {SHtml.a(() => resetLink(link), <img src="./static/img/delete.png" />)}
