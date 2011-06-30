@@ -111,7 +111,6 @@ class GeneratedLinks extends LinkList
 
   private def confirmLink(link : Link) =
   {
-    val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
     val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link))
 
@@ -123,7 +122,6 @@ class GeneratedLinks extends LinkList
 
   private def declineLink(link : Link) =
   {
-    val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
     val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link))
 
@@ -135,7 +133,6 @@ class GeneratedLinks extends LinkList
 
   private def resetLink(link : Link) =
   {
-    val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
     val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
 

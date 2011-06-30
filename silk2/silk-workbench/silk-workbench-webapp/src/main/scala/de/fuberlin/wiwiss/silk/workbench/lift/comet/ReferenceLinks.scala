@@ -32,7 +32,7 @@ class ReferenceLinks extends LinkList
   })
 
   /** Register to status messages of the cache loader task in order to be notified when new links are available */
-  User().linkingTask.cache.loader.subscribe(new Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
+  linkingTask.cache.loader.subscribe(new Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
   {
     def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
     {
@@ -57,7 +57,6 @@ class ReferenceLinks extends LinkList
 
   override protected def links : Seq[EvalLink] =
   {
-    val linkingTask = User().linkingTask
     def condition = linkingTask.linkSpec.condition
     def alignment = linkingTask.alignment
     def instances = linkingTask.cache.instances
@@ -140,7 +139,6 @@ class ReferenceLinks extends LinkList
 
   private def resetLink(link : Link) =
   {
-    val linkingTask = User().linkingTask
     val alignment = linkingTask.alignment
     val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
 
