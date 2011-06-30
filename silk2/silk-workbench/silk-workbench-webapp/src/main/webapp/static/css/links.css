@@ -204,35 +204,35 @@ a:hover {
   line-height: 22px;
 }
 
-.input .source-path,
-.input .target-path,
-.input .source-value,
-.input .target-value  {
+.source-path,
+.target-path,
+.source-value,
+.target-value  {
   padding: 1px 3px;
   margin-left: 3px;
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
 
-.input .target-path {
+.target-path {
   color: #3b3b1f;
   border: 1px solid #9d9d90;
   background-color: #e2dabf;
 }
 
-.input .target-value {
+.target-value {
   color: #3b3b1f;
   border: 1px solid #b5b5a7;
   background-color: #f1f1df;
 }
 
-.input .source-path {
+.source-path {
   color: #1f313b;
   border: 1px solid #929b9f;
   background-color: #cddbdd;
 }
 
-.input .source-value {
+.source-value {
   color: #1f313b;
   border: 1px solid #a7b0b5;
   background-color: #e4ecf1;
