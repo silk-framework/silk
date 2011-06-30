@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import de.fuberlin.wiwiss.silk.linkspec.condition.LinkCondition
+import math.sqrt
 
 object LinkConditionEvaluator
 {
@@ -14,6 +15,8 @@ object LinkConditionEvaluator
     var falsePositives : Int = 0
     var falseNegatives : Int = 0
 
+    var positiveScore = 0.0
+    var negativeScore = 0.0
     var positiveError = 0.0
     var negativeError = 0.0
 
@@ -24,6 +27,7 @@ object LinkConditionEvaluator
       if(confidence >= 0.0)
       {
         truePositives += 1
+        positiveScore += confidence
       }
       else
       {
@@ -44,24 +48,33 @@ object LinkConditionEvaluator
       else
       {
         trueNegatives += 1
+        negativeScore += -confidence
       }
     }
+
+//    val score =
+//    {
+//      val positiveScore = 1.0 - positiveError / instances.positive.size
+//      val negativeScore = 1.0 - negativeError / instances.negative.size
+//
+//      if(positiveScore + negativeScore == 0.0)
+//      {
+//        0.0
+//      }
+//      else
+//      {
+//        2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
+//      }
+//    }
 
     val score =
     {
-      val positiveScore = 1.0 - positiveError / instances.positive.size
-      val negativeScore = 1.0 - negativeError / instances.negative.size
+      val cross = positiveScore * negativeScore - negativeError * positiveError
+      val sum = (positiveScore + negativeError) * (positiveScore + positiveError) * (negativeScore + negativeError) * (negativeScore + positiveError)
 
-      if(positiveScore + negativeScore == 0.0)
-      {
-        0.0
-      }
-      else
-      {
-        2.0 * positiveScore * negativeScore / (positiveScore + negativeScore)
-      }
+      if(sum != 0.0) cross.toDouble / sqrt(sum.toDouble) else 0.0
     }
 
-    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives, score)
+    new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
   }
 }

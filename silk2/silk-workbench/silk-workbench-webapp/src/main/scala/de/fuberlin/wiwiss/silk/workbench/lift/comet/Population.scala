@@ -8,7 +8,7 @@
 //import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregation, LinkCondition}
 //import de.fuberlin.wiwiss.silk.workbench.workspace.User
 //import xml.{NodeBuffer, Text, NodeSeq}
-//import de.fuberlin.wiwiss.silk.workbench.lift.util.JavaScriptUtils
+//import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 //
 //class Population extends CometActor with Subscriber[PopulationUpdated, Publisher[PopulationUpdated]]
 //{
@@ -32,8 +32,8 @@
 //
 //  override def render =
 //  {
-//    bind("chat", defaultXml,
-//      "list" -> <div id={listId} style="float: left; height: 600px; width: 200px; overflow: auto;">{displayList}</div>,
+//    bind("chat", defaultHtml,
+//      "list" -> <div id={listId} style="float: left; height: 600px; width: 300px; overflow: auto;">{displayList}</div>,
 //      "individual" -> <div id={individualId} style="float: left; height: 600px; min-width: 200px; overflow: auto;"></div>)
 //  }
 //
@@ -41,9 +41,7 @@
 //  {
 //    def line(individual : Individual) =
 //    {
-//      val formatted = "score=%.3f fmeasure=%.3f".format(individual.fitness.score, individual.fitness.fMeasure)
-//
-//      val link = SHtml.a(showCondition(individual) _, Text(formatted))
+//      val link = SHtml.a(showCondition(individual) _, Text(individual.fitness.toString))
 //
 //      <div>{link}</div>
 //    }
@@ -63,7 +61,7 @@
 //
 //      User().task = linkingTask.copy(linkSpec = linkSpec.copy(condition = newLinkCondition))
 //
-//      JavaScriptUtils.Redirect("/linkSpec.html")
+//      JS.Redirect("/linkSpec.html")
 //    }
 //
 //    val loadButton = SHtml.ajaxButton("Load", load _)
@@ -78,6 +76,9 @@
 //
 //    //Format fitness
 //    nodes += <div>{"Fitness: " + individual.fitness}</div>
+//
+//    //Format time
+//    nodes += <div>{"time: " + individual.time}</div>
 //
 //    //Format the condition
 //    val linkCondition = individual.node.build
