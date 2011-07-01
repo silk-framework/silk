@@ -74,7 +74,7 @@ class Match(inputPath : String, outputPath : String, linkSpec : Option[String], 
 
     job.setOutputFormatClass(classOf[SilkOutputFormat])
     job.setOutputKeyClass(classOf[Text])
-    job.setOutputValueClass(classOf[InstanceSimilarity])
+    job.setOutputValueClass(classOf[InstanceConfidence])
   }
 
   /**

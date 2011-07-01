@@ -42,7 +42,7 @@
 
             <LinkCondition>
                 <Aggregate type="max">
-                    <Compare metric="jaroWinkler">
+                    <Compare metric="jaroWinkler" threshold="0.05">
                         <TransformInput function="lowerCase">
                             <Input path="?a/rdfs:label" />
                         </TransformInput>
@@ -50,7 +50,7 @@
                             <Input path="?b/rdfs:label" />
                         </TransformInput>
                     </Compare>
-                    <Compare metric="jaroWinkler">
+                    <Compare metric="jaroWinkler" threshold="0.05">
                         <TransformInput function="lowerCase">
                             <Input path="?a/rdfs:label" />
                         </TransformInput>
@@ -58,7 +58,7 @@
                             <Input path="?b/dailymed:name" />
                         </TransformInput>
                     </Compare>
-                    <Compare metric="jaroWinkler">
+                    <Compare metric="jaroWinkler" threshold="0.05">
                         <TransformInput function="lowerCase">
                             <Input path="?a/rdfs:label" />
                         </TransformInput>
@@ -69,14 +69,14 @@
                 </Aggregate>
             </LinkCondition>
 
-            <Filter threshold="0.97" />
+            <Filter />
 
             <Outputs>
-                <Output maxConfidence="0.99" type="file" >
+                <Output maxConfidence="0.1" type="file" >
                   <Param name="file" value="sider_dailymed_drugs_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
-                <Output minConfidence="0.99" type="file">
+                <Output minConfidence="0.1" type="file">
                   <Param name="file" value="sider_dailymed_drugs_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>

@@ -66,12 +66,12 @@ object LinkSpecification
     )
   }
 
-  private def readLinkCondition(node : Node)(implicit prefixes : Prefixes, globalThreshold : Double) =
+  private def readLinkCondition(node : Node)(implicit prefixes : Prefixes, globalThreshold : Option[Double]) =
   {
     LinkCondition(readOperators(node.child).headOption)
   }
 
-  private def readOperators(nodes : Seq[Node])(implicit prefixes : Prefixes, globalThreshold : Double) : Seq[Operator] =
+  private def readOperators(nodes : Seq[Node])(implicit prefixes : Prefixes, globalThreshold : Option[Double]) : Seq[Operator] =
   {
     nodes.collect
     {
@@ -80,7 +80,7 @@ object LinkSpecification
     }
   }
 
-  private def readAggregation(node : Node)(implicit prefixes : Prefixes, globalThreshold : Double) : Aggregation =
+  private def readAggregation(node : Node)(implicit prefixes : Prefixes, globalThreshold : Option[Double]) : Aggregation =
   {
     val requiredStr = node \ "@required" text
     val weightStr = node \ "@weight" text
@@ -95,11 +95,10 @@ object LinkSpecification
     )
   }
 
-  private def readComparison(node : Node)(implicit prefixes : Prefixes, globalThreshold : Double) : Comparison =
+  private def readComparison(node : Node)(implicit prefixes : Prefixes, globalThreshold : Option[Double]) : Comparison =
   {
     val requiredStr = node \ "@required" text
-    //TODO print warning if no local threshold is set
-    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold)
+    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
     val weightStr = node \ "@weight" text
     val metric = DistanceMeasure(node \ "@metric" text, readParams(node))
     val inputs = readInputs(node.child)

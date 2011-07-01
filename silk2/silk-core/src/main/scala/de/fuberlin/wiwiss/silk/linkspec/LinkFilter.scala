@@ -9,7 +9,7 @@ import java.util.logging.Logger
  * @param threshold Defines the minimum similarity of two data items which is required to generate a link between them.
  * @param limit Defines the number of links originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering.
  */
-case class LinkFilter(threshold : Double = 0.0, limit : Option[Int] = None)
+case class LinkFilter(threshold : Option[Double] = None, limit : Option[Int] = None)
 {
   /**
    * Serializes this Link Filter as XML.
@@ -38,6 +38,6 @@ object LinkFilter
       logger.warning("The use of a global threshold is deprecated. Please use per-comparison thresholds.")
     }
 
-    LinkFilter(threshold.getOrElse(1.0), if(limitStr.isEmpty) None else Some(limitStr.toInt))
+    LinkFilter(threshold, if(limitStr.isEmpty) None else Some(limitStr.toInt))
   }
 }

@@ -49,27 +49,24 @@
         <Aggregate type="average">
           <Aggregate type="max" required="true" >
             <!-- We need two comparators because some resources in LinkedGeoData do not provided an english label -->
-            <Compare metric="levenshtein" >
+            <Compare metric="levenshteinDistance" threshold="2">
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='en']" />
-              <Param name="maxDistance" value="10"/>
             </Compare>
-            <Compare metric="levenshtein" >
+            <Compare metric="levenshteinDistance" threshold="2">
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='']" />
-              <Param name="maxDistance" value="20"/>
             </Compare>
           </Aggregate>
-          <Compare metric="wgs84" required="true">
+          <Compare metric="wgs84" threshold="50" required="true">
             <Input path="?a/wgs84:geometry" />
             <Input path="?b/wgs84:geometry" />
             <Param name="unit" value="km"/>
-            <Param name="threshold" value="50"/>
           </Compare>
        </Aggregate>              
       </LinkCondition>
 
-      <Filter threshold="0.9" limit="1" />
+      <Filter limit="1" />
 
       <Outputs>
         <Output type="file">

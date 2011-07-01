@@ -43,7 +43,7 @@ class CreateLinkingTaskDialog
             datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
                                         DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction))),
             condition = LinkCondition(None),
-            filter = LinkFilter(0.95, None),
+            filter = LinkFilter(),
             outputs = Nil
           )
 

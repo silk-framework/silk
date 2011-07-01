@@ -45,7 +45,7 @@
 
             <LinkCondition>
                 <Aggregate type="max">
-                    <Compare metric="jaroWinkler">
+                    <Compare metric="jaroWinkler" threshold="0.3">
                         <TransformInput function="lowerCase">
                             <Input path="?a/rdfs:label" />
                         </TransformInput>
@@ -76,14 +76,14 @@
                 </Aggregate>
             </LinkCondition>
 
-            <Filter threshold="0.7" limit="1" />
+            <Filter limit="1" />
 
             <Outputs>
-                <Output maxConfidence="0.95" type="file" >
+                <Output maxConfidence="0.2" type="file" >
                   <Param name="file" value="sider_diseasome_verify_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>
-                <Output minConfidence="0.95" type="file">
+                <Output minConfidence="0.2" type="file">
                   <Param name="file" value="sider_diseasome_accepted_links.xml"/>
                   <Param name="format" value="alignment"/>
                 </Output>

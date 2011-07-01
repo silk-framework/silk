@@ -68,17 +68,23 @@ case class Output(writer : LinkWriter, minConfidence : Option[Double] = None, ma
 
 object Output
 {
-  def fromXML(node : Node) =
+  def fromXML(node : Node)(implicit globalThreshold : Option[Double]) =
   {
-     new Output(
-        writer = LinkWriter(node \ "@type" text, readParams(node)),
-        minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
-        maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
-      )
+    new Output(
+      writer = LinkWriter(node \ "@type" text, readParams(node)),
+      minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble).map(convertConfidence),
+      maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble).map(convertConfidence)
+    )
+  }
+
+  private def convertConfidence(confidence : Double)(implicit globalThreshold : Option[Double]) = globalThreshold match
+  {
+    case Some(t) => (confidence - t) / (1.0 - t)
+    case None => confidence
   }
 
   private def readParams(element : Node) : Map[String, String] =
   {
-    element \ "Param" map(p => (p \ "@name" text, p \ "@value" text)) toMap
+    (element \ "Param").map(p => (p \ "@name" text, p \ "@value" text)).toMap
   }
 }

@@ -83,6 +83,8 @@ object SilkConfig
       case None => Some(Blocking())
     }
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p))
+
+    implicit val globalThreshold = None
     val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
 
     SilkConfig(prefixes, sources, blocking, linkSpecifications, outputs)

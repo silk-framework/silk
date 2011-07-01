@@ -6,9 +6,9 @@ import org.apache.hadoop.mapreduce.{TaskAttemptContext, RecordWriter}
 import org.apache.hadoop.io.Text
 import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 
-class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
+class SilkOutputFormat extends FileOutputFormat[Text, InstanceConfidence]
 {
-  override def getRecordWriter(job : TaskAttemptContext) : RecordWriter[Text, InstanceSimilarity] =
+  override def getRecordWriter(job : TaskAttemptContext) : RecordWriter[Text, InstanceConfidence] =
   {
     val config = job.getConfiguration
     val file = getDefaultWorkFile(job, ".nt")
@@ -18,9 +18,9 @@ class SilkOutputFormat extends FileOutputFormat[Text, InstanceSimilarity]
     new LinkWriter(out, SilkConfiguration.get(job.getConfiguration))
   }
 
-  private class LinkWriter(out : DataOutputStream, config : SilkConfiguration) extends RecordWriter[Text, InstanceSimilarity]
+  private class LinkWriter(out : DataOutputStream, config : SilkConfiguration) extends RecordWriter[Text, InstanceConfidence]
   {
-    override def write(sourceUri : Text, instanceSimilarity : InstanceSimilarity) : Unit =
+    override def write(sourceUri : Text, instanceSimilarity : InstanceConfidence) : Unit =
     {
       val line = "<" + sourceUri + "> <" + config.linkSpec.linkType + "> <" + instanceSimilarity.targetUri + "> .\n"
       out.write(line.getBytes("UTF-8"))
