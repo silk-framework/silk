@@ -5,10 +5,10 @@ import scala.collection.JavaConversions._
 import org.apache.hadoop.io.Text
 import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 
-class SilkReduce extends Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]
+class SilkReduce extends Reducer[Text, InstanceConfidence, Text, InstanceConfidence]
 {
-  protected override def reduce(sourceUri : Text, instanceSimilarities : java.lang.Iterable[InstanceSimilarity],
-                                context : Reducer[Text, InstanceSimilarity, Text, InstanceSimilarity]#Context)
+  protected override def reduce(sourceUri : Text, instanceSimilarities : java.lang.Iterable[InstanceConfidence],
+                                context : Reducer[Text, InstanceConfidence, Text, InstanceConfidence]#Context)
   {
     val config = SilkConfiguration.get(context.getConfiguration)
 

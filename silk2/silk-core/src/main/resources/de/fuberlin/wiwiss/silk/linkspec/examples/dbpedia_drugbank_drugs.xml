@@ -22,8 +22,6 @@
     </DataSource>
   </DataSources>
 
-  <!-- Blocking / -->
-
   <Interlinks>
     <Interlink id="drugs">
       <LinkType>owl:sameAs</LinkType>
@@ -43,7 +41,7 @@
       <LinkCondition>
         <Aggregate type="average">
           <Aggregate type="max">
-            <Compare metric="levenshtein">
+            <Compare metric="levenshteinDistance" threshold="1">
               <TransformInput function="lowerCase">
                 <Input path="?a/rdfs:label" />
               </TransformInput>
@@ -51,7 +49,7 @@
                 <Input path="?b/rdfs:label" />
               </TransformInput>
             </Compare>
-            <Compare metric="levenshtein">
+            <Compare metric="levenshteinDistance" threshold="1">
               <TransformInput function="lowerCase">
                 <Input path="?a/rdfs:label" />
               </TransformInput>
@@ -59,7 +57,7 @@
                 <Input path="?b/drugbank:synonym" />
               </TransformInput>
             </Compare>
-            <Compare metric="levenshtein">
+            <Compare metric="levenshteinDistance" threshold="1">
               <TransformInput function="lowerCase">
                 <TransformInput function="replace">
                   <TransformInput function="stripUriPrefix">
@@ -73,7 +71,7 @@
                 <Input path="?b/rdfs:label" />
               </TransformInput>
             </Compare>
-            <Compare metric="levenshtein">
+            <Compare metric="levenshteinDistance" threshold="1">
               <TransformInput function="lowerCase">
                 <TransformInput function="replace">
                   <TransformInput function="stripUriPrefix">
@@ -87,7 +85,7 @@
                 <Input path="?b/drugbank:synonym" />
               </TransformInput>
             </Compare>
-            <Compare metric="levenshtein">
+            <Compare metric="levenshteinDistance" threshold="1">
               <TransformInput function="lowerCase">
                 <Input path="?a/rdfs:label" />
               </TransformInput>
@@ -95,7 +93,7 @@
                 <Input path="?b/drugbank:brandName" />
               </TransformInput>
             </Compare>
-            <Compare metric="levenshtein">
+            <Compare metric="levenshteinDistance" threshold="1" >
               <TransformInput function="lowerCase">
                 <TransformInput function="replace">
                   <TransformInput function="stripUriPrefix">
@@ -177,14 +175,14 @@
         </Aggregate>
       </LinkCondition>
 
-      <Filter threshold="0.95" />
+      <Filter />
 
       <Outputs>
-        <Output maxConfidence="0.98" type="file" >
+        <Output maxConfidence="0.2" type="file" >
           <Param name="file" value="dbpedia_drugbank_drugs_verify_links.xml"/>
           <Param name="format" value="alignment"/>
         </Output>
-        <Output minConfidence="0.98" type="file">
+        <Output minConfidence="0.2" type="file">
           <Param name="file" value="dbpedia_drugbank_drugs_accepted_links.xml"/>
           <Param name="format" value="alignment"/>
         </Output>
