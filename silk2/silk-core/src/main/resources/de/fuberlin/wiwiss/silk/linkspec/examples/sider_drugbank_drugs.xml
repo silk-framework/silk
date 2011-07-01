@@ -67,11 +67,11 @@
   </Interlinks>
 
   <Outputs>
-    <Output maxConfidence="0.95" type="file" >
+    <Output maxConfidence="0.1" type="file" >
       <Param name="file" value="sider_drugbank_drugs_verify_links.xml"/>
       <Param name="format" value="alignment"/>
     </Output>
-    <Output minConfidence="0.95" type="file">
+    <Output minConfidence="0.1" type="file">
       <Param name="file" value="sider_drugbank_drugs_accepted_links.xml"/>
       <Param name="format" value="alignment"/>
     </Output>
