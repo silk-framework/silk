@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkspec.condition
 
 import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
+import scala.math.min
 
 trait DistanceMeasure extends Strategy
 {
@@ -66,9 +67,15 @@ trait SimpleDistanceMeasure extends DistanceMeasure
 {
   def apply(values1 : Traversable[String], values2 : Traversable[String], limit : Double) : Double =
   {
-    val distances = for (str1 <- values1; str2 <- values2) yield evaluate(str1, str2, limit)
+    var minDistance = Double.MaxValue
 
-    distances.min
+    for (str1 <- values1; str2 <- values2)
+    {
+      val distance = evaluate(str1, str2, min(limit, minDistance))
+      minDistance = min(minDistance, distance)
+    }
+
+    minDistance
   }
 
   /**
