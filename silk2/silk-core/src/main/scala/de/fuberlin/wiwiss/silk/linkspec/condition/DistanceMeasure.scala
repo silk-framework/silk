@@ -5,7 +5,7 @@ import scala.math.min
 
 trait DistanceMeasure extends Strategy
 {
-  def apply(values1 : Traversable[String], values2 : Traversable[String], limit : Double = 0.0) : Double
+  def apply(values1 : Traversable[String], values2 : Traversable[String], limit : Double = Double.PositiveInfinity) : Double
 
   def index(value : String, limit : Double) : Set[Seq[Int]] = Set(Seq(0))
 
@@ -81,7 +81,7 @@ trait SimpleDistanceMeasure extends DistanceMeasure
   /**
    * Evaluates the similarity of a pair of similarity values.
    */
-  def evaluate(value1 : String, value2 : String, limit : Double = 0.0) : Double
+  def evaluate(value1 : String, value2 : String, limit : Double = Double.PositiveInfinity) : Double
 }
 
 object DistanceMeasure extends Factory[DistanceMeasure]
