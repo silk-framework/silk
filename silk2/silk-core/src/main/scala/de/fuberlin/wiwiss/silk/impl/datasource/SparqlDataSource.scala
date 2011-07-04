@@ -28,7 +28,18 @@ class SparqlDataSource(endpointURI : String, login : String = null, password : S
 {
   private val uri = new URI(endpointURI)
 
-  private val loginComplete = if(login != null) Some((login, password)) else None
+  private val loginComplete =
+  {
+    if(login != null)
+    {
+      require(password != null, "No password provided for login '" + login + "'. Please set the 'password' parameter.")
+      Some((login, password))
+    }
+    else
+    {
+      None
+    }
+  }
 
   private val graphUri = if(graph == null) None else Some(graph)
 
