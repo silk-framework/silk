@@ -79,7 +79,7 @@ class RemoteSparqlEndpoint(val uri : URI,
       //Execute query
       if(logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri +"\n" + query)
 
-      val url = new URL(uri + "?format=application/sparql-results%2Bxml&query=" + URLEncoder.encode(query, "UTF-8"))
+      val url = new URL(uri + "?query=" + URLEncoder.encode(query, "UTF-8"))
 
       var result : Elem = null
       var retries = 0
