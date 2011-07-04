@@ -10,6 +10,8 @@ object LinkConditionEvaluator
     require(!instances.positive.isEmpty, "Positive alignment samples are required")
     require(!instances.negative.isEmpty, "Negative alignment samples are required")
 
+    val startTime = System.currentTimeMillis()
+
     var truePositives : Int = 0
     var trueNegatives : Int = 0
     var falsePositives : Int = 0
@@ -67,12 +69,20 @@ object LinkConditionEvaluator
 //      }
 //    }
 
+//    val score =
+//    {
+//      val cross = positiveScore * negativeScore - negativeError * positiveError
+//      val sum = (positiveScore + negativeError) * (positiveScore + positiveError) * (negativeScore + negativeError) * (negativeScore + positiveError)
+//
+//      if(sum != 0.0) cross.toDouble / sqrt(sum.toDouble) else 0.0
+//    }
+
+    val time = System.currentTimeMillis() - startTime
+    println("XXX " + time + linkCondition.toString)
+
     val score =
     {
-      val cross = positiveScore * negativeScore - negativeError * positiveError
-      val sum = (positiveScore + negativeError) * (positiveScore + positiveError) * (negativeScore + negativeError) * (negativeScore + positiveError)
-
-      if(sum != 0.0) cross.toDouble / sqrt(sum.toDouble) else 0.0
+      (positiveScore / (positiveScore + positiveError)) * (negativeScore / (negativeScore + negativeError))
     }
 
     new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
