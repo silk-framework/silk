@@ -12,7 +12,7 @@ class ParallelMapper[T](traversable : Traversable[T], threadCount : Int = 8)
 
     //Start worker threads in the background
     val threads = for(i <- 0 until threadCount) yield new WorkerThread(f, buffer, i)
-    threads.foreach(_.start)
+    threads.foreach(_.start())
 
     //Add all elements to the queue
     traversable.foreach(e => queue.synchronized { queue.enqueue(e) } )
@@ -22,8 +22,8 @@ class ParallelMapper[T](traversable : Traversable[T], threadCount : Int = 8)
     {
       Thread.sleep(100)
     }
-    threads.foreach(_.interrupt)
-    threads.foreach(_.join)
+    threads.foreach(_.interrupt())
+    threads.foreach(_.join())
 
     buffer.toTraversable
   }

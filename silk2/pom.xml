@@ -36,9 +36,13 @@
         <artifactId>maven-scala-plugin</artifactId>
         <version>${scala.plugin.version}</version>
         <configuration>
+          <args>
+            <arg>-optimise</arg>
+          </args>
           <jvmArgs>
             <jvmArg>-Xmx1024m</jvmArg>
           </jvmArgs>
+          <displayCmd>true</displayCmd>
         </configuration>
         <executions>
           <execution>
