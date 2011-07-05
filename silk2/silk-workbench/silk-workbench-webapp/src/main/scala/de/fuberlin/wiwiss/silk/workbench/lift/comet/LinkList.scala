@@ -97,7 +97,7 @@ trait LinkList extends CometActor
   {
     LinkFilter() = value
 
-    updateLinksCmd
+    JsRaw("useFilter(" + links.size + ");").cmd
   }
 
   /**

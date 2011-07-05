@@ -1,4 +1,10 @@
 var current_page = 1;
+var fid;
+
+function useFilter(size) {
+  clearTimeout(fid);
+  fid = setTimeout("initPagination("+size+")", 2000);
+}
 
 function handlePaginationClick(new_page_index, pagination_container) {
   showLinks(new_page_index);
@@ -7,6 +13,7 @@ function handlePaginationClick(new_page_index, pagination_container) {
 }
 
 function initPagination(number_results) {
+
   $(".navigation").pagination(number_results, {
     items_per_page:100,
     callback:handlePaginationClick
