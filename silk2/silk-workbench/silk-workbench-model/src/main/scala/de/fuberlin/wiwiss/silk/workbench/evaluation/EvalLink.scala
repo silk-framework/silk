@@ -43,17 +43,17 @@ object EvalLink
   case object Generated extends LinkType
 
   /**
-   * Reference link.
+   * ReferenceType link.
    */
-  trait Reference extends LinkType
+  trait ReferenceType extends LinkType
 
   /**
    * Positive reference link.
    */
-  case object Positive extends Reference
+  case object Positive extends ReferenceType
 
   /**
    * Negative reference link.
    */
-  case object Negative extends Reference
+  case object Negative extends ReferenceType
 }
