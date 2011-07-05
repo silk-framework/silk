@@ -23,9 +23,9 @@ class ReferenceLinks extends LinkList
   private var lastUpdateTime = 0L
 
   /** Register to updates to the ShowLinks variable */
-  ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.Reference], Publisher[UserData.ValueUpdated[EvalLink.Reference]]]
+  ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.ReferenceType], Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]]]
   {
-    def notify(pub : Publisher[UserData.ValueUpdated[EvalLink.Reference]], status : UserData.ValueUpdated[EvalLink.Reference])
+    def notify(pub : Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]], status : UserData.ValueUpdated[EvalLink.ReferenceType])
     {
       partialUpdate(updateLinksCmd)
     }
