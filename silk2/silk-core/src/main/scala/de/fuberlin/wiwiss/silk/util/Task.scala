@@ -76,6 +76,8 @@ trait Task[+T] extends (() => T) with Publisher[StatusMessage]
   def cancel()
   {
     stopExecution()
+    currentProgress = 0.0
+    currentStatus = "Idle"
   }
 
   /**
