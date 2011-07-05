@@ -210,27 +210,27 @@ a:hover {
 }
 
 .target-path {
-  color: #3b3b1f;
-  border: 1px solid #9d9d90;
-  background-color: #e2dabf;
+  color: #4a1e1e;
+  border: 1px solid #c18f8f;
+  background-color: #ffe8e8;
 }
 
 .target-value {
-  color: #3b3b1f;
-  border: 1px solid #b5b5a7;
-  background-color: #f1f1df;
+  color: #4a1e1e;
+  border: 1px solid #c18f8f;
+  background-color: #ffe8e8;
 }
 
 .source-path {
-  color: #1f313b;
-  border: 1px solid #929b9f;
-  background-color: #cddbdd;
+  color: #502c4f;
+  border: 1px solid #c6a0c4;
+  background-color: #f2d7ff;
 }
 
 .source-value {
-  color: #1f313b;
-  border: 1px solid #a7b0b5;
-  background-color: #e4ecf1;
+  color: #502c4f;
+  border: 1px solid #c6a0c4;
+  background-color: #f2d7ff;
 }
 
 .treeview li {
