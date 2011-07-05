@@ -33,6 +33,8 @@ trait LinkList extends CometActor
   /** Prefixes used to shorten URIs. We use known prefixes from the global registry and from the project */
   private implicit var prefixes = PrefixRegistry.all ++ User().project.config.prefixes
 
+  override protected val dontCacheRendering = true
+
   override def render =
   {
     prefixes = PrefixRegistry.all ++ User().project.config.prefixes
