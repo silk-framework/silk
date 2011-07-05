@@ -87,6 +87,10 @@ body{
 	background-color: #ffeed6;
 	border:1px dotted #e59829;
 }
+.targets {
+  background-color: #ffd7d7;
+	border:1px dotted #c35454;
+}
 
 .dragDiv {
 	width:200px;
@@ -125,8 +129,8 @@ body{
 }
 
 .targetPath {
-	background-color:#f2d7ff;
-	border:1px solid #C354BF;
+	background-color: #ffd7d7;
+	border:1px solid #c35454;
 }
 
 .transformDiv  {
@@ -150,7 +154,7 @@ body{
 }
 
 .targetPath h5 {
-	background-color:#C354BF;
+	background-color: #c35454;
     height: 15px;
 }
 
