@@ -68,4 +68,6 @@ object JS
    */
   def Empty = JsRaw("").cmd
 
+  def ajaxLiveText(value: String, func: String => JsCmd) = <input value={value} onkeyup={SHtml.ajaxCall(JsRaw("this.value"), func)._2.toJsCmd}/>
+
 }

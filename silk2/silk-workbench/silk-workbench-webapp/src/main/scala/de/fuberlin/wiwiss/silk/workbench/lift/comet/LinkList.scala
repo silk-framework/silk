@@ -1,14 +1,14 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
-import xml.{Text, NodeSeq}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
+import xml.{Elem, Text, NodeSeq}
+import net.liftweb.http.{SHtml, S, CometActor}
 
 /**
 * A widget which displays a list of links.
@@ -41,7 +41,7 @@ trait LinkList extends CometActor
 
     bind("entry", defaultHtml,
       "script" -> Script(OnLoad(updateLinksCmd) & showLinksFunc),
-      "filter" -> <div id="filter">Filter:{SHtml.ajaxText("", applyFilter)}</div>,
+      "filter" -> <div id="filter">Filter:{JS.ajaxLiveText(LinkFilter(), applyFilter)}</div>,
       "list" -> <div id="results" />
     )
   }
