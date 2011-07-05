@@ -506,9 +506,12 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
   });
   $(xml).find("> Input").each(function ()
   {
+    var pathClass = "sourcePath";
+    var path = $(this).attr("path");
+    if (path.charAt(1) == targetDataSetVar) pathClass = "targetPath";
 
     var box1 = $(document.createElement('div'));
-    box1.addClass('dragDiv sourcePath');
+    box1.addClass('dragDiv ' + pathClass);
     box1.attr("id", "source_" + sourcecounter);
 
     var height = sourcecounter * 120 + 20;
@@ -1038,7 +1041,7 @@ function getPropertyPaths(deleteExisting)
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
-        box.addClass('draggable');
+        box.addClass('draggable targets');
         box.attr("id", "target0");
         box.html("<span> </span><small> </small><p>(custom path)</p>");
         box.draggable(
@@ -1046,7 +1049,7 @@ function getPropertyPaths(deleteExisting)
           helper: function ()
           {
             var box1 = $(document.createElement('div'));
-            box1.addClass('dragDiv sourcePath');
+            box1.addClass('dragDiv targetPath');
             box1.attr("id", "source_" + sourcecounter);
 
             var box2 = $(document.createElement('small'));
@@ -1187,7 +1190,7 @@ function getPropertyPaths(deleteExisting)
     $.each(sourcepaths, function (i, item)
     {
       var box = $(document.createElement('div'));
-      box.addClass('draggable');
+      box.addClass('draggable targets');
       box.attr("id", "target" + list_item_id);
       box.attr("title", encodeHtml(item.path));
       box.html("<span></span><small>" + encodeHtml(item.path) + "</small><p style=\"white-space:nowrap; overflow:hidden;\">" + encodeHtml(item.path) + "</p>");
