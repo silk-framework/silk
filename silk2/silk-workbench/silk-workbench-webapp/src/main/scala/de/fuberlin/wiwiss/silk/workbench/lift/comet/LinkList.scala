@@ -137,7 +137,7 @@ trait LinkList extends CometActor
     }
   }
 
-  private def renderDetails(details : Option[Link.Similarity]) : NodeSeq =
+  private def renderDetails(details : Option[Link.Confidence]) : NodeSeq =
   {
     details match
     {
@@ -151,9 +151,9 @@ trait LinkList extends CometActor
     }
   }
 
-  private def renderSimilarity(similarity : Link.Similarity) : NodeSeq = similarity match
+  private def renderSimilarity(similarity : Link.Confidence) : NodeSeq = similarity match
   {
-    case Link.AggregatorSimilarity(function, value, children) =>
+    case Link.AggregatorConfidence(value, function, children) =>
     {
       <li>
         <span class="aggregation">Aggregation({function})</span>{ renderConfidence(value) }
@@ -162,7 +162,7 @@ trait LinkList extends CometActor
           </ul>
       </li>
     }
-    case Link.ComparisonSimilarity(function, value, input1, input2) =>
+    case Link.ComparisonConfidence(value, function, input1, input2) =>
     {
       <li>
         <span class="comparison">Comparison({function})</span>{ renderConfidence(value) }
@@ -171,6 +171,10 @@ trait LinkList extends CometActor
             { renderInputValue(input2, "target") }
           </ul>
       </li>
+    }
+    case Link.SimpleConfidence(value) =>
+    {
+      <li>Link Specification is empty</li>
     }
   }
   private def renderConfidence(value : Option[Double]) = value match

@@ -11,17 +11,32 @@ object DetailedEvaluator
 {
   def apply(condition : LinkCondition, instances : SourceTargetPair[Instance], limit : Double = -1.0) : Option[Link] =
   {
-    val similarity = evaluateOperator(condition.rootOperator.get, instances, limit)
-
-    val confidence = similarity.value.getOrElse(-1.0)
-
-    if(confidence >= limit)
+    condition.rootOperator match
     {
-      Some(new Link(instances.source.uri, instances.target.uri, confidence, Some(similarity)))
-    }
-    else
-    {
-      None
+      case Some(op) =>
+      {
+        val confidence = evaluateOperator(op, instances, limit)
+
+        if(confidence.value.getOrElse(-1.0) >= limit)
+        {
+          Some(new Link(instances.source.uri, instances.target.uri, Some(confidence)))
+        }
+        else
+        {
+          None
+        }
+      }
+      case None =>
+      {
+        if(limit == -1.0)
+        {
+          Some(new Link(instances.source.uri, instances.target.uri, Some(Link.SimpleConfidence(Some(-1.0)))))
+        }
+        else
+        {
+          None
+        }
+      }
     }
   }
 
@@ -31,7 +46,7 @@ object DetailedEvaluator
     case comparison : Comparison => evaluateComparison(comparison, instances, threshold)
   }
 
-  private def evaluateAggregation(aggregation : Aggregation, instances : SourceTargetPair[Instance], threshold : Double) : Link.AggregatorSimilarity =
+  private def evaluateAggregation(aggregation : Aggregation, instances : SourceTargetPair[Instance], threshold : Double) : Link.AggregatorConfidence =
   {
     val totalWeights = aggregation.operators.map(_.weight).sum
 
@@ -56,12 +71,12 @@ object DetailedEvaluator
     val name = aggregation.aggregator.strategyName
 
     if(isNone)
-      Link.AggregatorSimilarity(name, None, operatorValues)
+      Link.AggregatorConfidence(None, name, operatorValues)
     else
-      Link.AggregatorSimilarity(name, aggregatedValue, operatorValues)
+      Link.AggregatorConfidence(aggregatedValue, name, operatorValues)
   }
 
-  private def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonSimilarity =
+  private def evaluateComparison(comparision : Comparison, instances : SourceTargetPair[Instance], threshold : Double) : Link.ComparisonConfidence =
   {
     val distance = comparision.apply(instances, threshold)
 
@@ -73,7 +88,7 @@ object DetailedEvaluator
 
     val name = comparision.metric.strategyName
 
-    Link.ComparisonSimilarity(name, distance, sourceInput, targetInput)
+    Link.ComparisonConfidence(distance, name, sourceInput, targetInput)
   }
 
   private def findPath(input : Input) : Path = input match

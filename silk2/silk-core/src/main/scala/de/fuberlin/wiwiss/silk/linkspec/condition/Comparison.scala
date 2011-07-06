@@ -62,11 +62,13 @@ case class Comparison(required : Boolean, threshold : Double, weight : Int,
    */
   override def index(instance : Instance, limit : Double) : Set[Seq[Int]] =
   {
-    val values = inputs.source(SourceTargetPair(instance, instance)) ++ inputs.target(SourceTargetPair(instance, instance))
+    val instancePair = SourceTargetPair.fill(instance)
 
-    val metricLimit = threshold * (1.0 - limit)
+    val values = inputs.source(instancePair) ++ inputs.target(instancePair)
 
-    values.flatMap(value => metric.index(value, metricLimit)).toSet
+    val distanceLimit = threshold * (1.0 - limit)
+
+    values.flatMap(value => metric.index(value, distanceLimit)).toSet
   }
 
   /**

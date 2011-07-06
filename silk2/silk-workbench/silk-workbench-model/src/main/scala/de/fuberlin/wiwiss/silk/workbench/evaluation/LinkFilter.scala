@@ -33,13 +33,14 @@ class LinkFilter(value : String) extends (EvalLink => Boolean)
     })
   }
 
-  private def hasValue(similarity : Link.Similarity) : Boolean = similarity match
+  private def hasValue(similarity : Link.Confidence) : Boolean = similarity match
   {
-    case Link.AggregatorSimilarity(_, _, children) => children.exists(hasValue)
-    case Link.ComparisonSimilarity(_, _, i1, i2) =>
+    case Link.AggregatorConfidence(_, _, children) => children.exists(hasValue)
+    case Link.ComparisonConfidence(_, _, i1, i2) =>
     {
       i1.values.exists(_.toLowerCase.contains(value)) ||
       i2.values.exists(_.toLowerCase.contains(value))
     }
+    case Link.SimpleConfidence(_) => false
   }
 }
