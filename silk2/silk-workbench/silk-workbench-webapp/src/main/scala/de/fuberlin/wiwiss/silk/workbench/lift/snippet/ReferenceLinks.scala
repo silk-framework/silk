@@ -7,6 +7,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{ReferenceType, Positive, Negative}
 import xml._
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS._
 
 class ReferenceLinks
 {
@@ -34,7 +35,8 @@ class ReferenceLinks
              <label for="showNegativeLinks">Negative</label>
            }
            </div>,
-         "importReferenceLinks" -> SHtml.ajaxButton("Import ReferenceType Links", ImportReferenceLinksDialog.openCmd _),
+         "import" -> SHtml.ajaxButton("Import", ImportReferenceLinksDialog.openCmd _),
+         "export" -> SHtml.ajaxButton("Export", () => Redirect("referenceLinks.xml")),
          "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Evaluation" target="_help">Help</a>,
          "scripts" -> Script(OnLoad(ImportReferenceLinksDialog.initCmd))
     )
