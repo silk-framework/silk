@@ -764,7 +764,7 @@ function serializeLinkSpec() {
       {
         root = key;
         root_counter++;
-        if (root_counter>1) return false;
+        if (root_counter>1) return "Multiple Link Conditions founds";
       }
     }
   }

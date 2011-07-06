@@ -1,21 +1,19 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import net.liftweb.http.js.JE.JsRaw
-import net.liftweb.http.js.JsCmds.Script
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.Call
 import xml.NodeSeq
-import net.liftweb.http.{S, SHtml}
 import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.{Redirect}
-import de.fuberlin.wiwiss.silk.MatchTask
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.Redirect
 import java.util.logging.{Level, Logger}
-import net.liftweb.http.js.JsCmds.{Script, OnLoad}
-import de.fuberlin.wiwiss.silk.util.CollectLogs._
+import net.liftweb.http.js.JsCmds.Script
 import de.fuberlin.wiwiss.silk.util.CollectLogs
+import net.liftweb.http.SHtml
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
 /**
  * LinkSpec snippet.
@@ -56,52 +54,59 @@ class LinkSpec
    */
   private def saveLinkSpec(linkSpecStr : String) =
   {
-    try
+    if(linkSpecStr.startsWith("<"))
     {
-      val project = User().project
-      val linkingTask = User().linkingTask
-      implicit val prefixes = project.config.prefixes
-
-      //Collect warnings while saving link spec
-      val warnings = CollectLogs(Level.WARNING)
+      try
       {
-        //Load link specification
-        val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
+        val project = User().project
+        val linkingTask = User().linkingTask
+        implicit val prefixes = project.config.prefixes
 
-        //Update linking task
-        val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
+        //Collect warnings while saving link spec
+        val warnings = CollectLogs(Level.WARNING)
+        {
+          //Load link specification
+          val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
 
-        //Commit
-        project.linkingModule.update(updatedLinkingTask)
-        User().task = updatedLinkingTask
+          //Update linking task
+          val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
+
+          //Commit
+          project.linkingModule.update(updatedLinkingTask)
+          User().task = updatedLinkingTask
+        }
+
+        //Generate a message for the user
+        val message =
+        {
+          if(warnings.isEmpty)
+          {
+            "Saved"
+          }
+          else
+          {
+            "Saved.\\nWarnings:\\n" + warnings.map(_.getMessage).mkString("\\n")
+          }
+        }
+
+        //Update link spec variable and notify user
+        linkSpecVarCmd & JsRaw("alert('" + message + "')").cmd
       }
-
-      //Generate a message for the user
-      val message =
+      catch
       {
-        if(warnings.isEmpty)
+        case ex : Exception =>
         {
-          "Saved"
-        }
-        else
-        {
-          "Saved.\\nWarnings:\\n" + warnings.map(_.getMessage).mkString("\\n")
+          logger.log(Level.INFO, "Failed to save link specification", ex)
+          val msg = ex.getMessage
+          //Strip prefixes like this: "cvc-complex-type.2.4.b:"
+          val cleanMsg = if(msg.contains(':')) msg.split(':').tail.mkString else msg
+          JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + cleanMsg.encJs + ".');").cmd
         }
       }
-
-      //Update link spec variable and notify user
-      linkSpecVarCmd & JsRaw("alert('" + message + "')").cmd
     }
-    catch
+    else
     {
-      case ex : Exception =>
-      {
-        logger.log(Level.INFO, "Failed to save link specification", ex)
-        val msg = ex.getMessage
-        //Strip prefixes like this: "cvc-complex-type.2.4.b:"
-        val cleanMsg = if(msg.contains(':')) msg.split(':').tail.mkString else msg
-        JsRaw("alert('Error updating Link Specification.\\n\\nDetails: " + cleanMsg.encJs + ".');").cmd
-      }
+      JS.Message(linkSpecStr)
     }
   }
 
