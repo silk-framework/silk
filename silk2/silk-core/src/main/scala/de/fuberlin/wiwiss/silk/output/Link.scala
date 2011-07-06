@@ -7,13 +7,22 @@ import de.fuberlin.wiwiss.silk.instance.Path
  *
  * @param sourceUri the source URI
  * @param targetUri the target URI
- * @param confidence the confidence that this link is correct. Allowed values: [0.0, 1.0]
+ * @param details
  */
-class Link(val sourceUri : String, val targetUri : String, val confidence : Double = 0.0, val details : Option[Link.Similarity] = None)
+class Link(val sourceUri : String, val targetUri : String, val details : Option[Link.Confidence] = None)
 {
-  require(confidence >= -1.0 && confidence <= 1.0, "confidence >= -1.0 && confidence <= 1.0 (confidence=" + confidence)
+  def this(sourceUri : String, targetUri : String, confidence : Double) = this(sourceUri, targetUri, Some(Link.SimpleConfidence(Some(confidence))))
 
-  override def toString = "<" + sourceUri + ">  <" + targetUri + "> (" + confidence + ")"
+  /**
+   * The confidence that this link is correct. Allowed values: [-1.0, 1.0].
+   */
+  def confidence : Double = details match
+  {
+    case Some(c) => c.value.getOrElse(-1.0)
+    case None => -1.0
+  }
+
+  override def toString = "<" + sourceUri + ">  <" + targetUri + ">"
 
   /**
    * Compares two Links for equality.
@@ -30,15 +39,16 @@ class Link(val sourceUri : String, val targetUri : String, val confidence : Doub
 
 object Link
 {
-  sealed trait Similarity
+  sealed trait Confidence
   {
-    val function : String
     val value : Option[Double]
   }
 
-  case class AggregatorSimilarity(function : String, value : Option[Double], children : Seq[Similarity]) extends Similarity
+  case class SimpleConfidence(value : Option[Double]) extends Confidence
 
-  case class ComparisonSimilarity(function : String, value : Option[Double], sourceInput : InputValue, targetInput : InputValue) extends Similarity
+  case class AggregatorConfidence(value : Option[Double], function : String, children : Seq[Confidence]) extends Confidence
+
+  case class ComparisonConfidence(value : Option[Double], function : String, sourceInput : InputValue, targetInput : InputValue) extends Confidence
 
   case class InputValue(path : Path, values : Traversable[String])
 }
