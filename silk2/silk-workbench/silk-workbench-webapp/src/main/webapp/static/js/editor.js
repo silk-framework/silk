@@ -756,6 +756,17 @@ function serializeLinkSpec() {
       connections = connections + source + " -> " + target + ", ";
     }
     //alert (connections);
+
+  var stray_element_found = false;
+  $("#droppable > div").each(function() {
+      var elId = $(this).attr('id');
+      var cs = jsPlumb.getConnections({source: elId});
+      var ct = jsPlumb.getConnections({target: elId});
+      if (ct[jsPlumb.getDefaultScope()].length < 1 && cs[jsPlumb.getDefaultScope()].length < 1)
+          stray_element_found = true;
+  });
+  if (stray_element_found) return "Element with no connections found";
+
     var root = null;
     var root_counter = 0;
     for (var key in sources)
@@ -767,6 +778,7 @@ function serializeLinkSpec() {
         if (root_counter>1) return "Multiple Link Conditions founds";
       }
     }
+
   }
   //alert(connections + "\n\n" + root);
   var xml = document.createElement("Interlink");
