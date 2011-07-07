@@ -43,18 +43,19 @@ class RemoteSparqlEndpoint(val uri : URI,
 
         for(resultXml <- resultsXml)
         {
-          val values = for(binding <- resultXml \ "binding"; node <- binding \ "_") yield node.label match
+          val bindings = resultXml \ "binding"
+
+          val uris = for(binding <- bindings; node <- binding \ "uri") yield (binding \ "@name" text, Resource(node.text))
+
+          val literals = for(binding <- bindings; node <- binding \ "literal") yield (binding \ "@name" text, Literal(node.text))
+
+          val bnodes = for(binding <- bindings; node <- binding \ "bnode") yield
           {
-            case "uri" => (binding \ "@name" text, Resource(node.text))
-            case "literal" => (binding \ "@name" text, Literal(node.text))
-            case "bnode" =>
-            {
-              blankNodeCount += 1
-              (binding \ "@name" text, BlankNode("bnode" + blankNodeCount))
-            }
+            blankNodeCount += 1
+            (binding \ "@name" text, BlankNode("bnode" + blankNodeCount))
           }
 
-          f(values.toMap)
+          f((uris ++ literals ++ bnodes).toMap)
         }
 
         if(resultsXml.size < pageSize) return
