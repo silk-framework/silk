@@ -970,6 +970,9 @@ $(function ()
     modifyLinkSpec();
   });
 
+  $("#toolbar").append('<div class="tick"></div>');
+  $("#toolbar").append('<div class="exclamation"></div>');
+
 });
 
 function decodeHtml(value)
