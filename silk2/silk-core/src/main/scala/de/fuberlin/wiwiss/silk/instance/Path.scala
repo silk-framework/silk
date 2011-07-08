@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 /**
  * Represents an RDF path.
  */
-case class Path(variable : String, operators : List[PathOperator])
+final class Path private(val variable : String, val operators : List[PathOperator])
 {
   /**
    * Serializes this path using the Silk RDF path language.
@@ -36,12 +36,22 @@ object Path
   private val pathCache = new WeakHashMap[String, Path]() with SynchronizedMap[String, Path]
 
   /**
+   * Creates a new path.
+   * May return a cached copy.
+   */
+  def apply(variable : String, operators : List[PathOperator]) : Path =
+  {
+    val path = new Path(variable, operators)
+
+    pathCache.getOrElseUpdate(path.serialize, path)
+  }
+
+  /**
    * Parses a path string.
    * May return a cached copy.
    */
-  def parse(pathStr : String)(implicit prefixes : Prefixes = Prefixes.empty) =
+  def parse(pathStr : String)(implicit prefixes : Prefixes = Prefixes.empty) : Path =
   {
-    //Try to retrieve a cached copy. If not found, parse the path
-    pathCache.getOrElseUpdate(pathStr, new PathParser(prefixes).parse(pathStr))
+    new PathParser(prefixes).parse(pathStr)
   }
 }
