@@ -32,7 +32,7 @@ object LDEPathsCollector
     {
       for(result <- results if result.contains("p")) yield
       {
-        (new Path(variable, ForwardOperator(Uri.fromURI(result("p").value)) :: Nil), 1.)
+        (Path(variable, ForwardOperator(Uri.fromURI(result("p").value)) :: Nil), 1.)
       }
     }
     else

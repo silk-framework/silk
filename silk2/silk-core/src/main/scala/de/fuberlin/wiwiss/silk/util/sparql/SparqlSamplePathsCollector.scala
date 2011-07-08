@@ -86,6 +86,6 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     sparql += "}"
 
     for(result <- endpoint.query(sparql); binding <- result.values)
-      yield new Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
+      yield Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
   }
 }
