@@ -45,8 +45,20 @@ class LinkSpec
    */
   def content(xhtml : NodeSeq) : NodeSeq =
   {
+    val updateLinkSpecFunction = JsCmds.Function("updateLinkSpec", "xml" :: Nil, SHtml.ajaxCall(JsRaw("xml"), updateLinkSpec _)._2.cmd)
+
     bind("entry", xhtml,
-         "linkSpecVar" -> Script(linkSpecVarCmd & reloadCacheFunction))
+         "linkSpecVar" -> Script(linkSpecVarCmd & reloadCacheFunction & updateLinkSpecFunction))
+  }
+
+  /**
+   * Updates the Link Specification.
+   */
+  private def updateLinkSpec(linkSpecStr : String) =
+  {
+    //TODO DUMMY
+    println("Updated link specification:\n" + linkSpecStr)
+    JS.Empty
   }
 
   /**
