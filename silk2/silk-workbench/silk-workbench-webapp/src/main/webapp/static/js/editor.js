@@ -25,6 +25,7 @@ var customPropertyPathsCreated = false;
 
 //TODO Set to true if the link specification has been modified
 var modified = true;
+var modificationTimer;
 
 jsPlumb.Defaults.Container = "droppable";
 
@@ -120,6 +121,11 @@ function confirmExit()
   }
 }
 
+function modifyLinkSpec() {
+    clearTimeout(modificationTimer);
+    modificationTimer = setTimeout("updateLinkSpec(serializeLinkSpec())", 2000);
+}
+
 Array.max = function(array) {
     return Math.max.apply(Math, array);
 };
@@ -162,7 +168,7 @@ function getDeleteIcon(elementId) {
   img.attr("src", "static/img/delete.png");
   img.attr("align", "right");
   img.attr("style", "cursor:pointer;");
-  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove();");
+  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove(); modifyLinkSpec()");
   return img;
 }
 
@@ -942,8 +948,28 @@ $(function ()
         jsPlumb.repaint(number);
 
       }
+      modifyLinkSpec();
     }
   });
+
+  jsPlumb.bind("jsPlumbConnection", {
+    jsPlumbConnection: function() {
+        modifyLinkSpec();
+	}
+  });
+  jsPlumb.bind("jsPlumbConnectionDetached", {
+    jsPlumbConnectionDetached: function() {
+        modifyLinkSpec();
+	}
+  });
+
+  $("input").live('change', function(e) {
+    modifyLinkSpec();
+  });
+  $("input[type='text']").live('keyup', function(e) {
+    modifyLinkSpec();
+  });
+
 });
 
 function decodeHtml(value)
