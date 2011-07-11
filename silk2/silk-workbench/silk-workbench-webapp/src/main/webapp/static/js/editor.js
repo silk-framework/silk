@@ -122,8 +122,19 @@ function confirmExit()
 }
 
 function modifyLinkSpec() {
-    clearTimeout(modificationTimer);
-    modificationTimer = setTimeout("updateLinkSpec(serializeLinkSpec())", 2000);
+  clearTimeout(modificationTimer);
+  modificationTimer = setTimeout("updateLinkSpec(serializeLinkSpec());", 2000);
+}
+
+function showValidIcon() {
+  $("#exclamation, #tick").fadeOut(300, function(){
+    $("#tick").fadeIn(300);
+  });
+}
+function showInvalidIcon() {
+  $("#tick, #exclamation").fadeOut(300, function(){
+    $("#exclamation").fadeIn(300);
+  });
 }
 
 Array.max = function(array) {
@@ -970,8 +981,8 @@ $(function ()
     modifyLinkSpec();
   });
 
-  $("#toolbar").append('<div class="tick"></div>');
-  $("#toolbar").append('<div class="exclamation"></div>');
+  $("#toolbar").append('<div id="tick" style="display: none"></div>');
+  $("#toolbar").append('<div id="exclamation" style="display: none"></div>');
 
 });
 

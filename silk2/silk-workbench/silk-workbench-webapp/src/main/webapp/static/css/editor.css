@@ -237,7 +237,7 @@ a.more {
   border: 2px solid #f1d21e;
 }
 
-.exclamation {
+#exclamation {
   width: 24px;
   height: 24px;
   background-image: url('/static/img/exclamation.png');
@@ -245,7 +245,7 @@ a.more {
   margin-top: 8px;
   margin-right: 20px;
 }
-.tick {
+#tick {
   width: 24px;
   height: 24px;
   background-image: url('/static/img/tick.png');
