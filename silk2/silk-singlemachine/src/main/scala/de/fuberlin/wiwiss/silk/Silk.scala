@@ -49,7 +49,6 @@ object Silk
         Logger.getLogger("de.fuberlin.wiwiss.silk.util.sparql").setLevel(Level.FINE)
         Logger.getLogger("").getHandlers.foreach(_.setLevel(Level.FINE))
       }
-      case str : String => throw new IllegalArgumentException("Property 'logQueries' must be a boolean")
       case _ =>
     }
 

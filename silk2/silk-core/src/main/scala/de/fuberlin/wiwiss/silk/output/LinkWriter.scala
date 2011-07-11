@@ -12,17 +12,17 @@ trait LinkWriter extends Strategy
   /**
    * Initializes this writer.
    */
-  def open() : Unit = {}
+  def open() { }
 
   /**
    * Writes a new link to this writer.
    */
-  def write(link : Link, predicateUri : String) : Unit
+  def write(link : Link, predicateUri : String)
 
   /**
    * Closes this writer.
    */
-  def close() : Unit = {}
+  def close() { }
 }
 
 object LinkWriter extends Factory[LinkWriter]

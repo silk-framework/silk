@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.output
 import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
 import java.util.logging.Logger
 import xml.Node
+import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
 
 /**
  * Represents an abstraction over an output of links.
@@ -68,7 +69,14 @@ case class Output(writer : LinkWriter, minConfidence : Option[Double] = None, ma
 
 object Output
 {
-  def fromXML(node : Node)(implicit globalThreshold : Option[Double]) =
+  private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+
+  def load =
+  {
+    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
+  }
+
+  def fromXML(node : Node)(implicit globalThreshold : Option[Double] = None) =
   {
     new Output(
       writer = LinkWriter(node \ "@type" text, readParams(node)),
