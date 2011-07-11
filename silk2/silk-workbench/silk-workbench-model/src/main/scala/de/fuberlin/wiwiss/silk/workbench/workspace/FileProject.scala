@@ -203,7 +203,7 @@ class FileProject(file : File) extends Project
 
     object WriteThread extends Thread
     {
-      private val interval = 5000
+      private val interval = 5000L
 
       override def run()
       {
@@ -213,12 +213,10 @@ class FileProject(file : File) extends Project
 
           if(updatedTasks.isEmpty)
           {
-            println("1")
             Thread.sleep(interval)
           }
           else if(time >= interval)
           {
-            println("2")
             try
             {
               linkingModule.write()
@@ -230,7 +228,6 @@ class FileProject(file : File) extends Project
           }
           else
           {
-            println("3")
             Thread.sleep(interval - time)
           }
         }
