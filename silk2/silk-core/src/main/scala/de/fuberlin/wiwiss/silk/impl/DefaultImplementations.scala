@@ -61,6 +61,7 @@ object DefaultImplementations
         Aggregator.register(classOf[GeometricMeanAggregator])
 
         LinkWriter.register(classOf[FileWriter])
+        LinkWriter.register(classOf[SparqlWriter])
         LinkWriter.register(classOf[MemoryWriter])
 
         Formatter.register(classOf[NTriplesFormatter])
