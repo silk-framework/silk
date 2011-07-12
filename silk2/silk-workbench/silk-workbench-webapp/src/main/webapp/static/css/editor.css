@@ -236,3 +236,20 @@ a.more {
 	background-color: #ffff00;
   border: 2px solid #f1d21e;
 }
+
+#exclamation {
+  width: 24px;
+  height: 24px;
+  background-image: url('/static/img/exclamation.png');
+  float: right;
+  margin-top: 8px;
+  margin-right: 20px;
+}
+#tick {
+  width: 24px;
+  height: 24px;
+  background-image: url('/static/img/tick.png');
+  float: right;
+  margin-top: 8px;
+  margin-right: 20px;
+}

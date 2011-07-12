@@ -70,16 +70,18 @@ function hide_all() {
 
 function updateResultsWidth() {
   var window_width =  $(window).width();
-  var new_links_width = 336;
+  var new_links_width = 326;
   if (window_width<1000) {
-    $("#results, #tree-header, #tree-footer").width(962);
+    $("#results, #tree-header, #tree-footer").width(938);
     $(".link-source, .link-target").width(new_links_width);
-    $(".middle").width(561);
+    $(".middle").width(537);
+    $("#wrapper").width(938);
   } else {
-    new_links_width = (window_width-320)/2;
-    $("#results, #tree-header, #tree-footer").width(window_width-30);
+    new_links_width = (window_width-338)/2;
+    $("#results, #tree-header, #tree-footer").width(window_width-54);
     $(".link-source, .link-target").width(new_links_width);
-    $(".middle").width(window_width-431);
+    $(".middle").width(window_width-455);
+    $("#wrapper").width(window_width-54);
   }
   $(".link-source > a, .link-target > a").each(function(index) {
     if ($(this).width() > new_links_width) {

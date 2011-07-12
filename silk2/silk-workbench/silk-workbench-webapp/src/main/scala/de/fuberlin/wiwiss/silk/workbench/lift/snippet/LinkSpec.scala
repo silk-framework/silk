@@ -56,14 +56,46 @@ class LinkSpec
    */
   private def updateLinkSpec(linkSpecStr : String) =
   {
-    //TODO DUMMY
-    println("Updated link specification:\n" + linkSpecStr)
-    JS.Empty
+    try
+    {
+      val project = User().project
+      val linkingTask = User().linkingTask
+      implicit val prefixes = project.config.prefixes
+
+      //Collect warnings while saving link spec
+      val warnings = CollectLogs(Level.WARNING)
+      {
+        //Load link specification
+        val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
+
+        //Update linking task
+        val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
+
+        //Commit
+        project.linkingModule.update(updatedLinkingTask)
+        User().task = updatedLinkingTask
+      }
+
+      //Update link spec variable and notify user
+      linkSpecVarCmd & Call("showValidIcon", warnings.map(_.getMessage).mkString("\\n")).cmd
+    }
+    catch
+    {
+      case ex : Exception =>
+      {
+        logger.log(Level.INFO, "Failed to save link specification", ex)
+        val msg = ex.getMessage
+        //Strip prefixes like this: "cvc-complex-type.2.4.b:"
+        val cleanMsg = if(msg.contains(':')) msg.split(':').tail.mkString else msg
+        Call("showInvalidIcon", cleanMsg.encJs).cmd
+      }
+    }
   }
 
   /**
    * Saves the Link Specification.
    */
+  //TODO delete
   private def saveLinkSpec(linkSpecStr : String) =
   {
     if(linkSpecStr.startsWith("<"))

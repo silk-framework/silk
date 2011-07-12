@@ -5,7 +5,7 @@ import collection.mutable.{Publisher, WeakHashMap}
 /** Holds user specific data. */
 class UserData[T](initialValue : T) extends Publisher[UserData.ValueUpdated[T]]
 {
-  private var values = new WeakHashMap[User, T]()
+  private val values = new WeakHashMap[User, T]()
 
   def apply() : T =
   {

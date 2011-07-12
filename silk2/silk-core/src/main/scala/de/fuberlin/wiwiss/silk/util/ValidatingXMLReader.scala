@@ -7,13 +7,21 @@ import javax.xml.parsers.SAXParserFactory
 import javax.xml.validation.SchemaFactory
 import javax.xml.transform.stream.StreamSource
 import xml.{Node, TopScope, Elem}
-import java.io.{FileInputStream, File, Reader, InputStream}
+import java.io._
 
 /**
  * Parses an XML input source and validates it against the schema.
  */
 class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) extends NoBindingFactoryAdapter
 {
+  def apply(xml : Node) : T =
+  {
+    //Validate
+    read(new InputSource(new StringReader(xml.toString)), schemaPath)
+
+    deserializer(xml)
+  }
+
   def apply(stream : InputStream) : T =
   {
     val node = read(new InputSource(stream), schemaPath)

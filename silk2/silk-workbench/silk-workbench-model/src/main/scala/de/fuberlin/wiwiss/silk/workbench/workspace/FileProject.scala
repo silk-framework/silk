@@ -12,7 +12,6 @@ import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
-import collection.mutable.SynchronizedQueue
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
 
@@ -86,8 +85,6 @@ class FileProject(file : File) extends Project
    */
   override val outputModule = new FileOutputModule(file + "/output")
 
-  new WriteThread().start()
-
   /**
    * The source module which encapsulates all data sources.
    */
@@ -127,13 +124,17 @@ class FileProject(file : File) extends Project
    */
   class FileLinkingModule(file : File) extends LinkingModule
   {
-    file.mkdir()
-
     @volatile
     private var cachedTasks : Map[Identifier, LinkingTask] = load()
 
     @volatile
-    private var updatedTasks = new SynchronizedQueue[LinkingTask]()
+    private var updatedTasks = Map[Identifier, LinkingTask]()
+
+    @volatile
+    private var lastUpdateTime = 0L
+
+    file.mkdir()
+    WriteThread.start()
 
     override def config = LinkingConfig()
 
@@ -147,7 +148,8 @@ class FileProject(file : File) extends Project
     override def update(task : LinkingTask)
     {
       cachedTasks += (task.name -> task)
-      updatedTasks.enqueue(task)
+      updatedTasks += (task.name -> task)
+      lastUpdateTime = System.currentTimeMillis
 
       task.cache.load(FileProject.this, task)
 
@@ -159,6 +161,7 @@ class FileProject(file : File) extends Project
       (file + ("/" + taskId)).deleteRecursive()
 
       cachedTasks -= taskId
+      updatedTasks -= taskId
 
       logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")
     }
@@ -188,11 +191,11 @@ class FileProject(file : File) extends Project
               }
             }
 
-            val linkingTask = LinkingTask(linkSpec, alignment, cache)
+          val linkingTask = LinkingTask(linkSpec, alignment, cache)
 
-            linkingTask.cache.load(FileProject.this, linkingTask)
+          linkingTask.cache.load(FileProject.this, linkingTask)
 
-            linkingTask
+          linkingTask
         }
 
       tasks.map(task => (task.name, task)).toMap
@@ -200,7 +203,10 @@ class FileProject(file : File) extends Project
 
     def write()
     {
-      for(task <- updatedTasks.dequeueAll(_ => true)) Timer("Writing task " + task.name + " to disk")
+      val tasksToWrite = updatedTasks.values.toList
+      updatedTasks --= tasksToWrite.map(_.name)
+
+      for(task <- tasksToWrite) Timer("Writing task " + task.name + " to disk")
       {
         val taskDir = file + ("/" + task.name)
         taskDir.mkdir()
@@ -213,9 +219,42 @@ class FileProject(file : File) extends Project
         task.cache.toXML.write(taskDir +  "/cache.xml")
       }
     }
-  }
 
-  /**
+    object WriteThread extends Thread
+    {
+      private val interval = 5000L
+
+      override def run()
+      {
+        while(true)
+        {
+          val time = System.currentTimeMillis - lastUpdateTime
+
+          if(updatedTasks.isEmpty)
+          {
+            Thread.sleep(interval)
+          }
+          else if(time >= interval)
+          {
+            try
+            {
+              linkingModule.write()
+            }
+            catch
+            {
+              case ex : Exception => logger.log(Level.WARNING, "Error writing linking tasks", ex)
+            }
+          }
+          else
+          {
+            Thread.sleep(interval - time)
+          }
+        }
+      }
+    }
+  }
+  
+   /**
    * The linking module which encapsulates all linking tasks.
    */
   class FileOutputModule(file : File) extends OutputModule
@@ -246,26 +285,6 @@ class FileProject(file : File) extends Project
     {
       (file + ("/" + taskId + ".xml")).deleteRecursive()
       logger.info("Removed output '" + taskId + "' from project '" + name + "'")
-    }
-  }
-
-  class WriteThread extends Thread
-  {
-    override def run()
-    {
-      while(true)
-      {
-        try
-        {
-          linkingModule.write()
-        }
-        catch
-        {
-          case ex : Exception => logger.log(Level.WARNING, "Error writing linking tasks", ex)
-        }
-
-        Thread.sleep(10000)
-      }
     }
   }
 }

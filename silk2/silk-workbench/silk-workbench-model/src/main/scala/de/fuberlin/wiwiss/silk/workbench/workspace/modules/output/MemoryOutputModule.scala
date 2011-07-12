@@ -1,10 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules.output
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.modules.Module
 import de.fuberlin.wiwiss.silk.util.Identifier
 import java.util.logging.Logger
 
-class MemoryOutputModule extends Module[OutputConfig, OutputTask]
+/**
+ * Output module which holds all outputs in memory.
+ */
+class MemoryOutputModule extends OutputModule
 {
   private val log = Logger.getLogger(classOf[MemoryOutputModule].getName)
 
@@ -14,7 +16,7 @@ class MemoryOutputModule extends Module[OutputConfig, OutputTask]
 
   def config_=(c: OutputConfig) { }
 
-  override def tasks = synchronized { outputsTasks }
+  override def tasks = synchronized { outputsTasks.values }
 
   override def update(task : OutputTask) = synchronized
   {
