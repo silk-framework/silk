@@ -28,6 +28,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
     {
       for(instance <- instances)
       {
+        //.map(_ % config.blocking.map(_.blocks).getOrElse(1)
         val blockIndexes = blockingFunction.map(f => f(instance)).getOrElse(Set(0))
         for(block <- blockIndexes)
         {
@@ -116,23 +117,21 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
       //Load the last partition in memory
       if(partitionCount > 0)
       {
-        val readPartition = readPartitionFromFile(partitionCount - 1)
+        val readPartition = readPartitionFromFile(partitionCount - 1).instances
         Array.copy(readPartition, 0, lastPartition, 0, readPartition.size)
         lastPartitionSize = readPartition.size
       }
     }
 
-    def read(partition : Int) : Array[Instance] =
+    def read(partitionIndex : Int) : Partition =
     {
-      if(partition == partitionCount - 1)
+      if(partitionIndex == partitionCount - 1)
       {
-        val partition = new Array[Instance](lastPartitionSize)
-        Array.copy(lastPartition, 0, partition, 0, lastPartitionSize)
-        partition
+        Partition(lastPartition, lastPartitionSize)
       }
       else
       {
-        readPartitionFromFile(partition)
+        readPartitionFromFile(partitionIndex)
       }
     }
 
@@ -173,15 +172,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
 
       try
       {
-        val partitionSize = stream.readInt()
-        val partition = new Array[Instance](partitionSize)
-
-        for(i <- 0 until partitionSize)
-        {
-          partition(i) = Instance.deserialize(stream, instanceSpec)
-        }
-
-        partition
+        Partition.deserialize(stream, instanceSpec)
       }
       finally
       {
@@ -197,11 +188,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
 
       try
       {
-        stream.writeInt(lastPartitionSize)
-        for(i <- 0 until lastPartitionSize)
-        {
-          lastPartition(i).serialize(stream)
-        }
+        Partition(lastPartition, lastPartitionSize).serialize(stream)
       }
       finally
       {

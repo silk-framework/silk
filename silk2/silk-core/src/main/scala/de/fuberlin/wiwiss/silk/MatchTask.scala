@@ -215,19 +215,19 @@ class MatchTask(linkSpec : LinkSpecification,
 
       try
       {
-        val sourceInstances = caches.source.read(blockIndex, sourcePartitionIndex)
-        val targetInstances = caches.target.read(blockIndex, targetPartitionIndex)
+        val sourcePartition = caches.source.read(blockIndex, sourcePartitionIndex)
+        val targetPartition = caches.target.read(blockIndex, targetPartitionIndex)
 
-        val sourceIndexes = builtIndex(sourceInstances)
-        val targetIndexes = builtIndex(targetInstances)
+        val sourceIndexes = builtIndex(sourcePartition.instances)
+        val targetIndexes = builtIndex(targetPartition.instances)
 
-        for(s <- 0 until sourceInstances.size;
+        for(s <- 0 until sourcePartition.size;
             tStart = if(sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
-            t <- tStart until targetInstances.size;
+            t <- tStart until targetPartition.size;
             if !indexingEnabled || compareIndexes(sourceIndexes(s), targetIndexes(t)))
         {
-          val sourceInstance = sourceInstances(s)
-          val targetInstance = targetInstances(t)
+          val sourceInstance = sourcePartition.instances(s)
+          val targetInstance = targetPartition.instances(t)
           val instances = SourceTargetPair(sourceInstance, targetInstance)
 
           if(!generateDetailedLinks)

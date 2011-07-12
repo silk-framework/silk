@@ -20,7 +20,7 @@ class CacheDataSource(dir : String) extends DataSource
       {
         for(block <- 0 until instanceCache.blockCount;
             partition <- 0 until instanceCache.partitionCount(block);
-            instance <- instanceCache.read(block, partition))
+            instance <- instanceCache.read(block, partition).instances)
         {
           f(instance)
         }
