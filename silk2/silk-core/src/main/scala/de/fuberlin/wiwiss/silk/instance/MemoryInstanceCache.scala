@@ -76,7 +76,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Reads a partition of a block.
    */
-  override def read(block : Int, partition : Int) = blocks(block)(partition).toArray
+  override def read(block : Int, partition : Int) = Partition(blocks(block)(partition).toArray)
 
   /**
    * The number of partitions in a specific block.

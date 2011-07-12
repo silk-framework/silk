@@ -12,21 +12,29 @@ trait InstanceCache
    */
   def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None) : Unit
 
+  /**
+   * True, if the cache is being written at the moment.
+   */
   def isWriting : Boolean
 
   /**
    * Reads a partition of a block.
    */
-  def read(block : Int, partition : Int) : Array[Instance]
+  def read(block : Int, partition : Int) : Partition
 
-  def readAll() = new Traversable[Instance]
+  /**
+   * Reads the complete cache.
+   */
+  def readAll = new Traversable[Instance]
   {
     def foreach[U](f : Instance => U)
     {
       for(block <- 0 until blockCount;
           partition <- 0 until partitionCount(block);
-          instance <- read(block, partition))
-          yield instance
+          instance <- read(block, partition).instances)
+      {
+        f(instance)
+      }
     }
   }
 
@@ -62,7 +70,7 @@ trait InstanceCache
           {
             <Partition>
             {
-              for(instance <- read(block, partition)) yield instance.toXML
+              for(instance <- read(block, partition).instances) yield instance.toXML
             }
             </Partition>
           }
