@@ -7,6 +7,8 @@ import util.Random
 
 class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers
 {
+  import LevenshteinDistanceTest._
+
   val metric = new LevenshteinDistance()
 
   "LevenshteinDistance" should "return distance 3 (kitten, sitting)" in
@@ -38,23 +40,51 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers
 
   it should "generate one more index than the edit distance" in
   {
-    val SourceTargetPair(source, target) = randomValues(5)
+    val SourceTargetPair(source, target) = randomValues(10, 5)
     val distance = metric.evaluate(source, target)
 
     metric.index(source, distance).size should equal(distance + 1)
     metric.index(target, distance).size should equal(distance + 1)
   }
+}
+
+object LevenshteinDistanceTest
+{
+  def main(args : Array[String])
+  {
+    val metric = new LevenshteinDistance()
+
+    for(run <- 0 until 100)
+    {
+      val startTime = System.currentTimeMillis
+
+      for(i <- 0 until 100)
+      {
+        val values = Seq.fill(100)(randomValues(30, 10))
+
+        metric.apply(values.map(_.source), values.map(_.target), 5)
+      }
+
+      val time = System.currentTimeMillis - startTime
+      println("Time: " + time)
+    }
+  }
 
   /**
    * Generates a pair of random strings with a specified maximum edit distance.
    */
-  private def randomValues(maxDistance : Int) : SourceTargetPair[String] =
+  private def randomValues(size : Int, maxDistance : Int) : SourceTargetPair[String] =
   {
-    val sourceStr = Random.alphanumeric.take(10).mkString
+    val sourceStr = Random.alphanumeric.take(size).mkString
 
-    val targetStr = Traversable.iterate(sourceStr, maxDistance + 1)(randomEdit).last
+    val targetStr = randomEdits(sourceStr, maxDistance)
 
     SourceTargetPair(sourceStr, targetStr)
+  }
+
+  private def randomEdits(str : String, maxDistance : Int) : String =
+  {
+    Traversable.iterate(str, maxDistance + 1)(randomEdit).last
   }
 
   /**
@@ -75,23 +105,3 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers
     }
   }
 }
-
-//object LevenshteinDistanceTest
-//{
-//  def main(args : Array[String])
-//  {
-//    val metric = new LevenshteinDistance()
-//
-//    for(i <- 0 until 20)
-//    {
-//      val SourceTargetPair(s, t) = generateValues(5)
-//      println("--------------------------------------------------------------")
-//      println("Values: " + s + ", " + t)
-//      println("Distance: " + metric.evaluate(s, t))
-//      println("Blocks: " + metric.blockCounts.head)
-//      println("Indices:" + metric.index(s, 5.0) + "," + metric.index(t, 5.0))
-//    }
-//  }
-//
-//
-//}

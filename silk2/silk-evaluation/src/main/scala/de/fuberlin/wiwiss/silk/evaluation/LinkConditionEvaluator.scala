@@ -24,7 +24,7 @@ object LinkConditionEvaluator
 
     for(instancePair <- instances.positive.values)
     {
-      val confidence = linkCondition(instancePair, -1.0)
+      val confidence = linkCondition(instancePair, 0.0)
 
       if(confidence >= 0.0)
       {
@@ -40,7 +40,7 @@ object LinkConditionEvaluator
 
     for(instancePair <- instances.negative.values)
     {
-      val confidence = linkCondition(instancePair, -1.0)
+      val confidence = linkCondition(instancePair, 0.0)
 
       if(confidence >= 0.0)
       {
