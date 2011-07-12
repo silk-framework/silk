@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
+import modules.output.{OutputTask, OutputConfig, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
@@ -13,6 +14,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import collection.mutable.SynchronizedQueue
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
+import de.fuberlin.wiwiss.silk.output.Output
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -78,6 +80,11 @@ class FileProject(file : File) extends Project
    * The linking module which encapsulates all linking tasks.
    */
   override val linkingModule = new FileLinkingModule(file + "/linking")
+
+  /**
+   * The output module which encapsulates all output tasks.
+   */
+  override val outputModule = new FileOutputModule(file + "/output")
 
   new WriteThread().start()
 
@@ -167,13 +174,25 @@ class FileProject(file : File) extends Project
 
           val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
 
-          val cache = Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+          val cache =
+            try
+            {
+              Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+            }
+            catch
+            {
+              case ex : Exception =>
+              {
+                logger.warning("Cache corrupted. Rebuilding Cache.")
+                new Cache()
+              }
+            }
 
-          val linkingTask = LinkingTask(linkSpec, alignment, cache)
+            val linkingTask = LinkingTask(linkSpec, alignment, cache)
 
-          linkingTask.cache.load(FileProject.this, linkingTask)
+            linkingTask.cache.load(FileProject.this, linkingTask)
 
-          linkingTask
+            linkingTask
         }
 
       tasks.map(task => (task.name, task)).toMap
@@ -193,6 +212,40 @@ class FileProject(file : File) extends Project
         task.alignment.toXML.write(taskDir+ "/alignment.xml")
         task.cache.toXML.write(taskDir +  "/cache.xml")
       }
+    }
+  }
+
+  /**
+   * The linking module which encapsulates all linking tasks.
+   */
+  class FileOutputModule(file : File) extends OutputModule
+  {
+    file.mkdirs()
+
+    def config = OutputConfig()
+
+    def config_=(c: OutputConfig) { }
+
+    override def tasks = synchronized
+    {
+      for(fileName <- file.list.toList) yield
+      {
+        val output = Output.load(file + ("/" + fileName))
+
+        OutputTask(fileName.stripSuffix(".xml"), output)
+      }
+    }
+
+    override def update(task : OutputTask) = synchronized
+    {
+      task.output.toXML.write(file + ("/" + task.name + ".xml"))
+      logger.info("Updated output '" + task.name + "' in project '" + name + "'")
+    }
+
+    override def remove(taskId : Identifier) = synchronized
+    {
+      (file + ("/" + taskId + ".xml")).deleteRecursive()
+      logger.info("Removed output '" + taskId + "' from project '" + name + "'")
     }
   }
 

@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
+import modules.output.{MemoryOutputModule, OutputConfig, OutputTask, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import java.util.logging.Logger
 import xml.XML
@@ -27,6 +28,8 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
    // The linking module which encapsulates all linking tasks.
   override val linkingModule = new LDELinkingModule()
+
+  override val outputModule = new MemoryOutputModule()
 
    // The XML sub project
   var xmlProj : XMLProject = null

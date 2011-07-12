@@ -13,6 +13,7 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import net.liftweb.http.SHtml
 import net.liftweb.json.Printer.pretty
+import de.fuberlin.wiwiss.silk.output.LinkWriter
 
 /**
  * Workspace snippet.
@@ -34,6 +35,10 @@ import net.liftweb.json.Printer.pretty
  * def editLinkingTask(projectName, taskName)
  * def openLinkingTask(projectName, taskName)
  * def removeLinkingTask(projectName, taskName)
+ *
+ * def createOutput(projectName)
+ * def editOutput(projectName, taskName)
+ * def removeOutput(projectName, taskName)
  *
  * def closeTask()
  *
@@ -72,6 +77,9 @@ object Workspace
     editLinkingTaskFunction &
     openLinkingTaskFunction &
     injectFunction("removeLinkingTask", removeLinkingTask _) &
+    createOutputFunction &
+    editOutputFunction &
+    injectFunction("removeOutput", removeOutput _)  &
     addLinkSpecificationFunction &
     hideLoadingDialogCmd &
     closeTaskFunction
@@ -165,14 +173,14 @@ object Workspace
     {
       User().project = User().workspace.project(projectName)
 
-      CreateSourceTaskDialog.openCmd
+      SourceTaskDialog.openCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
 
     val openSourceTaskDialog =  JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
 
-    CreateSourceTaskDialog.initCmd & openSourceTaskDialog
+    SourceTaskDialog.initCmd & openSourceTaskDialog
   }
 
   /**
@@ -187,12 +195,12 @@ object Workspace
       User().project = User().workspace.project(projectName)
       User().task = User().project.sourceModule.task(taskName)
 
-      EditSourceTaskDialog.openCmd
+      SourceTaskDialog.openCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
 
-    EditSourceTaskDialog.initCmd & JsCmds.Function("editSourceTask", "projectName" :: "taskName" :: Nil, ajaxCall)
+    JsCmds.Function("editSourceTask", "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 
   /**
@@ -275,6 +283,53 @@ object Workspace
   private def removeLinkingTask(projectName : String, taskName : String)
   {
     User().workspace.project(projectName).linkingModule.remove(taskName)
+  }
+
+  /**
+   * JS Command which defines the createOutput function
+   */
+  private def createOutputFunction : JsCmd =
+  {
+    def callback(projectName : String) : JsCmd =
+    {
+      User().project = User().workspace.project(projectName)
+
+      SparqlOutputTaskDialog.openCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+
+    val openOutputDialog =  JsCmds.Function("createOutput", "projectName" :: Nil, ajaxCall)
+
+    SparqlOutputTaskDialog.initCmd & openOutputDialog
+  }
+
+  /**
+   * JS Command which defines the editOutput function
+   */
+  private def editOutputFunction : JsCmd =
+  {
+    def callback(args : String) : JsCmd =
+    {
+      val Array(projectName, taskName) = args.split(',')
+
+      User().project = User().workspace.project(projectName)
+      User().task = User().project.outputModule.task(taskName)
+
+      SparqlOutputTaskDialog.openCmd
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
+
+    JsCmds.Function("editOutput", "projectName" :: "taskName" :: Nil, ajaxCall)
+  }
+
+  /**
+   * Removes an output from the workspace.
+   */
+  private def removeOutput(projectName : String, taskName : String)
+  {
+    User().workspace.project(projectName).outputModule.remove(taskName)
   }
 
   /**
@@ -380,11 +435,24 @@ object Workspace
         ("linkType" -> task.linkSpec.linkType.toTurtle)
       }
 
+      val outputs : JArray = for(task <- project.outputModule.tasks.toSeq.sortBy(n => (n.name.toString.toLowerCase))) yield
+      {
+        task.output.writer match
+        {
+          case LinkWriter(_, params) =>
+          {
+            ("name" -> task.name.toString) ~
+            ("params" -> paramsToJson(params))
+          }
+        }
+      }
+
       val proj : JObject =
       {
         ("name" -> project.name.toString) ~
         ("dataSource" -> sources) ~
-        ("linkingTask" -> linkingTasks)
+        ("linkingTask" -> linkingTasks) ~
+        ("output" -> outputs)
       }
 
       projectList :+= proj

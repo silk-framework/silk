@@ -140,6 +140,35 @@ function addLinkingTask(jsonLinkingTask,projectNode,projectName)
     addLeaf(jsonLinkingTask.linkType,lt_li, 'link type: ');
 }
 
+function addOutput(jsonOutput,projectNode,projectName)
+{
+    var ds_ul = document.createElement("ul");
+        $(projectNode).append(ds_ul);
+    var ds_li = document.createElement("li");
+        $(ds_li).attr("id",'output_'+projectName+'_'+jsonOutput.name)
+        .addClass('closed');
+        $(ds_ul).append(ds_li);
+    var ds_span = document.createElement("span");
+        $(ds_span).addClass('output');
+        $(ds_li).append(ds_span);
+
+    var ds_label= document.createElement("span");
+        $(ds_label).addClass('label')
+        .text(jsonOutput.name);
+        $(ds_span).append(ds_label);
+
+    var ds_actions = document.createElement("div");
+        $(ds_actions).addClass('actions');
+        $(ds_span).append(ds_actions);
+        addAction('ds_edit', 'Edit', "Edit output","editOutput('"+projectName+"','"+ jsonOutput.name+"')",ds_actions,projectName,true);
+        addAction('delete','Remove',"Remove Output "+jsonOutput.name,"confirmDelete('removeOutput','"+projectName+"','"+jsonOutput.name+"')",ds_actions,projectName,true);
+
+    for(var p in jsonOutput.params) {
+      var param = jsonOutput.params[p];
+      addLeaf(param.value,ds_li, param.key + ': ');
+    }
+}
+
 // -- display the workspace as treeview
 function updateWorkspace(obj){
         //var obj = jQuery.parseJSON('{"workspace": {   "project": [ {"name": "Project_1", "dataSource":[ {"name":"KEGG","url":"http://kegg.us"},{"name":"Wiki","url":"http://aba.com"}  ],  "linkingTask":[ {"name":"Gene","source":"KEGG","target":"Wiki","targetDataset":"rdf:type Wiki:Gene","sourceDataset":"rdf:type KEGG:gene"},{"name":"linkTask2","source":"KEGG","target":"Wiki"} ] }, {"name": "Project_2", "dataSource":[ {"name":"ABA","url":"http://aba.com"} ] }     ] } }');
@@ -203,6 +232,7 @@ function updateWorkspace(obj){
                 addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
                 addAction('ds_add', 'Source','Add data source',"createSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('link_add', 'Task','Add linking task',"createLinkingTask('"+project.name+"')",proj_actions,project.name,true);
+                addAction('output_add', 'Output','Add output',"createOutput('"+project.name+"')",proj_actions,project.name,true);
                 addAction('add_linkspec', 'Link Spec', 'Add link specification', "addLinkSpecification('"+project.name+"')",proj_actions,project.name,true);
                 addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
                 addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
@@ -219,6 +249,12 @@ function updateWorkspace(obj){
             {
                 addLinkingTask(project.linkingTask[l],proj,project.name);
             }
+
+            // display output
+            for (var l in obj.workspace.project[p].output)
+            {
+                addOutput(project.output[l],proj,project.name);
+            }
         }
 
         $("#content").append(tree);
@@ -229,7 +265,14 @@ function updateWorkspace(obj){
         }
         if(obj.workspace.activeTask)
             {
-             var idPrefix = (obj.workspace.activeTaskType === "LinkingTask") ?  'linkingtask_' : 'datasource_';
+             var idPrefix;
+             if(obj.workspace.activeTaskType === "LinkingTask") {
+               idPrefix = 'linkingtask_';
+             } else if(obj.workspace.activeTaskType === "DataSource") {
+               idPrefix = 'datasource_';
+             } else {
+               idPrefix = 'output_';
+             }
              ws.activeTaskId = idPrefix+obj.workspace.activeProject+"_"+obj.workspace.activeTask;
             }
         if (ws.activeNodesId.length>0 || ws.activeTaskId || ws.activeProjectId)  loadOpenNodes();
@@ -307,6 +350,7 @@ function getIcon(type){
         case 'link_add' : icon = "ui-icon-plus";  break;
         case 'link_edit' : icon = "ui-icon-wrench";  break;
         case 'link_spec': icon = "ui-icon-shuffle"; break;
+        case 'output_add' : icon = "ui-icon-plus";  break;
         case 'delete' : icon = "ui-icon-trash";  break;
         case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
         case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
@@ -322,6 +366,7 @@ function callAction(action,proj,res){
         case 'removeProject' :  removeProject(proj);  break;
         case 'removeSourceTask' :  removeSourceTask(proj,res);  break;
         case 'removeLinkingTask' : removeLinkingTask(proj,res); break;
+        case 'removeOutput' : removeOutput(proj,res); break;
         default : alert("Error: Action \'"+action+"\' not defined!");
         }
 }

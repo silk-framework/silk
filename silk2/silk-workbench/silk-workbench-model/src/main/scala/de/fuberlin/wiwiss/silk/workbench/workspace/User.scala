@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.LinkingTask
 import modules.ModuleTask
+import modules.output.OutputTask
 import modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationTask
 
@@ -95,6 +96,22 @@ trait User
   {
     case t : LinkingTask => t
     case _ => throw new NoSuchElementException("Active task is no linking task")
+  }
+
+  /**
+   * True, if a output task is open at the moment.
+   */
+  def outputTaskOpen = taskOpen && task.isInstanceOf[OutputTask]
+
+  /**
+   * The current output task of this user.
+   *
+   * @throws java.util.NoSuchElementException If no output task is open
+   */
+  def outputTask = task match
+  {
+    case t : OutputTask => t
+    case _ => throw new NoSuchElementException("Active task is no output task")
   }
 
   /**

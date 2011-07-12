@@ -66,17 +66,19 @@
   <xs:element name="Outputs">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" name="Output">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
-            </xs:sequence>
-            <xs:attribute name="type" type="xs:string" />
-            <xs:attribute name="minConfidence" type="xs:decimal" use="optional" />
-            <xs:attribute name="maxConfidence" type="xs:decimal" use="optional" />
-          </xs:complexType>
-        </xs:element>
+        <xs:element ref="Output" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Output">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="type" type="xs:string" />
+      <xs:attribute name="minConfidence" type="xs:decimal" use="optional" />
+      <xs:attribute name="maxConfidence" type="xs:decimal" use="optional" />
     </xs:complexType>
   </xs:element>
 

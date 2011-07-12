@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
+import modules.output.{MemoryOutputModule, OutputTask, OutputConfig, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
@@ -58,7 +59,7 @@ class XMLProject(linkSpec : Node) extends Project
    // The linking module which encapsulates all linking tasks.
   override val linkingModule = new XMLLinkingModule()
 
-
+  override val outputModule = new MemoryOutputModule()
   
   /** ----------------------------------------------------------
    *   The source module which encapsulates all data sources.
