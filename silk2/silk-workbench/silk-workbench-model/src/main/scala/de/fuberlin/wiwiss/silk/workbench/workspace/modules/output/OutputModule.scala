@@ -7,5 +7,4 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.modules.Module
  */
 trait OutputModule extends Module[OutputConfig, OutputTask]
 {
-
 }
