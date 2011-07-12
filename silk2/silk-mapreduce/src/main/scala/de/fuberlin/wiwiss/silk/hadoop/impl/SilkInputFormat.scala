@@ -3,8 +3,8 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import org.apache.hadoop.mapreduce._
 import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 import org.apache.hadoop.io.NullWritable
-import de.fuberlin.wiwiss.silk.instance.Instance
 import collection.immutable.HashSet
+import de.fuberlin.wiwiss.silk.instance.{Partition, Instance}
 
 class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
 {
@@ -51,8 +51,8 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
 
   private class SilkRecordReader() extends RecordReader[NullWritable, InstancePair]
   {
-    private var sourceInstances : Array[Instance] = null
-    private var targetInstances : Array[Instance] = null
+    private var sourcePartition : Partition = null
+    private var targetPartition : Partition = null
 
     private var sourceIndices : Array[Set[Int]] = null
     private var targetIndices : Array[Set[Int]] = null
@@ -60,7 +60,7 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
     private var sourceIndex = 0
     private var targetIndex = -1
 
-    override def getProgress = (sourceIndex * targetInstances.length + targetIndex + 1).toFloat / (sourceInstances.length * targetInstances.length).toFloat
+    override def getProgress = (sourceIndex * targetPartition.size + targetIndex + 1).toFloat / (sourcePartition.size * targetPartition.size).toFloat
 
     override def initialize(inputSplit : InputSplit, context : TaskAttemptContext) : Unit =
     {
@@ -69,19 +69,19 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
 
       val silkInputSplit = inputSplit.asInstanceOf[SilkInputSplit]
 
-      sourceInstances = config.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
-      targetInstances = config.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
+      sourcePartition = config.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
+      targetPartition = config.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
 
-      sourceIndices = sourceInstances.map(instance => HashSet(linkSpec.condition.index(instance, 0.0).toSeq : _*))
-      targetIndices = targetInstances.map(instance => HashSet(linkSpec.condition.index(instance, 0.0).toSeq : _*))
+      sourceIndices = sourcePartition.instances.map(instance => HashSet(linkSpec.condition.index(instance, 0.0).toSeq : _*))
+      targetIndices = targetPartition.instances.map(instance => HashSet(linkSpec.condition.index(instance, 0.0).toSeq : _*))
 
       context.setStatus("Comparing partition " + silkInputSplit.sourcePartition + " and " + silkInputSplit.targetPartition)
     }
 
     override def close : Unit =
     {
-      sourceInstances = null
-      targetInstances = null
+      sourcePartition = null
+      targetPartition = null
 
       sourceIndices = null
       targetIndices = null
@@ -93,11 +93,11 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
       while(!result.isDefined)
       {
         val hasNext =
-          if(sourceIndex == sourceInstances.length - 1 && targetIndex == targetInstances.length - 1)
+          if(sourceIndex == sourcePartition.size - 1 && targetIndex == targetPartition.size - 1)
           {
             false
           }
-          else if(targetIndex == targetInstances.length - 1)
+          else if(targetIndex == targetPartition.size - 1)
           {
             sourceIndex += 1
             targetIndex = 0
@@ -125,6 +125,6 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
 
     override def getCurrentKey = NullWritable.get
 
-    override def getCurrentValue = new InstancePair(sourceInstances(sourceIndex), targetInstances(targetIndex))
+    override def getCurrentValue = new InstancePair(sourcePartition.instances(sourceIndex), targetPartition.instances(targetIndex))
   }
 }
