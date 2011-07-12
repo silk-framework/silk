@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import java.io._
 import java.util.logging.Logger
 import org.apache.hadoop.fs.{Path, FileSystem}
-import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance, InstanceCache}
+import de.fuberlin.wiwiss.silk.instance.{Partition, InstanceSpecification, Instance, InstanceCache}
 
 /**
  * An instance cache, which uses the Hadoop FileSystem API.
@@ -62,7 +62,8 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
     require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
     require(partition >= 0 && partition < blocks(block).partitionCount, "0 <= partition < " + blocks(block).partitionCount + " (partition = " + partition + ")")
 
-    blocks(block).read(partition)
+    //TODO store partitions directly
+    Partition(blocks(block).read(partition))
   }
 
   override def clear()
