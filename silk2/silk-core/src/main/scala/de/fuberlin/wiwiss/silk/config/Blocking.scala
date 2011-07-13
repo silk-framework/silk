@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
 
-case class Blocking(blocks : Int = 100)
+case class Blocking(blocks : Int = Blocking.DefaultBlocks)
 {
   require(blocks > 0, "blocks > 0")
 
@@ -14,6 +14,8 @@ case class Blocking(blocks : Int = 100)
 
 object Blocking
 {
+  val DefaultBlocks = 101
+
   def fromXML(node : Node) : Option[Blocking] =
   {
     val enabled = (node \ "@enabled").headOption.map(_.text.toBoolean) match
@@ -25,7 +27,7 @@ object Blocking
     if(enabled)
     {
       Some(Blocking(
-        (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(100)
+        (node \ "@blocks").headOption.map(_.text.toInt).getOrElse(DefaultBlocks)
       ))
     }
     else

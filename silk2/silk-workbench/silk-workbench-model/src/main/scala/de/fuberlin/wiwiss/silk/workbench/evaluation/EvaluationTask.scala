@@ -78,14 +78,14 @@ class EvaluationTask(user : User) extends Task[Unit]
 
       //Blocking function
       val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
-      def blockingFunction(instance : Instance) = linkSpec.condition.index(instance).map(_ % blockCount)
+      def indexFunction(instance : Instance) = linkSpec.condition.index(instance, 0.0)
 
       //Instance caches
       val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, partitionSize),
                                     new MemoryInstanceCache(instanceSpecs.target, blockCount, partitionSize))
 
       //Create tasks
-      loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(blockingFunction _) else None)
+      loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(indexFunction _) else None)
       matchTask = new MatchTask(linkingTask.linkSpec, caches, numThreads, false, generateDetailedLinks)
       alignment = linkingTask.alignment
       filteredLinks = null

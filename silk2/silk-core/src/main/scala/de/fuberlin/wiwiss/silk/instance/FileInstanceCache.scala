@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.instance
 
-import java.io._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.util.logging.Logger
+import java.io._
 
 /**
  * An instance cache, which caches the instances on the local file system.
@@ -18,7 +18,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
 
   @volatile private var writing = false
 
-  override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
+  override def write(instances : Traversable[Instance], indexFunction : Option[Instance => Set[Int]] = None)
   {
     val startTime = System.currentTimeMillis()
     writing = true
@@ -28,16 +28,16 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
     {
       for(instance <- instances)
       {
-        //.map(_ % config.blocking.map(_.blocks).getOrElse(1)
-        val blockIndexes = blockingFunction.map(f => f(instance)).getOrElse(Set(0))
-        for(block <- blockIndexes)
+        val index = indexFunction.map(f => f(instance)).getOrElse(Set(0))
+
+        for(block <- index.map(_ % blockCount))
         {
           if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
 
-          blocks(block).write(instance)
+          blocks(block).write(instance, Index.build(index))
         }
 
-        if(!blockIndexes.isEmpty) instanceCount += 1
+        if(!index.isEmpty) instanceCount += 1
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
@@ -88,8 +88,9 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
 
     private val blockDir = dir + "/block" + block.toString + "/"
 
-    private val lastPartition = new Array[Instance](maxPartitionSize)
-    @volatile private var lastPartitionSize = 0
+    private val currentInstances = new Array[Instance](maxPartitionSize)
+    private val currentIndices = new Array[Index](maxPartitionSize)
+    @volatile private var count = 0
 
     if(clearOnLoading)
       clear()
@@ -117,9 +118,10 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
       //Load the last partition in memory
       if(partitionCount > 0)
       {
-        val readPartition = readPartitionFromFile(partitionCount - 1).instances
-        Array.copy(readPartition, 0, lastPartition, 0, readPartition.size)
-        lastPartitionSize = readPartition.size
+        val readPartition = readPartitionFromFile(partitionCount - 1)
+        Array.copy(readPartition.instances, 0, currentInstances, 0, readPartition.size)
+        Array.copy(readPartition.indices, 0, currentIndices, 0, readPartition.size)
+        count = readPartition.size
       }
     }
 
@@ -127,7 +129,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
     {
       if(partitionIndex == partitionCount - 1)
       {
-        Partition(lastPartition, lastPartitionSize)
+        Partition(currentInstances, currentIndices, count)
       }
       else
       {
@@ -135,17 +137,18 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
       }
     }
 
-    def write(instance : Instance)
+    def write(instance : Instance, index : Index)
     {
       if(partitionCount == 0) partitionCount = 1
 
-      lastPartition(lastPartitionSize) = instance
-      lastPartitionSize += 1
+      currentInstances(count) = instance
+      currentIndices(count) = index
+      count += 1
 
-      if(lastPartitionSize == maxPartitionSize)
+      if(count == maxPartitionSize)
       {
         writePartitionToFile()
-        lastPartitionSize = 0
+        count = 0
         partitionCount += 1
       }
     }
@@ -153,14 +156,14 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
     def clear()
     {
       partitionCount = 0
-      lastPartitionSize = 0
+      count = 0
       //TODO execute deleteRecursive once on whole cache?
       blockDir.deleteRecursive()
     }
 
     def close()
     {
-      if(lastPartitionSize > 0)
+      if(count > 0)
       {
         writePartitionToFile()
       }
@@ -188,7 +191,7 @@ class FileInstanceCache(instanceSpec : InstanceSpecification, dir : File, clearO
 
       try
       {
-        Partition(lastPartition, lastPartitionSize).serialize(stream)
+        Partition(currentInstances, currentIndices, count).serialize(stream)
       }
       finally
       {

@@ -69,20 +69,11 @@ trait SimpleDistanceMeasure extends DistanceMeasure
   {
     var minDistance = Double.MaxValue
 
-    val x1 = values1.map(s => (s, index(s, limit)))
-    val x2 = values2.map(s => (s, index(s, limit)))
-
-    for ((str1, index1) <- x1; (str2, index2) <- x2 if index1.exists(index2.contains))
+    for (str1 <- values1; str2 <- values2)
     {
       val distance = evaluate(str1, str2, min(limit, minDistance))
       minDistance = min(minDistance, distance)
     }
-
-//    for (str1 <- values1; str2 <- values2)
-//    {
-//      val distance = evaluate(str1, str2, min(limit, minDistance))
-//      minDistance = min(minDistance, distance)
-//    }
 
     minDistance
   }

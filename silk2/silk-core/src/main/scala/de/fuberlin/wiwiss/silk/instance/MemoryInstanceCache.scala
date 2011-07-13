@@ -21,7 +21,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Writes to this cache.
    */
-  override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
+  override def write(instances : Traversable[Instance], indexFunction : Option[Instance => Set[Int]] = None)
   {
     val startTime = System.currentTimeMillis()
     writing = true
@@ -30,7 +30,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
     {
       for(instance <- instances)
       {
-        add(instance, blockingFunction)
+        add(instance, indexFunction)
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
@@ -47,13 +47,15 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Adds a single instance to the cache.
    */
-  private def add(instance : Instance, blockingFunction : Option[Instance => Set[Int]])
+  private def add(instance : Instance, indexFunction : Option[Instance => Set[Int]])
   {
     if(!allInstances.contains(instance.uri))
     {
-      for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+      val index = indexFunction.map(f => f(instance)).getOrElse(Set(0))
+
+      for(block <- index.map(_ % blockCount))
       {
-        blocks(block).add(instance)
+        blocks(block).add(instance, Index.build(index))
       }
       allInstances += instance.uri
       instanceCounter += 1
@@ -76,7 +78,7 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Reads a partition of a block.
    */
-  override def read(block : Int, partition : Int) = Partition(blocks(block)(partition).toArray)
+  override def read(block : Int, partition : Int) = blocks(block)(partition)
 
   /**
    * The number of partitions in a specific block.
@@ -85,23 +87,26 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
 
   private class Block(block : Int)
   {
-    private val partitions = ArrayBuffer(ArrayBuffer[Instance]())
+    private val instances = ArrayBuffer(ArrayBuffer[Instance]())
+    private val indices = ArrayBuffer(ArrayBuffer[Index]())
 
-    def apply(index : Int) = partitions(index)
+    def apply(index : Int) = Partition(instances(index).toArray, indices(index).toArray)
 
-    def add(instance : Instance)
+    def add(instance : Instance, index : Index)
     {
-      if(partitions.last.size < maxPartitionSize)
+      if(instances.last.size < maxPartitionSize)
       {
-        partitions.last.append(instance)
+        instances.last.append(instance)
+        indices.last.append(index)
       }
       else
       {
-        partitions.append(ArrayBuffer(instance))
-        logger.info("Written partition " + (partitions.size - 2) + " of block " + block)
+        instances.append(ArrayBuffer(instance))
+        indices.append(ArrayBuffer(index))
+        logger.info("Written partition " + (instances.size - 2) + " of block " + block)
       }
     }
 
-    def size = partitions.size
+    def size = instances.size
   }
 }
