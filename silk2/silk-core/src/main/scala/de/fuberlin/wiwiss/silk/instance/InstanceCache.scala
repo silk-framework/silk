@@ -10,7 +10,7 @@ trait InstanceCache
   /**
    * Writes to this cache.
    */
-  def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None) : Unit
+  def write(instances : Traversable[Instance], indexFunction : Option[Instance => Set[Int]] = None) : Unit
 
   /**
    * True, if the cache is being written at the moment.

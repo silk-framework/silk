@@ -8,11 +8,11 @@ import java.util.logging.{Level, Logger}
 /**
  * Loads the instance cache
  */
-//TODO remove blockingFunction argument by integrating it into instance cache
+//TODO remove indexFunction argument by integrating it into instance cache
 class LoadTask(sources : SourceTargetPair[Source],
                caches : SourceTargetPair[InstanceCache],
                instanceSpecs : SourceTargetPair[InstanceSpecification],
-               blockingFunction : Option[Instance => Set[Int]] = None) extends Task[Unit]
+               indexFunction : Option[Instance => Set[Int]] = None) extends Task[Unit]
 {
   taskName = "Loading"
 
@@ -83,7 +83,7 @@ class LoadTask(sources : SourceTargetPair[Source],
         logger.info("Loading instances of dataset " + source.dataSource.toString)
 
         instanceCache.clear()
-        instanceCache.write(source.retrieve(instanceSpec), blockingFunction)
+        instanceCache.write(source.retrieve(instanceSpec), indexFunction)
         instanceCache.close()
       }
       catch

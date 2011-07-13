@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.hadoop.impl
 
-import java.io._
 import java.util.logging.Logger
 import org.apache.hadoop.fs.{Path, FileSystem}
-import de.fuberlin.wiwiss.silk.instance.{Partition, InstanceSpecification, Instance, InstanceCache}
+import de.fuberlin.wiwiss.silk.instance._
+import java.io._
 
 /**
  * An instance cache, which uses the Hadoop FileSystem API.
@@ -20,7 +20,7 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
 
   @volatile private var writing = false
 
-  override def write(instances : Traversable[Instance], blockingFunction : Option[Instance => Set[Int]] = None)
+  override def write(instances : Traversable[Instance], indexFunction : Option[Instance => Set[Int]] = None)
   {
     writing = true
 
@@ -33,11 +33,13 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
 
       for(instance <- instances)
       {
-        for(block <- blockingFunction.map(f => f(instance)).getOrElse(Set(0)))
+        val index = indexFunction.map(f => f(instance)).getOrElse(Set(0))
+
+        for(block <- index.map(_ % blockCount))
         {
           if(block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
 
-          blockWriters(block).write(instance)
+          blockWriters(block).write(instance, Index.build(index))
         }
 
         instanceCount += 1
@@ -62,8 +64,7 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
     require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
     require(partition >= 0 && partition < blocks(block).partitionCount, "0 <= partition < " + blocks(block).partitionCount + " (partition = " + partition + ")")
 
-    //TODO store partitions directly
-    Partition(blocks(block).read(partition))
+    blocks(block).read(partition)
   }
 
   override def clear()
@@ -142,21 +143,23 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
       partitionCountCache = -1
     }
 
-    def read(partition : Int) : Array[Instance] =
+    def read(partition : Int) : Partition =
     {
       val stream = new DataInputStream(fs.open(blockPath.suffix("/partition" + partition)))
 
       try
       {
-        val partitionSize = stream.readInt()
-        val partition = new Array[Instance](partitionSize)
+        val count = stream.readInt()
+        val instances = new Array[Instance](count)
+        val indices = new Array[Index](count)
 
-        for(i <- 0 until partitionSize)
+        for(i <- 0 until count)
         {
-          partition(i) = Instance.deserialize(stream, instanceSpec)
+          instances(i) = Instance.deserialize(stream, instanceSpec)
+          indices(i) = Index.deserialize(stream)
         }
 
-        partition
+        Partition(instances, indices)
       }
       finally
       {
@@ -168,32 +171,35 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
   private class BlockWriter(block : Int)
   {
     private var instances = new Array[Instance](maxPartitionSize)
-    private var instanceCount = 0
+    private var indices = new Array[Index](maxPartitionSize)
+    private var count = 0
 
     private val blockPath = path.suffix("/block" + block + "/")
     fs.mkdirs(blockPath)
 
     private var partitionCount = 0
 
-    def write(instance : Instance)
+    def write(instance : Instance, index : Index)
     {
-      instances(instanceCount) = instance
-      instanceCount += 1
+      instances(count) = instance
+      indices(count) = index
+      count += 1
 
-      if(instanceCount == maxPartitionSize)
+      if(count == maxPartitionSize)
       {
         writePartition()
-        instanceCount = 0
+        count = 0
       }
     }
 
     def close()
     {
-      if(instanceCount > 0)
+      if(count > 0)
       {
         writePartition()
       }
       instances = null
+      indices = null
     }
 
     private def writePartition()
@@ -202,10 +208,11 @@ class HadoopInstanceCache(instanceSpec : InstanceSpecification, fs : FileSystem,
 
       try
       {
-        stream.writeInt(instanceCount)
-        for(i <- 0 until instanceCount)
+        stream.writeInt(count)
+        for(i <- 0 until count)
         {
           instances(i).serialize(stream)
+          indices(i).serialize(stream)
         }
       }
       finally

@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk
 
 import config.SilkConfig
 import impl.DefaultImplementations
-import instance.{Instance, InstanceSpecification, FileInstanceCache}
+import instance.{MemoryInstanceCache, Instance, InstanceSpecification, FileInstanceCache}
 import jena.{FileDataSource, RdfDataSource}
 import datasource.DataSource
 import java.io.File
@@ -122,10 +122,12 @@ object Silk
     //Retrieve Instance Specifications from Link Specification
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
+    val blockCount = config.blocking.map(_.blocks).getOrElse(1)
+
     //Create instance caches
     val caches = SourceTargetPair(
-        new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/" + linkSpec.id + "/source/"), reload, config.blocking.map(_.blocks).getOrElse(1)),
-        new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/" + linkSpec.id + "/target/"), reload, config.blocking.map(_.blocks).getOrElse(1))
+        new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/" + linkSpec.id + "/source/"), reload, blockCount),
+        new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/" + linkSpec.id + "/target/"), reload, blockCount)
       )
 
     //Load instances into cache
@@ -133,9 +135,9 @@ object Silk
     {
       val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
-      def blockingFunction(instance : Instance) = linkSpec.condition.index(instance).map(_ % config.blocking.map(_.blocks).getOrElse(1))
+      def indexFunction(instance : Instance) = linkSpec.condition.index(instance, 0.0)
 
-      val loadTask = new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(blockingFunction _) else None)
+      val loadTask = new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(indexFunction _) else None)
       loadTask.runInBackground()
     }
 

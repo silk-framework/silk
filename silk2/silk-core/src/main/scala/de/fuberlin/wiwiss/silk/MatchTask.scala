@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
-import instance.{Instance, InstanceCache}
+import instance.{Index, Instance, InstanceCache}
 import linkspec.evaluation.DetailedEvaluator
 import linkspec.LinkSpecification
 import java.util.logging.{Level, Logger}
@@ -218,13 +218,10 @@ class MatchTask(linkSpec : LinkSpecification,
         val sourcePartition = caches.source.read(blockIndex, sourcePartitionIndex)
         val targetPartition = caches.target.read(blockIndex, targetPartitionIndex)
 
-        val sourceIndexes = builtIndex(sourcePartition.instances)
-        val targetIndexes = builtIndex(targetPartition.instances)
-
         for(s <- 0 until sourcePartition.size;
             tStart = if(sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
             t <- tStart until targetPartition.size;
-            if !indexingEnabled || compareIndexes(sourceIndexes(s), targetIndexes(t)))
+            if !indexingEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t)))
         {
           val sourceInstance = sourcePartition.instances(s)
           val targetInstance = targetPartition.instances(t)
@@ -254,23 +251,6 @@ class MatchTask(linkSpec : LinkSpecification,
       }
 
       links
-    }
-
-    def builtIndex(instances : Array[Instance]) : Array[Set[Int]] =
-    {
-      if(indexingEnabled)
-      {
-        instances.map(instance => HashSet(linkSpec.condition.index(instance).toSeq : _*))
-      }
-      else
-      {
-         Array.empty
-      }
-    }
-
-    def compareIndexes(index1 : Set[Int], index2 : Set[Int]) =
-    {
-      index1.exists(index2.contains(_))
     }
   }
 }
