@@ -57,7 +57,7 @@ object JS
     {
       case ex : Exception =>
       {
-        logger.log(Level.INFO, "Error while trying to " + description, ex)
+        logger.log(Level.INFO, "Error " + description, ex)
         Message("Error while trying to " + description + ". Details: " + ex.getMessage.encJs)
       }
     }

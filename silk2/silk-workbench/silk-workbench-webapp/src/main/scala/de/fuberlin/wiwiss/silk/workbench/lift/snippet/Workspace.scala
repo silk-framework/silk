@@ -294,14 +294,14 @@ object Workspace
     {
       User().project = User().workspace.project(projectName)
 
-      SparqlOutputTaskDialog.openCmd
+      OutputDialog.Commands.open
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
 
     val openOutputDialog =  JsCmds.Function("createOutput", "projectName" :: Nil, ajaxCall)
 
-    SparqlOutputTaskDialog.initCmd & openOutputDialog
+    OutputDialog.Commands.init & openOutputDialog
   }
 
   /**
@@ -316,7 +316,7 @@ object Workspace
       User().project = User().workspace.project(projectName)
       User().task = User().project.outputModule.task(taskName)
 
-      SparqlOutputTaskDialog.openCmd
+      OutputDialog.Commands.open
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd

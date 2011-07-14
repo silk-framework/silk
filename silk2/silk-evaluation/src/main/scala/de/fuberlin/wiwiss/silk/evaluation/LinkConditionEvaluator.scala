@@ -5,7 +5,7 @@ import math.sqrt
 
 object LinkConditionEvaluator
 {
-  def apply(linkCondition : LinkCondition, instances : ReferenceInstances) =
+  def apply(linkCondition : LinkCondition, instances : ReferenceInstances) : EvaluationResult =
   {
     require(!instances.positive.isEmpty, "Positive alignment samples are required")
     require(!instances.negative.isEmpty, "Negative alignment samples are required")
