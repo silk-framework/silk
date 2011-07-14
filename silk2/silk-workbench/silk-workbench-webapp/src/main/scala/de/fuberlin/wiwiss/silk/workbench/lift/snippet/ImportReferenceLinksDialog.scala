@@ -24,8 +24,9 @@ class ImportReferenceLinksDialog
         {
           val alignment = fileName.split('.').last match
           {
-            case "xml" => AlignmentReader.readAlignment(new ByteArrayInputStream(data))
+            case "xml" | "rdf" => AlignmentReader.readAlignment(new ByteArrayInputStream(data))
             case "nt" => AlignmentReader.readNTriples(Source.fromBytes(data))
+            case  ext  => throw new IllegalArgumentException("Unsupported file extension: '" + ext + "'.")
           }
 
           //If the alignment does not define any negative links -> generate some
