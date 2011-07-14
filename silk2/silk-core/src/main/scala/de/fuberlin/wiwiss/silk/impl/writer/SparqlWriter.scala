@@ -11,7 +11,7 @@ import io.Source
  * A link writer which writes to a SPARQL/Update endpoint.
  */
 @StrategyAnnotation(id = "sparul", label = "SPARQL/Update")
-class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
+case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
 {
   /** Maximum number of statements per request. */
 	private val StatementsPerRequest = 200;

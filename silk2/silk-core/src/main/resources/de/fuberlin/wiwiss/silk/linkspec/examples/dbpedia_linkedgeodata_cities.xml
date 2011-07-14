@@ -13,7 +13,8 @@
 
   <DataSources>
     <DataSource id="dbpedia" type="sparqlEndpoint">
-      <Param name="endpointURI" value="http://dbpedia.org/sparql" />
+      <Param name="endpointURI" value="http://lod.openlinksw.com/sparql" />
+      <Param name="graph" value="http://dbpedia.org" />
       <Param name="retryCount" value="500" />
       <Param name="retryPause" value="3000" />
     </DataSource>
@@ -23,6 +24,8 @@
       <Param name="retryPause" value="1000" />
     </DataSource>
   </DataSources>
+
+  <Blocking blocks="1" enabled="false" />
 
   <Interlinks>
     <Interlink id="cities">
@@ -49,11 +52,11 @@
         <Aggregate type="average">
           <Aggregate type="max" required="true" >
             <!-- We need two comparators because some resources in LinkedGeoData do not provided an english label -->
-            <Compare metric="levenshteinDistance" threshold="2">
+            <Compare metric="levenshteinDistance" threshold="1">
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='en']" />
             </Compare>
-            <Compare metric="levenshteinDistance" threshold="2">
+            <Compare metric="levenshteinDistance" threshold="1">
               <Input path="?a/rdfs:label[@lang='en']" />
               <Input path="?b/rdfs:label[@lang='']" />
             </Compare>
@@ -66,7 +69,7 @@
        </Aggregate>              
       </LinkCondition>
 
-      <Filter limit="1" />
+      <Filter />
 
       <Outputs>
         <Output type="file">

@@ -8,24 +8,24 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
  * A file writer.
  */
 @StrategyAnnotation(id = "file", label = "File")
-class FileWriter(file : String = "output", format : String) extends LinkWriter
+case class FileWriter(file : String = "output", format : String = "ntriples") extends LinkWriter
 {
   private val formatter = Formatter(format)
 
   private var out : Writer = null
 
-  override def open : Unit =
+  override def open()
   {
     out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
     out.write(formatter.header)
   }
 
-  override def write(link : Link, predicateUri : String) : Unit =
+  override def write(link : Link, predicateUri : String)
   {
     out.write(formatter.format(link, predicateUri))
   }
 
-  override def close : Unit =
+  override def close()
   {
     if(out != null)
     {

@@ -3,12 +3,12 @@ package de.fuberlin.wiwiss.silk.output
 import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
 import java.util.logging.Logger
 import xml.Node
-import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
+import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 
 /**
  * Represents an abstraction over an output of links.
  */
-case class Output(writer : LinkWriter, minConfidence : Option[Double] = None, maxConfidence : Option[Double] = None)
+case class Output(id : Identifier, writer : LinkWriter, minConfidence : Option[Double] = None, maxConfidence : Option[Double] = None)
 {
   private val logger = Logger.getLogger(classOf[Output].getName)
 
@@ -78,7 +78,8 @@ object Output
 
   def fromXML(node : Node)(implicit globalThreshold : Option[Double] = None) =
   {
-    new Output(
+    Output(
+      id = node \ "@name" text,
       writer = LinkWriter(node \ "@type" text, readParams(node)),
       minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble).map(convertConfidence),
       maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble).map(convertConfidence)

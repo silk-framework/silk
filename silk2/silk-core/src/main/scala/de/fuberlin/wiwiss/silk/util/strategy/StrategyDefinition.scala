@@ -11,7 +11,12 @@ class StrategyDefinition[+T <: Strategy](val id : String, val label : String, va
   {
     val parsedParameters = parseParameters(parameterValues)
 
-    constructor.newInstance(parsedParameters : _*)
+    val obj = constructor.newInstance(parsedParameters : _*)
+
+    obj.id = id
+    obj.parameters = parameterValues
+
+    obj
   }
 
   private def parseParameters(parameterValues : Map[String, String]) : Seq[AnyRef] =
