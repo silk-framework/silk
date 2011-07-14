@@ -1,8 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
-import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.util.Helpers._
-import net.liftweb.http.js.JE.Call
 import xml.NodeSeq
 import java.io.StringReader
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
@@ -14,6 +12,9 @@ import net.liftweb.http.js.JsCmds.Script
 import de.fuberlin.wiwiss.silk.util.CollectLogs
 import net.liftweb.http.SHtml
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
+import net.liftweb.http.js.JE.{Str, JsArray, JsRaw, Call}
+import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
+import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 
 /**
  * LinkSpec snippet.
@@ -76,8 +77,11 @@ class LinkSpec
         User().task = updatedLinkingTask
       }
 
+      //Evaluate LinkSpec
+      val infoMsg = evaluateLinkSpec(linkingTask)
+
       //Update link spec variable and notify user
-      linkSpecVarCmd & Call("showValidIcon", warnings.map(_.getMessage).mkString("\\n")).cmd
+      linkSpecVarCmd & Call("updateStatus", JsArray(), JsArray(warnings.map(_.getMessage).map(Str(_)).toList), JsArray(infoMsg.map(Str(_)).toList)).cmd
     }
     catch
     {
@@ -87,8 +91,24 @@ class LinkSpec
         val msg = ex.getMessage
         //Strip prefixes like this: "cvc-complex-type.2.4.b:"
         val cleanMsg = if(msg.contains(':')) msg.split(':').tail.mkString else msg
-        Call("showInvalidIcon", cleanMsg.encJs).cmd
+        Call("updateStatus", JsArray(Str(cleanMsg)), JsArray(), JsArray()).cmd
       }
+    }
+  }
+
+  private def evaluateLinkSpec(linkingTask : LinkingTask) : Option[String] =
+  {
+    if(linkingTask.cache.instances.positive.isEmpty || linkingTask.cache.instances.negative.isEmpty)
+    {
+      None
+    }
+    else
+    {
+      val r = LinkConditionEvaluator(linkingTask.linkSpec.condition, linkingTask.cache.instances)
+
+      val msg = "Precision = " + r.precision + "\nRecall = " + r.recall + "\nF-measure = " + r.fMeasure
+
+      Some(msg)
     }
   }
 
