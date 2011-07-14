@@ -14,6 +14,9 @@ import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
  */
 class EvaluationTask(user : User) extends Task[Unit]
 {
+  /** */
+  var outputEnabled = false
+
   /** The number of concurrent threads used for matching */
   private val numThreads = 8
 
@@ -101,7 +104,12 @@ class EvaluationTask(user : User) extends Task[Unit]
       filteredLinks = executeSubTask(filterTask)
 
       //Output links
-      //val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, )
+      if(outputEnabled)
+      {
+        val outputs = project.outputModule.tasks.map(_.output)
+        val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, outputs)
+        executeSubTask(outputTask)
+      }
     }
   }
 
