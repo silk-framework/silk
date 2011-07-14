@@ -8,6 +8,7 @@ import js.jquery.JQuery14Artifacts
 import net.liftweb.widgets.autocomplete.AutoComplete
 import scala.xml.Text
 import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
+import de.fuberlin.wiwiss.silk.jena.JenaImplementations
 
 /**
   * Configures the Silk Workbench WebApp.
@@ -27,6 +28,7 @@ class Boot
     User.userManager = UserManager.is _
 
     DefaultImplementations.register()
+    JenaImplementations.register()
 
     LiftRules.jsArtifacts = JQuery14Artifacts
 
