@@ -5,7 +5,6 @@
 .pagination a {
   text-decoration: none;
   border: 1px solid #cdcccc;
-  background-color: #f2f1f1;
   box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
   color: #656565;
 }
