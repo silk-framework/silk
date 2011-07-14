@@ -127,13 +127,13 @@ function modifyLinkSpec() {
 }
 
 function showValidIcon() {
-  $("#exclamation, #tick").fadeOut(300, function(){
-    $("#tick").fadeIn(300);
+  $("#exclamation").fadeOut(200, function(){
+    $("#tick").fadeIn(200);
   });
 }
 function showInvalidIcon() {
-  $("#tick, #exclamation").fadeOut(300, function(){
-    $("#exclamation").fadeIn(300);
+  $("#tick").fadeOut(200, function(){
+    $("#exclamation").fadeIn(200);
   });
 }
 
