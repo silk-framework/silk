@@ -23,8 +23,6 @@ var targetDataSetRestriction = "";
 
 var customPropertyPathsCreated = false;
 
-//TODO Set to true if the link specification has been modified
-var modified = true;
 var modificationTimer;
 
 jsPlumb.Defaults.Container = "droppable";
@@ -124,6 +122,14 @@ function confirmExit()
 function modifyLinkSpec() {
   clearTimeout(modificationTimer);
   modificationTimer = setTimeout("updateLinkSpec(serializeLinkSpec());", 2000);
+}
+
+function updateStatus(errorMessages, warnings, infoMessages) {
+  if (errorMessages.length < 1) {
+    showValidIcon();
+  } else {
+    showInvalidIcon();
+  }
 }
 
 function showValidIcon() {
