@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.jena
 
-import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.io.FileInputStream
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
+import de.fuberlin.wiwiss.silk.instance.{Path, SparqlRestriction, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlAggregatePathsCollector, InstanceRetriever}
 
 /**
  * DataSource which retrieves all instances from an RDF file.
@@ -17,15 +17,18 @@ import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
 @StrategyAnnotation(id = "file", label = "RDF dump", description = "DataSource which retrieves all instances from an RDF file.")
 class FileDataSource(file : String, format : String) extends DataSource
 {
+  private lazy val model = ModelFactory.createDefaultModel
+  model.read(new FileInputStream(file), null, format)
+
+  private lazy val endpoint = new JenaSparqlEndpoint(model)
+
   override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) =
   {
-    val model = ModelFactory.createDefaultModel
-    model.read(new FileInputStream(file), null, format)
+    InstanceRetriever(endpoint).retrieve(instanceSpec, instances)
+  }
 
-    val endpoint = new JenaSparqlEndpoint(model)
-
-    val instanceRetriever = InstanceRetriever(endpoint)
-
-    instanceRetriever.retrieve(instanceSpec, instances)
+  override def retrievePaths(restrictions : SparqlRestriction, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
+  {
+    SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
 }
