@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
-import de.fuberlin.wiwiss.silk.workbench.lift.util.Dialog
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.linkspec.DatasetSpecification
+import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, Dialog}
 
 /**
  * A dialog to create and edit a source task.

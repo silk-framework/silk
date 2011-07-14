@@ -4,6 +4,7 @@ import xml.NodeSeq
 import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.lift.util.Widgets
+import net.liftweb.http.SHtml
 
 class GenerateLinks
 {
@@ -11,6 +12,7 @@ class GenerateLinks
   {
     bind("entry", xhtml,
          "control" -> Widgets.taskControl(User().evaluationTask, cancelable = true),
+         //"enableOutput" -> SHtml.checkbox()
          "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Evaluation" target="_help">Help</a>
     )
  }

@@ -271,7 +271,7 @@ class FileProject(file : File) extends Project
       {
         val output = Output.load(file + ("/" + fileName))
 
-        OutputTask(fileName.stripSuffix(".xml"), output)
+        OutputTask(output)
       }
     }
 
