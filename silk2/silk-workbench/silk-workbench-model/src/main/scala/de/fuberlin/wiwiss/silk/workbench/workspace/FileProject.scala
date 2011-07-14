@@ -133,7 +133,6 @@ class FileProject(file : File) extends Project
     @volatile
     private var lastUpdateTime = 0L
 
-    file.mkdir()
     WriteThread.start()
 
     override def config = LinkingConfig()
@@ -168,6 +167,8 @@ class FileProject(file : File) extends Project
 
     private def load() : Map[Identifier, LinkingTask] =
     {
+      file.mkdir()
+
       val tasks =
         for(fileName <- file.list.toList) yield
         {

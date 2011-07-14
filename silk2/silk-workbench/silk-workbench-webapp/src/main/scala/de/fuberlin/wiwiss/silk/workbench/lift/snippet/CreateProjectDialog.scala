@@ -6,6 +6,7 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.http.SHtml
 import net.liftweb.util.Helpers._
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
 /**
  * A dialog to create new projects.
@@ -26,7 +27,7 @@ class CreateProjectDialog
       }
       catch
       {
-        case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+        case ex : Exception => Workspace.hideLoadingDialogCmd & JS.Message(ex.getMessage)
       }
     }
 
