@@ -13,13 +13,10 @@ class Factory[T <: Strategy] extends ((String, Map[String, String]) => T)
     {
       strategies.get(id) match
       {
-        case Some(strategy) => strategy(params)
+        case Some(s) => s(params)
         case None => throw new NoSuchElementException("No strategy called '" + id + "' found.")
       }
     }
-
-    strategy.id = id
-    strategy.parameters = params
 
     strategy
   }
@@ -35,6 +32,8 @@ class Factory[T <: Strategy] extends ((String, Map[String, String]) => T)
 
     strategies += ((strategyDefinition.id, strategyDefinition))
   }
+
+  def strategy(id : String) = strategies(id)
 
   def availableStrategies : Traversable[StrategyDefinition[T]] = strategies.values
 }

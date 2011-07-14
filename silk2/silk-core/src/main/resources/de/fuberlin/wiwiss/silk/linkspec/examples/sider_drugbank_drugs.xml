@@ -14,15 +14,27 @@
     <Prefix id="sider" namespace="http://www4.wiwiss.fu-berlin.de/sider/resource/sider/"/>
   </Prefixes>
 
+  <!--<DataSources>-->
+    <!--<DataSource id="sider" type="sparqlEndpoint">-->
+      <!--<Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/sider/sparql"/>-->
+    <!--</DataSource>-->
+
+    <!--<DataSource id="drugbank" type="sparqlEndpoint">-->
+      <!--<Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/drugbank/sparql"/>-->
+    <!--</DataSource>-->
+  <!--</DataSources>-->
+
   <DataSources>
-    <DataSource id="sider" type="sparqlEndpoint">
-      <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/sider/sparql"/>
+    <DataSource id="sider" type="cache">
+      <Param name="dir" value="C:/Users/Robert/.silk/instanceCacheSource/drugs/source"/>
     </DataSource>
 
-    <DataSource id="drugbank" type="sparqlEndpoint">
-      <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/drugbank/sparql"/>
+    <DataSource id="drugbank" type="cache">
+      <Param name="dir" value="C:/Users/Robert/.silk/instanceCacheSource/drugs/target"/>
     </DataSource>
   </DataSources>
+
+  <Blocking blocks="101"/>
 
   <Interlinks>
     <Interlink id="drugs">
