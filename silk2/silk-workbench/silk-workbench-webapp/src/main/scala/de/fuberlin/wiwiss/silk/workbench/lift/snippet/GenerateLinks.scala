@@ -12,7 +12,7 @@ class GenerateLinks
   {
     bind("entry", xhtml,
          "control" -> Widgets.taskControl(User().evaluationTask, cancelable = true),
-         //"enableOutput" -> SHtml.checkbox()
+         "enableOutput" -> <div></div>,//SHtml.checkbox()
          "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Evaluation" target="_help">Help</a>
     )
  }
