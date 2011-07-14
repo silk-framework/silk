@@ -127,19 +127,26 @@ function modifyLinkSpec() {
 function updateStatus(errorMessages, warnings, infoMessages) {
   if (errorMessages.length < 1) {
     showValidIcon();
+  } else if (warnings.length > 0) {
+    showWarningIcon();
   } else {
     showInvalidIcon();
   }
 }
 
 function showValidIcon() {
-  $("#exclamation").fadeOut(200, function(){
+  $("#exclamation, #warning").fadeOut(200, function(){
     $("#tick").fadeIn(200);
   });
 }
 function showInvalidIcon() {
-  $("#tick").fadeOut(200, function(){
+  $("#tick, #warning").fadeOut(200, function(){
     $("#exclamation").fadeIn(200);
+  });
+}
+function showWarningIcon() {
+  $("#tick, #exclamation").fadeOut(200, function(){
+    $("#warning").fadeIn(200);
   });
 }
 
@@ -989,6 +996,7 @@ $(function ()
 
   $("#toolbar").append('<div id="tick" style="display: none"></div>');
   $("#toolbar").append('<div id="exclamation" style="display: none"></div>');
+  $("#toolbar").append('<div id="warning" style="display: none"></div>');
 
 });
 

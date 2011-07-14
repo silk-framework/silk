@@ -49,7 +49,7 @@ a:hover {
 }
 
 #filter input {
-  background: none repeat scroll 0 0 #F9F9F9;
+  background: none repeat scroll 0 0 #faf9f9;
   border: 1px solid #CCCCCC;
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1) inset;
   padding: 2px;
@@ -183,7 +183,6 @@ a:hover {
 
 #tree-header .toggle-all {
   border: 1px solid #cdcccc;
-  background-color: #f2f1f1;
   box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
   padding: 0.2em 0.4em;
   margin-right: 6px;
