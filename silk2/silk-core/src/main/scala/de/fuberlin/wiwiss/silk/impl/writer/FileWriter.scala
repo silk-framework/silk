@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
  * A file writer.
  */
 @StrategyAnnotation(id = "file", label = "File")
-case class FileWriter(file : String = "output", format : String = "ntriples") extends LinkWriter
+case class FileWriter(file : String = "output.nt", format : String = "ntriples") extends LinkWriter
 {
   private val formatter = Formatter(format)
 

@@ -19,7 +19,6 @@ case class LinkSpecification(id : Identifier,
                              condition : LinkCondition,
                              filter : LinkFilter,
                              outputs : Traversable[Output])
-                             //linkOutputs : Traversable[Identifier])
 {
   /**
    * Serializes this Link Specification as XML.
