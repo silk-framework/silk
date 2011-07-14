@@ -68,7 +68,7 @@ object DetailedEvaluator
 
     val aggregatedValue = aggregation.aggregator.evaluate(weightedValues)
 
-    val name = aggregation.aggregator.strategyName
+    val name = aggregation.aggregator.strategyId
 
     if(isNone)
       Link.AggregatorConfidence(None, name, operatorValues)
@@ -86,7 +86,7 @@ object DetailedEvaluator
     val sourceInput = InputValue(sourcePath, comparision.inputs.source(instances))
     val targetInput = InputValue(targetPath, comparision.inputs.target(instances))
 
-    val name = comparision.metric.strategyName
+    val name = comparision.metric.strategyId
 
     Link.ComparisonConfidence(distance, name, sourceInput, targetInput)
   }

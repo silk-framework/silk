@@ -24,6 +24,8 @@ class Identifier(private val name : String)
 
 object Identifier
 {
+  def apply(str : String) = new Identifier(str)
+
   implicit def fromString(str : String) = new Identifier(str)
 
   implicit def toString(id : Identifier) = id.toString

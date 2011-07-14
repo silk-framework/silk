@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.output.{LinkWriter, Link}
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "memory", label = "Memory")
-class MemoryWriter() extends LinkWriter
+case class MemoryWriter() extends LinkWriter
 {
   private var _links = List[Link]()
 

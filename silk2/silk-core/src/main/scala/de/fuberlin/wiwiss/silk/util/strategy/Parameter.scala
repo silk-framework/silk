@@ -1,6 +1,12 @@
 package de.fuberlin.wiwiss.silk.util.strategy
 
 case class Parameter(name : String, dataType : Parameter.Type, description : String = "No description", defaultValue : Option[AnyRef] = None)
+{
+  def apply(obj : AnyRef) : AnyRef =
+  {
+    obj.getClass.getMethod(name).invoke(obj)
+  }
+}
 
 object Parameter
 {
