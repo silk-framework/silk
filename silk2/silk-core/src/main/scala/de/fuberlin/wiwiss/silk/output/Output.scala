@@ -60,7 +60,7 @@ case class Output(id : Identifier, writer : LinkWriter, minConfidence : Option[D
   {
     case LinkWriter(outputType, params) =>
     {
-      <Output type={outputType}>
+      <Output name={id} type={outputType}>
         { params.map{case (name, value) => <Param name={name} value={value} /> } }
       </Output>
     }
@@ -79,7 +79,7 @@ object Output
   def fromXML(node : Node)(implicit globalThreshold : Option[Double] = None) =
   {
     Output(
-      id = node \ "@name" text,
+      id = Identifier((node \ "@name").headOption.map(_.text).getOrElse("id")),
       writer = LinkWriter(node \ "@type" text, readParams(node)),
       minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble).map(convertConfidence),
       maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble).map(convertConfidence)
