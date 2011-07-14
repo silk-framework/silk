@@ -24,6 +24,7 @@ var targetDataSetRestriction = "";
 var customPropertyPathsCreated = false;
 
 var modificationTimer;
+var errorsFound = false;
 
 jsPlumb.Defaults.Container = "droppable";
 
@@ -113,7 +114,7 @@ window.onbeforeunload = confirmExit;
 
 function confirmExit()
 {
-  if(modified)
+  if(errorsFound)
   {
     return "Unsaved modifications will be lost when leaving the editor";
   }
@@ -124,22 +125,33 @@ function modifyLinkSpec() {
   modificationTimer = setTimeout("updateLinkSpec(serializeLinkSpec());", 2000);
 }
 
-function updateStatus(errorMessages, warnings, infoMessages) {
-  if (errorMessages.length < 1) {
-    showValidIcon();
+function updateStatus(errorMessages, warningMessages, infoMessages) {
+  $("#info-box").html("");
+  if (errorMessages.length > 0) {
+    errorsFound = true;
+    $("#info-box").append("Error messages:");
+    $("#info-box").append(printMessages(errorMessages));
+    showInvalidIcon(errorMessages.length);
   } else if (warnings.length > 0) {
-    showWarningIcon();
+    errorsFound = false;
+    $("#info-box").append("Warning messages:");
+    $("#info-box").append(printMessages(warningMessages));
+    showWarningIcon(warningMessages.length);
   } else {
-    showInvalidIcon();
+    errorsFound = false;
+    $("#info-box").slideUp(200);
+    showValidIcon();
   }
 }
 
-function showValidIcon() {
+function showValidIcon(numberMessages) {
+  $("#tick > .number-messages").html(numberMessages);
   $("#exclamation, #warning").fadeOut(200, function(){
     $("#tick").fadeIn(200);
   });
 }
-function showInvalidIcon() {
+function showInvalidIcon(numberMessages) {
+  $("#exclamation > .number-messages").html(numberMessages);
   $("#tick, #warning").fadeOut(200, function(){
     $("#exclamation").fadeIn(200);
   });
@@ -148,6 +160,16 @@ function showWarningIcon() {
   $("#tick, #exclamation").fadeOut(200, function(){
     $("#warning").fadeIn(200);
   });
+}
+
+function printMessages(array) {
+  var result = "";
+  var c = 1;
+  for (var i = 0; i<array.length; i++) {
+    result = "<br />" + c + ". " + result + array[i];
+    c++;
+  }
+  return result;
 }
 
 Array.max = function(array) {
@@ -995,9 +1017,23 @@ $(function ()
   });
 
   $("#toolbar").append('<div id="tick" style="display: none"></div>');
-  $("#toolbar").append('<div id="exclamation" style="display: none"></div>');
-  $("#toolbar").append('<div id="warning" style="display: none"></div>');
+  $("#toolbar").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
+  $("#toolbar").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
+  $("#toolbar").append('<div id="info-box" style="display: none"></div>');
 
+  $("#exclamation, #warning").mouseover(function() {
+   $(this).attr("style", "cursor:pointer;");
+  });
+
+  $("#exclamation, #warning").click(function() {
+    if ($("#info-box").is(':visible')) {
+      $("#info-box").slideUp(200);
+    } else {
+      $("#info-box").css("left", $(window).width()-294+"px");
+      $("#info-box").slideDown(200);
+    }
+
+  });
 });
 
 function decodeHtml(value)
