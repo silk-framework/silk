@@ -2,10 +2,9 @@ package de.fuberlin.wiwiss.silk
 
 import config.SilkConfig
 import impl.DefaultImplementations
-import instance.{MemoryInstanceCache, Instance, InstanceSpecification, FileInstanceCache}
-import jena.{FileDataSource, RdfDataSource}
-import datasource.DataSource
+import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import java.io.File
+import jena.{JenaImplementations}
 import linkspec.{LinkSpecification}
 import util.StringUtils._
 import util.{CollectLogs, Future, SourceTargetPair}
@@ -29,8 +28,7 @@ object Silk
   private val instanceCacheDir = new File(System.getProperty("user.home") + "/.silk/instanceCache/")
 
   DefaultImplementations.register()
-  DataSource.register(classOf[RdfDataSource])
-  DataSource.register(classOf[FileDataSource])
+  JenaImplementations.register()
 
   /**
    * Executes Silk.

@@ -19,6 +19,7 @@ case class LinkSpecification(id : Identifier,
                              condition : LinkCondition,
                              filter : LinkFilter,
                              outputs : Traversable[Output])
+                             //linkOutputs : Traversable[Identifier])
 {
   /**
    * Serializes this Link Specification as XML.
@@ -59,7 +60,8 @@ object LinkSpecification
       node \ "@id" text,
       resolveQualifiedName(node \ "LinkType" text, prefixes),
       new SourceTargetPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
-                           DatasetSpecification.fromXML(node \ "TargetDataset" head)),
+                           DatasetSpecification
+                               .fromXML(node \ "TargetDataset" head)),
       readLinkCondition(node \ "LinkCondition" head),
       filter,
       (node \ "Outputs" \ "Output").map(Output.fromXML)

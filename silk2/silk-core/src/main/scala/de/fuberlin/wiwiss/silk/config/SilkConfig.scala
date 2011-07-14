@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.datasource.Source
 import xml.Node
-import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
+import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 
 /**
  * A Silk linking configuration.
@@ -13,26 +13,32 @@ import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
  * @param prefixes The prefixes which are used throughout the configuration to shorten URIs
  * @param sources The sources which should be interlinked
  * @param linkSpecs The Silk link specifications
- * @param outputs The global output
+ * @param outputs The outputs
  */
 case class SilkConfig(prefixes : Prefixes,
-                         sources : Traversable[Source],
-                         blocking : Option[Blocking],
-                         linkSpecs : Traversable[LinkSpecification],
-                         outputs : Traversable[Output] = Traversable.empty)
+                      sources : Traversable[Source],
+                      blocking : Option[Blocking],
+                      linkSpecs : Traversable[LinkSpecification],
+                      outputs : Traversable[Output] = Traversable.empty)
 {
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
+  private val outputMap = outputs.map(s => (s.id, s)).toMap
 
   /**
    * Selects a datasource by id.
    */
-  def source(id : String) = sourceMap(id)
+  def source(id : Identifier) = sourceMap(id)
 
   /**
    * Selects a link specification by id.
    */
-  def linkSpec(id : String) = linkSpecMap(id)
+  def linkSpec(id : Identifier) = linkSpecMap(id)
+
+  /**
+   * Selects an output by id.
+   */
+  def output(id : Identifier) = outputMap(id)
 
   /**
    * Merges this configuration with another configuration.

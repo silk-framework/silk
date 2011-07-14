@@ -6,6 +6,8 @@ import de.fuberlin.wiwiss.silk.output.Link
 
 case class ReferenceInstances(positive : Map[Link, SourceTargetPair[Instance]] = Map.empty,
                               negative : Map[Link, SourceTargetPair[Instance]] = Map.empty)
+{
+}
 
 object ReferenceInstances
 {
