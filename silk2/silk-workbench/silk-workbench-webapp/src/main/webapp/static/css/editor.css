@@ -281,3 +281,9 @@ a.more {
   margin-left: 26px;
   vertical-align: middle;
 }
+
+.label {
+    padding: 1px 1px 1px 3px !important;
+    margin: 0 !important;
+    font-size: 11px;
+}

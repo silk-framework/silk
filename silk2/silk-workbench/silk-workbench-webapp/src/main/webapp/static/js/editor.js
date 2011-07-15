@@ -234,6 +234,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", "aggregate_" + aggregatecounter);
 
+    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
+
     var height = aggregatecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
@@ -346,6 +348,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", "compare_" + comparecounter);
+
+    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
 
     var height = 2 * comparecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
@@ -476,6 +480,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", "transform_" + transformcounter);
 
+    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
+
     var height = transformcounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
@@ -571,6 +577,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv ' + pathClass);
     box1.attr("id", "source_" + sourcecounter);
+
+    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
 
     var height = sourcecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
@@ -910,6 +918,9 @@ $(function ()
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
           var number = "#aggregate_" + aggregatecounter;
+
+          $(number).prepend('<div class="label">' + "aggregate_" + aggregatecounter + '</div>');
+
           $(number).draggable(
           {
             containment: '#droppable',
@@ -927,6 +938,9 @@ $(function ()
           jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
           var number = "#transform_" + transformcounter;
+
+          $(number).prepend('<div class="label">' + "transform_" + transformcounter + '</div>');
+
           $(number).draggable(
           {
             containment: '#droppable',
@@ -944,6 +958,9 @@ $(function ()
           jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
           var number = "#compare_" + comparecounter;
+
+          $(number).prepend('<div class="label">' + "compare_" + comparecounter + '</div>');
+
           $(number).draggable(
           {
             containment: '#droppable',
@@ -960,6 +977,9 @@ $(function ()
         {
           jsPlumb.addEndpoint('source_' + sourcecounter, endpointOptions);
           var number = "#source_" + sourcecounter;
+
+          $(number).prepend('<div class="label">' + "source_" + sourcecounter + '</div>');
+
           $(number).draggable(
           {
             containment: '#droppable',
@@ -977,6 +997,9 @@ $(function ()
         {
           jsPlumb.addEndpoint('target_' + targetcounter, endpointOptions);
           var number = "#target_" + targetcounter;
+
+          $(number).prepend('<div class="label">' + "target_" + targetcounter + '</div>');
+
           $(number).draggable(
           {
             containment: '#droppable',
@@ -1039,8 +1062,25 @@ $(function ()
       $("#info-box").css("left", $(window).width()-294+"px");
       $("#info-box").slideDown(200);
     }
-
   });
+
+    /*
+  $(".label").live('click', function(e) {
+    var current_label = $(this).html();
+    var input = '<input class="label-change" type="text" value="' + current_label + '" />';
+    $(this).html(input).unbind();
+  });
+       /*
+  $(".label-change").live('change', function(e) {
+    var new_label = $(this).val();
+    $(this).parent().html(new_label);
+  });
+  /*
+  $(".label-change").live('focusin', function(e) {
+    var new_label = $(this).val();
+    $(this).parent().html(new_label);
+  });  */
+
 });
 
 function decodeHtml(value)
