@@ -6,10 +6,11 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
 import JS.PeriodicUpdate
 import net.liftweb.http.js.JE.JsRaw
-import xml.{NodeBuffer, NodeSeq, Text}
+import xml.{NodeBuffer, Text}
 
 object Widgets
 {
+  @deprecated("Use TaskControl instead")
   def taskControl[T](task : Task[T], cancelable : Boolean = false) =
   {
     def startTask()

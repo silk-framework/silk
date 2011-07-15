@@ -20,7 +20,6 @@ class GenerateLinks
     }
 
     bind("entry", xhtml,
-         "control" -> Widgets.taskControl(evaluationTask, cancelable = true),
          "enableOutput" -> (SHtml.ajaxCheckbox(evaluationTask.outputEnabled, setOutput _, ("id" -> "enableOutput")) ++ <label for="enableOutput">Enable Output</label>),
          "help" -> <a id="button" href="http://www.assembla.com/spaces/silk/wiki/Evaluation" target="_help">Help</a>
     )
