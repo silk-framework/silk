@@ -11,10 +11,18 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers
 
   val metric = new LevenshteinDistance()
 
+  "LevenshteinDistance" should "return distance 0 for equal strings" in
+  {
+    metric.evaluate("kitten", "kitten") should equal (0)
+    metric.evaluate("sitting", "sitting", 0.0) should equal (0)
+  }
+
   "LevenshteinDistance" should "return distance 3 (kitten, sitting)" in
   {
     metric.evaluate("kitten", "sitting") should equal (3)
     metric.evaluate("sitting", "kitten") should equal (3)
+    metric.evaluate("kitten", "sitting", 3.0) should equal (3)
+    metric.evaluate("sitting", "kitten", 3.0) should equal (3)
   }
 
   "LevenshteinDistance" should "return distance 3 (Saturday, Sunday)" in
@@ -38,14 +46,15 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers
     metric.index("zzzzz", 0.0) should equal (Set(Seq(metric.blockCounts(0.0).head - 1)))
   }
 
-  it should "generate one more index than the edit distance" in
-  {
-    val SourceTargetPair(source, target) = randomValues(10, 5)
-    val distance = metric.evaluate(source, target)
-
-    metric.index(source, distance).size should equal(distance + 1)
-    metric.index(target, distance).size should equal(distance + 1)
-  }
+// Invalid if q > 1:
+//  it should "generate one more index than the edit distance" in
+//  {
+//    val SourceTargetPair(source, target) = randomValues(10, 5)
+//    val distance = metric.evaluate(source, target)
+//
+//    metric.index(source, distance).size should equal(distance + 1)
+//    metric.index(target, distance).size should equal(distance + 1)
+//  }
 }
 
 object LevenshteinDistanceTest

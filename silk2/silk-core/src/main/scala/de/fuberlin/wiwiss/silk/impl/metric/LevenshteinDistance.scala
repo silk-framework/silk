@@ -13,7 +13,7 @@ case class LevenshteinDistance(minChar : Char = '0', maxChar : Char = 'z') exten
 
   override def evaluate(str1 : String, str2 : String, limit : Double) =
   {
-    if(abs(str1.length - str2.length) >= limit)
+    if(abs(str1.length - str2.length) > limit)
     {
       Double.PositiveInfinity
     }
