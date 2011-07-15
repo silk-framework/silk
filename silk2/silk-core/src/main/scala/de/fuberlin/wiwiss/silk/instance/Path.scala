@@ -2,6 +2,9 @@ package de.fuberlin.wiwiss.silk.instance
 
 import collection.mutable.{SynchronizedMap, WeakHashMap}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import java.util.HashMap
+import ref.WeakReference
+import javax.print.DocFlavor.STRING
 
 /**
  * Represents an RDF path.
@@ -33,22 +36,38 @@ final class Path private(val variable : String, val operators : List[PathOperato
 
 object Path
 {
-  private val pathCache = new WeakHashMap[String, Path]() with SynchronizedMap[String, Path]
+  private var pathCache = Map[String, WeakReference[Path]]()
 
   /**
    * Creates a new path.
-   * May return a cached copy.
+   * Returns a cached copy if available.
    */
   def apply(variable : String, operators : List[PathOperator]) : Path =
   {
     val path = new Path(variable, operators)
 
-    pathCache.getOrElseUpdate(path.serialize, path)
+    val pathStr = path.serialize
+
+    //Remove all garbage collected paths from the map and try to return a cached path
+    synchronized
+    {
+      pathCache = pathCache.filter(_._2.get.isDefined)
+
+      pathCache.get(pathStr).flatMap(_.get) match
+      {
+        case Some(cachedPath) => cachedPath
+        case None =>
+        {
+          pathCache += (pathStr -> new WeakReference(path))
+          path
+        }
+      }
+    }
   }
 
   /**
    * Parses a path string.
-   * May return a cached copy.
+   * Returns a cached copy if available.
    */
   def parse(pathStr : String)(implicit prefixes : Prefixes = Prefixes.empty) : Path =
   {
