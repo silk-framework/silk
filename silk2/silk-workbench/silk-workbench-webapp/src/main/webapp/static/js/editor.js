@@ -132,7 +132,7 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
     $("#info-box").append("Error messages:");
     $("#info-box").append(printMessages(errorMessages));
     showInvalidIcon(errorMessages.length);
-  } else if (warnings.length > 0) {
+  } else if (warningMessages.length > 0) {
     errorsFound = false;
     $("#info-box").append("Warning messages:");
     $("#info-box").append(printMessages(warningMessages));
@@ -144,21 +144,27 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
   }
 }
 
-function showValidIcon(numberMessages) {
-  $("#tick > .number-messages").html(numberMessages);
-  $("#exclamation, #warning").fadeOut(200, function(){
-    $("#tick").fadeIn(200);
+function showValidIcon() {
+  $("#validation-icons").fadeOut(200, function(){
+    $("#exclamation, #warning").css("display", "none");
+    $("#tick").css("display", "block");
+    $("#validation-icons").fadeIn(200);
   });
 }
 function showInvalidIcon(numberMessages) {
   $("#exclamation > .number-messages").html(numberMessages);
-  $("#tick, #warning").fadeOut(200, function(){
-    $("#exclamation").fadeIn(200);
+  $("#validation-icons").fadeOut(200, function(){
+    $("#tick, #warning").css("display", "none");
+    $("#exclamation").css("display", "block");
+    $("#validation-icons").fadeIn(200);
   });
 }
-function showWarningIcon() {
-  $("#tick, #exclamation").fadeOut(200, function(){
-    $("#warning").fadeIn(200);
+function showWarningIcon(numberMessages) {
+  $("#warning > .number-messages").html(numberMessages);
+  $("#validation-icons").fadeOut(200, function(){
+    $("#tick, #exclamation").css("display", "none");
+    $("#warning").css("display", "block");
+    $("#validation-icons").fadeIn(200);
   });
 }
 
@@ -1016,9 +1022,10 @@ $(function ()
     modifyLinkSpec();
   });
 
-  $("#toolbar").append('<div id="tick" style="display: none"></div>');
-  $("#toolbar").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
-  $("#toolbar").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
+  $("#toolbar").append('<div id="validation-icons"></div>');
+  $("#validation-icons").append('<div id="tick" style="display: none"></div>');
+  $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
+  $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
   $("#toolbar").append('<div id="info-box" style="display: none"></div>');
 
   $("#exclamation, #warning").mouseover(function() {
