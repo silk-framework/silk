@@ -116,7 +116,7 @@ function confirmExit()
 {
   if(errorsFound)
   {
-    return "Unsaved modifications will be lost when leaving the editor";
+    return "The current link specification is invalid. Leaving the editor will revert to the last valid link specification.";
   }
 }
 
