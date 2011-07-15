@@ -44,7 +44,7 @@ class LinkSpec
   {
     val updateLinkSpecFunction = JsCmds.Function("updateLinkSpec", "xml" :: Nil, SHtml.ajaxCall(JsRaw("xml"), updateLinkSpec _)._2.cmd)
 
-    val initialStatus = OnLoad(Call("updateStatus", JsArray(), JsArray(), JsArray()).cmd)
+    val initialStatus = OnLoad(Call("updateStatus", JsArray(), JsArray(), evaluateLinkSpec(User().linkingTask)).cmd)
 
     bind("entry", xhtml,
          "linkSpecVar" -> Script(linkSpecVarCmd & reloadCacheFunction & updateLinkSpecFunction & initialStatus))
@@ -75,11 +75,9 @@ class LinkSpec
         User().task = updatedLinkingTask
       }
 
-      //Evaluate LinkSpec
-      val infoMsg = evaluateLinkSpec(linkingTask)
 
       //Update link spec variable and notify user
-      linkSpecVarCmd & Call("updateStatus", JsArray(), JsArray(warnings.map(_.getMessage).map(Str(_)).toList), JsArray(infoMsg.map(Str(_)).toList)).cmd
+      linkSpecVarCmd & Call("updateStatus", JsArray(), JsArray(warnings.map(_.getMessage).map(Str(_)).toList), evaluateLinkSpec(linkingTask)).cmd
     }
     catch
     {
@@ -94,11 +92,11 @@ class LinkSpec
     }
   }
 
-  private def evaluateLinkSpec(linkingTask : LinkingTask) : Option[String] =
+  private def evaluateLinkSpec(linkingTask : LinkingTask) : JsArray =
   {
     if(linkingTask.cache.instances.positive.isEmpty || linkingTask.cache.instances.negative.isEmpty)
     {
-      None
+      JsArray()
     }
     else
     {
@@ -106,7 +104,7 @@ class LinkSpec
 
       val msg = "Precision = " + r.precision + "\nRecall = " + r.recall + "\nF-measure = " + r.fMeasure
 
-      Some(msg)
+      JsArray(Str(msg))
     }
   }
 
