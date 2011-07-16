@@ -120,9 +120,18 @@ function confirmExit()
   }
 }
 
+var validateLinkSpec = function() {
+    var serializedLinkSpec = serializeLinkSpec();
+    if ($.isArray(serializedLinkSpec)) {
+        updateStatus(serializedLinkSpec, null, null);
+    } else {
+        updateLinkSpec(serializedLinkSpec);     // send to server
+    }
+}
+
 function modifyLinkSpec() {
   clearTimeout(modificationTimer);
-  modificationTimer = setTimeout("updateLinkSpec(serializeLinkSpec());", 2000);
+  modificationTimer = setTimeout(validateLinkSpec, 2000);
 }
 
 function updateStatus(errorMessages, warningMessages, infoMessages) {
@@ -810,6 +819,7 @@ function createNewElement(elementId)
 
 function serializeLinkSpec() {
   //alert (JSON.stringify(c));
+  var errors = new Array();
   var c = jsPlumb.getConnections();
   if (c[jsPlumb.getDefaultScope()] !== undefined) {
     var connections = "";
@@ -823,15 +833,19 @@ function serializeLinkSpec() {
     }
     //alert (connections);
 
-  var stray_element_found = false;
+  var stray_element_id = null;
   $("#droppable > div").each(function() {
       var elId = $(this).attr('id');
       var cs = jsPlumb.getConnections({source: elId});
       var ct = jsPlumb.getConnections({target: elId});
       if (ct[jsPlumb.getDefaultScope()].length < 1 && cs[jsPlumb.getDefaultScope()].length < 1)
-          stray_element_found = true;
+          stray_element_id = elId;
+
   });
-  if (stray_element_found) return "Element with no connections found";
+  if (stray_element_id) {
+      errors.push("Element without connections found (" + stray_element_id + ")");
+      return errors;
+  }
 
     var root = null;
     var root_counter = 0;
@@ -841,7 +855,10 @@ function serializeLinkSpec() {
       {
         root = key;
         root_counter++;
-        if (root_counter>1) return "Multiple Link Conditions founds";
+        if (root_counter>1) {
+            errors.push("Multiple Link Conditions found");
+            return errors;
+        }
       }
     }
 
@@ -1064,22 +1081,22 @@ $(function ()
     }
   });
 
-    /*
-  $(".label").live('click', function(e) {
+  $(".label").live('click', function() {
     var current_label = $(this).html();
     var input = '<input class="label-change" type="text" value="' + current_label + '" />';
-    $(this).html(input).unbind();
+    $(this).html(input).addClass('label-active').removeClass('label');
+     $(this).children().focus();
   });
-       /*
-  $(".label-change").live('change', function(e) {
+
+  $(".label-change").live('change', function() {
     var new_label = $(this).val();
-    $(this).parent().html(new_label);
+    $(this).parent().html(new_label).addClass('label').removeClass('label-active');
   });
-  /*
-  $(".label-change").live('focusin', function(e) {
+
+  $(".label-change").live('blur', function() {
     var new_label = $(this).val();
-    $(this).parent().html(new_label);
-  });  */
+    $(this).parent().html(new_label).addClass('label').removeClass('label-active');
+  });
 
 });
 
