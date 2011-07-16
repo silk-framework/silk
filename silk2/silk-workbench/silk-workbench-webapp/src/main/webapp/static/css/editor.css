@@ -282,8 +282,9 @@ a.more {
   vertical-align: middle;
 }
 
-.label {
+.label, .label-active {
     padding: 1px 1px 1px 3px !important;
     margin: 0 !important;
     font-size: 11px;
+    overflow: hidden;
 }
