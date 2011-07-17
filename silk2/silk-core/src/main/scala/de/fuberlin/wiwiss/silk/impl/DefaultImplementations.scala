@@ -35,6 +35,7 @@ object DefaultImplementations
         Transformer.register(classOf[RemoveSpecialCharsTransformer])
         Transformer.register(classOf[LogarithmTransformer])
         Transformer.register(classOf[ConvertCharsetTransformer])
+        Transformer.register(classOf[FilterValues])
         Transformer.register(classOf[RemoveEmptyValues])
         Transformer.register(classOf[Tokenizer])
         Transformer.register(classOf[MergeTransformer])
