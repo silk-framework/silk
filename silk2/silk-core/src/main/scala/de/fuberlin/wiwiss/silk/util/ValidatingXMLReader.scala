@@ -1,37 +1,37 @@
 package de.fuberlin.wiwiss.silk.util
 
-import xml.parsing.NoBindingFactoryAdapter
-import org.xml.sax.{SAXException, InputSource}
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.validation.SchemaFactory
 import javax.xml.transform.stream.StreamSource
 import xml.{Node, TopScope, Elem}
 import java.io._
+import org.xml.sax.{SAXParseException, ErrorHandler, InputSource}
+import xml.parsing.NoBindingFactoryAdapter
 
 /**
  * Parses an XML input source and validates it against the schema.
  */
-class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) extends NoBindingFactoryAdapter
+class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String)
 {
   def apply(xml : Node) : T =
   {
     //Validate
-    read(new InputSource(new StringReader(xml.toString)), schemaPath)
+    new XmlReader().read(new InputSource(new StringReader(xml.toString)), schemaPath)
 
     deserializer(xml)
   }
 
   def apply(stream : InputStream) : T =
   {
-    val node = read(new InputSource(stream), schemaPath)
+    val node = new XmlReader().read(new InputSource(stream), schemaPath)
 
     deserializer(node)
   }
 
   def apply(reader : Reader) : T =
   {
-    val node = read(new InputSource(reader), schemaPath)
+    val node = new XmlReader().read(new InputSource(reader), schemaPath)
 
     deserializer(node)
   }
@@ -49,9 +49,9 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) exte
     }
   }
 
-  private def read(inputSource : InputSource, schemaPath : String) : Elem =
+  private class XmlReader extends NoBindingFactoryAdapter
   {
-    try
+    def read(inputSource : InputSource, schemaPath : String) : Elem =
     {
       //Load XML Schema
       val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
@@ -65,8 +65,18 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) exte
       parserFactory.setFeature("http://xml.org/sax/features/namespace-prefixes", true)
       val parser = parserFactory.newSAXParser()
 
+      //Set Error handler
+      var errors = List[String]()
       val xr = parser.getXMLReader
       val vh = schema.newValidatorHandler()
+      vh.setErrorHandler(new ErrorHandler
+      {
+        def warning(ex: SAXParseException) { }
+
+        def error(ex: SAXParseException) { errors ::= formatError("Error", ex) }
+
+        def fatalError(ex: SAXParseException) { errors ::= formatError("Fatal Error", ex) }
+      })
       vh.setContentHandler(this)
       xr.setContentHandler(vh)
 
@@ -75,11 +85,31 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String) exte
       xr.parse(inputSource)
       scopeStack.pop
 
-      rootElem.asInstanceOf[Elem]
+      //Return result
+      if(errors.isEmpty)
+      {
+        rootElem.asInstanceOf[Elem]
+      }
+      else
+      {
+        throw new ValidationException(errors.reverse.mkString("\n"))
+      }
     }
-    catch
+
+    def formatError(errorType: String, ex: SAXParseException) =
     {
-      case ex : SAXException => throw new ValidationException(ex.getMessage, ex)
+      //The current tag
+      val tag = this.curTag
+      //The id of the current tag
+      val id = attribStack.head.find(_.key == "id").map(_.value.mkString)
+      //The error message without prefixes like "cvc-complex-type.2.4.b:"
+      val msg = ex.getMessage.split(':').tail.mkString.trim
+
+      id match
+      {
+        case Some(i) => errorType + " in " + tag + " with id '" + i + "': " + msg
+        case None => errorType + " in " + tag + ":" + msg
+      }
     }
   }
 }

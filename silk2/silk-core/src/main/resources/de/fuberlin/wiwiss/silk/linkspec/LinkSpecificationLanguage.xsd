@@ -22,6 +22,7 @@
 
   <xs:element name="Input" substitutionGroup="AnyInput">
     <xs:complexType>
+      <xs:attribute name="id" type="xs:string" use="optional" />
       <xs:attribute name="path" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
@@ -32,6 +33,7 @@
         <xs:element ref="AnyInput" maxOccurs="unbounded"/>
         <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional" />
       <xs:attribute name="function" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
@@ -42,6 +44,7 @@
         <xs:element ref="AnyInput" minOccurs="2" maxOccurs="2"/>
         <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional" />
       <xs:attribute name="metric" type="xs:string" use="required" />
       <xs:attribute name="threshold" type="xs:double" />
       <xs:attribute name="weight" type="xs:unsignedShort" />
@@ -57,6 +60,7 @@
           <xs:element ref="Compare" />
         </xs:choice>
       </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional" />
       <xs:attribute name="type" type="xs:string" use="required" />
       <xs:attribute name="weight" type="xs:unsignedShort" />
       <xs:attribute name="required" type="xs:boolean" />
