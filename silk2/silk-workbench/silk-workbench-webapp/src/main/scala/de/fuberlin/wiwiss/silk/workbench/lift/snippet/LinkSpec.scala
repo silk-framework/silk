@@ -8,13 +8,12 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.Redirect
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.util.CollectLogs
 import net.liftweb.http.SHtml
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import net.liftweb.http.js.JE.{Str, JsArray, JsRaw, Call}
 import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import net.liftweb.http.js.JsCmds.{OnLoad, Script}
+import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 
 /**
  * LinkSpec snippet.
@@ -75,19 +74,20 @@ class LinkSpec
         User().task = updatedLinkingTask
       }
 
-
       //Update link spec variable and notify user
       linkSpecVarCmd & Call("updateStatus", JsArray(), JsArray(warnings.map(_.getMessage).map(Str(_)).toList), evaluateLinkSpec(linkingTask)).cmd
     }
     catch
     {
-      case ex : Exception =>
+      case ex: ValidationException =>
+      {
+        logger.log(Level.INFO, "Cannot save invalid link specification", ex)
+        Call("updateStatus", JsArray(ex.errors.map(Str(_)).toList), JsArray(), JsArray()).cmd
+      }
+      case ex: Exception =>
       {
         logger.log(Level.INFO, "Failed to save link specification", ex)
-        val msg = ex.getMessage
-        //Strip prefixes like this: "cvc-complex-type.2.4.b:"
-        val cleanMsg = if(msg.contains(':')) msg.split(':').tail.mkString else msg
-        Call("updateStatus", JsArray(Str(cleanMsg)), JsArray(), JsArray()).cmd
+        Call("updateStatus", JsArray(Str("Error in back end: " + ex.getMessage)), JsArray(), JsArray()).cmd
       }
     }
   }
