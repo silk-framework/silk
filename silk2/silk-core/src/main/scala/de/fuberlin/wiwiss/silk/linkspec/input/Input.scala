@@ -9,15 +9,14 @@ import de.fuberlin.wiwiss.silk.linkspec.Operator
 /**
  * An input.
  */
-trait Input extends Operator
-{
+trait Input extends Operator {
   /**
    * Retrieves the values of this input for a given instance.
    *
    * @param instances The pair of instances.
    * @return The values.
    */
-  def apply(instances : SourceTargetPair[Instance]) : Traversable[String]
+  def apply(instances: SourceTargetPair[Instance]): Traversable[String]
 
-  def toXML(implicit prefixes : Prefixes) : Node
+  def toXML(implicit prefixes: Prefixes): Node
 }
