@@ -43,7 +43,7 @@ class LinkSpec
   {
     val updateLinkSpecFunction = JsCmds.Function("updateLinkSpec", "xml" :: Nil, SHtml.ajaxCall(JsRaw("xml"), updateLinkSpec _)._2.cmd)
 
-    val initialStatus = OnLoad(Call("updateStatus", JsArray(), JsArray(), evaluateLinkSpec(User().linkingTask)).cmd)
+    val initialStatus = OnLoad(updateStatusCall(infos = evaluateLinkSpec(User().linkingTask)))
 
     bind("entry", xhtml,
          "linkSpecVar" -> Script(linkSpecVarCmd & reloadCacheFunction & updateLinkSpecFunction & initialStatus))
