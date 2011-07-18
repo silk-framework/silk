@@ -88,7 +88,7 @@ case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
    */
   private def writeStatement(link : Link, predicateUri : String)
   {
-    writer.write(URLEncoder.encode("<" + link.sourceUri + "> <" + predicateUri + "> <" + link.targetUri + "> .\n", "UTF-8"))
+    writer.write(URLEncoder.encode("<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n", "UTF-8"))
 	  statements += 1
   }
 

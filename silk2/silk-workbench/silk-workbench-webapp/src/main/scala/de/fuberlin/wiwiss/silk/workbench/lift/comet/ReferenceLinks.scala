@@ -10,7 +10,8 @@ import xml.NodeSeq
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script, JsShowId, JsHideId}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
-import de.fuberlin.wiwiss.silk.util.{Task, Timer}
+import de.fuberlin.wiwiss.silk.util.Timer
+import de.fuberlin.wiwiss.silk.util.task._
 
 class ReferenceLinks extends LinkList
 {
@@ -32,21 +33,21 @@ class ReferenceLinks extends LinkList
   })
 
   /** Register to status messages of the cache loader task in order to be notified when new links are available */
-  linkingTask.cache.loader.subscribe(new Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
+  linkingTask.cache.loader.subscribe(new Subscriber[Status, Publisher[Status]]
   {
-    def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
+    def notify(pub : Publisher[Status], status : Status)
     {
       status match
       {
-        case Task.Started() =>
+        case _ : Started =>
         {
         }
-        case Task.StatusChanged(_, _) if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
+        case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
         {
           partialUpdate(updateLinksCmd)
           lastUpdateTime = System.currentTimeMillis
         }
-        case Task.Finished(_, _) =>
+        case _ : Finished =>
         {
           partialUpdate(updateLinksCmd)
         }
@@ -79,7 +80,7 @@ class ReferenceLinks extends LinkList
           }
           case None =>
           {
-            val cleanLink = new Link(link.sourceUri, link.targetUri)
+            val cleanLink = new Link(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,
@@ -105,7 +106,7 @@ class ReferenceLinks extends LinkList
           }
           case None =>
           {
-            val cleanLink = new Link(link.sourceUri, link.targetUri)
+            val cleanLink = new Link(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,

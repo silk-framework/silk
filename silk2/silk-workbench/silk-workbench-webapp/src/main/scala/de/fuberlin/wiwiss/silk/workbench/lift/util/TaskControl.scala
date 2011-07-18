@@ -1,28 +1,27 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.Task
 import collection.mutable.{Publisher, Subscriber}
 import java.util.UUID
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.{SHtml, CometActor}
-import de.fuberlin.wiwiss.silk.util.Task.{Started, Finished}
 import xml.Text
+import de.fuberlin.wiwiss.silk.util.task.{Status, Finished, Started, Task}
 
-class TaskControl(task : Task[_], cancelable : Boolean = false) extends CometActor with Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
+class TaskControl(task : Task[_], cancelable : Boolean = false) extends CometActor with Subscriber[Status, Publisher[Status]]
 {
   task.subscribe(this)
 
   private val id = UUID.randomUUID.toString
 
-  override def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
+  override def notify(pub : Publisher[Status], status : Status)
   {
     status match
     {
-      case Started() if cancelable => updateButton("Cancel")
-      case Started()               => updateButton("Start")
-      case Finished(_, _)          => updateButton("Start")
-      case _                       =>
+      case _ : Started if cancelable => updateButton("Cancel")
+      case _ : Started               => updateButton("Start")
+      case _ : Finished              => updateButton("Start")
+      case _                         =>
     }
   }
 

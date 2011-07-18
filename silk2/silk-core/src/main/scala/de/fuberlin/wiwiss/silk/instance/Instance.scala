@@ -6,7 +6,7 @@ import java.io.{DataInputStream, DataOutputStream}
 /**
  * A single instance.
  */
-class Instance(val uri : String, values : IndexedSeq[Set[String]], val spec : InstanceSpecification)
+class Instance(val uri : String, val values : IndexedSeq[Set[String]], val spec : InstanceSpecification)
 {
   def evaluate(path : Path) : Set[String] = evaluate(spec.pathIndex(path))
 

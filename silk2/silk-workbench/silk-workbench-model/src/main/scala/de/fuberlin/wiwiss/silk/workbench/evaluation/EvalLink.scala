@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{LinkType, Correctn
 /**
  * An evaluation link.
  */
-class EvalLink(link : Link, val correct : Correctness, val linkType : LinkType) extends Link(link.sourceUri, link.targetUri, link.details)
+class EvalLink(link : Link, val correct : Correctness, val linkType : LinkType) extends Link(link.source, link.target, link.details)
 {
 }
 

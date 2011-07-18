@@ -6,8 +6,9 @@ import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import java.util.logging.LogRecord
-import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair, Task}
+import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
+import de.fuberlin.wiwiss.silk.util.task.Task
 
 /**
  * Task which executes the current link specification and allows querying for the generated links.

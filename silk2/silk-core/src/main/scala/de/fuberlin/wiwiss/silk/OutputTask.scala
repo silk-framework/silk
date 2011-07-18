@@ -2,7 +2,8 @@ package de.fuberlin.wiwiss.silk
 
 import collection.mutable.Buffer
 import output.{Output, Link}
-import util.{Uri, Task}
+import util.task.Task
+import util.Uri
 
 /**
 * Writes the links to the output.

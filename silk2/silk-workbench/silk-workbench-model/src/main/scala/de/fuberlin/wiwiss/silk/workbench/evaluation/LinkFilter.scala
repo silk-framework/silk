@@ -24,8 +24,8 @@ class LinkFilter(value : String) extends (EvalLink => Boolean)
 {
   def apply(link : EvalLink) : Boolean =
   {
-    link.sourceUri.toLowerCase.contains(value) ||
-    link.targetUri.toLowerCase.contains(value) ||
+    link.source.toLowerCase.contains(value) ||
+    link.target.toLowerCase.contains(value) ||
     (link.details match
     {
       case Some(details) => hasValue(details)

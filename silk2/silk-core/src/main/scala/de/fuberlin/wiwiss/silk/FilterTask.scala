@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
-import de.fuberlin.wiwiss.silk.util.Task
+import de.fuberlin.wiwiss.silk.util.task.Task
 import linkspec.LinkFilter
 import output.Link
 import collection.mutable.{ArrayBuffer, Buffer}
@@ -24,7 +24,7 @@ class FilterTask(links : Buffer[Link], filter : LinkFilter) extends Task[Buffer[
         val linkBuffer = new ArrayBuffer[Link]()
         updateStatus("Filtering output")
 
-        for((sourceUri, groupedLinks) <- links.groupBy(_.sourceUri))
+        for((sourceUri, groupedLinks) <- links.groupBy(_.source))
         {
           val bestLinks = groupedLinks.sortWith(_.confidence > _.confidence).take(limit)
 

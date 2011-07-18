@@ -29,8 +29,8 @@ class AlignmentFormatter() extends XMLFormatter
   {
     <map>
       <Cell>
-          <entity1 rdf:resource={link.sourceUri}/>
-          <entity2 rdf:resource={link.targetUri}/>
+          <entity1 rdf:resource={link.source}/>
+          <entity2 rdf:resource={link.target}/>
         <relation>{if(predicateUri == "http://www.w3.org/2002/07/owl#sameAs") "=" else predicateUri}</relation>
         <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">{link.confidence.toString}</measure>
       </Cell>

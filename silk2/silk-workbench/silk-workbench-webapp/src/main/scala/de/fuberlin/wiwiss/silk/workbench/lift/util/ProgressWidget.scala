@@ -1,12 +1,11 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
 import net.liftweb.http.CometActor
-import de.fuberlin.wiwiss.silk.util.Task
 import net.liftweb.http.js.JE.JsRaw
 import collection.mutable.{Publisher, Subscriber}
-import de.fuberlin.wiwiss.silk.util.Task.Finished
 import scala.xml.Text
 import net.liftweb.http.js.JsCmds._
+import de.fuberlin.wiwiss.silk.util.task._
 
 /**
  * A widget which displays a progressbar showing the current progress of a task.
@@ -14,71 +13,55 @@ import net.liftweb.http.js.JsCmds._
  * @param task The task for which the progress should be shown
  * @param hide Hide the widget if the task is not active.
  */
-class ProgressWidget(task : Task[_], hide : Boolean = false) extends CometActor with Subscriber[Task.StatusMessage, Publisher[Task.StatusMessage]]
-{
-  task.subscribe(this)
-
-  /** Minimum time in milliseconds between two successive updates*/
+class ProgressWidget(task: Task[_], hide: Boolean = false) extends CometActor with Subscriber[Status, Publisher[Status]] {
+  /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 1000L
 
-  /** The time of the last update */
+  /**The time of the last update */
   private var lastUpdateTime = 0L
 
-  override def notify(pub : Publisher[Task.StatusMessage], status : Task.StatusMessage)
-  {
-    if(status.isInstanceOf[Finished] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod )
-    {
-      val cmd = status match
-      {
-        case Task.Started()           => updateCmd
-        case Task.StatusChanged(_, _) => updateCmd
-        case Task.Finished(_, _)      => updateCmd
-      }
+  task.subscribe(this)
 
-      partialUpdate(cmd)
-
+  override def notify(pub: Publisher[Status], status: Status) {
+    if (status.isInstanceOf[Finished] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
+      partialUpdate(updateCmd)
       lastUpdateTime = System.currentTimeMillis
     }
   }
 
-  override def render =
-  {
+  override def render = {
     <div id="progresswidget">
       <div id="progressbar"></div>
       <div class="progresstext" id="progresstext"></div>
-      <div>{Script(OnLoad(updateCmd))}</div>
+      <div>
+        {Script(OnLoad(updateCmd))}
+      </div>
     </div>
   }
 
-  private def updateCmd =
-  {
-    if(task.status.startsWith("Failed"))
-    {
+  private def updateCmd = task.status match {
+    case Finished(_, false, _) => {
       JsShowId("progresswidget") &
-      JsRaw("$('#progresswidget').attr('title', '" + task.status + "');") &
-      JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
-      SetHtml("progresstext", Text("Failed to load cache"))
+        JsRaw("$('#progresswidget').attr('title', '" + task.status + "');") &
+        JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
+        SetHtml("progresstext", Text("Failed to load cache"))
     }
-    else
-    {
+    case _ => {
       val showCmd =
-        if(task.isRunning)
-        {
+        if (task.isRunning) {
           JsShowId("progresswidget")
         }
-        else if(hide)
-        {
+        else if (hide) {
           JsHideId("progresswidget")
         }
-        else
-        {
+        else {
           JS.Empty
         }
 
       showCmd &
-      JsRaw("$('#progresswidget').attr('title', '" + task.status + "');") &
-      JsRaw("$('#progressbar').progressbar({value: " + (task.progress * 95 + 5) + "});").cmd &
-      SetHtml("progresstext", Text(task.statusWithProgress))
+        JsRaw("$('#progresswidget').attr('title', '" + task.status + "');") &
+        JsRaw("$('#progressbar').progressbar({value: " + (task.status.progress * 95 + 5) + "});").cmd &
+        SetHtml("progresstext", Text(task.toString))
     }
   }
 }

@@ -8,7 +8,8 @@ import collection.immutable.List._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, ReferenceInstances}
-import de.fuberlin.wiwiss.silk.util.{Future, Task, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.task.{Task, Future}
 
 //TODO use options?
 //TODO store path frequencies

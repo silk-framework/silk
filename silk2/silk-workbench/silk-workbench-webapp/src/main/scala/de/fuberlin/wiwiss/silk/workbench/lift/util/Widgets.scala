@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.Task
+import de.fuberlin.wiwiss.silk.util.task.Task
 import net.liftweb.http.SHtml
 
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
@@ -52,10 +52,10 @@ object Widgets
         val html =
         {
           <div id="progressbar"></div>
-          <span class="progresstext">{currentTask.statusWithProgress}</span>
+          <span class="progresstext">{currentTask.status.toString}</span>
         }
 
-        val javascript = "$('#progressbar').progressbar({value: " + (currentTask.progress * 95 + 5) + "});"
+        val javascript = "$('#progressbar').progressbar({value: " + (currentTask.status.progress * 95 + 5) + "});"
 
         SetHtml("status", html) & JsRaw(javascript).cmd
       }

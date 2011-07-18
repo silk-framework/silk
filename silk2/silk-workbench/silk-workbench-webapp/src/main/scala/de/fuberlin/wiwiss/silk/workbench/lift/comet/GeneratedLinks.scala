@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import collection.mutable.Subscriber
-import de.fuberlin.wiwiss.silk.util.Task
+import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.SHtml
@@ -23,21 +23,21 @@ class GeneratedLinks extends LinkList
   protected val evaluationTask = User().evaluationTask
 
   /** Register to status messages of the evaluation task in order to be notified when new links are available */
-  evaluationTask.subscribe(new Subscriber[Task.StatusMessage, EvaluationTask#Pub]
+  evaluationTask.subscribe(new Subscriber[Status, EvaluationTask#Pub]
   {
-    def notify(pub : EvaluationTask#Pub, status : Task.StatusMessage)
+    def notify(pub : EvaluationTask#Pub, status : Status)
     {
       status match
       {
-        case Task.Started() =>
+        case _ : Started =>
         {
         }
-        case Task.StatusChanged(_, _) if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
+        case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
         {
           partialUpdate(updateLinksCmd)
           lastUpdateTime = System.currentTimeMillis
         }
-        case Task.Finished(_, _) =>
+        case _ : Finished =>
         {
           val cmd =
           {

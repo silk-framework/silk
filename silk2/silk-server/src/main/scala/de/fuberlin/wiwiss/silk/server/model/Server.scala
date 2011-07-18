@@ -115,7 +115,7 @@ private class Server
     {
       //Get the set of all instances which have not been matched by any link specification
       val allUnmatchedInstances = matchResults.flatMap(_.unmatchedInstances).toSet
-      val matchedInstances = matchResults.flatMap(_.links).flatMap(link => link.sourceUri :: link.targetUri :: Nil)
+      val matchedInstances = matchResults.flatMap(_.links).flatMap(link => link.source :: link.target :: Nil)
       val unmatchedInstances = allUnmatchedInstances -- matchedInstances
 
       //Format unmatched instances

@@ -54,7 +54,7 @@ class Dataset(val name : String, config : SilkConfig, linkSpec : LinkSpecificati
       links = matcher()
     }
 
-    val matchedInstances = links.map(_.sourceUri).toSet
+    val matchedInstances = links.map(_.source).toSet
     val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
 
     if(writeUnmatchedInstances)

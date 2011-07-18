@@ -40,8 +40,8 @@ object AlignmentReader
   {
     for(cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation" text) == relation) yield
     {
-      new Link(sourceUri = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-               targetUri = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+      new Link(source = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+               target = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
                confidence = (cell \ "measure").text.toDouble)
     }
   }
