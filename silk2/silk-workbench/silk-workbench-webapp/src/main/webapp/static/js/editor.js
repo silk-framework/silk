@@ -24,7 +24,7 @@ var targetDataSetRestriction = "";
 var customPropertyPathsCreated = false;
 
 var modificationTimer;
-var errorsFound = false;
+var confirmOnExit = false;
 
 jsPlumb.Defaults.Container = "droppable";
 
@@ -114,22 +114,44 @@ window.onbeforeunload = confirmExit;
 
 function confirmExit()
 {
-  if(errorsFound)
+  if(confirmOnExit)
   {
     return "The current link specification is invalid. Leaving the editor will revert to the last valid link specification.";
   }
 }
 
 var validateLinkSpec = function() {
-    var serializedLinkSpec = serializeLinkSpec();
-    if ($.isArray(serializedLinkSpec)) {
-        updateStatus(serializedLinkSpec, null, null);
+    var errors = new Array();
+
+    var root_elements = 0;
+    $("#droppable > div").each(function() {
+        var elId = $(this).attr('id');
+        var target = jsPlumb.getConnections({source: elId});
+        if (target[jsPlumb.getDefaultScope()].length == 0) {
+            root_elements++;
+        }
+    });
+    if (root_elements > 1) errors.push("Multiple Link Conditions found");
+/*
+    $("#droppable > div").each(function() {
+        var elId = $(this).attr('id');
+        var cs = jsPlumb.getConnections({source: elId});
+        var ct = jsPlumb.getConnections({target: elId});
+        if (ct[jsPlumb.getDefaultScope()].length < 1 && cs[jsPlumb.getDefaultScope()].length < 1) {
+            errors.push("Element without connections found (" + elId + ")");
+        }
+    });
+*/
+    if (errors.length > 0) {
+        updateStatus(errors, null, null);
     } else {
-        updateLinkSpec(serializedLinkSpec);     // send to server
+        updateLinkSpec(serializeLinkSpec());     // send to server
     }
 }
 
 function modifyLinkSpec() {
+  confirmOnExit = true;
+  showPendingIcon();
   clearTimeout(modificationTimer);
   modificationTimer = setTimeout(validateLinkSpec, 2000);
 }
@@ -137,44 +159,38 @@ function modifyLinkSpec() {
 function updateStatus(errorMessages, warningMessages, infoMessages) {
   $("#info-box").html("");
   if (errorMessages.length > 0) {
-    errorsFound = true;
     $("#info-box").append("Error messages:");
     $("#info-box").append(printMessages(errorMessages));
     showInvalidIcon(errorMessages.length);
   } else if (warningMessages.length > 0) {
-    errorsFound = false;
+    confirmOnExit = false;
     $("#info-box").append("Warning messages:");
     $("#info-box").append(printMessages(warningMessages));
     showWarningIcon(warningMessages.length);
   } else {
-    errorsFound = false;
+    confirmOnExit = false;
     $("#info-box").slideUp(200);
     showValidIcon();
   }
 }
 
 function showValidIcon() {
-  $("#validation-icons").fadeOut(200, function(){
-    $("#exclamation, #warning").css("display", "none");
+    $("#exclamation, #warning, #pending").css("display", "none");
     $("#tick").css("display", "block");
-    $("#validation-icons").fadeIn(200);
-  });
 }
 function showInvalidIcon(numberMessages) {
-  $("#exclamation > .number-messages").html(numberMessages);
-  $("#validation-icons").fadeOut(200, function(){
-    $("#tick, #warning").css("display", "none");
+    $("#exclamation > .number-messages").html(numberMessages);
+    $("#tick, #warning, #pending").css("display", "none");
     $("#exclamation").css("display", "block");
-    $("#validation-icons").fadeIn(200);
-  });
 }
 function showWarningIcon(numberMessages) {
-  $("#warning > .number-messages").html(numberMessages);
-  $("#validation-icons").fadeOut(200, function(){
-    $("#tick, #exclamation").css("display", "none");
+    $("#warning > .number-messages").html(numberMessages);
+    $("#tick, #exclamation, #pending").css("display", "none");
     $("#warning").css("display", "block");
-    $("#validation-icons").fadeIn(200);
-  });
+}
+function showPendingIcon() {
+    $("#exclamation, #warning, #tick").css("display", "none");
+    $("#pending").css("display", "block");
 }
 
 function printMessages(array) {
@@ -819,7 +835,6 @@ function createNewElement(elementId)
 
 function serializeLinkSpec() {
   //alert (JSON.stringify(c));
-  var errors = new Array();
   var c = jsPlumb.getConnections();
   if (c[jsPlumb.getDefaultScope()] !== undefined) {
     var connections = "";
@@ -832,33 +847,12 @@ function serializeLinkSpec() {
       connections = connections + source + " -> " + target + ", ";
     }
     //alert (connections);
-
-  var stray_element_id = null;
-  $("#droppable > div").each(function() {
-      var elId = $(this).attr('id');
-      var cs = jsPlumb.getConnections({source: elId});
-      var ct = jsPlumb.getConnections({target: elId});
-      if (ct[jsPlumb.getDefaultScope()].length < 1 && cs[jsPlumb.getDefaultScope()].length < 1)
-          stray_element_id = elId;
-
-  });
-  if (stray_element_id) {
-      errors.push("Element without connections found (" + stray_element_id + ")");
-      return errors;
-  }
-
     var root = null;
-    var root_counter = 0;
     for (var key in sources)
     {
       if (!targets[key])
       {
         root = key;
-        root_counter++;
-        if (root_counter>1) {
-            errors.push("Multiple Link Conditions found");
-            return errors;
-        }
       }
     }
 
@@ -1039,8 +1033,8 @@ $(function ()
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
 
+        modifyLinkSpec();
       }
-      modifyLinkSpec();
     }
   });
 
@@ -1066,6 +1060,7 @@ $(function ()
   $("#validation-icons").append('<div id="tick" style="display: none"></div>');
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
+  $("#validation-icons").append('<div id="pending" style="display: none"></div>');
   $("#toolbar").append('<div id="info-box" style="display: none"></div>');
 
   $("#exclamation, #warning").mouseover(function() {
