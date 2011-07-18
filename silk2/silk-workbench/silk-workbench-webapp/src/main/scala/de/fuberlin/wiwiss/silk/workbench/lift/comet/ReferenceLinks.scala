@@ -33,7 +33,7 @@ class ReferenceLinks extends LinkList
   })
 
   /** Register to status messages of the cache loader task in order to be notified when new links are available */
-  linkingTask.cache.loader.subscribe(new Subscriber[Status, Publisher[Status]]
+  linkingTask.cache.subscribe(new Subscriber[Status, Publisher[Status]]
   {
     def notify(pub : Publisher[Status], status : Status)
     {

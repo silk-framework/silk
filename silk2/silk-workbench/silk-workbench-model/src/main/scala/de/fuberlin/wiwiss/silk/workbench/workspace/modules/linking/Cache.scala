@@ -9,16 +9,14 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, ReferenceInstances}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.util.task.{Task, Future}
+import de.fuberlin.wiwiss.silk.util.task.{HasStatus, Task, Future}
 
 //TODO use options?
 //TODO store path frequencies
 class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
-            var instances : ReferenceInstances = ReferenceInstances.empty)
+            var instances : ReferenceInstances = ReferenceInstances.empty) extends HasStatus
 {
-  @volatile var isLoading : Future[Unit] = null
-
-  val loader : Task[Unit] = new CacheLoader()
+  private val loader = new CacheLoader()
 
   def load(project : Project, linkingTask : LinkingTask)
   {
@@ -26,7 +24,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
     loader.asInstanceOf[CacheLoader].alignment = linkingTask.alignment
     loader.asInstanceOf[CacheLoader].linkSpec = linkingTask.linkSpec
 
-    loader.runInBackground()
+    loader.run()
   }
 
   def reload(project : Project, linkingTask : LinkingTask)
@@ -79,7 +77,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
     <Cache>{nodes}</Cache>
   }
 
-  private class CacheLoader() extends Task[Unit]
+  private class CacheLoader()
   {
     var alignment : Alignment = null
 
@@ -87,13 +85,11 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
     var project : Project = null
 
-    taskName = "CacheLoaderTask"
-
     @volatile var loading = false
 
     @volatile var changedWhileLoading = false
 
-    override protected def execute()
+    def run()
     {
       if(!loading)
       {
@@ -106,7 +102,7 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
         if(changedWhileLoading)
         {
-          execute()
+          run()
         }
       }
       else

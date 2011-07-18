@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.task.Task
 import net.liftweb.http.SHtml
 
 import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
 import JS.PeriodicUpdate
 import net.liftweb.http.js.JE.JsRaw
 import xml.{NodeBuffer, Text}
+import de.fuberlin.wiwiss.silk.util.task.{HasStatus, Task}
 
 object Widgets
 {
@@ -36,13 +36,13 @@ object Widgets
   }
 
   @deprecated("Use ProgressWidget instead")
-  def taskProgress[T](task : Task[T]) =
+  def taskProgress(task : HasStatus) =
   {
     currentTaskProgress(() => Some(task))
   }
 
   @deprecated("Use ProgressWidget instead")
-  def currentTaskProgress[T](task : () => Option[Task[T]]) =
+  def currentTaskProgress(task : () => Option[HasStatus]) =
   {
     //Updates the status message
     def update() = task() match

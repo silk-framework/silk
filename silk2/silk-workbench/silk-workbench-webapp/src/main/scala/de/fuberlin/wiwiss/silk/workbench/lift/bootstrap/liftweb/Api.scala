@@ -11,6 +11,7 @@ import net.liftweb.common.Full
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST._
 import net.liftweb.http._
+import de.fuberlin.wiwiss.silk.util.task.Finished
 
 /**
  * The Silk Workbench REST API.
@@ -64,17 +65,9 @@ object Api
                                                JField("restrictions", JString(restrictions.target.toString)) ::
                                                JField("variable", JString(datasets.target.variable)) :: Nil))
 
-    var errorMsg : Option[String] = None
-    if(linkingTask.cache.isLoading != null && linkingTask.cache.isLoading.isSet)
-    {
-      try
-      {
-        linkingTask.cache.isLoading()
-      }
-      catch
-      {
-        case ex : Exception => errorMsg = Some(ex.getMessage)
-      }
+    var errorMsg : Option[String] = linkingTask.cache.status match {
+      case Finished(_, _, Some(ex)) => Some(ex.getMessage)
+      case _ => None
     }
 
     val isLoadingField = JField("isLoading", JBool(errorMsg.isEmpty && instanceSpecs == null))
