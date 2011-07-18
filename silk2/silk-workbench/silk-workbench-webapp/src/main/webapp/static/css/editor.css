@@ -243,7 +243,7 @@ a.more {
   background-image: url('/static/img/exclamation.png');
   float: right;
   margin-top: 8px;
-  margin-right: 30px;
+  margin-right: 27px;
 }
 #tick {
   width: 24px;
@@ -259,7 +259,15 @@ a.more {
   background-image: url('/static/img/warning.png');
   float: right;
   margin-top: 8px;
-  margin-right: 30px;
+  margin-right: 24px;
+}
+#pending {
+  width: 24px;
+  height: 24px;
+  background-image: url('/static/img/pending.gif');
+  float: right;
+  margin-top: 8px;
+  margin-right: 23px;
 }
 
 #info-box {
