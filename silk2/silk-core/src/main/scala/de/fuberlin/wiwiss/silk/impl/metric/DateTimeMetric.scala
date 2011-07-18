@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.impl.metric
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 
 @StrategyAnnotation(
   id = "dateTime",

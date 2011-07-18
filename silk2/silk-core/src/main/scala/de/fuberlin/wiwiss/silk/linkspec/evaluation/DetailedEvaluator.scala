@@ -1,11 +1,12 @@
 package de.fuberlin.wiwiss.silk.linkspec.evaluation
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Comparison, Aggregation, Operator, LinkCondition}
+import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.output.Link.InputValue
 import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
+import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
 
 object DetailedEvaluator
 {
@@ -40,7 +41,7 @@ object DetailedEvaluator
     }
   }
 
-  private def evaluateOperator(operator : Operator, instances : SourceTargetPair[Instance], threshold : Double) = operator match
+  private def evaluateOperator(operator : SimilarityOperator, instances : SourceTargetPair[Instance], threshold : Double) = operator match
   {
     case aggregation : Aggregation => evaluateAggregation(aggregation, instances, threshold)
     case comparison : Comparison => evaluateComparison(comparison, instances, threshold)

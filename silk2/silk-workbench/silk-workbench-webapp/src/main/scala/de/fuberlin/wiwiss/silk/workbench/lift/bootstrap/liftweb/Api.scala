@@ -4,7 +4,7 @@ import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.condition.{Aggregator, DistanceMeasure}
+import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.{ProjectExporter, SilkConfigExporter}
 import net.liftweb.common.Full

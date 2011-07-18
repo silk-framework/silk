@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
-import condition._
+import similarity._
 import input.{Input, TransformInput, Transformer, PathInput}
 import de.fuberlin.wiwiss.silk.instance.Path
 import xml.Node
@@ -72,7 +72,7 @@ object LinkSpecification
     LinkCondition(readOperators(node.child).headOption)
   }
 
-  private def readOperators(nodes : Seq[Node])(implicit prefixes : Prefixes, globalThreshold : Option[Double]) : Seq[Operator] =
+  private def readOperators(nodes : Seq[Node])(implicit prefixes : Prefixes, globalThreshold : Option[Double]) : Seq[SimilarityOperator] =
   {
     nodes.collect
     {

@@ -3,12 +3,13 @@ package de.fuberlin.wiwiss.silk.linkspec.input
 import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import xml.{Elem, Node}
+import xml.Node
+import de.fuberlin.wiwiss.silk.linkspec.Operator
 
 /**
  * An input.
  */
-trait Input
+trait Input extends Operator
 {
   /**
    * Retrieves the values of this input for a given instance.

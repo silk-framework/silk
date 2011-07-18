@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.instance
 
 import de.fuberlin.wiwiss.silk.linkspec._
-import condition.{Operator, Comparison, Aggregation}
+import similarity.{SimilarityOperator, Comparison, Aggregation}
 import input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
@@ -70,7 +70,7 @@ object InstanceSpecification
     SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
   }
 
-  private def collectPaths(variable : String)(operator : Operator) : Set[Path] = operator match
+  private def collectPaths(variable : String)(operator : SimilarityOperator) : Set[Path] = operator match
   {
     case aggregation : Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
     case comparison : Comparison =>

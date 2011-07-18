@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.linkspec.condition.DistanceMeasure
+import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 
 @StrategyAnnotation(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
 class DiceCoefficient extends DistanceMeasure

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.LinkCondition
 import math.sqrt
+import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
 
 object LinkConditionEvaluator
 {
