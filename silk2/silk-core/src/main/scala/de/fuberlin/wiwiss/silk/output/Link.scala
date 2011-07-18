@@ -1,17 +1,18 @@
 package de.fuberlin.wiwiss.silk.output
 
 import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
  * Represents a link between two instances.
  *
- * @param sourceUri the source URI
- * @param targetUri the target URI
+ * @param source the source URI
+ * @param target the target URI
  * @param details
  */
-class Link(val sourceUri : String, val targetUri : String, val details : Option[Link.Confidence] = None)
+class Link(source : String, target : String, val details : Option[Link.Confidence] = None) extends SourceTargetPair[String](source, target)
 {
-  def this(sourceUri : String, targetUri : String, confidence : Double) = this(sourceUri, targetUri, Some(Link.SimpleConfidence(Some(confidence))))
+  def this(source : String, target : String, confidence : Double) = this(source, target, Some(Link.SimpleConfidence(Some(confidence))))
 
   /**
    * The confidence that this link is correct. Allowed values: [-1.0, 1.0].
@@ -22,7 +23,7 @@ class Link(val sourceUri : String, val targetUri : String, val details : Option[
     case None => -1.0
   }
 
-  override def toString = "<" + sourceUri + ">  <" + targetUri + ">"
+  override def toString = "<" + source + ">  <" + target + ">"
 
   /**
    * Compares two Links for equality.
@@ -30,11 +31,11 @@ class Link(val sourceUri : String, val targetUri : String, val details : Option[
    */
   override def equals(other : Any) = other match
   {
-    case otherLink : Link => otherLink.sourceUri == sourceUri && otherLink.targetUri == targetUri
+    case otherLink : Link => otherLink.source == source && otherLink.target == target
     case _ => false
   }
 
-  override def hashCode = (sourceUri + targetUri).hashCode
+  override def hashCode = (source + target).hashCode
 }
 
 object Link

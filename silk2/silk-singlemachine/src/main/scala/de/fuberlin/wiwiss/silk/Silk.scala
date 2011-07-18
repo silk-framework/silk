@@ -7,7 +7,7 @@ import java.io.File
 import jena.{JenaImplementations}
 import linkspec.{LinkSpecification}
 import util.StringUtils._
-import util.{CollectLogs, Future, SourceTargetPair}
+import util.{CollectLogs, SourceTargetPair}
 import java.util.logging.{Level, Logger}
 
 /**

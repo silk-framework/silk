@@ -1,15 +1,15 @@
 package de.fuberlin.wiwiss.silk
 
-import instance.{Index, Instance, InstanceCache}
+import instance.InstanceCache
 import linkspec.evaluation.DetailedEvaluator
 import linkspec.LinkSpecification
 import java.util.logging.{Level, Logger}
 import output.Link
 import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
-import collection.immutable.HashSet
-import util.{SourceTargetPair, Task}
+import util.SourceTargetPair
 import scala.math.{min, max}
+import util.task.Task
 
 /**
  * Executes the matching.

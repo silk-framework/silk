@@ -8,8 +8,8 @@ case class Alignment(positive : Set[Link] = Set.empty, negative : Set[Link] = Se
   def generateNegative =
   {
     val positiveLinksSeq = positive.toSeq
-    val sourceInstances = positiveLinksSeq.map(_.sourceUri)
-    val targetInstances = positiveLinksSeq.map(_.targetUri)
+    val sourceInstances = positiveLinksSeq.map(_.source)
+    val targetInstances = positiveLinksSeq.map(_.target)
 
     val negativeLinks = for((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
 
@@ -35,8 +35,8 @@ case class Alignment(positive : Set[Link] = Set.empty, negative : Set[Link] = Se
     {
       <map>
         <Cell>
-          <entity1 rdf:resource={link.sourceUri}/>
-          <entity2 rdf:resource={link.targetUri}/>
+          <entity1 rdf:resource={link.source}/>
+          <entity2 rdf:resource={link.target}/>
           <relation>{relation}</relation>
           <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">{link.confidence.toString}</measure>
         </Cell>

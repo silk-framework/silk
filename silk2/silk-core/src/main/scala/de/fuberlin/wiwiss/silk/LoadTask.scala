@@ -2,8 +2,9 @@ package de.fuberlin.wiwiss.silk
 
 import datasource.Source
 import instance.{Instance, InstanceSpecification, InstanceCache}
-import util.{Future, Task, SourceTargetPair}
+import util.SourceTargetPair
 import java.util.logging.{Level, Logger}
+import util.task.{Future, Task}
 
 /**
  * Loads the instance cache
