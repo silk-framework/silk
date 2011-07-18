@@ -61,7 +61,7 @@ class ProgressWidget(task: HasStatus, hide: Boolean = false) extends CometActor 
       showCmd &
         JsRaw("$('#progresswidget').attr('title', '" + task.status + "');") &
         JsRaw("$('#progressbar').progressbar({value: " + (task.status.progress * 95 + 5) + "});").cmd &
-        SetHtml("progresstext", Text(task.toString))
+        SetHtml("progresstext", Text(task.status.toString))
     }
   }
 }

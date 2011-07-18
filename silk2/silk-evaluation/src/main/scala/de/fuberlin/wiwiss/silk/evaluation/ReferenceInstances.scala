@@ -7,6 +7,13 @@ import de.fuberlin.wiwiss.silk.output.Link
 case class ReferenceInstances(positive : Map[Link, SourceTargetPair[Instance]] = Map.empty,
                               negative : Map[Link, SourceTargetPair[Instance]] = Map.empty)
 {
+  def withPositive(instancePair : SourceTargetPair[Instance]) = {
+    copy(positive = positive + (new Link(instancePair.source.uri, instancePair.target.uri) -> instancePair))
+  }
+
+  def withNegative(instancePair : SourceTargetPair[Instance]) = {
+    copy(negative = negative + (new Link(instancePair.source.uri, instancePair.target.uri) -> instancePair))
+  }
 }
 
 object ReferenceInstances
