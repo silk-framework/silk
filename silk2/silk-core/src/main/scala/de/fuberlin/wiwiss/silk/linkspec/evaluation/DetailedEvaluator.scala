@@ -94,7 +94,7 @@ object DetailedEvaluator
 
   private def findPath(input : Input) : Path = input match
   {
-    case PathInput(path) => path
-    case TransformInput(inputs, _) => findPath(inputs.head)
+    case PathInput(_, path) => path
+    case TransformInput(_, inputs, _) => findPath(inputs.head)
   }
 }

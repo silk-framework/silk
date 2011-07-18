@@ -1,17 +1,16 @@
 package de.fuberlin.wiwiss.silk.linkspec.similarity
 
 import de.fuberlin.wiwiss.silk.instance.Instance
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec.input.Input
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import math.max
+import de.fuberlin.wiwiss.silk.util.{Identifier, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.linkspec.Operator
 
 /**
  * A comparison computes the similarity of two inputs.
  */
-case class Comparison(required : Boolean, threshold : Double, weight : Int,
-                      inputs : SourceTargetPair[Input], metric : DistanceMeasure) extends SimilarityOperator
-{
+case class Comparison(id: Identifier = Operator.generateId, required: Boolean, threshold: Double, weight: Int,
+                      inputs: SourceTargetPair[Input], metric: DistanceMeasure) extends SimilarityOperator {
   /**
    * Computes the similarity between two instances.
    *
@@ -20,33 +19,26 @@ case class Comparison(required : Boolean, threshold : Double, weight : Int,
    *
    * @return The confidence as a value between -1.0 and 1.0.
    */
-  override def apply(instances : SourceTargetPair[Instance], limit : Double) : Option[Double] =
-  {
+  override def apply(instances: SourceTargetPair[Instance], limit: Double): Option[Double] = {
     val values1 = inputs.source(instances)
     val values2 = inputs.target(instances)
 
-    if(values1.isEmpty || values2.isEmpty)
-    {
+    if (values1.isEmpty || values2.isEmpty) {
       None
     }
-    else
-    {
+    else {
       val distance = metric(values1, values2, threshold * (1.0 - limit))
 
-      if(distance == 0.0 && threshold == 0.0)
-      {
+      if (distance == 0.0 && threshold == 0.0) {
         Some(1.0)
       }
-      else if(distance <= threshold)
-      {
+      else if (distance <= threshold) {
         Some(1.0 - distance / threshold)
       }
-      else if(!required)
-      {
+      else if (!required) {
         Some(-1.0)
       }
-      else
-      {
+      else {
         None
       }
     }
@@ -60,8 +52,7 @@ case class Comparison(required : Boolean, threshold : Double, weight : Int,
    *
    * @return A set of (multidimensional) indexes. Instances within the threshold will always get the same index.
    */
-  override def index(instance : Instance, limit : Double) : Set[Seq[Int]] =
-  {
+  override def index(instance: Instance, limit: Double): Set[Seq[Int]] = {
     val instancePair = SourceTargetPair.fill(instance)
 
     val values = inputs.source(instancePair) ++ inputs.target(instancePair)
@@ -74,19 +65,16 @@ case class Comparison(required : Boolean, threshold : Double, weight : Int,
   /**
    * The number of blocks in each dimension of the index.
    */
-  override def blockCounts(limit : Double) =
-  {
+  override def blockCounts(limit: Double) = {
     metric.blockCounts(threshold * (1.0 - limit))
   }
 
-  override def toXML(implicit prefixes : Prefixes) = metric match
-  {
-    case DistanceMeasure(id, params) =>
-    {
-      <Compare required={required.toString} weight={weight.toString} metric={id} threshold={threshold.toString}>
-        { inputs.source.toXML }
-        { inputs.target.toXML }
-        { params.map{case (name, value) => <Param name={name} value={value} />} }
+  override def toXML(implicit prefixes: Prefixes) = metric match {
+    case DistanceMeasure(strategy, params) => {
+      <Compare id={id} required={required.toString} weight={weight.toString} metric={strategy} threshold={threshold.toString}>
+        {inputs.source.toXML}{inputs.target.toXML}{params.map {
+        case (name, value) => <Param name={name} value={value}/>
+      }}
       </Compare>
     }
   }

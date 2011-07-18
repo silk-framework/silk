@@ -88,11 +88,12 @@ object LinkSpecification
 
     val aggregator = Aggregator(node \ "@type" text, readParams(node))
 
-    new Aggregation(
-      if(requiredStr.isEmpty) false else requiredStr.toBoolean,
-      if(weightStr.isEmpty) 1 else weightStr.toInt,
-      readOperators(node.child),
-      aggregator
+    Aggregation(
+      id = Operator.readId(node),
+      required = if(requiredStr.isEmpty) false else requiredStr.toBoolean,
+      weight = if(weightStr.isEmpty) 1 else weightStr.toInt,
+      operators = readOperators(node.child),
+      aggregator = aggregator
     )
   }
 
@@ -104,12 +105,13 @@ object LinkSpecification
     val metric = DistanceMeasure(node \ "@metric" text, readParams(node))
     val inputs = readInputs(node.child)
 
-    new Comparison(
-      if(requiredStr.isEmpty) false else requiredStr.toBoolean,
-      threshold,
-      if(weightStr.isEmpty) 1 else weightStr.toInt,
-      SourceTargetPair(inputs(0), inputs(1)),
-      metric
+    Comparison(
+      id = Operator.readId(node),
+      required = if(requiredStr.isEmpty) false else requiredStr.toBoolean,
+      threshold = threshold,
+      weight = if(weightStr.isEmpty) 1 else weightStr.toInt,
+      inputs = SourceTargetPair(inputs(0), inputs(1)),
+      metric = metric
     )
   }
 
@@ -120,12 +122,12 @@ object LinkSpecification
       {
         val pathStr = p \ "@path" text
         val path = Path.parse(pathStr)
-        PathInput(path)
+        PathInput(Operator.readId(p), path)
       }
       case p @ <TransformInput>{_*}</TransformInput> =>
       {
         val transformer = Transformer(p \ "@function" text, readParams(p))
-        TransformInput(readInputs(p.child), transformer)
+        TransformInput(Operator.readId(p), readInputs(p.child), transformer)
       }
     }
   }
