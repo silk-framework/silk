@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.linkspec.condition
+package de.fuberlin.wiwiss.silk.linkspec.similarity
 
 import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
 import scala.math.min

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.MultiIndexAggregator
+import de.fuberlin.wiwiss.silk.linkspec.similarity.MultiIndexAggregator
 import scala.math._
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 

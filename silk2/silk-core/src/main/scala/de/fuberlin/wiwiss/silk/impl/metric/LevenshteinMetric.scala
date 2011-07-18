@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import scala.math.max
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 

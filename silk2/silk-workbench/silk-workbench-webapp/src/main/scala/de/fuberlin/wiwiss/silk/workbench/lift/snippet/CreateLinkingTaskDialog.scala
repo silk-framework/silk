@@ -1,9 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.linkspec.condition.{LinkCondition}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
@@ -13,8 +11,8 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.common.Empty
-import de.fuberlin.wiwiss.silk.linkspec.{LinkFilter, DatasetSpecification, LinkSpecification}
 import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
+import de.fuberlin.wiwiss.silk.linkspec.{LinkCondition, LinkFilter, DatasetSpecification, LinkSpecification}
 
 /**
  * A dialog to create new linking tasks.

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import math._
-import de.fuberlin.wiwiss.silk.linkspec.condition.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 import java.util.logging.Logger
