@@ -116,14 +116,14 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
     private def load()
     {
-      val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
+      val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
 
       if(instanceSpecs == null)
       {
         updateStatus("Retrieving frequent property paths", 0.0)
 
         //Retrieve most frequent paths
-        val paths = for((source, dataset) <- sources zip linkSpec.datasets) yield source.dataSource.retrievePaths(dataset.restriction, 1, Some(50))
+        val paths = for((source, dataset) <- sources zip linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
 
         //Create an instance spec from the link specification
         val currentInstanceSpecs = InstanceSpecification.retrieve(linkSpec)
@@ -134,36 +134,64 @@ class Cache(var instanceSpecs : SourceTargetPair[InstanceSpecification] = null,
 
       updateStatus(0.2)
 
-      val positiveSamples = alignment.positive.toList
-      val negativeSamples = alignment.negative.toList
+      val positiveInstances = for(link <- alignment.positive) yield instances.positive.get(link) match
+      {
+        case None => retrieveInstancePair(link, instanceSpecs, sources)
+        case Some(instancePair) => updateInstancePair(instancePair, instanceSpecs, sources)
+      }
 
-      //Determine which instances are already in the cache
-      val existingPositiveInstances = positiveSamples.map(instances.positive.get).flatten
-      val existingNegativeInstances = negativeSamples.map(instances.negative.get).flatten
-
-      //Determine which instances are missing in the cache
-      val missingPositiveInstances = positiveSamples.filterNot(instances.positive.contains)
-      val missingNegativeInstances = negativeSamples.filterNot(instances.negative.contains)
-
-      //Create instance loading tasks
-      val positiveSourceInstancesTask = new LoadingInstancesTask(sources.source.dataSource, instanceSpecs.source, missingPositiveInstances.map(_.sourceUri))
-      val positiveTargetInstancesTask = new LoadingInstancesTask(sources.target.dataSource, instanceSpecs.target, missingPositiveInstances.map(_.targetUri))
-
-      val negativeSourceInstancesTask =  new LoadingInstancesTask(sources.source.dataSource, instanceSpecs.source, missingNegativeInstances.map(_.sourceUri))
-      val negativeTargetInstancesTask =  new LoadingInstancesTask(sources.target.dataSource, instanceSpecs.target, missingNegativeInstances.map(_.targetUri))
-
-      //Load instances
-      val newPositiveSourceInstances = executeSubTask(positiveSourceInstancesTask, 0.4)
-      val newPositiveTargetInstances = executeSubTask(positiveTargetInstancesTask, 0.6)
-
-      val newNegativeSourceInstances = executeSubTask(negativeSourceInstancesTask, 0.8)
-      val newNegativeTargetInstances = executeSubTask(negativeTargetInstancesTask, 1.0)
-
-      val newPositiveInstances = (newPositiveSourceInstances zip newPositiveTargetInstances).map(SourceTargetPair.fromPair)
-      val newNegativeInstances = (newNegativeSourceInstances zip newNegativeTargetInstances).map(SourceTargetPair.fromPair)
+      val negativeInstances = for(link <- alignment.negative) yield instances.negative.get(link) match
+      {
+        case None => retrieveInstancePair(link, instanceSpecs, sources)
+        case Some(instancePair) => updateInstancePair(instancePair, instanceSpecs, sources)
+      }
 
       //Update cache
-      instances = ReferenceInstances.fromInstances(existingPositiveInstances ++ newPositiveInstances, existingNegativeInstances ++ newNegativeInstances)
+      instances = ReferenceInstances.fromInstances(positiveInstances, negativeInstances)
+    }
+  }
+
+  private def retrieveInstancePair(uris : SourceTargetPair[String], instanceSpecs : SourceTargetPair[InstanceSpecification], sources : SourceTargetPair[DataSource]) =
+  {
+    SourceTargetPair(
+      source = sources.source.retrieve(instanceSpecs.source, uris.source :: Nil).head,
+      target = sources.target.retrieve(instanceSpecs.target, uris.target :: Nil).head
+    )
+  }
+
+  private def updateInstancePair(instances : SourceTargetPair[Instance], instanceSpecs : SourceTargetPair[InstanceSpecification], sources : SourceTargetPair[DataSource]) =
+  {
+    SourceTargetPair(
+      source = updateInstance(instances.source, instanceSpecs.source, sources.source),
+      target = updateInstance(instances.target, instanceSpecs.target, sources.target)
+    )
+  }
+
+  private def updateInstance(instance : Instance, instanceSpec : InstanceSpecification, source : DataSource) =
+  {
+    //Compute the paths which are missing on the given instance
+    val existingPaths = instance.spec.paths.toSet
+    val missingPaths = instanceSpec.paths.filterNot(existingPaths.contains)
+
+    if(missingPaths.isEmpty)
+    {
+      instance
+    }
+    else
+    {
+      //Retrieve an instance with all missing paths
+      val missingInstance =
+        source.retrieve(
+          instanceSpec = instance.spec.copy(paths = missingPaths),
+          instances = instance.uri :: Nil
+        ).head
+
+      //Return the updated instance
+      new Instance(
+        uri = instance.uri,
+        values = instance.values ++ missingInstance.values,
+        spec = instance.spec.copy(paths = instance.spec.paths ++ missingPaths)
+      )
     }
   }
 
