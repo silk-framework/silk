@@ -61,7 +61,7 @@ trait LinkList extends CometActor
           <div class="link-header heading">
             <div class="link-source">Source: <span class="source-value">{linkingTask.linkSpec.datasets.source.sourceId}</span></div>
             <div class="link-target">Target: <span class="target-value">{linkingTask.linkSpec.datasets.target.sourceId}</span></div>
-            <div class="link-confidence">{SHtml.a(sortByConfidence _, <span>Confidence</span>)}</div>
+            <div class="link-confidence">{SHtml.a(sortByConfidence _, <span>Score</span>)}</div>
             { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
             { if(showButtons) <div class="link-buttons"><span>Correct?</span></div> else NodeSeq.Empty }
           </div>
