@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
-import modules.output.{MemoryOutputModule, OutputConfig, OutputTask, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
+import modules.output.{MemoryOutputModule, OutputConfig, OutputTask, OutputModule}
 import java.util.logging.Logger
 import xml.XML
 import de.fuberlin.wiwiss.silk.util.Identifier
@@ -10,6 +10,7 @@ import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workbench.util._
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import collection.mutable.SynchronizedQueue
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -23,6 +24,9 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
   val projectUri = QueryFactory.dataSourceLinks+projectName
 
+   // The XML sub project
+  var xmlProj : XMLProject = null
+
    // The source module which encapsulates all data sources.
   override val sourceModule = new LDESourceModule()
 
@@ -30,9 +34,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
   override val linkingModule = new LDELinkingModule()
 
   override val outputModule = new MemoryOutputModule()
-
-   // The XML sub project
-  var xmlProj : XMLProject = null
 
   // Reads the project configuration.
   override def config = {
@@ -67,27 +68,31 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
    *   The source module which encapsulates all data sources.
    *  ---------------------------------------------------------- */
   class LDESourceModule() extends SourceModule
-  {                                    
+  {
     override def config = SourceConfig()
 
     override def config_=(c : SourceConfig) {}
 
     override def tasks = synchronized  {
 
-       // load target datasource  -  Wiki
-      val params = Map( "endpointURI" -> sparqlEndpoint.uri.toString,
-                        "datasourceUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
-                        "id" -> "Wiki")
-      var datasources : List[SourceTask] = List(SourceTask(Source("TARGET",DataSource("LDEsparqlEndpoint",params))))
+      var targetDatasourceUri :String = null
+      var datasources : List[SourceTask] = List.empty
 
        // load source datasource  - optional
       val res = sparqlEndpoint.query(QueryFactory.sProjectDataSource(projectUri),1)
       if (res.size > 0 )
         {
-          val from = res.last("from").value
-          logger.info("Loading SOURCE Datasource: "+from)
-          datasources ::= loadDatasource(from)
+          targetDatasourceUri = res.last("from").value
+          logger.info("Loading SOURCE Datasource: "+targetDatasourceUri)
+          datasources ::= loadDatasource(targetDatasourceUri)
         }
+
+       // load target datasource  -  Wiki
+      val params = Map( "endpointURI" -> sparqlEndpoint.uri.toString,
+                        "datasourceUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
+                        "excludedDatasourceUri" -> targetDatasourceUri,
+                        "id" -> "Wiki")
+      datasources ::= SourceTask(Source("TARGET",DataSource("LDEsparqlEndpoint",params)))
 
       datasources
     }
@@ -121,7 +126,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
            val endpointUri = sparqlEndpoint.uri.toString
            val params = Map( "endpointURI" -> endpointUri,
                              "id" -> id,
-                            //"label" -> label,
                             "datasourceUri" -> dataSourceUri)
            SourceTask(Source("SOURCE",DataSource("LDEsparqlEndpoint",params)))
         }
@@ -131,7 +135,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
            SourceTask(Source("DataSource_Not_Found",DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
         }
     }
-    
   }
 
 
@@ -142,38 +145,53 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
   class LDELinkingModule() extends LinkingModule
   {
     @volatile
-    private var cachedTasks : Option[Traversable[LinkingTask]] = None
+    private var cachedTasks : Map[Identifier, LinkingTask] = load()
+
+    @volatile
+    private var updatedTasks = Map[Identifier, LinkingTask]()
+
+    @volatile
+    private var lastUpdateTime = 0L
 
     override def config = LinkingConfig()
 
     override def config_=(c : LinkingConfig) {}
 
-    override def tasks = synchronized {
-      if(cachedTasks.isEmpty)  {
-        cachedTasks = Some(loadTasks)
-      }
-      cachedTasks.get
+    override def tasks =
+    {
+      cachedTasks.values
     }
 
-    override def update(task : LinkingTask) = synchronized  {
+    override def update(task : LinkingTask) {
       // update XML
       xmlProj.linkingModule.update(task)
+
       // update TS via Sparql\Update
       updateTripleStore
-      cachedTasks = None
+
+      cachedTasks += (task.name -> task)
+      updatedTasks += (task.name -> task)
+      lastUpdateTime = System.currentTimeMillis
+
+      // Update Cache
+      task.cache.load(LDEProject.this, task)
+
       logger.info("Updated linking task '"+task.name +"' in project '"+name+"'")
     }
 
-    override def remove(taskId : Identifier) = synchronized {
+    override def remove(taskId : Identifier) {
       // update XML
       xmlProj.linkingModule.remove(taskId)
       // update TS via Sparql\Update
       updateTripleStore
-      cachedTasks = None
+
+      cachedTasks -= taskId
+      updatedTasks -= taskId
+
       logger.info("Removed linking task '"+taskId +"' in project '"+name+"'")
     }
-        
-    private def loadTasks : Traversable[LinkingTask] = {      
+
+    private def load() : Map[Identifier, LinkingTask] = {
       val res = sparqlEndpoint.query(QueryFactory.sProjectSourceCode(projectUri),1)
 
       if (res.size > 0 ){
@@ -195,7 +213,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
          task.cache.load(LDEProject.this, task)
         }
 
-      taskSeq
+      taskSeq.map(task => (task.name, task)).toMap
     }
 
   }
