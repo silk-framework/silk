@@ -11,9 +11,9 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.{Str, JsArray, JsRaw, Call}
 import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
-import net.liftweb.http.js.JsCmds.{OnLoad, Script}
 import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import xml.{Text, NodeSeq}
+import net.liftweb.http.js.JsCmds.{JsCrVar, OnLoad, Script}
 
 /**
  * LinkSpec snippet.
@@ -129,11 +129,9 @@ class LinkSpec
     implicit val prefixes = User().project.config.prefixes
 
     //Serialize the link condition to a JavaScript string
-    val linkSpecStr = linkingTask.linkSpec.toXML.toString.replace("\n", " ").replace("\\", "\\\\")
+    val linkSpecStr = linkingTask.linkSpec.toXML.toString.replace("\n", " ")
 
-    val linkSpecVar = "var linkSpec = '" + linkSpecStr + "';"
-
-    JsRaw(linkSpecVar).cmd
+    JsCrVar("linkSpec", Str(linkSpecStr))
   }
 
   /**
