@@ -172,6 +172,12 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
     $("#info-box").slideUp(200);
     showValidIcon();
   }
+  if (infoMessages.length > 0) {
+    $("#info > .precission").html(infoMessages[0]);
+    $("#info > .recall").html(infoMessages[1]);
+    $("#info > .measure").html(infoMessages[2]);
+    $("#info").css("display", "block");
+  }
 }
 
 function showValidIcon() {
@@ -1061,6 +1067,7 @@ $(function ()
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="pending" style="display: none"></div>');
+  $("#validation-icons").append('<div id="info" style="display: none"><span class="precission"></span><span class="recall"></span><span class="measure"></span></div>');
   $("#toolbar").append('<div id="info-box" style="display: none"></div>');
 
   $("#exclamation, #warning").mouseover(function() {
