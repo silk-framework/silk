@@ -150,8 +150,6 @@ class FileProject(file : File) extends Project
       updatedTasks += (task.name -> task)
       lastUpdateTime = System.currentTimeMillis
 
-      task.cache.load(FileProject.this, task)
-
       logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
 
@@ -181,22 +179,20 @@ class FileProject(file : File) extends Project
           val cache =
             try
             {
-              Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+              Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")), FileProject.this, linkSpec, alignment)
             }
             catch
             {
               case ex : Exception =>
               {
                 logger.warning("Cache corrupted. Rebuilding Cache.")
-                new Cache()
+                val cache = new Cache()
+                cache.reload(FileProject.this, linkSpec, alignment)
+                cache
               }
             }
 
-          val linkingTask = LinkingTask(linkSpec, alignment, cache)
-
-          linkingTask.cache.load(FileProject.this, linkingTask)
-
-          linkingTask
+          LinkingTask(linkSpec, alignment, cache)
         }
 
       tasks.map(task => (task.name, task)).toMap

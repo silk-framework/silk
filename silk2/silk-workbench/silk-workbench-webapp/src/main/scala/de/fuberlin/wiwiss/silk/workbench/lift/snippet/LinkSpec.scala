@@ -67,7 +67,7 @@ class LinkSpec
         val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
 
         //Update linking task
-        val updatedLinkingTask = linkingTask.copy(linkSpec = linkSpec)
+        val updatedLinkingTask = linkingTask.updateLinkSpec(linkSpec, project)
 
         //Commit
         project.linkingModule.update(updatedLinkingTask)
@@ -141,7 +141,7 @@ class LinkSpec
   {
     def reloadCache =
     {
-      User().linkingTask.cache.reload(User().project, User().linkingTask)
+      User().linkingTask.cache.reload(User().project, User().linkingTask.linkSpec, User().linkingTask.alignment)
       JsRaw("").cmd
     }
 

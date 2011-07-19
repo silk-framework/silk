@@ -173,9 +173,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
       updatedTasks += (task.name -> task)
       lastUpdateTime = System.currentTimeMillis
 
-      // Update Cache
-      task.cache.load(LDEProject.this, task)
-
       logger.info("Updated linking task '"+task.name +"' in project '"+name+"'")
     }
 
@@ -209,9 +206,6 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 
       val taskSeq = xmlProj.linkingModule.tasks
       // XMLProject doesn't have datasouce info - since those are not in the sourceCode
-      for (task <- taskSeq ){
-         task.cache.load(LDEProject.this, task)
-        }
 
       taskSeq.map(task => (task.name, task)).toMap
     }

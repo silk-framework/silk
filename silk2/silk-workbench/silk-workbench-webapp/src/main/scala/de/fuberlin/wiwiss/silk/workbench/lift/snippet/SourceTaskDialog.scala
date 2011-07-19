@@ -102,7 +102,8 @@ object SourceTaskDialog extends Dialog
 
     override def apply(task : LinkingTask) =
     {
-      task.copy(linkSpec = task.linkSpec.copy(datasets = task.linkSpec.datasets.map(updateDataset)))
+      val updatedLinkSpec = task.linkSpec.copy(datasets = task.linkSpec.datasets.map(updateDataset))
+      task.updateLinkSpec(updatedLinkSpec, User().project)
     }
 
     private def updateDataset(ds : DatasetSpecification) =

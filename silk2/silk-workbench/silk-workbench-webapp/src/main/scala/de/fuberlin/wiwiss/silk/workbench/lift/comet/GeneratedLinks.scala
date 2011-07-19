@@ -111,10 +111,11 @@ class GeneratedLinks extends LinkList
 
   private def confirmLink(link : Link) =
   {
+    val project = User().project
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link))
+    val updatedTask = linkingTask.updateAlignment( alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link), project)
 
-    User().project.linkingModule.update(updatedTask)
+    project.linkingModule.update(updatedTask)
     User().task = updatedTask
 
     JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink")) & JsHideId(getId(link, "undecidedLink"))
@@ -122,10 +123,11 @@ class GeneratedLinks extends LinkList
 
   private def declineLink(link : Link) =
   {
+    val project = User().project
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link))
+    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link), project)
 
-    User().project.linkingModule.update(updatedTask)
+    project.linkingModule.update(updatedTask)
     User().task = updatedTask
 
     JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "undecidedLink"))
@@ -133,10 +135,11 @@ class GeneratedLinks extends LinkList
 
   private def resetLink(link : Link) =
   {
+    val project = User().project
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
+    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link), project)
 
-    User().project.linkingModule.update(updatedTask)
+    project.linkingModule.update(updatedTask)
     User().task = updatedTask
 
     JsShowId(getId(link, "undecidedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))

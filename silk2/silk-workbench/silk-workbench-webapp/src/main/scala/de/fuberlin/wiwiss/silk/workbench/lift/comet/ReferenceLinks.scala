@@ -141,7 +141,7 @@ class ReferenceLinks extends LinkList
   private def resetLink(link : Link) =
   {
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.copy(alignment = alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link))
+    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link), User().project)
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask
