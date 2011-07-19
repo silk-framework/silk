@@ -251,7 +251,7 @@ a.more {
   background-image: url('/static/img/tick.png');
   float: right;
   margin-top: 8px;
-  margin-right: 20px;
+  margin-right: 27px;
 }
 #warning {
   width: 24px;
@@ -259,7 +259,7 @@ a.more {
   background-image: url('/static/img/warning.png');
   float: right;
   margin-top: 8px;
-  margin-right: 24px;
+  margin-right: 27px;
 }
 #pending {
   width: 24px;
@@ -267,7 +267,18 @@ a.more {
   background-image: url('/static/img/pending.gif');
   float: right;
   margin-top: 8px;
-  margin-right: 23px;
+  margin-right: 27px;
+}
+#info {
+  color: #717171;
+  line-height: 40px;
+  float: right;
+  padding-right: 14px;
+}
+#info .precission, #info .recall, #info .measure {
+  border-right: 1px solid #bab9b9;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 #info-box {
