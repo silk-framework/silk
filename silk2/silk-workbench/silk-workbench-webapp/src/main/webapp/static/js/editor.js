@@ -126,8 +126,13 @@ var validateLinkSpec = function() {
     var root_elements = 0;
     $("#droppable > div").each(function() {
         var elId = $(this).attr('id');
+        /* var boxName = $(this).child(".label").text();
+
+          validate box name.....
+
+        */
         var target = jsPlumb.getConnections({source: elId});
-        if (target[jsPlumb.getDefaultScope()].length == 0) {
+        if (target[jsPlumb.getDefaultScope()] === undefined || target[jsPlumb.getDefaultScope()].length == 0) {
             root_elements++;
         }
     });
@@ -172,7 +177,7 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
     $("#info-box").slideUp(200);
     showValidIcon();
   }
-  if (infoMessages.length > 0) {
+  if (infoMessages != null && infoMessages.length > 0) {
     $("#info > .precission").html(infoMessages[0]);
     $("#info > .recall").html(infoMessages[1]);
     $("#info > .measure").html(infoMessages[2]);
@@ -261,17 +266,19 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
   $(xml).find("> Aggregate").each(function ()
   {
+    var boxName = $(this).attr("id");
+    if (!boxName || boxName == 'unnamed') boxName = "aggregate_" + aggregatecounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv aggregateDiv');
-    box1.attr("id", "aggregate_" + aggregatecounter);
+    box1.attr("id", boxName);
 
-    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
+    box1.prepend('<div class="label">' + boxName + '</div>');
 
     var height = aggregatecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
-    var number = "#aggregate_" + aggregatecounter;
+    var number = "#" + boxName;
     box1.draggable(
     {
       containment: '#droppable'
@@ -301,7 +308,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     span.append(mytext);
     box2.append(span);
 	
-    box2.append(getDeleteIcon("#aggregate_" + aggregatecounter));
+    box2.append(getDeleteIcon(number));
 
     box1.append(box2);
 
@@ -360,8 +367,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
-    var endp_right = jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
+    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+    var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions2);
     aggregatecounter = aggregatecounter + 1;
     if (last_element != "")
     {
@@ -376,17 +383,19 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
   });
   $(xml).find("> Compare").each(function ()
   {
+    var boxName = $(this).attr("id");
+    if (!boxName || boxName == 'unnamed') boxName = "compare_" + comparecounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv compareDiv');
-    box1.attr("id", "compare_" + comparecounter);
+    box1.attr("id", boxName);
 
-    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
+    box1.prepend('<div class="label">' + boxName + '</div>');
 
     var height = 2 * comparecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
-    var number = "#compare_" + comparecounter;
+    var number = "#" + boxName;
     box1.draggable(
     {
       containment: '#droppable'
@@ -416,7 +425,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     span.append(mytext);
     box2.append(span);
 
-    box2.append(getDeleteIcon("#compare_" + comparecounter));
+    box2.append(getDeleteIcon(number));
 
     box1.append(box2);
 
@@ -491,8 +500,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
-    var endp_right = jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
+    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+    var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions2);
     comparecounter = comparecounter + 1;
     if (last_element != "")
     {
@@ -507,17 +516,19 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
   $(xml).find("> TransformInput").each(function ()
   {
+    var boxName = $(this).attr("id");
+    if (!boxName || boxName == 'unnamed') boxName = "transform_" + transformcounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv transformDiv');
-    box1.attr("id", "transform_" + transformcounter);
+    box1.attr("id", boxName);
 
-    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
+    box1.prepend('<div class="label">' + boxName + '</div>');
 
     var height = transformcounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
-    var number = "#transform_" + transformcounter;
+    var number = "#" + boxName;
     box1.draggable(
     {
       containment: '#droppable'
@@ -542,12 +553,12 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    span.attr("title", transformations[$(this).attr("function")]["name"] + " (Transformation)")
+    span.attr("title", transformations[$(this).attr("function")]["name"] + " (Transformation)");
     var mytext = document.createTextNode(transformations[$(this).attr("function")]["name"] + " (Transformation)");
     span.append(mytext);
     box2.append(span);
 
-    box2.append(getDeleteIcon("#transform_" + transformcounter));
+    box2.append(getDeleteIcon(number));
 
     box1.append(box2);
 
@@ -586,8 +597,8 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
-    var endp_right = jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
+    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+    var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions2);
     transformcounter = transformcounter + 1;
     if (last_element != "")
     {
@@ -605,17 +616,19 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     var path = $(this).attr("path");
     if (path.charAt(1) == targetDataSetVar) pathClass = "targetPath";
 
+    var boxName = $(this).attr("id");
+    if (!boxName || boxName == 'unnamed') boxName = "source_" + sourcecounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv ' + pathClass);
-    box1.attr("id", "source_" + sourcecounter);
+    box1.attr("id", boxName);
 
-    box1.prepend('<div class="label">' + box1.attr('id') + '</div>');
+    box1.prepend('<div class="label">' + boxName + '</div>');
 
     var height = sourcecounter * 120 + 20;
     var left = (max_level*250) - ((level + 1) * 250) + 20;
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
-    var number = "#source_" + sourcecounter;
+    var number = "#" + boxName;
     box1.draggable(
     {
       containment: '#droppable'
@@ -645,7 +658,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     span.append(mytext);
     box2.append(span);
 
-    box2.append(getDeleteIcon("#source_" + sourcecounter));
+    box2.append(getDeleteIcon(number));
 
     box1.append(box2);
 
@@ -654,7 +667,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_right = jsPlumb.addEndpoint('source_' + sourcecounter, endpointOptions);
+    var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions);
     sourcecounter = sourcecounter + 1;
     if (last_element != "")
     {
@@ -782,6 +795,8 @@ function createNewElement(elementId)
 	var elName = ($(elementIdName).children(".name").text());
 	var elType = ($(elementIdName).children(".type").text());
 	var xml = document.createElement(elType);
+  var newName = $(elementIdName + " > .label").text();
+  xml.setAttribute("id", newName);
 	if (elType == "Input") {
     if (elName == "") {
       xml.setAttribute("path", $(elementIdName+" > h5 > input").val());
@@ -909,7 +924,7 @@ function serializeLinkSpec() {
 
   var xmlString = getHTML(xml, true);
   xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
-  // alert(xmlString);
+  //alert(xmlString);
   return xmlString;
 }
 
@@ -1058,7 +1073,7 @@ $(function ()
   $("input").live('change', function(e) {
     modifyLinkSpec();
   });
-  $("input[type='text']").live('keyup', function(e) {
+  $("input[type='text' class!='label-change']").live('keyup', function(e) {
     modifyLinkSpec();
   });
 
@@ -1087,7 +1102,7 @@ $(function ()
     var current_label = $(this).html();
     var input = '<input class="label-change" type="text" value="' + current_label + '" />';
     $(this).html(input).addClass('label-active').removeClass('label');
-     $(this).children().focus();
+    $(this).children().focus();
   });
 
   $(".label-change").live('change', function() {
