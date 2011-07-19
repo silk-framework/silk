@@ -27,7 +27,7 @@ object ProjectImporter
 
     for(taskNode <- xml \ "LinkingModule" \ "Tasks" \ "LinkingTask")
     {
-      project.linkingModule.update(readLinkingTask(taskNode))
+      project.linkingModule.update(readLinkingTask(taskNode, project))
     }
   }
 
@@ -36,11 +36,11 @@ object ProjectImporter
     SourceTask(Source.fromXML(xml \ "_" head))
   }
 
-  private def readLinkingTask(xml : Node)(implicit prefixes : Prefixes) =
+  private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) =
   {
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val alignment = AlignmentReader.readAlignment(xml \ "Alignment" \ "_" head)
-    val cache = Cache.fromXML(xml \ "Cache" \ "_" head)
+    val cache = Cache.fromXML(xml \ "Cache" \ "_" head, project, linkSpec, alignment)
 
     LinkingTask(linkSpec, alignment, cache)
   }

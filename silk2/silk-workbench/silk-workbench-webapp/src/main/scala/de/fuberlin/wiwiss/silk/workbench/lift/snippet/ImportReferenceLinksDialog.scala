@@ -32,14 +32,14 @@ class ImportReferenceLinksDialog
           //If the alignment does not define any negative links -> generate some
           if(alignment.negative.isEmpty)
           {
-            val updatedLinkingTask = User().linkingTask.copy(alignment = alignment.generateNegative)
+            val updatedLinkingTask = User().linkingTask.updateAlignment(alignment.generateNegative, User().project)
 
             User().project.linkingModule.update(updatedLinkingTask)
             User().task = updatedLinkingTask
           }
           else
           {
-            val updatedLinkingTask = User().linkingTask.copy(alignment = alignment)
+            val updatedLinkingTask = User().linkingTask.updateAlignment(alignment, User().project)
             User().project.linkingModule.update(updatedLinkingTask)
             User().task = updatedLinkingTask
           }
