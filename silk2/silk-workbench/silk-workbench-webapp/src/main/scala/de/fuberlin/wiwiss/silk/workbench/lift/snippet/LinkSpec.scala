@@ -116,9 +116,7 @@ class LinkSpec
     {
       val r = LinkConditionEvaluator(linkingTask.linkSpec.condition, linkingTask.cache.instances)
 
-      val msg = "Precision = " + r.precision + "\nRecall = " + r.recall + "\nF-measure = " + r.fMeasure
-
-      msg :: Nil
+      ("Precision = " + r.precision) :: ("Recall = " + r.recall) :: ("F-measure = " + r.fMeasure) :: Nil
     }
   }
 
