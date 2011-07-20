@@ -88,11 +88,25 @@ class ValidatingXMLReader[T](deserializer : Node => T, schemaPath : String)
       //Return result
       if(errors.isEmpty)
       {
-        rootElem.asInstanceOf[Elem]
+        val xml = rootElem.asInstanceOf[Elem]
+        checkUniqueIdentifiers(xml)
+        xml
       }
       else
       {
         throw new ValidationException(errors.reverse.mkString("\n"))
+      }
+    }
+
+    /**
+     * Checks if the document contains any duplicated identifiers.
+     */
+    private def checkUniqueIdentifiers(xml: Elem) {
+      val ids = (xml \\ "@id").map(_.text)
+      if(ids.distinct.size < ids.size) {
+        val duplicatedIds = ids diff ids.distinct
+        val errors = duplicatedIds.map("Duplicated identifier: '" + _ + "'")
+        throw new ValidationException(errors)
       }
     }
 
