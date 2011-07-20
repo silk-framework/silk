@@ -126,27 +126,13 @@ var validateLinkSpec = function() {
     var root_elements = 0;
     $("#droppable > div").each(function() {
         var elId = $(this).attr('id');
-        /* var boxName = $(this).child(".label").text();
-
-          validate box name.....
-
-        */
         var target = jsPlumb.getConnections({source: elId});
         if (target[jsPlumb.getDefaultScope()] === undefined || target[jsPlumb.getDefaultScope()].length == 0) {
             root_elements++;
         }
     });
     if (root_elements > 1) errors.push("Multiple Link Conditions found");
-/*
-    $("#droppable > div").each(function() {
-        var elId = $(this).attr('id');
-        var cs = jsPlumb.getConnections({source: elId});
-        var ct = jsPlumb.getConnections({target: elId});
-        if (ct[jsPlumb.getDefaultScope()].length < 1 && cs[jsPlumb.getDefaultScope()].length < 1) {
-            errors.push("Element without connections found (" + elId + ")");
-        }
-    });
-*/
+
     if (errors.length > 0) {
         updateStatus(errors, null, null);
     } else {
@@ -267,7 +253,6 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
   $(xml).find("> Aggregate").each(function ()
   {
     var boxName = $(this).attr("id");
-    if (!boxName || boxName == 'unnamed') boxName = "aggregate_" + aggregatecounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv aggregateDiv');
     box1.attr("id", boxName);
@@ -367,7 +352,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="compare"], canvas[elType="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions2);
     aggregatecounter = aggregatecounter + 1;
     if (last_element != "")
@@ -378,13 +363,13 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
         targetEndpoint: last_element
       });
     }
+    $(number).nextUntil("div", ".ui-draggable").attr("elType", "aggregate");
     parseXML($(this), level + 1, 0, endp_left, max_level, box1.attr("id"));
 
   });
   $(xml).find("> Compare").each(function ()
   {
     var boxName = $(this).attr("id");
-    if (!boxName || boxName == 'unnamed') boxName = "compare_" + comparecounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv compareDiv');
     box1.attr("id", boxName);
@@ -500,7 +485,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions2);
     comparecounter = comparecounter + 1;
     if (last_element != "")
@@ -511,13 +496,13 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
         targetEndpoint: last_element
       });
     }
+    $(number).nextUntil("div", ".ui-draggable").attr("elType", "compare");
     parseXML($(this), level + 1, 0, endp_left, max_level, box1.attr("id"));
   });
 
   $(xml).find("> TransformInput").each(function ()
   {
     var boxName = $(this).attr("id");
-    if (!boxName || boxName == 'unnamed') boxName = "transform_" + transformcounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv transformDiv');
     box1.attr("id", boxName);
@@ -597,7 +582,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     box1.append(box2);
 
-    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+    var endp_left = jsPlumb.addEndpoint(boxName, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
     var endp_right = jsPlumb.addEndpoint(boxName, endpointOptions2);
     transformcounter = transformcounter + 1;
     if (last_element != "")
@@ -608,6 +593,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
         targetEndpoint: last_element
       });
     }
+    $(number).nextUntil("div", ".ui-draggable").attr("elType", "transform");
     parseXML($(this), level + 1, 0, endp_left, max_level, box1.attr("id"));
   });
   $(xml).find("> Input").each(function ()
@@ -617,7 +603,6 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     if (path.charAt(1) == targetDataSetVar) pathClass = "targetPath";
 
     var boxName = $(this).attr("id");
-    if (!boxName || boxName == 'unnamed') boxName = "source_" + sourcecounter;
     var box1 = $(document.createElement('div'));
     box1.addClass('dragDiv ' + pathClass);
     box1.attr("id", boxName);
@@ -677,6 +662,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
         targetEndpoint: last_element
       });
     }
+    $(number).nextUntil("div", ".ui-draggable").attr("elType", "source");
     parseXML($(this), level + 1, 0, endp_right, max_level, box1.attr("id"));
   });
 }
@@ -795,9 +781,12 @@ function createNewElement(elementId)
 	var elName = ($(elementIdName).children(".name").text());
 	var elType = ($(elementIdName).children(".type").text());
 	var xml = document.createElement(elType);
-  var newName = $(elementIdName + " > .label").text();
-  xml.setAttribute("id", newName);
-	if (elType == "Input") {
+
+    var newName = $(elementIdName + " > .label").text();
+    if (!newName) newName = $(elementIdName + " > div.label-active > input.label-change").val();
+    xml.setAttribute("id", newName);
+
+    if (elType == "Input") {
     if (elName == "") {
       xml.setAttribute("path", $(elementIdName+" > h5 > input").val());
     } else {
@@ -947,7 +936,7 @@ $(function ()
         */
         if (ui.helper.attr('id').search(/aggregate/) != -1)
         {
-          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="compare"], canvas[elId^="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="compare"], canvas[elType="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
           var number = "#aggregate_" + aggregatecounter;
 
@@ -964,10 +953,11 @@ $(function ()
             }
           });
           aggregatecounter = aggregatecounter + 1;
+          $(number).nextUntil("div", ".ui-draggable").attr("elType", "aggregate");
         }
         if (ui.helper.attr('id').search(/transform/) != -1)
         {
-          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
           var number = "#transform_" + transformcounter;
 
@@ -984,10 +974,11 @@ $(function ()
             }
           });
           transformcounter = transformcounter + 1;
+          $(number).nextUntil("div", ".ui-draggable").attr("elType", "transform");
         }
         if (ui.helper.attr('id').search(/compare/) != -1)
         {
-          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elId^="transform"], canvas[elId^="source"], canvas[elId^="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
           jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
           var number = "#compare_" + comparecounter;
 
@@ -1004,6 +995,7 @@ $(function ()
             }
           });
           comparecounter = comparecounter + 1;
+          $(number).nextUntil("div", ".ui-draggable").attr("elType", "compare");
         }
         if (ui.helper.attr('id').search(/source/) != -1)
         {
@@ -1022,8 +1014,8 @@ $(function ()
               jsPlumb.repaint(number);
             }
           });
-
           sourcecounter = sourcecounter + 1;
+          $(number).nextUntil("div", ".ui-draggable").attr("elType", "source");
         }
         if (ui.helper.attr('id').search(/target/) != -1)
         {
@@ -1043,6 +1035,7 @@ $(function ()
             }
           });
           targetcounter = targetcounter + 1;
+          $(number).nextUntil("div", ".ui-draggable").attr("elType", "source");
         }
 
         // fix the position of the new added box
@@ -1070,10 +1063,10 @@ $(function ()
 	}
   });
 
-  $("input").live('change', function(e) {
+  $("input[class!='label-change']").live('change', function(e) {
     modifyLinkSpec();
   });
-  $("input[type='text' class!='label-change']").live('keyup', function(e) {
+  $("input[type='text']").live('keyup', function(e) {
     modifyLinkSpec();
   });
 
@@ -1105,16 +1098,10 @@ $(function ()
     $(this).children().focus();
   });
 
-  $(".label-change").live('change', function() {
-    var new_label = $(this).val();
-    $(this).parent().html(new_label).addClass('label').removeClass('label-active');
-  });
-
   $(".label-change").live('blur', function() {
     var new_label = $(this).val();
     $(this).parent().html(new_label).addClass('label').removeClass('label-active');
   });
-
 });
 
 function decodeHtml(value)
