@@ -11,6 +11,8 @@ import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.{Alignment, ReferenceInstances}
+import java.lang.InterruptedException
+import java.util.logging.Level
 
 //TODO use options?
 //TODO store path frequencies
@@ -23,6 +25,10 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
   /**The cached instances */
   @volatile private var cachedInstances: ReferenceInstances = ReferenceInstances.empty
 
+  @volatile private var loadingThread: CacheLoader = null
+
+  logLevel = Level.FINE
+
   /**The cached instance specifications containing the most frequent paths */
   def instanceSpecs = cachedInstanceSpecs
 
@@ -33,6 +39,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
    * Update this cache.
    */
   def update(project : Project, linkSpec: LinkSpecification, alignment: Alignment) = {
+    //stopLoading()
     val updatedCache = new Cache(instanceSpecs, instances)
     updatedCache.load(project, linkSpec, alignment)
     updatedCache
@@ -52,8 +59,14 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
    * Load the cache.
    */
   private def load(project : Project, linkSpec: LinkSpecification, alignment: Alignment) {
-    new CacheLoader(project,  linkSpec, alignment).start()
+    loadingThread = new CacheLoader(project,  linkSpec, alignment)
+    loadingThread.start()
   }
+
+//  private def stopLoading() {
+//    loadingThread.interrupt()
+//    loadingThread.join()
+//  }
 
   /**
    * Serializes the cache to XML.
@@ -153,12 +166,14 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
       var loadedLinks = 0
 
       for (link <- alignment.positive) {
+        if(isInterrupted) throw new InterruptedException()
         cachedInstances = instances.withPositive(loadPositiveLink(link))
         loadedLinks += 1
         updateStatus(0.2 + 0.8 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- alignment.negative) {
+        if(isInterrupted) throw new InterruptedException()
         cachedInstances = instances.withNegative(loadNegativeLink(link))
         loadedLinks += 1
         updateStatus(0.2 + 0.8 * (loadedLinks.toDouble / linkCount))

@@ -24,11 +24,11 @@ case class LinkSpecification(id: Identifier,
    */
   def toXML(implicit prefixes: Prefixes): Node = {
     <Interlink id={id}>
-      <LinkType>
-        {linkType.toTurtle}
-      </LinkType>{datasets.source.toXML(true)}{datasets.target.toXML(false)}{condition.toXML}{filter.toXML}<Outputs>
+      <LinkType>{linkType.toTurtle}</LinkType>
+      {datasets.source.toXML(true)}{datasets.target.toXML(false)}{condition.toXML}{filter.toXML}
+      <Outputs>
       {outputs.map(_.toXML)}
-    </Outputs>
+      </Outputs>
     </Interlink>
   }
 }
@@ -49,7 +49,7 @@ object LinkSpecification {
 
     new LinkSpecification(
       node \ "@id" text,
-      resolveQualifiedName(node \ "LinkType" text, prefixes),
+      resolveQualifiedName((node \ "LinkType").text.trim, prefixes),
       new SourceTargetPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
         DatasetSpecification
           .fromXML(node \ "TargetDataset" head)),
@@ -104,12 +104,12 @@ object LinkSpecification {
 
   private def readInputs(nodes: Seq[Node])(implicit prefixes: Prefixes): Seq[Input] = {
     nodes.collect {
-      case p@ <Input/> => {
+      case p @ <Input/> => {
         val pathStr = p \ "@path" text
         val path = Path.parse(pathStr)
         PathInput(Operator.readId(p), path)
       }
-      case p@ <TransformInput>{_*}</TransformInput> => {
+      case p @ <TransformInput>{_*}</TransformInput> => {
         val transformer = Transformer(p \ "@function" text, readParams(p))
         TransformInput(Operator.readId(p), readInputs(p.child), transformer)
       }
