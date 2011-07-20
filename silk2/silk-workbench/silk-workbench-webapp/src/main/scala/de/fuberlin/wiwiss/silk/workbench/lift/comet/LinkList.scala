@@ -153,19 +153,19 @@ trait LinkList extends CometActor
 
   private def renderSimilarity(similarity : Link.Confidence) : NodeSeq = similarity match
   {
-    case Link.AggregatorConfidence(value, function, children) =>
+    case Link.AggregatorConfidence(value, aggregation, children) =>
     {
       <li>
-        <span class="aggregation">Aggregation({function})</span>{ renderConfidence(value) }
+        <span class="aggregation">Aggregation: {aggregation.aggregator.strategyId} ({aggregation.id})</span>{ renderConfidence(value) }
           <ul>
             { children.map(renderSimilarity) }
           </ul>
       </li>
     }
-    case Link.ComparisonConfidence(value, function, input1, input2) =>
+    case Link.ComparisonConfidence(value, comparison, input1, input2) =>
     {
       <li>
-        <span class="comparison">Comparison({function})</span>{ renderConfidence(value) }
+        <span class="comparison">Comparison: {comparison.metric.strategyId} ({comparison.id})</span>{ renderConfidence(value) }
           <ul>
             { renderInputValue(input1, "source") }
             { renderInputValue(input2, "target") }
@@ -183,11 +183,11 @@ trait LinkList extends CometActor
     case None => NodeSeq.Empty
   }
 
-  private def renderInputValue(input : Link.InputValue, divClassPrefix : String) = input match
+  private def renderInputValue(value : Link.InputValue, divClassPrefix : String) = value match
   {
     case Link.InputValue(path, values) =>
     {
-      <li><span class="input">Input <span class={divClassPrefix+"-path"}>{path.serialize}</span>{values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span></li>
+      <li><span class="input">Input ({value.input.id})<span class={divClassPrefix+"-path"}>{value.input.path.serialize}</span>{values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span></li>
     }
   }
 

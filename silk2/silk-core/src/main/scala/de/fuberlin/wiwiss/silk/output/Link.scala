@@ -2,6 +2,8 @@ package de.fuberlin.wiwiss.silk.output
 
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
+import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, Input}
 
 /**
  * Represents a link between two instances.
@@ -47,9 +49,9 @@ object Link
 
   case class SimpleConfidence(value : Option[Double]) extends Confidence
 
-  case class AggregatorConfidence(value : Option[Double], function : String, children : Seq[Confidence]) extends Confidence
+  case class AggregatorConfidence(value : Option[Double], aggregation: Aggregation, children : Seq[Confidence]) extends Confidence
 
-  case class ComparisonConfidence(value : Option[Double], function : String, sourceInput : InputValue, targetInput : InputValue) extends Confidence
+  case class ComparisonConfidence(value : Option[Double], comparison: Comparison, sourceInput : InputValue, targetInput : InputValue) extends Confidence
 
-  case class InputValue(path : Path, values : Traversable[String])
+  case class InputValue(input: PathInput, values : Traversable[String])
 }
