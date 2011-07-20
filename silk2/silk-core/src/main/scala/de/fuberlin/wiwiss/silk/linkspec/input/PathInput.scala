@@ -27,5 +27,5 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
     }
   }
 
-  override def toXML(implicit prefixes: Prefixes) = <Input path={path.serialize}/>
+  override def toXML(implicit prefixes: Prefixes) = <Input id={id} path={path.serialize}/>
 }
