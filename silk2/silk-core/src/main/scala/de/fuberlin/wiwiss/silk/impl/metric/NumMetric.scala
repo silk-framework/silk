@@ -11,18 +11,14 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers and normalizes it using the maxDistance." +
     " The similarity score is 0.0 if the distance is bigger than maxDistance.")
-class NumMetric(minValue : Double = Double.NegativeInfinity, maxValue : Double = Double.PositiveInfinity, maxDistance : Double = Double.NaN) extends SimpleDistanceMeasure
-{
+class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Double = Double.PositiveInfinity, maxDistance: Double = Double.NaN) extends SimpleDistanceMeasure {
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
 
-  private val scale =
-  {
-    if(maxDistance.isNaN)
-    {
+  private val scale = {
+    if (maxDistance.isNaN) {
       1.0
     }
-    else
-    {
+    else {
       logger.warning("The use of the 'maxDistance' parameter on the num metric is deprecated.\n" +
         "Please use the threshold paramter on the comparison instead.\n" +
         "Example: <Compare metric=\"num\" threshold=\"...\">")
@@ -35,64 +31,49 @@ class NumMetric(minValue : Double = Double.NegativeInfinity, maxValue : Double =
 
   private val blockOverlap = 0.5
 
-  private val indexEnabled =
-  {
-    if(minValue.isNegInfinity || maxValue.isPosInfinity)
-    {
+  private val indexEnabled = {
+    if (minValue.isNegInfinity || maxValue.isPosInfinity) {
       logger.info("Blocking disabled for numeric comparison as minValue and maxValue is not defined")
       false
     }
-    else
-    {
+    else {
       true
     }
   }
 
-  override def evaluate(str1 : String, str2 : String, limit : Double) =
-  {
-    (str1, str2) match
-    {
-      case (DoubleLiteral(num1), DoubleLiteral(num2)) =>
-      {
+  override def evaluate(str1: String, str2: String, limit: Double) = {
+    (str1, str2) match {
+      case (DoubleLiteral(num1), DoubleLiteral(num2)) => {
         abs(num1 - num2) / (limit * scale)
       }
       case _ => Double.PositiveInfinity
     }
   }
 
-  override def index(str : String, limit : Double) : Set[Seq[Int]] =
-  {
-    if(indexEnabled)
-    {
-      str match
-      {
-        case DoubleLiteral(num) =>
-        {
+  override def index(str: String, limit: Double): Set[Seq[Int]] = {
+    if (indexEnabled) {
+      str match {
+        case DoubleLiteral(num) => {
           getBlocks(Seq((num - minValue).toDouble / maxValue), blockOverlap, limit * scale)
         }
         case _ => Set.empty
       }
     }
-    else
-    {
+    else {
       Set(Seq(0))
     }
   }
 
-  override def blockCounts(limit : Double) : Seq[Int] =
-  {
-    if(indexEnabled)
-    {
+  override def blockCounts(limit: Double): Seq[Int] = {
+    if (indexEnabled) {
       Seq(1)
     }
-    else
-    {
+    else {
       Seq(blockCount(limit * scale))
     }
   }
 
-  private def blockCount(limit : Double) =
-  {
+  private def blockCount(limit: Double) = {
     min(maxBlockCount, ((maxValue - minValue) / limit * blockOverlap).toInt)
   }
 }

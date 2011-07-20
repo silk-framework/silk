@@ -15,12 +15,11 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
  * @param linkSpecs The Silk link specifications
  * @param outputs The outputs
  */
-case class SilkConfig(prefixes : Prefixes,
-                      sources : Traversable[Source],
-                      blocking : Option[Blocking],
-                      linkSpecs : Traversable[LinkSpecification],
-                      outputs : Traversable[Output] = Traversable.empty)
-{
+case class SilkConfig(prefixes: Prefixes,
+                      sources: Traversable[Source],
+                      blocking: Option[Blocking],
+                      linkSpecs: Traversable[LinkSpecification],
+                      outputs: Traversable[Output] = Traversable.empty) {
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
   private val outputMap = outputs.map(s => (s.id, s)).toMap
@@ -28,23 +27,22 @@ case class SilkConfig(prefixes : Prefixes,
   /**
    * Selects a datasource by id.
    */
-  def source(id : Identifier) = sourceMap(id)
+  def source(id: Identifier) = sourceMap(id)
 
   /**
    * Selects a link specification by id.
    */
-  def linkSpec(id : Identifier) = linkSpecMap(id)
+  def linkSpec(id: Identifier) = linkSpecMap(id)
 
   /**
    * Selects an output by id.
    */
-  def output(id : Identifier) = outputMap(id)
+  def output(id: Identifier) = outputMap(id)
 
   /**
    * Merges this configuration with another configuration.
    */
-  def merge(config : SilkConfig) =
-  {
+  def merge(config: SilkConfig) = {
     SilkConfig(
       prefixes = prefixes ++ config.prefixes,
       sources = sources ++ config.sources,
@@ -54,37 +52,31 @@ case class SilkConfig(prefixes : Prefixes,
     )
   }
 
-  def toXML : Node =
-  {
+  def toXML: Node = {
     <Silk>
-      { prefixes.toXML }
-      <DataSources>
-        { sources.map(_.toXML) }
-      </DataSources>
+      {prefixes.toXML}<DataSources>
+      {sources.map(_.toXML)}
+    </DataSources>
       <Interlinks>
-        { linkSpecs.map(_.toXML(prefixes)) }
+        {linkSpecs.map(_.toXML(prefixes))}
       </Interlinks>
     </Silk>
   }
 }
 
-object SilkConfig
-{
+object SilkConfig {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
 
   def empty = SilkConfig(Prefixes.empty, Nil, Some(Blocking()), Nil, Nil)
 
-  def load =
-  {
+  def load = {
     new ValidatingXMLReader(fromXML, schemaLocation)
   }
 
-  def fromXML(node : Node) =
-  {
+  def fromXML(node: Node) = {
     implicit val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
-    val blocking = (node \ "Blocking").headOption match
-    {
+    val blocking = (node \ "Blocking").headOption match {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)
       case None => Some(Blocking())
     }

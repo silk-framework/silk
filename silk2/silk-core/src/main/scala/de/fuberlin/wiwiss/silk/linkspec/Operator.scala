@@ -8,14 +8,17 @@ import java.util.concurrent.atomic.AtomicInteger
  * Base class of all operators in the link condition.
  */
 trait Operator {
-  val id : Identifier
+  /**
+   * The identifier of this operator.
+   */
+  val id: Identifier
 }
 
 /**
  * Operator companion object.
  */
 object Operator {
-  /** Counter used to generate unique identifiers. */
+  /**Counter used to generate unique identifiers. */
   private val lastId = new AtomicInteger(0)
 
   /**
@@ -26,7 +29,7 @@ object Operator {
   /**
    * Reads the operator identifier from an xml element.
    */
-  def readId(xml : Node) : Identifier = {
+  def readId(xml: Node): Identifier = {
     (xml \ "@id").headOption.map(_.text).map(Identifier(_)).getOrElse(generateId)
   }
 }

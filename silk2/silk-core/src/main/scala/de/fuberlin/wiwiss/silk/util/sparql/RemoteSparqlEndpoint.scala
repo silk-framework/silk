@@ -16,41 +16,35 @@ import java.net._
  * @param retryCount The number of retries if a query fails
  * @param initialRetryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  */
-class RemoteSparqlEndpoint(val uri : URI,
-                           login : Option[(String, String)] = None,
-                           val pageSize : Int = 1000, val pauseTime : Int = 0,
-                           val retryCount : Int = 3, val initialRetryPause : Int = 1000) extends SparqlEndpoint
-{
+class RemoteSparqlEndpoint(val uri: URI,
+                           login: Option[(String, String)] = None,
+                           val pageSize: Int = 1000, val pauseTime: Int = 0,
+                           val retryCount: Int = 3, val initialRetryPause: Int = 1000) extends SparqlEndpoint {
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
   private var lastQueryTime = 0L
 
   override def toString = "SparqlEndpoint(" + uri + ")"
 
-  override def query(sparql : String, limit : Int) : Traversable[Map[String, Node]] = new ResultTraversable(sparql, limit)
+  override def query(sparql: String, limit: Int): Traversable[Map[String, Node]] = new ResultTraversable(sparql, limit)
 
-  private class ResultTraversable(sparql : String, limit : Int) extends Traversable[Map[String, Node]]
-  {
-    override def foreach[U](f : Map[String, Node] => U) : Unit =
-    {
+  private class ResultTraversable(sparql: String, limit: Int) extends Traversable[Map[String, Node]] {
+    override def foreach[U](f: Map[String, Node] => U): Unit = {
       var blankNodeCount = 0
 
-      for(offset <- 0 until limit by pageSize)
-      {
+      for (offset <- 0 until limit by pageSize) {
         val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
 
         val resultsXml = xml \ "results" \ "result"
 
-        for(resultXml <- resultsXml)
-        {
+        for (resultXml <- resultsXml) {
           val bindings = resultXml \ "binding"
 
-          val uris = for(binding <- bindings; node <- binding \ "uri") yield (binding \ "@name" text, Resource(node.text))
+          val uris = for (binding <- bindings; node <- binding \ "uri") yield (binding \ "@name" text, Resource(node.text))
 
-          val literals = for(binding <- bindings; node <- binding \ "literal") yield (binding \ "@name" text, Literal(node.text))
+          val literals = for (binding <- bindings; node <- binding \ "literal") yield (binding \ "@name" text, Literal(node.text))
 
-          val bnodes = for(binding <- bindings; node <- binding \ "bnode") yield
-          {
+          val bnodes = for (binding <- bindings; node <- binding \ "bnode") yield {
             blankNodeCount += 1
             (binding \ "@name" text, BlankNode("bnode" + blankNodeCount))
           }
@@ -58,7 +52,7 @@ class RemoteSparqlEndpoint(val uri : URI,
           f((uris ++ literals ++ bnodes).toMap)
         }
 
-        if(resultsXml.size < pageSize) return
+        if (resultsXml.size < pageSize) return
       }
     }
 
@@ -68,51 +62,41 @@ class RemoteSparqlEndpoint(val uri : URI,
      * @param query The SPARQL query to be executed
      * @return Query result in SPARQL Query Results XML Format
      */
-    private def executeQuery(query : String) : Elem =
-    {
+    private def executeQuery(query: String): Elem = {
       //Wait until pause time is elapsed since last query
-      synchronized
-      {
-        while(System.currentTimeMillis < lastQueryTime + pauseTime) Thread.sleep(pauseTime / 10)
+      synchronized {
+        while (System.currentTimeMillis < lastQueryTime + pauseTime) Thread.sleep(pauseTime / 10)
         lastQueryTime = System.currentTimeMillis
       }
 
       //Execute query
-      if(logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri +"\n" + query)
+      if (logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri + "\n" + query)
 
       val url = new URL(uri + "?query=" + URLEncoder.encode(query, "UTF-8"))
 
-      var result : Elem = null
+      var result: Elem = null
       var retries = 0
       var retryPause = initialRetryPause
-      while(result == null)
-      {
+      while (result == null) {
         val httpConnection = RemoteSparqlEndpoint.openConnection(url, login)
 
-        try
-        {
+        try {
           result = XML.load(httpConnection.getInputStream)
         }
-        catch
-        {
-          case ex : IOException =>
-          {
+        catch {
+          case ex: IOException => {
             retries += 1
-            if(retries > retryCount)
-            {
+            if (retries > retryCount) {
               throw ex
             }
 
-            if(logger.isLoggable(Level.INFO))
-            {
+            if (logger.isLoggable(Level.INFO)) {
               val errorStream = httpConnection.getErrorStream
-              if(errorStream != null)
-              {
+              if (errorStream != null) {
                 val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
                 logger.info("Query on " + uri + " failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
               }
-              else
-              {
+              else {
                 logger.info("Query on " + uri + " failed:\n" + query + "\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
               }
             }
@@ -121,8 +105,7 @@ class RemoteSparqlEndpoint(val uri : URI,
             //Double the retry pause up to a maximum of 1 hour
             //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
           }
-          case ex : Exception =>
-          {
+          case ex: Exception => {
             logger.log(Level.SEVERE, "Could not execute query on " + uri + ":\n" + query, ex)
             throw ex
           }
@@ -130,25 +113,22 @@ class RemoteSparqlEndpoint(val uri : URI,
       }
 
       //Return result
-      if(logger.isLoggable(Level.FINER)) logger.finer("Query Result\n" + result)
+      if (logger.isLoggable(Level.FINER)) logger.finer("Query Result\n" + result)
       result
     }
   }
+
 }
 
-private object RemoteSparqlEndpoint
-{
+private object RemoteSparqlEndpoint {
   /**
    * Opens a new HTTP connection to the endpoint.
    * This method is synchronized to avoid race conditions as the Authentication is set globally in Java.
    */
-  private def openConnection(url : URL, login : Option[(String, String)]) : HttpURLConnection = synchronized
-  {
+  private def openConnection(url: URL, login: Option[(String, String)]): HttpURLConnection = synchronized {
     //Set authentication
-    for((user, password) <- login)
-    {
-      Authenticator.setDefault(new Authenticator()
-      {
+    for ((user, password) <- login) {
+      Authenticator.setDefault(new Authenticator() {
         override def getPasswordAuthentication = new PasswordAuthentication(user, password.toCharArray)
       })
     }

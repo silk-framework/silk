@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.util.task
 
 import de.fuberlin.wiwiss.silk.util.task.Task._
-import java.util.logging.{Level, Logger}
+import java.util.logging.Level
 import collection.mutable.{Subscriber, Publisher}
 import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
 

@@ -11,28 +11,24 @@ import io.Source
  * A link writer which writes to a SPARQL/Update endpoint.
  */
 @StrategyAnnotation(id = "sparul", label = "SPARQL/Update")
-case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
-{
-  /** Maximum number of statements per request. */
-	private val StatementsPerRequest = 200;
+case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
+  /**Maximum number of statements per request. */
+  private val StatementsPerRequest = 200;
 
   private val log = Logger.getLogger(classOf[SparqlWriter].getName)
 
-  private var connection : HttpURLConnection = null
+  private var connection: HttpURLConnection = null
 
-  private var writer : Writer = null
+  private var writer: Writer = null
 
   private var statements = 0
 
-  override def open()
-  {
+  override def open() {
     beginSparul(true)
   }
 
-  override def write(link : Link, predicateUri : String)
-  {
-    if(statements + 1 > StatementsPerRequest)
-    {
+  override def write(link: Link, predicateUri: String) {
+    if (statements + 1 > StatementsPerRequest) {
       endSparql()
       beginSparul(false)
     }
@@ -40,8 +36,7 @@ case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
     writeStatement(link, predicateUri)
   }
 
-  override def close()
-  {
+  override def close() {
     endSparql()
   }
 
@@ -51,8 +46,7 @@ case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
    * @param newGraph Create a new (empty) graph?
    * @throws IOException
    */
-  private def beginSparul(newGraph : Boolean)
-  {
+  private def beginSparul(newGraph: Boolean) {
     //Preconditions
     require(connection == null, "Connectiom already openend")
 
@@ -66,14 +60,11 @@ case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
     statements = 0;
 
     writer.write("request=")
-    if(graphUri.isEmpty)
-    {
+    if (graphUri.isEmpty) {
       writer.write("INSERT+DATA+%7B")
     }
-    else
-    {
-      if(newGraph)
-      {
+    else {
+      if (newGraph) {
         writer.write("CREATE+SILENT+GRAPH+%3C" + graphUri + "%3E+")
       }
       writer.write("INSERT+DATA+INTO+%3C" + graphUri + "%3E+%7B")
@@ -86,10 +77,9 @@ case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
    * @param nodes The statement
    * @throws IOException
    */
-  private def writeStatement(link : Link, predicateUri : String)
-  {
+  private def writeStatement(link: Link, predicateUri: String) {
     writer.write(URLEncoder.encode("<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n", "UTF-8"))
-	  statements += 1
+    statements += 1
   }
 
   /**
@@ -97,27 +87,22 @@ case class SparqlWriter(uri : String, graphUri : String = "") extends LinkWriter
    *
    * @throws IOException
    */
-  private def endSparql()
-  {
+  private def endSparql() {
     //End request
     writer.write("%7D")
     writer.close()
 
     //Check response
-    if(connection.getResponseCode == 200)
-    {
+    if (connection.getResponseCode == 200) {
       log.info(statements + " statements written to Store.")
     }
-    else
-    {
+    else {
       val errorStream = connection.getErrorStream
-      if(errorStream != null)
-      {
+      if (errorStream != null) {
         val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
         log.warning("SPARQL/Update query on " + uri + " failed. Error Message: '" + errorMessage + "'.")
       }
-      else
-      {
+      else {
         log.warning("SPARQL/Update query on " + uri + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ".")
       }
     }

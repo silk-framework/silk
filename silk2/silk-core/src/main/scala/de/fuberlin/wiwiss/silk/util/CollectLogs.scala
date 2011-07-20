@@ -5,10 +5,8 @@ import java.util.logging.{Handler, LogRecord, Logger, Level}
 /**
  * Collects all log message which occur in a specific scope.
  */
-object CollectLogs
-{
-  def apply(level : Level = Level.WARNING)(f : => Unit) : Seq[LogRecord] =
-  {
+object CollectLogs {
+  def apply(level: Level = Level.WARNING)(f: => Unit): Seq[LogRecord] = {
     val logCollector = new LogCollector
     logCollector.setLevel(level)
 
@@ -21,26 +19,22 @@ object CollectLogs
     logCollector.records
   }
 
-  private class LogCollector extends Handler
-  {
+  private class LogCollector extends Handler {
     var records = List[LogRecord]()
 
-    def publish(record: LogRecord)
-    {
-      if(isLoggable(record))
-      {
-         records ::= record
+    def publish(record: LogRecord) {
+      if (isLoggable(record)) {
+        records ::= record
       }
     }
 
-    def flush()
-    {
+    def flush() {
 
     }
 
-    def close()
-    {
+    def close() {
 
     }
   }
+
 }

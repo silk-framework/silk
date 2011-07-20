@@ -1,9 +1,8 @@
 package de.fuberlin.wiwiss.silk.output
 
-import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, Input}
+import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
 
 /**
  * Represents a link between two instances.
@@ -12,15 +11,13 @@ import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, Input}
  * @param target the target URI
  * @param details
  */
-class Link(source : String, target : String, val details : Option[Link.Confidence] = None) extends SourceTargetPair[String](source, target)
-{
-  def this(source : String, target : String, confidence : Double) = this(source, target, Some(Link.SimpleConfidence(Some(confidence))))
+class Link(source: String, target: String, val details: Option[Link.Confidence] = None) extends SourceTargetPair[String](source, target) {
+  def this(source: String, target: String, confidence: Double) = this (source, target, Some(Link.SimpleConfidence(Some(confidence))))
 
   /**
    * The confidence that this link is correct. Allowed values: [-1.0, 1.0].
    */
-  def confidence : Double = details match
-  {
+  def confidence: Double = details match {
     case Some(c) => c.value.getOrElse(-1.0)
     case None => -1.0
   }
@@ -31,27 +28,26 @@ class Link(source : String, target : String, val details : Option[Link.Confidenc
    * Compares two Links for equality.
    * Two Links are considered equal if their source and target URIs match.
    */
-  override def equals(other : Any) = other match
-  {
-    case otherLink : Link => otherLink.source == source && otherLink.target == target
+  override def equals(other: Any) = other match {
+    case otherLink: Link => otherLink.source == source && otherLink.target == target
     case _ => false
   }
 
   override def hashCode = (source + target).hashCode
 }
 
-object Link
-{
-  sealed trait Confidence
-  {
-    val value : Option[Double]
+object Link {
+
+  sealed trait Confidence {
+    val value: Option[Double]
   }
 
-  case class SimpleConfidence(value : Option[Double]) extends Confidence
+  case class SimpleConfidence(value: Option[Double]) extends Confidence
 
-  case class AggregatorConfidence(value : Option[Double], aggregation: Aggregation, children : Seq[Confidence]) extends Confidence
+  case class AggregatorConfidence(value: Option[Double], aggregation: Aggregation, children: Seq[Confidence]) extends Confidence
 
-  case class ComparisonConfidence(value : Option[Double], comparison: Comparison, sourceInput : InputValue, targetInput : InputValue) extends Confidence
+  case class ComparisonConfidence(value: Option[Double], comparison: Comparison, sourceInput: InputValue, targetInput: InputValue) extends Confidence
 
-  case class InputValue(input: PathInput, values : Traversable[String])
+  case class InputValue(input: PathInput, values: Traversable[String])
+
 }

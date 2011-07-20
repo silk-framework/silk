@@ -6,62 +6,54 @@ import java.io.{DataInputStream, DataOutputStream}
 /**
  * A single instance.
  */
-class Instance(val uri : String, val values : IndexedSeq[Set[String]], val spec : InstanceSpecification)
-{
-  def evaluate(path : Path) : Set[String] = evaluate(spec.pathIndex(path))
+class Instance(val uri: String, val values: IndexedSeq[Set[String]], val spec: InstanceSpecification) {
+  def evaluate(path: Path): Set[String] = evaluate(spec.pathIndex(path))
 
-  def evaluate(pathIndex : Int) : Set[String] = values(pathIndex)
+  def evaluate(pathIndex: Int): Set[String] = values(pathIndex)
 
   override def toString = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
-  def toXML =
-  {
-    <Instance uri={uri}>{
-      for(valueSet <- values) yield
-      {
-        <Val>{
-          for(value <- valueSet) yield
-          {
-            <e>{value}</e>
-          }
-        }</Val>
-      }
-    }</Instance>
+  def toXML = {
+    <Instance uri={uri}>
+      {for (valueSet <- values) yield {
+      <Val>
+        {for (value <- valueSet) yield {
+        <e>
+          {value}
+        </e>
+      }}
+      </Val>
+    }}
+    </Instance>
   }
 
-  def serialize(stream : DataOutputStream)
-  {
+  def serialize(stream: DataOutputStream) {
     stream.writeUTF(uri)
-    for(valueSet <- values)
-    {
+    for (valueSet <- values) {
       stream.writeInt(valueSet.size)
-      for(value <- valueSet)
-      {
+      for (value <- valueSet) {
         stream.writeUTF(value)
       }
     }
   }
 }
 
-object Instance
-{
-  def fromXML(node : Node, spec : InstanceSpecification) =
-  {
+object Instance {
+  def fromXML(node: Node, spec: InstanceSpecification) = {
     new Instance(
       uri = node \ "@uri" text,
-      values =
-      {
-        for(valNode <- node \ "Val") yield
-        {
-          {for(e <- valNode \ "e") yield e text}.toSet
+      values = {
+        for (valNode <- node \ "Val") yield {
+          {
+            for (e <- valNode \ "e") yield e text
+          }.toSet
         }
       }.toIndexedSeq,
       spec = spec
     )
   }
 
-  def deserialize(stream : DataInputStream, spec : InstanceSpecification) =
-  {
+  def deserialize(stream: DataInputStream, spec: InstanceSpecification) = {
     //Read URI
     val uri = stream.readUTF()
 

@@ -7,22 +7,21 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
  *
  * Implementing classes of this trait must override the write method.
  */
-trait LinkWriter extends Strategy
-{
+trait LinkWriter extends Strategy {
   /**
    * Initializes this writer.
    */
-  def open() { }
+  def open() {}
 
   /**
    * Writes a new link to this writer.
    */
-  def write(link : Link, predicateUri : String)
+  def write(link: Link, predicateUri: String)
 
   /**
    * Closes this writer.
    */
-  def close() { }
+  def close() {}
 }
 
 object LinkWriter extends Factory[LinkWriter]

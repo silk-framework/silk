@@ -4,18 +4,14 @@ import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "jaro", label = "Jaro distance", description = "String similarity based on the Jaro distance metric.")
-class JaroDistanceMetric() extends SimpleDistanceMeasure
-{
-  override def evaluate(str1 : String, str2 : String, threshold : Double) =
-  {
+class JaroDistanceMetric() extends SimpleDistanceMeasure {
+  override def evaluate(str1: String, str2: String, threshold: Double) = {
     JaroDinstanceMetric.jaro(str1, str2)
   }
 }
 
-object JaroDinstanceMetric
-{
-  def jaro(string1: String, string2: String): Double =
-  {
+object JaroDinstanceMetric {
+  def jaro(string1: String, string2: String): Double = {
     //get half the length of the string rounded up - (this is the distance used for acceptable transpositions)
     val halflen: Int = ((math.min(string1.length, string2.length)) / 2) + ((math.min(string1.length, string2.length)) % 2)
 
@@ -37,10 +33,8 @@ object JaroDinstanceMetric
     //get the number of transpositions
     var transpositions: Int = 0
 
-    for (i <- 0 to math.min(common1.length-1, common2.length-1))
-    {
-      if (common1.charAt(i) != common2.charAt(i))
-      {
+    for (i <- 0 to math.min(common1.length - 1, common2.length - 1)) {
+      if (common1.charAt(i) != common2.charAt(i)) {
         transpositions += 1
       }
     }
@@ -62,20 +56,16 @@ object JaroDinstanceMetric
    * @return a string buffer of characters from string1 within string2 if they are of a given
    *         distance seperation from the position in string1
    */
-  private def getCommonCharacters(string1 : String, string2 : String, distanceSep : Int) : StringBuilder =
-  {
+  private def getCommonCharacters(string1: String, string2: String, distanceSep: Int): StringBuilder = {
     val returnCommons = new StringBuilder()
     val copy = new StringBuilder(string2)
 
     var i = 0
-    for (string1Char <- string1)
-    {
+    for (string1Char <- string1) {
       var foundIt = false
       var j = math.max(0, i - distanceSep)
-      while (!foundIt && j < math.min(i + distanceSep + 1, string2.length))
-      {
-        if (copy.charAt(j) == string1Char)
-        {
+      while (!foundIt && j < math.min(i + distanceSep + 1, string2.length)) {
+        if (copy.charAt(j) == string1Char) {
           foundIt = true
           returnCommons.append(string1Char)
           copy.setCharAt(j, 0.toChar)
