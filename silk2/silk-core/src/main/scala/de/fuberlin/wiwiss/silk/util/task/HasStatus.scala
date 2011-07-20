@@ -40,8 +40,9 @@ class HasStatus extends Publisher[Status] {
    * @param status The new status
    */
   protected def updateStatus(status: Status) {
-    if (logger.isLoggable(logLevel)) {
-      logger.log(logLevel, status.toString)
+    status match {
+      case _: Running if logger.isLoggable(logLevel) => logger.log(logLevel, status.toString)
+      case _ => logger.log(Level.INFO, status.toString)
     }
     currentStatus = status
     publish(status)
