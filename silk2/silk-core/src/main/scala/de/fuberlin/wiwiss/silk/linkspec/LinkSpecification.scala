@@ -65,12 +65,8 @@ object LinkSpecification {
 
   private def readOperators(nodes: Seq[Node])(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Seq[SimilarityOperator] = {
     nodes.collect {
-      case node@ <Aggregate>
-        {_*}
-        </Aggregate> => readAggregation(node)
-      case node@ <Compare>
-        {_*}
-        </Compare> => readComparison(node)
+      case node@ <Aggregate>{_*}</Aggregate> => readAggregation(node)
+      case node@ <Compare>{_*}</Compare> => readComparison(node)
     }
   }
 
@@ -113,9 +109,7 @@ object LinkSpecification {
         val path = Path.parse(pathStr)
         PathInput(Operator.readId(p), path)
       }
-      case p@ <TransformInput>
-        {_*}
-        </TransformInput> => {
+      case p@ <TransformInput>{_*}</TransformInput> => {
         val transformer = Transformer(p \ "@function" text, readParams(p))
         TransformInput(Operator.readId(p), readInputs(p.child), transformer)
       }
