@@ -5,12 +5,12 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
 /**
  * Serializes a link.
  */
-trait Formatter extends Strategy
-{
-    def header : String = ""
-    def footer : String = ""
+trait Formatter extends Strategy {
+  def header: String = ""
 
-    def format(link : Link, predicate : String) : String
+  def footer: String = ""
+
+  def format(link: Link, predicate: String): String
 }
 
 /**

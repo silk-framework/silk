@@ -11,19 +11,15 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
   id = "geometricMean",
   label = "Geometric mean",
   description = "Compute the (weighted) geometric mean.")
-class GeometricMeanAggregator() extends MultiIndexAggregator
-{
-  override def evaluate(values : Traversable[(Int, Double)]) =
-  {
-    if(!values.isEmpty)
-    {
-      val weightedProduct = values.map{case (weight, value) => pow(value, weight)}.reduceLeft(_ * _)
-      val totalWeights = values.map{case (weight, value) => weight}.sum
+class GeometricMeanAggregator() extends MultiIndexAggregator {
+  override def evaluate(values: Traversable[(Int, Double)]) = {
+    if (!values.isEmpty) {
+      val weightedProduct = values.map { case (weight, value) => pow(value, weight) }.reduceLeft(_ * _)
+      val totalWeights = values.map { case (weight, value) => weight }.sum
 
       Some(pow(weightedProduct, 1.0 / totalWeights))
     }
-    else
-    {
+    else {
       None
     }
   }

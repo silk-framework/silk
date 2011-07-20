@@ -11,18 +11,16 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, BackwardOperator, Pa
  * - It does only return paths of length 1
  * - It returns a maximum of 100 forward paths and 10 backward paths
  */
-object SparqlAggregatePathsCollector extends SparqlPathsCollector
-{
+object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   private implicit val logger = Logger.getLogger(SparqlAggregatePathsCollector.getClass.getName)
 
   /**
    * Retrieves a list of properties which are defined on most instances.
    */
-  def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) : Traversable[(Path, Double)] =
-  {
+  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
     val restrictionVariable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
-    val variable = if(restrictionVariable.isEmpty) "a" else restrictionVariable
+    val variable = if (restrictionVariable.isEmpty) "a" else restrictionVariable
 
     val forwardPaths = getForwardPaths(endpoint, restrictions, variable, limit.getOrElse(100))
     val backwardPaths = getBackwardPaths(endpoint, restrictions, variable, 10)
@@ -30,10 +28,8 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
     forwardPaths ++ backwardPaths
   }
 
-  private def getForwardPaths(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String, limit : Int) : Traversable[(Path, Double)] =
-  {
-    Timer("Retrieving forward pathes for '" + restrictions + "'")
-    {
+  private def getForwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String, limit: Int): Traversable[(Path, Double)] = {
+    Timer("Retrieving forward pathes for '" + restrictions + "'") {
       val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
         restrictions.toSparql + "\n" +
         "?" + variable + " ?p ?o\n" +
@@ -42,26 +38,20 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
         "ORDER BY DESC (?count)"
 
       val results = endpoint.query(sparql, limit).toList
-      if(!results.isEmpty)
-      {
+      if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
-        for(result <- results if result.contains("p")) yield
-        {
+        for (result <- results if result.contains("p")) yield {
           (Path(variable, ForwardOperator(Uri.fromURI(result("p").value)) :: Nil),
-           result("count").value.toDouble / maxCount)
+            result("count").value.toDouble / maxCount)
         }
-      }
-      else
-      {
+      } else {
         Traversable.empty
       }
     }
   }
 
-  private def getBackwardPaths(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String, limit : Int) : Traversable[(Path, Double)] =
-  {
-    Timer("Retrieving backward pathes for '" + restrictions + "'")
-    {
+  private def getBackwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String, limit: Int): Traversable[(Path, Double)] = {
+    Timer("Retrieving backward pathes for '" + restrictions + "'") {
       val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
         restrictions.toSparql + "\n" +
         "?s ?p ?" + variable + "\n" +
@@ -70,17 +60,13 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector
         "ORDER BY DESC (?count)"
 
       val results = endpoint.query(sparql, limit).toList
-      if(!results.isEmpty)
-      {
+      if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
-        for(result <- results if result.contains("p")) yield
-        {
+        for (result <- results if result.contains("p")) yield {
           (Path(variable, BackwardOperator(Uri.fromURI(result("p").value)) :: Nil),
-           result("count").value.toDouble / maxCount)
+            result("count").value.toDouble / maxCount)
         }
-      }
-      else
-      {
+      } else {
         Traversable.empty
       }
     }

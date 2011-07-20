@@ -11,23 +11,20 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, ForwardOperator, Pat
  * - It does only return forward paths of length 1
  * - It returns a maximum of 100 paths
  */
-object SparqlSamplePathsCollector extends SparqlPathsCollector
-{
-  /** Number of sample instances */
+object SparqlSamplePathsCollector extends SparqlPathsCollector {
+  /**Number of sample instances */
   private val maxInstances = 100
 
-  /** The minimum frequency of a property to be considered relevant */
+  /**The minimum frequency of a property to be considered relevant */
   private val MinFrequency = 0.7
 
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
-  def apply(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, limit : Option[Int]) : Traversable[(Path, Double)] =
-  {
+  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
-    val sampleInstances =
-    {
-      if(variable.isEmpty)
+    val sampleInstances = {
+      if (variable.isEmpty)
         getAllInstances(endpoint)
       else
         getInstances(endpoint, restrictions, variable)
@@ -36,8 +33,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     getInstancesPaths(endpoint, sampleInstances, variable, limit.getOrElse(100))
   }
 
-  private def getAllInstances(endpoint : SparqlEndpoint) : Traversable[String] =
-  {
+  private def getAllInstances(endpoint: SparqlEndpoint): Traversable[String] = {
     val sparql = "SELECT ?s WHERE { ?s ?p ?o }"
 
     val results = endpoint.query(sparql, maxInstances)
@@ -45,8 +41,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     results.map(_("s").value)
   }
 
-  private def getInstances(endpoint : SparqlEndpoint, restrictions : SparqlRestriction, variable : String) : Traversable[String] =
-  {
+  private def getInstances(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String): Traversable[String] = {
     val sparql = "SELECT ?" + variable + " WHERE {\n" +
       restrictions.toSparql + "\n" +
       "}"
@@ -56,8 +51,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     results.map(_(variable).value)
   }
 
-  private def getInstancesPaths(endpoint : SparqlEndpoint, instances : Traversable[String], variable : String, limit : Int) : Traversable[(Path, Double)] =
-  {
+  private def getInstancesPaths(endpoint: SparqlEndpoint, instances: Traversable[String], variable: String, limit: Int): Traversable[(Path, Double)] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
     val instanceArray = instances.toArray
@@ -69,7 +63,9 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     val propertyFrequencies = properties.groupBy(x => x).mapValues(_.size.toDouble / instanceArray.size).toList
 
     //Choose the relevant properties
-    val relevantProperties = propertyFrequencies.filter{ case (uri, frequency) => frequency > MinFrequency }
+    val relevantProperties = propertyFrequencies.filter {
+      case (uri, frequency) => frequency > MinFrequency
+    }
       .sortWith(_._2 > _._2).take(limit)
 
     logger.info("Found " + relevantProperties.size + " relevant properties in " + endpoint)
@@ -77,15 +73,14 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector
     relevantProperties
   }
 
-  private def getInstanceProperties(endpoint : SparqlEndpoint, instanceUri : String, variable : String) : Traversable[Path] =
-  {
+  private def getInstanceProperties(endpoint: SparqlEndpoint, instanceUri: String, variable: String): Traversable[Path] = {
     var sparql = ""
     sparql += "SELECT DISTINCT ?p \n"
     sparql += "WHERE {\n"
     sparql += " <" + instanceUri + "> ?p ?o\n"
     sparql += "}"
 
-    for(result <- endpoint.query(sparql); binding <- result.values)
-      yield Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
+    for (result <- endpoint.query(sparql); binding <- result.values)
+    yield Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
   }
 }

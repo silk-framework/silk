@@ -12,38 +12,36 @@ import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
  * @param variable Each data item will be bound to this variable.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSpecification(sourceId : Identifier, variable : String, restriction : SparqlRestriction)
-{
+case class DatasetSpecification(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
 
   /**
    * Serializes this Dataset Specification as XML.
    *
    * @param If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
-  def toXML(asSource : Boolean) =
-  {
-    if(asSource)
-    {
+  def toXML(asSource: Boolean) = {
+    if (asSource) {
       <SourceDataset dataSource={sourceId} var={variable}>
-        <RestrictTo>{restriction}</RestrictTo>
+        <RestrictTo>
+          {restriction}
+        </RestrictTo>
       </SourceDataset>
     }
-    else
-    {
+    else {
       <TargetDataset dataSource={sourceId} var={variable}>
-        <RestrictTo>{restriction}</RestrictTo>
+        <RestrictTo>
+          {restriction}
+        </RestrictTo>
       </TargetDataset>
     }
   }
 }
 
-object DatasetSpecification
-{
+object DatasetSpecification {
   /**
    * Creates a DatasetSpecification from XML.
    */
-  def fromXML(node : Node)(implicit prefixes : Prefixes) : DatasetSpecification =
-  {
+  def fromXML(node: Node)(implicit prefixes: Prefixes): DatasetSpecification = {
     new DatasetSpecification(
       node \ "@dataSource" text,
       node \ "@var" text,

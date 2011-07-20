@@ -6,8 +6,7 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecif
 /**
  * The base trait of a concrete source of instances.
  */
-trait DataSource extends Strategy
-{
+trait DataSource extends Strategy {
   /**
    * Retrieves instances from this source which satisfy a specific instance specification.
    *
@@ -16,7 +15,7 @@ trait DataSource extends Strategy
    *
    * @return A Traversable over the instances. The evaluation of the Traversable may be non-strict.
    */
-  def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String] = Seq.empty) : Traversable[Instance]
+  def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String] = Seq.empty): Traversable[Instance]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -29,8 +28,7 @@ trait DataSource extends Strategy
    *
    * @return A Traversable of the found paths and their frequency.
    */
-  def retrievePaths(restrictions : SparqlRestriction = SparqlRestriction.empty, depth : Int = 1, limit : Option[Int] = None) : Traversable[(Path, Double)] =
-  {
+  def retrievePaths(restrictions: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
     Traversable.empty
   }
 }

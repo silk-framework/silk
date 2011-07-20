@@ -6,12 +6,11 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 /**
  * Represents an operator in an RDF path.
  */
-sealed abstract class PathOperator
-{
+sealed abstract class PathOperator {
   /**
    * Serializes this operator using the Silk RDF path language.
    */
-  def serialize(implicit prefixes : Prefixes) : String
+  def serialize(implicit prefixes: Prefixes): String
 
   override def toString = serialize(Prefixes.empty)
 }
@@ -19,17 +18,15 @@ sealed abstract class PathOperator
 /**
  * Moves forward from a subject resource (set) through a property to its object resource (set).
  */
-case class ForwardOperator(property : Uri) extends PathOperator
-{
-  override def serialize(implicit prefixes : Prefixes) = "/" + property.toTurtle
+case class ForwardOperator(property: Uri) extends PathOperator {
+  override def serialize(implicit prefixes: Prefixes) = "/" + property.toTurtle
 }
 
 /**
  * Moves backward from an object resource (set) through a property to its subject resource (set).
  */
-case class BackwardOperator(property : Uri) extends PathOperator
-{
-  override def serialize(implicit prefixes : Prefixes) = "\\" + property.toTurtle
+case class BackwardOperator(property: Uri) extends PathOperator {
+  override def serialize(implicit prefixes: Prefixes) = "\\" + property.toTurtle
 }
 
 /**
@@ -38,9 +35,8 @@ case class BackwardOperator(property : Uri) extends PathOperator
  * @param operator Comparison operator. May be one of >, <, >=, <=, =, !=.
  * @param value The language.
  */
-case class LanguageFilter(operator : String, language : String) extends PathOperator
-{
-  override def serialize(implicit prefixes : Prefixes) = "[@lang " + operator + " " + language + "]"
+case class LanguageFilter(operator: String, language: String) extends PathOperator {
+  override def serialize(implicit prefixes: Prefixes) = "[@lang " + operator + " " + language + "]"
 }
 
 /**
@@ -50,7 +46,6 @@ case class LanguageFilter(operator : String, language : String) extends PathOper
  * @param operator Comparison operator. May be one of >, <, >=, <=, =, !=.
  * @param value The comparison value.
  */
-case class PropertyFilter(property : String, operator : String, value : String) extends PathOperator
-{
-  override def serialize(implicit prefixes : Prefixes) = "[" + property + " " + operator + " " + value + "]"
+case class PropertyFilter(property: String, operator: String, value: String) extends PathOperator {
+  override def serialize(implicit prefixes: Prefixes) = "[" + property + " " + operator + " " + value + "]"
 }

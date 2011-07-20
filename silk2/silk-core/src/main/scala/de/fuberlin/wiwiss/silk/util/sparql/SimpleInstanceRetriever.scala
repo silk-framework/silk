@@ -5,8 +5,7 @@ import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification, Instance}
 /**
  * InstanceRetriever which executes a single SPARQL query to retrieve the instances.
  */
-class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, graphUri : Option[String] = None) extends InstanceRetriever
-{
+class SimpleInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None) extends InstanceRetriever {
   private val varPrefix = "v"
 
   /**
@@ -16,14 +15,10 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
    * @param instances The URIs of the instances to be retrieved. If empty, all instances will be retrieved.
    * @return The retrieved instances
    */
-  override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
-  {
-    if(instances.isEmpty)
-    {
+  override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
+    if (instances.isEmpty) {
       retrieveAll(instanceSpec)
-    }
-    else
-    {
+    } else {
       retrieveList(instances, instanceSpec)
     }
   }
@@ -34,28 +29,23 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
    * @param instanceSpec The instance specification
    * @return The retrieved instances
    */
-  private def retrieveAll(instanceSpec : InstanceSpecification) : Traversable[Instance] =
-  {
+  private def retrieveAll(instanceSpec: InstanceSpecification): Traversable[Instance] = {
     //Select
     var sparql = "SELECT DISTINCT "
     sparql += "?" + instanceSpec.variable + " "
-    for(i <- 0 until instanceSpec.paths.size)
-    {
+    for (i <- 0 until instanceSpec.paths.size) {
       sparql += "?" + varPrefix + i + " "
     }
     sparql += "\n"
 
     //Graph
-    for(graph <- graphUri) sparql += "FROM <" + graph + ">\n"
+    for (graph <- graphUri) sparql += "FROM <" + graph + ">\n"
 
     //Body
     sparql += "WHERE {\n"
-    if(instanceSpec.restrictions.toSparql.isEmpty && instanceSpec.paths.isEmpty)
-    {
+    if (instanceSpec.restrictions.toSparql.isEmpty && instanceSpec.paths.isEmpty) {
       sparql += "?" + instanceSpec.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o "
-    }
-    else
-    {
+    } else {
       sparql += instanceSpec.restrictions.toSparql + "\n"
       sparql += SparqlPathBuilder(instanceSpec.paths, "?" + instanceSpec.variable, "?" + varPrefix)
     }
@@ -73,8 +63,7 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
    * @param instanceSpec The instance specification
    * @return A sequence of the retrieved instances. If a instance is not in the store, it wont be included in the returned sequence.
    */
-  private def retrieveList(instanceUris : Seq[String], instanceSpec : InstanceSpecification) : Seq[Instance] =
-  {
+  private def retrieveList(instanceUris: Seq[String], instanceSpec: InstanceSpecification): Seq[Instance] = {
     instanceUris.view.flatMap(instanceUri => retrieveInstance(instanceUri, instanceSpec))
   }
 
@@ -86,33 +75,30 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
    * @return Some(instance), if a instance with the given uri is in the Store
    *         None, if no instance with the given uri is in the Store
    */
-  def retrieveInstance(instanceUri : String, instanceSpec : InstanceSpecification) : Option[Instance] =
-  {
+  def retrieveInstance(instanceUri: String, instanceSpec: InstanceSpecification): Option[Instance] = {
     //Query only one path at once and combine the result into one
-    val sparqlResults =
-    {
-      for((path, pathIndex) <- instanceSpec.paths.zipWithIndex;
-           results <- retrievePaths(instanceUri, Seq(path))) yield
-      {
-        results map { case (variable, node) => (varPrefix + pathIndex, node) }
+    val sparqlResults = {
+      for ((path, pathIndex) <- instanceSpec.paths.zipWithIndex;
+           results <- retrievePaths(instanceUri, Seq(path))) yield {
+        results map {
+          case (variable, node) => (varPrefix + pathIndex, node)
+        }
       }
     }
 
     new InstanceTraversable(sparqlResults, instanceSpec, Some(instanceUri)).headOption
   }
 
-  private def retrievePaths(instanceUri : String, paths : Seq[Path]) =
-  {
+  private def retrievePaths(instanceUri: String, paths: Seq[Path]) = {
     //Select
     var sparql = "SELECT DISTINCT "
-    for(i <- 0 until paths.size)
-    {
+    for (i <- 0 until paths.size) {
       sparql += "?" + varPrefix + i + " "
     }
     sparql += "\n"
 
     //Graph
-    for(graph <- graphUri) sparql += "FROM <" + graph + ">\n"
+    for (graph <- graphUri) sparql += "FROM <" + graph + ">\n"
 
     //Body
     sparql += "WHERE {\n"
@@ -125,32 +111,25 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
   /**
    * Wraps a Traversable of SPARQL results and retrieves instances from them.
    */
-  private class InstanceTraversable(sparqlResults : Traversable[Map[String, Node]], instanceSpec : InstanceSpecification, subject : Option[String]) extends Traversable[Instance]
-  {
-    override def foreach[U](f : Instance => U)
-    {
+  private class InstanceTraversable(sparqlResults: Traversable[Map[String, Node]], instanceSpec: InstanceSpecification, subject: Option[String]) extends Traversable[Instance] {
+    override def foreach[U](f: Instance => U) {
       //Remember current subject
-      var curSubject : Option[String] = subject
+      var curSubject: Option[String] = subject
 
       //Collect values of the current subject
       var values = Array.fill(instanceSpec.paths.size)(Set[String]())
 
-      for(result <- sparqlResults)
-      {
+      for (result <- sparqlResults) {
         //If the subject is unknown, find binding for subject variable
-        if(subject.isEmpty)
-        {
+        if (subject.isEmpty) {
           //Check if we are still reading values for the current subject
-          val resultSubject = result.get(instanceSpec.variable) match
-          {
+          val resultSubject = result.get(instanceSpec.variable) match {
             case Some(Resource(value)) => Some(value)
             case _ => None
           }
 
-          if(resultSubject != curSubject)
-          {
-            for(curSubjectUri <- curSubject)
-            {
+          if (resultSubject != curSubject) {
+            for (curSubjectUri <- curSubject) {
               f(new Instance(curSubjectUri, values, instanceSpec))
             }
 
@@ -160,10 +139,8 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
         }
 
         //Find results for values for the current subject
-        if(curSubject.isDefined)
-        {
-          for((variable, node) <- result if variable.startsWith(varPrefix))
-          {
+        if (curSubject.isDefined) {
+          for ((variable, node) <- result if variable.startsWith(varPrefix)) {
             val id = variable.substring(varPrefix.length).toInt
 
             values(id) += node.value
@@ -171,10 +148,10 @@ class SimpleInstanceRetriever(endpoint : SparqlEndpoint, pageSize : Int = 1000, 
         }
       }
 
-      for(curSubjectUri <- curSubject)
-      {
+      for (curSubjectUri <- curSubject) {
         f(new Instance(curSubjectUri, values, instanceSpec))
       }
     }
   }
+
 }

@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation, Sim
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.output.Link.InputValue
 import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput, Input}
-import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
+import de.fuberlin.wiwiss.silk.instance.Instance
 import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
 
 object DetailedEvaluator {

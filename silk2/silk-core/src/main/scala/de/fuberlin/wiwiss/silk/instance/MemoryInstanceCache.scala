@@ -6,8 +6,7 @@ import java.util.logging.Logger
 /**
  * An instance cache, which caches the instance in memory and allows adding new instances at runtime.
  */
-class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount : Int = 1, maxPartitionSize : Int = 1000) extends InstanceCache
-{
+class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: Int = 1, maxPartitionSize: Int = 1000) extends InstanceCache {
   private val logger = Logger.getLogger(getClass.getName)
 
   private var blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
@@ -21,23 +20,19 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Writes to this cache.
    */
-  override def write(instances : Traversable[Instance], indexFunction : Option[Instance => Set[Int]] = None)
-  {
+  override def write(instances: Traversable[Instance], indexFunction: Option[Instance => Set[Int]] = None) {
     val startTime = System.currentTimeMillis()
     writing = true
 
-    try
-    {
-      for(instance <- instances)
-      {
+    try {
+      for (instance <- instances) {
         add(instance, indexFunction)
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
       logger.info("Finished writing " + instanceCounter + " instances with type '" + instanceSpec.restrictions + "' in " + time + " seconds")
     }
-    finally
-    {
+    finally {
       writing = false
     }
   }
@@ -47,14 +42,11 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Adds a single instance to the cache.
    */
-  private def add(instance : Instance, indexFunction : Option[Instance => Set[Int]])
-  {
-    if(!allInstances.contains(instance.uri))
-    {
+  private def add(instance: Instance, indexFunction: Option[Instance => Set[Int]]) {
+    if (!allInstances.contains(instance.uri)) {
       val index = indexFunction.map(f => f(instance)).getOrElse(Set(0))
 
-      for(block <- index.map(_ % blockCount))
-      {
+      for (block <- index.map(_ % blockCount)) {
         blocks(block).add(instance, Index.build(index))
       }
       allInstances += instance.uri
@@ -62,15 +54,13 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
     }
   }
 
-  override def clear()
-  {
+  override def clear() {
     instanceCounter = 0
     blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
     allInstances = Set[String]()
   }
 
-  override def close()
-  {
+  override def close() {
   }
 
   def instanceCount = instanceCounter
@@ -78,29 +68,25 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
   /**
    * Reads a partition of a block.
    */
-  override def read(block : Int, partition : Int) = blocks(block)(partition)
+  override def read(block: Int, partition: Int) = blocks(block)(partition)
 
   /**
    * The number of partitions in a specific block.
    */
-  override def partitionCount(block : Int) = blocks(block).size
+  override def partitionCount(block: Int) = blocks(block).size
 
-  private class Block(block : Int)
-  {
+  private class Block(block: Int) {
     private val instances = ArrayBuffer(ArrayBuffer[Instance]())
     private val indices = ArrayBuffer(ArrayBuffer[Index]())
 
-    def apply(index : Int) = Partition(instances(index).toArray, indices(index).toArray)
+    def apply(index: Int) = Partition(instances(index).toArray, indices(index).toArray)
 
-    def add(instance : Instance, index : Index)
-    {
-      if(instances.last.size < maxPartitionSize)
-      {
+    def add(instance: Instance, index: Index) {
+      if (instances.last.size < maxPartitionSize) {
         instances.last.append(instance)
         indices.last.append(index)
       }
-      else
-      {
+      else {
         instances.append(ArrayBuffer(instance))
         indices.append(ArrayBuffer(index))
         logger.info("Written partition " + (instances.size - 2) + " of block " + block)
@@ -109,4 +95,5 @@ class MemoryInstanceCache(instanceSpec : InstanceSpecification, val blockCount :
 
     def size = instances.size
   }
+
 }
