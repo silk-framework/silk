@@ -39,7 +39,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
    * Update this cache.
    */
   def update(project : Project, linkSpec: LinkSpecification, alignment: Alignment) = {
-    //stopLoading()
+    stopLoading()
     val updatedCache = new Cache(instanceSpecs, instances)
     updatedCache.load(project, linkSpec, alignment)
     updatedCache
@@ -63,10 +63,9 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
     loadingThread.start()
   }
 
-//  private def stopLoading() {
-//    loadingThread.interrupt()
-//    loadingThread.join()
-//  }
+  private def stopLoading() {
+    loadingThread.interrupt()
+  }
 
   /**
    * Serializes the cache to XML.
