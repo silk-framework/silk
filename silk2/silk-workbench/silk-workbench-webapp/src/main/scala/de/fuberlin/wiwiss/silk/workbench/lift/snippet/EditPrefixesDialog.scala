@@ -2,27 +2,25 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.SHtml
-import de.fuberlin.wiwiss.silk.config.Prefixes
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.widgets.autocomplete.AutoComplete
 import de.fuberlin.wiwiss.silk.workbench.lift.util.PrefixRegistry
+import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.js.JsCmd
 
 /**
  * Dialog which allows the user to edit the current prefixes.
  */
-object EditPrefixesDialog
-{
-  /** The id of the dialog */
+object EditPrefixesDialog {
+  /**The id of the dialog */
   private val dialogId = "editPrefixesDialog"
 
-  /** The id of the prefix table */
+  /**The id of the prefix table */
   private val tableId = "prefixesTable"
 
-  /** Counts the added rows in order to generate unique ids for them */
+  /**Counts the added rows in order to generate unique ids for them */
   private var rowCounter = 0
 
   /**
@@ -33,8 +31,7 @@ object EditPrefixesDialog
   /**
    * JavaScript command which opens this dialog.
    */
-  def openCmd =
-  {
+  def openCmd = {
     //Update prefixes
     val prefixes = User().project.config.prefixes
     val removePrefixesCmd = JsRaw("$('#" + tableId + " tr').not(':last').remove();").cmd
@@ -54,28 +51,23 @@ object EditPrefixesDialog
   /**
    * Renders this dialog.
    */
-  def render(xhtml : NodeSeq) : NodeSeq =
-  {
-    SHtml.ajaxForm(
+  def render(xhtml: NodeSeq): NodeSeq = {
       bind("entry", xhtml,
-         "prefixTable" -> <table id={tableId}><tr><td></td><td>{SHtml.ajaxButton("add", () => addRowCmd())}</td></tr></table>,
-         "submit" -> SHtml.ajaxSubmit("Save", updatePrefixesCmd _)
+           "prefixTable" -> <table id={tableId}><tr><td></td><td>{SHtml.ajaxButton("add", () => addRowCmd())}</td></tr></table>,
+           "submit" -> SHtml.ajaxButton("Save", updatePrefixesCmd _)
       )
-    )    
   }
 
   /**
    * Command which adds a new row to the prefix table.
    */
-  private def addRowCmd(initialValue : String = "") =
-  {
+  private def addRowCmd(initialValue: String = "") = {
     //Generate a new row ID
     val rowId = "prefixRow" + rowCounter
     rowCounter += 1
 
     //Function which generates prefix suggestions
-    def completePrefix(current : String, limit : Int) : Seq[String] =
-    {
+    def completePrefix(current: String, limit: Int): Seq[String] = {
       val prefixes =
         for((id, namespace) <- PrefixRegistry.all
             if id.startsWith(current.takeWhile(_ != ':'))) yield
@@ -98,21 +90,17 @@ object EditPrefixesDialog
   /**
    * Command which reads the prefix table and updates the prefixes of the current project accordingly.
    */
-  private def updatePrefixesCmd() : JsCmd =
-  {
-    def update(str : String) =
-    {
-      try
-      {
-        val prefixList = for(line <- str.split(',')) yield
-        {
+  private def updatePrefixesCmd(): JsCmd = {
+    def update(str: String) = {
+      try {
+        val prefixList = for (line <- str.split(',')) yield {
           //Parse line
           val id = line.takeWhile(_ != ':').trim
           val namespace = line.dropWhile(_ != ':').drop(1).trim
 
           //Validate
-          if(id.isEmpty) throw new IllegalArgumentException("Prefix must not be empty")
-          if(namespace.isEmpty) throw new IllegalArgumentException("Prefix muss have a valid namespace")
+          if (id.isEmpty) throw new IllegalArgumentException("Prefix must not be empty")
+          if (namespace.isEmpty) throw new IllegalArgumentException("Prefix muss have a valid namespace")
 
           (id, namespace)
         }
@@ -120,10 +108,8 @@ object EditPrefixesDialog
         User().project.config = User().project.config.copy(prefixes = prefixList.toMap)
 
         EditPrefixesDialog.closeCmd & Workspace.updateCmd
-      }
-      catch
-      {
-        case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+      } catch {
+        case ex: Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
       }
     }
 
