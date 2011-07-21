@@ -21,7 +21,7 @@ object SparqlRestriction {
     fromSparql(node text)
   }
 
-  def fromSparql(restrictions: String)(implicit prefixes: Prefixes) = {
+  def fromSparql(restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {
     val strippedRestrictions = restrictions.trim.stripSuffix(".")
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 

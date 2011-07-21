@@ -4,27 +4,25 @@ import datasource.Source
 import instance.{Instance, InstanceSpecification, InstanceCache}
 import util.SourceTargetPair
 import java.util.logging.{Level, Logger}
-import util.task.{Future, Task}
+import util.task.{Finished, Future, Task}
 
 /**
  * Loads the instance cache
  */
 //TODO remove indexFunction argument by integrating it into instance cache
-class LoadTask(sources : SourceTargetPair[Source],
-               caches : SourceTargetPair[InstanceCache],
-               instanceSpecs : SourceTargetPair[InstanceSpecification],
-               indexFunction : Option[Instance => Set[Int]] = None) extends Task[Unit]
-{
+class LoadTask(sources: SourceTargetPair[Source],
+               caches: SourceTargetPair[InstanceCache],
+               instanceSpecs: SourceTargetPair[InstanceSpecification],
+               indexFunction: Option[Instance => Set[Int]] = None) extends Task[Unit] {
   taskName = "Loading"
 
   private val logger = Logger.getLogger(classOf[LoadTask].getName)
 
-  @volatile var exception : Exception = null
+  @volatile var exception: Exception = null
 
   @volatile var canceled = false
 
-  override def execute()
-  {
+  override def execute() {
     canceled = false
     val sourceLoader = new LoadingThread(true)
     val targetLoader = new LoadingThread(false)
@@ -32,18 +30,15 @@ class LoadTask(sources : SourceTargetPair[Source],
     sourceLoader.start()
     targetLoader.start()
 
-    while((sourceLoader.isAlive || targetLoader.isAlive) && !canceled)
-    {
+    while ((sourceLoader.isAlive || targetLoader.isAlive) && !canceled) {
       Thread.sleep(100)
     }
 
-    if(canceled)
-    {
+    if (canceled) {
       sourceLoader.interrupt()
       targetLoader.interrupt()
 
-      if(exception != null)
-      {
+      if (exception != null) {
         throw exception
       }
     }
@@ -53,44 +48,35 @@ class LoadTask(sources : SourceTargetPair[Source],
    * Executes this task in the background.
    * Returns as soon as both caches are being written.
    */
-  override def runInBackground() : Future[Unit] =
-  {
+  override def runInBackground(): Future[Unit] = {
     val future = super.runInBackground()
 
     //Wait until the caches are being written
-    while(isRunning && !(caches.source.isWriting && caches.target.isWriting))
-    {
+    while (!status.isInstanceOf[Finished] && !(caches.source.isWriting && caches.target.isWriting)) {
       Thread.sleep(100)
     }
 
     future
   }
 
-  override def stopExecution()
-  {
+  override def stopExecution() {
     canceled = true
   }
 
-  class LoadingThread(selectSource : Boolean) extends Thread
-  {
+  class LoadingThread(selectSource: Boolean) extends Thread {
     private val source = sources.select(selectSource)
     private val instanceCache = caches.select(selectSource)
     private val instanceSpec = instanceSpecs.select(selectSource)
 
-    override def run()
-    {
-      try
-      {
+    override def run() {
+      try {
         logger.info("Loading instances of dataset " + source.dataSource.toString)
 
         instanceCache.clear()
         instanceCache.write(source.retrieve(instanceSpec), indexFunction)
         instanceCache.close()
-      }
-      catch
-      {
-        case ex : Exception =>
-        {
+      } catch {
+        case ex: Exception => {
           logger.log(Level.WARNING, "Error loading resources", ex)
           exception = ex
           canceled = true
@@ -98,4 +84,5 @@ class LoadTask(sources : SourceTargetPair[Source],
       }
     }
   }
+
 }

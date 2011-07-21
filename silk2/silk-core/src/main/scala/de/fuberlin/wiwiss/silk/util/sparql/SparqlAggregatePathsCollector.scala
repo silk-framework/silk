@@ -7,6 +7,8 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, BackwardOperator, Pa
 /**
  * Retrieves the most frequent property paths by issuing a SPARQL 1.1 aggregation query.
  *
+ * It is typically slower than SparqlSamplePathsCollector but also more precise.
+ *
  * The current implementation has two limitations:
  * - It does only return paths of length 1
  * - It returns a maximum of 100 forward paths and 10 backward paths

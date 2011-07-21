@@ -6,19 +6,16 @@ import util.task.Task
 import util.Uri
 
 /**
-* Writes the links to the output.
-*/
-class OutputTask(links : Buffer[Link], linkType : Uri, outputs : Traversable[Output]) extends Task[Unit]
-{
+ * Writes the links to the output.
+ */
+class OutputTask(links: Buffer[Link], linkType: Uri, outputs: Traversable[Output]) extends Task[Unit] {
   taskName = "Writing output"
 
-  override def execute()
-  {
+  override def execute() {
     outputs.foreach(_.open)
 
-    for(link <- links;
-        output <- outputs)
-    {
+    for (link <- links;
+         output <- outputs) {
       output.write(link, linkType.toString)
     }
 

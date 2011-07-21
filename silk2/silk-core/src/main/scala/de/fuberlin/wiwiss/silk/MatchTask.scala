@@ -15,12 +15,11 @@ import util.task.Task
  * Executes the matching.
  * Generates links between the instances according to the link specification.
  */
-class MatchTask(linkSpec : LinkSpecification,
-                caches : SourceTargetPair[InstanceCache],
-                numThreads : Int,
-                sourceEqualsTarget : Boolean = false,
-                generateDetailedLinks : Boolean = false) extends Task[Buffer[Link]]
-{
+class MatchTask(linkSpec: LinkSpecification,
+                caches: SourceTargetPair[InstanceCache],
+                numThreads: Int,
+                sourceEqualsTarget: Boolean = false,
+                generateDetailedLinks: Boolean = false) extends Task[Buffer[Link]] {
   taskName = "Matching"
 
   private val logger = Logger.getLogger(classOf[MatchTask].getName)
@@ -32,13 +31,12 @@ class MatchTask(linkSpec : LinkSpecification,
 
   @volatile private var cancelled = false
 
-  def links : Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
+  def links: Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
 
   /**
    * Executes the matching.
    */
-  override def execute() : Buffer[Link] =
-  {
+  override def execute(): Buffer[Link] = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
@@ -56,16 +54,14 @@ class MatchTask(linkSpec : LinkSpecification,
 
     //Process finished tasks
     var finishedTasks = 0
-    while(!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount))
-    {
+    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
-      if(result != null)
-      {
+      if (result != null) {
         linkBuffer.appendAll(result.get)
         finishedTasks += 1
 
         //Update status
-        val statusPrefix = if(scheduler.isAlive) "Matching (loading):" else "Matching:"
+        val statusPrefix = if (scheduler.isAlive) "Matching (loading):" else "Matching:"
         val statusTasks = " " + finishedTasks + " tasks "
         val statusLinks = " " + linkBuffer.size + " links."
         updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
@@ -73,132 +69,104 @@ class MatchTask(linkSpec : LinkSpecification,
     }
 
     //Shutdown
-    if(scheduler.isAlive)
-    {
+    if (scheduler.isAlive) {
       scheduler.interrupt()
     }
-    if(cancelled)
-    {
+    if (cancelled) {
       executorService.shutdownNow()
     }
-    else
-    {
+    else {
       executorService.shutdown()
     }
 
     //Log result
     val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
-    if(cancelled)
-    {
+    if (cancelled) {
       logger.info("Matching cancelled after " + time)
     }
-    else
-    {
-      logger.info("Executed matching in " +  time)
+    else {
+      logger.info("Executed matching in " + time)
     }
 
     linkBuffer
   }
 
-  override def stopExecution()
-  {
+  override def stopExecution() {
     cancelled = true
   }
 
   /**
    * Monitors the instance caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor : CompletionService[Traversable[Link]]) extends Thread
-  {
+  private class SchedulerThread(executor: CompletionService[Traversable[Link]]) extends Thread {
     @volatile var taskCount = 0
 
     private var sourcePartitions = new Array[Int](caches.source.blockCount)
     private var targetPartitions = new Array[Int](caches.target.blockCount)
 
-    override def run()
-    {
-      try
-      {
-        while(true)
-        {
+    override def run() {
+      try {
+        while (true) {
           val sourceLoaded = !caches.source.isWriting
           val targetLoaded = !caches.target.isWriting
 
           updateSourcePartitions(sourceLoaded)
           updateTargetPartitions(targetLoaded)
 
-          if(sourceLoaded && targetLoaded)
-          {
+          if (sourceLoaded && targetLoaded) {
             return
           }
 
           Thread.sleep(1000)
         }
-      }
-      catch
-      {
-        case ex : InterruptedException =>
+      } catch {
+        case ex: InterruptedException =>
       }
     }
 
-    private def updateSourcePartitions(includeLastPartitions : Boolean)
-    {
-      val newSourcePartitions =
-      {
-        for(block <- 0 until caches.source.blockCount) yield
-        {
-          if(includeLastPartitions)
-          {
+    private def updateSourcePartitions(includeLastPartitions: Boolean) {
+      val newSourcePartitions = {
+        for (block <- 0 until caches.source.blockCount) yield {
+          if (includeLastPartitions) {
             caches.source.partitionCount(block)
-          }
-          else
-          {
+          } else {
             max(0, caches.source.partitionCount(block) - 1)
           }
         }
       }.toArray
 
-      for(block <- 0 until caches.source.blockCount;
-          sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
-          targetStart = if(!sourceEqualsTarget) 0 else sourcePartition;
-          targetPartition <- targetStart until targetPartitions(block))
-      {
+      for (block <- 0 until caches.source.blockCount;
+           sourcePartition <- sourcePartitions(block) until newSourcePartitions(block);
+           targetStart = if (!sourceEqualsTarget) 0 else sourcePartition;
+           targetPartition <- targetStart until targetPartitions(block)) {
         newMatcher(block, sourcePartition, targetPartition)
       }
 
       sourcePartitions = newSourcePartitions
     }
 
-    private def updateTargetPartitions(includeLastPartitions : Boolean)
-    {
-      val newTargetPartitions =
-      {
-        for(block <- 0 until caches.target.blockCount) yield
-        {
-          if(includeLastPartitions)
-          {
+    private def updateTargetPartitions(includeLastPartitions: Boolean) {
+      val newTargetPartitions = {
+        for (block <- 0 until caches.target.blockCount) yield {
+          if (includeLastPartitions) {
             caches.target.partitionCount(block)
-          }
-          else
-          {
+          } else {
             max(0, caches.target.partitionCount(block) - 1)
           }
         }
       }.toArray
 
-      for(block <- 0 until caches.target.blockCount;
-          targetPartition <- targetPartitions(block) until newTargetPartitions(block);
-          sourceEnd = if(!sourceEqualsTarget) sourcePartitions(block) else min(sourcePartitions(block), targetPartition + 1);
-          sourcePartition <- 0 until sourceEnd)
-      {
+      for (block <- 0 until caches.target.blockCount;
+           targetPartition <- targetPartitions(block) until newTargetPartitions(block);
+           sourceEnd = if (!sourceEqualsTarget) sourcePartitions(block) else min(sourcePartitions(block), targetPartition + 1);
+           sourcePartition <- 0 until sourceEnd) {
         newMatcher(block, sourcePartition, targetPartition)
       }
 
       targetPartitions = newTargetPartitions
     }
 
-    private def newMatcher(block : Int, sourcePartition : Int, targetPartition : Int)
-    {
+    private def newMatcher(block: Int, sourcePartition: Int, targetPartition: Int) {
       executor.submit(new Matcher(block, sourcePartition, targetPartition))
       taskCount += 1
     }
@@ -207,47 +175,37 @@ class MatchTask(linkSpec : LinkSpecification,
   /**
    * Matches the instances of two partitions.
    */
-  private class Matcher(blockIndex : Int, sourcePartitionIndex : Int, targetPartitionIndex : Int) extends Callable[Traversable[Link]]
-  {
-    override def call() : Traversable[Link] =
-    {
+  private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[Traversable[Link]] {
+    override def call(): Traversable[Link] = {
       var links = List[Link]()
 
-      try
-      {
+      try {
         val sourcePartition = caches.source.read(blockIndex, sourcePartitionIndex)
         val targetPartition = caches.target.read(blockIndex, targetPartitionIndex)
 
-        for(s <- 0 until sourcePartition.size;
-            tStart = if(sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
-            t <- tStart until targetPartition.size;
-            if !indexingEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t)))
-        {
+        for (s <- 0 until sourcePartition.size;
+             tStart = if (sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
+             t <- tStart until targetPartition.size;
+             if !indexingEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
           val sourceInstance = sourcePartition.instances(s)
           val targetInstance = targetPartition.instances(t)
           val instances = SourceTargetPair(sourceInstance, targetInstance)
 
-          if(!generateDetailedLinks)
-          {
+          if (!generateDetailedLinks) {
             val confidence = linkSpec.condition(instances, 0.0)
 
-            if(confidence >= 0.0)
-            {
+            if (confidence >= 0.0) {
               links ::= new Link(sourceInstance.uri, targetInstance.uri, confidence)
             }
-          }
-          else
-          {
-            for(link <- DetailedEvaluator(linkSpec.condition, instances, 0.0))
-            {
+          } else {
+            for (link <- DetailedEvaluator(linkSpec.condition, instances, 0.0)) {
               links ::= link
             }
           }
         }
       }
-      catch
-      {
-        case ex : Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
+      catch {
+        case ex: Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
       }
 
       links
