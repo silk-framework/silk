@@ -60,8 +60,7 @@ class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: I
     allInstances = Set[String]()
   }
 
-  override def close() {
-  }
+  override def close() { }
 
   def instanceCount = instanceCounter
 

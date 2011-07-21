@@ -7,6 +7,8 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, ForwardOperator, Pat
 /**
  * Retrieves the most frequent paths of a number of random sample instances.
  *
+ * It is typically faster than SparqlAggregatePathsCollector but also less precise.
+ *
  * The limitations of the current implementation are:
  * - It does only return forward paths of length 1
  * - It returns a maximum of 100 paths
