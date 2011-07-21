@@ -8,7 +8,7 @@
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
     <artifactId>silk-workbench</artifactId>
-    <version>2.4.1</version>
+    <version>2.4.2</version>
   </parent>
 
   <artifactId>silk-workbench-model</artifactId>
@@ -24,19 +24,19 @@
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
       <artifactId>silk-core</artifactId>
-      <version>2.4.1</version>
+      <version>2.4.2</version>
     </dependency>
 
      <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
       <artifactId>silk-jena</artifactId>
-      <version>2.4.1</version>
+      <version>2.4.2</version>
     </dependency>
 
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
       <artifactId>silk-evaluation</artifactId>
-      <version>2.4.1</version>
+      <version>2.4.2</version>
     </dependency>
 
     <dependency>
