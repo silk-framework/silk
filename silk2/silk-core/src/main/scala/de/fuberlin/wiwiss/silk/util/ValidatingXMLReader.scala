@@ -42,6 +42,9 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
     }
   }
 
+  /**
+   * Reads an XML stream while validating it using a xsd schema file.
+   */
   private class XmlReader extends NoBindingFactoryAdapter {
     def read(inputSource: InputSource, schemaPath: String): Elem = {
       //Load XML Schema
@@ -94,7 +97,8 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
      * Checks if the document contains any duplicated identifiers.
      */
     private def checkUniqueIdentifiers(xml: Elem) {
-      val ids = (xml \\ "@id").map(_.text)
+      val elements = (xml \\ "Aggregate") ++ (xml \\ "Compare") ++ (xml \\ "TransformInput") ++ (xml \\ "Input")
+      val ids = elements.map(_ \ "@id").map(_.text)
       if (ids.distinct.size < ids.size) {
         val duplicatedIds = ids diff ids.distinct
         val errors = duplicatedIds.map("Duplicated identifier: '" + _ + "'")
@@ -102,6 +106,9 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       }
     }
 
+    /**
+     * Formats a XSD validation exception.
+     */
     def formatError(errorType: String, ex: SAXParseException) = {
       //The current tag
       val tag = this.curTag
