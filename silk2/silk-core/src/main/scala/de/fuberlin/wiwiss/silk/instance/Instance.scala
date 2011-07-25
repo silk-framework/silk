@@ -14,16 +14,16 @@ class Instance(val uri: String, val values: IndexedSeq[Set[String]], val spec: I
   override def toString = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
   def toXML = {
-    <Instance uri={uri}>
-      {for (valueSet <- values) yield {
-      <Val>
-        {for (value <- valueSet) yield {
-        <e>
-          {value}
-        </e>
-      }}
-      </Val>
-    }}
+    <Instance uri={uri}> {
+      for (valueSet <- values) yield {
+        <Val> {
+          for (value <- valueSet) yield {
+            <e>{value}</e>
+          }
+        }
+        </Val>
+      }
+    }
     </Instance>
   }
 
@@ -41,12 +41,10 @@ class Instance(val uri: String, val values: IndexedSeq[Set[String]], val spec: I
 object Instance {
   def fromXML(node: Node, spec: InstanceSpecification) = {
     new Instance(
-      uri = node \ "@uri" text,
+      uri = (node \ "@uri").text.trim,
       values = {
         for (valNode <- node \ "Val") yield {
-          {
-            for (e <- valNode \ "e") yield e text
-          }.toSet
+          { for (e <- valNode \ "e") yield e.text }.toSet
         }
       }.toIndexedSeq,
       spec = spec

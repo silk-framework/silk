@@ -9,16 +9,14 @@ class SparqlRestriction private(restrictionsFull: String, restrictionsQualified:
 
   def toSparql = restrictionsFull
 
-  def toXML = <Restrictions>
-    {restrictionsFull}
-  </Restrictions>
+  def toXML = <Restrictions>{restrictionsFull}</Restrictions>
 }
 
 object SparqlRestriction {
   def empty = new SparqlRestriction("", "")
 
   def fromXML(node: Node)(implicit prefixes: Prefixes) = {
-    fromSparql(node text)
+    fromSparql(node.text.trim)
   }
 
   def fromSparql(restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {

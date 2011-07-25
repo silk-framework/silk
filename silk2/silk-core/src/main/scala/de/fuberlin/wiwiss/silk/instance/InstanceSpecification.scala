@@ -17,15 +17,14 @@ case class InstanceSpecification(variable: String, restrictions: SparqlRestricti
 
   def toXML = {
     <InstanceSpecification>
-      <Variable>
-        {variable}
-      </Variable>{restrictions.toXML}<Paths>
-      {for (path <- paths) yield {
-        <Path>
-          {path.serialize(Prefixes.empty)}
-        </Path>
-      }}
-    </Paths>
+      <Variable>{variable}</Variable>
+      {restrictions.toXML}
+      <Paths> {
+        for (path <- paths) yield {
+          <Path>{path.serialize(Prefixes.empty)}</Path>
+        }
+      }
+      </Paths>
     </InstanceSpecification>
   }
 }
@@ -33,9 +32,9 @@ case class InstanceSpecification(variable: String, restrictions: SparqlRestricti
 object InstanceSpecification {
   def fromXML(node: Node) = {
     new InstanceSpecification(
-      variable = node \ "Variable" text,
+      variable = (node \ "Variable").text.trim,
       restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
-      paths = for (pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode text)
+      paths = for (pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode.text.trim)
     )
   }
 
