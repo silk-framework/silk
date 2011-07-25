@@ -4,7 +4,7 @@ package de.fuberlin.wiwiss.silk.util.strategy
  * An abstract Factory.
  */
 class Factory[T <: Strategy] extends ((String, Map[String, String]) => T) {
-  private var strategies = Map[String, StrategyDefinition[T]]()
+  private var strategies = Map[String, StrategyDescription[T]]()
 
   override def apply(id: String, params: Map[String, String] = Map.empty): T = {
     val strategy = {
@@ -22,12 +22,12 @@ class Factory[T <: Strategy] extends ((String, Map[String, String]) => T) {
   }
 
   def register[U <: T](implementationClass: Class[U]) {
-    val strategyDefinition = StrategyDefinition(implementationClass)
+    val strategyDefinition = StrategyDescription(implementationClass)
 
     strategies += ((strategyDefinition.id, strategyDefinition))
   }
 
   def strategy(id: String) = strategies(id)
 
-  def availableStrategies: Traversable[StrategyDefinition[T]] = strategies.values
+  def availableStrategies: Traversable[StrategyDescription[T]] = strategies.values
 }
