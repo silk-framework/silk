@@ -59,7 +59,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
    * Load the cache.
    */
   private def load(project : Project, linkSpec: LinkSpecification, alignment: Alignment) {
-    loadingThread = new CacheLoader(project,  linkSpec, alignment)
+    loadingThread = new CacheLoader(project, linkSpec, alignment)
     loadingThread.start()
   }
 
@@ -147,11 +147,11 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
         val paths = for ((source, dataset) <- sources zip linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
 
         //Add the frequent paths to the instance specification
-        cachedInstanceSpecs = for ((instanceSpec, paths) <- currentInstanceSpecs zip paths) yield instanceSpec.copy(paths = instanceSpec.paths ++ paths.map(_._1))
+        cachedInstanceSpecs = for ((instanceSpec, paths) <- currentInstanceSpecs zip paths) yield instanceSpec.copy(paths = (instanceSpec.paths ++ paths.map(_._1)).distinct)
       }
       else {
         //Add the existing paths to the instance specification
-        cachedInstanceSpecs = for ((spec1, spec2) <- currentInstanceSpecs zip existingInstanceSpecs) yield spec1.copy(paths = spec1.paths ++ spec2.paths)
+        cachedInstanceSpecs = for ((spec1, spec2) <- currentInstanceSpecs zip existingInstanceSpecs) yield spec1.copy(paths = (spec1.paths ++ spec2.paths).distinct)
       }
     }
 
