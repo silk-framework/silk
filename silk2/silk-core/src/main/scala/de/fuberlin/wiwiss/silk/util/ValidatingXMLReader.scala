@@ -98,7 +98,7 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
      */
     private def checkUniqueIdentifiers(xml: Elem) {
       val elements = (xml \\ "Aggregate") ++ (xml \\ "Compare") ++ (xml \\ "TransformInput") ++ (xml \\ "Input")
-      val ids = elements.map(_ \ "@id").map(_.text)
+      val ids = elements.map(_ \ "@id").map(_.text).filterNot(_.isEmpty)
       if (ids.distinct.size < ids.size) {
         val duplicatedIds = ids diff ids.distinct
         val errors = duplicatedIds.map("Duplicated identifier: '" + _ + "'")
