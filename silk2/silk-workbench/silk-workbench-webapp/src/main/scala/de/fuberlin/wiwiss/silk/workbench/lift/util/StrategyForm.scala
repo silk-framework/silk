@@ -2,12 +2,12 @@ package de.fuberlin.wiwiss.silk.workbench.lift.util
 
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds._
-import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Parameter, StrategyDefinition}
+import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Parameter, StrategyDescription}
 
 /**
  * A form which allows the user to create instances of a specific strategy.
  */
-class StrategyForm[T <: Strategy](val strategy : StrategyDefinition[T], currentObj : () => Option[T])
+class StrategyForm[T <: Strategy](val strategy : StrategyDescription[T], currentObj : () => Option[T])
 {
   private val fields = strategy.parameters.map(createField)
 
@@ -40,7 +40,7 @@ class StrategyForm[T <: Strategy](val strategy : StrategyDefinition[T], currentO
   /**
    * Updates this form.
    */
-  def updateCmd(selectedStrategy : StrategyDefinition[T]) =
+  def updateCmd(selectedStrategy : StrategyDescription[T]) =
   {
     val cmd = fields.map(_.updateValueCmd).fold(JS.Empty)(_ & _)
 

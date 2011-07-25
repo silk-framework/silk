@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Parameter, StrategyDefinition}
+import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Parameter, StrategyDescription}
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.Workspace
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw
@@ -22,7 +22,7 @@ trait StrategyDialog[T <: Strategy]
   protected val fields = List[StringField]()
 
   /** The strategy which can be selected by the user. */
-  protected val strategies : Seq[StrategyDefinition[T]]
+  protected val strategies : Seq[StrategyDescription[T]]
 
   /** The current strategy instance */
   protected def currentObj : Option[T]
