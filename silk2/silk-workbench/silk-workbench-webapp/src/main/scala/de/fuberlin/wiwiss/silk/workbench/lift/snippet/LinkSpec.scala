@@ -110,11 +110,7 @@ class LinkSpec
     def errorsToJsArray(messages : Traversable[ValidationError]) = JsArray(messages.map(errorToJsExp).toList)
 
     /** Create a call to the update status function */
-    val x= Call("updateStatus", errorsToJsArray(errors), toJsArray(warnings), toJsArray(infos)).cmd
-
-    println(x.toJsCmd)
-
-    x
+    Call("updateStatus", errorsToJsArray(errors), toJsArray(warnings), toJsArray(infos)).cmd
   }
 
   private def evaluateLinkSpec(linkingTask : LinkingTask) : Traversable[String] =
