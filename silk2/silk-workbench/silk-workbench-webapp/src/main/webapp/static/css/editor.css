@@ -288,12 +288,14 @@ a.more {
   filter:alpha(opacity=70);
   -moz-opacity: 0.7;
   opacity: 0.7;
-  padding: 4px 8px;
+  padding: 8px 8px 0;
   width: 270px;
   max-height: 200px;
   top: 35px;
   overflow: auto;
   z-index: 3;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .number-messages {
@@ -301,9 +303,17 @@ a.more {
   vertical-align: middle;
 }
 
+.msg {
+  margin-bottom: 8px;
+}
+
 .label, .label-active {
     padding: 1px 1px 1px 3px !important;
     margin: 0 !important;
     font-size: 11px;
     overflow: hidden;
+}
+
+.highlighted {
+  border: 4px solid #ff0000;
 }

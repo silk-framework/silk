@@ -122,16 +122,30 @@ function confirmExit()
 
 var validateLinkSpec = function() {
     var errors = new Array();
-
     var root_elements = 0;
-    $("#droppable > div").each(function() {
+    $("#droppable > div.dragDiv").each(function() {
         var elId = $(this).attr('id');
+        var newName = $("#" + elId + " > .label").text();
+        if (!newName) newName = $("#" + elId + " > div.label-active > input.label-change").val();
+        if (newName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
+          //alert(elId);
+          errorObj = new Object;
+          errorObj.id = newName;
+          errorObj.message = "Error in Element with id '"+ elId +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + newName + "'.";
+          errors.push(errorObj);
+
+        }
+
         var target = jsPlumb.getConnections({source: elId});
         if (target[jsPlumb.getDefaultScope()] === undefined || target[jsPlumb.getDefaultScope()].length == 0) {
             root_elements++;
         }
     });
-    if (root_elements > 1) errors.push("Multiple Link Conditions found");
+    if (root_elements > 1) {
+      errorObj = new Object();
+      errorObj.message = "Multiple Link Conditions found.";
+      errors.push(errorObj);
+    }
 
     if (errors.length > 0) {
         updateStatus(errors, null, null);
@@ -148,14 +162,13 @@ function modifyLinkSpec() {
 }
 
 function updateStatus(errorMessages, warningMessages, infoMessages) {
+  removeHighlighting();
   $("#info-box").html("");
   if (errorMessages.length > 0) {
-    $("#info-box").append("Error messages:");
-    $("#info-box").append(printMessages(errorMessages));
+    $("#info-box").append(printErrorMessages(errorMessages));
     showInvalidIcon(errorMessages.length);
   } else if (warningMessages.length > 0) {
     confirmOnExit = false;
-    $("#info-box").append("Warning messages:");
     $("#info-box").append(printMessages(warningMessages));
     showWarningIcon(warningMessages.length);
   } else {
@@ -194,11 +207,32 @@ function printMessages(array) {
   var result = "";
   var c = 1;
   for (var i = 0; i<array.length; i++) {
-    result = "<br />" + c + ". " + result + array[i];
+    result = result + '<div class="msg">' + c + '. ' + array[i] + '</div>';
     c++;
   }
   return result;
 }
+
+function printErrorMessages(array) {
+  var result = "";
+  var c = 1;
+  for (var i = 0; i<array.length; i++) {
+    result = result + '<div class="msg">' + c + '. ' + array[i].message + '</div>';
+    if (array[i].id) highlightElement(array[i].id, array[i].message);
+    c++;
+  }
+  return result;
+}
+
+function highlightElement(elId, message) {
+  var elementToHighlight = $("div.label:contains('" + elId + "')").parent();
+  if (elementToHighlight.length == 0) elementToHighlight = $("input.label-change[value='" + elId + "']").parent().parent();
+  elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + message + '")').attr("onmouseout", "UnTip()");
+}
+function removeHighlighting() {
+  $("div.dragDiv").removeClass('highlighted').removeAttr('onmouseover');
+}
+
 
 Array.max = function(array) {
     return Math.max.apply(Math, array);
@@ -1063,7 +1097,7 @@ $(function ()
 	}
   });
 
-  $("input[class!='label-change']").live('change', function(e) {
+  $("input[type!='text']").live('change', function(e) {
     modifyLinkSpec();
   });
   $("input[type='text']").live('keyup', function(e) {
