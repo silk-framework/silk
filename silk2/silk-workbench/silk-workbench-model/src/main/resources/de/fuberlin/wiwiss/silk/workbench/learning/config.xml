@@ -1,11 +1,16 @@
-<LearningConfig>
-  <CrossoverConfig>
+<LearningConfiguration>
+
+  <GenerationConfiguration>
+
+  </GenerationConfiguration>
+
+  <CrossoverConfiguration>
     <CrossoverOperators>
       <CrossoverOperator type="LimitCrossover" />
       <CrossoverOperator type="AggregationOperatorsCrossover" />
       <CrossoverOperator type="AggregationStrategyCrossover" />
       <CrossoverOperator type="TransformationCrossover" />
     </CrossoverOperators>
+  </CrossoverConfiguration>
 
-  </CrossoverConfig>
-</LearningConfig>
+</LearningConfiguration>

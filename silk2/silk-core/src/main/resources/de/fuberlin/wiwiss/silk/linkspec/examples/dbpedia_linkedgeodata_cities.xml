@@ -16,7 +16,7 @@
       <Param name="endpointURI" value="http://lod.openlinksw.com/sparql" />
       <Param name="graph" value="http://dbpedia.org" />
       <Param name="retryCount" value="500" />
-      <Param name="retryPause" value="3000" />
+      <Param name="retryPause" value="5000" />
     </DataSource>
     <DataSource id="lgdb" type="sparqlEndpoint">
       <Param name="endpointURI" value="http://linkedgeodata.org/sparql" />
@@ -24,6 +24,8 @@
       <Param name="retryPause" value="1000" />
     </DataSource>
   </DataSources>
+
+    <Blocking blocks="1" enabled="false" />
 
   <Interlinks>
     <Interlink id="cities">
