@@ -8,6 +8,7 @@ import xml.{Node, TopScope, Elem}
 import java.io._
 import org.xml.sax.{SAXParseException, ErrorHandler, InputSource}
 import xml.parsing.NoBindingFactoryAdapter
+import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 
 /**
  * Parses an XML input source and validates it against the schema.
@@ -60,7 +61,7 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       val parser = parserFactory.newSAXParser()
 
       //Set Error handler
-      var errors = List[String]()
+      var errors = List[ValidationError]()
       val xr = parser.getXMLReader
       val vh = schema.newValidatorHandler()
       vh.setErrorHandler(new ErrorHandler {
@@ -89,7 +90,7 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
         xml
       }
       else {
-        throw new ValidationException(errors.reverse.mkString("\n"))
+        throw new ValidationException(errors.reverse)
       }
     }
 
@@ -101,7 +102,7 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       val ids = elements.map(_ \ "@id").map(_.text).filterNot(_.isEmpty)
       if (ids.distinct.size < ids.size) {
         val duplicatedIds = ids diff ids.distinct
-        val errors = duplicatedIds.map("Duplicated identifier: '" + _ + "'")
+        val errors = duplicatedIds.map(id => ValidationError("Duplicated identifier: '" + id + "'", Some(Identifier(id))))
         throw new ValidationException(errors)
       }
     }
@@ -115,12 +116,14 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       //The id of the current tag
       val id = attribStack.head.find(_.key == "id").map(_.value.mkString)
       //The error message without prefixes like "cvc-complex-type.2.4.b:"
-      val msg = ex.getMessage.split(':').tail.mkString.trim
+      val error = ex.getMessage.split(':').tail.mkString.trim
 
-      id match {
-        case Some(i) => errorType + " in " + tag + " with id '" + i + "': " + msg
-        case None => errorType + " in " + tag + ":" + msg
+      val msg = id match {
+        case Some(i) => errorType + " in " + tag + " with id '" + i + "': " + error
+        case None => errorType + " in " + tag + ":" + error
       }
+
+      ValidationError(msg, id.map(Identifier(_)))
     }
   }
 

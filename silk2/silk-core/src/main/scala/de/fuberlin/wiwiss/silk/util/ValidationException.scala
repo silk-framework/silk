@@ -1,12 +1,18 @@
 package de.fuberlin.wiwiss.silk.util
 
+import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
+
 /**
  * Thrown if the configuration is not valid.
  */
-class ValidationException(val errors: Seq[String], cause: Throwable) extends Exception(errors.mkString(" ")) {
-  def this(errors: Seq[String]) = this (errors, null)
+class ValidationException(val errors: Seq[ValidationError], cause: Throwable) extends Exception(errors.map(_.message).mkString(" ")) {
+  def this(errors: Seq[ValidationError]) = this(errors, null)
 
-  def this(error: String, cause: Throwable) = this (error :: Nil, cause)
+  def this(error: String, cause: Throwable) = this(ValidationError(error) :: Nil, cause)
 
-  def this(error: String) = this (error :: Nil, null)
+  def this(error: String) = this(ValidationError(error) :: Nil, null)
+}
+
+object ValidationException {
+  case class ValidationError(message: String, id: Option[Identifier] = None)
 }
