@@ -8,12 +8,13 @@ import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS.Redirect
 import java.util.logging.{Level, Logger}
 import net.liftweb.http.SHtml
-import net.liftweb.http.js.JE.{Str, JsArray, JsRaw, Call}
 import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import xml.{Text, NodeSeq}
 import net.liftweb.http.js.JsCmds.{JsCrVar, OnLoad, Script}
+import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
+import net.liftweb.http.js.JE._
+import de.fuberlin.wiwiss.silk.util.{Identifier, ValidationException, CollectLogs}
 
 /**
  * LinkSpec snippet.
@@ -87,12 +88,12 @@ class LinkSpec
       case ex: Exception =>
       {
         logger.log(Level.INFO, "Failed to save link specification", ex)
-        updateStatusCall(errors = "Error in back end: " + ex.getMessage :: Nil)
+        updateStatusCall(errors = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
       }
     }
   }
 
-  private def updateStatusCall(errors : Traversable[String] = Traversable.empty,
+  private def updateStatusCall(errors : Traversable[ValidationError] = Traversable.empty,
                                warnings : Traversable[String] = Traversable.empty,
                                infos : Traversable[String] = Traversable.empty) =
   {
@@ -102,8 +103,18 @@ class LinkSpec
     /** Generates a JavaScript array from a collection of strings*/
     def toJsArray(messages : Traversable[String]) = JsArray(messages.map(toJsExp).toList)
 
+    /** Generates a JavaScript expression from an error */
+    def errorToJsExp(error : ValidationError) = JsObj(("message", Str(error.message)), ("id", Str(error.id.map(_.toString).getOrElse(""))))
+
+    /** Generates a JavaScript array from a collection of errors*/
+    def errorsToJsArray(messages : Traversable[ValidationError]) = JsArray(messages.map(errorToJsExp).toList)
+
     /** Create a call to the update status function */
-    Call("updateStatus", toJsArray(errors), toJsArray(warnings), toJsArray(infos)).cmd
+    val x= Call("updateStatus", errorsToJsArray(errors), toJsArray(warnings), toJsArray(infos)).cmd
+
+    println(x.toJsCmd)
+
+    x
   }
 
   private def evaluateLinkSpec(linkingTask : LinkingTask) : Traversable[String] =
