@@ -8,12 +8,9 @@ import xml.{Node, XML}
 /**
  * Reads the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
  */
-object AlignmentReader
-{
-  def read(file : File) : Alignment =
-  {
-    file.getName.split('.').last match
-    {
+object AlignmentReader {
+  def read(file: File): Alignment = {
+    file.getName.split('.').last match {
       case "nt" => readNTriples(Source.fromFile(file))
       case "n3debug" => readN3Debug(Source.fromFile(file))
       case "xml" => readAlignment(file)
@@ -21,38 +18,33 @@ object AlignmentReader
     }
   }
 
-  def readAlignment(inputStream : InputStream) : Alignment =
-  {
+  def readAlignment(inputStream: InputStream): Alignment = {
     readAlignment(XML.load(inputStream))
   }
 
-  def readAlignment(file : File) : Alignment =
-  {
+  def readAlignment(file: File): Alignment = {
     readAlignment(XML.loadFile(file))
   }
 
-  def readAlignment(xml : Node) : Alignment =
-  {
+  def readAlignment(xml: Node): Alignment = {
     new Alignment(readLinks(xml, "=").toSet, readLinks(xml, "!=").toSet)
   }
 
-  private def readLinks(xml : Node, relation : String) : Traversable[Link] =
-  {
-    for(cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation" text) == relation) yield
-    {
-      new Link(source = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-               target = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-               confidence = (cell \ "measure").text.toDouble)
+  private def readLinks(xml: Node, relation: String): Traversable[Link] = {
+    for (cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation" text) == relation) yield {
+      new Link(
+        source = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+        target = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+        confidence = (cell \ "measure").text.toDouble
+      )
     }
   }
 
   private val NTriplesRegex = """<([^>]*)>\s*<[^>]*>\s*<([^>]*)>\s*\.\s*""".r
 
-  def readNTriples(source : Source) : Alignment =
-  {
+  def readNTriples(source: Source): Alignment = {
     val positiveLinks =
-      for(NTriplesRegex(sourceUri, targetUri) <- source.getLines()) yield
-      {
+      for (NTriplesRegex(sourceUri, targetUri) <- source.getLines()) yield {
         new Link(sourceUri, targetUri, 0.0)
       }
 
@@ -61,11 +53,9 @@ object AlignmentReader
 
   private val N3DebugRegex = """\[(\d*\.\d*)\]:\s*<([^>]*)>\s*<[^>]*>\s*<([^>]*)>\s*\.\s*""".r
 
-  def readN3Debug(source : Source) : Alignment =
-  {
+  def readN3Debug(source: Source): Alignment = {
     val positiveLinks =
-      for(N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines()) yield
-      {
+      for (N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines()) yield {
         new Link(sourceUri, targetUri, confidence.toDouble)
       }
 
