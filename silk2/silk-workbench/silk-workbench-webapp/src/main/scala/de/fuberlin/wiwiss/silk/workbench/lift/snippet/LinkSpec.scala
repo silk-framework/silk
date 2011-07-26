@@ -14,7 +14,7 @@ import xml.{Text, NodeSeq}
 import net.liftweb.http.js.JsCmds.{JsCrVar, OnLoad, Script}
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import net.liftweb.http.js.JE._
-import de.fuberlin.wiwiss.silk.util.{Identifier, ValidationException, CollectLogs}
+import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 
 /**
  * LinkSpec snippet.

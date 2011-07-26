@@ -4,11 +4,11 @@ import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.validation.SchemaFactory
 import javax.xml.transform.stream.StreamSource
-import xml.{Node, TopScope, Elem}
 import java.io._
-import org.xml.sax.{SAXParseException, ErrorHandler, InputSource}
 import xml.parsing.NoBindingFactoryAdapter
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
+import xml._
+import org.xml.sax.{Attributes, SAXParseException, ErrorHandler, InputSource}
 
 /**
  * Parses an XML input source and validates it against the schema.
@@ -47,6 +47,9 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
    * Reads an XML stream while validating it using a xsd schema file.
    */
   private class XmlReader extends NoBindingFactoryAdapter {
+    private var currentErrors = List[String]()
+    private var validationErrors = List[ValidationError]()
+
     def read(inputSource: InputSource, schemaPath: String): Elem = {
       //Load XML Schema
       val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
@@ -61,22 +64,26 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       val parser = parserFactory.newSAXParser()
 
       //Set Error handler
-      var errors = List[ValidationError]()
       val xr = parser.getXMLReader
       val vh = schema.newValidatorHandler()
       vh.setErrorHandler(new ErrorHandler {
         def warning(ex: SAXParseException) {}
 
         def error(ex: SAXParseException) {
-          errors ::= formatError("Error", ex)
+          addError(ex)
         }
 
         def fatalError(ex: SAXParseException) {
-          errors ::= formatError("Fatal Error", ex)
+          addError(ex)
         }
       })
       vh.setContentHandler(this)
       xr.setContentHandler(vh)
+
+      //Add errors without an id
+      for(error <- currentErrors) {
+        validationErrors ::= ValidationError(error)
+      }
 
       //Parse XML
       scopeStack.push(TopScope)
@@ -84,14 +91,29 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       scopeStack.pop
 
       //Return result
-      if (errors.isEmpty) {
+      if (validationErrors.isEmpty) {
         val xml = rootElem.asInstanceOf[Elem]
         checkUniqueIdentifiers(xml)
         xml
       }
       else {
-        throw new ValidationException(errors.reverse)
+        throw new ValidationException(validationErrors.reverse)
       }
+    }
+
+    override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes): Unit =
+	  {
+      for(idAttribute <- Option(attributes.getValue("id"))) {
+        val id = Identifier(idAttribute)
+
+        for(error <- currentErrors) {
+          validationErrors ::= ValidationError("Error in " + _localName + " with id '" + id + "': " + error, Some(id))
+        }
+
+        currentErrors = Nil
+      }
+
+      super.startElement(uri, _localName, qname, attributes)
     }
 
     /**
@@ -110,20 +132,11 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
     /**
      * Formats a XSD validation exception.
      */
-    def formatError(errorType: String, ex: SAXParseException) = {
-      //The current tag
-      val tag = this.curTag
-      //The id of the current tag
-      val id = attribStack.head.find(_.key == "id").map(_.value.mkString)
+    private def addError(ex: SAXParseException) = {
       //The error message without prefixes like "cvc-complex-type.2.4.b:"
       val error = ex.getMessage.split(':').tail.mkString.trim
 
-      val msg = id match {
-        case Some(i) => errorType + " in " + tag + " with id '" + i + "': " + error
-        case None => errorType + " in " + tag + ":" + error
-      }
-
-      ValidationError(msg, id.map(Identifier(_)))
+      currentErrors ::= error
     }
   }
 
