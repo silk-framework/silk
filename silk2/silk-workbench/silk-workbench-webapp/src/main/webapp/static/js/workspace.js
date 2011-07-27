@@ -6,6 +6,7 @@ ws.activeNodesId = new Array();
 // -- init
 $(document).ready(
    function(){
+      $(".ui-icon").removeClass('ui-icon');
       initLoadingDialog();
       // override forms 'onsubmit' attribute, in order to call loadingShow() before than ajax call
       $("form").each(function() {
@@ -343,18 +344,18 @@ function getIcon(type){
     var icon;
     switch (type)
     {
-        case 'add' : icon = "ui-icon-plus";  break;
-        case 'edit_prefixes' : icon = "ui-icon-wrench";  break;
-        case 'ds_add' : icon = "ui-icon-plus";  break;
-        case 'ds_edit' : icon = "ui-icon-wrench";  break;
-        case 'link_add' : icon = "ui-icon-plus";  break;
-        case 'link_edit' : icon = "ui-icon-wrench";  break;
-        case 'link_spec': icon = "ui-icon-shuffle"; break;
-        case 'output_add' : icon = "ui-icon-plus";  break;
-        case 'delete' : icon = "ui-icon-trash";  break;
-        case 'import': icon = "ui-icon-arrowthickstop-1-s"; break;
-        case 'export': icon = "ui-icon-arrowthick-1-ne"; break;
-        case 'add_linkspec' : icon = "ui-icon-arrowthickstop-1-s";  break;
+        case 'add' : icon = "new-project-icon";  break;
+        case 'edit_prefixes' : icon = "edit-prefixes-icon";  break;
+        case 'ds_add' : icon = "add-icon";  break;
+        case 'ds_edit' : icon = "edit-icon";  break;
+        case 'link_add' : icon = "add-icon";  break;
+        case 'link_edit' : icon = "edit-icon";  break;
+        case 'link_spec': icon = "open-icon"; break;
+        case 'output_add' : icon = "add-icon";  break;
+        case 'delete' : icon = "remove-icon";  break;
+        case 'import': icon = "import-icon"; break;
+        case 'export': icon = "export-icon"; break;
+        case 'add_linkspec' : icon = "add-ls-icon";  break;
     }
     return icon;
 }

@@ -155,3 +155,47 @@ button
 a {
   cursor: pointer;
 }
+
+
+button.action {
+  padding: 1px !important;
+}
+div.actions .ui-button-text {
+  margin-left: 4px !important;
+}
+
+.ui-button-icon-primary {
+  width: 16px;
+  height: 16px;
+  display: block;
+  float: left;
+  margin-left: 3px;
+}
+
+.import-icon {
+  background-image: url(/static/img/workspace/document-import.png);
+}
+.new-project-icon {
+  background-image: url(/static/img/workspace/document.png);
+}
+.edit-prefixes-icon {
+  background-image: url(/static/img/workspace/wrench-screwdriver.png);
+}
+.edit-icon {
+  background-image: url(/static/img/workspace/wrench.png);
+}
+.add-icon {
+  background-image: url(/static/img/workspace/plus.png);
+}
+.remove-icon {
+  background-image: url(/static/img/workspace/cross.png);
+}
+.export-icon {
+  background-image: url(/static/img/workspace/document-export.png);
+}
+.open-icon {
+  background-image: url(/static/img/workspace/document--pencil.png);
+}
+.add-ls-icon {
+  background-image: url(/static/img/workspace/document--plus.png);
+}
