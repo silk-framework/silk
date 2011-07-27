@@ -1,29 +1,34 @@
 <lift:surround with="default">
 
+  <lift:bind-at name="definitions">
+
+    <link type="text/css" href="static/css/links.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
+    <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
+
+    <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
+
+    <script type="text/javascript" src="static/js/linklist.js"></script>
+
+  </lift:bind-at>
+
   <lift:bind-at name="toolbar">
     <lift:learning.toolbar form="POST">
       <choose:loading>
-        <entry:status/>
+        <ul id="toolbar">
+          <li>
+            <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
+          </li>
+        </ul>
       </choose:loading>
       <choose:train>
         <ul id="toolbar">
           <li>
-            <entry:auto/>
+            <lift:comet type="LearningControl" name="LearningControl" />
           </li>
           <li>
-            <entry:create/>
-          </li>
-          <li>
-            <entry:iterate/>
-          </li>
-          <li>
-            <entry:iterations/>
-          </li>
-          <li>
-            <entry:clean/>
-          </li>
-          <li>
-            <entry:progress/>
+            <lift:comet type="LearningProgress" name="LearningProgress" />
           </li>
         </ul>
       </choose:train>
@@ -35,11 +40,38 @@
       <choose:loading>
       </choose:loading>
       <choose:train>
-        <lift:comet type="Population" name="Population">
-          <p>
-            <chat:list/>
-            <chat:individual/>
-          </p>
+        <lift:comet type="PopulationWidget" name="PopulationWidget">
+          <entry:script/>
+          <div id="wrapper">
+
+            <div id="tree-header">
+              <div class="left">
+                <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+                <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+              </div>
+              <div class="middle">
+                <div class="navigation"></div>
+              </div>
+              <div class="right">
+                <entry:filter/>
+              </div>
+            </div>
+
+            <div style="clear: both"></div>
+
+            <p>
+              <entry:list/>
+            </p>
+
+            <div style="clear:both;"></div>
+
+            <div id="tree-footer">
+              <div class="navigation"></div>
+            </div>
+
+            <div style="clear: both"></div>
+
+          </div>
         </lift:comet>
       </choose:train>
     </lift:learning.content>

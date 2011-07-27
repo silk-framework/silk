@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workbench.learning.tree
+package de.fuberlin.wiwiss.silk.learning.individual
 
 case class ParameterNode(key : String, value : String) extends Node
 {

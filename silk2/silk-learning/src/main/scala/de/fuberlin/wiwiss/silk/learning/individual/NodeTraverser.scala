@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workbench.learning.tree
+package de.fuberlin.wiwiss.silk.learning.individual
 
 /**
  * Used to traverse through a node tree and edit specific nodes.

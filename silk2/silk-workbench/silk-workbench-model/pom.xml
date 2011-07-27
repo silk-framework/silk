@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
+
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
     <artifactId>silk-workbench</artifactId>
@@ -15,10 +15,6 @@
   <packaging>jar</packaging>
   <name>Silk Workbench Model</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <dependencies>
 
     <dependency>
@@ -27,7 +23,7 @@
       <version>2.4.2</version>
     </dependency>
 
-     <dependency>
+    <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
       <artifactId>silk-jena</artifactId>
       <version>2.4.2</version>
@@ -40,11 +36,17 @@
     </dependency>
 
     <dependency>
+      <groupId>de.fuberlin.wiwiss.silk</groupId>
+      <artifactId>silk-learning</artifactId>
+      <version>2.4.2</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.1</version>
     </dependency>
-    
+
   </dependencies>
 
 </project>
