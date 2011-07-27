@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.linkspec
+package de.fuberlin.wiwiss.silk
 
 /**
  * Provides classes to represent a link specification.
