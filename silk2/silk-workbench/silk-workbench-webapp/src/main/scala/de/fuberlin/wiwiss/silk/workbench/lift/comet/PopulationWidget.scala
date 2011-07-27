@@ -7,8 +7,9 @@ import collection.mutable.{Publisher, Subscriber}
 import xml.{NodeBuffer, NodeSeq}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.task.ValueTask.ValueUpdated
-import de.fuberlin.wiwiss.silk.learning.{Population, CurrentLearningTask}
+import de.fuberlin.wiwiss.silk.learning.Population
 import de.fuberlin.wiwiss.silk.learning.individual.Individual
+import de.fuberlin.wiwiss.silk.workbench.learning.CurrentLearningTask
 
 /**
  * Widget which shows the current population.
