@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workbench.learning.tree
+package de.fuberlin.wiwiss.silk.learning.individual
 
 import util.Random
 import javax.naming.OperationNotSupportedException

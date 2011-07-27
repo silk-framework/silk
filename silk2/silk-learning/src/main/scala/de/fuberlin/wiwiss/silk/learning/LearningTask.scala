@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.learning
+package de.fuberlin.wiwiss.silk.learning
 
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import de.fuberlin.wiwiss.silk.util.task.ValueTask

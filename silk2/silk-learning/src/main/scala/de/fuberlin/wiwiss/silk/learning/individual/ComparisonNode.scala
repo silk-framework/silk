@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workbench.learning.tree
+package de.fuberlin.wiwiss.silk.learning.individual
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{DistanceMeasure, Comparison}
