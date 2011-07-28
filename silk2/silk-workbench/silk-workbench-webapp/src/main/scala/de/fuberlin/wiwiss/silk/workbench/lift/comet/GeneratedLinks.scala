@@ -22,42 +22,44 @@ class GeneratedLinks extends LinkList
 
   protected val evaluationTask = User().evaluationTask
 
-  /** Register to status messages of the evaluation task in order to be notified when new links are available */
-  evaluationTask.subscribe(new Subscriber[Status, EvaluationTask#Pub]
-  {
-    def notify(pub : EvaluationTask#Pub, status : Status)
+  override protected def registerEvents() {
+    /** Register to status messages of the evaluation task in order to be notified when new links are available */
+    evaluationTask.subscribe(new Subscriber[Status, EvaluationTask#Pub]
     {
-      status match
+      def notify(pub : EvaluationTask#Pub, status : Status)
       {
-        case _ : Started =>
+        status match
         {
-        }
-        case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
-        {
-          partialUpdate(updateLinksCmd)
-          lastUpdateTime = System.currentTimeMillis
-        }
-        case _ : Finished =>
-        {
-          val cmd =
+          case _ : Started =>
           {
-            val warnings = evaluationTask.warnings
-            if(warnings.isEmpty)
-            {
-              updateLinksCmd
-            }
-            else
-            {
-              updateLinksCmd & Alert("Warnings have been raised during execution:\n- " + warnings.map(_.getMessage).mkString("\n- "))
-            }
           }
+          case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
+          {
+            partialUpdate(updateLinksCmd)
+            lastUpdateTime = System.currentTimeMillis
+          }
+          case _ : Finished =>
+          {
+            val cmd =
+            {
+              val warnings = evaluationTask.warnings
+              if(warnings.isEmpty)
+              {
+                updateLinksCmd
+              }
+              else
+              {
+                updateLinksCmd & Alert("Warnings have been raised during execution:\n- " + warnings.map(_.getMessage).mkString("\n- "))
+              }
+            }
 
-          partialUpdate(cmd)
+            partialUpdate(cmd)
+          }
+          case _ =>
         }
-        case _ =>
       }
-    }
-  })
+    })
+  }
 
   override protected def links : Seq[EvalLink] =
   {
