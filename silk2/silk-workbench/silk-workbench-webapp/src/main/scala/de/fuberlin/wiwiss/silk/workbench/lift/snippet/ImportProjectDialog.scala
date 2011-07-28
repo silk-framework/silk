@@ -18,7 +18,7 @@ class ImportProjectDialog
 {
   def render(xhtml : NodeSeq) : NodeSeq =
   {
-    var name = "New Project"
+    var name = "New_Project"
     var fileHolder : FileParamHolder = null
 
     def submit()

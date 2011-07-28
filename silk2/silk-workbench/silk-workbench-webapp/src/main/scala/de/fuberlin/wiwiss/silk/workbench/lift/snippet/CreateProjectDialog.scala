@@ -15,7 +15,7 @@ class CreateProjectDialog
 {
   def render(xhtml : NodeSeq) : NodeSeq =
   {
-    var name = ""
+    var name = "New_Project"
 
     def submit() =
     {
