@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
-import java.util.logging.{Level, Logger}
+import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 
 class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](Population()) {
@@ -25,8 +25,6 @@ class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](
   @volatile private var stop = false
 
   @volatile var statistics: LearningStatistics = null
-
-  private val logger = Logger.getLogger(classOf[LearningTask].getName)
 
   logLevel = Level.FINE
 
