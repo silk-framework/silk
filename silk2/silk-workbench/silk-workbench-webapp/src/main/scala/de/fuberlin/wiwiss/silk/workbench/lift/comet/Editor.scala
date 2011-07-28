@@ -111,6 +111,8 @@ class Editor extends CometActor {
   private def evaluateLinkSpec(linkingTask: LinkingTask): Traversable[String] = {
     if(linkingTask.cache.isRunning) {
       ("Cache loading") :: Nil
+    } else if(linkingTask.cache.failed) {
+      ("Cache loading failed") :: Nil
     } else if (linkingTask.cache.instances.positive.isEmpty || linkingTask.cache.instances.negative.isEmpty) {
       ("No reference links") :: Nil
     } else {
