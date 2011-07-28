@@ -13,14 +13,12 @@ import de.fuberlin.wiwiss.silk.util.task._
  * @param task The task for which the progress should be shown
  * @param hide Hide the widget if the task is not active.
  */
-class ProgressWidget(task: HasStatus, hide: Boolean = false) extends CometActor with Subscriber[Status, Publisher[Status]] {
+class ProgressWidget(task: => HasStatus, hide: Boolean = false) extends CometActor with Subscriber[Status, Publisher[Status]] {
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 1000L
 
   /**The time of the last update */
   private var lastUpdateTime = 0L
-
-  task.subscribe(this)
 
   override protected val dontCacheRendering = true
 
@@ -32,6 +30,8 @@ class ProgressWidget(task: HasStatus, hide: Boolean = false) extends CometActor 
   }
 
   override def render = {
+    task.subscribe(this)
+
     <div id="progresswidget">
       <div id="progressbar"></div>
       <div class="progresstext" id="progresstext"></div>
