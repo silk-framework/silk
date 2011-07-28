@@ -129,7 +129,10 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
         loadInstances()
         updateStatus(Finished("Loading cache", true, None))
       } catch {
-        case ex: Exception => updateStatus(Finished("Loading cache", false, Some(ex)))
+        case ex: Exception => {
+          logger.log(Level.WARNING, "Loading cache failed", ex)
+          updateStatus(Finished("Loading cache", false, Some(ex)))
+        }
       }
     }
 
@@ -142,14 +145,23 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
       //Create an instance spec from the link specification
       val currentInstanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
-      if (existingInstanceSpecs == null) {
+      //Check if the restriction has been changed
+      if(existingInstanceSpecs != null &&
+         currentInstanceSpecs.source.restrictions == existingInstanceSpecs.source.restrictions &&
+         currentInstanceSpecs.target.restrictions == existingInstanceSpecs.target.restrictions) {
+        cachedInstanceSpecs = existingInstanceSpecs
+      } else {
+        cachedInstanceSpecs = null
+        cachedInstances = ReferenceInstances.empty
+      }
+
+      if (cachedInstanceSpecs == null) {
         //Retrieve most frequent paths
         val paths = for ((source, dataset) <- sources zip linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
 
         //Add the frequent paths to the instance specification
         cachedInstanceSpecs = for ((instanceSpec, paths) <- currentInstanceSpecs zip paths) yield instanceSpec.copy(paths = (instanceSpec.paths ++ paths.map(_._1)).distinct)
-      }
-      else {
+      } else {
         //Add the existing paths to the instance specification
         cachedInstanceSpecs = for ((spec1, spec2) <- currentInstanceSpecs zip existingInstanceSpecs) yield spec1.copy(paths = (spec1.paths ++ spec2.paths).distinct)
       }
@@ -214,8 +226,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
 
       if (missingPaths.isEmpty) {
         instance
-      }
-      else {
+      } else {
         //Retrieve an instance with all missing paths
         val missingInstance =
           source.retrieve(
@@ -240,8 +251,7 @@ object Cache {
     val instanceSpecs = {
       if (node \ "InstanceSpecifications" isEmpty) {
         null
-      }
-      else {
+      } else {
         val sourceSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Source" \ "_" head)
         val targetSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Target" \ "_" head)
         new SourceTargetPair(sourceSpec, targetSpec)
@@ -251,8 +261,7 @@ object Cache {
     val positiveInstances: Traversable[SourceTargetPair[Instance]] = {
       if (node \ "PositiveInstances" isEmpty) {
         Traversable.empty
-      }
-      else {
+      } else {
         for (pairNode <- node \ "PositiveInstances" \ "Pair" toList) yield {
           SourceTargetPair(
             Instance.fromXML(pairNode \ "Source" \ "Instance" head, instanceSpecs.source),
@@ -264,8 +273,7 @@ object Cache {
     val negativeInstances: Traversable[SourceTargetPair[Instance]] = {
       if (node \ "NegativeInstances" isEmpty) {
         Traversable.empty
-      }
-      else {
+      } else {
         for (pairNode <- node \ "NegativeInstances" \ "Pair" toList) yield {
           SourceTargetPair(
             Instance.fromXML(pairNode \ "Source" \ "Instance" head, instanceSpecs.source),

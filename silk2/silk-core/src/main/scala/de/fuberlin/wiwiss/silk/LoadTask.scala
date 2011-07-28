@@ -16,8 +16,6 @@ class LoadTask(sources: SourceTargetPair[Source],
                indexFunction: Option[Instance => Set[Int]] = None) extends Task[Unit] {
   taskName = "Loading"
 
-  private val logger = Logger.getLogger(classOf[LoadTask].getName)
-
   @volatile var exception: Exception = null
 
   @volatile var canceled = false

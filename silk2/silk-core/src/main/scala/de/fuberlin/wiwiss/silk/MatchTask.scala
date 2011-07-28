@@ -22,8 +22,6 @@ class MatchTask(linkSpec: LinkSpecification,
                 generateDetailedLinks: Boolean = false) extends Task[Buffer[Link]] {
   taskName = "Matching"
 
-  private val logger = Logger.getLogger(classOf[MatchTask].getName)
-
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
   /* Enable indexing if blocking is enabled */

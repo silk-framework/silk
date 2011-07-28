@@ -12,7 +12,7 @@ class HasStatus extends Publisher[Status] {
   /**
    * The logger used to log status changes.
    */
-  private val logger = Logger.getLogger(getClass.getName)
+  protected val logger = Logger.getLogger(getClass.getName)
 
   /**
    * Holds the current status.
