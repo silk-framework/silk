@@ -4,12 +4,21 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import util.matching.Regex
 
+/**
+ * Represents a SPARQL restriction.
+ */
 class SparqlRestriction private(restrictionsFull: String, restrictionsQualified: String) {
-  override def toString = restrictionsQualified
 
   def toSparql = restrictionsFull
 
   def toXML = <Restrictions>{restrictionsFull}</Restrictions>
+
+  override def toString = restrictionsQualified
+
+  override def equals(other: Any) = other match {
+    case o: SparqlRestriction => toSparql.equals(o.toSparql)
+    case _ => false
+  }
 }
 
 object SparqlRestriction {
