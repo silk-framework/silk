@@ -128,24 +128,23 @@ var validateLinkSpec = function() {
         var newName = $("#" + elId + " > .label").text();
         if (!newName) newName = $("#" + elId + " > div.label-active > input.label-change").val();
         if (newName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
-          //alert(elId);
           errorObj = new Object;
           errorObj.id = newName;
           errorObj.message = "Error in Element with id '"+ elId +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + newName + "'.";
           errors.push(errorObj);
-
         }
 
         var target = jsPlumb.getConnections({source: elId});
         if (target[jsPlumb.getDefaultScope()] === undefined || target[jsPlumb.getDefaultScope()].length == 0) {
             root_elements++;
+            if (root_elements > 1) {
+              errorObj = new Object();
+              errorObj.id = elId;
+              errorObj.message = "Error: Unconnected element '" + elId + "'.";
+              errors.push(errorObj);
+            }
         }
     });
-    if (root_elements > 1) {
-      errorObj = new Object();
-      errorObj.message = "Multiple Link Conditions found.";
-      errors.push(errorObj);
-    }
 
     if (errors.length > 0) {
         updateStatus(errors, null, null);
@@ -230,7 +229,7 @@ function highlightElement(elId, message) {
   elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + message + '")').attr("onmouseout", "UnTip()");
 }
 function removeHighlighting() {
-  $("div.dragDiv").removeClass('highlighted').removeAttr('onmouseover');
+  $("div .dragDiv").removeClass('highlighted').removeAttr('onmouseover');
 }
 
 
@@ -276,7 +275,7 @@ function getDeleteIcon(elementId) {
   img.attr("src", "static/img/delete.png");
   img.attr("align", "right");
   img.attr("style", "cursor:pointer;");
-  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove(); modifyLinkSpec()");
+  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove(); UnTip(); modifyLinkSpec()");
   return img;
 }
 
@@ -322,7 +321,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
 
     var span = $(document.createElement('div'));
     span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-    span.attr("title", aggregators[$(this).attr("type")]["name"] + " (Aggregator)")
+    span.attr("title", aggregators[$(this).attr("type")]["name"] + " (Aggregator)");
     var mytext = document.createTextNode(aggregators[$(this).attr("type")]["name"] + " (Aggregator)");
     span.append(mytext);
     box2.append(span);
