@@ -64,7 +64,9 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
   }
 
   private def stopLoading() {
-    loadingThread.interrupt()
+    if(loadingThread != null) {
+      loadingThread.interrupt()
+    }
   }
 
   /**
