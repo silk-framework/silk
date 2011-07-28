@@ -63,7 +63,7 @@ class Editor extends CometActor {
       implicit val prefixes = project.config.prefixes
 
       //Collect warnings while saving link spec
-      val warnings = CollectLogs(Level.WARNING) {
+      val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
         //Load link specification
         val linkSpec = LinkSpecification.load(prefixes)(new StringReader(linkSpecStr))
 
