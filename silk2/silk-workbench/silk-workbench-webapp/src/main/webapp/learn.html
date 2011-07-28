@@ -2,7 +2,7 @@
 
   <lift:bind-at name="definitions">
 
-    <link type="text/css" href="static/css/links.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/linklist.css" rel="stylesheet" />
     <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
     <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
 
@@ -41,7 +41,8 @@
       </choose:loading>
       <choose:train>
         <lift:comet type="PopulationWidget" name="PopulationWidget">
-          <entry:script/>
+          <!--<entry:script/>-->
+
           <div id="wrapper">
 
             <div id="tree-header">
@@ -52,9 +53,9 @@
               <div class="middle">
                 <div class="navigation"></div>
               </div>
-              <div class="right">
-                <entry:filter/>
-              </div>
+              <!--<div class="right">-->
+                <!--<entry:filter/>-->
+              <!--</div>-->
             </div>
 
             <div style="clear: both"></div>
