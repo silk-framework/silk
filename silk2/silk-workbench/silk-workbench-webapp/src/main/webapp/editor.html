@@ -1,20 +1,23 @@
 <lift:surround with="editor">
 
   <lift:bind-at name="toolbar">
-    <lift:editor.toolbar form="POST">
+    <lift:editorToolbar form="POST">
       <ul>
         <li>
           <entry:export />
         </li>
         <li>
+          <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
+        </li>
+        <li>
           <entry:help />
         </li>
       </ul>
-    </lift:editor.toolbar>
+    </lift:editorToolbar>
   </lift:bind-at>
 
   <lift:bind-at name="content">
-    <lift:editor.content form="POST">
+    <lift:comet type="Editor" name="Editor">
       <entry:linkSpecVar/>
 
         <div class="draggables">
@@ -61,7 +64,7 @@
 
       </div>
 
-    </lift:editor.content>
+    </lift:comet>
   </lift:bind-at>
 
 </lift:surround>
