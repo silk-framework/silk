@@ -45,7 +45,7 @@ class Boot
 
     val entries =
         Menu(Loc("Workspace", List("index"), workspaceText)) ::
-        Menu(Loc("Link Specification", List("linkSpec"), linkSpecText, ifLinkingTaskOpen)) ::
+        Menu(Loc("Editor", List("editor"), linkSpecText, ifLinkingTaskOpen)) ::
         Menu(Loc("Generate Links", List("generateLinks"), "Generate Links", ifLinkingTaskOpen)) ::
         Menu(Loc("Reference Links", List("referenceLinks"), "Reference Links", ifLinkingTaskOpen)) :: Nil
 
