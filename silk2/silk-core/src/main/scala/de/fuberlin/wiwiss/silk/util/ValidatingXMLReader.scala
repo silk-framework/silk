@@ -80,15 +80,15 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       vh.setContentHandler(this)
       xr.setContentHandler(vh)
 
-      //Add errors without an id
-      for(error <- currentErrors) {
-        validationErrors ::= ValidationError(error)
-      }
-
       //Parse XML
       scopeStack.push(TopScope)
       xr.parse(inputSource)
       scopeStack.pop
+
+      //Add errors without an id
+      for(error <- currentErrors) {
+        validationErrors ::= ValidationError(error)
+      }
 
       //Return result
       if (validationErrors.isEmpty) {
