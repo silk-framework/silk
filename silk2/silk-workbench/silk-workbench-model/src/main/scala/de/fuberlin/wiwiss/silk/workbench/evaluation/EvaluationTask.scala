@@ -13,9 +13,8 @@ import de.fuberlin.wiwiss.silk.util.task.Task
 /**
  * Task which executes the current link specification and allows querying for the generated links.
  */
-class EvaluationTask(user : User) extends Task[Unit]
-{
-  /** */
+class EvaluationTask(user: User) extends Task[Unit] {
+  /***/
   var outputEnabled = false
 
   /** The number of concurrent threads used for matching */
@@ -27,31 +26,25 @@ class EvaluationTask(user : User) extends Task[Unit]
   /** The size of the instance partitions in the cache */
   private val partitionSize = 300
 
-  @volatile private var loadTask : LoadTask = null
+  @volatile private var loadTask: LoadTask = null
 
-  @volatile private var matchTask : MatchTask = null
+  @volatile private var matchTask: MatchTask = null
 
-  @volatile private var alignment : Alignment = null
+  @volatile private var alignment: Alignment = null
 
-  @volatile private var filteredLinks : Buffer[Link] = null
+  @volatile private var filteredLinks: Buffer[Link] = null
 
-  @volatile private var warningLog : Seq[LogRecord] = Seq.empty
+  @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
   /**
    * Retrieves the current links.
    */
-  def links : Seq[Link] =
-  {
-    if(filteredLinks != null)
-    {
+  def links: Seq[Link] = {
+    if (filteredLinks != null) {
       filteredLinks
-    }
-    else if(matchTask != null)
-    {
+    } else if (matchTask != null) {
       matchTask.links
-    }
-    else
-    {
+    } else {
       Seq.empty
     }
   }
@@ -61,35 +54,32 @@ class EvaluationTask(user : User) extends Task[Unit]
    */
   def warnings = warningLog
 
-  def clear()
-  {
+  def clear() {
     cancel()
-    if(matchTask != null) matchTask.links.clear()
-    if(filteredLinks != null) filteredLinks.clear()
+    if (matchTask != null) matchTask.links.clear()
+    if (filteredLinks != null) filteredLinks.clear()
   }
 
-  override protected def execute()
-  {
+  override protected def execute() {
     val project = user.project
     val linkingTask = user.linkingTask
     val linkSpec = linkingTask.linkSpec
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
-    warningLog = CollectLogs()
-    {
+    warningLog = CollectLogs() {
       //Retrieve sources
       val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
 
       //Blocking function
       val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
-      def indexFunction(instance : Instance) = linkSpec.condition.index(instance, 0.0)
+      def indexFunction(instance: Instance) = linkSpec.condition.index(instance, 0.0)
 
       //Instance caches
       val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, partitionSize),
-                                    new MemoryInstanceCache(instanceSpecs.target, blockCount, partitionSize))
+        new MemoryInstanceCache(instanceSpecs.target, blockCount, partitionSize))
 
       //Create tasks
-      loadTask = new LoadTask(sources, caches, instanceSpecs, if(blockCount > 0) Some(indexFunction _) else None)
+      loadTask = new LoadTask(sources, caches, instanceSpecs, if (blockCount > 0) Some(indexFunction _) else None)
       matchTask = new MatchTask(linkingTask.linkSpec, caches, numThreads, false, generateDetailedLinks)
       alignment = linkingTask.alignment
       filteredLinks = null
@@ -105,8 +95,7 @@ class EvaluationTask(user : User) extends Task[Unit]
       filteredLinks = executeSubTask(filterTask)
 
       //Output links
-      if(outputEnabled)
-      {
+      if (outputEnabled) {
         val outputs = project.outputModule.tasks.map(_.output)
         val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, outputs)
         executeSubTask(outputTask)
@@ -114,9 +103,8 @@ class EvaluationTask(user : User) extends Task[Unit]
     }
   }
 
-  override def stopExecution()
-  {
-    if(loadTask != null) loadTask.cancel()
-    if(matchTask != null) matchTask.cancel()
+  override def stopExecution() {
+    if (loadTask != null) loadTask.cancel()
+    if (matchTask != null) matchTask.cancel()
   }
 }
