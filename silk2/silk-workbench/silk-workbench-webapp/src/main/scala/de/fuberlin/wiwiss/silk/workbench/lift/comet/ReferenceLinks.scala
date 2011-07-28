@@ -23,38 +23,40 @@ class ReferenceLinks extends LinkList
   /** The time of the last update */
   private var lastUpdateTime = 0L
 
-  /** Register to updates to the ShowLinks variable */
-  ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.ReferenceType], Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]]]
-  {
-    def notify(pub : Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]], status : UserData.ValueUpdated[EvalLink.ReferenceType])
+  override protected def registerEvents() {
+    /** Register to updates to the ShowLinks variable */
+    ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.ReferenceType], Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]]]
     {
-      partialUpdate(updateLinksCmd)
-    }
-  })
-
-  /** Register to status messages of the cache loader task in order to be notified when new links are available */
-  linkingTask.cache.subscribe(new Subscriber[Status, Publisher[Status]]
-  {
-    def notify(pub : Publisher[Status], status : Status)
-    {
-      status match
+      def notify(pub : Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]], status : UserData.ValueUpdated[EvalLink.ReferenceType])
       {
-        case _ : Started =>
-        {
-        }
-        case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
-        {
-          partialUpdate(updateLinksCmd)
-          lastUpdateTime = System.currentTimeMillis
-        }
-        case _ : Finished =>
-        {
-          partialUpdate(updateLinksCmd)
-        }
-        case _ =>
+        partialUpdate(updateLinksCmd)
       }
-    }
-  })
+    })
+
+    /** Register to status messages of the cache loader task in order to be notified when new links are available */
+    linkingTask.cache.subscribe(new Subscriber[Status, Publisher[Status]]
+    {
+      def notify(pub : Publisher[Status], status : Status)
+      {
+        status match
+        {
+          case _ : Started =>
+          {
+          }
+          case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
+          {
+            partialUpdate(updateLinksCmd)
+            lastUpdateTime = System.currentTimeMillis
+          }
+          case _ : Finished =>
+          {
+            partialUpdate(updateLinksCmd)
+          }
+          case _ =>
+        }
+      }
+    })
+  }
 
   override protected def links : Seq[EvalLink] =
   {
