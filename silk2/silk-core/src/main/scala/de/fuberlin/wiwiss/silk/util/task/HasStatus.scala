@@ -34,6 +34,11 @@ class HasStatus extends Publisher[Status] {
     case _: Finished => false
   }
 
+  def failed = currentStatus match {
+    case Finished(_, false, _) => true
+    case _ => false
+  }
+
   /**
    * Updates the status.
    *

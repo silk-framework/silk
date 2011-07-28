@@ -5,24 +5,26 @@ import modules.ModuleTask
 import modules.output.OutputTask
 import modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationTask
+import collection.mutable.Publisher
+import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 
 /**
  * A user.
  */
-trait User
-{
-  private var currentProject : Option[Project] = None
+trait User extends Publisher[CurrentTaskChanged] {
 
-  private var currentTask : Option[ModuleTask] = None
+  @volatile private var currentProject: Option[Project] = None
 
-  val evaluationTask : EvaluationTask = new EvaluationTask(this)
+  @volatile private var currentTask: Option[ModuleTask] = None
+
+  val evaluationTask: EvaluationTask = new EvaluationTask(this)
 
   var showAlignmentLinks = false
 
   /**
    * The current workspace of this user.
    */
-  def workspace : Workspace
+  def workspace: Workspace
 
   def projectOpen = currentProject.isDefined
 
@@ -34,8 +36,7 @@ trait User
   /**
    * Sets the current project of this user.
    */
-  def project_=(project : Project)
-  {
+  def project_=(project: Project) {
     currentProject = Some(project)
   }
 
@@ -52,16 +53,15 @@ trait User
   /**
    * Sets the current task of this user.
    */
-  def task_=(task : ModuleTask)
-  {
+  def task_=(task: ModuleTask) {
     currentTask = Some(task)
+    publish(CurrentTaskChanged(task))
   }
 
   /**
    * Closes the current task.
    */
-  def closeTask()
-  {
+  def closeTask() {
     currentTask = None
     evaluationTask.clear()
   }
@@ -76,9 +76,8 @@ trait User
    *
    * @throws java.util.NoSuchElementException If no source task is open
    */
-  def sourceTask = task match
-  {
-    case t : SourceTask => t
+  def sourceTask = task match {
+    case t: SourceTask => t
     case _ => throw new NoSuchElementException("Active task is no source task")
   }
 
@@ -92,9 +91,8 @@ trait User
    *
    * @throws java.util.NoSuchElementException If no linking task is open
    */
-  def linkingTask = task match
-  {
-    case t : LinkingTask => t
+  def linkingTask = task match {
+    case t: LinkingTask => t
     case _ => throw new NoSuchElementException("Active task is no linking task")
   }
 
@@ -108,27 +106,29 @@ trait User
    *
    * @throws java.util.NoSuchElementException If no output task is open
    */
-  def outputTask = task match
-  {
-    case t : OutputTask => t
+  def outputTask = task match {
+    case t: OutputTask => t
     case _ => throw new NoSuchElementException("Active task is no output task")
   }
 
   /**
    * Called when the user becomes inactive.
    */
-  def dispose()
-  {
+  def dispose() {
     evaluationTask.cancel()
   }
 }
 
-object User
-{
-  var userManager : () => User = () => throw new Exception("No user manager registered")
+object User {
+  var userManager: () => User = () => throw new Exception("No user manager registered")
 
   /**
    * Retrieves the current user.
    */
-  def apply() =  userManager()
+  def apply() = userManager()
+
+  /**
+   * Fired if the current task is changed.
+   */
+  case class CurrentTaskChanged(task: ModuleTask)
 }

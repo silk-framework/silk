@@ -129,6 +129,10 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
         loadInstances()
         updateStatus(Finished("Loading cache", true, None))
       } catch {
+        case ex: InterruptedException => {
+          logger.log(Level.WARNING, "Loading cache stopped")
+          updateStatus(Finished("Loading stopped", false, None))
+        }
         case ex: Exception => {
           logger.log(Level.WARNING, "Loading cache failed", ex)
           updateStatus(Finished("Loading cache", false, Some(ex)))
