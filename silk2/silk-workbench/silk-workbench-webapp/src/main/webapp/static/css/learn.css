@@ -39,7 +39,7 @@ a:hover {
   border-bottom: 1px solid #DBDBDB;
 }
 
-#results .link {
+#results .individual {
   clear: both;
 }
 
@@ -56,30 +56,25 @@ a:hover {
   color: #555555;
 }
 
-.link-header {
+.individual-header {
   border-top: 1px solid #DBDBDB;
   height: 26px;
   line-height: 18px;
 }
 
-.link-header div {
+.individual-header div {
   float: left;
 }
 
-.link-source, .link-target {
+.individual-desc {
   border-right: 1px solid #DBDBDB;
   padding: 4px 0;
   width: 420px;
-  margin-right: 12px;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.link-source a, .link-target a {
-  margin-right: 12px;
-}
-
-.link-details {
+.individual-details {
   display: none;
   background: none repeat scroll 0 0 #f2f2f4;
   border-top: 2px solid #d4d4d5;
@@ -87,7 +82,9 @@ a:hover {
   font-size: 12px;
 }
 
-.link-confidence {
+.individual-score, .individual-mcc, .individual-f1
+{
+  margin-left: 10px;
   border-right: 1px solid #DBDBDB;
   width: 90px;
   height: 22px;
@@ -120,19 +117,12 @@ a:hover {
   background: #F8F8F8;
 }
 
-.link-status {
-  border-right: 1px solid #DBDBDB;
-  width: 65px;
-  margin-left: 10px;
-  padding: 4px 0;
-}
-
-.link-buttons {
+.individual-buttons {
   margin-left: 10px;
   margin-top: 4px;
 }
 
-.link-over {
+.individual-over {
   background: #f0f0df !important;
 }
 
@@ -193,7 +183,7 @@ a:hover {
   margin-top: 4px;
 }
 
-.aggregation, .comparison, .transformation, .input {
+.aggregation, .comparison  {
   float: left;
   margin-right: 6px;
   margin-bottom: 5px;
@@ -201,44 +191,6 @@ a:hover {
 
 .lastCollapsable-hitarea {
   background-position: 60% 41% !important;
-}
-
-.input {
-  line-height: 22px;
-}
-
-.source-path,
-.target-path,
-.source-value,
-.target-value  {
-  padding: 1px 3px;
-  margin-left: 3px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-}
-
-.target-path {
-  color: #4f2b2b;
-  border: 1px solid #c7a1a1;
-  background-color: #ffe8e8;
-}
-
-.target-value {
-  color: #4f2b2b;
-  border: 1px solid #c7a1a1;
-  background-color: #ffe8e8;
-}
-
-.source-path {
-  color: #502c4f;
-  border: 1px solid #c6a0c4;
-  background-color: #f2d7ff;
-}
-
-.source-value {
-  color: #502c4f;
-  border: 1px solid #c6a0c4;
-  background-color: #f2d7ff;
 }
 
 .treeview li {

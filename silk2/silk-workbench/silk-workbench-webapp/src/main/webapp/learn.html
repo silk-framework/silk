@@ -2,14 +2,14 @@
 
   <lift:bind-at name="definitions">
 
-    <link type="text/css" href="static/css/linklist.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/learn.css" rel="stylesheet" />
     <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
     <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
 
     <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
     <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
 
-    <script type="text/javascript" src="static/js/linklist.js"></script>
+    <script type="text/javascript" src="static/js/learn.js"></script>
 
   </lift:bind-at>
 
@@ -40,8 +40,9 @@
       <choose:loading>
       </choose:loading>
       <choose:train>
-        <lift:comet type="PopulationWidget" name="PopulationWidget">
-          <!--<entry:script/>-->
+        <lift:comet type="LearningWidget" name="LearningWidget">
+
+          <entry:script/>
 
           <div id="wrapper">
 
