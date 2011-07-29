@@ -1,14 +1,15 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import cleaning.CleanPopulationTask
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import generation.GeneratePopulationTask
 import individual.Population
 import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import reproduction.ReproductionTask
+import de.fuberlin.wiwiss.silk.evaluation.{LinkConditionEvaluator, ReferenceInstances}
 
-class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](Population()) {
+//TODO change result type from Population to Statistics
+class LearningTask(instances: ReferenceInstances, validationInstances: ReferenceInstances = ReferenceInstances.empty) extends ValueTask[Population](Population()) {
 
   private val config = LearningConfiguration.load(instances)
 
@@ -18,10 +19,10 @@ class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](
   private val cleanFrequency = 5
 
   /** The maximum number of iterations before giving up. */
-  private val maxIterations = 5000
+  private val maxIterations = 10
 
   /** The maximum number of subsequent iterations without any increase in fitness before giving up. */
-  private val maxIneffectiveIterations = 500
+  private val maxIneffectiveIterations = 10
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001
@@ -82,7 +83,17 @@ class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](
     updateStatus(0.0)
     value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config)))
 
-    statistics = LearningStatistics(System.currentTimeMillis() - startTime, iteration, message)
+    val bestIndividual = value.get.individuals.maxBy(_.fitness.score)
+
+    statistics =
+        LearningStatistics(
+          time = System.currentTimeMillis() - startTime,
+          iterations = iteration,
+          fitness = bestIndividual.fitness,
+          validationResult = LinkConditionEvaluator(bestIndividual.node.build, validationInstances),
+          message = message
+        )
+
     logger.info(statistics.toString)
 
     value.get

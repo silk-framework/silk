@@ -6,6 +6,7 @@
 
   <CrossoverConfiguration>
     <CrossoverOperators>
+      <CrossoverOperator type="OperatorCrossover" />
       <CrossoverOperator type="LimitCrossover" />
       <CrossoverOperator type="AggregationOperatorsCrossover" />
       <CrossoverOperator type="AggregationStrategyCrossover" />

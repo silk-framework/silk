@@ -4,9 +4,6 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
 
 object LinkConditionEvaluator {
   def apply(linkCondition: LinkCondition, instances: ReferenceInstances): EvaluationResult = {
-    require(!instances.positive.isEmpty, "Positive alignment samples are required")
-    require(!instances.negative.isEmpty, "Negative alignment samples are required")
-
     var truePositives: Int = 0
     var trueNegatives: Int = 0
     var falsePositives: Int = 0
