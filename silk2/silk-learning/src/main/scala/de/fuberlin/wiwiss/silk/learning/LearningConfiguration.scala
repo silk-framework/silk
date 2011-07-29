@@ -9,7 +9,7 @@ case class LearningConfiguration(generation: GenerationConfiguration, crossover:
 
 object LearningConfiguration
 {
-  val defaultConfigFile = "de/fuberlin/wiwiss/silk/workbench/learning/config.xml"
+  val defaultConfigFile = "de/fuberlin/wiwiss/silk/learning/config.xml"
 
   def load(instances : ReferenceInstances) = {
 
