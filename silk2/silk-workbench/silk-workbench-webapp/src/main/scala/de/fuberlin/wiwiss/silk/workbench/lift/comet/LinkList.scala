@@ -3,12 +3,12 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
-import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
 import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
+import de.fuberlin.wiwiss.silk.workbench.evaluation._
 
 /**
  * A widget which displays a list of links.
@@ -61,7 +61,7 @@ trait LinkList extends CometActor {
           <div class="link-header heading">
             <div class="link-source">Source: <span class="source-value">{linkingTask.linkSpec.datasets.source.sourceId}</span></div>
             <div class="link-target">Target: <span class="target-value">{linkingTask.linkSpec.datasets.target.sourceId}</span></div>
-            <div class="link-confidence">{SHtml.a(sortByConfidence _, <span>Score</span>)}</div>
+            <div class="link-confidence">{renderConfidenceHeader}</div>
             { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
             { if(showButtons) <div class="link-buttons"><span>Correct?</span></div> else NodeSeq.Empty }
           </div>
@@ -79,14 +79,23 @@ trait LinkList extends CometActor {
     SetHtml("results", html) & Call("initTrees").cmd & Call("updateResultsWidth").cmd
   }
 
-  private def sortByConfidence = {
-    if (LinkSorter() == ConfidenceSorterAscending) {
-      LinkSorter() = ConfidenceSorterDescending
-    } else {
-      LinkSorter() = ConfidenceSorterAscending
+  private def renderConfidenceHeader = {
+    def sort() = {
+      if (LinkSorter() == ConfidenceSorterDescending) {
+        LinkSorter() = ConfidenceSorterAscending
+      } else {
+        LinkSorter() = ConfidenceSorterDescending
+      }
+      updateLinksCmd
     }
 
-    updateLinksCmd
+    val icon = LinkSorter() match {
+      case ConfidenceSorterAscending => "./static/img/sort-ascending.png"
+      case ConfidenceSorterDescending => "./static/img/sort-descending.png"
+      case _ => "./static/img/sort.png"
+    }
+
+    SHtml.a(sort _, <span>Sort<img src={icon}/></span>)
   }
 
   private def applyFilter(value: String) = {

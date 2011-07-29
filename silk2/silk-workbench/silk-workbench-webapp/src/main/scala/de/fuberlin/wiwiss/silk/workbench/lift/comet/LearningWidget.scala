@@ -5,7 +5,6 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.task.ValueTask.ValueUpdated
 import de.fuberlin.wiwiss.silk.learning.Population
 import de.fuberlin.wiwiss.silk.learning.individual.Individual
-import de.fuberlin.wiwiss.silk.workbench.learning.CurrentLearningTask
 import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkCondition}
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
@@ -17,6 +16,7 @@ import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
+import de.fuberlin.wiwiss.silk.workbench.learning._
 
 /**
  * Widget which shows the current population.
@@ -58,7 +58,7 @@ class LearningWidget extends CometActor {
   }
 
   private def showList(page: Int): JsCmd = {
-    val sortedIndividuals = individuals.toSeq.sortBy(-_.fitness.score)
+    val sortedIndividuals = PopulationSorter.sort(individuals.toSeq)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
     SetHtml("results", renderPopulation(pageIndividuals)) & Call("initTrees").cmd & Call("updateResultsWidth").cmd
@@ -72,9 +72,9 @@ class LearningWidget extends CometActor {
       <div class="individual">
         <div class="individual-header heading">
           <div class="individual-desc">Description</div>
-          <div class="individual-score">Score</div>
-          <div class="individual-mcc">MCC</div>
-          <div class="individual-f1">F-Measure</div>
+          <div class="individual-score">{renderSortHeader("Score", ScoreSorterAscending, ScoreSorterDescending)}</div>
+          <div class="individual-mcc">{renderSortHeader("MCC", MccSorterAscending, MccSorterDescending)}</div>
+          <div class="individual-f1">{renderSortHeader("F-Measure", FMeasureSorterAscending, FMeasureSorterDescending)}</div>
           <div class="individual-buttons">Actions</div>
         </div>
       </div> {
@@ -83,6 +83,25 @@ class LearningWidget extends CometActor {
         }
       }
     </div>
+  }
+
+  private def renderSortHeader(label: String, ascendingSorter: PopulationSorter, descendingSorter: PopulationSorter) = {
+    def sort() = {
+      if (PopulationSorter() == descendingSorter) {
+        PopulationSorter() = ascendingSorter
+      } else {
+        PopulationSorter() = descendingSorter
+      }
+      updateListCmd
+    }
+
+    val icon = PopulationSorter() match {
+      case `ascendingSorter` => "./static/img/sort-ascending.png"
+      case `descendingSorter` => "./static/img/sort-descending.png"
+      case _ => "./static/img/sort.png"
+    }
+
+    SHtml.a(sort _, <span>{label}<img src={icon}/></span>)
   }
 
   /**
@@ -108,7 +127,7 @@ class LearningWidget extends CometActor {
       <div class="individual-score">{renderScore(individual.fitness.score)}</div>
       <div class="individual-mcc">{renderScore(individual.fitness.mcc)}</div>
       <div class="individual-f1">{renderScore(individual.fitness.fMeasure)}</div>
-      <div class="individual-buttons">{SHtml.a(() => loadIndividualCmd(individual), <img src="./static/img/confirm.png" />)}</div>
+      <div class="individual-buttons">{SHtml.a(() => loadIndividualCmd(individual), <img src="./static/img/learn/load.png" />)}</div>
     </div>
   }
 
