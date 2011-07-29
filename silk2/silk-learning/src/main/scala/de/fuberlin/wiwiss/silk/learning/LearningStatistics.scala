@@ -1,9 +1,11 @@
 package de.fuberlin.wiwiss.silk.learning
 
-case class LearningStatistics(time: Long, iterations: Int, message: String)
+import de.fuberlin.wiwiss.silk.evaluation.EvaluationResult
+
+case class LearningStatistics(time: Long, iterations: Int, fitness: EvaluationResult, validationResult: EvaluationResult, message: String)
 
 object StatisticsLatexFormatter {
-  def apply(statistics: Seq[LearningStatistics]): String = {
+  def apply(statistics: Iterable[LearningStatistics]): String = {
     val header =
       "\\begin{tabular}{| l | l | l | l |}\n" +
       "\\hline\n" +
@@ -23,7 +25,7 @@ object StatisticsLatexFormatter {
     run + " & " + statistics.iterations + " & " + (statistics.time / 1000.0) + "s & " + statistics.message + "\\\\\n"
   }
 
-  private def averageRow(statistics: Seq[LearningStatistics]): String = {
+  private def averageRow(statistics: Iterable[LearningStatistics]): String = {
     val averageIterations = statistics.map(_.iterations).sum.toDouble / statistics.size
     val averageTime = statistics.map(_.time / 1000.0).sum / statistics.size
 
