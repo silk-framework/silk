@@ -1,11 +1,12 @@
-package de.fuberlin.wiwiss.silk.learning
+package de.fuberlin.wiwiss.silk.learning.reproduction
 
-import generation.RandomGenerator
-import individual.Individual
 import util.Random
 import de.fuberlin.wiwiss.silk.util.{ParallelMapper, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
+import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
+import de.fuberlin.wiwiss.silk.learning.generation.RandomGenerator
 
 class ReproductionTask(population : Population, instances : ReferenceInstances, config : LearningConfiguration) extends Task[Population]
 {

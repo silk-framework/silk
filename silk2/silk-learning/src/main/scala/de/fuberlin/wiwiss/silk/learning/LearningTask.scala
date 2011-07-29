@@ -1,8 +1,12 @@
 package de.fuberlin.wiwiss.silk.learning
 
+import cleaning.CleanPopulationTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
+import generation.GeneratePopulationTask
+import individual.Population
 import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
+import reproduction.ReproductionTask
 
 class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](Population()) {
 
@@ -32,7 +36,8 @@ class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](
     stop = false
     val startTime = System.currentTimeMillis
 
-    value.update(executeSubTask(new GeneratePopulationTask(instances, config), 1.0 / (maxIterations + 1)))
+    updateStatus(0.0)
+    value.update(executeSubTask(new GeneratePopulationTask(instances, config)))
 
     var bestMeasure = 0.0
     var ineffectiveIterations = 0
@@ -44,11 +49,13 @@ class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](
 
       println("Iteration " + iteration)
 
-      value.update(executeSubTask(new ReproductionTask(value.get, instances, config), (iteration + 1.0) / (maxIterations + 1)))
+      updateStatus(0.0)
+      value.update(executeSubTask(new ReproductionTask(value.get, instances, config)))
 
       if (iteration % cleanFrequency == 0) {
         println("Cleaning")
-        value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config), (iteration + 1.0) / (maxIterations + 1)))
+        updateStatus(0.0)
+        value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config)))
       }
 
       val fMeasure = value.get.individuals.map(_.fitness.fMeasure).max
@@ -72,7 +79,8 @@ class LearningTask(instances: ReferenceInstances) extends ValueTask[Population](
       bestMeasure = fMeasure
     }
 
-    value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config), 1.0))
+    updateStatus(0.0)
+    value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config)))
 
     statistics = LearningStatistics(System.currentTimeMillis() - startTime, iteration, message)
     logger.info(statistics.toString)

@@ -8,6 +8,9 @@ import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, Transformer}
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.learning.individual._
 
+/**
+ * Generates a random candidate solution.
+ */
 object RandomGenerator {
   /**
    * Creates a new random link condition.

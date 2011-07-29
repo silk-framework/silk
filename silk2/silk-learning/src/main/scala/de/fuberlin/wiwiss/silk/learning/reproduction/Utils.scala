@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.learning.crossover
+package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.Node

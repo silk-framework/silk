@@ -10,7 +10,7 @@ case class GenerationConfiguration(pathPairs: Traversable[SourceTargetPair[Path]
 object GenerationConfiguration {
   def fromXml(xml: Node, instances: ReferenceInstances) = {
     GenerationConfiguration(
-      pathPairs = PathPairFinder(instances)
+      pathPairs = PathPairGenerator(instances)
     )
   }
 }

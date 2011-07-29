@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning
 
-import crossover.{CrossoverConfiguration}
+import reproduction.{CrossoverConfiguration}
 import generation.GenerationConfiguration
 import xml.XML
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances

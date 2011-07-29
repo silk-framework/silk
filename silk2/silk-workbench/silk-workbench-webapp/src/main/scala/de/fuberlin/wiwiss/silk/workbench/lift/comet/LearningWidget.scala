@@ -3,8 +3,6 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import collection.mutable.{Publisher, Subscriber}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.task.ValueTask.ValueUpdated
-import de.fuberlin.wiwiss.silk.learning.Population
-import de.fuberlin.wiwiss.silk.learning.individual.Individual
 import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkCondition}
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
@@ -17,6 +15,7 @@ import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.learning._
+import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 
 /**
  * Widget which shows the current population.

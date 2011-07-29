@@ -1,6 +1,4 @@
-package de.fuberlin.wiwiss.silk.learning
-
-import individual.Individual
+package de.fuberlin.wiwiss.silk.learning.individual
 
 /**
  * Represents a population of candidate solutions.
