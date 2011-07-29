@@ -10,12 +10,11 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{EvaluationTask, EvalLink}
 
-class GeneratedLinks extends LinkList
-{
-  /** Minimum time in milliseconds between two successive updates*/
+class GeneratedLinks extends LinkList {
+  /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
 
-  /** The time of the last update */
+  /**The time of the last update */
   private var lastUpdateTime = 0L
 
   override protected val showStatus = false
@@ -23,32 +22,22 @@ class GeneratedLinks extends LinkList
   protected val evaluationTask = User().evaluationTask
 
   override protected def registerEvents() {
-    /** Register to status messages of the evaluation task in order to be notified when new links are available */
-    evaluationTask.subscribe(new Subscriber[Status, EvaluationTask#Pub]
-    {
-      def notify(pub : EvaluationTask#Pub, status : Status)
-      {
-        status match
-        {
-          case _ : Started =>
-          {
-          }
-          case _ : Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod =>
-          {
+    /**Register to status messages of the evaluation task in order to be notified when new links are available */
+    evaluationTask.subscribe(new Subscriber[Status, EvaluationTask#Pub] {
+      def notify(pub: EvaluationTask#Pub, status: Status) {
+        status match {
+          case _: Started => {}
+          case _: Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
             partialUpdate(updateLinksCmd)
             lastUpdateTime = System.currentTimeMillis
           }
-          case _ : Finished =>
-          {
-            val cmd =
-            {
+          case _: Finished => {
+            val cmd = {
               val warnings = evaluationTask.warnings
-              if(warnings.isEmpty)
-              {
+              if (warnings.isEmpty) {
                 updateLinksCmd
               }
-              else
-              {
+              else {
                 updateLinksCmd & Alert("Warnings have been raised during execution:\n- " + warnings.map(_.getMessage).mkString("\n- "))
               }
             }
@@ -61,39 +50,29 @@ class GeneratedLinks extends LinkList
     })
   }
 
-  override protected def links : Seq[EvalLink] =
-  {
+  override protected def links: Seq[EvalLink] = {
     def alignment = linkingTask.alignment
 
-    for(link <- evaluationTask.links.view) yield
-    {
-      if(alignment.positive.contains(link))
-      {
+    for (link <- evaluationTask.links.view) yield {
+      if (alignment.positive.contains(link)) {
         new EvalLink(link, Correct, Generated)
-      }
-      else if(alignment.negative.contains(link))
-      {
+      } else if (alignment.negative.contains(link)) {
         new EvalLink(link, Incorrect, Generated)
-      }
-      else
-      {
+      } else {
         new EvalLink(link, Unknown, Generated)
       }
     }
   }
 
-  override protected def renderStatus(link : EvalLink) : NodeSeq =
-  {
-    link.correct match
-    {
+  override protected def renderStatus(link: EvalLink): NodeSeq = {
+    link.correct match {
       case Correct => <div>correct</div>
       case Incorrect => <div>wrong</div>
       case Unknown => <div>unknown</div>
     }
   }
 
-  override protected def renderButtons(link : EvalLink) : NodeSeq =
-  {
+  override protected def renderButtons(link: EvalLink): NodeSeq = {
     <div id={getId(link, "confirmedLink")} style={if(link.correct == Correct) "display:block" else "display:none"}>
       <a><img src="./static/img/confirm.png" /></a>
       {SHtml.a(() => resetLink(link), <img src="./static/img/undecided-disabled.png" />)}
@@ -111,11 +90,10 @@ class GeneratedLinks extends LinkList
     </div>
   }
 
-  private def confirmLink(link : Link) =
-  {
+  private def confirmLink(link: Link) = {
     val project = User().project
     val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.updateAlignment( alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link), project)
+    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link), project)
 
     project.linkingModule.update(updatedTask)
     User().task = updatedTask
@@ -123,8 +101,7 @@ class GeneratedLinks extends LinkList
     JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink")) & JsHideId(getId(link, "undecidedLink"))
   }
 
-  private def declineLink(link : Link) =
-  {
+  private def declineLink(link: Link) = {
     val project = User().project
     val alignment = linkingTask.alignment
     val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link), project)
@@ -135,8 +112,7 @@ class GeneratedLinks extends LinkList
     JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "undecidedLink"))
   }
 
-  private def resetLink(link : Link) =
-  {
+  private def resetLink(link: Link) = {
     val project = User().project
     val alignment = linkingTask.alignment
     val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link), project)

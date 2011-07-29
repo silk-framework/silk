@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
@@ -9,6 +8,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
 import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
+import net.liftweb.http.js.JE.{Call, JsRaw}
 
 /**
  * A widget which displays a list of links.
@@ -76,7 +76,7 @@ trait LinkList extends CometActor {
         }
       </div>
 
-    SetHtml("results", html) & JsRaw("initTrees();").cmd & JsRaw("updateResultsWidth();").cmd
+    SetHtml("results", html) & Call("initTrees").cmd & Call("updateResultsWidth").cmd
   }
 
   private def sortByConfidence = {
