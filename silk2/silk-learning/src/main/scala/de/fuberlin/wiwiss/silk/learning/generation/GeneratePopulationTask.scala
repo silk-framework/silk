@@ -1,10 +1,10 @@
-package de.fuberlin.wiwiss.silk.learning
+package de.fuberlin.wiwiss.silk.learning.generation
 
-import generation.RandomGenerator
 import de.fuberlin.wiwiss.silk.util.ParallelMapper
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
-import individual.Individual
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
+import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 
 class GeneratePopulationTask(instances : ReferenceInstances, config : LearningConfiguration) extends Task[Population]
 {
@@ -12,12 +12,15 @@ class GeneratePopulationTask(instances : ReferenceInstances, config : LearningCo
 
   override def execute() : Population =
   {
-    val individuals = new ParallelMapper(0 until populationSize).map{ i => updateStatus(i.toDouble / populationSize); generate() }
+    val individuals = new ParallelMapper(0 until populationSize).map{ i =>
+      updateStatus(i.toDouble / populationSize);
+      generateIndividual()
+    }
 
     Population(individuals)
   }
 
-  private def generate() : Individual =
+  private def generateIndividual() : Individual =
   {
     val linkCondition = RandomGenerator(config.generation)
     val fitness = LinkConditionEvaluator(linkCondition.build, instances)

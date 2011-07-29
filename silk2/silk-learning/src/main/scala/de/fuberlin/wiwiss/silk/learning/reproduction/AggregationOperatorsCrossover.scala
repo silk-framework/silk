@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.learning.crossover
+package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.learning.individual.AggregationNode
-import de.fuberlin.wiwiss.silk.learning.crossover.Utils.crossoverNodes
+import de.fuberlin.wiwiss.silk.learning.reproduction.Utils.crossoverNodes
 
 /**
  * A crossover operator which combines the operators of two aggregations.

@@ -1,6 +1,6 @@
-package de.fuberlin.wiwiss.silk
+package de.fuberlin.wiwiss.silk.learning
 
 /**
- * Models a candidate solution.
+ * Models the learned individuals i.e. candidate solutions.
  */
 package object individual
