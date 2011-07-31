@@ -4,13 +4,14 @@ import cleaning.CleanPopulationTask
 import generation.GeneratePopulationTask
 import individual.Population
 import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import reproduction.ReproductionTask
+import de.fuberlin.wiwiss.silk.util.task.{Task, ValueTask}
 import de.fuberlin.wiwiss.silk.evaluation.{LinkConditionEvaluator, ReferenceInstances}
 
-//TODO change result type from Population to Statistics
-class LearningTask(instances: ReferenceInstances, validationInstances: ReferenceInstances = ReferenceInstances.empty) extends ValueTask[Population](Population()) {
+class LearningTask(instances: ReferenceInstances,
+                   validationInstances: ReferenceInstances = ReferenceInstances.empty) extends ValueTask[LearningResult](LearningResult()) {
 
+  /** The learning configuration. */
   private val config = LearningConfiguration.load(instances)
 
   /** The desired fMeasure. The algorithm will stop after reaching it. */
@@ -25,81 +26,80 @@ class LearningTask(instances: ReferenceInstances, validationInstances: Reference
   private val maxIneffectiveIterations = 10
 
   /** Maximum difference between two fitness values to be considered equal. */
-  private val fitnessEpsilon = 0.0001
+  private val scoreEpsilon = 0.0001
 
+  @volatile private var startTime = 0L
+
+  /** Set if the task has been stopped. */
   @volatile private var stop = false
 
-  @volatile var statistics: LearningStatistics = null
+  @volatile private var ineffectiveIterations = 0
 
+  /** Don't log progress. */
   logLevel = Level.FINE
 
-  override def execute(): Population = {
+  override def execute(): LearningResult = {
+    //Reset state
+    startTime = System.currentTimeMillis
     stop = false
-    val startTime = System.currentTimeMillis
+    ineffectiveIterations = 0
 
-    updateStatus(0.0)
-    value.update(executeSubTask(new GeneratePopulationTask(instances, config)))
-
-    var bestMeasure = 0.0
-    var ineffectiveIterations = 0
-    var iteration = 0
-    var message = ""
+    //Generate initial population
+    executeTask(new GeneratePopulationTask(instances, config))
 
     while (!stop) {
-      iteration += 1
+      executeTask(new ReproductionTask(value.get.population, instances, config))
 
-      println("Iteration " + iteration)
-
-      updateStatus(0.0)
-      value.update(executeSubTask(new ReproductionTask(value.get, instances, config)))
-
-      if (iteration % cleanFrequency == 0) {
-        println("Cleaning")
-        updateStatus(0.0)
-        value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config)))
+      if (value.get.iterations % cleanFrequency == 0) {
+        executeTask(new CleanPopulationTask(value.get.population, instances, config))
       }
 
-      val fMeasure = value.get.individuals.map(_.fitness.fMeasure).max
-
-      if (fMeasure > destinationfMeasure) {
-        message = "Success"
-        stop = true
-      } else if (fMeasure <= bestMeasure + fitnessEpsilon) {
-        ineffectiveIterations += 1
-        if(ineffectiveIterations > maxIneffectiveIterations) {
-          message = "Too many ineffective iterations"
-          stop = true
-        }
-      }
-
-      if (iteration >= maxIterations) {
-        message = "Reached maximum iterations"
-        stop = true
-      }
-
-      bestMeasure = fMeasure
+      stop = value.get.status.isInstanceOf[LearningResult.Finished]
     }
 
-    updateStatus(0.0)
-    value.update(executeSubTask(new CleanPopulationTask(value.get, instances, config)))
-
-    val bestIndividual = value.get.individuals.maxBy(_.fitness.score)
-
-    statistics =
-        LearningStatistics(
-          time = System.currentTimeMillis() - startTime,
-          iterations = iteration,
-          fitness = bestIndividual.fitness,
-          validationResult = LinkConditionEvaluator(bestIndividual.node.build, validationInstances),
-          message = message
-        )
-
-    logger.info(statistics.toString)
+    executeTask(new CleanPopulationTask(value.get.population, instances, config))
 
     value.get
   }
 
   override def stopExecution() {
     stop = true
+  }
+
+  private def executeTask(task: Task[Population]) {
+    updateStatus(0.0)
+    val population = executeSubTask(task)
+    val iterations = if(task.isInstanceOf[ReproductionTask]) value.get.iterations + 1 else value.get.iterations
+
+    if (population.bestIndividual.fitness.score <= bestScore + scoreEpsilon)
+      ineffectiveIterations += 1
+
+    val status =
+      if (population.bestIndividual.fitness.fMeasure > destinationfMeasure)
+        LearningResult.Success
+      else if (ineffectiveIterations > maxIneffectiveIterations)
+          LearningResult.MaximumIneffectiveIterationsReached
+      else if (iterations > maxIterations)
+        LearningResult.MaximumIterationsReached
+      else
+        LearningResult.Running
+
+    val result =
+      LearningResult(
+        iterations = iterations,
+        time = System.currentTimeMillis() - startTime,
+        population = population,
+        validationResult = LinkConditionEvaluator(population.bestIndividual.node.build, validationInstances),
+        status = status
+      )
+
+    value.update(result)
+  }
+
+  private def bestScore = {
+    if(value.get.population.isEmpty)
+      Double.NegativeInfinity
+    else
+      value.get.population.bestIndividual.fitness.score
   }
 }

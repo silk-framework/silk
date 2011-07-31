@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import collection.mutable.{Publisher, Subscriber}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import de.fuberlin.wiwiss.silk.util.task.ValueTask.ValueUpdated
 import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkCondition}
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
@@ -23,7 +22,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 class LearningWidget extends CometActor {
 
   /** The individuals to be rendered. */
-  private def individuals = CurrentLearningTask().value.get.individuals
+  private def individuals = CurrentLearningTask().value.get.population.individuals
 
   /** The number of links shown on one page. */
   private val pageSize = 100
@@ -35,11 +34,7 @@ class LearningWidget extends CometActor {
    * Subscribe to events of the current learning task.
    * Whenever the population is changed the learning tasks fires an event on which we redraw the widget.
    */
-  CurrentLearningTask().value.subscribe(new Subscriber[ValueUpdated[Population], Publisher[ValueUpdated[Population]]] {
-    def notify(pub : Publisher[ValueUpdated[Population]], event : ValueUpdated[Population]) {
-      partialUpdate(updateListCmd)
-    }
-  })
+  CurrentLearningTask().value.onUpdate(_ => partialUpdate(updateListCmd))
 
   /**
    * Renders this widget.

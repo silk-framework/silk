@@ -21,22 +21,29 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
    * Executes all cross validation runs.
    */
   override def execute() {
-    for(run <- 1 to numRuns) yield {
-      val statistics = crossValidation()
-      println(StatisticsLatexFormatter(statistics))
-    }
+    val results = for(run <- 0 until numRuns; result <- crossValidation(run)) yield result
+    val aggregatedResults = for(iterationResults <- results.transpose) yield AggregatedLearningResult(iterationResults)
+
+    for(result <- aggregatedResults)
+      println(result)
   }
 
   /**
    * Executes one cross validation run.
    */
-  private def crossValidation(): Iterable[LearningStatistics] = {
+  private def crossValidation(run: Int): Iterable[Seq[LearningResult]] = {
     val splits = splitReferenceInstances()
 
     for((split, index) <- splits.zipWithIndex) yield {
       val learningTask = new LearningTask(split.trainingSet, split.validationSet)
-      executeSubTask(learningTask, index.toDouble / splits.size)
-      learningTask.statistics
+
+      var results = List[LearningResult]()
+      val addResult = (result: LearningResult) => results ::= result
+      learningTask.value.onUpdate(addResult)
+
+      executeSubTask(learningTask, (run.toDouble + index.toDouble / splits.size) / numRuns)
+
+      results.reverse
     }
   }
 

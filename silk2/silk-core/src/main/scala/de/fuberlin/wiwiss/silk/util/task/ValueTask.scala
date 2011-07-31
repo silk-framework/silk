@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.util.task
 
-import collection.mutable.Publisher
 import de.fuberlin.wiwiss.silk.util.task.ValueTask.ValueHolder
+import de.fuberlin.wiwiss.silk.util.Observable
 
 /**
  * A task where the intermediate results of the computation can be retrieved.
@@ -15,19 +15,14 @@ object ValueTask {
   /**
    * Holds a value.
    */
-  class ValueHolder[T](initialValue: T) extends Publisher[ValueUpdated[T]] {
+  class ValueHolder[T](initialValue: T) extends Observable[T] {
       @volatile private var currentValue = initialValue
 
       def get: T = currentValue
 
       def update(v: T) {
         currentValue = v
-        publish(ValueUpdated(v))
+        publish(v)
       }
   }
-
-  /**
-   * Thrown if the current value is updated.
-   */
-  case class ValueUpdated[T](value: T)
 }
