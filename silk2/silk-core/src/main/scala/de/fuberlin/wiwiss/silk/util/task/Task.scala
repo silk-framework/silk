@@ -11,7 +11,7 @@ import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
  */
 trait Task[+T] extends HasStatus with (() => T) {
 
-  var taskName = "Task"
+  var taskName = getClass.getSimpleName
 
   /**
    * Executes this task and returns the result.
@@ -25,6 +25,7 @@ trait Task[+T] extends HasStatus with (() => T) {
       result
     } catch {
       case ex: Exception => {
+        logger.log(Level.WARNING, taskName + "failed", ex)
         updateStatus(Finished(taskName, false, Some(ex)))
         throw ex
       }
