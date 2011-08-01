@@ -26,7 +26,7 @@ object LearningResult {
   case object Success extends Finished
 }
 
-object StatisticsLatexFormatter {
+object LearningResultLatexFormatter {
   def apply(statistics: Iterable[LearningResult]): String = {
     val header =
       "\\begin{tabular}{| l | l | l | l |}\n" +

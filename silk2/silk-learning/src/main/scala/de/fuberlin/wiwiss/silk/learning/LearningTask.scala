@@ -20,10 +20,10 @@ class LearningTask(instances: ReferenceInstances,
   private val cleanFrequency = 5
 
   /** The maximum number of iterations before giving up. */
-  private val maxIterations = 10
+  private val maxIterations = 50
 
   /** The maximum number of subsequent iterations without any increase in fitness before giving up. */
-  private val maxIneffectiveIterations = 10
+  private val maxIneffectiveIterations = 50
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val scoreEpsilon = 0.0001
@@ -77,9 +77,9 @@ class LearningTask(instances: ReferenceInstances,
     val status =
       if (population.bestIndividual.fitness.fMeasure > destinationfMeasure)
         LearningResult.Success
-      else if (ineffectiveIterations > maxIneffectiveIterations)
+      else if (ineffectiveIterations >= maxIneffectiveIterations)
           LearningResult.MaximumIneffectiveIterationsReached
-      else if (iterations > maxIterations)
+      else if (iterations >= maxIterations)
         LearningResult.MaximumIterationsReached
       else
         LearningResult.Running

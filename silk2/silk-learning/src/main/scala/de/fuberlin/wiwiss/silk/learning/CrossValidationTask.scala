@@ -9,7 +9,7 @@ import java.util.logging.Level
  */
 class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   /** The number of cross validation runs. */
-  private val numRuns = 1
+  private val numRuns = 3
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 4
@@ -24,8 +24,9 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
     val results = for(run <- 0 until numRuns; result <- crossValidation(run)) yield result
     val aggregatedResults = for(iterationResults <- results.transpose) yield AggregatedLearningResult(iterationResults)
 
-    for(result <- aggregatedResults)
-      println(result)
+    println(AggregatedLearningResult.format(aggregatedResults, true).toLatex)
+    println()
+    println(AggregatedLearningResult.format(aggregatedResults, false).toCsv)
   }
 
   /**
@@ -38,7 +39,10 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
       val learningTask = new LearningTask(split.trainingSet, split.validationSet)
 
       var results = List[LearningResult]()
-      val addResult = (result: LearningResult) => results ::= result
+      val addResult = (result: LearningResult) => {
+        if (result.iterations > results.view.map(_.iterations).headOption.getOrElse(0))
+          results ::= result
+      }
       learningTask.value.onUpdate(addResult)
 
       executeSubTask(learningTask, (run.toDouble + index.toDouble / splits.size) / numRuns)
