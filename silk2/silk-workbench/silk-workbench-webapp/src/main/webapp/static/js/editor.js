@@ -2,7 +2,7 @@ var aggregatecounter = 0;
 var transformcounter = 0;
 var comparecounter = 0;
 var sourcecounter = 0;
-var targetcounter = 0;
+var elementcounter = 0;
 
 var transformations = new Object();
 var comparators = new Object();
@@ -120,27 +120,41 @@ function confirmExit()
   }
 }
 
+function generateNewElementId() {
+    var nameExists;
+    do {
+        nameExists = false;
+        elementcounter = elementcounter + 1;
+        $("div.label:contains('unnamed_" + elementcounter + "')").each(function() {
+          if (("unnamed_" + elementcounter).length == $(this).text().length) {
+              nameExists = true;
+          }
+        });
+    } while (nameExists || $("#unnamed_"+elementcounter).length > 0);
+    return "unnamed_"+elementcounter;
+}
+
 var validateLinkSpec = function() {
     var errors = new Array();
     var root_elements = 0;
+
     $("#droppable > div.dragDiv").each(function() {
         var elId = $(this).attr('id');
-        var newName = $("#" + elId + " > .label").text();
-        if (!newName) newName = $("#" + elId + " > div.label-active > input.label-change").val();
-        if (newName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
+        var elName = $("#" + elId + " > .label").text();
+        if (!elName) elName = $("#" + elId + " > div.label-active > input.label-change").val();
+        if (elName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
           errorObj = new Object;
-          errorObj.id = newName;
-          errorObj.message = "Error in Element with id '"+ elId +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + newName + "'.";
+          errorObj.id = elId;
+          errorObj.message = "Error in element with id '"+ elId +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + elName + "'.";
           errors.push(errorObj);
         }
-
         var target = jsPlumb.getConnections({source: elId});
         if (target[jsPlumb.getDefaultScope()] === undefined || target[jsPlumb.getDefaultScope()].length == 0) {
             root_elements++;
             if (root_elements > 1) {
               errorObj = new Object();
               errorObj.id = elId;
-              errorObj.message = "Error: Unconnected element '" + elId + "'.";
+              errorObj.message = "Error: Unconnected element '" + elName + "'.";
               errors.push(errorObj);
             }
         }
@@ -151,7 +165,7 @@ var validateLinkSpec = function() {
     } else {
         updateLinkSpec(serializeLinkSpec());     // send to server
     }
-}
+};
 
 function modifyLinkSpec() {
   confirmOnExit = true;
@@ -224,14 +238,18 @@ function printErrorMessages(array) {
 }
 
 function highlightElement(elId, message) {
-  var elementToHighlight = $("div.label:contains('" + elId + "')").parent();
-  if (elementToHighlight.length == 0) elementToHighlight = $("input.label-change[value='" + elId + "']").parent().parent();
+  var elementToHighlight;
+  $("div.label:contains('" + elId + "')").each(function() {
+      if (elId.length == $(this).text().length) elementToHighlight = $(this).parent();
+  });
+  if (!elementToHighlight) elementToHighlight = $("#" + elId);
   elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + message + '")').attr("onmouseout", "UnTip()");
+  jsPlumb.repaint(elementToHighlight);
 }
 function removeHighlighting() {
   $("div .dragDiv").removeClass('highlighted').removeAttr('onmouseover');
+  jsPlumb.repaintEverything();
 }
-
 
 Array.max = function(array) {
     return Math.max.apply(Math, array);
@@ -957,118 +975,59 @@ $(function ()
   {
     drop: function (ev, ui)
     {
+      var draggedId = $(ui.draggable).attr("id");
+      var boxid = ui.helper.attr('id');
+      var number = "#" + boxid;
+
       if ($("#droppable").find("> #"+ui.helper.attr('id')+"").length == 0) {
         //$(this).append($(ui.helper).clone());
         $.ui.ddmanager.current.cancelHelperRemoval = true;
         ui.helper.appendTo(this);
-
         /*
         styleString = $("#"+ui.helper.attr('id')).attr("style");
         styleString = styleString.replace("position: absolute", "");
         $("#"+ui.helper.attr('id')).attr("style", styleString);
         */
-        if (ui.helper.attr('id').search(/aggregate/) != -1)
+
+        $(number).prepend('<div class="label">' + boxid + '</div>');
+        $(number).draggable(
         {
-          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="compare"], canvas[elType="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
-          jsPlumb.addEndpoint('aggregate_' + aggregatecounter, endpointOptions2);
-          var number = "#aggregate_" + aggregatecounter;
-
-          $(number).prepend('<div class="label">' + "aggregate_" + aggregatecounter + '</div>');
-
-          $(number).draggable(
-          {
-            containment: '#droppable',
+          containment: '#droppable',
             drag: function(event, ui) {
               jsPlumb.repaint(number);
             },
             stop: function(event, ui) {
               jsPlumb.repaint(number);
             }
-          });
-          aggregatecounter = aggregatecounter + 1;
+        });
+
+        if (draggedId.search(/aggregator/) != -1)
+        {
+          jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="compare"], canvas[elType="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint(boxid, endpointOptions2);
           $(number).nextUntil("div", ".ui-draggable").attr("elType", "aggregate");
         }
-        if (ui.helper.attr('id').search(/transform/) != -1)
+        if (draggedId.search(/transform/) != -1)
         {
-          jsPlumb.addEndpoint('transform_' + transformcounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
-          jsPlumb.addEndpoint('transform_' + transformcounter, endpointOptions2);
-          var number = "#transform_" + transformcounter;
-
-          $(number).prepend('<div class="label">' + "transform_" + transformcounter + '</div>');
-
-          $(number).draggable(
-          {
-            containment: '#droppable',
-            drag: function(event, ui) {
-              jsPlumb.repaint(number);
-            },
-            stop: function(event, ui) {
-              jsPlumb.repaint(number);
-            }
-          });
-          transformcounter = transformcounter + 1;
+          jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint(boxid, endpointOptions2);
           $(number).nextUntil("div", ".ui-draggable").attr("elType", "transform");
         }
-        if (ui.helper.attr('id').search(/compare/) != -1)
+        if (draggedId.search(/comparator/) != -1)
         {
-          jsPlumb.addEndpoint('compare_' + comparecounter, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
-          jsPlumb.addEndpoint('compare_' + comparecounter, endpointOptions2);
-          var number = "#compare_" + comparecounter;
-
-          $(number).prepend('<div class="label">' + "compare_" + comparecounter + '</div>');
-
-          $(number).draggable(
-          {
-            containment: '#droppable',
-            drag: function(event, ui) {
-              jsPlumb.repaint(number);
-            },
-            stop: function(event, ui) {
-              jsPlumb.repaint(number);
-            }
-          });
-          comparecounter = comparecounter + 1;
+          jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }}, endpointOptions1));
+          jsPlumb.addEndpoint(boxid, endpointOptions2);
           $(number).nextUntil("div", ".ui-draggable").attr("elType", "compare");
         }
-        if (ui.helper.attr('id').search(/source/) != -1)
+        if (draggedId.search(/source/) != -1)
         {
-          jsPlumb.addEndpoint('source_' + sourcecounter, endpointOptions);
-          var number = "#source_" + sourcecounter;
-
-          $(number).prepend('<div class="label">' + "source_" + sourcecounter + '</div>');
-
-          $(number).draggable(
-          {
-            containment: '#droppable',
-            drag: function(event, ui) {
-              jsPlumb.repaint(number);
-            },
-            stop: function(event, ui) {
-              jsPlumb.repaint(number);
-            }
-          });
-          sourcecounter = sourcecounter + 1;
+          jsPlumb.addEndpoint(boxid, endpointOptions);
           $(number).nextUntil("div", ".ui-draggable").attr("elType", "source");
         }
-        if (ui.helper.attr('id').search(/target/) != -1)
+        if (draggedId.search(/target/) != -1)
         {
-          jsPlumb.addEndpoint('target_' + targetcounter, endpointOptions);
-          var number = "#target_" + targetcounter;
-
-          $(number).prepend('<div class="label">' + "target_" + targetcounter + '</div>');
-
-          $(number).draggable(
-          {
-            containment: '#droppable',
-            drag: function(event, ui) {
-              jsPlumb.repaint(number);
-            },
-            stop: function(event, ui) {
-              jsPlumb.repaint(number);
-            }
-          });
-          targetcounter = targetcounter + 1;
-          $(number).nextUntil("div", ".ui-draggable").attr("elType", "source");
+          jsPlumb.addEndpoint(boxid, endpointOptions);
+          $(number).nextUntil("div", ".ui-draggable").attr("elType", "target");
         }
 
         // fix the position of the new added box
@@ -1079,7 +1038,6 @@ $(function ()
         var left = offset.left-502+scrollleft+scrollleft;
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
-
         modifyLinkSpec();
       }
     }
@@ -1192,7 +1150,9 @@ function getPropertyPaths(deleteExisting)
           {
             var box1 = $(document.createElement('div'));
             box1.addClass('dragDiv sourcePath');
-            box1.attr("id", "source_" + sourcecounter);
+
+            var boxid = generateNewElementId();
+            box1.attr("id", boxid);
 
             var box2 = $(document.createElement('small'));
             box2.addClass('name');
@@ -1214,7 +1174,7 @@ function getPropertyPaths(deleteExisting)
             input.val("?" + sourceDataSetVar);
             box2.append(input);
 
-            box2.append(getDeleteIcon("#source_" + sourcecounter));
+            box2.append(getDeleteIcon("#"+boxid));
 
             box1.append(box2);
 
@@ -1253,7 +1213,8 @@ function getPropertyPaths(deleteExisting)
           {
             var box1 = $(document.createElement('div'));
             box1.addClass('dragDiv targetPath');
-            box1.attr("id", "source_" + sourcecounter);
+            var boxid = generateNewElementId();
+            box1.attr("id", boxid);
 
             var box2 = $(document.createElement('small'));
             box2.addClass('name');
@@ -1275,7 +1236,7 @@ function getPropertyPaths(deleteExisting)
             input.val("?" + targetDataSetVar);
             box2.append(input);
 
-            box2.append(getDeleteIcon("#source_" + sourcecounter));
+            box2.append(getDeleteIcon("#"+boxid));
 
             box1.append(box2);
 
@@ -1297,7 +1258,7 @@ function getPropertyPaths(deleteExisting)
   {
     if(data.isLoading)
     {
-	    var dot = document.createTextNode(".");
+	  var dot = document.createTextNode(".");
       document.getElementById("loading").appendChild(dot);
       setTimeout("getPropertyPaths();", 1000);
       if ($("#loading").html().length>40) $("#loading").html("loading ...");
@@ -1333,7 +1294,8 @@ function getPropertyPaths(deleteExisting)
         {
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv sourcePath');
-          box1.attr("id", "source_" + sourcecounter);
+          var boxid = generateNewElementId();
+          box1.attr("id", boxid);
 
           var box2 = $(document.createElement('small'));
           box2.addClass('name');
@@ -1357,7 +1319,7 @@ function getPropertyPaths(deleteExisting)
           span.append(mytext);
           box2.append(span);
 
-          box2.append(getDeleteIcon("#source_" + sourcecounter));
+          box2.append(getDeleteIcon("#"+boxid));
 
           box1.append(box2);
 
@@ -1403,7 +1365,8 @@ function getPropertyPaths(deleteExisting)
         {
           var box1 = $(document.createElement('div'));
           box1.addClass('dragDiv targetPath');
-          box1.attr("id", "target_" + targetcounter);
+          var boxid = generateNewElementId();
+          box1.attr("id", boxid);
 
           var box2 = $(document.createElement('small'));
           box2.addClass('name');
@@ -1427,7 +1390,7 @@ function getPropertyPaths(deleteExisting)
           span.append(mytext);
           box2.append(span);
 
-          box2.append(getDeleteIcon("#target_" + targetcounter));
+          box2.append(getDeleteIcon("#"+boxid));
 
           box1.append(box2);
 
@@ -1503,7 +1466,8 @@ function getOperators()
             {
               var box1 = $(document.createElement('div'));
               box1.addClass('dragDiv transformDiv');
-              box1.attr("id", "transform_" + transformcounter);
+              var boxid = generateNewElementId();
+              box1.attr("id", boxid);
 
               var box2 = $(document.createElement('small'));
               box2.addClass('name');
@@ -1521,12 +1485,12 @@ function getOperators()
 
               var span = $(document.createElement('div'));
               span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-              span.attr("title", item.label + " (Transformation)")
+              span.attr("title", item.label + " (Transformation)");
               var mytext = document.createTextNode(item.label + " (Transformation)");
               span.append(mytext);
               box2.append(span);
 
-              box2.append(getDeleteIcon("#transform_" + transformcounter));
+              box2.append(getDeleteIcon("#"+boxid));
 
               box1.append(box2);
 
@@ -1596,7 +1560,8 @@ function getOperators()
             {
               var box1 = $(document.createElement('div'));
               box1.addClass('dragDiv compareDiv');
-              box1.attr("id", "compare_" + comparecounter);
+              var boxid = generateNewElementId();
+              box1.attr("id", boxid);
 
               var box2 = $(document.createElement('small'));
               box2.addClass('name');
@@ -1614,12 +1579,12 @@ function getOperators()
 
               var span = $(document.createElement('div'));
               span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-              span.attr("title", item.label + " (Comparator)")
+              span.attr("title", item.label + " (Comparator)");
               var mytext = document.createTextNode(item.label + " (Comparator)");
               span.append(mytext);
               box2.append(span);
 
-              box2.append(getDeleteIcon("#compare_" + comparecounter));
+              box2.append(getDeleteIcon("#"+boxid));
 
               box1.append(box2);
 
@@ -1682,7 +1647,6 @@ function getOperators()
 
               box1.append(box2);
 
-              // jsPlumb.addEndpoint('compare_1', endpointOptions);
               return box1;
             }
           });
@@ -1723,7 +1687,8 @@ function getOperators()
             {
               var box1 = $(document.createElement('div'));
               box1.addClass('dragDiv aggregateDiv');
-              box1.attr("id", "aggregate_" + aggregatecounter);
+              var boxid = generateNewElementId();
+              box1.attr("id", boxid);
 
               var box2 = $(document.createElement('small'));
               box2.addClass('name');
@@ -1741,12 +1706,12 @@ function getOperators()
 
               var span = $(document.createElement('div'));
               span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-              span.attr("title", item.label + " (Aggregator)")
+              span.attr("title", item.label + " (Aggregator)");
               var mytext = document.createTextNode(item.label + " (Aggregator)");
               span.append(mytext);
               box2.append(span);
 
-              box2.append(getDeleteIcon("#aggregate_" + aggregatecounter));
+              box2.append(getDeleteIcon("#"+boxid));
 
               box1.append(box2);
 
