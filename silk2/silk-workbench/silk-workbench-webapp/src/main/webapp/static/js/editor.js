@@ -688,7 +688,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box2.addClass('handler');
 
     var span = $(document.createElement('div'));
-    span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+    span.attr("style", "width: 170px; min-height: 19px; white-space:nowrap; overflow:hidden; float: left;");
     span.attr("title", $(this).attr("path"));
     var mytext = document.createTextNode($(this).attr("path"));
     span.append(mytext);
@@ -832,17 +832,19 @@ function createNewElement(elementId)
 	var elName = ($(elementIdName).children(".name").text());
 	var elType = ($(elementIdName).children(".type").text());
 	var xml = document.createElement(elType);
-
     var newName = $(elementIdName + " > .label").text();
     if (!newName) newName = $(elementIdName + " > div.label-active > input.label-change").val();
+    var newPath = $(elementIdName).children().children("input.new-path").val();
     xml.setAttribute("id", newName);
 
     if (elType == "Input") {
-    if (elName == "") {
-      xml.setAttribute("path", $(elementIdName+" > h5 > input").val());
-    } else {
-      xml.setAttribute("path", decodeHtml(elName));
-    }
+        var pathInput = $(elementIdName+" > h5 > div > input").val();
+        var path = ($(elementIdName+" > h5 > div").text());
+        if (pathInput !== undefined) {
+          xml.setAttribute("path", pathInput);
+        } else {
+          xml.setAttribute("path", decodeHtml(path));
+        }
 	} else if (elType == "TransformInput") {
 		xml.setAttribute("function", elName);
     } else if (elType == "Aggregate") {
@@ -1093,6 +1095,23 @@ $(function ()
     var new_label = $(this).val();
     $(this).parent().html(new_label).addClass('label').removeClass('label-active');
   });
+
+  $("div.sourcePath > h5 > div[class!='active'], div.targetPath > h5 > div[class!='active']").live('click', function() {
+    var thisPath = $(this).text();
+    if (!thisPath) thisPath = $(this).children().val();
+    $(this).addClass('active');
+    $(this).html('<input class="new-path" type="text" value="' + thisPath + '" />');
+    $(this).parent().css("height", "19px");
+    $(this).children().focus();
+  });
+
+  $(".new-path").live('blur', function() {
+    var newPath = $(this).val();
+    $(this).parent().parent().css("height", "15px");
+    $(this).parent().parent().children(".name").html(newPath);
+    $(this).parent().attr('title', newPath).html(newPath).removeClass('active');
+  });
+
 });
 
 function decodeHtml(value)
@@ -1168,11 +1187,14 @@ function getPropertyPaths(deleteExisting)
             box2.addClass('handler');
             box2.attr("style", "height: 19px;");
 
+            var span = $(document.createElement('div'));
+            span.attr("style", "width: 170px; min-height: 19px; white-space:nowrap; overflow:hidden; float: left;");
             var input = $(document.createElement('input'));
             input.attr("style", "width: 165px;");
             input.attr("type", "text");
             input.val("?" + sourceDataSetVar);
-            box2.append(input);
+            span.append(input);
+            box2.append(span);
 
             box2.append(getDeleteIcon("#"+boxid));
 
@@ -1230,11 +1252,14 @@ function getPropertyPaths(deleteExisting)
             box2.addClass('handler');
             box2.attr("style", "height: 19px;");
 
+            var span = $(document.createElement('div'));
+            span.attr("style", "width: 170px; min-height: 19px; white-space:nowrap; overflow:hidden; float: left;");
             var input = $(document.createElement('input'));
             input.attr("style", "width: 165px;");
             input.attr("type", "text");
             input.val("?" + targetDataSetVar);
-            box2.append(input);
+            span.append(input);
+            box2.append(span);
 
             box2.append(getDeleteIcon("#"+boxid));
 
@@ -1313,7 +1338,7 @@ function getPropertyPaths(deleteExisting)
           box2.addClass('handler');
 
           var span = $(document.createElement('div'));
-          span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+          span.attr("style", "width: 170px; min-height: 19px; white-space:nowrap; overflow:hidden; float: left;");
           span.attr("title", item.path);
           var mytext = document.createTextNode(item.path);
           span.append(mytext);
@@ -1384,7 +1409,7 @@ function getPropertyPaths(deleteExisting)
           box2.addClass('handler');
 
           var span = $(document.createElement('div'));
-          span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+          span.attr("style", "width: 170px; min-height: 19px; white-space:nowrap; overflow:hidden; float: left;");
           span.attr("title", item.path);
           var mytext = document.createTextNode(item.path);
           span.append(mytext);
