@@ -2,7 +2,11 @@ package de.fuberlin.wiwiss.silk.evaluation
 
 import math.abs
 
-case class VariableStatistic(mean: Double, standardDeviation: Double)
+case class VariableStatistic(mean: Double, standardDeviation: Double) {
+  def map(f: Double => Double) = {
+    VariableStatistic(f(mean), f(standardDeviation))
+  }
+}
 
 object VariableStatistic {
   def apply(values: Traversable[Double]): VariableStatistic = {
