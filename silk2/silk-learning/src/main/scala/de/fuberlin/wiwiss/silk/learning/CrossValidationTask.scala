@@ -3,7 +3,6 @@ package de.fuberlin.wiwiss.silk.learning
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import java.util.logging.Level
-import java.util.Random
 import scala.util.Random
 
 /**
@@ -11,7 +10,7 @@ import scala.util.Random
  */
 class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   /** The number of cross validation runs. */
-  private val numRuns = 1
+  private val numRuns = 10
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -28,7 +27,7 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
     //Make sure that all runs have the same number of results
     val paddedResults = results.map(r => r.padTo(results.map(_.size).max, r.last))
     //Aggregated the results of each iteration
-    val aggregatedResults = for(iterationResults <- paddedResults.transpose) yield AggregatedLearningResult(iterationResults)
+    val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
 
     println(AggregatedLearningResult.format(aggregatedResults, true).toLatex)
     println()
