@@ -8,6 +8,7 @@
     <CrossoverOperators>
       <CrossoverOperator type="OperatorCrossover" />
       <CrossoverOperator type="LimitCrossover" />
+      <CrossoverOperator type="WeightCrossover" />
       <CrossoverOperator type="AggregationOperatorsCrossover" />
       <CrossoverOperator type="AggregationStrategyCrossover" />
       <CrossoverOperator type="TransformationCrossover" />

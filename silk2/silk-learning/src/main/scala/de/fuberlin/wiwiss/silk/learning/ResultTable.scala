@@ -7,7 +7,7 @@ case class ResultTable(header: Seq[String], values: Seq[Seq[String]]) {
   }
 
   def toLatex = {
-    "\\begin{tabular}{| l | l | l | l | l | l |}\n" +
+    "\\begin{tabular}{| l | l | c | c | c | c |}\n" +
     "\\hline\n" +
     header.mkString("", " & ", "\\\\\n") +
     "\\hline\n" +

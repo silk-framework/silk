@@ -17,11 +17,9 @@ object AggregatedLearningResult {
   /**
    * Aggregates multiple learning results.
    */
-  def apply(results: Traversable[LearningResult]): AggregatedLearningResult = {
-    require(results.tail.forall(_.iterations == results.head.iterations), "All results must be from the same iteration")
-
+  def apply(results: Traversable[LearningResult], iteration: Int): AggregatedLearningResult = {
     AggregatedLearningResult(
-      iterations = results.head.iterations,
+      iterations = iteration,
       time = VariableStatistic(results.map(_.time.toDouble)),
       trainingResult = AggregatedEvaluationResult(results.map(_.population.bestIndividual.fitness)),
       validationResult = AggregatedEvaluationResult(results.map(_.validationResult))
@@ -38,7 +36,7 @@ object AggregatedLearningResult {
   private class Formatter(includeStandardDeviation: Boolean) {
     def apply(results: Seq[AggregatedLearningResult]): ResultTable = {
       ResultTable(
-        header = "Iter." :: ("Time in s" :: "Train. F1" :: "Train. MCC" :: "Test F1" :: "Test MCC" :: Nil).map(withDerivation),
+        header = "Iter." :: ("Time in s" :: "Train. F1" :: "Train. MCC" :: "Val. F1" :: "Val. MCC" :: Nil).map(withDerivation),
         values = results.zipWithIndex.map(row _ tupled)
       )
     }

@@ -61,9 +61,9 @@ class RandomGenerator(config: GenerationConfiguration) extends IndividualGenerat
     val targetInput = generateInput(pathPair.target, false)
 
     if(Random.nextDouble > 0.3) {
-      ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextInt(5), StrategyNode("levenshteinDistance", Nil, DistanceMeasure))
+      ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextInt(5), Random.nextInt(20), StrategyNode("levenshteinDistance", Nil, DistanceMeasure))
     } else {
-      ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextDouble(), StrategyNode("jaccard", Nil, DistanceMeasure))
+      ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextDouble(), Random.nextInt(20), StrategyNode("jaccard", Nil, DistanceMeasure))
     }
   }
 
