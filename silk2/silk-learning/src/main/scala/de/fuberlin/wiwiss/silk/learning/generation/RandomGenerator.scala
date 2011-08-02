@@ -11,12 +11,12 @@ import de.fuberlin.wiwiss.silk.learning.individual._
 /**
  * Generates a random candidate solution.
  */
-object RandomGenerator {
+class RandomGenerator(config: GenerationConfiguration) extends IndividualGenerator {
   /**
    * Creates a new random link condition.
    */
-  def apply(config: GenerationConfiguration): LinkConditionNode = {
-    LinkConditionNode(Some(generateAggregation(config)))
+  def apply(): LinkConditionNode = {
+    LinkConditionNode(Some(generateAggregation()))
   }
 
   val aggregations = "max" :: "min" :: "average" :: Nil
@@ -28,7 +28,7 @@ object RandomGenerator {
   /**
    * Generates a random aggregation node.
    */
-  def generateAggregation(config: GenerationConfiguration): AggregationNode = {
+  def generateAggregation(): AggregationNode = {
     //Choose a random aggregation
     val aggregation = aggregations(Random.nextInt(aggregations.size))
 
@@ -38,7 +38,7 @@ object RandomGenerator {
     //Generate operators
     val operators =
       for (i <- List.range(1, operatorCount + 1)) yield {
-        generateComparison(config)
+        generateComparison()
       }
 
     //Build aggregation
@@ -49,8 +49,7 @@ object RandomGenerator {
 
   val metric = new LevenshteinMetric()
 
-  //TODO: Make config an implicit parameter
-  def generateComparison(config: GenerationConfiguration): ComparisonNode = {
+  def generateComparison(): ComparisonNode = {
 //    if (Random.nextDouble <= specialCaseProbability) {
 //      for (comparison <- ComparisonGenerator.generate(config)) return comparison
 //    }
@@ -61,12 +60,16 @@ object RandomGenerator {
     val sourceInput = generateInput(pathPair.source, true)
     val targetInput = generateInput(pathPair.target, false)
 
-    ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextInt(5), StrategyNode("levenshteinDistance", Nil, DistanceMeasure))
+    if(Random.nextDouble > 0.3) {
+      ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextInt(5), StrategyNode("levenshteinDistance", Nil, DistanceMeasure))
+    } else {
+      ComparisonNode(SourceTargetPair(sourceInput, targetInput), Random.nextDouble(), StrategyNode("jaccard", Nil, DistanceMeasure))
+    }
   }
 
   val transformationProbability = 0.5
 
-  val transformers = "lowerCase" :: "stripUriPrefix" :: Nil
+  val transformers = "lowerCase" :: "stripUriPrefix" :: "tokenize" :: Nil
 
   def generateInput(path: Path, isSource: Boolean): InputNode = {
     val pathInput = new PathInputNode(isSource, path)

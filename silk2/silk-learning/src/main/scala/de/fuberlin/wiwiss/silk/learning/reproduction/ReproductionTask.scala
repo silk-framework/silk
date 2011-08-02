@@ -6,28 +6,20 @@ import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEval
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
-import de.fuberlin.wiwiss.silk.learning.generation.RandomGenerator
+import de.fuberlin.wiwiss.silk.learning.generation.{IndividualGenerator, RandomGenerator}
 
-class ReproductionTask(population : Population, instances : ReferenceInstances, config : LearningConfiguration) extends Task[Population]
+class ReproductionTask(population : Population, instances : ReferenceInstances, generator: IndividualGenerator, config : ReproductionConfiguration) extends Task[Population]
 {
-  private val mutationProbability = 0.25
-
-  private val elitismCount = 3
-
-  private val tournamentSize = 5
-
-  private val keepHistory = false
-
-  val crossoverOperators = config.crossover.operators.toIndexedSeq
+  private val crossoverOperators = config.operators.toIndexedSeq
 
   private val individuals = population.individuals.toArray
 
   override def execute() : Population =
   {
-    val elite = individuals.sortBy(-_.fitness.score).take(elitismCount)
+    val elite = individuals.sortBy(-_.fitness.score).take(config.elitismCount)
 
     //Number of individuals to be generated
-    val count = individuals.size - elitismCount
+    val count = individuals.size - config.elitismCount
 
     val offspring = new ParallelMapper(0 until count).map{ i => updateStatus(i.toDouble / count); reproduce() }
 
@@ -41,7 +33,7 @@ class ReproductionTask(population : Population, instances : ReferenceInstances, 
 
     //Define the two crossover individuals: In case of mutation, we do a crossover with a new random node
     val sourceIndividual = select()
-    val targetLinkCondition = if(Random.nextDouble < mutationProbability) RandomGenerator(config.generation) else select().node
+    val targetLinkCondition = if(Random.nextDouble < config.mutationProbability) generator() else select().node
 
     operator(SourceTargetPair(sourceIndividual.node, targetLinkCondition)) match
     {
@@ -65,7 +57,7 @@ class ReproductionTask(population : Population, instances : ReferenceInstances, 
 
   private def select() : Individual =
   {
-    val tournamentNodes = List.fill(tournamentSize)(individuals(Random.nextInt(individuals.size)))
+    val tournamentNodes = List.fill(config.tournamentSize)(individuals(Random.nextInt(individuals.size)))
 
     tournamentNodes.reduceLeft((n1, n2) => if(n1.fitness.score > n2.fitness.score) n1 else n2)
   }

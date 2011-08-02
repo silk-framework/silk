@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.learning
 
-import reproduction.{CrossoverConfiguration}
+import reproduction.{ReproductionConfiguration}
 import generation.GenerationConfiguration
 import xml.XML
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 
-case class LearningConfiguration(generation: GenerationConfiguration, crossover: CrossoverConfiguration)
+case class LearningConfiguration(generation: GenerationConfiguration, reproduction: ReproductionConfiguration)
 
 object LearningConfiguration
 {
@@ -17,7 +17,7 @@ object LearningConfiguration
 
     LearningConfiguration(
       generation = GenerationConfiguration.fromXml(xml \ "GenerationConfiguration" head, instances),
-      crossover = CrossoverConfiguration.fromXml(xml \ "CrossoverConfiguration" head)
+      reproduction = ReproductionConfiguration.fromXml(xml \ "ReproductionConfiguration" head)
     )
   }
 }

@@ -4,7 +4,7 @@
 
   </GenerationConfiguration>
 
-  <CrossoverConfiguration>
+  <ReproductionConfiguration>
     <CrossoverOperators>
       <CrossoverOperator type="OperatorCrossover" />
       <CrossoverOperator type="LimitCrossover" />
@@ -12,6 +12,6 @@
       <CrossoverOperator type="AggregationStrategyCrossover" />
       <CrossoverOperator type="TransformationCrossover" />
     </CrossoverOperators>
-  </CrossoverConfiguration>
+  </ReproductionConfiguration>
 
 </LearningConfiguration>

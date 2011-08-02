@@ -2,12 +2,19 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import xml.Node
 
-case class CrossoverConfiguration(operators: Traversable[CrossoverOperator])
+case class ReproductionConfiguration(operators: Traversable[CrossoverOperator]) {
 
-object CrossoverConfiguration
+  val mutationProbability = 0.25
+
+  val elitismCount = 3
+
+  val tournamentSize = 5
+}
+
+object ReproductionConfiguration
 {
   def fromXml(xml: Node) = {
-    CrossoverConfiguration(
+    ReproductionConfiguration(
       operators = loadOperators(xml)
     )
   }
