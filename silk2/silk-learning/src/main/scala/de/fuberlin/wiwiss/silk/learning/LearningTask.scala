@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import cleaning.CleanPopulationTask
-import generation.GeneratePopulationTask
+import generation.{RandomGenerator, GeneratePopulationTask}
 import individual.Population
 import java.util.logging.Level
 import reproduction.ReproductionTask
@@ -44,20 +44,22 @@ class LearningTask(instances: ReferenceInstances,
     stop = false
     ineffectiveIterations = 0
 
+    val generator = new RandomGenerator(config.generation)
+
     //Generate initial population
-    executeTask(new GeneratePopulationTask(instances, config))
+    executeTask(new GeneratePopulationTask(instances, generator))
 
     while (!stop) {
-      executeTask(new ReproductionTask(value.get.population, instances, config))
+      executeTask(new ReproductionTask(value.get.population, instances, generator, config.reproduction))
 
       if (value.get.iterations % cleanFrequency == 0) {
-        executeTask(new CleanPopulationTask(value.get.population, instances, config))
+        executeTask(new CleanPopulationTask(value.get.population, instances, generator))
       }
 
       stop = value.get.status.isInstanceOf[LearningResult.Finished]
     }
 
-    executeTask(new CleanPopulationTask(value.get.population, instances, config))
+    executeTask(new CleanPopulationTask(value.get.population, instances, generator))
 
     value.get
   }

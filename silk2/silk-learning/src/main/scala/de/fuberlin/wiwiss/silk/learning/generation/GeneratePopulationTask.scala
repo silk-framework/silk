@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 
-class GeneratePopulationTask(instances : ReferenceInstances, config : LearningConfiguration) extends Task[Population]
+class GeneratePopulationTask(instances : ReferenceInstances, generator: IndividualGenerator) extends Task[Population]
 {
   val populationSize = 500
 
@@ -22,7 +22,7 @@ class GeneratePopulationTask(instances : ReferenceInstances, config : LearningCo
 
   private def generateIndividual() : Individual =
   {
-    val linkCondition = RandomGenerator(config.generation)
+    val linkCondition = generator()
     val fitness = LinkConditionEvaluator(linkCondition.build, instances)
 
     Individual(linkCondition, fitness)

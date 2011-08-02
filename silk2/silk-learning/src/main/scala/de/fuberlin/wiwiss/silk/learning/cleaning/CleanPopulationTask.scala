@@ -4,10 +4,10 @@ import de.fuberlin.wiwiss.silk.util.ParallelMapper
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
-import de.fuberlin.wiwiss.silk.learning.generation.RandomGenerator
 import de.fuberlin.wiwiss.silk.learning.individual._
+import de.fuberlin.wiwiss.silk.learning.generation.IndividualGenerator
 
-class CleanPopulationTask(population : Population, instances : ReferenceInstances, config : LearningConfiguration) extends Task[Population]
+class CleanPopulationTask(population : Population, instances : ReferenceInstances, generator: IndividualGenerator) extends Task[Population]
 {
   /** Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001
@@ -21,7 +21,7 @@ class CleanPopulationTask(population : Population, instances : ReferenceInstance
     //println("Removed: " + (individuals.size - distinctIndividuals.size))
 
     val randomIndividuals = new ParallelMapper(0 until population.individuals.size - distinctIndividuals.size).map{ i =>
-      val linkCondition = RandomGenerator(config.generation)
+      val linkCondition = generator()
       val fitness = LinkConditionEvaluator(linkCondition.build, instances)
 
       Individual(linkCondition, fitness)
