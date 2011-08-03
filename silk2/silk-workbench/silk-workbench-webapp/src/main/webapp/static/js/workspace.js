@@ -52,7 +52,7 @@ function addLeaf(leaf, parent, desc)
                  $(leaf_ul).append(leaf_li);
              var leaf_span = document.createElement("span");
                  $(leaf_span).addClass('file')
-                 .text(desc + leaf)
+                 .text(desc + leaf);
                  $(leaf_li).append(leaf_span);
           }
 }
@@ -279,7 +279,7 @@ function updateWorkspace(obj){
         if (ws.activeNodesId.length>0 || ws.activeTaskId || ws.activeProjectId)  loadOpenNodes();
 
         $("#tree").treeview({animated:"fast"});
-
+        $(".ui-icon").removeClass('ui-icon');
         loadingHide();
     }
 
