@@ -10,7 +10,7 @@ import scala.util.Random
  */
 class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   /** The number of cross validation runs. */
-  private val numRuns = 10
+  private val numRuns = 1
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -19,6 +19,7 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   logLevel = Level.FINE
 
   /**
+   *
    * Executes all cross validation runs.
    */
   override def execute() {
@@ -29,9 +30,9 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
     //Aggregated the results of each iteration
     val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
 
-    println(AggregatedLearningResult.format(aggregatedResults, true).toLatex)
+    println(AggregatedLearningResult.format(aggregatedResults, true, true).toLatex)
     println()
-    println(AggregatedLearningResult.format(aggregatedResults, false).toCsv)
+    println(AggregatedLearningResult.format(aggregatedResults, false, true).toCsv)
   }
 
   /**
