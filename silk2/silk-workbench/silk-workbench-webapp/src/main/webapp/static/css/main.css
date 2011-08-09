@@ -199,3 +199,9 @@ div.actions .ui-button-text {
 .add-ls-icon {
   background-image: url(/static/img/workspace/document--plus.png);
 }
+.filetree span.source {
+  background: url("/static/img/workspace/server.png") no-repeat !important;
+}
+.filetree span.output {
+  background: url("/static/img/workspace/server--arrow.png") no-repeat !important;
+}
