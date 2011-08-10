@@ -5,9 +5,9 @@ import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEval
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual._
-import de.fuberlin.wiwiss.silk.learning.generation.IndividualGenerator
+import de.fuberlin.wiwiss.silk.learning.generation.LinkConditionGenerator
 
-class CleanPopulationTask(population : Population, instances : ReferenceInstances, generator: IndividualGenerator) extends Task[Population]
+class CleanPopulationTask(population : Population, instances : ReferenceInstances, generator: LinkConditionGenerator) extends Task[Population]
 {
   /** Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001

@@ -116,7 +116,6 @@ object Silk {
     //Load instances into cache
     if (reload) {
       val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
-
       def indexFunction(instance: Instance) = linkSpec.condition.index(instance, 0.0)
 
       val loadTask = new LoadTask(sources, caches, instanceSpecs, if (config.blocking.isDefined) Some(indexFunction _) else None)

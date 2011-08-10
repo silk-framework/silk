@@ -31,6 +31,8 @@ class Boot
     JenaImplementations.register()
 
     LiftRules.jsArtifacts = JQuery14Artifacts
+    LiftRules.maxMimeSize = 1024L * 1024L * 1024L
+    LiftRules.maxMimeFileSize = 1024L * 1024L * 1024L
 
     AutoComplete.init()
 

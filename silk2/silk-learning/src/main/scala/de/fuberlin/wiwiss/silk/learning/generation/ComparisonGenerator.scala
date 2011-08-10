@@ -1,16 +1,25 @@
-//package de.fuberlin.wiwiss.silk.learning.generation
-//
-//import de.fuberlin.wiwiss.silk.config.Prefixes
-//import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-//import de.fuberlin.wiwiss.silk.instance.Path
-//import util.Random
-//import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-//import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
-//import de.fuberlin.wiwiss.silk.workbench.learning.LearningConfiguration
-//import de.fuberlin.wiwiss.silk.workbench.learning.tree._
-//
+package de.fuberlin.wiwiss.silk.learning.generation
 
-//TODO
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.instance.Path
+import util.Random
+import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.learning.individual._
+
+class ComparisonGenerator(inputGenerators: SourceTargetPair[InputGenerator], measure: StrategyNode[DistanceMeasure], maxThreshold: Double) {
+
+  def apply() = {
+    ComparisonNode(
+      inputs = inputGenerators.map(_.apply()),
+      threshold =  Random.nextDouble() * maxThreshold,
+      weight = Random.nextInt(20),
+      metric = measure
+    )
+  }
+}
+
 //object ComparisonGenerator
 //{
 //  implicit val prefixes = Prefixes.empty
@@ -54,7 +63,7 @@
 //      val inputs = SourceTargetPair(PathInputNode(true, paths.source),
 //                                    PathInputNode(false, paths.target))
 //
-//      ComparisonNode(inputs, Random.nextInt(10), StrategyNode("levenshtein", Nil, DistanceMeasure))
+//      ComparisonNode(inputs, Random.nextInt(10), 1, StrategyNode("levenshtein", Nil, DistanceMeasure))
 //    }
 //  }
 //
@@ -89,6 +98,7 @@
 //      ComparisonNode(
 //        inputs = SourceTargetPair(sourceInput, targetInput),
 //        threshold = Random.nextInt(50),
+//        weight = 1,
 //        metric = StrategyNode("wgs84", ParameterNode("unit", "km") :: Nil, DistanceMeasure))
 //    }
 //  }

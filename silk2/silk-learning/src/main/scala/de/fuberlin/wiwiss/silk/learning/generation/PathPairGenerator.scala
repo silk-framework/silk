@@ -3,18 +3,27 @@ package de.fuberlin.wiwiss.silk.learning.generation
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import de.fuberlin.wiwiss.silk.instance.{Instance, Path}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.learning.individual.StrategyNode
+import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 
 /**
  * Analyses the reference instances and generates pairs of paths.
  */
 object PathPairGenerator {
-  def apply(instances: ReferenceInstances): Traversable[SourceTargetPair[Path]] = {
+  def apply(instances: ReferenceInstances): Traversable[ComparisonGenerator] = {
     //Get all paths except sameAs paths
     val paths = PathsRetriever(instances)
     //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
     val distinctPaths = DuplicateRemover(paths, instances)
     //Return all path pairs
-    PairGenerator(distinctPaths, instances)
+    val pathPairs = PairGenerator(distinctPaths, instances)
+
+    pathPairs.flatMap(createGenerators)
+  }
+
+  private def createGenerators(pathPair: SourceTargetPair[Path]) = {
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair), StrategyNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair), StrategyNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
   }
 
   /**

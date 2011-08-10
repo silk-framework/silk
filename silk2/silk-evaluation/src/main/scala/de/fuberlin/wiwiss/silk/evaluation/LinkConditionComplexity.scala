@@ -20,6 +20,9 @@ object LinkConditionComplexity {
    * Evaluates the complexity of a link condition.
    */
   def apply(condition: LinkCondition): LinkConditionComplexity = {
+
+    println(collectOperators(condition).toList)
+
     LinkConditionComplexity(
       comparisonCount = collectOperators(condition).filter(_.isInstanceOf[Comparison]).size,
       transformationCount = collectOperators(condition).filter(_.isInstanceOf[TransformInput]).size
@@ -37,9 +40,9 @@ object LinkConditionComplexity {
    * Collects all operators of the link condition.
    */
   private def collectOperators(root: Operator): Traversable[Operator] = root match {
-    case Aggregation(_, _, _, ops, _) => ops.flatMap(collectOperators)
-    case Comparison(_, _, _, _, inputs, _) => inputs.flatMap(collectOperators)
-    case TransformInput(_, inputs, _) => inputs.flatMap(collectOperators)
+    case Aggregation(_, _, _, ops, _) => ops ++ ops.flatMap(collectOperators)
+    case Comparison(_, _, _, _, inputs, _) => inputs ++ inputs.flatMap(collectOperators)
+    case TransformInput(_, inputs, _) => inputs ++ inputs.flatMap(collectOperators)
     case PathInput(_, _) => Traversable(root)
   }
 }

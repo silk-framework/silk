@@ -10,7 +10,7 @@ import scala.util.Random
  */
 class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   /** The number of cross validation runs. */
-  private val numRuns = 1
+  private val numRuns = 10
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
