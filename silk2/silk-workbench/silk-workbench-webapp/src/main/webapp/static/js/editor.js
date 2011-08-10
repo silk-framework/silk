@@ -138,6 +138,13 @@ var validateLinkSpec = function() {
     var errors = new Array();
     var root_elements = 0;
 
+    if ($("#droppable > div.dragDiv").length === 1) {
+      var elId = $("#droppable > div.dragDiv").attr('id');
+      errorObj = new Object();
+      errorObj.id = elId;
+      errorObj.message = "Error: Unconnected element '" + elId + "'.";
+      errors.push(errorObj);
+    }
     $("#droppable > div.dragDiv").each(function() {
         var elId = $(this).attr('id');
         var elName = $("#" + elId + " > .label").text();
@@ -1037,7 +1044,7 @@ $(function ()
         var scrollleft = $("#droppable").scrollLeft();
         var scrolltop = $("#droppable").scrollTop();
         var top = offset.top-206+scrolltop+scrolltop;
-        var left = offset.left-502+scrollleft+scrollleft;
+        var left = offset.left-518+scrollleft+scrollleft;
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
         modifyLinkSpec();
@@ -1099,6 +1106,7 @@ $(function ()
   $("div.sourcePath > h5 > div[class!='active'], div.targetPath > h5 > div[class!='active']").live('click', function() {
     var thisPath = $(this).text();
     if (!thisPath) thisPath = $(this).children().val();
+    if (thisPath !== undefined) thisPath = encodeHtml(thisPath);
     $(this).addClass('active');
     $(this).html('<input class="new-path" type="text" value="' + thisPath + '" />');
     $(this).parent().css("height", "19px");
@@ -1107,9 +1115,10 @@ $(function ()
 
   $(".new-path").live('blur', function() {
     var newPath = $(this).val();
+    if (newPath !== undefined) newPath = encodeHtml(newPath);
     $(this).parent().parent().css("height", "15px");
-    $(this).parent().parent().children(".name").html(newPath);
-    $(this).parent().attr('title', newPath).html(newPath).removeClass('active');
+    $(this).parent().parent().parent().children(".name").html(newPath);
+    $(this).parent().removeClass('active').attr('title', newPath).html(newPath);
   });
 
 });
@@ -1190,6 +1199,7 @@ function getPropertyPaths(deleteExisting)
             var span = $(document.createElement('div'));
             span.attr("style", "width: 170px; min-height: 19px; white-space:nowrap; overflow:hidden; float: left;");
             var input = $(document.createElement('input'));
+            input.addClass('new_path');
             input.attr("style", "width: 165px;");
             input.attr("type", "text");
             input.val("?" + sourceDataSetVar);
@@ -1297,11 +1307,11 @@ function getPropertyPaths(deleteExisting)
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
     $(".restriction").show();
-    $("#sourcepaths, #targetpaths").css("height","130px");
+    $("#sourcepaths, #targetpaths").css("height","115px");
     $("#source_id").html(data.source.id);
     $("#source_restriction").html(data.source.restrictions);
 
-    if ($("#source_restriction").height()>18) $("#sourcepaths").css("height","112px");
+    if ($("#source_restriction").height()>18) $("#sourcepaths").css("height","97px");
 
     var list_item_id = 1;
 
@@ -1372,7 +1382,7 @@ function getPropertyPaths(deleteExisting)
 
     $("#target_id").html(data.target.id);
     $("#target_restriction").html(data.target.restrictions);
-    if ($("#target_restriction").height()>18) $("#targetpaths").css("height","112px");
+    if ($("#target_restriction").height()>18) $("#targetpaths").css("height","97px");
 
     var list_item_id = 1;
 
