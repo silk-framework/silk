@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import cleaning.CleanPopulationTask
-import generation.{RandomGenerator, GeneratePopulationTask}
+import generation.GeneratePopulationTask
 import individual.Population
 import java.util.logging.Level
 import reproduction.ReproductionTask
@@ -44,7 +44,7 @@ class LearningTask(instances: ReferenceInstances,
     stop = false
     ineffectiveIterations = 0
 
-    val generator = new RandomGenerator(config.generation)
+    val generator = config.generation.linkConditionGenerator
 
     //Generate initial population
     executeTask(new GeneratePopulationTask(instances, generator))

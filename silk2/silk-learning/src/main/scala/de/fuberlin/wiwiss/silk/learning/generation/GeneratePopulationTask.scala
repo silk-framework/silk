@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 
-class GeneratePopulationTask(instances : ReferenceInstances, generator: IndividualGenerator) extends Task[Population]
+class GeneratePopulationTask(instances : ReferenceInstances, generator: LinkConditionGenerator) extends Task[Population]
 {
   val populationSize = 500
 

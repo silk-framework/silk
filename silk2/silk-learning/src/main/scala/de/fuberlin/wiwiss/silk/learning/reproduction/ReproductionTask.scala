@@ -4,11 +4,10 @@ import util.Random
 import de.fuberlin.wiwiss.silk.util.{ParallelMapper, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
-import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
-import de.fuberlin.wiwiss.silk.learning.generation.{IndividualGenerator, RandomGenerator}
+import de.fuberlin.wiwiss.silk.learning.generation.LinkConditionGenerator
 
-class ReproductionTask(population : Population, instances : ReferenceInstances, generator: IndividualGenerator, config : ReproductionConfiguration) extends Task[Population]
+class ReproductionTask(population : Population, instances : ReferenceInstances, generator: LinkConditionGenerator, config : ReproductionConfiguration) extends Task[Population]
 {
   private val crossoverOperators = config.operators.toIndexedSeq
 
