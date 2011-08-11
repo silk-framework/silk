@@ -9,6 +9,8 @@ case class SourceTargetPair[+T](source: T, target: T) {
   def select(selectSource: Boolean) = if (selectSource) source else target
 
   def zip[U](pair: SourceTargetPair[U]) = SourceTargetPair((source, pair.source), (target, pair.target))
+
+  def reverse = SourceTargetPair(target, source)
 }
 
 /**

@@ -71,10 +71,16 @@ class LearningTask(instances: ReferenceInstances,
   private def executeTask(task: Task[Population]) {
     updateStatus(0.0)
     val population = executeSubTask(task)
-    val iterations = if(task.isInstanceOf[ReproductionTask]) value.get.iterations + 1 else value.get.iterations
+    val iterations = {
+      if(task.isInstanceOf[ReproductionTask]) {
+        if (population.bestIndividual.fitness.score <= bestScore + scoreEpsilon)
+          ineffectiveIterations += 1
 
-    if (population.bestIndividual.fitness.score <= bestScore + scoreEpsilon)
-      ineffectiveIterations += 1
+        value.get.iterations + 1
+      } else {
+        value.get.iterations
+      }
+    }
 
     val status =
       if (population.bestIndividual.fitness.fMeasure > destinationfMeasure)
