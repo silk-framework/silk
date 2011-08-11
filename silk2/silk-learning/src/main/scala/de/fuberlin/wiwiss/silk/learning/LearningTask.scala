@@ -49,14 +49,12 @@ class LearningTask(instances: ReferenceInstances,
     //Generate initial population
     executeTask(new GeneratePopulationTask(instances, generator))
 
-    while (!stop) {
+    while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
       executeTask(new ReproductionTask(value.get.population, instances, generator, config.reproduction))
 
-      if (value.get.iterations % cleanFrequency == 0) {
+      if (value.get.iterations % cleanFrequency == 0 && !stop) {
         executeTask(new CleanPopulationTask(value.get.population, instances, generator))
       }
-
-      stop = value.get.status.isInstanceOf[LearningResult.Finished]
     }
 
     executeTask(new CleanPopulationTask(value.get.population, instances, generator))

@@ -16,7 +16,7 @@ class TaskControl(task: Task[_], cancelable: Boolean = false) extends CometActor
 
   override def notify(pub: Publisher[Status], status: Status) {
     status match {
-      case _: Started if cancelable => updateButton("Cancel")
+      case _: Started if cancelable => updateButton("Stop")
       case _: Started => updateButton("Start")
       case _: Finished => updateButton("Start")
       case _ =>

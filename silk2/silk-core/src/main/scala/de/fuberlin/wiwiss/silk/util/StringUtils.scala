@@ -32,13 +32,24 @@ object StringUtils {
       case _ => None
     }
   }
-
 }
 
 class StringUtils(str: String) {
+
+  /**
+   * Returns a stream of all q-grams in this string.
+   */
   def qGrams(q: Int): Stream[String] = {
     val boundary = "#" * (q - 1)
 
     (boundary + str + boundary).sliding(q).toStream
+  }
+
+  /**
+   * Undos all camel case words in this string.
+   * e.g. helloWorld is converted to "Hello World"
+   */
+  def undoCamelCase = {
+    str.flatMap(c => if(c.isUpper) " " + c else c.toString).capitalize
   }
 }

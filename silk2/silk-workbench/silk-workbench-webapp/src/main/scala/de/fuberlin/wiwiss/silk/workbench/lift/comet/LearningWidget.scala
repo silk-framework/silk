@@ -15,6 +15,7 @@ import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
+import de.fuberlin.wiwiss.silk.learning.LearningResult
 
 /**
  * Widget which shows the current population.
@@ -34,7 +35,13 @@ class LearningWidget extends CometActor {
    * Subscribe to events of the current learning task.
    * Whenever the population is changed the learning tasks fires an event on which we redraw the widget.
    */
-  CurrentLearningTask().value.onUpdate(_ => partialUpdate(updateListCmd))
+  CurrentLearningTask().value.onUpdate(Updater)
+
+  private object Updater extends (LearningResult => Unit) {
+    def apply(result: LearningResult) {
+      partialUpdate(updateListCmd)
+    }
+  }
 
   /**
    * Renders this widget.

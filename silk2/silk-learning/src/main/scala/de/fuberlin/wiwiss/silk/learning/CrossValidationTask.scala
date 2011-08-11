@@ -53,6 +53,9 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
 
       executeSubTask(learningTask, (run.toDouble + index.toDouble / splits.size) / numRuns)
 
+      //Add the learning result to the list
+      results = learningTask.value.get :: results.tail
+
       results.reverse
     }
   }

@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.util.task.Task._
 import java.util.logging.Level
 import collection.mutable.{Subscriber, Publisher}
 import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
+import de.fuberlin.wiwiss.silk.util.StringUtils._
 
 /**
  * A task which computes a result.
@@ -11,7 +12,7 @@ import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
  */
 trait Task[+T] extends HasStatus with (() => T) {
 
-  var taskName = getClass.getSimpleName
+  var taskName = getClass.getSimpleName.undoCamelCase
 
   /**
    * Executes this task and returns the result.
@@ -40,14 +41,13 @@ trait Task[+T] extends HasStatus with (() => T) {
   }
 
   /**
-   * Tries to stop the execution of this task and blocks until the task has been stopped.
+   * Requests to stop the execution of this task.
    * There is no guarantee that the task will stop immediately.
-   * The default implementation blocks until the task has been finished.
-   * Subclasses may override stopExecution() to allow cancellation of this task.
+   * Subclasses need to override stopExecution() to allow cancellation.
    */
   def cancel() {
+    logger.info("Stopping " + taskName + "...")
     stopExecution()
-    updateStatus(Idle())
   }
 
   /**
@@ -58,9 +58,7 @@ trait Task[+T] extends HasStatus with (() => T) {
   /**
    *  Can be overridden in subclasses to allow cancellation of the task.
    */
-  protected def stopExecution() {
-    while (isRunning) Thread.sleep(100)
-  }
+  protected def stopExecution() { }
 
   protected def executeSubTask[R](subTask: Task[R], finalProgress: Double = 1.0): R = {
     require(finalProgress >= status.progress, "finalProgress >= progress")
