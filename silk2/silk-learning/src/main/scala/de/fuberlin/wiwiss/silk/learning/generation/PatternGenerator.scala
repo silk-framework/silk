@@ -35,6 +35,7 @@ object PatternGenerator {
       getProperty(paths, labelProperty).map(createGenerator)
     }
 
+    //TODO create measures other than levensthein
     private def createGenerator(pathPair : SourceTargetPair[Path]) = {
       new ComparisonGenerator(
         inputGenerators = InputGenerator.fromPathPair(pathPair),

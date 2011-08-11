@@ -185,7 +185,7 @@ class FileProject(file : File) extends Project
             {
               case ex : Exception =>
               {
-                logger.warning("Cache corrupted. Rebuilding Cache.")
+                logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
                 val cache = new Cache()
                 cache.reload(FileProject.this, linkSpec, alignment)
                 cache

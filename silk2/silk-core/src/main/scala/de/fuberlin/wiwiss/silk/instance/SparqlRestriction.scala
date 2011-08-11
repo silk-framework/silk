@@ -16,7 +16,7 @@ class SparqlRestriction private(restrictionsFull: String, restrictionsQualified:
   override def toString = restrictionsQualified
 
   override def equals(other: Any) = other match {
-    case o: SparqlRestriction => toSparql.equals(o.toSparql)
+    case o: SparqlRestriction => toSparql == o.toSparql
     case _ => false
   }
 }
@@ -25,11 +25,11 @@ object SparqlRestriction {
   def empty = new SparqlRestriction("", "")
 
   def fromXML(node: Node)(implicit prefixes: Prefixes) = {
-    fromSparql(node.text.trim)
+    fromSparql(node.text)
   }
 
   def fromSparql(restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {
-    val strippedRestrictions = restrictions.trim.stripSuffix(".")
+    val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 
     var restrictionsFull = cleanedRestrictions

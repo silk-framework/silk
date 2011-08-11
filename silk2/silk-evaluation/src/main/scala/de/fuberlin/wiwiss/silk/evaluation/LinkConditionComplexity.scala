@@ -20,9 +20,6 @@ object LinkConditionComplexity {
    * Evaluates the complexity of a link condition.
    */
   def apply(condition: LinkCondition): LinkConditionComplexity = {
-
-    println(collectOperators(condition).toList)
-
     LinkConditionComplexity(
       comparisonCount = collectOperators(condition).filter(_.isInstanceOf[Comparison]).size,
       transformationCount = collectOperators(condition).filter(_.isInstanceOf[TransformInput]).size

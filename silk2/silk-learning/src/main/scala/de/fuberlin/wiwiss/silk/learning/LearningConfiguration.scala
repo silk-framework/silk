@@ -7,8 +7,8 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 
 case class LearningConfiguration(generation: GenerationConfiguration, reproduction: ReproductionConfiguration)
 
-object LearningConfiguration
-{
+object LearningConfiguration {
+
   val defaultConfigFile = "de/fuberlin/wiwiss/silk/learning/config.xml"
 
   def load(instances : ReferenceInstances) = {
