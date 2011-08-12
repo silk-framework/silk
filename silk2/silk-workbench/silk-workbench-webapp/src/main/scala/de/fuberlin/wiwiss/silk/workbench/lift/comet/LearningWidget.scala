@@ -15,7 +15,8 @@ import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
-import de.fuberlin.wiwiss.silk.learning.LearningResult
+import de.fuberlin.wiwiss.silk.workbench.workspace.UserData.ValueUpdated
+import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
 
 /**
  * Widget which shows the current population.
@@ -31,12 +32,17 @@ class LearningWidget extends CometActor {
   /** Redraw the widget on every view, because the current learning task may change. */
   override protected val dontCacheRendering = true
 
+  /** Listen to changes of the current learning task. */
+  CurrentLearningTask.subscribe(new Subscriber[ValueUpdated[LearningTask], Publisher[ValueUpdated[LearningTask]]] {
+    def notify(pub : Publisher[ValueUpdated[LearningTask]], event : ValueUpdated[LearningTask]) {
+      CurrentLearningTask().value.onUpdate(Updater)
+    }
+  })
+
   /**
-   * Subscribe to events of the current learning task.
+   * Listens to events of the current learning task.
    * Whenever the population is changed the learning tasks fires an event on which we redraw the widget.
    */
-  CurrentLearningTask().value.onUpdate(Updater)
-
   private object Updater extends (LearningResult => Unit) {
     def apply(result: LearningResult) {
       partialUpdate(updateListCmd)

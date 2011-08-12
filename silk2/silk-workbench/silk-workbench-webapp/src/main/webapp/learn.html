@@ -14,72 +14,60 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:learning.toolbar form="POST">
-      <choose:loading>
-        <ul id="toolbar">
-          <li>
-            <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
-          </li>
-        </ul>
-      </choose:loading>
-      <choose:train>
-        <ul id="toolbar">
-          <li>
-            <lift:comet type="LearningControl" name="LearningControl" />
-          </li>
-          <li>
-            <lift:comet type="LearningProgress" name="LearningProgress" />
-          </li>
-          <li>
-            <entry:startCrossValidation />
-          </li>
-        </ul>
-      </choose:train>
-    </lift:learning.toolbar>
+    <lift:learningToolbar>
+      <ul id="toolbar">
+        <li>
+          <lift:comet type="LearningControl" name="LearningControl" />
+        </li>
+        <li>
+          <lift:comet type="LearningProgress" name="LearningProgress" />
+        </li>
+        <!--<li>-->
+          <!--<entry:startCrossValidation />-->
+        <!--</li>-->
+        <li>
+          <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
+        </li>
+      </ul>
+    </lift:learningToolbar>
   </lift:bind-at>
 
   <lift:bind-at name="content">
-    <lift:learning.content form="POST">
-      <choose:loading>
-      </choose:loading>
-      <choose:train>
-        <lift:comet type="LearningWidget" name="LearningWidget">
+    <lift:comet type="LearningWidget" name="LearningWidget">
 
-          <entry:script/>
+      <entry:script/>
 
-          <div id="wrapper">
+      <div id="wrapper">
 
-            <div id="tree-header">
-              <div class="left">
-                <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
-                <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
-              </div>
-              <div class="middle">
-                <div class="navigation"></div>
-              </div>
-              <!--<div class="right">-->
-                <!--<entry:filter/>-->
-              <!--</div>-->
-            </div>
-
-            <div style="clear: both"></div>
-
-            <p>
-              <entry:list/>
-            </p>
-
-            <div style="clear:both;"></div>
-
-            <div id="tree-footer">
-              <div class="navigation"></div>
-            </div>
-
-            <div style="clear: both"></div>
-
+        <div id="tree-header">
+          <div class="left">
+            <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+            <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
           </div>
-        </lift:comet>
-      </choose:train>
-    </lift:learning.content>
+          <div class="middle">
+            <div class="navigation"></div>
+          </div>
+          <!--<div class="right">-->
+            <!--<entry:filter/>-->
+          <!--</div>-->
+        </div>
+
+        <div style="clear: both"></div>
+
+        <p>
+          <entry:list/>
+        </p>
+
+        <div style="clear:both;"></div>
+
+        <div id="tree-footer">
+          <div class="navigation"></div>
+        </div>
+
+        <div style="clear: both"></div>
+
+      </div>
+    </lift:comet>
   </lift:bind-at>
 
 </lift:surround>
