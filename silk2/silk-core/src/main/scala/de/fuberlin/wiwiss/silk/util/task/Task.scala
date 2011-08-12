@@ -46,7 +46,7 @@ trait Task[+T] extends HasStatus with (() => T) {
    * Subclasses need to override stopExecution() to allow cancellation.
    */
   def cancel() {
-    logger.info("Stopping " + taskName + "...")
+    updateStatus(Canceled(taskName, status.progress))
     stopExecution()
   }
 

@@ -60,5 +60,8 @@ case class Finished(name: String, success: Boolean, exception: Option[Exception]
  * @param message The status message
  * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
  */
-case class Running(message: String, progress: Double) extends Status {
+case class Running(message: String, progress: Double) extends Status
+
+case class Canceled(name: String, progress: Double) extends Status {
+  def message = "Stopping " + name
 }

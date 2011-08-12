@@ -31,6 +31,7 @@ class HasStatus extends Publisher[Status] {
     case _: Idle => false
     case _: Started => true
     case _: Running => true
+    case _: Canceled => true
     case _: Finished => false
   }
 
@@ -50,8 +51,11 @@ class HasStatus extends Publisher[Status] {
       case _: Running =>
       case _ => logger.log(Level.INFO, status.toString)
     }
-    currentStatus = status
-    publish(status)
+
+    if(!currentStatus.isInstanceOf[Canceled] || status.isInstanceOf[Finished]) {
+      currentStatus = status
+      publish(status)
+    }
   }
 
   /**
