@@ -17,6 +17,7 @@ import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.workbench.workspace.UserData.ValueUpdated
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
+import de.fuberlin.wiwiss.silk.evaluation.LinkConditionComplexity
 
 /**
  * Widget which shows the current population.
@@ -130,12 +131,21 @@ class LearningWidget extends CometActor {
          onmouseover="$(this).addClass('individual-over');"
          onmouseout="$(this).removeClass('individual-over');">
       <div id={getId(individual, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
-      <div class="individual-desc">No Description</div>
+      <div class="individual-desc">{renderDescription(individual)}</div>
       <div class="individual-score">{renderScore(individual.fitness.score)}</div>
       <div class="individual-mcc">{renderScore(individual.fitness.mcc)}</div>
       <div class="individual-f1">{renderScore(individual.fitness.fMeasure)}</div>
-      <div class="individual-buttons">{SHtml.a(() => loadIndividualCmd(individual), <img src="./static/img/learn/load.png" />)}</div>
+      <div class="individual-buttons">{renderButtons(individual)}</div>
     </div>
+  }
+
+  /**
+   * Renders the description of an individual.
+   */
+  private def renderDescription(individual: Individual) = {
+    val complexity = LinkConditionComplexity(individual.node.build)
+
+    complexity.comparisonCount + " Comparisons and " + complexity.transformationCount + " Transformations"
   }
 
   /**
@@ -145,6 +155,15 @@ class LearningWidget extends CometActor {
     <div class="confidencebar">
       <div class="confidence">{"%.1f".format(score * 100)}%</div>
     </div>
+  }
+
+  /**
+   * Renders the action buttons for an individual.
+   */
+  private def renderButtons(individual: Individual) = {
+    val image = <img src="./static/img/learn/load.png" title="Load this linkage rule in the editor" />
+
+    SHtml.a(() => loadIndividualCmd(individual), image)
   }
 
   /**
