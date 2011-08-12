@@ -23,7 +23,7 @@ class ProgressWidget(task: => HasStatus, hide: Boolean = false) extends CometAct
   override protected val dontCacheRendering = true
 
   override def notify(pub: Publisher[Status], status: Status) {
-    if (status.isInstanceOf[Finished] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
+    if (status.isInstanceOf[Finished] || status.isInstanceOf[Canceled] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
       partialUpdate(updateCmd)
       lastUpdateTime = System.currentTimeMillis
     }
