@@ -40,6 +40,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
    */
   def update(project : Project, linkSpec: LinkSpecification, alignment: Alignment) = {
     stopLoading()
+    removeSubscriptions()
     val updatedCache = new Cache(instanceSpecs, instances)
     updatedCache.load(project, linkSpec, alignment)
     updatedCache
@@ -238,12 +239,12 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
           source.retrieve(
             instanceSpec = instance.spec.copy(paths = missingPaths),
             instances = instance.uri :: Nil
-          ).head
+          ).headOption
 
         //Return the updated instance
         new Instance(
           uri = instance.uri,
-          values = instance.values ++ missingInstance.values,
+          values = instance.values ++ missingInstance.map(_.values).flatten,
           spec = instance.spec.copy(paths = instance.spec.paths ++ missingPaths)
         )
       }

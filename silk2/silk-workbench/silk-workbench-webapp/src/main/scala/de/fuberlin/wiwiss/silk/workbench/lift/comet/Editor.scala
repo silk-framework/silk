@@ -29,18 +29,6 @@ class Editor extends CometActor {
   /** Redraw the widget on every view. */
   override protected val dontCacheRendering = true
 
-  /** Register to status messages of the cache loader task. */
-  User().linkingTask.cache.subscribe(new Subscriber[Status, Publisher[Status]] {
-    def notify(pub : Publisher[Status], status : Status) {
-      status match {
-        case _ : Finished => {
-          partialUpdate(updateStatusCall(infos = evaluateLinkSpec(User().linkingTask)))
-        }
-        case _ =>
-      }
-    }
-  })
-
   /**
    * Renders the editor.
    */
@@ -70,13 +58,16 @@ class Editor extends CometActor {
         //Update linking task
         val updatedLinkingTask = linkingTask.updateLinkSpec(linkSpec, project)
 
+        //Listen to status messages of the cache loader task
+        updatedLinkingTask.cache.subscribe(CacheListener)
+
         //Commit
         project.linkingModule.update(updatedLinkingTask)
         User().task = updatedLinkingTask
       }
 
       //Update link spec variable and notify user
-      linkSpecVarCmd & updateStatusCall(warnings = warnings.map(_.getMessage), infos = evaluateLinkSpec(linkingTask))
+      linkSpecVarCmd & updateStatusCall(warnings = warnings.map(_.getMessage), infos = evaluateLinkSpec(User().linkingTask))
     } catch {
       case ex: ValidationException => {
         logger.log(Level.INFO, "Cannot save invalid link specification", ex)
@@ -147,6 +138,20 @@ class Editor extends CometActor {
     }
 
     JsCmds.Function("reloadCache", Nil, SHtml.ajaxInvoke(reloadCache _)._2.cmd)
+  }
+
+  /**
+   * Updates the status as soon as the cache has been loaded.
+   */
+  object CacheListener extends Subscriber[Status, Publisher[Status]] {
+    def notify(pub : Publisher[Status], status : Status) {
+      status match {
+        case _ : Finished => {
+          partialUpdate(updateStatusCall(infos = evaluateLinkSpec(User().linkingTask)))
+        }
+        case _ =>
+      }
+    }
   }
 
   //  private def generatePathsFunction() =
