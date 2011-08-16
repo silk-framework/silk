@@ -30,16 +30,16 @@ object LinkConditionComplexity {
    * Collects all operators of the link condition.
    */
   private def collectOperators(condition: LinkCondition): Traversable[Operator] = {
-    condition.rootOperator.toTraversable.view.flatMap(collectOperators)
+    condition.rootOperator.toTraversable.flatMap(collectOperators)
   }
 
   /**
    * Collects all operators of the link condition.
    */
   private def collectOperators(root: Operator): Traversable[Operator] = root match {
-    case Aggregation(_, _, _, ops, _) => ops ++ ops.flatMap(collectOperators)
-    case Comparison(_, _, _, _, inputs, _) => inputs ++ inputs.flatMap(collectOperators)
-    case TransformInput(_, inputs, _) => inputs ++ inputs.flatMap(collectOperators)
+    case Aggregation(_, _, _, ops, _) => root +: ops.flatMap(collectOperators)
+    case Comparison(_, _, _, _, inputs, _) => root +: inputs.flatMap(collectOperators)
+    case TransformInput(_, inputs, _) => root +: inputs.flatMap(collectOperators)
     case PathInput(_, _) => Traversable(root)
   }
 }
