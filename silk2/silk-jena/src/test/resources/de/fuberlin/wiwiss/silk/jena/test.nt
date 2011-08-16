@@ -1,0 +1,8 @@
+<http://dbpedia.org/resource/Berlin> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/City> .
+<http://dbpedia.org/resource/Berlin>  <http://www.w3.org/2000/01/rdf-schema#label> "Berlin" .
+<http://dbpedia.org/resource/Hamburg> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/City> .
+<http://dbpedia.org/resource/Hamburg>  <http://www.w3.org/2000/01/rdf-schema#label> "Hamburg" .
+<http://dbpedia.org/resource/Munich> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/City> .
+<http://dbpedia.org/resource/Munich>  <http://www.w3.org/2000/01/rdf-schema#label> "Munich" .
+<http://dbpedia.org/resource/Albert_Einstein> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Person> .
+<http://dbpedia.org/resource/Albert_Einstein>  <http://www.w3.org/2000/01/rdf-schema#label> "Albert Einstein" .
