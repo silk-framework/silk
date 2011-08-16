@@ -16,6 +16,7 @@ import java.util.logging.Level
 
 //TODO use options?
 //TODO store path frequencies
+//TODO when retrieving instances, remove the restriction in order to improve the query performance
 class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = null,
             existingInstances: ReferenceInstances = ReferenceInstances.empty) extends HasStatus {
 
