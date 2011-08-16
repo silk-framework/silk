@@ -29,6 +29,9 @@ class Editor extends CometActor {
   /** Redraw the widget on every view. */
   override protected val dontCacheRendering = true
 
+  //Listen to status messages of the cache loader task
+  User().linkingTask.cache.subscribe(CacheListener)
+
   /**
    * Renders the editor.
    */
