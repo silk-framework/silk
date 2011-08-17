@@ -7,15 +7,12 @@ import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "linkedData", label = "Linked Data", description = "TODO")
-class LinkedDataSource extends DataSource
-{
-  override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
-  {
+class LinkedDataSource extends DataSource {
+  override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
     require(!instances.isEmpty, "Retrieving all instances not supported")
 
     val model = ModelFactory.createDefaultModel
-    for(uri <- instances)
-    {
+    for (uri <- instances) {
       model.read(uri)
     }
 

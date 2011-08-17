@@ -16,20 +16,17 @@ import de.fuberlin.wiwiss.silk.util.sparql.SparqlAggregatePathsCollector
  * - '''format''': The format of the input data. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3"
  */
 @StrategyAnnotation(id = "rdf", label = "RDF", description = "A DataSource where all instances are given directly in the configuration.")
-class RdfDataSource(input : String, format : String) extends DataSource
-{
+class RdfDataSource(input: String, format: String) extends DataSource {
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(input), null, format)
 
   private lazy val endpoint = new JenaSparqlEndpoint(model)
 
-  override def retrieve(instanceSpec : InstanceSpecification, instances : Seq[String]) : Traversable[Instance] =
-  {
+  override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
     InstanceRetriever(endpoint).retrieve(instanceSpec, instances)
   }
 
-  override def retrievePaths(restrictions : SparqlRestriction, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
-  {
+  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
 }
