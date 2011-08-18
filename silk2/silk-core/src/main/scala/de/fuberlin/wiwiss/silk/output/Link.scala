@@ -22,6 +22,8 @@ class Link(source: String, target: String, val details: Option[Link.Confidence] 
     case None => -1.0
   }
 
+  override def reverse = new Link(target, source, details)
+
   override def toString = "<" + source + ">  <" + target + ">"
 
   /**

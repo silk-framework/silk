@@ -6,41 +6,35 @@ import de.fuberlin.wiwiss.silk.output.{Output, LinkWriter}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, StrategyDialog}
 
-object OutputDialog extends StrategyDialog[LinkWriter]
-{
+object OutputDialog extends StrategyDialog[LinkWriter] {
   override def title = "Output"
 
-  private val nameField = StringField("name", "The name of this source task", () => if(User().outputTaskOpen) User().outputTask.name.toString else "")
+  private val nameField = StringField("name", "The name of this source task", () => if (User().outputTaskOpen) User().outputTask.name.toString else "")
 
   override protected val fields = nameField :: Nil
 
   override protected val strategies = LinkWriter.strategy("file") :: LinkWriter.strategy("sparul") :: Nil
 
-  override protected def currentObj =
-  {
-    if(User().outputTaskOpen)
-    {
+  override protected def currentObj = {
+    if (User().outputTaskOpen) {
       Some(User().outputTask.output.writer)
     }
-    else
-    {
+    else {
       None
     }
   }
 
-  override protected def onSubmit(linkWriter : LinkWriter)
-  {
+  override protected def onSubmit(linkWriter: LinkWriter) {
     val newOutput = OutputTask(Output(nameField.value, linkWriter))
 
     User().project.outputModule.update(newOutput)
 
-    if(User().outputTaskOpen && User().outputTask.name != newOutput.name)
-    {
+    if (User().outputTaskOpen && User().outputTask.name != newOutput.name) {
       val currentOutput = User().outputTask
 
       User().project.sourceModule.remove(currentOutput.name)
     }
   }
 
-  override def render(in : NodeSeq) : NodeSeq = super.render(in)
+  override def render(in: NodeSeq): NodeSeq = super.render(in)
 }
