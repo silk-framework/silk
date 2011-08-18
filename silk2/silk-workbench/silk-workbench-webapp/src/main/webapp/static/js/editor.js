@@ -27,6 +27,7 @@ var modificationTimer;
 var confirmOnExit = false;
 
 jsPlumb.Defaults.Container = "droppable";
+jsPlumb.Defaults.Connector = new jsPlumb.Connectors.Bezier(80);
 
 var endpointOptions =
 {

@@ -95,7 +95,7 @@ trait LinkList extends CometActor {
       case _ => "./static/img/sort.png"
     }
 
-    SHtml.a(sort _, <span>Sort<img src={icon}/></span>)
+    SHtml.a(sort _, <span>Score<img src={icon}/></span>)
   }
 
   private def applyFilter(value: String) = {

@@ -332,3 +332,12 @@ a.more {
   width: 165px;
   margin: 0;
 }
+
+#refresh {
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  margin-top: 2px;
+  background-image: url('/static/img/refresh.png');
+  float: left;
+}
