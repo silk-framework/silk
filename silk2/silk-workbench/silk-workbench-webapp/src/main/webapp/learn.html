@@ -22,14 +22,15 @@
         <li>
           <lift:comet type="LearningProgress" name="LearningProgress" />
         </li>
-        <!--<li>-->
-          <!--<entry:startCrossValidation />-->
-        <!--</li>-->
+        <li>
+          <entry:startCrossValidation />
+        </li>
         <li>
           <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
         </li>
       </ul>
     </lift:learningToolbar>
+    <lift:startLearningTaskDialog/>
   </lift:bind-at>
 
   <lift:bind-at name="content">

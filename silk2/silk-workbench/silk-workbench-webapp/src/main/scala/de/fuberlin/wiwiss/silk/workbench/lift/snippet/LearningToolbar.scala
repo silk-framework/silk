@@ -27,6 +27,6 @@ class LearningToolbar {
 
   def render(xhtml: NodeSeq): NodeSeq = {
     bind("entry", xhtml,
-         "startCrossValidation" -> SHtml.button("Cross validation", () => new CrossValidationTask(User().linkingTask.cache.instances).run()))
+         "startCrossValidation" -> SHtml.ajaxButton("Start", () => StartLearningTaskDialog.openCmd))//SHtml.button("Cross validation", () => new CrossValidationTask(User().linkingTask.cache.instances).run()))
   }
 }
