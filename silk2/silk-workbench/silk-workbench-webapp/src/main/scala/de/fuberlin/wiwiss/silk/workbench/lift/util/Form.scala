@@ -8,7 +8,7 @@ trait Form
   private lazy val id : String = UUID.randomUUID.toString
 
   /** The fields of this form. */
-  val fields : List[StringField]
+  val fields : List[Field[_]]
 
   def updateCmd = fields.map(_.updateValueCmd).reduceLeft(_ & _)
 
