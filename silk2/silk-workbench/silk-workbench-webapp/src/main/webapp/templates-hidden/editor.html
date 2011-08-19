@@ -50,7 +50,7 @@
 	    });
     </script>
   </head>
-  <body onresize="updateWindowWidth();">
+  <body onresize="updateWindowWidth();" onunload="jsPlumb.unload();">
   <script type="text/javascript" src="static/js/wz_tooltip.js"></script>
     <lift:msgs/>
     <div id="tabbar">
