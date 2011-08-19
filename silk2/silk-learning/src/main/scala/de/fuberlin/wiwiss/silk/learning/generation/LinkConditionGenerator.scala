@@ -2,8 +2,10 @@ package de.fuberlin.wiwiss.silk.learning.generation
 
 import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkConditionNode, AggregationNode}
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
-class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]) {
+class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
 
   private val aggregations = "max" :: "min" :: "average" :: Nil
 
@@ -12,7 +14,11 @@ class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerato
   private val maxOperatorCount = 2
 
   def apply() = {
-    LinkConditionNode(Some(generateAggregation()))
+    if(components.aggregations) {
+      LinkConditionNode(Some(generateAggregation()))
+    } else {
+      LinkConditionNode(Some(generateComparison()))
+    }
   }
 
   /**
@@ -37,5 +43,11 @@ class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerato
 
   private def generateComparison() = {
     comparisonGenerators(Random.nextInt(comparisonGenerators.size))()
+  }
+}
+
+object LinkConditionGenerator {
+  def apply(instances: ReferenceInstances, components: Components) = {
+    new LinkConditionGenerator((new PathPairGenerator(components).apply(instances) ++ new PatternGenerator(components).apply(instances)).toIndexedSeq, components)
   }
 }

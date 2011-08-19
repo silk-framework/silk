@@ -17,4 +17,8 @@ trait Observable[T] {
     for(subscriber <- subscribers.keys)
       subscriber(event)
   }
+
+  def removeSubscriptions() {
+    subscribers.clear()
+  }
 }

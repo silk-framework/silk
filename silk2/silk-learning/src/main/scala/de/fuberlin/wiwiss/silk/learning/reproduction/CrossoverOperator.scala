@@ -19,7 +19,7 @@ trait CrossoverOperator extends (SourceTargetPair[LinkConditionNode] => Option[L
 }
 
 object CrossoverOperator extends Factory[CrossoverOperator] {
-  register(classOf[LimitCrossover])
+  register(classOf[ThresholdCrossover])
   register(classOf[WeightCrossover])
   register(classOf[AggregationOperatorsCrossover])
   register(classOf[AggregationStrategyCrossover])

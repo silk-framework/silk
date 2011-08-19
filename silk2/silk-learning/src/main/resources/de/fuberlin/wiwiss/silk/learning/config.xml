@@ -7,7 +7,7 @@
   <ReproductionConfiguration>
     <CrossoverOperators>
       <CrossoverOperator type="OperatorCrossover" />
-      <CrossoverOperator type="LimitCrossover" />
+      <CrossoverOperator type="ThresholdCrossover" />
       <CrossoverOperator type="WeightCrossover" />
       <CrossoverOperator type="AggregationOperatorsCrossover" />
       <CrossoverOperator type="AggregationStrategyCrossover" />

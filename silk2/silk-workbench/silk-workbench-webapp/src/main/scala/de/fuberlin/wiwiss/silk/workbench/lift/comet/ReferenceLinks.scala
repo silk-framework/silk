@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import collection.mutable.{Subscriber, Publisher}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserData}
@@ -11,6 +10,7 @@ import net.liftweb.http.js.JsCmds.JsHideId
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
 import de.fuberlin.wiwiss.silk.util.task._
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
 class ReferenceLinks extends LinkList {
   private implicit val logger = Logger.getLogger(classOf[ReferenceLinks].getName)
@@ -23,29 +23,33 @@ class ReferenceLinks extends LinkList {
 
   override protected def registerEvents() {
     /**Register to updates to the ShowLinks variable */
-    ShowLinks.subscribe(new Subscriber[UserData.ValueUpdated[EvalLink.ReferenceType], Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]]] {
-      def notify(pub: Publisher[UserData.ValueUpdated[EvalLink.ReferenceType]], status: UserData.ValueUpdated[EvalLink.ReferenceType]) {
-        partialUpdate(updateLinksCmd)
-      }
-    })
+    ShowLinks.onUpdate(ShowLinksListener)
 
     /**Register to status messages of the cache loader task in order to be notified when new links are available */
-    linkingTask.cache.subscribe(new Subscriber[Status, Publisher[Status]] {
-      def notify(pub: Publisher[Status], status: Status) {
-        status match {
-          case _: Started => {
-          }
-          case _: Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
-            partialUpdate(updateLinksCmd)
-            lastUpdateTime = System.currentTimeMillis
-          }
-          case _: Finished => {
-            partialUpdate(updateLinksCmd)
-          }
-          case _ =>
+    linkingTask.cache.onUpdate(CacheListener)
+  }
+
+  private object ShowLinksListener extends (EvalLink.ReferenceType => Unit) {
+    def apply(links: EvalLink.ReferenceType) {
+      partialUpdate(updateLinksCmd)
+    }
+  }
+
+  private object CacheListener extends (Status => Unit) {
+    def apply(status: Status) {
+      status match {
+        case _: Started => {
         }
+        case _: Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
+          partialUpdate(updateLinksCmd)
+          lastUpdateTime = System.currentTimeMillis
+        }
+        case _: Finished => {
+          partialUpdate(updateLinksCmd)
+        }
+        case _ =>
       }
-    })
+    }
   }
 
   override protected def links: Seq[EvalLink] = {
@@ -125,5 +129,22 @@ class ReferenceLinks extends LinkList {
     User().task = updatedTask
 
     JsHideId(getId(link))
+  }
+
+  private def showAllProperties(link: EvalLink) = {
+
+    val instances = User().linkingTask.cache.instances
+
+    val instancePair = instances.positive.get(link).getOrElse(instances.negative(link))
+
+    for(instance <- instancePair) {
+      println(instance.uri)
+      for((path, index) <- instance.spec.paths.zipWithIndex) {
+        println(path.toString + instance.evaluate(index))
+      }
+      println()
+    }
+
+    JS.Empty
   }
 }

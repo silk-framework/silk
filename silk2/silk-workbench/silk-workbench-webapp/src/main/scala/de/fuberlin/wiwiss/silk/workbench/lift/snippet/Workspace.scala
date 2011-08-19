@@ -155,7 +155,7 @@ object Workspace {
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
     val openSourceTaskDialog = JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
-    SourceTaskDialog.initCmd & openSourceTaskDialog
+    openSourceTaskDialog
   }
 
   /**

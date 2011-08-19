@@ -1,29 +1,14 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import cleaning.CleanPopulationTask
-import generation.GeneratePopulationTask
+import generation.{LinkConditionGenerator, GeneratePopulationTask}
 import individual.Population
 import java.util.logging.Level
 import reproduction.ReproductionTask
 import de.fuberlin.wiwiss.silk.util.task.{Task, ValueTask}
-import de.fuberlin.wiwiss.silk.evaluation.{LinkConditionEvaluator, ReferenceInstances}
+import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
 
-class LearningTask(instances: ReferenceInstances,
-                   validationInstances: ReferenceInstances = ReferenceInstances.empty) extends ValueTask[LearningResult](LearningResult()) {
-
-  /** The learning configuration. */
-  private val config = LearningConfiguration.load(instances)
-
-  /** The desired fMeasure. The algorithm will stop after reaching it. */
-  private val destinationfMeasure = 0.999
-
-  private val cleanFrequency = 5
-
-  /** The maximum number of iterations before giving up. */
-  private val maxIterations = 50
-
-  /** The maximum number of subsequent iterations without any increase in fitness before giving up. */
-  private val maxIneffectiveIterations = 50
+class LearningTask(input: LearningInput = LearningInput.empty, config: LearningConfiguration = LearningConfiguration.empty) extends ValueTask[LearningResult](LearningResult()) {
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val scoreEpsilon = 0.0001
@@ -44,15 +29,16 @@ class LearningTask(instances: ReferenceInstances,
     stop = false
     ineffectiveIterations = 0
 
-    val generator = config.generation.linkConditionGenerator
+    val instances = input.trainingInstances
+    val generator = LinkConditionGenerator(instances, config.components)
 
     //Generate initial population
-    executeTask(new GeneratePopulationTask(instances, generator))
+    executeTask(new GeneratePopulationTask(input, generator))
 
     while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
-      executeTask(new ReproductionTask(value.get.population, instances, generator, config.reproduction))
+      executeTask(new ReproductionTask(value.get.population, instances, generator, config))
 
-      if (value.get.iterations % cleanFrequency == 0 && !stop) {
+      if (value.get.iterations % config.parameters.cleanFrequency == 0 && !stop) {
         executeTask(new CleanPopulationTask(value.get.population, instances, generator))
       }
     }
@@ -81,11 +67,11 @@ class LearningTask(instances: ReferenceInstances,
     }
 
     val status =
-      if (population.bestIndividual.fitness.fMeasure > destinationfMeasure)
+      if (population.bestIndividual.fitness.fMeasure > config.parameters.destinationfMeasure)
         LearningResult.Success
-      else if (ineffectiveIterations >= maxIneffectiveIterations)
+      else if (ineffectiveIterations >= config.parameters.maxIneffectiveIterations)
           LearningResult.MaximumIneffectiveIterationsReached
-      else if (iterations >= maxIterations)
+      else if (iterations >= config.parameters.maxIterations)
         LearningResult.MaximumIterationsReached
       else
         LearningResult.Running
@@ -95,7 +81,7 @@ class LearningTask(instances: ReferenceInstances,
         iterations = iterations,
         time = System.currentTimeMillis() - startTime,
         population = population,
-        validationResult = LinkConditionEvaluator(population.bestIndividual.node.build, validationInstances),
+        validationResult = LinkConditionEvaluator(population.bestIndividual.node.build, input.trainingInstances),
         status = status
       )
 

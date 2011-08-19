@@ -2,8 +2,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.util
 
 import java.util.UUID
 
-trait Form
-{
+trait Form {
   /** The id of this form */
   private lazy val id : String = UUID.randomUUID.toString
 
@@ -12,25 +11,21 @@ trait Form
 
   def updateCmd = fields.map(_.updateValueCmd).reduceLeft(_ & _)
 
-  def render =
-  {
-    <div id={id} >
-    {
-        <table>
-        {
-          for(field <- fields) yield
-          {
-            <tr>
-              <td>
-              { field.label }
-              </td>
-              <td>
-              { field.render }
-              </td>
-            </tr>
-          }
+  def render = {
+    <div id={id} > {
+      <table> {
+        for(field <- fields) yield {
+          <tr>
+            <td>
+            { field.label }
+            </td>
+            <td>
+            { field.render }
+            </td>
+          </tr>
         }
-        </table>
+      }
+      </table>
     }
     </div>
   }

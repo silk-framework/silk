@@ -16,24 +16,19 @@ import de.fuberlin.wiwiss.silk.util.task.Finished
 /**
  * The Silk Workbench REST API.
  */
-object Api
-{
-  def dispatch : LiftRules.DispatchPF =
-  {
-    case req @ Req(List("project"), "xml", GetRequest) =>
-    {
+object Api {
+  def dispatch : LiftRules.DispatchPF = {
+    case req @ Req(List("project"), "xml", GetRequest) => {
       val projectXml = ProjectExporter(User().project)
       val projectStr = new PrettyPrinter(140, 2).format(projectXml)
       () => Full(InMemoryResponse(projectStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
     }
-    case req @ Req(List("config"), "xml", GetRequest) =>
-    {
+    case req @ Req(List("config"), "xml", GetRequest) => {
       val configXml = SilkConfigExporter.build().toXML
       val configStr = new PrettyPrinter(140, 2).format(configXml)
       () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
     }
-    case req @ Req(List("referenceLinks"), "xml", GetRequest) =>
-    {
+    case req @ Req(List("referenceLinks"), "xml", GetRequest) => {
       val alignmentXml = User().linkingTask.alignment.toXML
       val configStr = new PrettyPrinter(140, 2).format(alignmentXml)
       () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
@@ -42,8 +37,7 @@ object Api
     case req @ Req(List("api", "project", "operators"), "", GetRequest) => () => generateOperators()
   }
 
-  private def generatePaths(req : Req) =
-  {
+  private def generatePaths(req : Req) = {
     val maxPathCount = req.param("max").map(_.toInt).getOrElse(Int.MaxValue)
 
     implicit val prefixes = User().project.config.prefixes
@@ -72,8 +66,7 @@ object Api
 
     val isLoadingField = JField("isLoading", JBool(errorMsg.isEmpty && instanceSpecs == null))
 
-    val json = errorMsg match
-    {
+    val json = errorMsg match {
       case None => JObject(sourceField :: targetField :: isLoadingField :: Nil)
       case Some(error) => JObject(sourceField :: targetField :: isLoadingField :: JField("error", JString(error)) :: Nil)
     }
@@ -81,16 +74,13 @@ object Api
     Full(JsonResponse(json))
   }
 
-  private def generateInstancePaths(paths : Traversable[Path], maxPathCount : Int)(implicit prefixes : Prefixes) =
-  {
-    for(path <- paths.toSeq.take(maxPathCount)) yield
-    {
+  private def generateInstancePaths(paths : Traversable[Path], maxPathCount : Int)(implicit prefixes : Prefixes) = {
+    for(path <- paths.toSeq.take(maxPathCount)) yield {
       JObject(JField("path", JString(path.serialize)) :: JField("frequency", JDouble(1.0)) :: Nil)
     }
   }
 
-  private def generateOperators() =
-  {
+  private def generateOperators() = {
     val transformations = JField("transformations", JArray(generateFactoryOperators(Transformer).toList))
     val comparators = JField("comparators", JArray(generateFactoryOperators(DistanceMeasure).toList))
     val aggregators = JField("aggregators", JArray(generateFactoryOperators(Aggregator).toList))
@@ -100,10 +90,8 @@ object Api
     Full(JsonResponse(json))
   }
 
-  private def generateFactoryOperators[T <: Strategy](factory : de.fuberlin.wiwiss.silk.util.strategy.Factory[T]) =
-  {
-    for(strategy <- factory.availableStrategies.toSeq.sortBy(_.label)) yield
-    {
+  private def generateFactoryOperators[T <: Strategy](factory : de.fuberlin.wiwiss.silk.util.strategy.Factory[T]) = {
+    for(strategy <- factory.availableStrategies.toSeq.sortBy(_.label)) yield {
       JObject(JField("id", JString(strategy.id)) ::
               JField("label", JString(strategy.label)) ::
               JField("description", JString(strategy.description)) ::
@@ -111,10 +99,8 @@ object Api
     }
   }
 
-  private def generateFactoryParameters(parameters : Traversable[Parameter]) =
-  {
-    for(parameter <- parameters) yield
-    {
+  private def generateFactoryParameters(parameters : Traversable[Parameter]) = {
+    for(parameter <- parameters) yield {
       JObject(JField("name", JString(parameter.name)) ::
               JField("type", JString(parameter.dataType.toString)) ::
               JField("optional", JBool(parameter.defaultValue.isDefined)) ::

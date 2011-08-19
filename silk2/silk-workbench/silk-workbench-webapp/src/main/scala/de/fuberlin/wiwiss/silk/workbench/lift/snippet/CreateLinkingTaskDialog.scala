@@ -17,10 +17,9 @@ import de.fuberlin.wiwiss.silk.linkspec.{LinkCondition, LinkFilter, DatasetSpeci
 /**
  * A dialog to create new linking tasks.
  */
-class CreateLinkingTaskDialog
-{
-  def render(xhtml : NodeSeq) : NodeSeq =
-  {
+class CreateLinkingTaskDialog {
+
+  def render(xhtml: NodeSeq): NodeSeq = {
     var name = ""
     var sourceId = ""
     var targetId = ""
@@ -28,10 +27,8 @@ class CreateLinkingTaskDialog
     var targetRestriction = ""
     var linkType = "http://www.w3.org/2002/07/owl#sameAs"
 
-    def submit() =
-    {
-      try
-      {
+    def submit() = {
+      try {
         implicit val prefixes = User().project.config.prefixes
 
         val linkSpec =
@@ -50,31 +47,27 @@ class CreateLinkingTaskDialog
         User().project.linkingModule.update(linkingTask)
 
         CreateLinkingTaskDialog.closeCmd & Workspace.updateCmd
-      }
-      catch
-      {
-        case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+      } catch {
+        case ex: Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
       }
     }
 
     SHtml.ajaxForm(
       bind("entry", xhtml,
-         "name" -> SHtml.text(name, name = _, "id" -> "linkName", "size" -> "60", "title" -> "Linking task name"),
-         "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId", "title" -> "Source dataset"),
-         "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "sourceRes", "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses" ),
-         "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId",  "title" -> "Target dataset"),
-         "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "targetRes", "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
-         "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "linkType", "size" -> "60",  "title" -> "Type of the generated link"),
-         "submit" -> SHtml.ajaxSubmit("Create", submit)))
+        "name" -> SHtml.text(name, name = _, "id" -> "linkName", "size" -> "60", "title" -> "Linking task name"),
+        "sourceId" -> SHtml.untrustedSelect(Nil, Empty, sourceId = _, "id" -> "selectSourceId", "title" -> "Source dataset"),
+        "sourceRestriction" -> SHtml.text(sourceRestriction, sourceRestriction = _, "id" -> "sourceRes", "size" -> "60", "title" -> "Restrict source dataset using SPARQL clauses"),
+        "targetId" -> SHtml.untrustedSelect(Nil, Empty, targetId = _, "id" -> "selectTargetId", "title" -> "Target dataset"),
+        "targetRestriction" -> SHtml.text(targetRestriction, targetRestriction = _, "id" -> "targetRes", "size" -> "60", "title" -> "Restrict target dataset using SPARQL clauses"),
+        "linkType" -> SHtml.text(linkType, linkType = _, "id" -> "linkType", "size" -> "60", "title" -> "Type of the generated link"),
+        "submit" -> SHtml.ajaxSubmit("Create", submit)))
   }
 }
 
-object CreateLinkingTaskDialog
-{
+object CreateLinkingTaskDialog {
   def initCmd = OnLoad(JsRaw("$('#createLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true })").cmd)
 
-  def openCmd =
-  {
+  def openCmd = {
     val sourceOptions = for(task <- User().project.sourceModule.tasks) yield <option value={task.name}>{task.name}</option>
 
     //Clear name

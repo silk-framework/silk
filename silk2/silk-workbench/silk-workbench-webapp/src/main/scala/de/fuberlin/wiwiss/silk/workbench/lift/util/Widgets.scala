@@ -8,15 +8,11 @@ import net.liftweb.http.js.JE.JsRaw
 import xml.{NodeBuffer, Text}
 import de.fuberlin.wiwiss.silk.util.task.{HasStatus, Task}
 
-object Widgets
-{
+object Widgets {
   @deprecated("Use TaskControl instead")
-  def taskControl[T](task : Task[T], cancelable : Boolean = false) =
-  {
-    def startTask()
-    {
-      if(!task.isRunning)
-      {
+  def taskControl[T](task : Task[T], cancelable : Boolean = false) = {
+    def startTask() {
+      if(!task.isRunning) {
         task.runInBackground()
       }
     }
@@ -25,8 +21,7 @@ object Widgets
 
     buttons += SHtml.submit("Start", startTask)
 
-    if(cancelable)
-    {
+    if(cancelable) {
       buttons += SHtml.submit("Cancel", () => task.cancel())
     }
 
@@ -36,21 +31,16 @@ object Widgets
   }
 
   @deprecated("Use ProgressWidget instead")
-  def taskProgress(task : HasStatus) =
-  {
+  def taskProgress(task : HasStatus) = {
     currentTaskProgress(() => Some(task))
   }
 
   @deprecated("Use ProgressWidget instead")
-  def currentTaskProgress(task : () => Option[HasStatus]) =
-  {
+  def currentTaskProgress(task : () => Option[HasStatus]) = {
     //Updates the status message
-    def update() = task() match
-    {
-      case Some(currentTask) =>
-      {
-        val html =
-        {
+    def update() = task() match {
+      case Some(currentTask) => {
+        val html = {
           <div id="progressbar"></div>
           <span class="progresstext">{currentTask.status.toString}</span>
         }
@@ -58,9 +48,7 @@ object Widgets
         val javascript = "$('#progressbar').progressbar({value: " + (currentTask.status.progress * 95 + 5) + "});"
 
         SetHtml("status", html) & JsRaw(javascript).cmd
-      }
-      case None =>
-      {
+      } case None => {
         SetHtml("status", Text("No task running"))
       }
     }

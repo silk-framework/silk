@@ -5,25 +5,30 @@ import de.fuberlin.wiwiss.silk.instance.{Instance, Path}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.learning.individual.StrategyNode
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
 /**
  * Analyses the reference instances and generates pairs of paths.
  */
-object PathPairGenerator {
+class PathPairGenerator(components: Components) {
   def apply(instances: ReferenceInstances): Traversable[ComparisonGenerator] = {
-    //Get all paths except sameAs paths
-    val paths = PathsRetriever(instances)
-    //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
-    val distinctPaths = DuplicateRemover(paths, instances)
-    //Return all path pairs
-    val pathPairs = PairGenerator(distinctPaths, instances)
+    if(instances.positive.isEmpty || instances.negative.isEmpty) {
+      Traversable.empty
+    } else {
+      //Get all paths except sameAs paths
+      val paths = PathsRetriever(instances)
+      //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
+      val distinctPaths = DuplicateRemover(paths, instances)
+      //Return all path pairs
+      val pathPairs = PairGenerator(distinctPaths, instances)
 
-    pathPairs.flatMap(createGenerators)
+      pathPairs.flatMap(createGenerators)
+    }
   }
 
   private def createGenerators(pathPair: SourceTargetPair[Path]) = {
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair), StrategyNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair), StrategyNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), StrategyNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), StrategyNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
   }
 
   /**

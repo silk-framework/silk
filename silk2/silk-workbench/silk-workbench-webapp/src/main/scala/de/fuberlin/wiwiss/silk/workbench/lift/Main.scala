@@ -3,10 +3,8 @@ package de.fuberlin.wiwiss.silk.workbench.lift
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.webapp.{WebAppClassLoader, WebAppContext}
 
-object Main
-{
-  def main(args : Array[String])
-  {
+object Main {
+  def main(args : Array[String]) {
     val server = new Server(8080)
 
     val context = new WebAppContext()

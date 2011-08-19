@@ -13,8 +13,7 @@ import xml.NodeSeq
 /**
  * A dialog which lets the user choose between different strategies.
  */
-trait StrategyDialog[T <: Strategy]
-{
+trait StrategyDialog[T <: Strategy] {
   /** The title of this dialog. */
   def title : String
 
@@ -40,8 +39,7 @@ trait StrategyDialog[T <: Strategy]
   private lazy val strategyForms = strategies.map(new StrategyForm(_, () => currentObj))
 
   /** The current form */
-  private def currentForm = currentObj match
-  {
+  private def currentForm = currentObj match {
     case Some(obj) => strategyForms.find(_.strategy.id == obj.strategyId).getOrElse(strategyForms.head)
     case None => strategyForms.head
   }
@@ -49,29 +47,22 @@ trait StrategyDialog[T <: Strategy]
   /**
    * Renders this dialog.
    */
-  def render(in : NodeSeq) : NodeSeq =
-  {
+  def render(in : NodeSeq) : NodeSeq = {
     var selectedForm = currentForm
 
-    def submit() =
-    {
-      try
-      {
+    def submit() = {
+      try {
         onSubmit(selectedForm.create())
 
         Commands.close & Workspace.updateCmd
-      }
-      catch
-      {
-        case ex : Exception =>
-        {
+      } catch {
+        case ex : Exception => {
           Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
         }
       }
     }
 
-    def updateForm(form : StrategyForm[T]) =
-    {
+    def updateForm(form : StrategyForm[T]) = {
       selectedForm = form
       strategyForms.map(_.updateCmd(selectedForm.strategy)).reduce(_ & _)
     }
@@ -79,13 +70,10 @@ trait StrategyDialog[T <: Strategy]
     <div id={id} title={title}>
       <div id={id + "-select"}>
       { SHtml.ajaxSelectObj(strategyForms.map(f => (f, f.strategy.label)), Full(selectedForm), updateForm) }
-      </div>
-      {
+      </div> {
         SHtml.ajaxForm(
-          <table>
-          {
-            for(field <- fields) yield
-            {
+          <table> {
+            for(field <- fields) yield {
               <tr>
                 <td>
                 { field.label }
@@ -101,14 +89,12 @@ trait StrategyDialog[T <: Strategy]
           SHtml.ajaxSubmit("Save", submit))
       }
     </div>
-
   }
 
   /**
    * JavaScript Commands.
    */
-  object Commands
-  {
+  object Commands {
     /**
      * Command which initializes this dialog.
      */
@@ -117,8 +103,7 @@ trait StrategyDialog[T <: Strategy]
     /**
      * Command which opens this dialog.
      */
-    def open =
-    {
+    def open = {
       //Update all fields and open the dialog
       val updateFields = fields.map(_.updateValueCmd).reduceLeft(_ & _)
       val resetSelect = JsRaw("$('#" + id + "-select select option').removeAttr('selected')")

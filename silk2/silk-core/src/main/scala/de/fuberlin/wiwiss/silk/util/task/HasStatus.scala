@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.util.task
 
-import collection.mutable.Publisher
 import java.util.logging.{Logger, Level}
+import de.fuberlin.wiwiss.silk.util.Observable
 
-class HasStatus extends Publisher[Status] {
+class HasStatus extends Observable[Status] {
   /**
    * The level at which status changes should be logged.
    */
