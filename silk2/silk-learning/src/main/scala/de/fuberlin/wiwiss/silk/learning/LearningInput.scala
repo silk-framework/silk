@@ -10,6 +10,10 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
  * @param validationInstances Reference instances used for validation
  * @param seedCondition Existing link conditions which are used to seed the population.
  */
-case class LearningInput(trainingInstances: ReferenceInstances,
+case class LearningInput(trainingInstances: ReferenceInstances = ReferenceInstances.empty,
                          validationInstances: ReferenceInstances = ReferenceInstances.empty,
                          seedConditions: Traversable[LinkCondition] = Traversable.empty)
+
+object LearningInput {
+  def empty = LearningInput()
+}

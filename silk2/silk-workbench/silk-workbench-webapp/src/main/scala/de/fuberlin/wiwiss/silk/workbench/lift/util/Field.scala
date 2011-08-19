@@ -29,7 +29,7 @@ sealed trait Field[T] {
  * A field which holds a string value
  */
 case class StringField(label: String, description: String, initialValue: () => String = (() => "")) extends Field[String] {
-  override var value = ""
+  override var value = initialValue()
 
   override def render = SHtml.text(value, value = _, "id" -> id, "size" -> "60", "title" -> description)
 
@@ -40,15 +40,12 @@ case class StringField(label: String, description: String, initialValue: () => S
 }
 
 /**
- * A field which holds a string value
+ * A field which holds an integer value
  */
-case class BooleanField(label: String, description: String, initialValue: () => Boolean = (() => false)) extends Field[Boolean] {
-  override var value = false
+case class IntField(label: String, description: String, min: Int, max: Int, initialValue: () => Int = (() => 0)) extends Field[Int] {
+  override var value = initialValue()
 
-  override def render = {
-    SHtml.checkbox(value, value = _, "id" -> id, "size" -> "60", "title" -> description, "id" -> id) ++
-    <label for={id + label}>{label}</label>
-  }
+  override def render = SHtml.number(value, value = _, min, max, "id" -> id, "size" -> "60", "title" -> description)
 
   override def updateValueCmd = {
     value = initialValue()
@@ -57,10 +54,43 @@ case class BooleanField(label: String, description: String, initialValue: () => 
 }
 
 /**
+ * A field which holds a string value
+ */
+case class BooleanField(label: String,
+                        description: String,
+                        initialValue: () => Boolean = (() => false),
+                        onUpdate: Boolean => JsCmd = (_ => JS.Empty)) extends Field[Boolean] {
+
+  override var value = initialValue()
+
+  override def render = {
+    SHtml.ajaxCheckbox(value, updateValue _, "id" -> id, "size" -> "60", "title" -> description, "id" -> id) ++
+    <label for={id}>Enable</label>
+  }
+
+  override def updateValueCmd = {
+    value = initialValue()
+    JsRaw("$('#" + id + "').val('" + value + "');").cmd
+  }
+
+  def enableCmd(enable: Boolean) = {
+    if(enable)
+      JsRaw("$('#" + id + "').removeAttr('disabled')").cmd
+    else
+      JsRaw("$('#" + id + "').attr('disabled', 'disabled')").cmd
+  }
+
+  private def updateValue(newValue: Boolean) = {
+    value = newValue
+    onUpdate(newValue)
+  }
+}
+
+/**
  * A field which holds an enumeration of values which can be selected.
  */
 case class SelectField(label: String, description: String, allowedValues: () => Seq[String], initialValue: () => String) extends Field[String] {
-  override var value = ""
+  override var value = initialValue()
 
   override def render = SHtml.untrustedSelect(Nil, Empty, value = _, "id" -> id, "title" -> description)
 

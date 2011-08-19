@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import xml.Node
 
-case class ReproductionConfiguration(operators: Traversable[CrossoverOperator]) {
+case class ReproductionConfiguration() {
 
   val mutationProbability = 0.25
 
@@ -15,7 +15,6 @@ object ReproductionConfiguration
 {
   def fromXml(xml: Node) = {
     ReproductionConfiguration(
-      operators = loadOperators(xml)
     )
   }
 

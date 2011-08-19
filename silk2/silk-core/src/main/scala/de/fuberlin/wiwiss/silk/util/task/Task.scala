@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.util.task
 
 import de.fuberlin.wiwiss.silk.util.task.Task._
 import java.util.logging.Level
-import collection.mutable.{Subscriber, Publisher}
 import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 
@@ -70,11 +69,11 @@ trait Task[+T] extends HasStatus with (() => T) {
     subTask.logLevel = Level.FINEST
 
     //Subscribe to status changes of the sub task
-    val subscriber = new Subscriber[Status, Publisher[Status]] {
+    val listener = new (Status => Unit) {
       val initialProgress = status.progress
 
-      override def notify(pub: Publisher[Status], event: Status) {
-        event match {
+      def apply(status: Status) {
+        status match {
           case Running(status, taskProgress) => {
             updateStatus(status, initialProgress + taskProgress * (finalProgress - initialProgress))
           }
@@ -88,10 +87,9 @@ trait Task[+T] extends HasStatus with (() => T) {
 
     //Start sub task
     try {
-      subTask.subscribe(subscriber)
+      subTask.onUpdate(listener)
       subTask()
     } finally {
-      subTask.removeSubscription(subscriber)
       subTask.logLevel = subTaskLogLevel
     }
   }

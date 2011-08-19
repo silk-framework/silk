@@ -47,8 +47,7 @@ object SourceTaskDialog extends Dialog {
       for (linkingTask <- updatedLinkingTasks) {
         linkingModule.update(linkingTask)
       }
-    }
-    else {
+    } else {
       User().project.sourceModule.update(newSource)
     }
   }
@@ -96,12 +95,10 @@ object SourceTaskDialog extends Dialog {
     }
 
     private def updateDataset(ds: DatasetSpecification) = {
-      if (ds.sourceId == oldSource) {
+      if (ds.sourceId == oldSource)
         ds.copy(sourceId = newSource)
-      }
-      else {
+      else
         ds
-      }
     }
   }
 

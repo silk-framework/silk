@@ -10,15 +10,13 @@ import java.util.logging.{Level, Logger}
 /**
  * Various useful JavaScript commands.
  */
-object JS
-{
+object JS {
   private val logger = Logger.getLogger(JS.getClass.getName)
 
   /**
    * Periodically executes a specific JavaScript Command.
    */
-  def PeriodicUpdate(updateFunc : () => JsCmd, interval : Int = 1000) =
-  {
+  def PeriodicUpdate(updateFunc: () => JsCmd, interval: Int = 1000) = {
     Function("update", Nil, SHtml.ajaxInvoke(updateFunc)._2.cmd & After(TimeSpan(interval), Call("update").cmd)) & Call("update").cmd
   }
 
@@ -27,8 +25,7 @@ object JS
    *
    * @param url The URL to redirect to
    */
-  def Redirect(url : String) =
-  {
+  def Redirect(url: String) = {
     JsRaw("window.location.href = '" + url + "';").cmd
   }
 
@@ -40,23 +37,18 @@ object JS
   /**
    * Shows message box to the user.
    */
-  def Message(msg : String) = JsRaw("alert('" + msg + "');").cmd
+  def Message(msg: String) = JsRaw("alert('" + msg + "');").cmd
 
   /**
    * Tries to execute a function and shows an error box to the user in case it fails with an exception.
    *
    * @param description A short description of the function to be shown to the user e.g. "show links"
    */
-  def Try(description : String = "")(func : => JsCmd) : JsCmd =
-  {
-    try
-    {
+  def Try(description: String = "")(func: => JsCmd): JsCmd = {
+    try {
       func
-    }
-    catch
-    {
-      case ex : Exception =>
-      {
+    } catch {
+      case ex: Exception => {
         logger.log(Level.INFO, "Error " + description, ex)
         Message("Error while trying to " + description + ". Details: " + ex.getMessage.encJs)
       }
@@ -68,8 +60,7 @@ object JS
    */
   def Empty = JsRaw("").cmd
 
-  def ajaxLiveText(value: String, func: String => JsCmd) =
-  {
+  def ajaxLiveText(value: String, func: String => JsCmd) = {
     <input value={value} onkeyup={SHtml.ajaxCall(JsRaw("this.value"), func)._2.toJsCmd}/>
   }
 }

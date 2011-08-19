@@ -16,10 +16,8 @@ import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
 /**
  * A dialog to edit linking tasks.
  */
-class EditLinkingTaskDialog
-{
-  def render(xhtml : NodeSeq) : NodeSeq =
-  {
+class EditLinkingTaskDialog {
+  def render(xhtml : NodeSeq) : NodeSeq = {
     var sourceId = ""
     var targetId = ""
     var sourceRestriction = ""
@@ -28,10 +26,8 @@ class EditLinkingTaskDialog
     var name = ""
     val prefixes : Map[String, String] = Map.empty
 
-    def submit() =
-    {
-      try
-      {
+    def submit() = {
+      try {
         val linkingTask = User().linkingTask
         implicit val prefixes = User().project.config.prefixes
 
@@ -50,9 +46,7 @@ class EditLinkingTaskDialog
         User().closeTask()
 
         EditLinkingTaskDialog.closeCmd & Workspace.updateCmd
-      }
-      catch
-      {
+      } catch {
         case ex : Exception => Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
       }
     }
@@ -69,42 +63,30 @@ class EditLinkingTaskDialog
   }
 }
 
-object EditLinkingTaskDialog
-{
+object EditLinkingTaskDialog {
   def initCmd = OnLoad(JsRaw("$('#editLinkingTaskDialog').dialog({ autoOpen: false, width: 700, modal: true, close : closeTask })").cmd)
 
-  def openCmd =
-  {
+  def openCmd = {
     val linkingTask = User().linkingTask
     val datasets = linkingTask.linkSpec.datasets
     val sourceTasks = User().project.sourceModule.tasks
 
     //Generate the options of the source select box
     val sourceOptions =
-      for(task <- User().project.sourceModule.tasks) yield
-      {
+      for(task <- User().project.sourceModule.tasks) yield {
         if(task.name == datasets.source.sourceId)
-        {
           <option value={task.name} selected="true">{task.name}</option>
-        }
         else
-        {
           <option value={task.name}>{task.name}</option>
-        }
       }
 
     //Generate the options of the target select box
     val targetOptions =
-      for(task <- User().project.sourceModule.tasks) yield
-      {
+      for(task <- User().project.sourceModule.tasks) yield {
         if(task.name == datasets.target.sourceId)
-        {
           <option value={task.name} selected="true">{task.name}</option>
-        }
         else
-        {
           <option value={task.name}>{task.name}</option>
-        }
       }
 
     //Update name

@@ -1,23 +1,40 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import reproduction.{ReproductionConfiguration}
-import generation.GenerationConfiguration
 import xml.XML
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration._
 
-case class LearningConfiguration(generation: GenerationConfiguration, reproduction: ReproductionConfiguration)
+case class LearningConfiguration(components: Components, reproduction: ReproductionConfiguration, parameters: Parameters)
 
 object LearningConfiguration {
 
   val defaultConfigFile = "de/fuberlin/wiwiss/silk/learning/config.xml"
 
-  def load(instances : ReferenceInstances) = {
+  def empty = load(LearningInput())
+
+  def load(input: LearningInput) = {
 
     val xml = XML.load(getClass.getClassLoader.getResourceAsStream(defaultConfigFile))
 
     LearningConfiguration(
-      generation = GenerationConfiguration.fromXml(xml \ "GenerationConfiguration" head, instances),
-      reproduction = ReproductionConfiguration.fromXml(xml \ "ReproductionConfiguration" head)
+      components = Components(),
+      reproduction = ReproductionConfiguration(),
+      parameters = Parameters()
     )
   }
+
+  case class Components(transformations: Boolean = true, aggregations: Boolean = true)
+
+  /**
+   * The parameters of the learning algorithm.
+   *
+   * @param maxIterations The maximum number of iterations before giving up.
+   * @param maxIneffectiveIterations The maximum number of subsequent iterations without any increase in fitness before giving up.
+   * @param cleanFrequency The number of iterations between two runs of the cleaning algorithm.
+   * @param destinationfMeasure The desired fMeasure. The algorithm will stop after reaching it.
+   */
+  case class Parameters(destinationfMeasure: Double = 0.999,
+                        cleanFrequency: Int = 5,
+                        maxIterations: Int = 50,
+                        maxIneffectiveIterations: Int = 50)
 }

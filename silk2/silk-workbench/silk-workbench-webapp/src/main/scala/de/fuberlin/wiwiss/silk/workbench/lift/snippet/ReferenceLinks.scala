@@ -9,26 +9,19 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{ReferenceType, Pos
 import xml._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS._
 
-class ReferenceLinks
-{
-  def toolbar(xhtml : NodeSeq) : NodeSeq =
-  {
-    def setChecked(input : Elem, linkType : ReferenceType) =
-    {
+class ReferenceLinks {
+
+  def toolbar(xhtml : NodeSeq) : NodeSeq = {
+    def setChecked(input : Elem, linkType : ReferenceType) = {
       if(ShowLinks() == linkType)
-      {
         input % Attribute("checked", Text("checked"), Null)
-      }
       else
-      {
         input
-      }
     }
 
     bind("entry", xhtml,
          "selectLinks" ->
-           <div id="selectLinks">
-           {
+           <div id="selectLinks"> {
              setChecked(<input onchange={SHtml.ajaxInvoke(showLinks(Positive))._2.cmd.toJsCmd} id="showPositiveLinks" type="radio" name="selectLinks" />, Positive) ++
              <label for="showPositiveLinks">Positive</label> ++
              setChecked(<input onchange={SHtml.ajaxInvoke(showLinks(Negative))._2.cmd.toJsCmd} id="showNegativeLinks" type="radio" name="selectLinks" />, Negative) ++
@@ -42,8 +35,7 @@ class ReferenceLinks
     )
  }
 
-  private def showLinks(linkType : EvalLink.ReferenceType)() =
-  {
+  private def showLinks(linkType : EvalLink.ReferenceType)() = {
     ShowLinks() = linkType
     JS.Empty
   }

@@ -10,9 +10,11 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
  */
 class CacheLoadingProgress extends ProgressWidget(User().linkingTask.cache, hide = true) {
   /** Register to messages of the user. */
-  User().subscribe(new Subscriber[CurrentTaskChanged, Publisher[CurrentTaskChanged]] {
-    def notify(pub : Publisher[CurrentTaskChanged], event : CurrentTaskChanged) {
+  User().onUpdate(CurrentTaskListener)
+
+  private object CurrentTaskListener extends (CurrentTaskChanged => Unit) {
+    def apply(event: CurrentTaskChanged) {
       reRender()
     }
-  })
+  }
 }

@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.workbench.lift.util
 
 import net.liftweb.http.CometActor
 import net.liftweb.http.js.JE.JsRaw
-import collection.mutable.{Publisher, Subscriber}
 import scala.xml.Text
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.util.task._
@@ -13,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.task._
  * @param task The task for which the progress should be shown
  * @param hide Hide the widget if the task is not active.
  */
-class ProgressWidget(task: => HasStatus, hide: Boolean = false) extends CometActor with Subscriber[Status, Publisher[Status]] {
+class ProgressWidget(task: => HasStatus, hide: Boolean = false) extends CometActor {
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 1000L
 
@@ -22,15 +21,8 @@ class ProgressWidget(task: => HasStatus, hide: Boolean = false) extends CometAct
 
   override protected val dontCacheRendering = true
 
-  override def notify(pub: Publisher[Status], status: Status) {
-    if (status.isInstanceOf[Finished] || status.isInstanceOf[Canceled] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
-      partialUpdate(updateCmd)
-      lastUpdateTime = System.currentTimeMillis
-    }
-  }
-
   override def render = {
-    task.subscribe(this)
+    task.onUpdate(TaskListener)
 
     <div id="progresswidget">
       <div id="progressbar"></div>
@@ -64,6 +56,15 @@ class ProgressWidget(task: => HasStatus, hide: Boolean = false) extends CometAct
         JsRaw("$('#progresswidget').attr('title', '" + task.status + "');") &
         JsRaw("$('#progressbar').progressbar({value: " + (task.status.progress * 95 + 5) + "});").cmd &
         SetHtml("progresstext", Text(task.status.toString))
+    }
+  }
+
+  private object TaskListener extends (Status => Unit) {
+    def apply(status: Status) {
+      if (status.isInstanceOf[Finished] || status.isInstanceOf[Canceled] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
+        partialUpdate(updateCmd)
+        lastUpdateTime = System.currentTimeMillis
+      }
     }
   }
 }

@@ -5,13 +5,13 @@ import modules.ModuleTask
 import modules.output.OutputTask
 import modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationTask
-import collection.mutable.Publisher
 import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
+import de.fuberlin.wiwiss.silk.util.Observable
 
 /**
  * A user.
  */
-trait User extends Publisher[CurrentTaskChanged] {
+trait User extends Observable[CurrentTaskChanged] {
 
   @volatile private var currentProject: Option[Project] = None
 

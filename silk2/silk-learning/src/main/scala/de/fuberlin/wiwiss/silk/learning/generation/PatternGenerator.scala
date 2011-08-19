@@ -7,16 +7,21 @@ import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.individual._
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
-object PatternGenerator {
+class PatternGenerator(components: Components) {
 
   implicit val prefixes = Prefixes.empty
 
   private val handlers = LabelHandler :: Wgs84Handler :: Nil
 
   def apply(instances: ReferenceInstances): Traversable[ComparisonGenerator] = {
-    val paths = instances.positive.values.head.map(_.spec.paths)
-    handlers.flatMap(_.apply(paths))
+    if(instances.positive.isEmpty || instances.negative.isEmpty) {
+      Traversable.empty
+    } else {
+      val paths = instances.positive.values.head.map(_.spec.paths)
+      handlers.flatMap(_.apply(paths))
+    }
   }
 
   private trait Handler extends (SourceTargetPair[Traversable[Path]] => Option[ComparisonGenerator]) {
@@ -38,7 +43,7 @@ object PatternGenerator {
     //TODO create measures other than levensthein
     private def createGenerator(pathPair : SourceTargetPair[Path]) = {
       new ComparisonGenerator(
-        inputGenerators = InputGenerator.fromPathPair(pathPair),
+        inputGenerators = InputGenerator.fromPathPair(pathPair, components.transformations),
         measure = StrategyNode("levenshteinDistance", Nil, DistanceMeasure),
         maxThreshold = 10.0
       )
@@ -73,7 +78,7 @@ object PatternGenerator {
         )
 
       new ComparisonGenerator(
-        inputGenerators = InputGenerator.fromInputPair(inputs),
+        inputGenerators = InputGenerator.fromInputPair(inputs, components.transformations),
         measure = StrategyNode("wgs84", ParameterNode("unit", "km") :: Nil, DistanceMeasure),
         maxThreshold = 50.0
       )

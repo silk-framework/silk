@@ -18,6 +18,8 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   /** Don't log progress. */
   logLevel = Level.FINE
 
+  private val config = LearningConfiguration.load(LearningInput(instances))
+
   /**
    *
    * Executes all cross validation runs.
@@ -42,7 +44,7 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
     val splits = splitReferenceInstances()
 
     for((split, index) <- splits.zipWithIndex) yield {
-      val learningTask = new LearningTask(split.trainingSet, split.validationSet)
+      val learningTask = new LearningTask(split, config)
 
       var results = List[LearningResult]()
       val addResult = (result: LearningResult) => {
@@ -63,7 +65,7 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   /**
    * Splits the reference instances..
    */
-  private def splitReferenceInstances(): IndexedSeq[LearningSet] = {
+  private def splitReferenceInstances(): IndexedSeq[LearningInput] = {
     //Get the positive and negative reference instances
     val posInstances = Random.shuffle(instances.positive.values)
     val negInstances = Random.shuffle(instances.negative.values)
@@ -79,17 +81,12 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
     //Generate a learning set from each split
     val splits =
       for((p, n) <- posSplits zip negSplits) yield {
-        LearningSet(
-          trainingSet = ReferenceInstances.fromInstances(p.tail.flatten, n.tail.flatten),
-          validationSet = ReferenceInstances.fromInstances(p.head, n.head)
+        LearningInput(
+          trainingInstances = ReferenceInstances.fromInstances(p.tail.flatten, n.tail.flatten),
+          validationInstances = ReferenceInstances.fromInstances(p.head, n.head)
         )
       }
 
     splits.toIndexedSeq
   }
-
-  /**
-   * A learning set consisting of a training set and a validation set.
-   */
-  private case class LearningSet(trainingSet: ReferenceInstances, validationSet: ReferenceInstances)
 }

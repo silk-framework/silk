@@ -4,6 +4,7 @@ import net.liftweb.http.{SHtml, CometActor}
 import xml.Text
 import java.util.UUID
 import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.js.JsCmd
 
 /**
  * A button whose properties can be changed at runtime.
@@ -13,30 +14,29 @@ trait DynamicButton extends CometActor  {
   /** The id of the HTML button. */
   private val id = UUID.randomUUID.toString
 
+  /** True, if this button already has been rendered. */
+  @volatile private var rendered = false
+
   /** The current label of this button. */
-  private var labelVar = "Button"
+  @volatile private var labelVar = "Button"
 
   /** True if this button is currently enabled. */
-  private var enabledVar = true
+  @volatile private var enabledVar = true
 
   /**
    * Called if the button has been pressed.
    */
-  protected def onPressed()
+  protected def onPressed(): JsCmd
 
   /**
    * Renders this button.
    */
   override def render = {
-    def buttonPressed() = {
-      onPressed()
-      JS.Empty
-    }
-
+    rendered = true
     if(enabled)
-      SHtml.ajaxButton(Text(label), buttonPressed _, ("id" -> id))
+      SHtml.ajaxButton(Text(label), onPressed _, ("id" -> id))
     else
-      SHtml.ajaxButton(Text(label), buttonPressed _, ("id" -> id), ("disabled" -> "disabled"))
+      SHtml.ajaxButton(Text(label), onPressed _, ("id" -> id), ("disabled" -> "disabled"))
   }
 
   /** True if this button is currently enabled. */
@@ -47,10 +47,12 @@ trait DynamicButton extends CometActor  {
    */
   def enabled_=(enable: Boolean) {
     enabledVar = enable
-    if(enable)
-      partialUpdate(JsRaw("$('#" + id + "').removeAttr('disabled')").cmd)
-    else
-      partialUpdate(JsRaw("$('#" + id + "').attr('disabled', 'disabled')").cmd)
+    if(rendered) {
+      if(enable)
+        partialUpdate(JsRaw("$('#" + id + "').removeAttr('disabled')").cmd)
+      else
+        partialUpdate(JsRaw("$('#" + id + "').attr('disabled', 'disabled')").cmd)
+    }
   }
 
   /** The current label of this button. */
@@ -61,6 +63,7 @@ trait DynamicButton extends CometActor  {
    */
   def label_=(newLabel: String) {
     labelVar = newLabel
-    partialUpdate(JsRaw("$('#" + id + " span').html('" + label + "')").cmd)
+    if(rendered)
+      partialUpdate(JsRaw("$('#" + id + " span').html('" + label + "')").cmd)
   }
 }

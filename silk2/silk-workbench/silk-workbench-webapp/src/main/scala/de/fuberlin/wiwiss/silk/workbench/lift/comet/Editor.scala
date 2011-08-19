@@ -13,7 +13,6 @@ import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import net.liftweb.http.js.JE._
 import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import net.liftweb.http.{CometActor, SHtml}
-import collection.mutable.{Publisher, Subscriber}
 import de.fuberlin.wiwiss.silk.util.task.{Finished, Status}
 
 /**
@@ -30,7 +29,7 @@ class Editor extends CometActor {
   override protected val dontCacheRendering = true
 
   //Listen to status messages of the cache loader task
-  User().linkingTask.cache.subscribe(CacheListener)
+  User().linkingTask.cache.onUpdate(CacheListener)
 
   /**
    * Renders the editor.
@@ -62,7 +61,7 @@ class Editor extends CometActor {
         val updatedLinkingTask = linkingTask.updateLinkSpec(linkSpec, project)
 
         //Listen to status messages of the cache loader task
-        updatedLinkingTask.cache.subscribe(CacheListener)
+        updatedLinkingTask.cache.onUpdate(CacheListener)
 
         //Commit
         project.linkingModule.update(updatedLinkingTask)
@@ -146,8 +145,8 @@ class Editor extends CometActor {
   /**
    * Updates the status as soon as the cache has been loaded.
    */
-  object CacheListener extends Subscriber[Status, Publisher[Status]] {
-    def notify(pub : Publisher[Status], status : Status) {
+  object CacheListener extends (Status => Unit) {
+    def apply(status: Status) {
       status match {
         case _ : Finished => {
           partialUpdate(updateStatusCall(infos = evaluateLinkSpec(User().linkingTask)))
