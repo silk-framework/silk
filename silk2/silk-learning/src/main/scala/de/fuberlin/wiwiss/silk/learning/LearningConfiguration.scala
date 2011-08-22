@@ -33,8 +33,9 @@ object LearningConfiguration {
    * @param cleanFrequency The number of iterations between two runs of the cleaning algorithm.
    * @param destinationfMeasure The desired fMeasure. The algorithm will stop after reaching it.
    */
-  case class Parameters(destinationfMeasure: Double = 0.999,
-                        cleanFrequency: Int = 5,
+  case class Parameters(populationSize: Int = 500,
                         maxIterations: Int = 50,
-                        maxIneffectiveIterations: Int = 50)
+                        maxIneffectiveIterations: Int = 50,
+                        cleanFrequency: Int = 5,
+                        destinationfMeasure: Double = 0.999)
 }

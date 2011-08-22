@@ -1,21 +1,22 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import xml.NodeSeq
 import net.liftweb.http.js.JsCmd
+import net.liftweb.http.js.JsCmds.{Script, OnLoad}
 import net.liftweb.http.SHtml
-import net.liftweb.common.Empty
 import java.util.UUID
 import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.common.{Full, Empty}
+import xml.{Attribute, Text, Null, NodeSeq}
 
 /**
  * An input field.
  */
-sealed trait Field[T] {
+sealed trait Field[+T] {
   val label: String
 
   val description: String
 
-  var value: T
+  def value: T
 
   /**The id of this field */
   protected lazy val id: String = UUID.randomUUID.toString
@@ -29,12 +30,14 @@ sealed trait Field[T] {
  * A field which holds a string value
  */
 case class StringField(label: String, description: String, initialValue: () => String = (() => "")) extends Field[String] {
-  override var value = initialValue()
+  private var v = initialValue()
 
-  override def render = SHtml.text(value, value = _, "id" -> id, "size" -> "60", "title" -> description)
+  override def value = v
+
+  override def render = SHtml.text(v, v = _, "id" -> id, "size" -> "60", "title" -> description)
 
   override def updateValueCmd = {
-    value = initialValue()
+    v = initialValue()
     JsRaw("$('#" + id + "').val('" + value + "');").cmd
   }
 }
@@ -43,33 +46,36 @@ case class StringField(label: String, description: String, initialValue: () => S
  * A field which holds an integer value
  */
 case class IntField(label: String, description: String, min: Int, max: Int, initialValue: () => Int = (() => 0)) extends Field[Int] {
-  override var value = initialValue()
+  private var v = initialValue()
 
-  override def render = SHtml.number(value, value = _, min, max, "id" -> id, "size" -> "60", "title" -> description)
+  override def value = v
+
+  override def render = SHtml.number(v, v = _, min, max, "id" -> id, "title" -> description, "style" -> "margin-left:0")
 
   override def updateValueCmd = {
-    value = initialValue()
+    v = initialValue()
     JsRaw("$('#" + id + "').val('" + value + "');").cmd
   }
 }
 
 /**
- * A field which holds a string value
+ * A field which holds a boolean value
  */
 case class BooleanField(label: String,
                         description: String,
                         initialValue: () => Boolean = (() => false),
                         onUpdate: Boolean => JsCmd = (_ => JS.Empty)) extends Field[Boolean] {
+  private var v = initialValue()
 
-  override var value = initialValue()
+  override def value = v
 
   override def render = {
-    SHtml.ajaxCheckbox(value, updateValue _, "id" -> id, "size" -> "60", "title" -> description, "id" -> id) ++
+    SHtml.ajaxCheckbox(v, updateValue _, "id" -> id, "size" -> "60", "title" -> description, "id" -> id) ++
     <label for={id}>Enable</label>
   }
 
   override def updateValueCmd = {
-    value = initialValue()
+    v = initialValue()
     JsRaw("$('#" + id + "').val('" + value + "');").cmd
   }
 
@@ -81,21 +87,94 @@ case class BooleanField(label: String,
   }
 
   private def updateValue(newValue: Boolean) = {
-    value = newValue
+    v = newValue
     onUpdate(newValue)
   }
 }
 
 /**
- * A field which holds an enumeration of values which can be selected.
+ * Multiple checkboxes
  */
-case class SelectField(label: String, description: String, allowedValues: () => Seq[String], initialValue: () => String) extends Field[String] {
-  override var value = initialValue()
+case class CheckboxesField(label: String,
+                           description: String,
+                           allowedValues: Seq[String],
+                           initialValue: () => Set[String]) extends Field[Set[String]] {
+  private var v = initialValue()
 
-  override def render = SHtml.untrustedSelect(Nil, Empty, value = _, "id" -> id, "title" -> description)
+  override def value = v
+
+  override def render = {
+    val boxes = for((text, index) <- allowedValues.zipWithIndex) yield renderBox(text, index)
+    boxes.reduce(_ ++ _)
+  }
+
+  private def renderBox(text: String, index: Int) = {
+    def update(b: String) {
+      if(b == "on")
+        v += text
+      else
+        v -= text
+    }
+
+    val input = <input onchange={SHtml.ajaxCall(JsRaw("this.value"), update)._2.cmd.toJsCmd} id={id + index} type="checkbox" />
+    val checkedInput = if(value.contains(text)) input % Attribute("checked", Text("checked"), Null) else input
+
+    checkedInput ++ <label for={id + index}>{text}</label>
+  }
 
   override def updateValueCmd = {
-    value = initialValue()
+    v = initialValue()
+    JsRaw("$('#" + id + "').val('" + value + "');").cmd
+  }
+}
+
+/**
+ * A field which holds an enumeration of values which can be selected using buttons.
+ */
+case class RadioField(label: String, description: String, allowedValues: Seq[String], initialValue: () => String) extends Field[String] {
+  private var v = initialValue()
+
+  override def value = v
+
+  override def render = {
+    val buttons = for((text, index) <- allowedValues.zipWithIndex) yield renderButton(text, index)
+
+    <div id={id}>{
+      buttons.reduce(_ ++ _)
+    }</div> ++
+    Script(OnLoad(JsRaw("$(\"#" + id + "\").buttonset();").cmd))
+  }
+
+  private def renderButton(text: String, index: Int) = {
+    def update() = {
+      v = text
+      JS.Empty
+    }
+
+    val input = <input onchange={SHtml.ajaxInvoke(update)._2.cmd.toJsCmd} id={id + index} type="radio" name="selectLinks" />
+
+    val selectedInput = if(text == value) input % Attribute("checked", Text("checked"), Null) else input
+
+    selectedInput ++ <label for={id + index}>{text}</label>
+  }
+
+  override def updateValueCmd = {
+    JS.Empty
+  }
+}
+
+/**
+ * A field which holds an enumeration of values which can be selected using a drop-down menu.
+ */
+case class SelectField(label: String, description: String, allowedValues: () => Seq[String], initialValue: () => String) extends Field[String] {
+  private var v = initialValue()
+
+  override def value = v
+
+  override def render = SHtml.untrustedSelect(Nil, Empty, v = _, "id" -> id, "title" -> description)
+
+  override def updateValueCmd = {
+    v = initialValue()
 
     //Generate the options of the select box
     val options =
@@ -108,7 +187,7 @@ case class SelectField(label: String, description: String, allowedValues: () => 
 
     //Update select box
     JsRaw("$('#" + id + "').children().remove();").cmd &
-      JsRaw("$('#" + id + "').append('" + options.mkString + "');").cmd
+    JsRaw("$('#" + id + "').append('" + options.mkString + "');").cmd
   }
 }
 
