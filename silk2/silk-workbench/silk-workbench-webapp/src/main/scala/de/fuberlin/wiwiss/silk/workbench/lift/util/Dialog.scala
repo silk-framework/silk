@@ -50,13 +50,9 @@ trait Dialog extends Form {
     <div id={id} title={title}> {
       SHtml.ajaxForm(
         super.render ++
-        <tr>
-          <td>
-          </td>
-          <td>
+          <div style="float:right;">
           { SHtml.ajaxSubmit("OK", submit) }
-          </td>
-        </tr> ++
+          </div> ++
         Script(initCmd)
       )
     }

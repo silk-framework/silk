@@ -4,8 +4,9 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentLearningTask}
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput, LearningTask}
 import de.fuberlin.wiwiss.silk.learning.reproduction._
-import de.fuberlin.wiwiss.silk.workbench.lift.util.{IntField, BooleanField, Dialog}
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Components}
+import de.fuberlin.wiwiss.silk.workbench.lift.util._
+import java.util.logging.Logger
 
 /**
  * Dialog which allows the user to configure and start a new learning task.
@@ -14,15 +15,19 @@ object StartLearningDialog extends Dialog {
 
   override val title = "Start learning task"
 
-  private val improveExisting = BooleanField("Improve existing rule", "")
+  private val mode = RadioField("Mode", "", "New Link Specification" :: "Improve Link Specification" :: Nil, () => "New Link Specification")
 
-  //private val iterations = IntField("Iterations", "The number of iterations to be performed")
+  private val populationSize = IntField("Population Size", "The number of individuals in the population", 1, 10000, () => 500)
 
-  private val learnTransformations = BooleanField("Learn Transformations", "Learn transformations", () => true)
+  private val iterations = IntField("Iterations", "The number of iterations to be performed", 0, 1000, () => 50)
 
-  private val learnAggregations = BooleanField("Learn Aggregations", "Learn aggregations", () => true)
+  private val components = CheckboxesField("Components", "Which components of the link specification should be learned", "Transformations" :: "Aggregations" :: Nil, () => Set("Transformations", "Aggregations"))
 
-  override val fields = improveExisting :: learnTransformations :: learnAggregations :: Nil
+  override val fields = mode :: populationSize :: iterations :: components :: Nil
+
+  override protected def dialogParams = ("autoOpen" -> "false") :: ("width" -> "600") :: ("modal" -> "true") :: Nil
+
+  private val logger = Logger.getLogger(getClass.getName)
 
   override protected def onSubmit() {
     startNewTask()
@@ -32,7 +37,12 @@ object StartLearningDialog extends Dialog {
    * Starts a new learning task.
    */
   private def startNewTask() {
-    val task = new LearningTask(createInput(), createConfig())
+    val input = createInput()
+    val config = createConfig()
+
+    logger.info("Starting learning task with parameters: \n" + config)
+
+    val task = new LearningTask(input, config)
     CurrentLearningTask() = task
     task.runInBackground()
   }
@@ -40,15 +50,15 @@ object StartLearningDialog extends Dialog {
   private def createInput() = {
     LearningInput(
       trainingInstances = User().linkingTask.cache.instances,
-      seedConditions = if(improveExisting.value) List(User().linkingTask.linkSpec.condition) else Nil
+      seedConditions = if(mode.value == "Improve Link Specification") List(User().linkingTask.linkSpec.condition) else Nil
     )
   }
 
   private def createConfig() = {
     LearningConfiguration(
-      components = Components(learnTransformations.value, learnAggregations.value),
+      components = Components(components.value.contains("Transformations"), components.value.contains("Aggregations")),
       reproduction = ReproductionConfiguration(),
-      parameters = Parameters(maxIterations = 50)
+      parameters = Parameters(populationSize = populationSize.value, maxIterations = iterations.value)
     )
   }
 }

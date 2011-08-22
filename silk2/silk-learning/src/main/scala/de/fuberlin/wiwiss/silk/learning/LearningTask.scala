@@ -33,7 +33,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
     val generator = LinkConditionGenerator(instances, config.components)
 
     //Generate initial population
-    executeTask(new GeneratePopulationTask(input, generator))
+    executeTask(new GeneratePopulationTask(input, generator, config))
 
     while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
       executeTask(new ReproductionTask(value.get.population, instances, generator, config))
