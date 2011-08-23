@@ -250,7 +250,7 @@ a.more {
 #exclamation {
   width: 24px;
   height: 24px;
-  background-image: url('/static/img/exclamation.png');
+  background-image: url('../img/exclamation.png');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
@@ -258,7 +258,7 @@ a.more {
 #tick {
   width: 24px;
   height: 24px;
-  background-image: url('/static/img/tick.png');
+  background-image: url('../img/tick.png');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
@@ -266,7 +266,7 @@ a.more {
 #warning {
   width: 24px;
   height: 24px;
-  background-image: url('/static/img/warning.png');
+  background-image: url('../img/warning.png');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
@@ -274,7 +274,7 @@ a.more {
 #pending {
   width: 24px;
   height: 24px;
-  background-image: url('/static/img/pending.gif');
+  background-image: url('../img/pending.gif');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
@@ -338,6 +338,6 @@ a.more {
   height: 16px;
   margin-left: 5px;
   margin-top: 2px;
-  background-image: url('/static/img/refresh.png');
+  background-image: url('../img/refresh.png');
   float: left;
 }

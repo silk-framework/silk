@@ -60,7 +60,7 @@ button
 	color: #000000;
 	border-bottom:  1px solid #505050;
 	padding-left: 30px;
-	background: url('/static/img/navigation.png') repeat-x;
+	background: url('../img/navigation.png') repeat-x;
 }
 
 .tab
@@ -100,7 +100,7 @@ button
 #toolbar
 {
   height: 40px;
-  background: url('/static/img/toolbar.png') repeat-x;
+  background: url('../img/toolbar.png') repeat-x;
   padding-left: 10px;
   position: relative;
   border-bottom: solid 1px #d7d6d6;
@@ -131,7 +131,7 @@ button
 
 .ui-progressbar-value
 {
-  background-image: url(static/img/progressbar.gif);
+  background-image: url(../img/progressbar.gif);
 }
 
 .progresstext
@@ -173,35 +173,35 @@ div.actions .ui-button-text {
 }
 
 .import-icon {
-  background-image: url(/static/img/workspace/document-import.png);
+  background-image: url(../img/workspace/document-import.png);
 }
 .new-project-icon {
-  background-image: url(/static/img/workspace/document.png);
+  background-image: url(../img/workspace/document.png);
 }
 .edit-prefixes-icon {
-  background-image: url(/static/img/workspace/wrench-screwdriver.png);
+  background-image: url(../img/workspace/wrench-screwdriver.png);
 }
 .edit-icon {
-  background-image: url(/static/img/workspace/wrench.png);
+  background-image: url(../img/workspace/wrench.png);
 }
 .add-icon {
-  background-image: url(/static/img/workspace/plus.png);
+  background-image: url(../img/workspace/plus.png);
 }
 .remove-icon {
-  background-image: url(/static/img/workspace/cross.png);
+  background-image: url(../img/workspace/cross.png);
 }
 .export-icon {
-  background-image: url(/static/img/workspace/document-export.png);
+  background-image: url(../img/workspace/document-export.png);
 }
 .open-icon {
-  background-image: url(/static/img/workspace/document--pencil.png);
+  background-image: url(../img/workspace/document--pencil.png);
 }
 .add-ls-icon {
-  background-image: url(/static/img/workspace/document--plus.png);
+  background-image: url(../img/workspace/document--plus.png);
 }
 .filetree span.source {
-  background: url("/static/img/workspace/server.png") no-repeat !important;
+  background: url("../img/workspace/server.png") no-repeat !important;
 }
 .filetree span.output {
-  background: url("/static/img/workspace/server--arrow.png") no-repeat !important;
+  background: url("../img/workspace/server--arrow.png") no-repeat !important;
 }
