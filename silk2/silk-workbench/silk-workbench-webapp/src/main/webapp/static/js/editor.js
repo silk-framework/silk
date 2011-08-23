@@ -3,6 +3,7 @@ var transformcounter = 0;
 var comparecounter = 0;
 var sourcecounter = 0;
 var elementcounter = 0;
+var numberElements = 0;
 
 var transformations = new Object();
 var comparators = new Object();
@@ -22,6 +23,7 @@ var sourceDataSetRestriction = "";
 var targetDataSetRestriction = "";
 
 var customPropertyPathsCreated = false;
+var cycleFound = false;
 
 var modificationTimer;
 var confirmOnExit = false;
@@ -138,6 +140,7 @@ function generateNewElementId() {
 var validateLinkSpec = function() {
     var errors = new Array();
     var root_elements = new Array();
+    var totalNumberElements = 0;
     removeHighlighting();
 
     // if only one element exists
@@ -150,6 +153,7 @@ var validateLinkSpec = function() {
     }
 
     $("#droppable > div.dragDiv").each(function() {
+        totalNumberElements++;
         var elId = $(this).attr('id');
         var elName = $("#" + elId + " > .label").text();
         if (!elName) elName = $("#" + elId + " > div.label-active > input.label-change").val();
@@ -159,30 +163,62 @@ var validateLinkSpec = function() {
           errorObj.message = "Error in element with id '"+ elId +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + elName + "'.";
           errors.push(errorObj);
         }
-
+        // count root elements
         var target = jsPlumb.getConnections({source: elId});
         if (target[jsPlumb.getDefaultScope()] === undefined || target[jsPlumb.getDefaultScope()].length == 0) {
             root_elements.push(elId);
         }
     });
 
-    // multiple root elements
-    if (root_elements.length > 1) {
-      errorObj = new Object();
-      var elements = "";
-      for (var i = 0; i<root_elements.length; i++) {
-        elements += "'" + root_elements[i] + "'";
-        if (i<root_elements.length-1) elements += ", "
-          else elements += ".";
-        highlightElement(root_elements[i], "Error: Multiple root elements found.");
+    if (errors.length == 0) {
+
+      // multiple root elements
+      if (root_elements.length > 1) {
+        errorObj = new Object();
+        var elements = "";
+        for (var i = 0; i<root_elements.length; i++) {
+          elements += "'" + root_elements[i] + "'";
+          if (i<root_elements.length-1) elements += ", "
+            else elements += ".";
+          highlightElement(root_elements[i], "Error: Multiple root elements found.");
+        }
+        errorObj.message = "Error: Multiple root elements found: " + elements;
+        errorObj.id = 0;
+        errors.push(errorObj);
+
+      // no root elements
+      } else if (root_elements.length == 0) {
+        errorObj = new Object;
+        errorObj.id = 0;
+        errorObj.message = "Error: No root element found.";
+        errors.push(errorObj);
+
+      // cycles
+      } else {
+        cycleCheck(root_elements[0]);
+        if (cycleFound) {
+          errorObj = new Object();
+          errorObj.id = 0;
+          errorObj.message = "Error: A cycle was found in link specification.";
+          errors.push(errorObj);
+        }
       }
-      errorObj.message = "Error: Multiple root elements found: " + elements;
-      errorObj.id = 0;
-      errors.push(errorObj);
+
+      // forest found
+      if ((numberElements > 0) && (totalNumberElements > numberElements)) {
+        errorObj = new Object();
+        errorObj.id = 0;
+        errorObj.message = "Error: Multiple link specifications found.";
+        errors.push(errorObj);
+      }
+
+      $("#droppable > div.dragDiv").removeAttr("visited");
+      cycleFound = false;
+      numberElements = 0;
     }
 
     if (errors.length > 0) {
-        updateStatus(errors, null, null);
+        updateStatus(errors, null, null);        // display frontend errors
     } else {
         updateLinkSpec(serializeLinkSpec());     // send to server
     }
@@ -240,7 +276,7 @@ function printMessages(array) {
   var result = "";
   var c = 1;
   for (var i = 0; i<array.length; i++) {
-    result = result + '<div class="msg">' + c + '. ' + array[i] + '</div>';
+    result = result + '<div class="msg">' + c + '. ' + encodeHtml(array[i]) + '</div>';
     c++;
   }
   return result;
@@ -250,8 +286,8 @@ function printErrorMessages(array) {
   var result = "";
   var c = 1;
   for (var i = 0; i<array.length; i++) {
-    result = result + '<div class="msg">' + c + '. ' + array[i].message + '</div>';
-    if (array[i].id) highlightElement(array[i].id, array[i].message);
+    result = result + '<div class="msg">' + c + '. ' + encodeHtml(array[i].message) + '</div>';
+    if (array[i].id) highlightElement(array[i].id, encodeHtml(array[i].message));
     c++;
   }
   return result;
@@ -263,13 +299,29 @@ function highlightElement(elId, message) {
       if (elId.length == $(this).text().length) elementToHighlight = $(this).parent();
   });
   if (!elementToHighlight) elementToHighlight = $("#" + elId);
-  elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + message + '")').attr("onmouseout", "UnTip()");
+  elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + encodeHtml(message) + '")').attr("onmouseout", "UnTip()");
   jsPlumb.repaint(elementToHighlight);
 }
 
 function removeHighlighting() {
   $("div .dragDiv").removeClass('highlighted').removeAttr('onmouseover');
   jsPlumb.repaintEverything();
+}
+
+function cycleCheck(elId) {
+  numberElements++;
+  if ($("#"+elId).attr("visited") == "1") {
+    cycleFound = true;
+  } else {
+    $("#"+elId).attr("visited","1");
+    var sources = jsPlumb.getConnections({target: elId});
+	  if (sources[jsPlumb.getDefaultScope()] !== undefined) {
+      for (var i = 0; i < sources[jsPlumb.getDefaultScope()].length; i++) {
+        var source = sources[jsPlumb.getDefaultScope()][i].sourceId;
+        cycleCheck(source);
+      }
+    }
+  }
 }
 
 Array.max = function(array) {
