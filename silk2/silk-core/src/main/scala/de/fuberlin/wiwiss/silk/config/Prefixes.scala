@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
+import de.fuberlin.wiwiss.silk.util.ValidationException
 
 /**
  * Holds namespace prefixes.
@@ -25,9 +26,9 @@ class Prefixes(val prefixMap: Map[String, String]) {
   def resolve(qualifiedName: String) = qualifiedName.split(":", 2) match {
     case Array(prefix, suffix) => prefixMap.get(prefix) match {
       case Some(resolvedPrefix) => resolvedPrefix + suffix
-      case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
+      case None => throw new ValidationException("Unknown prefix: " + prefix)
     }
-    case _ => throw new IllegalArgumentException("No prefix found in " + qualifiedName)
+    case _ => throw new ValidationException("No prefix found in " + qualifiedName)
   }
 
   /**
