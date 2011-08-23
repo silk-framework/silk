@@ -150,7 +150,7 @@ a:hover {
   height: 9px;
   margin-right: 4px;
   margin-top: 3px;
-  background-image: url('/static/jquery-ui/css/treeview/images/plus.gif');
+  background-image: url('../jquery-ui/css/treeview/images/plus.gif');
 }
 
 .minus {
@@ -158,7 +158,7 @@ a:hover {
   height: 9px;
   margin-right: 4px;
   margin-top: 3px;
-  background-image: url('/static/jquery-ui/css/treeview/images/minus.gif');
+  background-image: url('../jquery-ui/css/treeview/images/minus.gif');
 }
 
 #tree-header, #tree-footer {
