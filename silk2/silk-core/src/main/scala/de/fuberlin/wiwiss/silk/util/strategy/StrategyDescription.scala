@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.util.strategy
 
-import java.lang.reflect.Constructor
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import de.fuberlin.wiwiss.silk.util.ValidationException
 import java.lang.annotation.Annotation
+import java.lang.reflect.{InvocationTargetException, Constructor}
 
 /**
  * Describes a strategy.
@@ -15,12 +15,16 @@ class StrategyDescription[+T <: Strategy](val id: String, val label: String, val
   def apply(parameterValues: Map[String, String]): T = {
     val parsedParameters = parseParameters(parameterValues)
 
-    val obj = constructor.newInstance(parsedParameters: _*)
+    try {
+      val obj = constructor.newInstance(parsedParameters: _*)
 
-    obj.id = id
-    obj.parameters = parameterValues
+      obj.id = id
+      obj.parameters = parameterValues
 
-    obj
+      obj
+    } catch {
+      case ex: InvocationTargetException => throw ex.getCause
+    }
   }
 
   private def parseParameters(parameterValues: Map[String, String]): Seq[AnyRef] = {

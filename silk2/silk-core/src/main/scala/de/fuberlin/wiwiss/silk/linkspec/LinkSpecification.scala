@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.instance.Path
 import xml.Node
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.util.{Uri, Identifier, ValidatingXMLReader, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util._
 
 /**
  * Represents a Silk Link Specification.
@@ -86,28 +86,34 @@ object LinkSpecification {
   }
 
   private def readComparison(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
-    val requiredStr = node \ "@required" text
-    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
-    val weightStr = node \ "@weight" text
-    val metric = DistanceMeasure(node \ "@metric" text, readParams(node))
-    val inputs = readInputs(node.child)
+    val id = Operator.readId(node)
+    try {
+      val requiredStr = node \ "@required" text
+      val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
+      val weightStr = node \ "@weight" text
+      val metric = DistanceMeasure(node \ "@metric" text, readParams(node))
+      val inputs = readInputs(node.child)
 
-    Comparison(
-      id = Operator.readId(node),
-      required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
-      threshold = threshold,
-      weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-      inputs = SourceTargetPair(inputs(0), inputs(1)),
-      metric = metric
-    )
+      Comparison(
+        id = id,
+        required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
+        threshold = threshold,
+        weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
+        inputs = SourceTargetPair(inputs(0), inputs(1)),
+        metric = metric
+      )
+    } catch {
+      case ex: Exception => throw new ValidationException(ex.getMessage, id)
+    }
   }
 
   private def readInputs(nodes: Seq[Node])(implicit prefixes: Prefixes): Seq[Input] = {
     nodes.collect {
       case p @ <Input/> => {
+        val id = Operator.readId(p)
         val pathStr = p \ "@path" text
-        val path = Path.parse(pathStr)
-        PathInput(Operator.readId(p), path)
+        val path = try { Path.parse(pathStr) } catch { case ex: Exception => throw new ValidationException(ex.getMessage, id) }
+        PathInput(id, path)
       }
       case p @ <TransformInput>{_*}</TransformInput> => {
         val transformer = Transformer(p \ "@function" text, readParams(p))
@@ -128,9 +134,9 @@ object LinkSpecification {
       name.split(":", 2) match {
         case Array(prefix, suffix) => prefixes.get(prefix) match {
           case Some(resolvedPrefix) => resolvedPrefix + suffix
-          case None => throw new IllegalArgumentException("Unknown prefix: " + prefix)
+          case None => throw new ValidationException("Unknown prefix: " + prefix)
         }
-        case _ => throw new IllegalArgumentException("No prefix found in " + name)
+        case _ => throw new ValidationException("No prefix found in " + name)
       }
     }
   }

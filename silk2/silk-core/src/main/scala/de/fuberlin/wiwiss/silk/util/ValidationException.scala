@@ -10,6 +10,8 @@ class ValidationException(val errors: Seq[ValidationError], cause: Throwable) ex
 
   def this(error: String, cause: Throwable) = this(ValidationError(error) :: Nil, cause)
 
+  def this(error: String, id: Identifier) = this(ValidationError(error, Some(id)) :: Nil, null)
+
   def this(error: String) = this(ValidationError(error) :: Nil, null)
 }
 

@@ -19,6 +19,8 @@ import java.util.logging.Logger
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
 class GeographicDistanceMetric(unit: String = "km", threshold: Double = Double.NaN) extends SimpleDistanceMeasure {
+  require(Set("m", "meter", "km", "kilometer").contains(unit), "Invalid unit: '" + unit + "'. Allowed units: \"m\", \"meter\", \"km\", \"kilometer\"")
+
   private val logger = Logger.getLogger(classOf[GeographicDistanceMetric].getName)
 
   private val scale = {
