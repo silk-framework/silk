@@ -178,8 +178,11 @@ var validateLinkSpec = function() {
         var elements = "";
         for (var i = 0; i<root_elements.length; i++) {
           elements += "'" + root_elements[i] + "'";
-          if (i<root_elements.length-1) elements += ", "
-            else elements += ".";
+          if (i<root_elements.length-1) {
+              elements += ", ";
+          } else {
+              elements += ".";
+          }
           highlightElement(root_elements[i], "Error: Multiple root elements found.");
         }
         errorObj.message = "Error: Multiple root elements found: " + elements;
@@ -1878,4 +1881,12 @@ function getOperators()
       alert("Error: " + textStatus + " " + errorThrown);
     }
   });
+}
+
+function reloadPropertyPaths() {
+    getPropertyPaths(true);
+    var answer = confirm("Reloading the cache may take a long time. Do you want to proceed?");
+    if (answer) {
+        reloadCache();
+    }
 }
