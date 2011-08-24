@@ -9,7 +9,7 @@ class TaskControl(task: Task[_], cancelable: Boolean = false) extends DynamicBut
   label = "Start"
 
   override protected def onPressed() = {
-    if (!task.isRunning) {
+    if (!task.status.isRunning) {
       task.runInBackground()
     } else if (cancelable) {
       task.cancel()

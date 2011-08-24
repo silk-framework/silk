@@ -21,7 +21,7 @@ class StartLearningButton extends DynamicButton {
   override protected def onPressed() = {
     //TODO check if cache is being loaded
 
-    if (!CurrentLearningTask().isRunning)
+    if (!CurrentLearningTask().status.isRunning)
       StartLearningDialog.openCmd
     else {
       CurrentLearningTask().cancel()
@@ -33,7 +33,7 @@ class StartLearningButton extends DynamicButton {
    * Listens to changes of the current learning task.
    */
   private val learningTaskListener = new CurrentStatusListener(CurrentLearningTask) {
-    def onUpdate(status: Status) {
+    override def onUpdate(status: Status) {
       status match {
         case _: Started => label = "Stop"
         case _: Finished => label = "Start"

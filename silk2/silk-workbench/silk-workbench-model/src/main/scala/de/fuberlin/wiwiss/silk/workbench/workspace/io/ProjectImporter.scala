@@ -40,8 +40,10 @@ object ProjectImporter
   {
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val alignment = AlignmentReader.readAlignment(xml \ "Alignment" \ "_" head)
-    val cache = Cache.fromXML(xml \ "Cache" \ "_" head, project, linkSpec, alignment)
 
-    LinkingTask(linkSpec, alignment, cache)
+    lazy val task: LinkingTask = LinkingTask(linkSpec, alignment)
+    task.cache.fromXML(xml \ "Cache" \ "_" head, project, task)
+    task.cache.load(project, task)
+    task
   }
 }

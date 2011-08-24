@@ -36,7 +36,7 @@ class LearningWidget extends CometActor {
    * Whenever the population is changed the learning tasks fires an event on which we redraw the widget.
    */
   private val learningTaskListener = new CurrentValueListener(CurrentLearningTask) {
-    def onUpdate(result: LearningResult) {
+    override def onUpdate(result: LearningResult) {
       partialUpdate(updateListCmd)
     }
   }
