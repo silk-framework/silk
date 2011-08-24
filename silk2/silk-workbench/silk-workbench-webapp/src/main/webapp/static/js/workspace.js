@@ -287,11 +287,11 @@ function updateWorkspace(obj){
 
 // display loading bar
 function loadingShow(){
-  $("#loading-dialog").dialog("open");
+  //$("#loading-dialog").dialog("open");
 }
 
 function loadingHide(){
-  $("#loading-dialog").dialog("close");
+  //$("#loading-dialog").dialog("close");
 }
 
 // init loading dialog
