@@ -103,7 +103,7 @@ class SimpleInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
     //Body
     sparql += "WHERE {\n"
     sparql += SparqlPathBuilder(paths, "<" + instanceUri + ">", "?" + varPrefix)
-    sparql += instanceSpec.restrictions.toSparql.replaceAll("\\?" + instanceSpec.variable, "<" + instanceUri + ">") + "\n"
+    //sparql += instanceSpec.restrictions.toSparql.replaceAll("\\?" + instanceSpec.variable, "<" + instanceUri + ">") + "\n"
     sparql += "}"
 
     endpoint.query(sparql)

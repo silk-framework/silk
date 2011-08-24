@@ -7,7 +7,7 @@
 
   <properties>
     <silk.version>2.4.2</silk.version>
-    <scala.version>2.9.1.RC3</scala.version>
+    <scala.version>2.9.1.RC4</scala.version>
     <scalatest.version>1.4.1</scalatest.version>
     <scala.plugin.version>2.14.3</scala.plugin.version>
   </properties>

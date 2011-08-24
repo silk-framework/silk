@@ -13,18 +13,15 @@ import de.fuberlin.wiwiss.silk.jena.JenaImplementations
 /**
   * Configures the Silk Workbench WebApp.
   */
-class Boot
-{
-  object UserManager extends SessionVar[User](new FileUser)
-  {
-    override protected def onShutdown(session : CleanUpParam)
-    {
+class Boot {
+
+  object UserManager extends SessionVar[User](new FileUser) {
+    override protected def onShutdown(session : CleanUpParam) {
       is.dispose()
     }
   }
 
-  def boot
-  {
+  def boot {
     User.userManager = UserManager.is _
 
     DefaultImplementations.register()

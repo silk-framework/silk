@@ -176,23 +176,20 @@ class FileProject(file : File) extends Project
 
           val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
 
-          val cache =
-            try
-            {
-              Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")), FileProject.this, linkSpec, alignment)
-            }
-            catch
-            {
-              case ex : Exception =>
-              {
-                logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-                val cache = new Cache()
-                cache.reload(FileProject.this, linkSpec, alignment)
-                cache
-              }
-            }
+          val task: LinkingTask = LinkingTask(linkSpec, alignment)
 
-          LinkingTask(linkSpec, alignment, cache)
+          //Load the cache
+          try {
+              task.cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")), FileProject.this, task)
+              task.cache.load(FileProject.this, task)
+          } catch {
+            case ex : Exception => {
+              logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+              task.cache.reload(FileProject.this, task)
+            }
+          }
+
+          task
         }
 
       tasks.map(task => (task.name, task)).toMap

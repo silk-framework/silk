@@ -12,7 +12,7 @@ object Widgets {
   @deprecated("Use TaskControl instead")
   def taskControl[T](task : Task[T], cancelable : Boolean = false) = {
     def startTask() {
-      if(!task.isRunning) {
+      if(!task.status.isRunning) {
         task.runInBackground()
       }
     }

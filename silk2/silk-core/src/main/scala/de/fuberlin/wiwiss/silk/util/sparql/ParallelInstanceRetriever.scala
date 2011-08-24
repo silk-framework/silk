@@ -138,7 +138,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
       fixedSubject match {
         case Some(subjectUri) => {
           sparql += SparqlPathBuilder(path :: Nil, "<" + subjectUri + ">", "?" + varPrefix)
-          sparql += instanceSpec.restrictions.toSparql.replaceAll("\\?" + instanceSpec.variable, "<" + subjectUri + ">") + "\n"
+          //sparql += instanceSpec.restrictions.toSparql.replaceAll("\\?" + instanceSpec.variable, "<" + subjectUri + ">") + "\n"
         }
         case None => {
           sparql += instanceSpec.restrictions.toSparql + "\n"

@@ -16,9 +16,8 @@ import java.util.logging.Level
 
 //TODO use options?
 //TODO store path frequencies
-//TODO when retrieving instances, remove the restriction in order to improve the query performance
-class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = null,
-            existingInstances: ReferenceInstances = ReferenceInstances.empty) extends HasStatus {
+class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = null,
+            private var existingInstances: ReferenceInstances = ReferenceInstances.empty) extends HasStatus {
 
   /**The cached instance specifications containing the most frequent paths */
   @volatile private var cachedInstanceSpecs: SourceTargetPair[InstanceSpecification] = null
@@ -39,36 +38,33 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
   /**
    * Update this cache.
    */
-  def update(project : Project, linkSpec: LinkSpecification, alignment: Alignment) = {
-    stopLoading()
+  def update() = {
     removeSubscriptions()
-    val updatedCache = new Cache(instanceSpecs, instances)
-    updatedCache.load(project, linkSpec, alignment)
-    updatedCache
+    new Cache(instanceSpecs, instances)
   }
 
   /**
    * Reloads the cache.
    */
-  def reload(project : Project, linkSpec: LinkSpecification, alignment: Alignment) {
+  def reload(project : Project, task: LinkingTask) {
+    existingInstanceSpecs = null
     cachedInstanceSpecs = null
+    existingInstances = ReferenceInstances.empty
     cachedInstances = ReferenceInstances.empty
 
-    load(project, linkSpec, alignment)
+    load(project, task)
   }
 
   /**
    * Load the cache.
    */
-  private def load(project : Project, linkSpec: LinkSpecification, alignment: Alignment) {
-    loadingThread = new CacheLoader(project, linkSpec, alignment)
-    loadingThread.start()
-  }
-
-  private def stopLoading() {
+  def load(project : Project, task: LinkingTask) {
     if(loadingThread != null) {
       loadingThread.interrupt()
+      loadingThread.join()
     }
+    loadingThread = new CacheLoader(project, task)
+    loadingThread.start()
   }
 
   /**
@@ -122,9 +118,46 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
     </Cache>
   }
 
-  private class CacheLoader(project: Project, linkSpec: LinkSpecification, alignment: Alignment) extends Thread {
+  def fromXML(node: Node, project: Project, task: LinkingTask) {
+    existingInstanceSpecs = {
+      if (node \ "InstanceSpecifications" isEmpty) {
+        null
+      } else {
+        val sourceSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Source" \ "_" head)
+        val targetSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Target" \ "_" head)
+        new SourceTargetPair(sourceSpec, targetSpec)
+      }
+    }
 
-    private val sources = linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
+    val positiveInstances: Traversable[SourceTargetPair[Instance]] = {
+      if (node \ "PositiveInstances" isEmpty) {
+        Traversable.empty
+      } else {
+        for (pairNode <- node \ "PositiveInstances" \ "Pair" toList) yield {
+          SourceTargetPair(
+            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
+            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
+        }
+      }
+    }
+
+    val negativeInstances: Traversable[SourceTargetPair[Instance]] = {
+      if (node \ "NegativeInstances" isEmpty) {
+        Traversable.empty
+      } else {
+        for (pairNode <- node \ "NegativeInstances" \ "Pair" toList) yield {
+          SourceTargetPair(
+            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
+            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
+        }
+      }
+    }
+
+    existingInstances = ReferenceInstances.fromInstances(positiveInstances, negativeInstances)
+  }
+
+  private class CacheLoader(project: Project, task: LinkingTask) extends Thread {
+    private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
 
     override def run() {
       updateStatus(Started("Loading cache"))
@@ -132,6 +165,9 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
         loadPaths()
         loadInstances()
         updateStatus(Finished("Loading cache", true, None))
+        if(!isInterrupted) {
+          project.linkingModule.update(task)
+        }
       } catch {
         case ex: InterruptedException => {
           logger.log(Level.WARNING, "Loading cache stopped")
@@ -151,7 +187,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
       updateStatus("Retrieving frequent property paths", 0.0)
 
       //Create an instance spec from the link specification
-      val currentInstanceSpecs = InstanceSpecification.retrieve(linkSpec)
+      val currentInstanceSpecs = InstanceSpecification.retrieve(task.linkSpec)
 
       //Check if the restriction has been changed
       if(existingInstanceSpecs != null &&
@@ -165,7 +201,7 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
 
       if (cachedInstanceSpecs == null) {
         //Retrieve most frequent paths
-        val paths = for ((source, dataset) <- sources zip linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
+        val paths = for ((source, dataset) <- sources zip task.linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
 
         //Add the frequent paths to the instance specification
         cachedInstanceSpecs = for ((instanceSpec, paths) <- currentInstanceSpecs zip paths) yield instanceSpec.copy(paths = (instanceSpec.paths ++ paths.map(_._1)).distinct)
@@ -181,17 +217,17 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
     private def loadInstances() {
       updateStatus("Loading instances", 0.2)
 
-      val linkCount = alignment.positive.size + alignment.negative.size
+      val linkCount = task.alignment.positive.size + task.alignment.negative.size
       var loadedLinks = 0
 
-      for (link <- alignment.positive) {
+      for (link <- task.alignment.positive) {
         if(isInterrupted) throw new InterruptedException()
         cachedInstances = instances.withPositive(loadPositiveLink(link))
         loadedLinks += 1
         updateStatus(0.2 + 0.8 * (loadedLinks.toDouble / linkCount))
       }
 
-      for (link <- alignment.negative) {
+      for (link <- task.alignment.negative) {
         if(isInterrupted) throw new InterruptedException()
         cachedInstances = instances.withNegative(loadNegativeLink(link))
         loadedLinks += 1
@@ -254,44 +290,3 @@ class Cache(existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = nul
 
 }
 
-object Cache {
-  def fromXML(node: Node, project: Project, linkSpec: LinkSpecification, alignment: Alignment): Cache = {
-    val instanceSpecs = {
-      if (node \ "InstanceSpecifications" isEmpty) {
-        null
-      } else {
-        val sourceSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Source" \ "_" head)
-        val targetSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Target" \ "_" head)
-        new SourceTargetPair(sourceSpec, targetSpec)
-      }
-    }
-
-    val positiveInstances: Traversable[SourceTargetPair[Instance]] = {
-      if (node \ "PositiveInstances" isEmpty) {
-        Traversable.empty
-      } else {
-        for (pairNode <- node \ "PositiveInstances" \ "Pair" toList) yield {
-          SourceTargetPair(
-            Instance.fromXML(pairNode \ "Source" \ "Instance" head, instanceSpecs.source),
-            Instance.fromXML(pairNode \ "Target" \ "Instance" head, instanceSpecs.target))
-        }
-      }
-    }
-
-    val negativeInstances: Traversable[SourceTargetPair[Instance]] = {
-      if (node \ "NegativeInstances" isEmpty) {
-        Traversable.empty
-      } else {
-        for (pairNode <- node \ "NegativeInstances" \ "Pair" toList) yield {
-          SourceTargetPair(
-            Instance.fromXML(pairNode \ "Source" \ "Instance" head, instanceSpecs.source),
-            Instance.fromXML(pairNode \ "Target" \ "Instance" head, instanceSpecs.target))
-        }
-      }
-    }
-
-    val cache = new Cache(instanceSpecs, ReferenceInstances.fromInstances(positiveInstances, negativeInstances))
-    cache.load(project, linkSpec, alignment)
-    cache
-  }
-}

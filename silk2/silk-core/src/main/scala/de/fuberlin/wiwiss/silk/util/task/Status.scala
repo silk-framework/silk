@@ -13,7 +13,12 @@ sealed trait Status {
    * The progress of the computation.
    * Will be 0.0 when the task has been started and 1.0 when it has finished execution.
    */
-  def progress: Double
+  def progress: Double = 0.0
+
+  /**
+   * True, if the task is running at the moment; False, otherwise.
+   */
+  def isRunning: Boolean = false
 
   /**
    * The complete status message including the progress.
@@ -26,8 +31,6 @@ sealed trait Status {
  */
 case class Idle() extends Status {
   def message = "Idle"
-
-  def progress = 0.0
 }
 
 /**
@@ -35,8 +38,6 @@ case class Idle() extends Status {
  */
 case class Started(name: String) extends Status {
   def message = name + " started"
-
-  def progress = 0.0
 }
 
 /**
@@ -51,7 +52,7 @@ case class Finished(name: String, success: Boolean, exception: Option[Exception]
     case Some(ex) => name + " failed: " + ex.getMessage
   }
 
-  def progress = 1.0
+  override def progress = 1.0
 }
 
 /**
@@ -60,8 +61,10 @@ case class Finished(name: String, success: Boolean, exception: Option[Exception]
  * @param message The status message
  * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
  */
-case class Running(message: String, progress: Double) extends Status
+case class Running(message: String, override val progress: Double) extends Status {
+  override def isRunning = true
+}
 
-case class Canceled(name: String, progress: Double) extends Status {
+case class Canceled(name: String, override val progress: Double) extends Status {
   def message = "Stopping " + name
 }

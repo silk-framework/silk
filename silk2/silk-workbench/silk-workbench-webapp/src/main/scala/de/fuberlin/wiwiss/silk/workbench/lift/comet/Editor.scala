@@ -102,7 +102,7 @@ class Editor extends CometActor {
   }
 
   private def evaluateLinkSpec(linkingTask: LinkingTask): Traversable[String] = {
-    if(linkingTask.cache.isRunning) {
+    if(linkingTask.cache.status.isRunning) {
       ("Cache loading") :: Nil
     } else if(linkingTask.cache.failed) {
       ("Cache loading failed") :: Nil
@@ -135,7 +135,7 @@ class Editor extends CometActor {
    */
   private def reloadCacheFunction: JsCmd = {
     def reloadCache = {
-      User().linkingTask.cache.reload(User().project, User().linkingTask.linkSpec, User().linkingTask.alignment)
+      User().linkingTask.cache.reload(User().project, User().linkingTask)
       JsRaw("").cmd
     }
 

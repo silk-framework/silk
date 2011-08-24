@@ -3,6 +3,8 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 import collection.mutable.{Subscriber, Publisher, WeakHashMap}
 import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.util.task.{Status, Task, HasStatus, ValueTask}
+import java.util.concurrent.{TimeUnit, Callable, Executors}
+import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 
 /**
  * Holds user specific data.
@@ -30,6 +32,59 @@ class UserData[T](initialValue: T) extends Observable[T] {
   }
 }
 
+trait Listener[T] extends Observable[T] {
+
+  /** The minimum number of milliseconds between two successive calls to onUpdate. */
+  var maxFrequency = 5000
+
+  /** The time of the last call to onUpdate */
+  @volatile private var lastUpdateTime = 0L
+
+  /** Indicates if a call to onUpdate is scheduled */
+  @volatile private var scheduled = false
+
+  /** The last message */
+  @volatile private var lastMessage: Option[T] = None
+
+  protected def update(value: T) {
+    if(scheduled) {
+      lastMessage = Some(value)
+    } else {
+      val time = System.currentTimeMillis() - lastUpdateTime
+      if (time > maxFrequency) {
+        println("IMMIDIATE UPDATE")
+        onUpdate(value)
+        lastUpdateTime = System.currentTimeMillis()
+      } else {
+        scheduled = true
+        lastMessage = Some(value)
+        delayedUpdate(maxFrequency)
+      }
+    }
+  }
+
+  protected def onUpdate(value: T) {
+    publish(value)
+  }
+
+  private def delayedUpdate(delay: Long) {
+    Listener.executor.schedule(new Runnable {
+      def run() {
+        scheduled = false
+        lastUpdateTime = System.currentTimeMillis()
+        println("DELAYED UPDATE")
+        onUpdate(lastMessage.get)
+      }
+    }, delay, TimeUnit.MILLISECONDS)
+  }
+}
+
+object Listener {
+  private val executor = Executors.newScheduledThreadPool(1)
+
+
+}
+
 /**
  * Listens to the current value of the current users task.
  */
@@ -55,11 +110,9 @@ abstract class CurrentValueListener[T](userData: UserData[_ <: ValueTask[T]]) {
 /**
  * Listens to the current status of the current users task.
  */
-abstract class CurrentStatusListener[T](userData: UserData[_ <: HasStatus]) {
+abstract class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener[Status] {
 
   userData.onUpdate(Listener)
-
-  protected def onUpdate(value: Status)
 
   private object Listener extends (HasStatus => Unit) {
     def apply(task: HasStatus) {
@@ -69,7 +122,7 @@ abstract class CurrentStatusListener[T](userData: UserData[_ <: HasStatus]) {
 
   private object StatusListener extends (Status => Unit) {
     def apply(value: Status) {
-      onUpdate(value)
+      update(value)
     }
   }
 }

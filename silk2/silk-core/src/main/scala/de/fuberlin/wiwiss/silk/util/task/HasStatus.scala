@@ -24,17 +24,6 @@ class HasStatus extends Observable[Status] {
    */
   def status = currentStatus
 
-  /**
-   * True, if the task is running at the moment; False, otherwise.
-   */
-  def isRunning = currentStatus match {
-    case _: Idle => false
-    case _: Started => true
-    case _: Running => true
-    case _: Canceled => true
-    case _: Finished => false
-  }
-
   def failed = currentStatus match {
     case Finished(_, false, _) => true
     case _ => false
