@@ -137,6 +137,12 @@ function generateNewElementId() {
     return "unnamed_"+elementcounter;
 }
 
+function getCurrentElementName(elId) {
+    var elName = $("#" + elId + " > .label").text();
+    if (!elName) elName = $("#" + elId + " > div.label-active > input.label-change").val();
+    return elName;
+}
+
 var validateLinkSpec = function() {
     var errors = new Array();
     var root_elements = new Array();
@@ -148,15 +154,14 @@ var validateLinkSpec = function() {
       var elId = $("#droppable > div.dragDiv").attr('id');
       errorObj = new Object();
       errorObj.id = elId;
-      errorObj.message = "Error: Unconnected element '" + elId + "'.";
+      errorObj.message = "Error: Unconnected element '" + getCurrentElementName(elId) + "'.";
       errors.push(errorObj);
     }
 
     $("#droppable > div.dragDiv").each(function() {
         totalNumberElements++;
         var elId = $(this).attr('id');
-        var elName = $("#" + elId + " > .label").text();
-        if (!elName) elName = $("#" + elId + " > div.label-active > input.label-change").val();
+        var elName = getCurrentElementName(elId);
         if (elName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
           errorObj = new Object;
           errorObj.id = elId;
@@ -177,7 +182,7 @@ var validateLinkSpec = function() {
         errorObj = new Object();
         var elements = "";
         for (var i = 0; i<root_elements.length; i++) {
-          elements += "'" + root_elements[i] + "'";
+          elements += "'" + getCurrentElementName(root_elements[i]) + "'";
           if (i<root_elements.length-1) {
               elements += ", ";
           } else {
