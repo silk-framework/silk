@@ -9,6 +9,7 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.SilkConfigImporter
 import de.fuberlin.wiwiss.silk.config.SilkConfig
 import net.liftweb.http.{S, SHtml, FileParamHolder}
+import de.fuberlin.wiwiss.silk.util.ValidationException
 
 /**
  * Dialog to add link specifications to a project.
@@ -28,6 +29,7 @@ class AddLinkSpecificationDialog {
           case _ =>
         }
       } catch {
+        case ex: ValidationException => for(error <- ex.errors) S.warning(error.toString)
         case ex: Exception => S.warning("Error loading link specification: " + ex.getMessage)
       }
     }
