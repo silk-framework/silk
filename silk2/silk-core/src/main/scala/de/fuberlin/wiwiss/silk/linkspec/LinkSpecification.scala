@@ -87,12 +87,13 @@ object LinkSpecification {
 
   private def readComparison(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
     val id = Operator.readId(node)
+    val inputs = readInputs(node.child)
+
     try {
       val requiredStr = node \ "@required" text
       val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
       val weightStr = node \ "@weight" text
       val metric = DistanceMeasure(node \ "@metric" text, readParams(node))
-      val inputs = readInputs(node.child)
 
       Comparison(
         id = id,
@@ -103,27 +104,43 @@ object LinkSpecification {
         metric = metric
       )
     } catch {
-      case ex: Exception => throw new ValidationException(ex.getMessage, id)
+      case ex: Exception => throw new ValidationException(ex.getMessage, id, "Comparison")
     }
   }
 
   private def readInputs(nodes: Seq[Node])(implicit prefixes: Prefixes): Seq[Input] = {
     nodes.collect {
-      case p @ <Input/> => {
-        val id = Operator.readId(p)
-        val pathStr = p \ "@path" text
-        val path = try { Path.parse(pathStr) } catch { case ex: Exception => throw new ValidationException(ex.getMessage, id) }
-        PathInput(id, path)
-      }
-      case p @ <TransformInput>{_*}</TransformInput> => {
-        val transformer = Transformer(p \ "@function" text, readParams(p))
-        TransformInput(Operator.readId(p), readInputs(p.child), transformer)
-      }
+      case node @ <Input/> => readPathInput(node)
+      case node @ <TransformInput>{_*}</TransformInput> => readTransformInput(node)
+    }
+  }
+
+  private def readPathInput(node: Node)(implicit prefixes: Prefixes) = {
+    val id = Operator.readId(node)
+
+    try {
+      val pathStr = (node \ "@path").text
+      val path = Path.parse(pathStr)
+      PathInput(id, path)
+    } catch {
+      case ex: Exception => throw new ValidationException(ex.getMessage, id, "Path")
+    }
+  }
+
+  private def readTransformInput(node: Node)(implicit prefixes: Prefixes) = {
+    val id = Operator.readId(node)
+    val inputs = readInputs(node.child)
+
+    try {
+      val transformer = Transformer(node \ "@function" text, readParams(node))
+      TransformInput(id, inputs, transformer)
+    } catch {
+      case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")
     }
   }
 
   private def readParams(element: Node): Map[String, String] = {
-    element \ "Param" map (p => (p \ "@name" text, p \ "@value" text)) toMap
+    (element \ "Param").map(p => (p \ "@name" text, p \ "@value" text)).toMap
   }
 
   private def resolveQualifiedName(name: String, prefixes: Map[String, String]) = {

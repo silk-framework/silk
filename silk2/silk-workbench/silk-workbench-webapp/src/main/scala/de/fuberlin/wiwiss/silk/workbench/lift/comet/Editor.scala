@@ -96,7 +96,7 @@ class Editor extends CometActor {
     def toJsArray(messages: Traversable[String]) = JsArray(messages.map(toJsExp).toList)
 
     /**Generates a JavaScript expression from an error */
-    def errorToJsExp(error: ValidationError) = JsObj(("message", Str(error.message)), ("id", Str(error.id.map(_.toString).getOrElse(""))))
+    def errorToJsExp(error: ValidationError) = JsObj(("message", Str(error.toString)), ("id", Str(error.id.map(_.toString).getOrElse(""))))
 
     /**Generates a JavaScript array from a collection of errors*/
     def errorsToJsArray(messages: Traversable[ValidationError]) = JsArray(messages.map(errorToJsExp).toList)
