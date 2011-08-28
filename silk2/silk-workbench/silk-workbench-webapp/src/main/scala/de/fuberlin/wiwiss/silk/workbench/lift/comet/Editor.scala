@@ -31,6 +31,10 @@ class Editor extends CometActor {
   //Listen to status messages of the cache loader task
   User().linkingTask.cache.onUpdate(CacheListener)
 
+  private var currentInfos = Traversable[String]()
+  private var currentWarnings = Traversable[String]()
+  private var currentErrors = Traversable[ValidationError]()
+
   /**
    * Renders the editor.
    */
@@ -69,22 +73,22 @@ class Editor extends CometActor {
       }
 
       //Update link spec variable and notify user
-      linkSpecVarCmd & updateStatusCall(warnings = warnings.map(_.getMessage), infos = evaluateLinkSpec(User().linkingTask))
+      linkSpecVarCmd & updateStatusCall(errors = Traversable.empty, warnings = warnings.map(_.getMessage), infos = evaluateLinkSpec(User().linkingTask))
     } catch {
       case ex: ValidationException => {
         logger.log(Level.INFO, "Cannot save invalid link specification", ex)
-        updateStatusCall(errors = ex.errors)
+        updateStatusCall(errors = ex.errors, warnings = Traversable.empty, infos = Traversable.empty)
       }
       case ex: Exception => {
         logger.log(Level.INFO, "Failed to save link specification", ex)
-        updateStatusCall(errors = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
+        updateStatusCall(errors = ValidationError("Error in back end: " + ex.getMessage) :: Nil, warnings = Traversable.empty, infos = Traversable.empty)
       }
     }
   }
 
-  private def updateStatusCall(errors: Traversable[ValidationError] = Traversable.empty,
-                               warnings: Traversable[String] = Traversable.empty,
-                               infos: Traversable[String] = Traversable.empty) = {
+  private def updateStatusCall(errors: Traversable[ValidationError] = currentErrors,
+                               warnings: Traversable[String] = currentWarnings,
+                               infos: Traversable[String] = currentInfos) = {
     /**Generates a JavaScript expression from a string */
     def toJsExp(str: String) = Str(Text(str).toString)
 
@@ -96,6 +100,11 @@ class Editor extends CometActor {
 
     /**Generates a JavaScript array from a collection of errors*/
     def errorsToJsArray(messages: Traversable[ValidationError]) = JsArray(messages.map(errorToJsExp).toList)
+
+    //Remember current messages
+    currentErrors = errors
+    currentWarnings = warnings
+    currentInfos = infos
 
     /**Create a call to the update status function */
     Call("updateStatus", errorsToJsArray(errors), toJsArray(warnings), toJsArray(infos)).cmd

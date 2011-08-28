@@ -39,9 +39,9 @@ class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extend
   private def updateCmd(status: Status) = status match {
     case Finished(_, false, _) => {
       JsShowId("progresswidget") &
-        JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
-        JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
-        SetHtml("progresstext", Text("Failed to load cache"))
+      JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
+      JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
+      SetHtml("progresstext", Text("Failed to load cache"))
     }
     case _ => {
       val showCmd = status match {
@@ -50,9 +50,9 @@ class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extend
       }
 
       showCmd &
-        JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
-        JsRaw("$('#progressbar').progressbar({value: " + (status.progress * 95 + 5) + "});").cmd &
-        SetHtml("progresstext", Text(status.toString))
+      JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
+      JsRaw("$('#progressbar').progressbar({value: " + (status.progress * 95 + 5) + "});").cmd &
+      SetHtml("progresstext", Text(status.toString))
     }
   }
 
