@@ -22,9 +22,14 @@ class ImportProjectDialog {
         fileHolder match {
           case FileParamHolder(_, mime, _, data) => {
             val project = User().workspace.createProject(name)
+            val projectString = new String(data)
 
             try {
-              ProjectImporter(project, XML.load(new ByteArrayInputStream(data)))
+              if(projectString.contains("<Silk>")) {
+                throw new Exception("Link Specification instead of project supplied. Create a new project and add the link specification.")
+              }
+
+              ProjectImporter(project, XML.loadString(projectString))
             }
             catch {
               case ex: Exception => {
