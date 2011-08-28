@@ -101,13 +101,12 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       }
     }
 
-    override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes): Unit =
-	  {
+    override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes) {
       for(idAttribute <- Option(attributes.getValue("id"))) {
         val id = Identifier(idAttribute)
 
         for(error <- currentErrors) {
-          validationErrors ::= ValidationError("Error in " + _localName + " with id '" + id + "': " + error, Some(id))
+          validationErrors ::= ValidationError(error, Some(id), Some(_localName))
         }
 
         currentErrors = Nil
@@ -124,7 +123,7 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
       val ids = elements.map(_ \ "@id").map(_.text).filterNot(_.isEmpty)
       if (ids.distinct.size < ids.size) {
         val duplicatedIds = ids diff ids.distinct
-        val errors = duplicatedIds.map(id => ValidationError("Duplicated identifier: '" + id + "'", Some(Identifier(id))))
+        val errors = duplicatedIds.map(id => ValidationError("Duplicated identifier", Some(Identifier(id))))
         throw new ValidationException(errors)
       }
     }
