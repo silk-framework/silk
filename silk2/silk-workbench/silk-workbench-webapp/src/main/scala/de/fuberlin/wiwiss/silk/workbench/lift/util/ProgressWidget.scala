@@ -58,7 +58,7 @@ class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extend
 
   private object TaskListener extends (Status => Unit) {
     def apply(status: Status) {
-      if (status.isInstanceOf[Finished] || status.isInstanceOf[Canceled] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
+      if (status.isInstanceOf[Finished] || status.isInstanceOf[Canceling] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
         currentStatus = status
         partialUpdate(updateCmd(status))
         lastUpdateTime = System.currentTimeMillis

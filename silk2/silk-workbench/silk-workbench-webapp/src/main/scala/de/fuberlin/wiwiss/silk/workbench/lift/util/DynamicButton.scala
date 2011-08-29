@@ -46,13 +46,14 @@ trait DynamicButton extends CometActor  {
    * Enables or disables this control.
    */
   def enabled_=(enable: Boolean) {
-    enabledVar = enable
     if(rendered) {
-      if(enable)
+      if(!enabled && enable)
         partialUpdate(JsRaw("$('#" + id + "').removeAttr('disabled')").cmd)
-      else
+      else if(enabled && !enable)
         partialUpdate(JsRaw("$('#" + id + "').attr('disabled', 'disabled')").cmd)
     }
+
+    enabledVar = enable
   }
 
   /** The current label of this button. */
@@ -62,8 +63,9 @@ trait DynamicButton extends CometActor  {
    * Updates the label of this button.
    */
   def label_=(newLabel: String) {
-    labelVar = newLabel
-    if(rendered)
+    if(rendered && label != newLabel)
       partialUpdate(JsRaw("$('#" + id + " span').html('" + label + "')").cmd)
+
+    labelVar = newLabel
   }
 }

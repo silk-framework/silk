@@ -27,6 +27,8 @@ class StartLearningButton extends DynamicButton {
       StartLearningDialog.openCmd
     else {
       CurrentLearningTask().cancel()
+      label = "Wait"
+      enabled = false
       JS.Empty
     }
   }
@@ -38,7 +40,10 @@ class StartLearningButton extends DynamicButton {
     override def onUpdate(status: Status) {
       status match {
         case _: Started => label = "Stop"
-        case _: Finished => label = "Start"
+        case _: Finished => {
+          label = "Start"
+          enabled = true
+        }
         case _ =>
       }
     }

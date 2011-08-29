@@ -5,9 +5,16 @@ import de.fuberlin.wiwiss.silk.util.Observable
 
 trait HasStatus extends Observable[Status] {
   /**
-   * The level at which status changes should be logged.
+   * The level at which task status changes should be logged.
+   * Examples are status updates when the task is started and stopped.
    */
-  var logLevel = Level.INFO
+  var statusLogLevel = Level.INFO
+
+  /**
+   * The level at which updates to the running status logged.
+   * Examples are updates to the current progress or the current status message.
+   */
+  var progressLogLevel = Level.INFO
 
   /**
    * The logger used to log status changes.
@@ -36,12 +43,11 @@ trait HasStatus extends Observable[Status] {
    */
   protected def updateStatus(status: Status) {
     status match {
-      case _: Running if logger.isLoggable(logLevel) => logger.log(logLevel, status.toString)
-      case _: Running =>
-      case _ => logger.log(Level.INFO, status.toString)
+      case _: Running => logger.log(progressLogLevel, status.toString)
+      case _ => logger.log(statusLogLevel, status.toString)
     }
 
-    if(!currentStatus.isInstanceOf[Canceled] || status.isInstanceOf[Finished]) {
+    if(!currentStatus.isInstanceOf[Canceling] || status.isInstanceOf[Finished]) {
       currentStatus = status
       publish(status)
     }
