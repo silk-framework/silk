@@ -7,7 +7,7 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, User}
-import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.{GenerateLinksTask, CurrentGenerateLinksTask, EvalLink}
 
 class GeneratedLinks extends LinkList {
 
@@ -21,8 +21,14 @@ class GeneratedLinks extends LinkList {
 
   override protected def registerEvents() { }
 
+  private var generateLinksTask = CurrentGenerateLinksTask()
+
+  private val currentGenerateLinksTaskListener = (task: GenerateLinksTask) => { generateLinksTask = task }
+
+  CurrentGenerateLinksTask.onUpdate(currentGenerateLinksTaskListener)
+
   private val generatedLinkListener = new CurrentStatusListener(CurrentGenerateLinksTask) {
-    def apply(status: Status) {
+    override def onUpdate(status: Status) {
       status match {
         case _: Started => {}
         case _: Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
@@ -50,7 +56,7 @@ class GeneratedLinks extends LinkList {
   override protected def links: Seq[EvalLink] = {
     def alignment = linkingTask.alignment
 
-    for (link <- CurrentGenerateLinksTask().links.view) yield {
+    for (link <- generateLinksTask.links.view) yield {
       if (alignment.positive.contains(link)) {
         new EvalLink(link, Correct, Generated)
       } else if (alignment.negative.contains(link)) {
