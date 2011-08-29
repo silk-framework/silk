@@ -31,7 +31,7 @@ object SourceTaskDialog extends Dialog {
   //Close the current task if the window is closed
   override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
 
-  override def onSubmit() {
+  override def onSubmit() = {
     val newSource = createSource()
 
     if (User().sourceTaskOpen && User().sourceTask.name != newSource.name) {
@@ -50,6 +50,8 @@ object SourceTaskDialog extends Dialog {
     } else {
       User().project.sourceModule.update(newSource)
     }
+
+    Workspace.updateCmd
   }
 
   /**

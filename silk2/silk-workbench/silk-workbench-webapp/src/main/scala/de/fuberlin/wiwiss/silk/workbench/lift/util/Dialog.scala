@@ -6,6 +6,7 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{OnLoad, Script}
 import java.util.UUID
+import net.liftweb.http.js.JsCmd
 
 /**
  * Basic dialog with a number of fields.
@@ -40,8 +41,8 @@ trait Dialog extends Form {
   def render(xhtml : NodeSeq) : NodeSeq = {
     def submit() = {
       try {
-        onSubmit()
-        closeCmd
+        val cmd = onSubmit()
+        closeCmd & cmd
       } catch {
         case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
       }
@@ -68,5 +69,5 @@ trait Dialog extends Form {
    * Called when the dialog is submitted.
    * Must be overloaded by sub classes in order to read the input values.
    */
-  protected def onSubmit()
+  protected def onSubmit(): JsCmd
 }
