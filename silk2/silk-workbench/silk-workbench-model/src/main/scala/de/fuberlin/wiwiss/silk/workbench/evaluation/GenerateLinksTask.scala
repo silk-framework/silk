@@ -2,20 +2,20 @@ package de.fuberlin.wiwiss.silk.workbench.evaluation
 
 import de.fuberlin.wiwiss.silk.instance.{MemoryInstanceCache, Instance, InstanceSpecification}
 import collection.mutable.Buffer
-import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.util.task.Task
+import de.fuberlin.wiwiss.silk.output.{Output, Link}
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
 /**
  * Task which executes the current link specification and allows querying for the generated links.
  */
-class EvaluationTask(user: User) extends Task[Unit] {
+class GenerateLinksTask(user: User) extends Task[Unit] {
   /***/
-  var outputEnabled = false
+  var output: Option[Output] = None
 
   /** The number of concurrent threads used for matching */
   private val numThreads = 8
@@ -95,9 +95,8 @@ class EvaluationTask(user: User) extends Task[Unit] {
       filteredLinks = executeSubTask(filterTask)
 
       //Output links
-      if (outputEnabled) {
-        val outputs = project.outputModule.tasks.map(_.output)
-        val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, outputs)
+      for(out <- output) {
+        val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, out :: Nil)
         executeSubTask(outputTask)
       }
     }

@@ -110,8 +110,9 @@ abstract class CurrentValueListener[T](userData: UserData[_ <: ValueTask[T]]) {
 /**
  * Listens to the current status of the current users task.
  */
-abstract class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener[Status] {
+class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener[Status] with HasStatus {
 
+  updateStatus(userData().status)
   userData.onUpdate(Listener)
 
   private object Listener extends (HasStatus => Unit) {
@@ -121,8 +122,9 @@ abstract class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends
   }
 
   private object StatusListener extends (Status => Unit) {
-    def apply(value: Status) {
-      update(value)
+    def apply(status: Status) {
+      update(status)
+      updateStatus(status)
     }
   }
 }

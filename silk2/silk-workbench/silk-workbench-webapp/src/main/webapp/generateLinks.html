@@ -14,7 +14,7 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:generateLinks.toolbar form="POST">
+    <lift:generateLinksToolbar form="POST">
       <ul>
         <li>
           <lift:comet type="LinkGenerationControl" name="LinkGenerationControl" />
@@ -23,13 +23,11 @@
           <lift:comet type="LinkGenerationProgress" name="LinkGenerationProgress" />
         </li>
         <li>
-          <entry:enableOutput/>
-        </li>
-        <li>
           <entry:help />
         </li>
       </ul>
-    </lift:generateLinks.toolbar>
+    </lift:generateLinksToolbar>
+    <lift:generateLinksDialog/>
   </lift:bind-at>
 
   <lift:bind-at name="content">
