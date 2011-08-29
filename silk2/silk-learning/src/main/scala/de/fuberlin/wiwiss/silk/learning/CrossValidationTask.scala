@@ -16,7 +16,7 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   private val numFolds = 2
 
   /** Don't log progress. */
-  logLevel = Level.FINE
+  progressLogLevel = Level.FINE
 
   private val config = LearningConfiguration.load(LearningInput(instances))
 

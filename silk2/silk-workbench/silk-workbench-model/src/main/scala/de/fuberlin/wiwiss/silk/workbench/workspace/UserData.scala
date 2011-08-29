@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.util.task.{Status, Task, HasStatus, ValueTask}
 import java.util.concurrent.{TimeUnit, Callable, Executors}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
+import java.util.logging.Level
 
 /**
  * Holds user specific data.
@@ -115,6 +116,8 @@ class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener
 
   updateStatus(userData().status)
   userData.onUpdate(Listener)
+  statusLogLevel = Level.FINEST
+  progressLogLevel = Level.FINEST
 
   private object Listener extends (HasStatus => Unit) {
     def apply(task: HasStatus) {
