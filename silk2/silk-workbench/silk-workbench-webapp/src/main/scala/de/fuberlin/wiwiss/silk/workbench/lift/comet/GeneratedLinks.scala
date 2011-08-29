@@ -1,15 +1,16 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.util.task._
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.SHtml
 import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}
 import net.liftweb.http.js.JsCmds._
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
+import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, User}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
 
 class GeneratedLinks extends LinkList {
+
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
 
@@ -18,14 +19,9 @@ class GeneratedLinks extends LinkList {
 
   override protected val showStatus = false
 
-  protected val evaluationTask = User().evaluationTask
+  override protected def registerEvents() { }
 
-  override protected def registerEvents() {
-    /**Register to status messages of the evaluation task in order to be notified when new links are available */
-    evaluationTask.onUpdate(GeneratedLinkListener)
-  }
-
-  private object GeneratedLinkListener extends (Status => Unit) {
+  private val generatedLinkListener = new CurrentStatusListener(CurrentGenerateLinksTask) {
     def apply(status: Status) {
       status match {
         case _: Started => {}
@@ -35,7 +31,7 @@ class GeneratedLinks extends LinkList {
         }
         case _: Finished => {
           val cmd = {
-            val warnings = evaluationTask.warnings
+            val warnings = CurrentGenerateLinksTask().warnings
             if (warnings.isEmpty) {
               updateLinksCmd
             }
@@ -54,7 +50,7 @@ class GeneratedLinks extends LinkList {
   override protected def links: Seq[EvalLink] = {
     def alignment = linkingTask.alignment
 
-    for (link <- evaluationTask.links.view) yield {
+    for (link <- CurrentGenerateLinksTask().links.view) yield {
       if (alignment.positive.contains(link)) {
         new EvalLink(link, Correct, Generated)
       } else if (alignment.negative.contains(link)) {

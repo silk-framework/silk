@@ -4,9 +4,9 @@ import modules.linking.LinkingTask
 import modules.ModuleTask
 import modules.output.OutputTask
 import modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvaluationTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 import de.fuberlin.wiwiss.silk.util.Observable
+import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, GenerateLinksTask}
 
 /**
  * A user.
@@ -16,8 +16,6 @@ trait User extends Observable[CurrentTaskChanged] {
   @volatile private var currentProject: Option[Project] = None
 
   @volatile private var currentTask: Option[ModuleTask] = None
-
-  val evaluationTask: EvaluationTask = new EvaluationTask(this)
 
   var showAlignmentLinks = false
 
@@ -63,7 +61,7 @@ trait User extends Observable[CurrentTaskChanged] {
    */
   def closeTask() {
     currentTask = None
-    evaluationTask.clear()
+    CurrentGenerateLinksTask().clear()
   }
 
   /**
@@ -115,7 +113,7 @@ trait User extends Observable[CurrentTaskChanged] {
    * Called when the user becomes inactive.
    */
   def dispose() {
-    evaluationTask.cancel()
+    CurrentGenerateLinksTask().cancel()
   }
 }
 
