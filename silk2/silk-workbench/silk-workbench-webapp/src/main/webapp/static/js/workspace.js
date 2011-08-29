@@ -6,7 +6,7 @@ ws.activeNodesId = new Array();
 // -- init
 $(document).ready(
    function(){
-      $(".ui-icon").removeClass('ui-icon');
+      $(".ui-icon:not(.ui-icon-closethick)").removeClass('ui-icon');
       initLoadingDialog();
       // override forms 'onsubmit' attribute, in order to call loadingShow() before than ajax call
       $("form").each(function() {
