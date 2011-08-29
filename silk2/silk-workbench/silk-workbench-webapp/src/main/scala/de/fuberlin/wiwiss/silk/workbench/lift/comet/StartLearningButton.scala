@@ -2,9 +2,9 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.learning.CurrentLearningTask
 import de.fuberlin.wiwiss.silk.util.task.{Finished, Started, Status}
-import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentStatusListener
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.StartLearningDialog
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentStatusListener}
 
 /**
  * Button to control the learning process.
@@ -19,9 +19,11 @@ class StartLearningButton extends DynamicButton {
    * Called when the button has been pressed.
    */
   override protected def onPressed() = {
-    //TODO check if cache is being loaded
-
-    if (!CurrentLearningTask().status.isRunning)
+    if(User().linkingTask.cache.status.isRunning) {
+      JS.Message("Cache not loaded yet.")
+    } else if(User().linkingTask.alignment.positive.size < 1 || User().linkingTask.alignment.negative.size < 1) {
+      JS.Message("Positive and negative reference links are needed in order to learn a link specification")
+    } else if (!CurrentLearningTask().status.isRunning)
       StartLearningDialog.openCmd
     else {
       CurrentLearningTask().cancel()
