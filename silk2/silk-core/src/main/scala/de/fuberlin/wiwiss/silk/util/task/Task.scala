@@ -46,7 +46,7 @@ trait Task[+T] extends HasStatus with (() => T) {
    */
   def cancel() {
     if(status.isRunning) {
-      updateStatus(Canceled(taskName, status.progress))
+      updateStatus(Canceling(taskName, status.progress))
       stopExecution()
     }
   }
@@ -65,8 +65,9 @@ trait Task[+T] extends HasStatus with (() => T) {
     require(finalProgress >= status.progress, "finalProgress >= progress")
 
     //Disable logging of the subtask as this task will do the logging
-    val subTaskLogLevel = subTask.logLevel
-    subTask.logLevel = Level.FINEST
+    val subTaskLogLevel = subTask.statusLogLevel
+    subTask.statusLogLevel = Level.FINEST
+    subTask.progressLogLevel = Level.FINEST
 
     //Subscribe to status changes of the sub task
     val listener = new (Status => Unit) {
@@ -90,7 +91,7 @@ trait Task[+T] extends HasStatus with (() => T) {
       subTask.onUpdate(listener)
       subTask()
     } finally {
-      subTask.logLevel = subTaskLogLevel
+      subTask.statusLogLevel = subTaskLogLevel
     }
   }
 }

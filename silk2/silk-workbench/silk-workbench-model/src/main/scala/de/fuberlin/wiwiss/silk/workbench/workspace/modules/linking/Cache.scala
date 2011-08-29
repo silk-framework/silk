@@ -27,7 +27,7 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
 
   @volatile private var loadingThread: CacheLoader = null
 
-  logLevel = Level.FINE
+  progressLogLevel = Level.FINE
 
   /**The cached instance specifications containing the most frequent paths */
   def instanceSpecs = cachedInstanceSpecs

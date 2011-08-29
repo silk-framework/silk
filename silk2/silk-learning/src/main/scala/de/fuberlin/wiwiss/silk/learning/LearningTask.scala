@@ -21,7 +21,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
   @volatile private var ineffectiveIterations = 0
 
   /** Don't log progress. */
-  logLevel = Level.FINE
+  progressLogLevel = Level.FINE
 
   override def execute(): LearningResult = {
     //Reset state
@@ -33,7 +33,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
     val generator = LinkConditionGenerator(instances, config.components)
 
     //Generate initial population
-    executeTask(new GeneratePopulationTask(input, generator, config))
+    if(!stop) executeTask(new GeneratePopulationTask(input, generator, config))
 
     while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
       executeTask(new ReproductionTask(value.get.population, instances, generator, config))
@@ -43,7 +43,8 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
       }
     }
 
-    executeTask(new CleanPopulationTask(value.get.population, instances, generator))
+    if(!value.get.population.isEmpty)
+      executeTask(new CleanPopulationTask(value.get.population, instances, generator))
 
     value.get
   }
