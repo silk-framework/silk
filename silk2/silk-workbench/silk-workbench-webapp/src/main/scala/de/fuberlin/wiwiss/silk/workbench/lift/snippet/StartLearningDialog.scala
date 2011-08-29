@@ -29,8 +29,9 @@ object StartLearningDialog extends Dialog {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  override protected def onSubmit() {
+  override protected def onSubmit() = {
     startNewTask()
+    JS.Empty
   }
 
   /**

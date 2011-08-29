@@ -1,10 +1,9 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.workbench.lift.util.{SelectField, Dialog}
-import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, User}
-import de.fuberlin.wiwiss.silk.util.task.{Finished, Started, Status}
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, GenerateLinksTask}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, SelectField, Dialog}
 
 object GenerateLinksDialog extends Dialog {
 
@@ -20,7 +19,7 @@ object GenerateLinksDialog extends Dialog {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  override protected def onSubmit() {
+  override protected def onSubmit() = {
     val generateLinksTask = new GenerateLinksTask(User())
 
     if(output.value == noOutputName) {
@@ -31,5 +30,7 @@ object GenerateLinksDialog extends Dialog {
 
     CurrentGenerateLinksTask() = generateLinksTask
     generateLinksTask.runInBackground()
+
+    JS.Empty
   }
 }
