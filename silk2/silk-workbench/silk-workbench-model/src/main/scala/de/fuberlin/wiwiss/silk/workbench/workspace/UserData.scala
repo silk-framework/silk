@@ -32,6 +32,7 @@ class UserData[T](initialValue: T) extends Observable[T] {
   }
 }
 
+//TODO write tests and move to its own file
 trait Listener[T] extends Observable[T] {
 
   /** The minimum number of milliseconds between two successive calls to onUpdate. */
@@ -52,7 +53,7 @@ trait Listener[T] extends Observable[T] {
     } else {
       val time = System.currentTimeMillis() - lastUpdateTime
       if (time > maxFrequency) {
-        println("IMMIDIATE UPDATE")
+        //println("IMMIDIATE UPDATE")
         onUpdate(value)
         lastUpdateTime = System.currentTimeMillis()
       } else {
@@ -72,7 +73,7 @@ trait Listener[T] extends Observable[T] {
       def run() {
         scheduled = false
         lastUpdateTime = System.currentTimeMillis()
-        println("DELAYED UPDATE")
+        //println("DELAYED UPDATE")
         onUpdate(lastMessage.get)
       }
     }, delay, TimeUnit.MILLISECONDS)
