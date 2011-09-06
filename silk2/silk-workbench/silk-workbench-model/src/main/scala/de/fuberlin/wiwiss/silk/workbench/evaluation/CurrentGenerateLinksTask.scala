@@ -1,5 +1,5 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserData}
+import de.fuberlin.wiwiss.silk.workbench.workspace.UserData
 
-object CurrentGenerateLinksTask extends UserData[GenerateLinksTask](new GenerateLinksTask(User()))
+object CurrentGenerateLinksTask extends UserData[GenerateLinksTask](GenerateLinksTask.empty)

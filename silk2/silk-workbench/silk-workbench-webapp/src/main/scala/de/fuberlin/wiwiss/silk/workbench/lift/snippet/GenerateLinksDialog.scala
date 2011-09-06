@@ -20,7 +20,7 @@ object GenerateLinksDialog extends Dialog {
   private val logger = Logger.getLogger(getClass.getName)
 
   override protected def onSubmit() = {
-    val generateLinksTask = new GenerateLinksTask(User())
+    val generateLinksTask = new GenerateLinksTask(User(), User().linkingTask.linkSpec)
 
     if(output.value == noOutputName) {
       generateLinksTask.output = None

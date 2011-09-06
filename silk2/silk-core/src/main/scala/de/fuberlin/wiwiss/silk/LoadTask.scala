@@ -18,12 +18,15 @@ class LoadTask(sources: SourceTargetPair[Source],
 
   @volatile var exception: Exception = null
 
+  @volatile var sourceLoader: LoadingThread = null
+  @volatile var targetLoader: LoadingThread = null
+
   @volatile var canceled = false
 
   override def execute() {
     canceled = false
-    val sourceLoader = new LoadingThread(true)
-    val targetLoader = new LoadingThread(false)
+    sourceLoader = new LoadingThread(true)
+    targetLoader = new LoadingThread(false)
 
     sourceLoader.start()
     targetLoader.start()
@@ -59,6 +62,8 @@ class LoadTask(sources: SourceTargetPair[Source],
 
   override def stopExecution() {
     canceled = true
+    if(sourceLoader != null) sourceLoader.interrupt()
+    if(targetLoader != null) targetLoader.interrupt()
   }
 
   class LoadingThread(selectSource: Boolean) extends Thread {

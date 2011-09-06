@@ -48,4 +48,6 @@ object DatasetSpecification {
       SparqlRestriction.fromSparql((node \ "RestrictTo").text.trim)
     )
   }
+
+  def empty = DatasetSpecification(Identifier.random, "", SparqlRestriction.empty)
 }

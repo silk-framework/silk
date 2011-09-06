@@ -9,7 +9,7 @@ import similarity.SimilarityOperator
 /**
  * A Link Condition specifies the conditions which must hold true so that a link is generated between two instances.
  */
-case class LinkCondition(rootOperator: Option[SimilarityOperator]) {
+case class LinkCondition(rootOperator: Option[SimilarityOperator] = None) {
   /**
    * Computes the similarity between two instances.
    *
