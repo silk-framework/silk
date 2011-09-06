@@ -11,14 +11,15 @@ import de.fuberlin.wiwiss.silk.util._
 /**
  * Represents a Silk Link Specification.
  *
- * @param id The id which identifies this link specification..
+ * @param id The id which identifies this link specification. By default a new random identifier is generated.
+ * @param linkType The type of link to be generated. Defaults to owl:sameAs.
  */
-case class LinkSpecification(id: Identifier,
-                             linkType: Uri,
-                             datasets: SourceTargetPair[DatasetSpecification],
-                             condition: LinkCondition,
-                             filter: LinkFilter,
-                             outputs: Traversable[Output]) {
+case class LinkSpecification(id: Identifier = Identifier.random,
+                             linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs"),
+                             datasets: SourceTargetPair[DatasetSpecification] = SourceTargetPair.fill(DatasetSpecification.empty),
+                             condition: LinkCondition = LinkCondition(),
+                             filter: LinkFilter = LinkFilter(),
+                             outputs: Traversable[Output] = Traversable.empty) {
   /**
    * Serializes this Link Specification as XML.
    */

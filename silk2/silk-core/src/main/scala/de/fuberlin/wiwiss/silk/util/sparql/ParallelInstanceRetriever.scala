@@ -14,7 +14,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
 
   private val logger = Logger.getLogger(classOf[ParallelInstanceRetriever].getName)
 
-  private var failed = false
+  private var canceled = false
 
   /**
    * Retrieves instances with a given instance specification.
@@ -50,14 +50,18 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
           }
           else {
             inconsistentOrder = true
-            failed = true
+            canceled = true
           }
         }
       }
       catch {
+        case ex: InterruptedException => {
+          logger.log(Level.INFO, "Canceled retrieving instances for '" + instanceSpec.restrictions + "'")
+          canceled = true
+        }
         case ex: Exception => {
           logger.log(Level.WARNING, "Failed to execute query for '" + instanceSpec.restrictions + "'", ex)
-          failed = true
+          canceled = true
         }
       }
 
@@ -159,7 +163,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
       var currentValues: Set[String] = Set.empty
 
       for (result <- sparqlResults) {
-        if (failed) {
+        if (canceled) {
           return
         }
 

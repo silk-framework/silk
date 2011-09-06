@@ -2,18 +2,18 @@ package de.fuberlin.wiwiss.silk.workbench.evaluation
 
 import de.fuberlin.wiwiss.silk.instance.{MemoryInstanceCache, Instance, InstanceSpecification}
 import collection.mutable.Buffer
-import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.output.{Output, Link}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 
 /**
  * Task which executes the current link specification and allows querying for the generated links.
  */
-class GenerateLinksTask(user: User) extends Task[Unit] {
+class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends Task[Unit] {
   /***/
   var output: Option[Output] = None
 
@@ -29,8 +29,6 @@ class GenerateLinksTask(user: User) extends Task[Unit] {
   @volatile private var loadTask: LoadTask = null
 
   @volatile private var matchTask: MatchTask = null
-
-  @volatile private var alignment: Alignment = null
 
   @volatile private var filteredLinks: Buffer[Link] = null
 
@@ -62,8 +60,6 @@ class GenerateLinksTask(user: User) extends Task[Unit] {
 
   override protected def execute() {
     val project = user.project
-    val linkingTask = user.linkingTask
-    val linkSpec = linkingTask.linkSpec
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
     warningLog = CollectLogs() {
@@ -76,12 +72,11 @@ class GenerateLinksTask(user: User) extends Task[Unit] {
 
       //Instance caches
       val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, partitionSize),
-        new MemoryInstanceCache(instanceSpecs.target, blockCount, partitionSize))
+                                    new MemoryInstanceCache(instanceSpecs.target, blockCount, partitionSize))
 
       //Create tasks
       loadTask = new LoadTask(sources, caches, instanceSpecs, if (blockCount > 0) Some(indexFunction _) else None)
-      matchTask = new MatchTask(linkingTask.linkSpec, caches, numThreads, false, generateDetailedLinks)
-      alignment = linkingTask.alignment
+      matchTask = new MatchTask(linkSpec, caches, numThreads, false, generateDetailedLinks)
       filteredLinks = null
 
       //Load instances
@@ -106,4 +101,8 @@ class GenerateLinksTask(user: User) extends Task[Unit] {
     if (loadTask != null) loadTask.cancel()
     if (matchTask != null) matchTask.cancel()
   }
+}
+
+object GenerateLinksTask {
+  def empty = new GenerateLinksTask(User(), LinkSpecification())
 }
