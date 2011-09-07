@@ -13,14 +13,14 @@ import de.fuberlin.wiwiss.silk.util.Observable
  * @param task The task for which the progress should be shown
  * @param hide Hide the widget if the task is not active.
  */
-class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extends CometActor {
+class ProgressWidget(val task: Observable[TaskStatus], hide: Boolean = false) extends CometActor {
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 1000L
 
   /**The time of the last update */
   private var lastUpdateTime = 0L
 
-  private var currentStatus: Status = Idle()
+  private var currentStatus: TaskStatus = TaskIdle()
 
   override protected val dontCacheRendering = true
 
@@ -36,8 +36,8 @@ class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extend
     </div>
   }
 
-  private def updateCmd(status: Status) = status match {
-    case Finished(_, false, _) => {
+  private def updateCmd(status: TaskStatus) = status match {
+    case TaskFinished(_, false, _) => {
       JsShowId("progresswidget") &
       JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
       JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
@@ -45,7 +45,7 @@ class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extend
     }
     case _ => {
       val showCmd = status match {
-        case _: Idle | _: Finished if hide => JsHideId("progresswidget")
+        case _: TaskIdle | _: TaskFinished if hide => JsHideId("progresswidget")
         case _ => JsShowId("progresswidget")
       }
 
@@ -56,9 +56,9 @@ class ProgressWidget(val task: Observable[Status], hide: Boolean = false) extend
     }
   }
 
-  private object TaskListener extends (Status => Unit) {
-    def apply(status: Status) {
-      if (status.isInstanceOf[Finished] || status.isInstanceOf[Canceling] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
+  private object TaskListener extends (TaskStatus => Unit) {
+    def apply(status: TaskStatus) {
+      if (status.isInstanceOf[TaskFinished] || status.isInstanceOf[TaskCanceling] || System.currentTimeMillis - lastUpdateTime > minUpdatePeriod) {
         currentStatus = status
         partialUpdate(updateCmd(status))
         lastUpdateTime = System.currentTimeMillis

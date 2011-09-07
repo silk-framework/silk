@@ -5,15 +5,15 @@ import collection.mutable.Buffer
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
-import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.output.{Output, Link}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.util.task.ValueTask
 
 /**
  * Task which executes the current link specification and allows querying for the generated links.
  */
-class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends Task[Unit] {
+class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends ValueTask[Seq[Link]](Seq.empty) {
   /***/
   var output: Option[Output] = None
 
@@ -30,22 +30,9 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends Task[Un
 
   @volatile private var matchTask: MatchTask = null
 
-  @volatile private var filteredLinks: Buffer[Link] = null
-
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
-  /**
-   * Retrieves the current links.
-   */
-  def links: Seq[Link] = {
-    if (filteredLinks != null) {
-      filteredLinks
-    } else if (matchTask != null) {
-      matchTask.links
-    } else {
-      Seq.empty
-    }
-  }
+  def links = value.get
 
   /**
    * All warnings which have been generated during executing.
@@ -54,11 +41,11 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends Task[Un
 
   def clear() {
     cancel()
-    if (matchTask != null) matchTask.links.clear()
-    if (filteredLinks != null) filteredLinks.clear()
+    value.update(Seq.empty)
   }
 
-  override protected def execute() {
+  override protected def execute() = {
+    value.update(Seq.empty)
     val project = user.project
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
@@ -77,24 +64,26 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends Task[Un
       //Create tasks
       loadTask = new LoadTask(sources, caches, instanceSpecs, if (blockCount > 0) Some(indexFunction _) else None)
       matchTask = new MatchTask(linkSpec, caches, numThreads, false, generateDetailedLinks)
-      filteredLinks = null
 
       //Load instances
       loadTask.runInBackground()
 
       //Execute matching
-      executeSubTask(matchTask, 0.95)
+      val links = executeSubValueTask(matchTask, 0.95)
 
       //Filter links
-      val filterTask = new FilterTask(matchTask.links, linkSpec.filter)
-      filteredLinks = executeSubTask(filterTask)
+      val filterTask = new FilterTask(links, linkSpec.filter)
+      value.update(executeSubTask(filterTask))
 
       //Output links
       for(out <- output) {
-        val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, out :: Nil)
+        val outputTask = new OutputTask(value.get, linkSpec.linkType, out :: Nil)
         executeSubTask(outputTask)
       }
     }
+
+    //Return generated links
+    value.get
   }
 
   override def stopExecution() {

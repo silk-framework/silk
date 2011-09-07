@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.task.{Status, Finished, Started, Task}
+import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, TaskFinished, TaskStarted, Task}
 
 class TaskControl(task: Task[_], cancelable: Boolean = false) extends DynamicButton {
 
@@ -17,12 +17,12 @@ class TaskControl(task: Task[_], cancelable: Boolean = false) extends DynamicBut
     JS.Empty
   }
 
-  private object TaskListener extends (Status => Unit) {
-    def apply(status: Status) {
+  private object TaskListener extends (TaskStatus => Unit) {
+    def apply(status: TaskStatus) {
       status match {
-        case _: Started if cancelable => label = "Stop"
-        case _: Started => label = "Start"
-        case _: Finished => label = "Start"
+        case _: TaskStarted if cancelable => label = "Stop"
+        case _: TaskStarted => label = "Start"
+        case _: TaskFinished => label = "Start"
         case _ =>
       }
     }

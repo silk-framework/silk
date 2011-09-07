@@ -160,22 +160,22 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
     private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
 
     override def run() {
-      updateStatus(Started("Loading cache"))
+      updateStatus(TaskStarted("Loading cache"))
       try {
         loadPaths()
         loadInstances()
-        updateStatus(Finished("Loading cache", true, None))
+        updateStatus(TaskFinished("Loading cache", true, None))
         if(!isInterrupted) {
           project.linkingModule.update(task)
         }
       } catch {
         case ex: InterruptedException => {
           logger.log(Level.WARNING, "Loading cache stopped")
-          updateStatus(Finished("Loading stopped", false, None))
+          updateStatus(TaskFinished("Loading stopped", false, None))
         }
         case ex: Exception => {
           logger.log(Level.WARNING, "Loading cache failed", ex)
-          updateStatus(Finished("Loading cache", false, Some(ex)))
+          updateStatus(TaskFinished("Loading cache", false, Some(ex)))
         }
       }
     }

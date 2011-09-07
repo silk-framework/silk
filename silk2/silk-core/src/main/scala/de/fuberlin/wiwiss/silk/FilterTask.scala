@@ -8,10 +8,10 @@ import collection.mutable.{ArrayBuffer, Buffer}
 /**
  * Filters the links according to the link limit.
  */
-class FilterTask(links: Buffer[Link], filter: LinkFilter) extends Task[Buffer[Link]] {
+class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
   taskName = "Filtering"
 
-  override def execute(): Buffer[Link] = {
+  override def execute(): Seq[Link] = {
     filter.limit match {
       case Some(limit) => {
         val linkBuffer = new ArrayBuffer[Link]()

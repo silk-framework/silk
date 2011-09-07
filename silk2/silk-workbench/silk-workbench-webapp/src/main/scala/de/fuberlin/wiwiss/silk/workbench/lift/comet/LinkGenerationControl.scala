@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton, TaskContr
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.GenerateLinksDialog
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, User, UserData}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
-import de.fuberlin.wiwiss.silk.util.task.{Finished, Started, Status}
+import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 
 class LinkGenerationControl extends DynamicButton {
 
@@ -29,10 +29,10 @@ class LinkGenerationControl extends DynamicButton {
    * Listens to changes of the current learning task.
    */
   private val generateLinksTaskListener = new CurrentStatusListener(CurrentGenerateLinksTask) {
-    override def onUpdate(status: Status) {
+    override def onUpdate(status: TaskStatus) {
       status match {
-        case _: Started => label = "Stop"
-        case _: Finished => label = "Start"
+        case _: TaskStarted => label = "Stop"
+        case _: TaskFinished => label = "Start"
         case _ =>
       }
     }

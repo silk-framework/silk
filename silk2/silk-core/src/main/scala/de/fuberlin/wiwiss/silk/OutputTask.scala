@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk
 
-import collection.mutable.Buffer
 import output.{Output, Link}
 import util.task.Task
 import util.Uri
@@ -8,7 +7,7 @@ import util.Uri
 /**
  * Writes the links to the output.
  */
-class OutputTask(links: Buffer[Link], linkType: Uri, outputs: Traversable[Output]) extends Task[Unit] {
+class OutputTask(links: Seq[Link], linkType: Uri, outputs: Traversable[Output]) extends Task[Unit] {
   taskName = "Writing output"
 
   override def execute() {

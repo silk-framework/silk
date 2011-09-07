@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.evaluation.Alignment
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
-import de.fuberlin.wiwiss.silk.util.task.Status
+import de.fuberlin.wiwiss.silk.util.task.TaskStatus
 
 /**
  * A linking task which interlinks two datasets.

@@ -9,7 +9,7 @@ import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import util.SourceTargetPair
 import scala.math.{min, max}
-import util.task.Task
+import util.task.ValueTask
 
 /**
  * Executes the matching.
@@ -19,7 +19,7 @@ class MatchTask(linkSpec: LinkSpecification,
                 caches: SourceTargetPair[InstanceCache],
                 numThreads: Int,
                 sourceEqualsTarget: Boolean = false,
-                generateDetailedLinks: Boolean = false) extends Task[Buffer[Link]] {
+                generateDetailedLinks: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
   taskName = "Matching"
 
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
@@ -28,8 +28,6 @@ class MatchTask(linkSpec: LinkSpecification,
   private val indexingEnabled = caches.source.blockCount > 1 || caches.target.blockCount > 1
 
   @volatile private var cancelled = false
-
-  def links: Buffer[Link] with SynchronizedBuffer[Link] = linkBuffer
 
   /**
    * Executes the matching.
@@ -56,6 +54,7 @@ class MatchTask(linkSpec: LinkSpecification,
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         linkBuffer.appendAll(result.get)
+        value.update(linkBuffer)
         finishedTasks += 1
 
         //Update status
@@ -91,6 +90,10 @@ class MatchTask(linkSpec: LinkSpecification,
 
   override def stopExecution() {
     cancelled = true
+  }
+
+  def clear() {
+    linkBuffer.clear()
   }
 
   /**

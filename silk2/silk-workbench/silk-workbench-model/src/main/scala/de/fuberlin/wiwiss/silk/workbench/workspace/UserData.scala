@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.workbench.workspace
 
 import collection.mutable.{Subscriber, Publisher, WeakHashMap}
 import de.fuberlin.wiwiss.silk.util.Observable
-import de.fuberlin.wiwiss.silk.util.task.{Status, Task, HasStatus, ValueTask}
+import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, Task, HasStatus, ValueTask}
 import java.util.concurrent.{TimeUnit, Callable, Executors}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
-import java.util.logging.Level
+import java.util.logging.{Logger, Level}
 
 /**
  * Holds user specific data.
@@ -48,6 +48,8 @@ trait Listener[T] extends Observable[T] {
   /** The last message */
   @volatile private var lastMessage: Option[T] = None
 
+  private val logger = Logger.getLogger(getClass.getName)
+
   protected def update(value: T) {
     if(scheduled) {
       lastMessage = Some(value)
@@ -72,10 +74,14 @@ trait Listener[T] extends Observable[T] {
   private def delayedUpdate(delay: Long) {
     Listener.executor.schedule(new Runnable {
       def run() {
-        scheduled = false
-        lastUpdateTime = System.currentTimeMillis()
-        //println("DELAYED UPDATE")
-        onUpdate(lastMessage.get)
+        try {
+          scheduled = false
+          lastUpdateTime = System.currentTimeMillis()
+          //println("DELAYED UPDATE")
+          onUpdate(lastMessage.get)
+        } catch {
+          case ex: Exception => logger.log(Level.WARNING, "Error on update", ex)
+        }
       }
     }, delay, TimeUnit.MILLISECONDS)
   }
@@ -112,12 +118,14 @@ abstract class CurrentValueListener[T](userData: UserData[_ <: ValueTask[T]]) {
 /**
  * Listens to the current status of the current users task.
  */
-class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener[Status] with HasStatus {
+class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener[TaskStatus] with HasStatus {
 
   updateStatus(userData().status)
   userData.onUpdate(Listener)
   statusLogLevel = Level.FINEST
   progressLogLevel = Level.FINEST
+
+  @volatile private var task = userData()
 
   private object Listener extends (HasStatus => Unit) {
     def apply(task: HasStatus) {
@@ -125,8 +133,8 @@ class CurrentStatusListener(userData: UserData[_ <: HasStatus]) extends Listener
     }
   }
 
-  private object StatusListener extends (Status => Unit) {
-    def apply(status: Status) {
+  private object StatusListener extends (TaskStatus => Unit) {
+    def apply(status: TaskStatus) {
       update(status)
       updateStatus(status)
     }
