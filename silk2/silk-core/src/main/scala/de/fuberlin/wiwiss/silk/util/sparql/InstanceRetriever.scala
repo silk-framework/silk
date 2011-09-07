@@ -27,11 +27,9 @@ object InstanceRetriever {
    * Creates a new InstanceRetriever instance.
    */
   def apply(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None): InstanceRetriever = {
-    if (useParallelRetriever) {
+    if (useParallelRetriever)
       new ParallelInstanceRetriever(endpoint, pageSize, graphUri)
-    }
-    else {
+    else
       new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
-    }
   }
 }

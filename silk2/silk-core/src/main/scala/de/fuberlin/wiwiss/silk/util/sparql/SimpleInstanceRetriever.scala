@@ -149,7 +149,7 @@ class SimpleInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
         }
       }
 
-      for (curSubjectUri <- curSubject if !sparqlResults.isEmpty) {
+      for (curSubjectUri <- curSubject) {
         f(new Instance(curSubjectUri, values, instanceSpec))
       }
     }
