@@ -40,7 +40,7 @@
         </RestrictTo>
       </TargetDataset>
 
-      <LinkCondition>
+      <LinkageRule>
         <Aggregate type="max">
           <Compare metric="levenshteinDistance" threshold="1">
             <TransformInput function="lowerCase">
@@ -59,7 +59,7 @@
             </TransformInput>
           </Compare>
         </Aggregate>
-      </LinkCondition>
+      </LinkageRule>
 
       <Filter limit="1"/>
 

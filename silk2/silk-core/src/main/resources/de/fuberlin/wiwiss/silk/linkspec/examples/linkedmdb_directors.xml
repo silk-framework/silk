@@ -35,28 +35,24 @@
         </RestrictTo>
       </TargetDataset>
 
-      <LinkCondition>
+      <LinkageRule>
         <Aggregate type="max">
-          <Compare metric="jaro">
+          <Compare metric="jaro" threshold="0.1">
             <Input path="?a/dbpedia:director/rdfs:label" />
             <Input path="?b/rdfs:label" />
           </Compare>
-          <Compare metric="jaro">
+          <Compare metric="jaro" threshold="0.1">
             <Input path="?a/dbpedia:director/rdfs:label" />
             <Input path="?b/movie:director_name" />
           </Compare>
         </Aggregate>
-      </LinkCondition>
+      </LinkageRule>
 
-      <Filter threshold="0.7" limit="1" />
+      <Filter limit="1" />
 
       <Outputs>
-        <Output maxConfidence="0.9" type="file" >
-          <Param name="file" value="lmdb_verify_links.xml"/>
-          <Param name="format" value="alignment"/>
-        </Output>
-        <Output minConfidence="0.9" type="file">
-          <Param name="file" value="lmdb_accepted_links.xml"/>
+        <Output type="file">
+          <Param name="file" value="linkedmdb_links.xml"/>
           <Param name="format" value="ntriples"/>
         </Output>
       </Outputs>

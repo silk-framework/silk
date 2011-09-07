@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
-import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkCondition}
+import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
 
@@ -10,27 +10,27 @@ import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
  * @param comparisonCount The number of comparisons in the condition.
  * @param transformationCount The number of transformations in the condition.
  */
-case class LinkConditionComplexity(comparisonCount: Int, transformationCount: Int)
+case class LinkageRuleComplexity(comparisonCount: Int, transformationCount: Int)
 
 /**
  * Evaluates the complexity of a link condition.
  */
-object LinkConditionComplexity {
+object LinkageRuleComplexity {
   /**
    * Evaluates the complexity of a link condition.
    */
-  def apply(condition: LinkCondition): LinkConditionComplexity = {
-    LinkConditionComplexity(
-      comparisonCount = collectOperators(condition).filter(_.isInstanceOf[Comparison]).size,
-      transformationCount = collectOperators(condition).filter(_.isInstanceOf[TransformInput]).size
+  def apply(linkageRule: LinkageRule): LinkageRuleComplexity = {
+    LinkageRuleComplexity(
+      comparisonCount = collectOperators(linkageRule).filter(_.isInstanceOf[Comparison]).size,
+      transformationCount = collectOperators(linkageRule).filter(_.isInstanceOf[TransformInput]).size
     )
   }
 
   /**
    * Collects all operators of the link condition.
    */
-  private def collectOperators(condition: LinkCondition): Traversable[Operator] = {
-    condition.rootOperator.toTraversable.flatMap(collectOperators)
+  private def collectOperators(linkageRule: LinkageRule): Traversable[Operator] = {
+    linkageRule.operator.toTraversable.flatMap(collectOperators)
   }
 
   /**

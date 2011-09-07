@@ -193,13 +193,13 @@ class MatchTask(linkSpec: LinkSpecification,
           val instances = SourceTargetPair(sourceInstance, targetInstance)
 
           if (!generateDetailedLinks) {
-            val confidence = linkSpec.condition(instances, 0.0)
+            val confidence = linkSpec.rule(instances, 0.0)
 
             if (confidence >= 0.0) {
               links ::= new Link(sourceInstance.uri, targetInstance.uri, confidence)
             }
           } else {
-            for (link <- DetailedEvaluator(linkSpec.condition, instances, 0.0)) {
+            for (link <- DetailedEvaluator(linkSpec.rule, instances, 0.0)) {
               links ::= link
             }
           }

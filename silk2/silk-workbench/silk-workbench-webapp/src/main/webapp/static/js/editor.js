@@ -823,7 +823,7 @@ function load()
       targetDataSetRestriction = $(this).text();
     });
   });
-  $(linkSpec).find("> LinkCondition").each(function ()
+  $(linkSpec).find("> LinkageRule").each(function ()
   {
     var max_level = findLongestPath($(this));
 
@@ -1028,12 +1028,12 @@ function serializeLinkSpec() {
   targetDataset.appendChild(restriction);
   xml.appendChild(targetDataset);
 
-  var linkcondition = document.createElement("LinkCondition");
+  var LinkageRule = document.createElement("LinkageRule");
   if ((root != null) && (connections != ""))
   {
-    linkcondition.appendChild(createNewElement(root));
+    LinkageRule.appendChild(createNewElement(root));
   }
-  xml.appendChild(linkcondition);
+  xml.appendChild(LinkageRule);
 
   var filter = document.createElement("Filter");
   if ($("#linklimit :selected").text() != "unlimited")

@@ -48,7 +48,7 @@
         </RestrictTo>
       </TargetDataset>
 
-      <LinkCondition>
+      <LinkageRule>
         <Aggregate type="average">
           <Aggregate type="max" required="true" >
             <!-- We need two comparators because some resources in LinkedGeoData do not provided an english label -->
@@ -67,7 +67,7 @@
             <Param name="unit" value="km"/>
           </Compare>
        </Aggregate>              
-      </LinkCondition>
+      </LinkageRule>
 
       <Filter />
 

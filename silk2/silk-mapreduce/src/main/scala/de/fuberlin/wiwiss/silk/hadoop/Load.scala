@@ -85,7 +85,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
       new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
     )
 
-    def indexFunction(instance : Instance) = linkSpec.condition.index(instance)
+    def indexFunction(instance : Instance) = linkSpec.rule.index(instance)
 
     new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(indexFunction _) else None)()
   }

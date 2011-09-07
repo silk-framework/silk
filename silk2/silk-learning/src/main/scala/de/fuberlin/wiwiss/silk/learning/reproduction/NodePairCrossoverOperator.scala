@@ -2,11 +2,11 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import util.Random
-import de.fuberlin.wiwiss.silk.learning.individual.{NodeTraverser, Node, LinkConditionNode}
+import de.fuberlin.wiwiss.silk.learning.individual.{NodeTraverser, Node, LinkageRuleNode}
 
 abstract class NodePairCrossoverOperator[NodeType <: Node : Manifest] extends CrossoverOperator {
 
-  override def apply(nodePair: SourceTargetPair[LinkConditionNode]): Option[LinkConditionNode] = {
+  override def apply(nodePair: SourceTargetPair[LinkageRuleNode]): Option[LinkageRuleNode] = {
     //Generate all pairs of compatible nodes
     val sourceNodes = NodeTraverser(nodePair.source).iterateAll.toIndexedSeq
     val targetNodes = NodeTraverser(nodePair.target).iterateAll.toIndexedSeq
@@ -29,10 +29,10 @@ abstract class NodePairCrossoverOperator[NodeType <: Node : Manifest] extends Cr
       //Apply the crossover operator
       val updatedNode = crossover(crossoverPair.map(_.node.asInstanceOf[NodeType]))
 
-      //Update link condition node
-      val linkCondition = crossoverPair.source.update(updatedNode).root.node.asInstanceOf[LinkConditionNode]
+      //Update linkage rule node
+      val linkageRule = crossoverPair.source.update(updatedNode).root.node.asInstanceOf[LinkageRuleNode]
 
-      Some(linkCondition)
+      Some(linkageRule)
     }
   }
 

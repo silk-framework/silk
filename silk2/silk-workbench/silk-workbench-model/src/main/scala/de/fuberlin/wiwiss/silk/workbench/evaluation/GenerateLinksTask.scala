@@ -55,7 +55,7 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends ValueTa
 
       //Blocking function
       val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
-      def indexFunction(instance: Instance) = linkSpec.condition.index(instance, 0.0)
+      def indexFunction(instance: Instance) = linkSpec.rule.index(instance, 0.0)
 
       //Instance caches
       val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, partitionSize),

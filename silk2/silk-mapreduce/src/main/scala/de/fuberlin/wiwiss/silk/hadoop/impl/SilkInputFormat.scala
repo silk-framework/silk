@@ -72,8 +72,8 @@ class SilkInputFormat extends InputFormat[NullWritable, InstancePair]
       sourcePartition = config.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
       targetPartition = config.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
 
-      sourceIndices = sourcePartition.instances.map(instance => HashSet(linkSpec.condition.index(instance, 0.0).toSeq : _*))
-      targetIndices = targetPartition.instances.map(instance => HashSet(linkSpec.condition.index(instance, 0.0).toSeq : _*))
+      sourceIndices = sourcePartition.instances.map(instance => HashSet(linkSpec.rule.index(instance, 0.0).toSeq : _*))
+      targetIndices = targetPartition.instances.map(instance => HashSet(linkSpec.rule.index(instance, 0.0).toSeq : _*))
 
       context.setStatus("Comparing partition " + silkInputSplit.sourcePartition + " and " + silkInputSplit.targetPartition)
     }
