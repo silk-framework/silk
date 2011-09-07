@@ -24,7 +24,10 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
    * @return The retrieved instances
    */
   override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
-    new InstanceTraversable(instanceSpec, instances)
+    if(instanceSpec.paths.size <= 1)
+      new SimpleInstanceRetriever(endpoint, pageSize, graphUri).retrieve(instanceSpec, instances)
+    else
+      new InstanceTraversable(instanceSpec, instances)
   }
 
   /**
