@@ -35,16 +35,16 @@ class ReferenceLinks extends LinkList {
     }
   }
 
-  private object CacheListener extends (Status => Unit) {
-    def apply(status: Status) {
+  private object CacheListener extends (TaskStatus => Unit) {
+    def apply(status: TaskStatus) {
       status match {
-        case _: Started => {
+        case _: TaskStarted => {
         }
-        case _: Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
+        case _: TaskRunning if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
           partialUpdate(updateLinksCmd)
           lastUpdateTime = System.currentTimeMillis
         }
-        case _: Finished => {
+        case _: TaskFinished => {
           partialUpdate(updateLinksCmd)
         }
         case _ =>

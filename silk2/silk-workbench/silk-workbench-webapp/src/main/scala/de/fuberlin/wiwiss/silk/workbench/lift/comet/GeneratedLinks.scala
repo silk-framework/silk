@@ -28,14 +28,14 @@ class GeneratedLinks extends LinkList {
   CurrentGenerateLinksTask.onUpdate(currentGenerateLinksTaskListener)
 
   private val generatedLinkListener = new CurrentStatusListener(CurrentGenerateLinksTask) {
-    override def onUpdate(status: Status) {
+    override def onUpdate(status: TaskStatus) {
       status match {
-        case _: Started => {}
-        case _: Running if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
+        case _: TaskStarted => {}
+        case _: TaskRunning if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
           partialUpdate(updateLinksCmd)
           lastUpdateTime = System.currentTimeMillis
         }
-        case _: Finished => {
+        case _: TaskFinished => {
           val cmd = {
             val warnings = CurrentGenerateLinksTask().warnings
             if (warnings.isEmpty) {

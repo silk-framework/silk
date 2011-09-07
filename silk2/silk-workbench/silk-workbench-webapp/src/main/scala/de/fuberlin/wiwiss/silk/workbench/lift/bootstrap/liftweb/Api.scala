@@ -11,7 +11,7 @@ import net.liftweb.common.Full
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.json.JsonAST._
 import net.liftweb.http._
-import de.fuberlin.wiwiss.silk.util.task.Finished
+import de.fuberlin.wiwiss.silk.util.task.TaskFinished
 
 /**
  * The Silk Workbench REST API.
@@ -60,7 +60,7 @@ object Api {
                                                JField("variable", JString(datasets.target.variable)) :: Nil))
 
     var errorMsg : Option[String] = linkingTask.cache.status match {
-      case Finished(_, _, Some(ex)) => Some(ex.getMessage)
+      case TaskFinished(_, _, Some(ex)) => Some(ex.getMessage)
       case _ => None
     }
 

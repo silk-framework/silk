@@ -17,16 +17,16 @@ trait Task[+T] extends HasStatus with (() => T) {
    * Executes this task and returns the result.
    */
   override final def apply(): T = synchronized {
-    updateStatus(Started(taskName))
+    updateStatus(TaskStarted(taskName))
 
     try {
       val result = execute()
-      updateStatus(Finished(taskName, true))
+      updateStatus(TaskFinished(taskName, true))
       result
     } catch {
       case ex: Exception => {
         logger.log(Level.WARNING, taskName + "failed", ex)
-        updateStatus(Finished(taskName, false, Some(ex)))
+        updateStatus(TaskFinished(taskName, false, Some(ex)))
         throw ex
       }
     }
@@ -46,7 +46,7 @@ trait Task[+T] extends HasStatus with (() => T) {
    */
   def cancel() {
     if(status.isRunning) {
-      updateStatus(Canceling(taskName, status.progress))
+      updateStatus(TaskCanceling(taskName, status.progress))
       stopExecution()
     }
   }
@@ -70,15 +70,15 @@ trait Task[+T] extends HasStatus with (() => T) {
     subTask.progressLogLevel = Level.FINEST
 
     //Subscribe to status changes of the sub task
-    val listener = new (Status => Unit) {
+    val listener = new (TaskStatus => Unit) {
       val initialProgress = status.progress
 
-      def apply(status: Status) {
+      def apply(status: TaskStatus) {
         status match {
-          case Running(status, taskProgress) => {
+          case TaskRunning(status, taskProgress) => {
             updateStatus(status, initialProgress + taskProgress * (finalProgress - initialProgress))
           }
-          case Finished(_, success, _) if success == true => {
+          case TaskFinished(_, success, _) if success == true => {
             updateStatus(finalProgress)
           }
           case _ =>

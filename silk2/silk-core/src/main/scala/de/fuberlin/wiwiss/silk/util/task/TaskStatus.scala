@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.util.task
 /**
  * A status message
  */
-sealed trait Status {
+sealed trait TaskStatus {
   /**
    * The current status message.
    */
@@ -29,14 +29,14 @@ sealed trait Status {
 /**
  * Status which indicates that the task has not been started yet.
  */
-case class Idle() extends Status {
+case class TaskIdle() extends TaskStatus {
   def message = "Idle"
 }
 
 /**
  * Status which indicates that the task has been started.
  */
-case class Started(name: String) extends Status {
+case class TaskStarted(name: String) extends TaskStatus {
   override def message = name + " started"
   override def isRunning = true
 }
@@ -47,11 +47,11 @@ case class Started(name: String) extends Status {
  * @param message The status message
  * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
  */
-case class Running(message: String, override val progress: Double) extends Status {
+case class TaskRunning(message: String, override val progress: Double) extends TaskStatus {
   override def isRunning = true
 }
 
-case class Canceling(name: String, override val progress: Double) extends Status {
+case class TaskCanceling(name: String, override val progress: Double) extends TaskStatus {
   override def message = "Stopping " + name
   override def isRunning = true
 }
@@ -62,7 +62,7 @@ case class Canceling(name: String, override val progress: Double) extends Status
  * @param success True, if the computation finished successfully. False, otherwise.
  * @param exception The exception, if the task failed.
  */
-case class Finished(name: String, success: Boolean, exception: Option[Exception] = None) extends Status {
+case class TaskFinished(name: String, success: Boolean, exception: Option[Exception] = None) extends TaskStatus {
   override def message = exception match {
     case None => name + " finished"
     case Some(ex) => name + " failed: " + ex.getMessage

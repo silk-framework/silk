@@ -4,7 +4,7 @@ import datasource.Source
 import instance.{Instance, InstanceSpecification, InstanceCache}
 import util.SourceTargetPair
 import java.util.logging.{Level, Logger}
-import util.task.{Finished, Future, Task}
+import util.task.{TaskFinished, Future, Task}
 
 /**
  * Loads the instance cache
@@ -53,7 +53,7 @@ class LoadTask(sources: SourceTargetPair[Source],
     val future = super.runInBackground()
 
     //Wait until the caches are being written
-    while (!status.isInstanceOf[Finished] && !(caches.source.isWriting && caches.target.isWriting)) {
+    while (!status.isInstanceOf[TaskFinished] && !(caches.source.isWriting && caches.target.isWriting)) {
       Thread.sleep(100)
     }
 

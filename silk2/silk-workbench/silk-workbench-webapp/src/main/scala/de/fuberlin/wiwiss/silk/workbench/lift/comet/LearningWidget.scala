@@ -15,7 +15,9 @@ import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
 import de.fuberlin.wiwiss.silk.evaluation.LinkConditionComplexity
-import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentValueListener, User}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, CurrentValueListener, User}
+import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
+import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 
 /**
  * Widget which shows the current population.

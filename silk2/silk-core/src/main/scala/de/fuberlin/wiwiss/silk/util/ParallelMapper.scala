@@ -7,20 +7,21 @@ class ParallelMapper[T](traversable: Traversable[T], threadCount: Int = 8) {
 
   def map[U](f: T => U): Traversable[U] = {
     val buffer = new ArrayBuffer[U]() with SynchronizedBuffer[U]
-
-    //Start worker threads in the background
     val threads = for (i <- 0 until threadCount) yield new WorkerThread(f, buffer, i)
-    threads.foreach(_.start())
 
-    //Add all elements to the queue
-    traversable.foreach(e => queue.synchronized { queue.enqueue(e) })
+    try {
+      //Start worker threads in the background
+      threads.foreach(_.start())
 
-    //Wait until worker threads are finished
-    while (!queue.isEmpty) {
-      Thread.sleep(100)
+      //Add all elements to the queue
+      traversable.foreach(e => queue.synchronized { queue.enqueue(e) })
+
+      //Wait until worker threads are finished
+      while (!queue.isEmpty) Thread.sleep(100)
+    } finally {
+      threads.foreach(_.interrupt())
+      threads.foreach(_.join())
     }
-    threads.foreach(_.interrupt())
-    threads.foreach(_.join())
 
     buffer.toTraversable
   }

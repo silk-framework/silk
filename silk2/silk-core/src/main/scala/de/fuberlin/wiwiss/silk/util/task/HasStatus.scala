@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.util.task
 import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.util.Observable
 
-trait HasStatus extends Observable[Status] {
+trait HasStatus extends Observable[TaskStatus] {
   /**
    * The level at which task status changes should be logged.
    * Examples are status updates when the task is started and stopped.
@@ -24,7 +24,7 @@ trait HasStatus extends Observable[Status] {
   /**
    * Holds the current status.
    */
-  private var currentStatus: Status = Idle()
+  private var currentStatus: TaskStatus = TaskIdle()
 
   /**
    * The current status of this task.
@@ -32,7 +32,7 @@ trait HasStatus extends Observable[Status] {
   def status = currentStatus
 
   def failed = currentStatus match {
-    case Finished(_, false, _) => true
+    case TaskFinished(_, false, _) => true
     case _ => false
   }
 
@@ -41,13 +41,13 @@ trait HasStatus extends Observable[Status] {
    *
    * @param status The new status
    */
-  protected def updateStatus(status: Status) {
+  protected def updateStatus(status: TaskStatus) {
     status match {
-      case _: Running => logger.log(progressLogLevel, status.toString)
+      case _: TaskRunning => logger.log(progressLogLevel, status.toString)
       case _ => logger.log(statusLogLevel, status.toString)
     }
 
-    if(!currentStatus.isInstanceOf[Canceling] || status.isInstanceOf[Finished]) {
+    if(!currentStatus.isInstanceOf[TaskCanceling] || status.isInstanceOf[TaskFinished]) {
       currentStatus = status
       publish(status)
     }
@@ -59,7 +59,7 @@ trait HasStatus extends Observable[Status] {
    * @param status The new status message
    */
   protected def updateStatus(message: String) {
-    updateStatus(Running(message, currentStatus.progress))
+    updateStatus(TaskRunning(message, currentStatus.progress))
   }
 
   /**
@@ -68,7 +68,7 @@ trait HasStatus extends Observable[Status] {
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
   protected def updateStatus(progress: Double) {
-    updateStatus(Running(currentStatus.message, progress))
+    updateStatus(TaskRunning(currentStatus.message, progress))
   }
 
   /**
@@ -78,6 +78,6 @@ trait HasStatus extends Observable[Status] {
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
   protected def updateStatus(message: String, progress: Double) {
-    updateStatus(Running(message, progress))
+    updateStatus(TaskRunning(message, progress))
   }
 }

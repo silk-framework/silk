@@ -47,7 +47,7 @@ class Dataset(val name : String, config : SilkConfig, linkSpec : LinkSpecificati
     val instances = instanceSource.retrieve(instanceSpecs.source).toList
     instanceCache.write(instances)
 
-    var links : Buffer[Link] = new ArrayBuffer[Link]()
+    var links : Seq[Link] = Seq.empty
     if(instanceCache.instanceCount > 0)
     {
       val matcher = new MatchTask(linkSpec, SourceTargetPair(instanceCache, caches.target), 8)

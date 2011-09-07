@@ -13,7 +13,7 @@ import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import net.liftweb.http.js.JE._
 import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import net.liftweb.http.{CometActor, SHtml}
-import de.fuberlin.wiwiss.silk.util.task.{Finished, Status}
+import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 
 /**
  * Link specification editor.
@@ -154,10 +154,10 @@ class Editor extends CometActor {
   /**
    * Updates the status as soon as the cache has been loaded.
    */
-  object CacheListener extends (Status => Unit) {
-    def apply(status: Status) {
+  object CacheListener extends (TaskStatus => Unit) {
+    def apply(status: TaskStatus) {
       status match {
-        case _ : Finished => {
+        case _ : TaskFinished => {
           partialUpdate(updateStatusCall(infos = evaluateLinkSpec(User().linkingTask)))
         }
         case _ =>
