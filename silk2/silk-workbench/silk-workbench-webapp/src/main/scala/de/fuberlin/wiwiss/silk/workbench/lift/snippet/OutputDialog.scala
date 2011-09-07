@@ -30,9 +30,7 @@ object OutputDialog extends StrategyDialog[LinkWriter] {
     User().project.outputModule.update(newOutput)
 
     if (User().outputTaskOpen && User().outputTask.name != newOutput.name) {
-      val currentOutput = User().outputTask
-
-      User().project.sourceModule.remove(currentOutput.name)
+      User().project.outputModule.remove(User().outputTask.name)
     }
   }
 
