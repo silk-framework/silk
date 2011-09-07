@@ -55,8 +55,8 @@ object LinkSpecification {
     val linkConditionNode = (node \ "LinkCondition").headOption
     val linkageRuleNode = (node \ "LinkageRule").headOption
 
-    if(linkConditionNode.isEmpty && linkageRuleNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
-    if(linkageRuleNode.isDefined) logger.warning("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
+    if(linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
+    if(linkConditionNode.isDefined) logger.warning("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
     //Read filter
     val filter = LinkFilter.fromXML(node \ "Filter" head)
