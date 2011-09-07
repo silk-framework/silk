@@ -113,7 +113,17 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element name="LinkCondition">
+        <!-- <LinkCondition> has been renamed to <LinkageRule> but we still need to support it -->
+        <xs:element name="LinkCondition" minOccurs="0">
+          <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="1">
+              <xs:element ref="Aggregate" />
+              <xs:element ref="Compare" />
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="LinkageRule" minOccurs="0">
           <xs:complexType>
             <xs:choice minOccurs="0" maxOccurs="1">
               <xs:element ref="Aggregate" />

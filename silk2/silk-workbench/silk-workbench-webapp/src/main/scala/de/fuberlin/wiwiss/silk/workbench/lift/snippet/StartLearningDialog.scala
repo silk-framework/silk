@@ -15,7 +15,7 @@ object StartLearningDialog extends Dialog {
 
   override val title = "Start learning task"
 
-  private val mode = RadioField("Mode", "", "New Link Specification" :: "Improve Link Specification" :: Nil, () => "New Link Specification")
+  private val mode = RadioField("Mode", "", "New Linkage Rule" :: "Improve Linkage Rule" :: Nil, () => "New Linkage Rule")
 
   private val populationSize = IntField("Population Size", "The number of individuals in the population", 1, 10000, () => 500)
 
@@ -51,7 +51,7 @@ object StartLearningDialog extends Dialog {
   private def createInput() = {
     LearningInput(
       trainingInstances = User().linkingTask.cache.instances,
-      seedConditions = if(mode.value == "Improve Link Specification") List(User().linkingTask.linkSpec.condition) else Nil
+      seedLinkageRules = if(mode.value == "Improve Linkage Rule") List(User().linkingTask.linkSpec.rule) else Nil
     )
   }
 

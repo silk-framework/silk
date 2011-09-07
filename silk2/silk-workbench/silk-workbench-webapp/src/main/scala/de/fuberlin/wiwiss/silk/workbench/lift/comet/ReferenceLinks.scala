@@ -53,7 +53,7 @@ class ReferenceLinks extends LinkList {
   }
 
   override protected def links: Seq[EvalLink] = {
-    def condition = linkingTask.linkSpec.condition
+    def linkageRule = linkingTask.linkSpec.rule
     def alignment = linkingTask.alignment
     def instances = linkingTask.cache.instances
 
@@ -61,7 +61,7 @@ class ReferenceLinks extends LinkList {
       case Positive => {
         for (link <- alignment.positive.toSeq.view) yield instances.positive.get(link) match {
           case Some(instances) => {
-            val evaluatedLink = DetailedEvaluator(condition, instances, -1.0).get
+            val evaluatedLink = DetailedEvaluator(linkageRule, instances, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
@@ -83,7 +83,7 @@ class ReferenceLinks extends LinkList {
       case Negative => {
         for (link <- alignment.negative.toSeq.view) yield instances.negative.get(link) match {
           case Some(instances) => {
-            val evaluatedLink = DetailedEvaluator(condition, instances, -1.0).get
+            val evaluatedLink = DetailedEvaluator(linkageRule, instances, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,

@@ -38,7 +38,7 @@
         </RestrictTo>
       </TargetDataset>
 
-      <LinkCondition>
+      <LinkageRule>
         <Aggregate type="average">
           <Aggregate type="max">
             <Compare metric="levenshteinDistance" threshold="1">
@@ -173,7 +173,7 @@
             </Compare>
           </Aggregate>
         </Aggregate>
-      </LinkCondition>
+      </LinkageRule>
 
       <Filter />
 

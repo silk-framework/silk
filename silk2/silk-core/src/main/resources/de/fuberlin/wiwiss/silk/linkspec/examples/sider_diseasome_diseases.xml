@@ -43,7 +43,7 @@
                <Input path="?b/sider:sideEffectName" />
             </Blocking -->
 
-            <LinkCondition>
+            <LinkageRule>
                 <Aggregate type="max">
                     <Compare metric="jaroWinkler" threshold="0.3">
                         <TransformInput function="lowerCase">
@@ -74,7 +74,7 @@
                     </Compare -->
 
                 </Aggregate>
-            </LinkCondition>
+            </LinkageRule>
 
             <Filter limit="1" />
 

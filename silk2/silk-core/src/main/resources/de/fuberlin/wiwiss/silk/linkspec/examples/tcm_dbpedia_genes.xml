@@ -41,7 +41,7 @@
                 </RestrictTo>
             </TargetDataset>
 
-            <LinkCondition>
+            <LinkageRule>
                 <Aggregate type="max">
                     <Compare metric="levenshtein">
                         <TransformInput function="lowerCase">
@@ -66,7 +66,7 @@
                         </TransformInput>
                     </Compare>
                 </Aggregate>
-            </LinkCondition>
+            </LinkageRule>
 
             <Filter threshold="0.9" />
 

@@ -6,11 +6,11 @@ import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.output.Link.InputValue
 import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.instance.Instance
-import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
+import de.fuberlin.wiwiss.silk.linkspec.LinkageRule
 
 object DetailedEvaluator {
-  def apply(condition: LinkCondition, instances: SourceTargetPair[Instance], limit: Double = -1.0): Option[Link] = {
-    condition.rootOperator match {
+  def apply(condition: LinkageRule, instances: SourceTargetPair[Instance], limit: Double = -1.0): Option[Link] = {
+    condition.operator match {
       case Some(op) => {
         val confidence = evaluateOperator(op, instances, limit)
 

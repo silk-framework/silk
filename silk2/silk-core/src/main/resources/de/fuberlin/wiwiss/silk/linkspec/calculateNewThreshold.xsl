@@ -37,7 +37,7 @@
     <!-- Remove parts of the Filter-element-->
     <xsl:template match="Filter">
         <xsl:choose>
-            <xsl:when test="ancestor::Interlink/LinkCondition/Aggregate/Compare[@metric = 'levenshtein' or @metric = 'wgs84' or @metric= 'num']">
+            <xsl:when test="ancestor::Interlink/LinkageRule/Aggregate/Compare[@metric = 'levenshtein' or @metric = 'wgs84' or @metric= 'num']">
                 <xsl:copy>
                     <xsl:copy-of select="@limit"/>
                 </xsl:copy>
@@ -51,7 +51,7 @@
     </xsl:template>
 
     <!-- FIX ME Remove Param-node with old attributes [name = 'threshold' or name = 'maxDistance']
-    <xsl:template match="Interlink/LinkCondition/Aggregate/Aggregate/Compare/Param">
+    <xsl:template match="Interlink/LinkageRule/Aggregate/Aggregate/Compare/Param">
         <xsl:choose>
             <xsl:when test="@name = 'maxDistance' or @name = 'threshold'">
                 <xsl:apply-templates/>

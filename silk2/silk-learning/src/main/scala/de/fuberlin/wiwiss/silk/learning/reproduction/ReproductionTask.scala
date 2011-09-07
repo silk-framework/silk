@@ -2,13 +2,13 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
 import de.fuberlin.wiwiss.silk.util.{ParallelMapper, SourceTargetPair}
-import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkConditionEvaluator}
+import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkageRuleEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
-import de.fuberlin.wiwiss.silk.learning.generation.LinkConditionGenerator
+import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 
-class ReproductionTask(population: Population, instances: ReferenceInstances, generator: LinkConditionGenerator, config: LearningConfiguration) extends Task[Population] {
+class ReproductionTask(population: Population, instances: ReferenceInstances, generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
 
   /**
    * The operators which will be employed for crossover.
@@ -54,13 +54,13 @@ class ReproductionTask(population: Population, instances: ReferenceInstances, ge
 
     //Define the two crossover individuals: In case of mutation, we do a crossover with a new random node
     val sourceIndividual = select()
-    val targetLinkCondition = if (Random.nextDouble < config.reproduction.mutationProbability) generator() else select().node
+    val targetLinkageRule = if (Random.nextDouble < config.reproduction.mutationProbability) generator() else select().node
 
-    operator(SourceTargetPair(sourceIndividual.node, targetLinkCondition)) match {
+    operator(SourceTargetPair(sourceIndividual.node, targetLinkageRule)) match {
       case Some(node) => {
         val startTime = System.currentTimeMillis()
 
-        val fitness = LinkConditionEvaluator(node.build, instances)
+        val fitness = LinkageRuleEvaluator(node.build, instances)
 
         val time = System.currentTimeMillis() - startTime
 

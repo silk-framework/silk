@@ -45,12 +45,12 @@ object InstanceSpecification {
     val sourceRestriction = linkSpec.datasets.source.restriction
     val targetRestriction = linkSpec.datasets.target.restriction
 
-    val sourcePaths = linkSpec.condition.rootOperator match {
+    val sourcePaths = linkSpec.rule.operator match {
       case Some(operator) => collectPaths(sourceVar)(operator)
       case None => Set[Path]()
     }
 
-    val targetPaths = linkSpec.condition.rootOperator match {
+    val targetPaths = linkSpec.rule.operator match {
       case Some(operator) => collectPaths(targetVar)(operator)
       case None => Set[Path]()
     }

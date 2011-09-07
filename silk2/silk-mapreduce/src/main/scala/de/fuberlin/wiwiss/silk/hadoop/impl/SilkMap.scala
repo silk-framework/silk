@@ -10,7 +10,7 @@ class SilkMap extends Mapper[NullWritable, InstancePair, Text, InstanceConfidenc
   {
     val config = SilkConfiguration.get(context.getConfiguration)
 
-    val confidence = config.linkSpec.condition(instances, 0.0)
+    val confidence = config.linkSpec.rule(instances, 0.0)
 
     if(confidence >= 0.0)
     {

@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.learning.generation
 
 import util.Random
-import de.fuberlin.wiwiss.silk.learning.individual.{LinkConditionNode, AggregationNode}
+import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, AggregationNode}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
-class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
+class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
 
   private val aggregations = "max" :: "min" :: "average" :: Nil
 
@@ -15,9 +15,9 @@ class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerato
 
   def apply() = {
     if(components.aggregations) {
-      LinkConditionNode(Some(generateAggregation()))
+      LinkageRuleNode(Some(generateAggregation()))
     } else {
-      LinkConditionNode(Some(generateComparison()))
+      LinkageRuleNode(Some(generateComparison()))
     }
   }
 
@@ -46,8 +46,8 @@ class LinkConditionGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerato
   }
 }
 
-object LinkConditionGenerator {
+object LinkageRuleGenerator {
   def apply(instances: ReferenceInstances, components: Components) = {
-    new LinkConditionGenerator((new PathPairGenerator(components).apply(instances) ++ new PatternGenerator(components).apply(instances)).toIndexedSeq, components)
+    new LinkageRuleGenerator((new PathPairGenerator(components).apply(instances) ++ new PatternGenerator(components).apply(instances)).toIndexedSeq, components)
   }
 }

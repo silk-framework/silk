@@ -7,6 +7,7 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util._
+import java.util.logging.Logger
 
 /**
  * Represents a Silk Link Specification.
@@ -17,7 +18,7 @@ import de.fuberlin.wiwiss.silk.util._
 case class LinkSpecification(id: Identifier = Identifier.random,
                              linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs"),
                              datasets: SourceTargetPair[DatasetSpecification] = SourceTargetPair.fill(DatasetSpecification.empty),
-                             condition: LinkCondition = LinkCondition(),
+                             rule: LinkageRule = LinkageRule(),
                              filter: LinkFilter = LinkFilter(),
                              outputs: Traversable[Output] = Traversable.empty) {
   /**
@@ -26,7 +27,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
   def toXML(implicit prefixes: Prefixes): Node = {
     <Interlink id={id}>
       <LinkType>{linkType.toTurtle}</LinkType>
-      {datasets.source.toXML(true)}{datasets.target.toXML(false)}{condition.toXML}{filter.toXML}
+      {datasets.source.toXML(true)}{datasets.target.toXML(false)}{rule.toXML}{filter.toXML}
       <Outputs>
       {outputs.map(_.toXML)}
       </Outputs>
@@ -37,6 +38,8 @@ case class LinkSpecification(id: Identifier = Identifier.random,
 object LinkSpecification {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
 
+  private val logger = Logger.getLogger(LinkSpecification.getClass.getName)
+
   def load(implicit prefixes: Prefixes) = {
     new ValidatingXMLReader(node => fromXML(node), schemaLocation)
   }
@@ -45,23 +48,33 @@ object LinkSpecification {
    * Reads a Link Specification from XML.
    */
   def fromXML(node: Node)(implicit prefixes: Prefixes): LinkSpecification = {
+    //Read id
+    val id = (node \ "@id").text
+
+    //Read linkage rule node
+    val linkConditionNode = (node \ "LinkCondition").headOption
+    val linkageRuleNode = (node \ "LinkageRule").headOption
+
+    if(linkConditionNode.isEmpty && linkageRuleNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
+    if(linkageRuleNode.isDefined) logger.warning("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
+
+    //Read filter
     val filter = LinkFilter.fromXML(node \ "Filter" head)
     implicit val globalThreshold = filter.threshold
 
     new LinkSpecification(
-      node \ "@id" text,
+      id,
       resolveQualifiedName((node \ "LinkType").text.trim, prefixes),
       new SourceTargetPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
-        DatasetSpecification
-          .fromXML(node \ "TargetDataset" head)),
-      readLinkCondition(node \ "LinkCondition" head),
+      DatasetSpecification.fromXML(node \ "TargetDataset" head)),
+      readLinkageRule(linkageRuleNode.getOrElse(linkConditionNode.get)),
       filter,
       (node \ "Outputs" \ "Output").map(Output.fromXML)
     )
   }
 
-  private def readLinkCondition(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
-    LinkCondition(readOperators(node.child).headOption)
+  private def readLinkageRule(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
+    LinkageRule(readOperators(node.child).headOption)
   }
 
   private def readOperators(nodes: Seq[Node])(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Seq[SimilarityOperator] = {

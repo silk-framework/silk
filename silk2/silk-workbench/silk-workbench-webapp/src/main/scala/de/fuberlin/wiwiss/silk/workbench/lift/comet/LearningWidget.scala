@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkCondition}
+import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
@@ -14,7 +14,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
-import de.fuberlin.wiwiss.silk.evaluation.LinkConditionComplexity
+import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleComplexity
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, CurrentValueListener, User}
 import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
@@ -136,7 +136,7 @@ class LearningWidget extends CometActor {
    * Renders the description of an individual.
    */
   private def renderDescription(individual: Individual) = {
-    val complexity = LinkConditionComplexity(individual.node.build)
+    val complexity = LinkageRuleComplexity(individual.node.build)
 
     complexity.comparisonCount + " Comparisons and " + complexity.transformationCount + " Transformations"
   }
@@ -166,16 +166,16 @@ class LearningWidget extends CometActor {
     implicit val prefixes = User().project.config.prefixes
 
     <div class="individual-details" id={getId(individual, "details")}>
-      { renderLinkCondition(individual.node.build) }
+      { renderLinkageRule(individual.node.build) }
     </div>
   }
 
   /**
    * Renders a link condition as a tree.
    */
-  private def renderLinkCondition(linkCondition: LinkCondition)(implicit prefixes: Prefixes) = {
+  private def renderLinkageRule(rule: LinkageRule)(implicit prefixes: Prefixes) = {
     <ul class="details-tree">
-    { for(aggregation <- linkCondition.rootOperator.toList) yield renderOperator(aggregation) }
+    { for(aggregation <- rule.operator.toList) yield renderOperator(aggregation) }
     </ul>
   }
 
@@ -219,9 +219,9 @@ class LearningWidget extends CometActor {
   {
     val linkingTask = User().linkingTask
     val linkSpec = linkingTask.linkSpec
-    val newLinkCondition = individual.node.build
+    val newLinkageRule = individual.node.build
 
-    User().task = linkingTask.updateLinkSpec(linkSpec.copy(condition = newLinkCondition), User().project)
+    User().task = linkingTask.updateLinkSpec(linkSpec.copy(rule = newLinkageRule), User().project)
 
     JS.Redirect("/editor.html")
   }

@@ -36,7 +36,7 @@
 			</RestrictTo>
 		</TargetDataset>
 
-    <LinkCondition>
+    <LinkageRule>
       <Aggregate type="average">
         <Aggregate type="max">
           <Compare metric="jaro">
@@ -94,7 +94,7 @@
           <Param name="threshold" value="100" />
         </Compare>
       </Aggregate>
-    </LinkCondition>
+    </LinkageRule>
 
     <Filter threshold="0.9" limit="1" />
 

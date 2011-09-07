@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import cleaning.CleanPopulationTask
-import generation.{LinkConditionGenerator, GeneratePopulationTask}
+import generation.{LinkageRuleGenerator, GeneratePopulationTask}
 import individual.Population
 import java.util.logging.Level
 import reproduction.ReproductionTask
 import de.fuberlin.wiwiss.silk.util.task.{Task, ValueTask}
-import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
+import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 
 class LearningTask(input: LearningInput = LearningInput.empty, config: LearningConfiguration = LearningConfiguration.empty) extends ValueTask[LearningResult](LearningResult()) {
 
@@ -30,7 +30,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
     ineffectiveIterations = 0
 
     val instances = input.trainingInstances
-    val generator = LinkConditionGenerator(instances, config.components)
+    val generator = LinkageRuleGenerator(instances, config.components)
 
     //Generate initial population
     if(!stop) executeTask(new GeneratePopulationTask(input, generator, config))
@@ -82,7 +82,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
         iterations = iterations,
         time = System.currentTimeMillis() - startTime,
         population = population,
-        validationResult = LinkConditionEvaluator(population.bestIndividual.node.build, input.trainingInstances),
+        validationResult = LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingInstances),
         status = status
       )
 

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning
 
-import de.fuberlin.wiwiss.silk.evaluation.{LinkConditionComplexity, AggregatedComplexity, AggregatedEvaluationResult, VariableStatistic}
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleComplexity, AggregatedComplexity, AggregatedEvaluationResult, VariableStatistic}
 
 /**
  * The aggregated result of multiple learning runs.
@@ -22,7 +22,7 @@ object AggregatedLearningResult {
     AggregatedLearningResult(
       iterations = iteration,
       time = VariableStatistic(results.map(_.time.toDouble)),
-      complexity = AggregatedComplexity(results.map(_.population.bestIndividual.node.build).map(LinkConditionComplexity(_))),
+      complexity = AggregatedComplexity(results.map(_.population.bestIndividual.node.build).map(LinkageRuleComplexity(_))),
       trainingResult = AggregatedEvaluationResult(results.map(_.population.bestIndividual.fitness)),
       validationResult = AggregatedEvaluationResult(results.map(_.validationResult))
     )

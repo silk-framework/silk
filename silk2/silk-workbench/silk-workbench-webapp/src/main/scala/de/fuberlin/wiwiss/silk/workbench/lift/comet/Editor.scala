@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.evaluation.LinkConditionEvaluator
+import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import xml.Text
 import net.liftweb.http.js.JsCmds.{JsCrVar, OnLoad, Script}
@@ -118,7 +118,7 @@ class Editor extends CometActor {
     } else if (linkingTask.cache.instances.positive.isEmpty || linkingTask.cache.instances.negative.isEmpty) {
       ("No reference links") :: Nil
     } else {
-      val r = LinkConditionEvaluator(linkingTask.linkSpec.condition, linkingTask.cache.instances)
+      val r = LinkageRuleEvaluator(linkingTask.linkSpec.rule, linkingTask.cache.instances)
 
       ("Precision = %.2f".format(r.precision)) ::
       ("Recall = %.2f".format(r.recall)) ::

@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
-import de.fuberlin.wiwiss.silk.linkspec.LinkCondition
+import de.fuberlin.wiwiss.silk.linkspec.LinkageRule
 
-object LinkConditionEvaluator {
-  def apply(linkCondition: LinkCondition, instances: ReferenceInstances): EvaluationResult = {
+object LinkageRuleEvaluator {
+  def apply(LinkageRule: LinkageRule, instances: ReferenceInstances): EvaluationResult = {
     var truePositives: Int = 0
     var trueNegatives: Int = 0
     var falsePositives: Int = 0
@@ -15,7 +15,7 @@ object LinkConditionEvaluator {
     var negativeError = 0.0
 
     for (instancePair <- instances.positive.values) {
-      val confidence = linkCondition(instancePair, 0.0)
+      val confidence = LinkageRule(instancePair, 0.0)
 
       if (confidence >= 0.0) {
         truePositives += 1
@@ -28,7 +28,7 @@ object LinkConditionEvaluator {
     }
 
     for (instancePair <- instances.negative.values) {
-      val confidence = linkCondition(instancePair, 0.0)
+      val confidence = LinkageRule(instancePair, 0.0)
 
       if (confidence >= 0.0) {
         falsePositives += 1

@@ -42,7 +42,7 @@
                 </RestrictTo>
             </TargetDataset>
 
-            <LinkCondition>
+            <LinkageRule>
                 <Aggregate type="max">
                     <Compare metric="jaroWinkler">
                         <TransformInput function="lowerCase">
@@ -53,7 +53,7 @@
                         </TransformInput>
                     </Compare>
                 </Aggregate>
-            </LinkCondition>
+            </LinkageRule>
 
             <Filter threshold="0.95" />
 

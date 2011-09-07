@@ -7,9 +7,9 @@ import math.abs
 import similarity.SimilarityOperator
 
 /**
- * A Link Condition specifies the conditions which must hold true so that a link is generated between two instances.
+ * A Linkage Rule specifies the conditions which must hold true so that a link is generated between two instances.
  */
-case class LinkCondition(rootOperator: Option[SimilarityOperator] = None) {
+case class LinkageRule(operator: Option[SimilarityOperator] = None) {
   /**
    * Computes the similarity between two instances.
    *
@@ -20,9 +20,9 @@ case class LinkCondition(rootOperator: Option[SimilarityOperator] = None) {
    *         -1.0 for definitive non-matches.
    *         +1.0 for definitive matches.
    */
-  def apply(instances: SourceTargetPair[Instance], limit: Double): Double = {
-    rootOperator match {
-      case Some(operator) => operator(instances, limit).getOrElse(-1.0)
+  def apply(instances: SourceTargetPair[Instance], limit: Double = 0.0): Double = {
+    operator match {
+      case Some(op) => op(instances, limit).getOrElse(-1.0)
       case None => -1.0
     }
   }
@@ -36,13 +36,13 @@ case class LinkCondition(rootOperator: Option[SimilarityOperator] = None) {
    * @return A set of (multidimensional) indexes. Instances within the threshold will always get the same index.
    */
   def index(instance: Instance, limit: Double = 0.0): Set[Int] = {
-    rootOperator match {
-      case Some(operator) => {
-        val indexes = operator.index(instance, limit)
+    operator match {
+      case Some(op) => {
+        val indexes = op.index(instance, limit)
 
         //Convert the index vectors to scalars in the range [0, Int.MaxValue]
         for (index <- indexes) yield {
-          val flatIndex = (index zip operator.blockCounts(limit)).foldLeft(0) {
+          val flatIndex = (index zip op.blockCounts(limit)).foldLeft(0) {
             case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight
           }
 
@@ -58,8 +58,8 @@ case class LinkCondition(rootOperator: Option[SimilarityOperator] = None) {
    * The number of blocks in each dimension of the index.
    */
   def blockCount(threshold: Double) = {
-    rootOperator match {
-      case Some(operator) => operator.blockCounts(threshold).foldLeft(1)(_ * _)
+    operator match {
+      case Some(op) => op.blockCounts(threshold).foldLeft(1)(_ * _)
       case None => 1
     }
   }
@@ -68,8 +68,8 @@ case class LinkCondition(rootOperator: Option[SimilarityOperator] = None) {
    * Serializes this Link Condition as XML.
    */
   def toXML(implicit prefixes: Prefixes) = {
-    <LinkCondition>
-      {rootOperator.toList.map(_.toXML)}
-    </LinkCondition>
+    <LinkageRule>
+      {operator.toList.map(_.toXML)}
+    </LinkageRule>
   }
 }
