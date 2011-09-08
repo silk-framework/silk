@@ -2,11 +2,12 @@ package de.fuberlin.wiwiss.silk.instance
 
 import collection.mutable.ArrayBuffer
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 
 /**
  * An instance cache, which caches the instance in memory and allows adding new instances at runtime.
  */
-class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: Int = 1, maxPartitionSize: Int = 1000) extends InstanceCache {
+class MemoryInstanceCache(val instanceSpec: InstanceSpecification, runtimeConfig: RuntimeConfig = RuntimeConfig()) extends InstanceCache {
   private val logger = Logger.getLogger(getClass.getName)
 
   private var blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
@@ -20,7 +21,7 @@ class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: I
   /**
    * Writes to this cache.
    */
-  override def write(instances: Traversable[Instance], indexFunction: Option[Instance => Set[Int]] = None) {
+  override def write(instances: Traversable[Instance], indexFunction: Instance => Set[Int]) {
     val startTime = System.currentTimeMillis()
     writing = true
 
@@ -42,9 +43,9 @@ class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: I
   /**
    * Adds a single instance to the cache.
    */
-  private def add(instance: Instance, indexFunction: Option[Instance => Set[Int]]) {
+  private def add(instance: Instance, indexFunction: Instance => Set[Int]) {
     if (!allInstances.contains(instance.uri)) {
-      val index = indexFunction.map(f => f(instance)).getOrElse(Set(0))
+      val index = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
 
       for (block <- index.map(_ % blockCount)) {
         blocks(block).add(instance, Index.build(index))
@@ -69,6 +70,8 @@ class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: I
    */
   override def read(block: Int, partition: Int) = blocks(block)(partition)
 
+  override def blockCount: Int = runtimeConfig.blocking.enabledBlocks
+
   /**
    * The number of partitions in a specific block.
    */
@@ -81,7 +84,7 @@ class MemoryInstanceCache(instanceSpec: InstanceSpecification, val blockCount: I
     def apply(index: Int) = Partition(instances(index).toArray, indices(index).toArray)
 
     def add(instance: Instance, index: Index) {
-      if (instances.last.size < maxPartitionSize) {
+      if (instances.last.size < runtimeConfig.partitionSize) {
         instances.last.append(instance)
         indices.last.append(index)
       }

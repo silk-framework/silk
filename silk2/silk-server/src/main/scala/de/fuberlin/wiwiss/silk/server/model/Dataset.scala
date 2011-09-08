@@ -6,28 +6,25 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, MemoryInstanceCache}
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.output.Link
-import collection.mutable.{Buffer, ArrayBuffer}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
  * Holds the dataset of a link specification.
  */
-class Dataset(val name : String, config : SilkConfig, linkSpec : LinkSpecification, writeUnmatchedInstances : Boolean)
-{
+class Dataset(val name: String, config: SilkConfig, linkSpec: LinkSpecification, writeUnmatchedInstances: Boolean) {
   private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
   private val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
   private val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source),
-                                        new MemoryInstanceCache(instanceSpecs.target))
+    new MemoryInstanceCache(instanceSpecs.target))
 
-  new LoadTask(sources, caches, instanceSpecs)()
+  new LoadTask(sources, caches, linkSpec.rule.index(_))()
 
   /**
    * Matches a set of instances with all instances in this dataset.
    */
-  def apply(instanceSource : DataSource) : MatchResult =
-  {
+  def apply(instanceSource: DataSource): MatchResult = {
     val matchResult = generateLinks(instanceSource)
 
     MatchResult(
@@ -40,27 +37,24 @@ class Dataset(val name : String, config : SilkConfig, linkSpec : LinkSpecificati
   /**
    * Generates all links where the provided instances are the link source.
    */
-  private def generateLinks(instanceSource : DataSource) =
-  {
+  private def generateLinks(instanceSource: DataSource) = {
     val instanceCache = new MemoryInstanceCache(instanceSpecs.source)
 
     val instances = instanceSource.retrieve(instanceSpecs.source).toList
-    instanceCache.write(instances)
+    instanceCache.write(instances, linkSpec.rule.index(_))
 
-    var links : Seq[Link] = Seq.empty
-    if(instanceCache.instanceCount > 0)
-    {
-      val matcher = new MatchTask(linkSpec, SourceTargetPair(instanceCache, caches.target), 8)
+    var links: Seq[Link] = Seq.empty
+    if (instanceCache.instanceCount > 0) {
+      val matcher = new MatchTask(linkSpec, SourceTargetPair(instanceCache, caches.target))
       links = matcher()
     }
 
     val matchedInstances = links.map(_.source).toSet
     val unmatchedInstances = instances.filterNot(instance => matchedInstances.contains(instance.uri))
 
-    if(writeUnmatchedInstances)
-    {
+    if (writeUnmatchedInstances) {
       //TODO enable blocking
-      caches.target.write(unmatchedInstances)
+      caches.target.write(unmatchedInstances, linkSpec.rule.index(_))
       //targetCache.write(unmatchedInstances, linkSpec.blocking)
     }
 

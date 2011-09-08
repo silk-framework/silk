@@ -1,9 +1,10 @@
 package de.fuberlin.wiwiss.silk
 
+import config.RuntimeConfig
 import instance.InstanceCache
 import linkspec.evaluation.DetailedEvaluator
 import linkspec.LinkSpecification
-import java.util.logging.{Level, Logger}
+import java.util.logging.Level
 import output.Link
 import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
@@ -17,15 +18,11 @@ import util.task.ValueTask
  */
 class MatchTask(linkSpec: LinkSpecification,
                 caches: SourceTargetPair[InstanceCache],
-                numThreads: Int,
-                sourceEqualsTarget: Boolean = false,
-                generateDetailedLinks: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
+                runtimeConfig: RuntimeConfig = RuntimeConfig(),
+                sourceEqualsTarget: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
   taskName = "Matching"
 
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
-
-  /* Enable indexing if blocking is enabled */
-  private val indexingEnabled = caches.source.blockCount > 1 || caches.target.blockCount > 1
 
   @volatile private var cancelled = false
 
@@ -41,7 +38,7 @@ class MatchTask(linkSpec: LinkSpecification,
 
     //Create execution service for the matching tasks
     val startTime = System.currentTimeMillis()
-    val executorService = Executors.newFixedThreadPool(numThreads)
+    val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
     val executor = new ExecutorCompletionService[Traversable[Link]](executorService)
 
     //Start matching thread scheduler
@@ -187,12 +184,12 @@ class MatchTask(linkSpec: LinkSpecification,
         for (s <- 0 until sourcePartition.size;
              tStart = if (sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
              t <- tStart until targetPartition.size;
-             if !indexingEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
+             if !runtimeConfig.blocking.isEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
           val sourceInstance = sourcePartition.instances(s)
           val targetInstance = targetPartition.instances(t)
           val instances = SourceTargetPair(sourceInstance, targetInstance)
 
-          if (!generateDetailedLinks) {
+          if (!runtimeConfig.generateDetailedLinks) {
             val confidence = linkSpec.rule(instances, 0.0)
 
             if (confidence >= 0.0) {

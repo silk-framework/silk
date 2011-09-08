@@ -4,6 +4,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, GenerateLinksTask}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, SelectField, Dialog}
+import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 
 object GenerateLinksDialog extends Dialog {
 
@@ -19,14 +20,17 @@ object GenerateLinksDialog extends Dialog {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  override protected def onSubmit() = {
-    val generateLinksTask = new GenerateLinksTask(User(), User().linkingTask.linkSpec)
+  /** We use a custom runtime config */
+  private val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateDetailedLinks = true)
 
-    if(output.value == noOutputName) {
-      generateLinksTask.output = None
-    } else {
-      generateLinksTask.output = Some(User().project.outputModule.task(output.value).output)
-    }
+  override protected def onSubmit() = {
+    val generateLinksTask =
+      new GenerateLinksTask(
+        sources = User().project.sourceModule.tasks.map(_.source),
+        linkSpec = User().linkingTask.linkSpec,
+        outputs = if(output.value == noOutputName) Traversable.empty else Traversable(User().project.outputModule.task(output.value).output),
+        runtimeConfig = runtimeConfig
+      )
 
     CurrentGenerateLinksTask() = generateLinksTask
     generateLinksTask.runInBackground()

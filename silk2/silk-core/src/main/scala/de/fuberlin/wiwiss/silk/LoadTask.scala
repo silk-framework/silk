@@ -12,8 +12,7 @@ import util.task.{TaskFinished, Future, Task}
 //TODO remove indexFunction argument by integrating it into instance cache
 class LoadTask(sources: SourceTargetPair[Source],
                caches: SourceTargetPair[InstanceCache],
-               instanceSpecs: SourceTargetPair[InstanceSpecification],
-               indexFunction: Option[Instance => Set[Int]] = None) extends Task[Unit] {
+               indexFunction: Instance => Set[Int]) extends Task[Unit] {
   taskName = "Loading"
 
   @volatile var exception: Exception = null
@@ -69,14 +68,13 @@ class LoadTask(sources: SourceTargetPair[Source],
   class LoadingThread(selectSource: Boolean) extends Thread {
     private val source = sources.select(selectSource)
     private val instanceCache = caches.select(selectSource)
-    private val instanceSpec = instanceSpecs.select(selectSource)
 
     override def run() {
       try {
         logger.info("Loading instances of dataset " + source.dataSource.toString)
 
         instanceCache.clear()
-        instanceCache.write(source.retrieve(instanceSpec), indexFunction)
+        instanceCache.write(source.retrieve(instanceCache.instanceSpec), indexFunction)
         instanceCache.close()
       } catch {
         case ex: Exception => {

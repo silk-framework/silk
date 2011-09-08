@@ -7,9 +7,14 @@ import xml.Node
  */
 trait InstanceCache {
   /**
+   * The instance specification of the instances in this cache.
+   */
+  def instanceSpec: InstanceSpecification
+
+  /**
    * Writes to this cache.
    */
-  def write(instances: Traversable[Instance], indexFunction: Option[Instance => Set[Int]] = None): Unit
+  def write(instances: Traversable[Instance], indexFunction: Instance => Set[Int])
 
   /**
    * True, if the cache is being written at the moment.
@@ -44,7 +49,7 @@ trait InstanceCache {
   /**
    *  The number of blocks in this cache.
    */
-  val blockCount: Int
+  def blockCount: Int
 
   /**
    * The number of partitions in a specific block.
@@ -87,6 +92,6 @@ trait InstanceCache {
       }
     }
 
-    write(instances, Some(_ => Set(instances.currentBlock)))
+    write(instances, _ => Set(instances.currentBlock))
   }
 }

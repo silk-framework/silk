@@ -81,12 +81,10 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
     val caches = SourceTargetPair(
-      new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1)),
-      new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.blocking.map(_.blocks).getOrElse(1))
+      new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
+      new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )
 
-    def indexFunction(instance : Instance) = linkSpec.rule.index(instance)
-
-    new LoadTask(sources, caches, instanceSpecs, if(config.blocking.isDefined) Some(indexFunction _) else None)()
+    new LoadTask(sources, caches, linkSpec.rule.index(_))()
   }
 }

@@ -3,28 +3,26 @@ package de.fuberlin.wiwiss.silk.instance
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.util.logging.Logger
 import java.io._
+import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 
 /**
  * An instance cache, which caches the instances on the local file system.
  */
-class FileInstanceCache(instanceSpec: InstanceSpecification, dir: File, clearOnLoading: Boolean = false, override val blockCount: Int = 1, maxPartitionSize: Int = 1000) extends InstanceCache {
-  require(blockCount >= 0, "blockCount must be greater than 0 (blockCount=" + blockCount + ")")
-  require(maxPartitionSize >= 0, "maxPartitionSize must be greater than 0 (maxPartitionSize=" + maxPartitionSize + ")")
-
+class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runtimeConfig: RuntimeConfig = RuntimeConfig()) extends InstanceCache {
   private val logger = Logger.getLogger(getClass.getName)
 
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
   @volatile private var writing = false
 
-  override def write(instances: Traversable[Instance], indexFunction: Option[Instance => Set[Int]] = None) {
+  override def write(instances: Traversable[Instance], indexFunction: Instance => Set[Int]) {
     val startTime = System.currentTimeMillis()
     writing = true
     var instanceCount = 0
 
     try {
       for (instance <- instances) {
-        val index = indexFunction.map(f => f(instance)).getOrElse(Set(0))
+        val index = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
 
         for (block <- index.map(_ % blockCount)) {
           if (block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
@@ -51,6 +49,8 @@ class FileInstanceCache(instanceSpec: InstanceSpecification, dir: File, clearOnL
     blocks(block).read(partition)
   }
 
+  override def blockCount: Int = runtimeConfig.blocking.enabledBlocks
+
   override def partitionCount(block: Int) = {
     require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
 
@@ -74,11 +74,11 @@ class FileInstanceCache(instanceSpec: InstanceSpecification, dir: File, clearOnL
 
     private val blockDir = dir + "/block" + block.toString + "/"
 
-    private val currentInstances = new Array[Instance](maxPartitionSize)
-    private val currentIndices = new Array[Index](maxPartitionSize)
+    private val currentInstances = new Array[Instance](runtimeConfig.partitionSize)
+    private val currentIndices = new Array[Index](runtimeConfig.partitionSize)
     @volatile private var count = 0
 
-    if (clearOnLoading)
+    if (runtimeConfig.reloadCache)
       clear()
     else
       load()
@@ -122,7 +122,7 @@ class FileInstanceCache(instanceSpec: InstanceSpecification, dir: File, clearOnL
       currentIndices(count) = index
       count += 1
 
-      if (count == maxPartitionSize) {
+      if (count == runtimeConfig.partitionSize) {
         writePartitionToFile()
         count = 0
         partitionCount += 1
