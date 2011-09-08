@@ -1,8 +1,7 @@
-package de.fuberlin.wiwiss.silk.workbench.evaluation
+package de.fuberlin.wiwiss.silk
 
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
-import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.output.{Output, Link}
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
@@ -13,7 +12,7 @@ import de.fuberlin.wiwiss.silk.instance.{FileInstanceCache, MemoryInstanceCache,
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
- * Task which executes the current link specification and allows querying for the generated links.
+ * Main task to generate links.
  */
 class GenerateLinksTask(sources: Traversable[Source],
                         linkSpec: LinkSpecification,
@@ -54,7 +53,7 @@ class GenerateLinksTask(sources: Traversable[Source],
       matchTask = new MatchTask(linkSpec, caches, runtimeConfig)
 
       //Load instances
-      loadTask.runInBackground()
+      if (runtimeConfig.reloadCache) loadTask.runInBackground()
 
       //Execute matching
       val links = executeSubValueTask(matchTask, 0.95)

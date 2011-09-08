@@ -21,6 +21,11 @@ sealed trait TaskStatus {
   def isRunning: Boolean = false
 
   /**
+   * True, if the task has failed.
+   */
+  def failed: Boolean = false
+
+  /**
    * The complete status message including the progress.
    */
   override def toString = message + " (" + "%3.1f".format(progress * 100.0) + "%)"
@@ -59,14 +64,25 @@ case class TaskCanceling(name: String, override val progress: Double) extends Ta
 /**
  * Status which indicates that the task has finished execution.
  *
+ * @param name The name of the task.
  * @param success True, if the computation finished successfully. False, otherwise.
+ * @param time The time in milliseconds needed to execute the task.
  * @param exception The exception, if the task failed.
  */
-case class TaskFinished(name: String, success: Boolean, exception: Option[Exception] = None) extends TaskStatus {
+case class TaskFinished(name: String, success: Boolean, time: Long, exception: Option[Exception] = None) extends TaskStatus {
   override def message = exception match {
-    case None => name + " finished"
-    case Some(ex) => name + " failed: " + ex.getMessage
+    case None => name + " finished in " + formattedTime
+    case Some(ex) => name + " failed after " + formattedTime + ": " + ex.getMessage
+  }
+
+  private def formattedTime = {
+    if (time < 1000)
+      time + "ms"
+    else
+      (time / 1000) + "s"
   }
 
   override def progress = 1.0
+
+  override def failed = !success
 }

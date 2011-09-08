@@ -36,14 +36,13 @@ class ProgressWidget(val task: Observable[TaskStatus], hide: Boolean = false) ex
     </div>
   }
 
-  private def updateCmd(status: TaskStatus) = status match {
-    case TaskFinished(_, false, _) => {
+  private def updateCmd(status: TaskStatus) = {
+    if (status.failed) {
       JsShowId("progresswidget") &
       JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
       JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
       SetHtml("progresstext", Text("Failed to load cache"))
-    }
-    case _ => {
+    } else {
       val showCmd = status match {
         case _: TaskIdle | _: TaskFinished if hide => JsHideId("progresswidget")
         case _ => JsShowId("progresswidget")

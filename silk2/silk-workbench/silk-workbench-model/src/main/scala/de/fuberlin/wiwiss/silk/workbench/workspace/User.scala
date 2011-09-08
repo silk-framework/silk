@@ -6,7 +6,7 @@ import modules.output.OutputTask
 import modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 import de.fuberlin.wiwiss.silk.util.Observable
-import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, GenerateLinksTask}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
 
 /**
  * A user.

@@ -60,7 +60,7 @@ object Api {
                                                JField("variable", JString(datasets.target.variable)) :: Nil))
 
     var errorMsg : Option[String] = linkingTask.cache.status match {
-      case TaskFinished(_, _, Some(ex)) => Some(ex.getMessage)
+      case TaskFinished(_, _, _, Some(ex)) => Some(ex.getMessage)
       case _ => None
     }
 

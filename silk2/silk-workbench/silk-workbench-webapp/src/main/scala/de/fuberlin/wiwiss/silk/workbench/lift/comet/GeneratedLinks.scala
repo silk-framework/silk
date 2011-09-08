@@ -7,7 +7,8 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, User}
-import de.fuberlin.wiwiss.silk.workbench.evaluation.{GenerateLinksTask, CurrentGenerateLinksTask, EvalLink}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
+import de.fuberlin.wiwiss.silk.GenerateLinksTask
 
 class GeneratedLinks extends LinkList {
 

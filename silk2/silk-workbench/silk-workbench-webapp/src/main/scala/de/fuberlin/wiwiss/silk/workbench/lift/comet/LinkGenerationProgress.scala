@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.lift.util.ProgressWidget
-import de.fuberlin.wiwiss.silk.workbench.evaluation.{GenerateLinksTask, CurrentGenerateLinksTask}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentStatusListener
 
 /**

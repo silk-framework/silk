@@ -31,11 +31,6 @@ trait HasStatus extends Observable[TaskStatus] {
    */
   def status = currentStatus
 
-  def failed = currentStatus match {
-    case TaskFinished(_, false, _) => true
-    case _ => false
-  }
-
   /**
    * Updates the status.
    *

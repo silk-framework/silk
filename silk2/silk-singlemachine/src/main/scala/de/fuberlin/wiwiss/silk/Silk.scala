@@ -2,12 +2,11 @@ package de.fuberlin.wiwiss.silk
 
 import config.SilkConfig
 import impl.DefaultImplementations
-import instance.{Instance, InstanceSpecification, FileInstanceCache}
 import java.io.File
 import jena.JenaImplementations
 import linkspec.LinkSpecification
 import util.StringUtils._
-import util.{CollectLogs, SourceTargetPair}
+import util.CollectLogs
 import java.util.logging.{Level, Logger}
 
 /**
@@ -21,6 +20,7 @@ object Silk {
    */
   val DefaultThreads = 8
 
+  //Register all available implementations
   DefaultImplementations.register()
   JenaImplementations.register()
 
@@ -85,50 +85,32 @@ object Silk {
    */
   def executeConfig(config: SilkConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     if (linkSpecID != null) {
+      //Execute a specific link specification
       val linkSpec = config.linkSpec(linkSpecID)
       executeLinkSpec(config, linkSpec, numThreads, reload)
     } else {
+      //Execute all link specifications
       for (linkSpec <- config.linkSpecs) {
         executeLinkSpec(config, linkSpec, numThreads, reload)
       }
     }
   }
 
+  /**
+   * Executes a single link specification.
+   *
+   * @param config The configuration.
+   * @param linkSpec The link specifications to be executed.
+   * @param numThreads The number of threads to be used for matching.
+   * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
+   */
   private def executeLinkSpec(config: SilkConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    val startTime = System.currentTimeMillis()
-
-    //Retrieve Instance Specifications from Link Specification
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
-
-    val runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
-
-    //Create instance caches
-    val caches = SourceTargetPair(
-      new FileInstanceCache(instanceSpecs.source, new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id + "/source/"), config.runtime),
-      new FileInstanceCache(instanceSpecs.target, new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id + "/target/"), config.runtime)
-    )
-
-    //Load instances into cache
-    if (reload) {
-      val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
-
-      val loadTask = new LoadTask(sources, caches, linkSpec.rule.index(_))
-      loadTask.runInBackground()
-    }
-
-    //Execute matching
-    val matchTask = new MatchTask(linkSpec, caches, config.runtime)
-    val links = matchTask()
-
-    //Filter links
-    val filterTask = new FilterTask(links, linkSpec.filter)
-    val filteredLinks = filterTask()
-
-    //Write links
-    val outputTask = new OutputTask(filteredLinks, linkSpec.linkType, config.outputs ++ linkSpec.outputs)
-    outputTask()
-
-    logger.info("Total time: " + ((System.currentTimeMillis - startTime) / 1000.0) + " seconds")
+    new GenerateLinksTask(
+      sources = config.sources,
+      linkSpec = linkSpec,
+      outputs = linkSpec.outputs ++ config.outputs,
+      runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
+    ).apply()
   }
 
   /**

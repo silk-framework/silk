@@ -2,9 +2,10 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, GenerateLinksTask}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, SelectField, Dialog}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import de.fuberlin.wiwiss.silk.GenerateLinksTask
 
 object GenerateLinksDialog extends Dialog {
 
