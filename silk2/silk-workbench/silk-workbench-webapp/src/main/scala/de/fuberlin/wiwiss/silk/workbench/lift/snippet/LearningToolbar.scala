@@ -2,11 +2,9 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import net.liftweb.util.Helpers._
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.SHtml
-import de.fuberlin.wiwiss.silk.util.task.{Finished, Running, Started, Status}
-import de.fuberlin.wiwiss.silk.workbench.learning.CurrentLearningTask
-import de.fuberlin.wiwiss.silk.learning.{LearningTask, CrossValidationTask}
+import de.fuberlin.wiwiss.silk.learning.CrossValidationTask
+import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
 class LearningToolbar {
 
