@@ -21,11 +21,6 @@ object Silk {
    */
   val DefaultThreads = 8
 
-  /**
-   * The directory the instance cache will be written to
-   */
-  private val instanceCacheDir = new File(System.getProperty("user.home") + "/.silk/instanceCache/")
-
   DefaultImplementations.register()
   JenaImplementations.register()
 
@@ -105,25 +100,24 @@ object Silk {
     //Retrieve Instance Specifications from Link Specification
     val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
 
-    val blockCount = config.blocking.map(_.blocks).getOrElse(1)
+    val runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
 
     //Create instance caches
     val caches = SourceTargetPair(
-      new FileInstanceCache(instanceSpecs.source, new File(instanceCacheDir + "/" + linkSpec.id + "/source/"), reload, blockCount),
-      new FileInstanceCache(instanceSpecs.target, new File(instanceCacheDir + "/" + linkSpec.id + "/target/"), reload, blockCount)
+      new FileInstanceCache(instanceSpecs.source, new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id + "/source/"), config.runtime),
+      new FileInstanceCache(instanceSpecs.target, new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id + "/target/"), config.runtime)
     )
 
     //Load instances into cache
     if (reload) {
       val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
-      def indexFunction(instance: Instance) = linkSpec.rule.index(instance, 0.0)
 
-      val loadTask = new LoadTask(sources, caches, instanceSpecs, if (config.blocking.isDefined) Some(indexFunction _) else None)
+      val loadTask = new LoadTask(sources, caches, linkSpec.rule.index(_))
       loadTask.runInBackground()
     }
 
     //Execute matching
-    val matchTask = new MatchTask(linkSpec, caches, numThreads)
+    val matchTask = new MatchTask(linkSpec, caches, config.runtime)
     val links = matchTask()
 
     //Filter links

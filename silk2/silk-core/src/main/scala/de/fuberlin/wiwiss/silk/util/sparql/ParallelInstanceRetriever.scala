@@ -76,7 +76,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
           instances.drop(counter).foreach(f)
         }
         else {
-          logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders.")
+          logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by.")
           val simpleInstanceRetriever = new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
           val instances = simpleInstanceRetriever.retrieve(instanceSpec, instanceUris)
           instances.drop(counter).foreach(f)

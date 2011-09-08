@@ -16,10 +16,11 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
  * @param outputs The outputs
  */
 case class SilkConfig(prefixes: Prefixes,
+                      runtime: RuntimeConfig,
                       sources: Traversable[Source],
-                      blocking: Option[Blocking],
                       linkSpecs: Traversable[LinkSpecification],
                       outputs: Traversable[Output] = Traversable.empty) {
+
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
   private val outputMap = outputs.map(s => (s.id, s)).toMap
@@ -45,8 +46,8 @@ case class SilkConfig(prefixes: Prefixes,
   def merge(config: SilkConfig) = {
     SilkConfig(
       prefixes = prefixes ++ config.prefixes,
+      runtime = runtime,
       sources = sources ++ config.sources,
-      blocking = blocking,
       linkSpecs = linkSpecs ++ config.linkSpecs,
       outputs = outputs ++ config.outputs
     )
@@ -54,9 +55,10 @@ case class SilkConfig(prefixes: Prefixes,
 
   def toXML: Node = {
     <Silk>
-      {prefixes.toXML}<DataSources>
-      {sources.map(_.toXML)}
-    </DataSources>
+      {prefixes.toXML}
+      <DataSources>
+        {sources.map(_.toXML)}
+      </DataSources>
       <Interlinks>
         {linkSpecs.map(_.toXML(prefixes))}
       </Interlinks>
@@ -67,7 +69,7 @@ case class SilkConfig(prefixes: Prefixes,
 object SilkConfig {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
 
-  def empty = SilkConfig(Prefixes.empty, Nil, Some(Blocking()), Nil, Nil)
+  def empty = SilkConfig(Prefixes.empty, RuntimeConfig(), Nil, Nil, Nil)
 
   def load = {
     new ValidatingXMLReader(fromXML, schemaLocation)
@@ -78,13 +80,13 @@ object SilkConfig {
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
     val blocking = (node \ "Blocking").headOption match {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)
-      case None => Some(Blocking())
+      case None => Blocking()
     }
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p))
 
     implicit val globalThreshold = None
     val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
 
-    SilkConfig(prefixes, sources, blocking, linkSpecifications, outputs)
+    SilkConfig(prefixes, RuntimeConfig(blocking), sources, linkSpecifications, outputs)
   }
 }

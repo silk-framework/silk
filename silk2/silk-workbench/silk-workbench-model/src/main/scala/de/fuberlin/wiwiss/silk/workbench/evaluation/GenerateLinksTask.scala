@@ -1,30 +1,24 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
-import de.fuberlin.wiwiss.silk.instance.{MemoryInstanceCache, Instance, InstanceSpecification}
-import collection.mutable.Buffer
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
 import de.fuberlin.wiwiss.silk.{OutputTask, FilterTask, MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.output.{Output, Link}
-import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
+import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import java.io.File
+import de.fuberlin.wiwiss.silk.instance.{FileInstanceCache, MemoryInstanceCache, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
  * Task which executes the current link specification and allows querying for the generated links.
  */
-class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends ValueTask[Seq[Link]](Seq.empty) {
-  /***/
-  var output: Option[Output] = None
-
-  /** The number of concurrent threads used for matching */
-  private val numThreads = 8
-
-  /** Generated links with detailed information */
-  private val generateDetailedLinks = true
-
-  /** The size of the instance partitions in the cache */
-  private val partitionSize = 300
+class GenerateLinksTask(sources: Traversable[Source],
+                        linkSpec: LinkSpecification,
+                        outputs: Traversable[Output] = Traversable.empty,
+                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
   @volatile private var loadTask: LoadTask = null
 
@@ -46,24 +40,18 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends ValueTa
 
   override protected def execute() = {
     value.update(Seq.empty)
-    val project = user.project
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
+
 
     warningLog = CollectLogs() {
       //Retrieve sources
-      val sources = linkSpec.datasets.map(_.sourceId).map(project.sourceModule.task(_).source)
-
-      //Blocking function
-      val blockCount = project.linkingModule.config.blocking.map(_.blocks).getOrElse(1)
-      def indexFunction(instance: Instance) = linkSpec.rule.index(instance, 0.0)
+      val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
       //Instance caches
-      val caches = SourceTargetPair(new MemoryInstanceCache(instanceSpecs.source, blockCount, partitionSize),
-                                    new MemoryInstanceCache(instanceSpecs.target, blockCount, partitionSize))
+      val caches = createCaches()
 
       //Create tasks
-      loadTask = new LoadTask(sources, caches, instanceSpecs, if (blockCount > 0) Some(indexFunction _) else None)
-      matchTask = new MatchTask(linkSpec, caches, numThreads, false, generateDetailedLinks)
+      loadTask = new LoadTask(sourcePair, caches, linkSpec.rule.index(_))
+      matchTask = new MatchTask(linkSpec, caches, runtimeConfig)
 
       //Load instances
       loadTask.runInBackground()
@@ -76,14 +64,30 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends ValueTa
       value.update(executeSubTask(filterTask))
 
       //Output links
-      for(out <- output) {
-        val outputTask = new OutputTask(value.get, linkSpec.linkType, out :: Nil)
-        executeSubTask(outputTask)
-      }
+      val outputTask = new OutputTask(value.get, linkSpec.linkType, outputs)
+      executeSubTask(outputTask)
     }
 
     //Return generated links
     value.get
+  }
+
+  private def createCaches() = {
+    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
+
+    if (runtimeConfig.useFileCache) {
+      val cacheDir = new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id)
+
+      SourceTargetPair(
+        source = new FileInstanceCache(instanceSpecs.source, cacheDir + "/source/", runtimeConfig),
+        target = new FileInstanceCache(instanceSpecs.target, cacheDir + "/target/", runtimeConfig)
+      )
+    } else {
+      SourceTargetPair(
+        source = new MemoryInstanceCache(instanceSpecs.source, runtimeConfig),
+        target = new MemoryInstanceCache(instanceSpecs.target, runtimeConfig)
+      )
+    }
   }
 
   override def stopExecution() {
@@ -93,5 +97,5 @@ class GenerateLinksTask(user: User, linkSpec: LinkSpecification) extends ValueTa
 }
 
 object GenerateLinksTask {
-  def empty = new GenerateLinksTask(User(), LinkSpecification())
+  def empty = new GenerateLinksTask(Traversable.empty, LinkSpecification())
 }
