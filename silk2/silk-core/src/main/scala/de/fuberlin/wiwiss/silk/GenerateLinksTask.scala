@@ -40,7 +40,6 @@ class GenerateLinksTask(sources: Traversable[Source],
   override protected def execute() = {
     value.update(Seq.empty)
 
-
     warningLog = CollectLogs() {
       //Retrieve sources
       val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)

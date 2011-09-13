@@ -1,16 +1,13 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.util.task._
-import de.fuberlin.wiwiss.silk.output.Link
-import net.liftweb.http.SHtml
-import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}
-import net.liftweb.http.js.JsCmds._
-import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, User}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
-import de.fuberlin.wiwiss.silk.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskStatusListener
+import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskRunning, TaskStarted, TaskStatus}
+import de.fuberlin.wiwiss.silk.workbench.learning.{SampleLinksTask, CurrentSampleLinksTask}
+import net.liftweb.http.js.JsCmds.Alert
 
-class GeneratedLinks extends LinkList with RateLinkButtons {
+class SampledLinks extends LinkList with RateLinkButtons {
 
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
@@ -20,13 +17,13 @@ class GeneratedLinks extends LinkList with RateLinkButtons {
 
   override protected val showStatus = false
 
-  private var generateLinksTask = CurrentGenerateLinksTask()
+  private var sampleLinksTask = CurrentSampleLinksTask()
 
-  private val currentGenerateLinksTaskListener = (task: GenerateLinksTask) => { generateLinksTask = task }
+  private val currentSampleLinksTaskListener = (task: SampleLinksTask) => { sampleLinksTask = task }
 
-  CurrentGenerateLinksTask.onUpdate(currentGenerateLinksTaskListener)
+  CurrentSampleLinksTask.onUpdate(currentSampleLinksTaskListener)
 
-  private val generatedLinkListener = new CurrentTaskStatusListener(CurrentGenerateLinksTask) {
+  private val linkListener = new CurrentTaskStatusListener(CurrentSampleLinksTask) {
     override def onUpdate(status: TaskStatus) {
       status match {
         case _: TaskStarted => {}
@@ -55,7 +52,7 @@ class GeneratedLinks extends LinkList with RateLinkButtons {
   override protected def links: Seq[EvalLink] = {
     def alignment = linkingTask.alignment
 
-    for (link <- generateLinksTask.links.view) yield {
+    for (link <- CurrentSampleLinksTask().links.view) yield {
       if (alignment.positive.contains(link)) {
         new EvalLink(link, Correct, Generated)
       } else if (alignment.negative.contains(link)) {
@@ -66,11 +63,4 @@ class GeneratedLinks extends LinkList with RateLinkButtons {
     }
   }
 
-  override protected def renderStatus(link: EvalLink): NodeSeq = {
-    link.correct match {
-      case Correct => <div>correct</div>
-      case Incorrect => <div>wrong</div>
-      case Unknown => <div>unknown</div>
-    }
-  }
 }

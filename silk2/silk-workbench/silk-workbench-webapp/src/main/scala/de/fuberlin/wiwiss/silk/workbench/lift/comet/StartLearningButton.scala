@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.workbench.learning.CurrentLearningTask
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.StartLearningDialog
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
-import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentStatusListener}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListener}
 
 /**
  * Button to control the learning process.
@@ -36,7 +36,7 @@ class StartLearningButton extends DynamicButton {
   /**
    * Listens to changes of the current learning task.
    */
-  private val learningTaskListener = new CurrentStatusListener(CurrentLearningTask) {
+  private val learningTaskListener = new CurrentTaskStatusListener(CurrentLearningTask) {
     override def onUpdate(status: TaskStatus) {
       status match {
         case _: TaskStarted => label = "Stop"
