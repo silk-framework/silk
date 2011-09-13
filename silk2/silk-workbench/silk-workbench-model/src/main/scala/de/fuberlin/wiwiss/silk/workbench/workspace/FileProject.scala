@@ -92,29 +92,28 @@ class FileProject(file : File) extends Project
   {
     file.mkdirs()
 
+    @volatile
+    private var cachedTasks : Map[Identifier, SourceTask] = {
+      for(fileName <- file.list.toList) yield {
+        SourceTask(Source.load(file + ("/" + fileName)))
+      }
+    }.map(task => (task.name, task)).toMap
+
     override def config = SourceConfig()
 
     override def config_=(c : SourceConfig) {}
 
-    override def tasks = synchronized
-    {
-      for(fileName <- file.list.toList) yield
-      {
-        val source = Source.load(file + ("/" + fileName))
+    override def tasks = cachedTasks.values
 
-        SourceTask(source)
-      }
-    }
-
-    override def update(task : SourceTask) = synchronized
-    {
+    override def update(task : SourceTask) {
       task.source.toXML.write(file + ("/" + task.name + ".xml"))
+      cachedTasks += (task.name -> task)
       logger.info("Updated source '" + task.name + "' in project '" + name + "'")
     }
 
-    override def remove(taskId : Identifier) = synchronized
-    {
+    override def remove(taskId : Identifier) {
       (file + ("/" + taskId + ".xml")).deleteRecursive()
+      cachedTasks -= taskId
       logger.info("Removed source '" + taskId + "' from project '" + name + "'")
     }
   }
