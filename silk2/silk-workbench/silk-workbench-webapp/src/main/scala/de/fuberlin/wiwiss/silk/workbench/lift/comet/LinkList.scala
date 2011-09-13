@@ -23,7 +23,7 @@ trait LinkList extends CometActor {
 
   protected val showButtons = true
 
-  protected def registerEvents()
+  protected def registerEvents() {}
 
   protected def links: Seq[EvalLink]
 

@@ -7,6 +7,7 @@ import modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
+import de.fuberlin.wiwiss.silk.GenerateLinksTask
 
 /**
  * A user.
@@ -61,7 +62,7 @@ trait User extends Observable[CurrentTaskChanged] {
    */
   def closeTask() {
     currentTask = None
-    CurrentGenerateLinksTask().clear()
+    CurrentGenerateLinksTask() = GenerateLinksTask.empty
   }
 
   /**

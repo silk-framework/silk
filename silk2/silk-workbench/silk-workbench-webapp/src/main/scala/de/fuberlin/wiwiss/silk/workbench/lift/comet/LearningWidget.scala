@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleComplexity
-import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentStatusListener, CurrentValueListener, User}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, CurrentTaskValueListener, User}
 import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 
@@ -37,7 +37,7 @@ class LearningWidget extends CometActor {
    * Listens to events of the current learning task.
    * Whenever the population is changed the learning tasks fires an event on which we redraw the widget.
    */
-  private val learningTaskListener = new CurrentValueListener(CurrentLearningTask) {
+  private val learningTaskListener = new CurrentTaskValueListener(CurrentLearningTask) {
     override def onUpdate(result: LearningResult) {
       partialUpdate(updateListCmd)
     }

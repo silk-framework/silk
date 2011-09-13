@@ -45,5 +45,5 @@ class EvaluationResult(val truePositives: Int, val trueNegatives: Int,
     if (sum != 0.0) cross / sqrt(sum) else 0.0
   }
 
-  override def toString = "f1=%.3f mcc=%.3f score=%.3f".format(fMeasure, mcc, score)
+  override def toString = "recall=%.3f precision=%.3f f1=%.3f mcc=%.3f score=%.3f".format(recall, precision, fMeasure, mcc, score)
 }

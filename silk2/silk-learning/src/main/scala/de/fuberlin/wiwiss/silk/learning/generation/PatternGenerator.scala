@@ -15,13 +15,8 @@ class PatternGenerator(components: Components) {
 
   private val handlers = LabelHandler :: Wgs84Handler :: Nil
 
-  def apply(instances: ReferenceInstances): Traversable[ComparisonGenerator] = {
-    if(instances.positive.isEmpty || instances.negative.isEmpty) {
-      Traversable.empty
-    } else {
-      val paths = instances.positive.values.head.map(_.spec.paths)
-      handlers.flatMap(_.apply(paths))
-    }
+  def apply(paths: SourceTargetPair[Traversable[Path]]): Traversable[ComparisonGenerator] = {
+    handlers.flatMap(_.apply(paths))
   }
 
   private trait Handler extends (SourceTargetPair[Traversable[Path]] => Option[ComparisonGenerator]) {

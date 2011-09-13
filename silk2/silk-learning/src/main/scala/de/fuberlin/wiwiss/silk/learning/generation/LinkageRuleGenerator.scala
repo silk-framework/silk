@@ -4,6 +4,10 @@ import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, AggregationNode}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
+import de.fuberlin.wiwiss.silk.learning.individual.StrategyNode._
+import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
 
@@ -47,7 +51,14 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 }
 
 object LinkageRuleGenerator {
+
+  def apply(paths: SourceTargetPair[Traversable[Path]], components: Components) = {
+    new LinkageRuleGenerator((new FullGenerator(components).apply(paths) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
+  }
+
   def apply(instances: ReferenceInstances, components: Components) = {
-    new LinkageRuleGenerator((new PathPairGenerator(components).apply(instances) ++ new PatternGenerator(components).apply(instances)).toIndexedSeq, components)
+    val paths = instances.positive.values.head.map(_.spec.paths)
+
+    new LinkageRuleGenerator((new PathPairGenerator(components).apply(instances) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
   }
 }

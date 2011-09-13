@@ -10,11 +10,11 @@ object LearningConfiguration {
 
   val defaultConfigFile = "de/fuberlin/wiwiss/silk/learning/config.xml"
 
-  def empty = load(LearningInput())
+  def empty = load()
 
-  def load(input: LearningInput) = {
+  def load() = {
 
-    val xml = XML.load(getClass.getClassLoader.getResourceAsStream(defaultConfigFile))
+    //val xml = XML.load(getClass.getClassLoader.getResourceAsStream(defaultConfigFile))
 
     LearningConfiguration(
       components = Components(),
