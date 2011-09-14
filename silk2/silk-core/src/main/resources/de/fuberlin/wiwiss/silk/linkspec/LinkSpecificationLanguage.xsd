@@ -41,7 +41,8 @@
   <xs:element name="Compare">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="AnyInput" minOccurs="2" maxOccurs="2"/>
+        <!-- Errors if number of inputs is different from 2 are handled in code to give better error messages -->
+        <xs:element ref="AnyInput" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:string" use="optional" />

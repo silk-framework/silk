@@ -102,6 +102,7 @@ object LinkSpecification {
   private def readComparison(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
     val id = Operator.readId(node)
     val inputs = readInputs(node.child)
+    if(inputs.size != 2) throw new ValidationException("A comparison must have exactly 2 inputs ", id, "Comparison")
 
     try {
       val requiredStr = node \ "@required" text
