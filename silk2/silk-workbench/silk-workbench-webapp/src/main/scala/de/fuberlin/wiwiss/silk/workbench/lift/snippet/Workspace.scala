@@ -162,7 +162,7 @@ object Workspace {
    * JS Command which defines the editSourceTask function
    */
   private def editSourceTaskFunction: JsCmd = {
-    def callback(args: String): JsCmd = {
+    def callback(args: String): JsCmd = JS.Try("Open Source Dialog") {
       val Array(projectName, taskName) = args.split(',')
 
       User().project = User().workspace.project(projectName)
