@@ -15,6 +15,10 @@ class SampledLinks extends LinkList with RateLinkButtons {
   /**The time of the last update */
   private var lastUpdateTime = 0L
 
+  override protected val showDetails = false
+
+  override protected val showInstances = true
+
   override protected val showStatus = false
 
   private var sampleLinksTask = CurrentSampleLinksTask()

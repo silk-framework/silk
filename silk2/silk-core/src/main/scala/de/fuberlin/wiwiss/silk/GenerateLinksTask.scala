@@ -19,12 +19,19 @@ class GenerateLinksTask(sources: Traversable[Source],
                         outputs: Traversable[Output] = Traversable.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
+  /** The task used for loading the instances into the cache */
   @volatile private var loadTask: LoadTask = null
 
+  /** The task used for matching the instances */
   @volatile private var matchTask: MatchTask = null
 
+  /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
+  /** The instance specification which defines which instances are retrieved by this task */
+  def instanceSpecs = InstanceSpecification.retrieve(linkSpec)
+
+  /** The links which have been generated so far by this task */
   def links = value.get
 
   /**
@@ -32,6 +39,9 @@ class GenerateLinksTask(sources: Traversable[Source],
    */
   def warnings = warningLog
 
+  /**
+   * Stops the tasks and removes all generated links.
+   */
   def clear() {
     cancel()
     value.update(Seq.empty)
@@ -71,8 +81,6 @@ class GenerateLinksTask(sources: Traversable[Source],
   }
 
   private def createCaches() = {
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
-
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id)
 

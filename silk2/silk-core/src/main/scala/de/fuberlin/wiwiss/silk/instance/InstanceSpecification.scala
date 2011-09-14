@@ -15,6 +15,13 @@ case class InstanceSpecification(variable: String, restrictions: SparqlRestricti
     }
   }
 
+  def merge(other: InstanceSpecification) = {
+    require(variable == other.variable)
+    require(restrictions == other.restrictions)
+
+    copy(paths = (paths ++ other.paths).distinct)
+  }
+
   def toXML = {
     <InstanceSpecification>
       <Variable>{variable}</Variable>
