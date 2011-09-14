@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.linkspec.Operator
 /**
  * A comparison computes the similarity of two inputs.
  */
-case class Comparison(id: Identifier = Operator.generateId, required: Boolean, threshold: Double, weight: Int,
+case class Comparison(id: Identifier = Operator.generateId, required: Boolean = false, threshold: Double = 0.0, weight: Int = 1,
                       inputs: SourceTargetPair[Input], metric: DistanceMeasure) extends SimilarityOperator {
   /**
    * Computes the similarity between two instances.

@@ -13,6 +13,7 @@ import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
  * @param restriction Restricts this dataset to specific resources.
  */
 case class DatasetSpecification(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
+  require(!variable.isEmpty, "Variable must be non-empty")
 
   /**
    * Serializes this Dataset Specification as XML.
@@ -49,5 +50,5 @@ object DatasetSpecification {
     )
   }
 
-  def empty = DatasetSpecification(Identifier.random, "", SparqlRestriction.empty)
+  def empty = DatasetSpecification(Identifier.random, "x", SparqlRestriction.empty)
 }
