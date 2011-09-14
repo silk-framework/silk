@@ -41,7 +41,7 @@ class Editor extends CometActor {
   override def render = {
     val updateLinkSpecFunction = JsCmds.Function("updateLinkSpec", "xml" :: Nil, SHtml.ajaxCall(JsRaw("xml"), updateLinkSpec _)._2.cmd)
 
-    val initialStatus = OnLoad(updateStatusCall(infos = evaluateLinkSpec(User().linkingTask)))
+    val initialStatus = OnLoad(updateStatusCall(errors = Traversable.empty, warnings = Traversable.empty, infos = evaluateLinkSpec(User().linkingTask)))
 
     bind("entry", defaultHtml,
          "linkSpecVar" -> Script(linkSpecVarCmd & reloadCacheFunction & updateLinkSpecFunction & initialStatus))
