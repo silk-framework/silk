@@ -2,18 +2,13 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
-import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskStatusListener
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskRunning, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.learning.{SampleLinksTask, CurrentSampleLinksTask}
 import net.liftweb.http.js.JsCmds.Alert
+import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskValueListener, CurrentTaskStatusListener}
+import de.fuberlin.wiwiss.silk.output.Link
 
 class SampledLinks extends LinkList with RateLinkButtons {
-
-  /**Minimum time in milliseconds between two successive updates*/
-  private val minUpdatePeriod = 3000L
-
-  /**The time of the last update */
-  private var lastUpdateTime = 0L
 
   override protected val showDetails = false
 
@@ -27,29 +22,9 @@ class SampledLinks extends LinkList with RateLinkButtons {
 
   CurrentSampleLinksTask.onUpdate(currentSampleLinksTaskListener)
 
-  private val linkListener = new CurrentTaskStatusListener(CurrentSampleLinksTask) {
-    override def onUpdate(status: TaskStatus) {
-      status match {
-        case _: TaskStarted => {}
-        case _: TaskRunning if System.currentTimeMillis - lastUpdateTime > minUpdatePeriod => {
-          partialUpdate(updateLinksCmd)
-          lastUpdateTime = System.currentTimeMillis
-        }
-        case _: TaskFinished => {
-          val cmd = {
-            val warnings = CurrentGenerateLinksTask().warnings
-            if (warnings.isEmpty) {
-              updateLinksCmd
-            }
-            else {
-              updateLinksCmd & Alert("Warnings have been raised during execution:\n- " + warnings.map(_.getMessage).mkString("\n- "))
-            }
-          }
-
-          partialUpdate(cmd)
-        }
-        case _ =>
-      }
+  private val linkListener = new CurrentTaskValueListener(CurrentSampleLinksTask) {
+    override def onUpdate(links: Seq[Link]) {
+      partialUpdate(updateLinksCmd)
     }
   }
 
@@ -65,6 +40,6 @@ class SampledLinks extends LinkList with RateLinkButtons {
         new EvalLink(link, Unknown, Generated)
       }
     }
-  }
+  }.sortBy(-_.confidence)
 
 }

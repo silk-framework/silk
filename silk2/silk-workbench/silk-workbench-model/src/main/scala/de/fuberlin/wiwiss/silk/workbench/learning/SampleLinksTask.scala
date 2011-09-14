@@ -60,10 +60,13 @@ class SampleLinksTask(sources: Traversable[Source],
     val instanceSpecs = linkSpecs.map(InstanceSpecification.retrieve).reduce((a, b) => SourceTargetPair(a.source merge b.source, a.target merge b.target))
     val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
-    val links = linkSpecs.flatMap(generateLinks(sourcePair, _ ,instanceSpecs)).toSet
-    val ratedLinks = rateLinks(sourcePair, linkSpecs, links)
-
-    value.update(ratedLinks.toSeq)
+    updateStatus("Sampling")
+    for((linkSpec, index) <- linkSpecs.toSeq.zipWithIndex) {
+      val links = generateLinks(sourcePair, linkSpec, instanceSpecs)
+      val ratedLinks = rateLinks(sourcePair, linkSpecs, links)
+      value.update(value.get ++ ratedLinks)
+      updateStatus("Sampling", (index + 1).toDouble / linkSpecs.size)
+    }
   }
 
   private def retrieveLinkageRules(population: Population) = {
