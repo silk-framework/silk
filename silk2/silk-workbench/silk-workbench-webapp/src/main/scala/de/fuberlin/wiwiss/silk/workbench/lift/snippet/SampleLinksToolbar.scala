@@ -8,21 +8,6 @@ import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentSampleLinksTask, Curre
 
 class SampleLinksToolbar {
   def render(xhtml: NodeSeq): NodeSeq = {
-    bind("entry", xhtml,
-         "start" -> SHtml.button("Start", start))
-  }
-
-  def start() {
-      val sampleLinksTask =
-        new SampleLinksTask(
-          sources = User().project.sourceModule.tasks.map(_.source),
-          linkSpec = User().linkingTask.linkSpec,
-          paths = User().linkingTask.cache.instanceSpecs.map(_.paths),
-          referenceInstances = User().linkingTask.cache.instances,
-          population = CurrentLearningTask().value.get.population
-        )
-
-    CurrentSampleLinksTask() = sampleLinksTask
-    sampleLinksTask.runInBackground()
+    bind("entry", xhtml)
   }
 }
