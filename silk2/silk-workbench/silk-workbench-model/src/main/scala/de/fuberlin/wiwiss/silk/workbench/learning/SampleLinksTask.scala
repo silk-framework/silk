@@ -8,13 +8,13 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import math.log
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import util.Random
-import java.util.logging.{LogRecord, Level}
+import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkageRuleEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
+import de.fuberlin.wiwiss.silk.instance.{Instance, Path, InstanceSpecification}
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
@@ -26,7 +26,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private val testRulesCount = 10
 
-  private val runtimeConfig = RuntimeConfig(useFileCache = false)
+  private val runtimeConfig = RuntimeConfig(useFileCache = false, generateDetailedLinks = true)
 
   def links = value.get
 
@@ -57,12 +57,11 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private def find(population: Population) {
     val linkSpecs = retrieveLinkageRules(population).map(r => linkSpec.copy(rule = r))
-
+    val instanceSpecs = linkSpecs.map(InstanceSpecification.retrieve).reduce((a, b) => SourceTargetPair(a.source merge b.source, a.target merge b.target))
     val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
-    val testLinks = linkSpecs.flatMap(generateLinks(sourcePair, _)).toSet
-
-    val ratedLinks = rateLinks(sourcePair, linkSpecs, testLinks)
+    val links = linkSpecs.flatMap(generateLinks(sourcePair, _ ,instanceSpecs)).toSet
+    val ratedLinks = rateLinks(sourcePair, linkSpecs, links)
 
     value.update(ratedLinks.toSeq)
   }
@@ -75,48 +74,38 @@ class SampleLinksTask(sources: Traversable[Source],
     testRules
   }
 
-  private def generateLinks(sources: SourceTargetPair[Source], linkSpec: LinkSpecification) = {
-    val generateLinksTask = new GenerateLinksTask(sources, linkSpec, Traversable.empty, runtimeConfig)
-    generateLinksTask.progressLogLevel = Level.FINE
+  private def generateLinks(sources: SourceTargetPair[Source], linkSpec: LinkSpecification, instanceSpecPair: SourceTargetPair[InstanceSpecification]) = {
+    val generateLinksTask =
+      new GenerateLinksTask(sources, linkSpec, Traversable.empty, runtimeConfig) {
+        override def instanceSpecs = instanceSpecPair
+      }
 
+    generateLinksTask.progressLogLevel = Level.FINE
     generateLinksTask.toTraversable.find(_.size > testLinkCount).getOrElse(generateLinksTask.links).take(testLinkCount)
   }
 
   private def rateLinks(sources: SourceTargetPair[Source], linkSpecs: Traversable[LinkSpecification], links: Traversable[Link]) = {
-    for(link <- links) yield {
-      val entropy = linkEntropy(sources, linkSpecs, link)
-      println(link + ": " + entropy)
-      new Link(link.source, link.target, entropy)
-    }
+    for(link <- links) yield rateLink(sources, linkSpecs, link)
   }
 
-  private def linkEntropy(sources: SourceTargetPair[Source], linkSpecs: Traversable[LinkSpecification], link: Link) = {
-    //val p = linkSpecs.count(isLink(sources, _, link)).toDouble / linkSpecs.size
+  private def rateLink(sources: SourceTargetPair[Source], linkSpecs: Traversable[LinkSpecification], link: Link) = {
 
-    val p = linkSpecs.map(isLink(sources, _, link)).sum / linkSpecs.map(s => LinkageRuleEvaluator(s.rule, referenceInstances).fMeasure).sum
+    val p = linkSpecs.map(isLink(_, link)).sum / linkSpecs.map(s => LinkageRuleEvaluator(s.rule, referenceInstances).fMeasure).sum
 
-    0.0 - p * log(p) / log(2) - (1 - p) * log(1 - p) / log(2)
+    val entropy = 0.0 - p * log(p) / log(2) - (1 - p) * log(1 - p) / log(2)
+
+    //TODO only change entropy
+    new Link(link.source, link.target, entropy, link.instances.get)
   }
 
-  private def isLink(sources: SourceTargetPair[Source], linkSpec: LinkSpecification, link: Link) = {
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
-
-    val instancePair = retrieveInstancePair(sources, instanceSpecs, link)
-
-    val r = linkSpec.rule(instancePair) > 0.0
+  private def isLink(linkSpec: LinkSpecification, link: Link) = {
+    val r = linkSpec.rule(link.instances.get) > 0.0
 
     val fitness = LinkageRuleEvaluator(linkSpec.rule, referenceInstances)
 
     println(r +  " " + fitness + " " + linkSpec.rule)
 
     if(r) fitness.fMeasure else 0.0
-  }
-
-  private def retrieveInstancePair(sources: SourceTargetPair[Source], instanceSpecs: SourceTargetPair[InstanceSpecification], uris: SourceTargetPair[String]) = {
-    SourceTargetPair(
-      source = sources.source.retrieve(instanceSpecs.source, uris.source :: Nil).head,
-      target = sources.target.retrieve(instanceSpecs.target, uris.target :: Nil).head
-    )
   }
 }
 

@@ -15,7 +15,7 @@ object DetailedEvaluator {
         val confidence = evaluateOperator(op, instances, limit)
 
         if (confidence.value.getOrElse(-1.0) >= limit) {
-          Some(new Link(instances.source.uri, instances.target.uri, Some(confidence)))
+          Some(new Link(instances.source.uri, instances.target.uri, Some(confidence), Some(instances)))
         }
         else {
           None
@@ -23,7 +23,7 @@ object DetailedEvaluator {
       }
       case None => {
         if (limit == -1.0) {
-          Some(new Link(instances.source.uri, instances.target.uri, Some(Link.SimpleConfidence(Some(-1.0)))))
+          Some(new Link(instances.source.uri, instances.target.uri, Some(Link.SimpleConfidence(Some(-1.0))), Some(instances)))
         }
         else {
           None

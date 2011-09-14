@@ -9,6 +9,8 @@ import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
 
 /**
  * A widget which displays a list of links.
@@ -22,6 +24,10 @@ trait LinkList extends CometActor {
   protected val showStatus = true
 
   protected val showButtons = true
+
+  protected val showDetails = true
+
+  protected val showInstances = false
 
   protected def registerEvents() {}
 
@@ -120,7 +126,8 @@ trait LinkList extends CometActor {
 
       </div>
       <div class="link-details" id={getId(link, "details")}>
-        {renderDetails(link.details)}
+        { if(showDetails) renderDetails(link.details) else NodeSeq.Empty }
+        { if(showInstances) renderInstances(link.instances) else NodeSeq.Empty }
       </div>
       <div style="clear:both"></div>
     </div>
@@ -133,6 +140,33 @@ trait LinkList extends CometActor {
         <div class="confidence">{"%.1f".format(sim.value.getOrElse(-1.0) * 100)}%</div>
       </div>
     }
+  }
+
+  private def renderInstances(instances: Option[SourceTargetPair[Instance]]) = {
+    instances match {
+      case Some(SourceTargetPair(sourceInstance, targetInstance)) => {
+        <ul class="details-tree">
+          { renderInstance(sourceInstance, "source") }
+          { renderInstance(targetInstance, "target") }
+        </ul>
+      }
+      case None => Text("No properties loaded")
+    }
+  }
+
+  private def renderInstance(instance: Instance, divClassPrefix: String) = {
+    <li>
+      <span class={divClassPrefix+"-value"}>{ instance.uri }</span>
+      <ul>
+        { for((path, index) <- instance.spec.paths.zipWithIndex) yield renderValues(path, instance.evaluate(index), divClassPrefix) }       </ul>
+    </li>
+  }
+
+  private def renderValues(path: Path, values: Set[String], divClassPrefix: String) = {
+    <li>
+      { path.serialize }
+      { values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+    </li>
   }
 
   private def renderDetails(details: Option[Link.Confidence]): NodeSeq = {
@@ -174,12 +208,10 @@ trait LinkList extends CometActor {
     case None => NodeSeq.Empty
   }
 
-  private def renderInputValue(value : Link.InputValue, divClassPrefix : String) = value match
-  {
-    case Link.InputValue(path, values) =>
-    {
-      <li><span class="input">Input ({value.input.id})<span class={divClassPrefix+"-path"}>{value.input.path.serialize}</span>{values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span></li>
-    }
+  private def renderInputValue(value : Link.InputValue, divClassPrefix : String) = {
+    <li>
+      <span class="input">Input ({value.input.id})<span class={divClassPrefix+"-path"}>{value.input.path.serialize}</span>{value.values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span>
+    </li>
   }
 
   protected def getId(link: Link, prefix: String = "") = {
