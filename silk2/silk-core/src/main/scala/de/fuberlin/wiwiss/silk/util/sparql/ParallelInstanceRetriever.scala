@@ -14,7 +14,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
 
   private val logger = Logger.getLogger(classOf[ParallelInstanceRetriever].getName)
 
-  private var canceled = false
+  @volatile private var canceled = false
 
   /**
    * Retrieves instances with a given instance specification.
@@ -179,9 +179,8 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
 
           if (currentSubject.isEmpty) {
             currentSubject = subject
-          }
-          else if (subject.isDefined && subject != currentSubject) {
-            while (queue.size > maxQueueSize) {
+          } else if (subject.isDefined && subject != currentSubject) {
+            while (queue.size > maxQueueSize && !canceled) {
               Thread.sleep(100)
             }
 
