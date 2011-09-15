@@ -172,36 +172,16 @@ div.actions .ui-button-text {
   margin-left: 3px;
 }
 
-.import-icon {
-  background-image: url(../img/workspace/document-import.png);
+#content {
+  float: left;
+  min-width: 700px;
 }
-.new-project-icon {
-  background-image: url(../img/workspace/document.png);
-}
-.edit-prefixes-icon {
-  background-image: url(../img/workspace/wrench-screwdriver.png);
-}
-.edit-icon {
-  background-image: url(../img/workspace/wrench.png);
-}
-.add-icon {
-  background-image: url(../img/workspace/plus.png);
-}
-.remove-icon {
-  background-image: url(../img/workspace/cross.png);
-}
-.export-icon {
-  background-image: url(../img/workspace/document-export.png);
-}
-.open-icon {
-  background-image: url(../img/workspace/document--pencil.png);
-}
-.add-ls-icon {
-  background-image: url(../img/workspace/document--plus.png);
-}
-.filetree span.source {
-  background: url("../img/workspace/server.png") no-repeat !important;
-}
-.filetree span.output {
-  background: url("../img/workspace/server--arrow.png") no-repeat !important;
+
+#help {
+  float: right;
+  width: 200px;
+  height: 400px;
+  background: #e9e6e6;
+  padding-left: 10px;
+  padding-right: 10px;
 }
