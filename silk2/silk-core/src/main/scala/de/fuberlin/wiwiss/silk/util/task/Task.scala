@@ -13,6 +13,8 @@ trait Task[+T] extends HasStatus with (() => T) {
 
   var taskName = getClass.getSimpleName.undoCamelCase
 
+  @volatile private var currentSubTask: Option[Task[_]] = None
+
   /**
    * Executes this task and returns the result.
    */
@@ -48,6 +50,7 @@ trait Task[+T] extends HasStatus with (() => T) {
   def cancel() {
     if(status.isRunning) {
       updateStatus(TaskCanceling(taskName, status.progress))
+      currentSubTask.map(_.cancel())
       stopExecution()
     }
   }
@@ -64,6 +67,8 @@ trait Task[+T] extends HasStatus with (() => T) {
 
   protected def executeSubTask[R](subTask: Task[R], finalProgress: Double = 1.0): R = {
     require(finalProgress >= status.progress, "finalProgress >= progress")
+
+    currentSubTask = Some(subTask)
 
     //Disable logging of the subtask as this task will do the logging
     val subTaskLogLevel = subTask.statusLogLevel
@@ -93,6 +98,7 @@ trait Task[+T] extends HasStatus with (() => T) {
       subTask()
     } finally {
       subTask.statusLogLevel = subTaskLogLevel
+      currentSubTask = None
     }
   }
 }
