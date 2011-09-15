@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.util
 
-import collection.mutable.WeakHashMap
+import collection.mutable.{SynchronizedMap, WeakHashMap}
 
 trait Observable[T] {
-  private val subscribers = WeakHashMap[T => _, Unit]()
+  private val subscribers = new WeakHashMap[T => _, Unit]() with SynchronizedMap[T => _, Unit]
 
   /**
    * Execute a function on every update.
