@@ -1,5 +1,6 @@
 var current_page = 1;
 var fid;
+contentWidthCallback = updateResultsWidth;
 
 function useFilter(size) {
   clearTimeout(fid);
@@ -69,20 +70,18 @@ function hide_all() {
 }
 
 function updateResultsWidth() {
-  var helpwidth = 170
-  var window_width =  $(window).width() - helpwidth;
   var new_links_width = 326;
-  if (window_width<600) {
+  if (contentWidth<600) {
     $("#results, #tree-header, #tree-footer").width(938);
     $(".link-source, .link-target").width(new_links_width);
     $(".middle").width(537);
     $("#wrapper").width(938);
   } else {
-    new_links_width = (window_width-338)/2;
-    $("#results, #tree-header, #tree-footer").width(window_width-54);
+    new_links_width = (contentWidth-338)/2;
+    $("#results, #tree-header, #tree-footer").width(contentWidth-54);
     $(".link-source, .link-target").width(new_links_width);
-    $(".middle").width(window_width-455);
-    $("#wrapper").width(window_width-54);
+    $(".middle").width(contentWidth-455);
+    $("#wrapper").width(contentWidth-54);
   }
   $(".link-source > a, .link-target > a").each(function(index) {
     if ($(this).width() > new_links_width) {
@@ -100,11 +99,5 @@ $(function() {
     var link_id = $(this).parent().attr('id');
     if ($(e.target).is('a, img')) return;
     toggleLinkDetails(link_id);
-  });
-
-  var id;
-  $(window).resize(function() {
-    clearTimeout(id);
-    id = setTimeout(updateResultsWidth, 100);
   });
 });
