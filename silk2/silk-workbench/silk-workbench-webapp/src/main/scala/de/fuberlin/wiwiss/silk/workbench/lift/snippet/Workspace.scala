@@ -24,6 +24,7 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
  * def removeProject(projectName)
  * def importProject()
  * def exportProject(projectName)
+ * def setCurrentProject(projectName)
  * def editPrefixes(projectName)
  * def addLinkSpecification(projectName)
  *
@@ -65,6 +66,7 @@ object Workspace {
     removeProjectFunction &
     importProjectFunction &
     exportProjectFunction &
+    setCurrentProjectFunction &
     editPrefixesFunction &
     createSourceTaskFunction &
     editSourceTaskFunction &
@@ -123,12 +125,24 @@ object Workspace {
   private def exportProjectFunction: JsCmd = {
     def callback(projectName: String): JsCmd = {
       User().project = User().workspace.project(projectName)
-
       JS.Redirect("project.xml")
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
     JsCmds.Function("exportProject", "projectName" :: Nil, ajaxCall)
+  }
+
+  /**
+   * JS Command which defines the setCurrentProject function
+   */
+  private def setCurrentProjectFunction: JsCmd = {
+    def callback(projectName: String): JsCmd = {
+      User().project = User().workspace.project(projectName)
+      JS.Empty
+    }
+
+    val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+    JsCmds.Function("setCurrentProject", "projectName" :: Nil, ajaxCall)
   }
 
   /**

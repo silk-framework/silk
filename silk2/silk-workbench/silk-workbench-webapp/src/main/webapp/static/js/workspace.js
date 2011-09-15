@@ -16,6 +16,13 @@ $(document).ready(
    }
 );
 
+function updateActiveProject(projectId) {
+  if(projectId != ws.activeProjectId) {
+    ws.activeProjectId = projectId;
+    setCurrentProject(projectId);
+  }
+}
+
 // -- active/unfold nodes handling functions
 function saveOpenNodes(activeProject){
     ws.activeNodesId.length=0;
@@ -216,7 +223,8 @@ function updateWorkspace(obj){
             var project = obj.workspace.project[p];
             var  proj = document.createElement("li");
                 $(proj).addClass('closed')
-                .attr("id",'project_'+project.name);
+                .attr("id",'project_'+project.name)
+                .attr("onclick", "updateActiveProject('" + project.name + "')");
                 $(root).append(proj);
                 var proj_span = document.createElement("span");
                     $(proj_span).addClass('folder');
