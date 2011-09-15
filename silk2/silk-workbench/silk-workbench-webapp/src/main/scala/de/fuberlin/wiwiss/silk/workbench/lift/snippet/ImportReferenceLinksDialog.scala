@@ -62,7 +62,7 @@ class ImportReferenceLinksDialog {
       InstanceSpecification(
         variable = dataset.variable,
         restrictions = dataset.restriction,
-        paths = Path.parse("?" + dataset.variable + "/<http://www.w3.org/2002/07/owl#sameAs>") :: Nil
+        paths = IndexedSeq(Path.parse("?" + dataset.variable + "/<http://www.w3.org/2002/07/owl#sameAs>"))
       )
 
     source.retrieve(instanceSpec, uris)

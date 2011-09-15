@@ -264,26 +264,41 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
       )
     }
 
+    /**
+     * Updates an instance so that it conforms to a new instance specification.
+     * All property paths values which are not available in the given instance are loaded from the source.
+     */
     private def updateInstance(instance: Instance, instanceSpec: InstanceSpecification, source: DataSource) = {
-      //Compute the paths which are missing on the given instance
-      val existingPaths = instance.spec.paths.toSet
-      val missingPaths = instanceSpec.paths.filterNot(existingPaths.contains)
-
-      if (missingPaths.isEmpty) {
+      if (instance.spec.paths == instanceSpec.paths) {
+        //The given instance already contains all paths in the correct order.
         instance
       } else {
+        //Compute the paths which are missing on the given instance
+        val existingPaths = instance.spec.paths.toSet
+        val missingPaths = instanceSpec.paths.filterNot(existingPaths.contains)
+
         //Retrieve an instance with all missing paths
         val missingInstance =
           source.retrieve(
             instanceSpec = instance.spec.copy(paths = missingPaths),
             instances = instance.uri :: Nil
-          ).headOption
+          ).head
+
+        //Collect values from the existing and the new instance
+        val values =
+          for(path <- instanceSpec.paths) yield {
+            val pathIndex = instance.spec.paths.indexOf(path)
+            if(pathIndex != -1)
+              instance.evaluate(pathIndex)
+            else
+              missingInstance.evaluate(path)
+          }
 
         //Return the updated instance
         new Instance(
           uri = instance.uri,
-          values = instance.values ++ missingInstance.map(_.values).flatten,
-          spec = instance.spec.copy(paths = instance.spec.paths ++ missingPaths)
+          values = values,
+          spec = instanceSpec
         )
       }
     }

@@ -21,7 +21,7 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
     InstanceSpecification(
       variable = "a",
       restrictions = SparqlRestriction.fromSparql("?a rdf:type dbpedia-owl:City"),
-      paths = Path.parse("?a/rdfs:label") :: Nil
+      paths = IndexedSeq(Path.parse("?a/rdfs:label"))
     )
 
   "FileDataSource" should "return all cities" in {

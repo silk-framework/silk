@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
-case class InstanceSpecification(variable: String, restrictions: SparqlRestriction, paths: Seq[Path]) {
+case class InstanceSpecification(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
   def pathIndex(path: Path) = {
     paths.indexWhere(_ == path) match {
       case -1 => throw new NoSuchElementException("Path " + path + " not found on instance.")
@@ -41,7 +41,7 @@ object InstanceSpecification {
     new InstanceSpecification(
       variable = (node \ "Variable").text.trim,
       restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
-      paths = for (pathNode <- node \ "Paths" \ "Path") yield Path.parse(pathNode.text.trim)
+      paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq[Node]) yield Path.parse(pathNode.text.trim)
     )
   }
 
@@ -62,8 +62,8 @@ object InstanceSpecification {
       case None => Set[Path]()
     }
 
-    val sourceInstanceSpec = new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths.toSeq)
-    val targetInstanceSpec = new InstanceSpecification(targetVar, targetRestriction, targetPaths.toSeq)
+    val sourceInstanceSpec = new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
+    val targetInstanceSpec = new InstanceSpecification(targetVar, targetRestriction, targetPaths.toIndexedSeq)
 
     SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
   }
