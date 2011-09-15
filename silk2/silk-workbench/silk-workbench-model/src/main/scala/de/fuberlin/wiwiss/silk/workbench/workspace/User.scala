@@ -4,15 +4,15 @@ import modules.linking.LinkingTask
 import modules.ModuleTask
 import modules.output.OutputTask
 import modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.workbench.workspace.User.{CurrentProjectChanged, CurrentTaskChanged}
 
 /**
  * A user.
  */
-trait User extends Observable[CurrentTaskChanged] {
+trait User extends Observable[User.Message] {
 
   @volatile private var currentProject: Option[Project] = None
 
@@ -37,6 +37,7 @@ trait User extends Observable[CurrentTaskChanged] {
    */
   def project_=(project: Project) {
     currentProject = Some(project)
+    publish(CurrentProjectChanged(project))
   }
 
   /**
@@ -126,8 +127,15 @@ object User {
    */
   def apply() = userManager()
 
+  sealed trait Message
+
+  /**
+   * Fired if the current project is changed.
+   */
+  case class CurrentProjectChanged(project: Project) extends Message
+
   /**
    * Fired if the current task is changed.
    */
-  case class CurrentTaskChanged(task: ModuleTask)
+  case class CurrentTaskChanged(task: ModuleTask) extends Message
 }

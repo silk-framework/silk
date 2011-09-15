@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.lift.util.ProgressWidget
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.util.task.{Task, TaskStatus}
+import de.fuberlin.wiwiss.silk.workbench.workspace.User.{Message, CurrentTaskChanged}
 
 /**
  * Shows the progress of the cache loader task.
@@ -22,15 +22,15 @@ private class CacheStatus extends Observable[TaskStatus] {
   /** Listen to changes of the current task. */
   User().onUpdate(CurrentTaskListener)
 
-  override def onUpdate[U](f: TaskStatus => U) {
+  override def onUpdate[U](f: TaskStatus => U) = {
     if(User().linkingTaskOpen) f(User().linkingTask.cache.status)
     super.onUpdate(f)
   }
 
-  private object CurrentTaskListener extends (CurrentTaskChanged => Unit) {
-    def apply(event: CurrentTaskChanged) {
-      event.task match {
-        case linkingTask: LinkingTask => linkingTask.cache.onUpdate(StatusListener)
+  private object CurrentTaskListener extends (Message => Unit) {
+    def apply(event: Message) {
+      event match {
+        case CurrentTaskChanged(linkingTask: LinkingTask) => linkingTask.cache.onUpdate(StatusListener)
         case _ =>
       }
     }
