@@ -35,7 +35,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   @volatile private var currentGenerateLinksTask: Option[GenerateLinksTask] = None
 
-  @volatile private var cancelled = false
+  @volatile private var canceled = false
 
   /** This linkage rule is included if no good linkage rules have been found in the population */
   private val defaultLinkageRule =
@@ -52,7 +52,7 @@ class SampleLinksTask(sources: Traversable[Source],
   def links = value.get
 
   def execute(): Seq[Link] = {
-    cancelled = false
+    canceled = false
 
     if (population.isEmpty) {
       if(referenceInstances.negative.isEmpty || referenceInstances.positive.isEmpty) {
@@ -79,7 +79,7 @@ class SampleLinksTask(sources: Traversable[Source],
   }
 
   override def stopExecution() {
-    cancelled = true
+    canceled = true
     currentGenerateLinksTask.map(_.cancel())
   }
 
@@ -90,7 +90,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
     updateStatus("Sampling")
     for((linkSpec, index) <- linkSpecs.toSeq.zipWithIndex) {
-      if (cancelled) return
+      if (canceled) return
       val links = generateLinks(sourcePair, linkSpec, instanceSpecs)
       val ratedLinks = rateLinks(sourcePair, linkSpecs, links)
       value.update(value.get ++ ratedLinks)
