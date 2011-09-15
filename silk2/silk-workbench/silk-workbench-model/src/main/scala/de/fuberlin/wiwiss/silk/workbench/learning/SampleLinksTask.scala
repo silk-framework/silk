@@ -14,10 +14,10 @@ import de.fuberlin.wiwiss.silk.GenerateLinksTask
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.instance.{Instance, Path, InstanceSpecification}
-import de.fuberlin.wiwiss.silk.linkspec.{LinkageRule, LinkSpecification}
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{DistanceMeasure, Comparison}
-import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
 import math.max
+import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkageRule, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregation, DistanceMeasure, Comparison}
+import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput}
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
@@ -27,11 +27,13 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private val testLinkCount = 10
 
-  private val testRulesCount = 10
+  private val testRulesCount = 30
 
   private val minFMeasure = 0.1
 
   private val runtimeConfig = RuntimeConfig(useFileCache = false, generateDetailedLinks = true)
+
+  @volatile private var currentGenerateLinksTask: Option[GenerateLinksTask] = None
 
   @volatile private var cancelled = false
 
@@ -78,6 +80,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   override def stopExecution() {
     cancelled = true
+    currentGenerateLinksTask.map(_.cancel())
   }
 
   private def find(population: Population) {
@@ -104,6 +107,18 @@ class SampleLinksTask(sources: Traversable[Source],
     if(rules.size < testRulesCount)
       rules = Seq(defaultLinkageRule) ++ rules ++ Random.shuffle(population.individuals.map(_.node.build)).take(testRulesCount - rules.size - 1)
 
+    def collectPaths(op: Operator): Seq[Path] = op match {
+      case agg: Aggregation => agg.operators.flatMap(collectPaths)
+      case cmp: Comparison => cmp.inputs.flatMap(collectPaths)
+      case t: TransformInput => t.inputs.flatMap(collectPaths)
+      case i: PathInput => Seq(i.path)
+    }
+
+    for (rule <- rules) {
+      println(collectPaths(rule.operator.get).mkString)
+    }
+    //println(rules.mkString("\n"))
+
     rules
   }
 
@@ -113,6 +128,7 @@ class SampleLinksTask(sources: Traversable[Source],
         override def instanceSpecs = instanceSpecPair
       }
 
+    currentGenerateLinksTask = Some(generateLinksTask)
     generateLinksTask.progressLogLevel = Level.FINE
     generateLinksTask.toTraversable.find(_.size > testLinkCount).getOrElse(generateLinksTask.links).take(testLinkCount)
   }
@@ -134,11 +150,11 @@ class SampleLinksTask(sources: Traversable[Source],
   }
 
   private def isLink(linkSpec: LinkSpecification, link: Link) = {
-    val r = linkSpec.rule(link.instances.get) > 0.0
-
+    val r = linkSpec.rule(link.instances.get) > 0.
     val fitness = LinkageRuleEvaluator(linkSpec.rule, referenceInstances)
 
-    //println(r +  " " + fitness + " " + linkSpec.rule)
+    println(r +  " " + fitness + " " + link)
+    println(linkSpec.rule)
 
     if(r) max(fitness.fMeasure, minFMeasure) else 0.0
   }
