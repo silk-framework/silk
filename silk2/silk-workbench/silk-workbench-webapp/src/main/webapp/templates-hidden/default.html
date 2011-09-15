@@ -44,10 +44,13 @@
       <div id="content">
         <lift:bind name="content" />
       </div>
-        <!--<img onclick="$('#help').toggle()" src="static/img/help.png" />-->
-      <!--<div id="help">-->
-        <!--<lift:bind name="help" />-->
-      <!--</div>-->
+      <div id="help">
+        <img onclick="$('#help').hide('slide', {direction:'right'}, 'slow', function() { $('#show-help').show(); } );" src="static/img/help.png" style="float:right" />
+        <lift:bind name="help" />
+      </div>
+      <div id="show-help">
+        <img onclick="$('#show-help').hide(); $('#help').show('slide', {direction:'right'}, 'slow');" src="static/img/help.png"/>
+      </div>
     </div>
 
   </body>
