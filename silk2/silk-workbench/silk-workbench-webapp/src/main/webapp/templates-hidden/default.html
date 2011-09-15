@@ -25,6 +25,7 @@
   </head>
   <body>
     <lift:msgs/>
+
     <div id="tabbar">
       <div id="title">Silk Workbench</div >
       <lift:Menu.builder
@@ -34,11 +35,20 @@
           li_item:class="tab selected"/>
       <div class="tab"> <a id="about">About</a></div>
     </div>
+
     <div id="toolbar">
       <lift:bind name="toolbar" />
     </div>
-    <div id="content">
-      <lift:bind name="content" />
+
+    <div style="float: left; width: 100%">
+      <div id="content">
+        <lift:bind name="content" />
+      </div>
+        <!--<img onclick="$('#help').toggle()" src="static/img/help.png" />-->
+      <!--<div id="help">-->
+        <!--<lift:bind name="help" />-->
+      <!--</div>-->
     </div>
+
   </body>
 </html>

@@ -1,4 +1,11 @@
-<lift:surround with="workspace-template">
+<lift:surround with="default">
+
+  <lift:bind-at name="definitions">
+    <link rel="stylesheet" href="static/jquery-ui/css/treeview/jquery.treeview.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/workspace.css" type="text/css" />
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js" />
+    <script type="text/javascript" src="static/js/workspace.js" />
+  </lift:bind-at>
 
   <lift:bind-at name="toolbar">
   </lift:bind-at>
@@ -117,5 +124,9 @@
       </div>
     </lift:workspace.content>
   </lift:bind-at>
+
+  <!--<lift:bind-at name="help">-->
+    <!--<lift:comet type="WorkspaceHelp" name="WorkspaceHelp" />-->
+  <!--</lift:bind-at>-->
 
 </lift:surround>
