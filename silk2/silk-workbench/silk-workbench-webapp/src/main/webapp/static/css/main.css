@@ -175,13 +175,21 @@ div.actions .ui-button-text {
 #content {
   float: left;
   min-width: 700px;
+  padding: 10px 10px;
 }
 
 #help {
   float: right;
-  width: 200px;
-  height: 400px;
-  background: #e9e6e6;
-  padding-left: 10px;
-  padding-right: 10px;
+  width: 150px;
+  background: white;
+  padding: 10px;
+  margin-right: 10px;
+  margin-top: 10px;
+  border: 1px solid #DBDBDB;
+}
+
+#show-help {
+  display: none;
+  float:right;
+  padding: 21px;
 }

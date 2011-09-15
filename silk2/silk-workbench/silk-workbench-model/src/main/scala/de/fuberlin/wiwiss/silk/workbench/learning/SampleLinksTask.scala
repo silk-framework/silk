@@ -37,6 +37,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   @volatile private var canceled = false
 
+  //TODO include current link spec into sampling?
   /** This linkage rule is included if no good linkage rules have been found in the population */
   private val defaultLinkageRule =
     LinkageRule(Some(Comparison(

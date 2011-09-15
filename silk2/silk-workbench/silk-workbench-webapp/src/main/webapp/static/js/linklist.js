@@ -69,9 +69,10 @@ function hide_all() {
 }
 
 function updateResultsWidth() {
-  var window_width =  $(window).width();
+  var helpwidth = 170
+  var window_width =  $(window).width() - helpwidth;
   var new_links_width = 326;
-  if (window_width<1000) {
+  if (window_width<600) {
     $("#results, #tree-header, #tree-footer").width(938);
     $(".link-source, .link-target").width(new_links_width);
     $(".middle").width(537);
