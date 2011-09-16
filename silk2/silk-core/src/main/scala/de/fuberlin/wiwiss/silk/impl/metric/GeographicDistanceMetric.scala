@@ -18,23 +18,8 @@ import java.util.logging.Logger
   id = "wgs84",
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
-class GeographicDistanceMetric(unit: String = "km", threshold: Double = Double.NaN) extends SimpleDistanceMeasure {
+class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasure {
   require(Set("m", "meter", "km", "kilometer").contains(unit), "Invalid unit: '" + unit + "'. Allowed units: \"m\", \"meter\", \"km\", \"kilometer\"")
-
-  private val logger = Logger.getLogger(classOf[GeographicDistanceMetric].getName)
-
-  private val scale = {
-    if (threshold.isNaN) {
-      1.0
-    }
-    else {
-      logger.warning("The use of the 'threshold' parameter on the wgs84 metric is deprecated.\n" +
-        "Please use the threshold paramter on the comparison instead.\n" +
-        "Example: <Compare metric=\"wgs84\" threshold=\"...\">")
-
-      threshold
-    }
-  }
 
   private val multipliers = Map("km" -> 0.001, "kilometer" -> 0.001, "meter" -> 1.0, "m" -> 1.0)
 
@@ -45,7 +30,7 @@ class GeographicDistanceMetric(unit: String = "km", threshold: Double = Double.N
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     //Parse the coordinates and return a similarity value if both coordinates could be extracted.
     (getCoordinates(str1), getCoordinates(str2)) match {
-      case (Some(loc1), Some(loc2)) => getGeometricDistance(loc1, loc2) / scale
+      case (Some(loc1), Some(loc2)) => getGeometricDistance(loc1, loc2)
       case _ => Double.PositiveInfinity
     }
   }
@@ -56,14 +41,14 @@ class GeographicDistanceMetric(unit: String = "km", threshold: Double = Double.N
         val latIndex = (coords.lat + 90.0) / 180.0
         val longIndex = (coords.long + 180.0) / 360.0 * cos(deg2rad(coords.lat))
 
-        getBlocks(Seq(latIndex, longIndex), blockOverlap, limit * scale)
+        getBlocks(Seq(latIndex, longIndex), blockOverlap, limit)
       }
       case None => Set.empty
     }
   }
 
   override def blockCounts(limit: Double): Seq[Int] = {
-    Seq(latitudeBlockCount(limit * scale), longitudeBlockCount(limit * scale))
+    Seq(latitudeBlockCount(limit), longitudeBlockCount(limit))
   }
 
   private def latitudeBlockCount(limit: Double) = {
