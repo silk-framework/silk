@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 /**
  * Adds buttons to rate a link to a link list.
  */
-trait RateLinkButtons { self: LinkList =>
+trait RateLinkButtons { self: Links =>
 
   override protected def renderButtons(link: EvalLink): NodeSeq = {
     <div id={getId(link, "confirmedLink")} style={if(link.correct == Correct) "display:block" else "display:none"}>

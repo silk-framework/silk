@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, U
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
 
-class GeneratedLinks extends LinkList with RateLinkButtons {
+class GeneratedLinks extends Links with RateLinkButtons {
 
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L

@@ -8,7 +8,7 @@ import net.liftweb.http.js.JsCmds.Alert
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskValueListener, CurrentTaskStatusListener}
 import de.fuberlin.wiwiss.silk.output.Link
 
-class SampledLinks extends LinkList with RateLinkButtons {
+class SampledLinks extends Links with RateLinkButtons {
 
   override protected val showDetails = false
 
