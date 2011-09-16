@@ -162,20 +162,18 @@ class FileProject(file : File) extends Project {
 
           val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
 
-          val task: LinkingTask = LinkingTask(linkSpec, referenceLinks)
-
           //Load the cache
-          try {
-              task.cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")), FileProject.this, task)
-              task.cache.load(FileProject.this, task)
-          } catch {
-            case ex : Exception => {
-              logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-              task.cache.reload(FileProject.this, task)
+          val cache =
+            try {
+              Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+            } catch {
+              case ex : Exception => {
+                logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+                new Cache()
+              }
             }
-          }
 
-          task
+          LinkingTask(FileProject.this, linkSpec, referenceLinks, cache)
         }
 
       tasks.map(task => (task.name, task)).toMap

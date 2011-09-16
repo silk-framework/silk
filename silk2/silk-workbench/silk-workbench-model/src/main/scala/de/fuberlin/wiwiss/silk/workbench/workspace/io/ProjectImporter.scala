@@ -31,19 +31,15 @@ object ProjectImporter
     }
   }
 
-  private def readSourceTask(xml : Node) =
-  {
+  private def readSourceTask(xml : Node) = {
     SourceTask(Source.fromXML(xml \ "_" head))
   }
 
-  private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) =
-  {
+  private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) = {
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(xml \ "Alignment" \ "_" head)
+    val cache = Cache.fromXML(xml \ "Cache" \ "_" head)
 
-    lazy val task: LinkingTask = LinkingTask(linkSpec, referenceLinks)
-    task.cache.fromXML(xml \ "Cache" \ "_" head, project, task)
-    task.cache.load(project, task)
-    task
+    LinkingTask(project, linkSpec, referenceLinks, cache)
   }
 }

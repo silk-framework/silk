@@ -118,44 +118,6 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
     </Cache>
   }
 
-  def fromXML(node: Node, project: Project, task: LinkingTask) {
-    existingInstanceSpecs = {
-      if (node \ "InstanceSpecifications" isEmpty) {
-        null
-      } else {
-        val sourceSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Source" \ "_" head)
-        val targetSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Target" \ "_" head)
-        new SourceTargetPair(sourceSpec, targetSpec)
-      }
-    }
-
-    val positiveInstances: Traversable[SourceTargetPair[Instance]] = {
-      if (node \ "PositiveInstances" isEmpty) {
-        Traversable.empty
-      } else {
-        for (pairNode <- node \ "PositiveInstances" \ "Pair" toList) yield {
-          SourceTargetPair(
-            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
-            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
-        }
-      }
-    }
-
-    val negativeInstances: Traversable[SourceTargetPair[Instance]] = {
-      if (node \ "NegativeInstances" isEmpty) {
-        Traversable.empty
-      } else {
-        for (pairNode <- node \ "NegativeInstances" \ "Pair" toList) yield {
-          SourceTargetPair(
-            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
-            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
-        }
-      }
-    }
-
-    existingInstances = ReferenceInstances.fromInstances(positiveInstances, negativeInstances)
-  }
-
   private class CacheLoader(project: Project, task: LinkingTask) extends Thread {
     private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
 
@@ -304,5 +266,47 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
     }
   }
 
+}
+
+object Cache {
+  def fromXML(node: Node) = {
+    val existingInstanceSpecs = {
+      if (node \ "InstanceSpecifications" isEmpty) {
+        null
+      } else {
+        val sourceSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Source" \ "_" head)
+        val targetSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Target" \ "_" head)
+        new SourceTargetPair(sourceSpec, targetSpec)
+      }
+    }
+
+    val positiveInstances: Traversable[SourceTargetPair[Instance]] = {
+      if (node \ "PositiveInstances" isEmpty) {
+        Traversable.empty
+      } else {
+        for (pairNode <- node \ "PositiveInstances" \ "Pair" toList) yield {
+          SourceTargetPair(
+            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
+            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
+        }
+      }
+    }
+
+    val negativeInstances: Traversable[SourceTargetPair[Instance]] = {
+      if (node \ "NegativeInstances" isEmpty) {
+        Traversable.empty
+      } else {
+        for (pairNode <- node \ "NegativeInstances" \ "Pair" toList) yield {
+          SourceTargetPair(
+            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
+            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
+        }
+      }
+    }
+
+    val existingInstances = ReferenceInstances.fromInstances(positiveInstances, negativeInstances)
+
+    new Cache(existingInstanceSpecs, existingInstances)
+  }
 }
 

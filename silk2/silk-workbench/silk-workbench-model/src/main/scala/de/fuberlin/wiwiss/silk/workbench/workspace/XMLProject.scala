@@ -113,7 +113,7 @@ class XMLProject(linkSpec : Node) extends Project
 
      for(lt <- doc \ "Interlinks" \ "Interlink" ) yield {
         val linkT = LinkSpecification.fromXML(lt)
-        val linkingTask = LinkingTask(linkT, new ReferenceLinks())
+        val linkingTask = LinkingTask(XMLProject.this, linkT)
         linkingTask
       }
     }
