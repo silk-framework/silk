@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 class GenerateLinksHelp extends LinksHelp {
 
-  override def renderOverview = {
+  override def overview = {
     <span>
       Executes the current linkage rule.
       { howToRateLinks }

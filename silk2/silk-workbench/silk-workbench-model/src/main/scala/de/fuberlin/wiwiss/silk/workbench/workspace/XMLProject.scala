@@ -10,7 +10,7 @@ import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Node, Elem}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.evaluation.Alignment
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 
 /**
  * Implementation of a project which maps an XML Silk Link Specification document.
@@ -113,7 +113,7 @@ class XMLProject(linkSpec : Node) extends Project
 
      for(lt <- doc \ "Interlinks" \ "Interlink" ) yield {
         val linkT = LinkSpecification.fromXML(lt)
-        val linkingTask = LinkingTask(linkT, new Alignment())
+        val linkingTask = LinkingTask(linkT, new ReferenceLinks())
         linkingTask
       }
     }

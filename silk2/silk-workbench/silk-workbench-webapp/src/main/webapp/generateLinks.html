@@ -17,10 +17,10 @@
     <lift:generateLinksToolbar form="POST">
       <ul>
         <li>
-          <lift:comet type="LinkGenerationControl" name="LinkGenerationControl" />
+          <lift:comet type="GenerateLinksControl" name="GenerateLinksControl" />
         </li>
         <li>
-          <lift:comet type="LinkGenerationProgress" name="LinkGenerationProgress" />
+          <lift:comet type="GenerateLinksProgress" name="GenerateLinksProgress" />
         </li>
         <li>
           <entry:help />
@@ -32,7 +32,7 @@
 
   <lift:bind-at name="content">
 
-    <lift:comet type="GeneratedLinks" name="GeneratedLinks">
+    <lift:comet type="GenerateLinksContent" name="GenerateLinksContent">
 
       <entry:script/>
 

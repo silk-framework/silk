@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListe
 /**
  * Button to control the learning process.
  */
-class StartLearningButton extends DynamicButton {
+class LearnControl extends DynamicButton {
 
   override protected val dontCacheRendering = true
 
@@ -21,7 +21,7 @@ class StartLearningButton extends DynamicButton {
   override protected def onPressed() = {
     if(User().linkingTask.cache.status.isRunning) {
       JS.Message("Cache not loaded yet.")
-    } else if(User().linkingTask.alignment.positive.size < 1 || User().linkingTask.alignment.negative.size < 1) {
+    } else if(User().linkingTask.referenceLinks.positive.size < 1 || User().linkingTask.referenceLinks.negative.size < 1) {
       JS.Message("Positive and negative reference links are needed in order to learn a link specification")
     } else if (!CurrentLearningTask().status.isRunning)
       StartLearningDialog.openCmd

@@ -29,7 +29,7 @@ object Api {
       () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
     }
     case req @ Req(List("referenceLinks"), "xml", GetRequest) => {
-      val alignmentXml = User().linkingTask.alignment.toXML
+      val alignmentXml = User().linkingTask.referenceLinks.toXML
       val configStr = new PrettyPrinter(140, 2).format(alignmentXml)
       () => Full(InMemoryResponse(configStr.getBytes, ("Content-Type", "application/xml") :: ("Content-Disposition", "attachment") :: Nil, Nil, 200))
     }

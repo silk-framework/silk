@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
-import de.fuberlin.wiwiss.silk.evaluation.{Alignment, ReferenceInstances}
+import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, ReferenceInstances}
 import java.lang.InterruptedException
 import java.util.logging.Level
 
@@ -218,17 +218,17 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
     private def loadInstances() {
       updateStatus("Loading instances", 0.2)
 
-      val linkCount = task.alignment.positive.size + task.alignment.negative.size
+      val linkCount = task.referenceLinks.positive.size + task.referenceLinks.negative.size
       var loadedLinks = 0
 
-      for (link <- task.alignment.positive) {
+      for (link <- task.referenceLinks.positive) {
         if(isInterrupted) throw new InterruptedException()
         cachedInstances = instances.withPositive(loadPositiveLink(link))
         loadedLinks += 1
         updateStatus(0.2 + 0.8 * (loadedLinks.toDouble / linkCount))
       }
 
-      for (link <- task.alignment.negative) {
+      for (link <- task.referenceLinks.negative) {
         if(isInterrupted) throw new InterruptedException()
         cachedInstances = instances.withNegative(loadNegativeLink(link))
         loadedLinks += 1

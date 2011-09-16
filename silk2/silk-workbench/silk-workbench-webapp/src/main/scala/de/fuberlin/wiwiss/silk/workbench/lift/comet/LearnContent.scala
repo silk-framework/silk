@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 /**
  * Widget which shows the current population.
  */
-class LearningWidget extends CometActor {
+class LearnContent extends CometActor {
 
   /** The individuals to be rendered. */
   private def individuals = CurrentLearningTask().value.get.population.individuals

@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, U
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
 
-class GeneratedLinks extends Links with RateLinkButtons {
+class GenerateLinksContent extends Links with RateLinkButtons {
 
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
@@ -53,12 +53,12 @@ class GeneratedLinks extends Links with RateLinkButtons {
   }
 
   override protected def links: Seq[EvalLink] = {
-    def alignment = linkingTask.alignment
+    def referenceLinks = linkingTask.referenceLinks
 
     for (link <- generateLinksTask.links.view) yield {
-      if (alignment.positive.contains(link)) {
+      if (referenceLinks.positive.contains(link)) {
         new EvalLink(link, Correct, Generated)
-      } else if (alignment.negative.contains(link)) {
+      } else if (referenceLinks.negative.contains(link)) {
         new EvalLink(link, Incorrect, Generated)
       } else {
         new EvalLink(link, Unknown, Generated)

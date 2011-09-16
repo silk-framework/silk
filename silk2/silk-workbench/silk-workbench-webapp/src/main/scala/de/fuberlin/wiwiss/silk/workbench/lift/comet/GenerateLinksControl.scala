@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, U
 import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 
-class LinkGenerationControl extends DynamicButton {
+class GenerateLinksControl extends DynamicButton {
 
   override protected val dontCacheRendering = true
 

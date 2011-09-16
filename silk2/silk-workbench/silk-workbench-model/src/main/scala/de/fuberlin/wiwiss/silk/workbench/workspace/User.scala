@@ -18,8 +18,6 @@ trait User extends Observable[User.Message] {
 
   @volatile private var currentTask: Option[ModuleTask] = None
 
-  var showAlignmentLinks = false
-
   /**
    * The current workspace of this user.
    */

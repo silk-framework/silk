@@ -7,14 +7,14 @@ class WorkspaceHelp extends Help {
 
   private val listener = User().onUpdate(_ => reRender())
 
-  override def renderOverview = {
+  override def overview = {
     <div>
       Use the workspace to manage different projects.
       Each project consists of data sources, linking tasks and output.
     </div>
   }
 
-  override def renderActions = Text(
+  override def actions = Text(
     if (User().workspace.projects.isEmpty) {
       "Create a new empty project or import an existing project."
     } else if (!User().projectOpen) {
