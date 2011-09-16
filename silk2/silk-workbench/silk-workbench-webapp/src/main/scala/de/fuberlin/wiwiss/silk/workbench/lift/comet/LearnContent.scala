@@ -7,7 +7,6 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.{NodeSeq, Elem}
 import net.liftweb.http.{SHtml, CometActor}
-import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
@@ -18,6 +17,7 @@ import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleComplexity
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, CurrentTaskValueListener, User}
 import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import net.liftweb.http.js.JsCmds.{Confirm, OnLoad, SetHtml, Script}
 
 /**
  * Widget which shows the current population.
@@ -215,15 +215,18 @@ class LearnContent extends CometActor {
     }
   }
 
-  def loadIndividualCmd(individual: Individual) =
-  {
-    val linkingTask = User().linkingTask
-    val linkSpec = linkingTask.linkSpec
-    val newLinkageRule = individual.node.build
+  def loadIndividualCmd(individual: Individual) = {
+    def load() = {
+      val linkingTask = User().linkingTask
+      val linkSpec = linkingTask.linkSpec
+      val newLinkageRule = individual.node.build
 
-    User().task = linkingTask.updateLinkSpec(linkSpec.copy(rule = newLinkageRule), User().project)
+      User().task = linkingTask.updateLinkSpec(linkSpec.copy(rule = newLinkageRule), User().project)
 
-    JS.Redirect("/editor.html")
+      JS.Redirect("/editor.html")
+    }
+
+    Confirm("This will overwrite the current linkage rule!", SHtml.ajaxInvoke(load)._2.cmd)
   }
 
   /**

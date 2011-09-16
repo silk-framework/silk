@@ -23,6 +23,8 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
   /** Don't log progress. */
   progressLogLevel = Level.FINE
 
+  def result = value.get
+
   override def execute(): LearningResult = {
     //Reset state
     startTime = System.currentTimeMillis

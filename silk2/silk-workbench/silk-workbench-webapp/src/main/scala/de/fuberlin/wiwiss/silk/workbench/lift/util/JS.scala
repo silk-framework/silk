@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.workbench.lift.util
 
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import net.liftweb.http.SHtml
-import net.liftweb.http.js.JsCmds.{After, Function}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.util.Helpers._
 import java.util.logging.{Level, Logger}
+import net.liftweb.http.js.JsCmds.{JsIf, After, Function}
 
 /**
  * Various useful JavaScript commands.
@@ -38,6 +38,13 @@ object JS {
    * Shows message box to the user.
    */
   def Message(msg: String) = JsRaw("alert('" + msg + "');").cmd
+
+  /**
+   * Shows a confirm dialog and executes a command on confirmation.
+   */
+  def Confirm(msg: String, cmd: JsCmd) {
+    JsIf(JsRaw("confirm('" + msg + ");"), cmd)
+  }
 
   /**
    * Tries to execute a function and shows an error box to the user in case it fails with an exception.
