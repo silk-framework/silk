@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-class GenerateLinksHelp extends LinksHelp {
+class SampleLinksHelp extends LinksHelp {
 
   override def renderOverview = {
     <span>
-      Executes the current linkage rule.
+      Samples links.
       { howToRateLinks }
     </span>
   }

@@ -14,6 +14,8 @@ case class Alignment(positive: Set[Link] = Set.empty, negative: Set[Link] = Set.
     copy(negative = negativeLinks.toSet)
   }
 
+  def isEmpty = positive.isEmpty && negative.isEmpty
+
   def toXML: Node = {
     <rdf:RDF xmlns='http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
              xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
