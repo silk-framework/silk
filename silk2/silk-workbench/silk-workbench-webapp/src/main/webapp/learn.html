@@ -14,13 +14,13 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:learningToolbar>
+    <lift:learnToolbar>
       <ul id="toolbar">
         <li>
-          <lift:comet type="StartLearningButton" name="StartLearningButton" />
+          <lift:comet type="LearnControl" name="LearnControl" />
         </li>
         <li>
-          <lift:comet type="LearningProgress" name="LearningProgress" />
+          <lift:comet type="LearnProgress" name="LearnProgress" />
         </li>
         <!--<li>-->
           <!--<entry:startCrossValidation />-->
@@ -29,12 +29,12 @@
           <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
         </li>
       </ul>
-    </lift:learningToolbar>
+    </lift:learnToolbar>
     <lift:startLearningDialog/>
   </lift:bind-at>
 
   <lift:bind-at name="content">
-    <lift:comet type="LearningWidget" name="LearningWidget">
+    <lift:comet type="LearnContent" name="LearnContent">
 
       <entry:script/>
 

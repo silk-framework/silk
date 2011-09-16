@@ -12,8 +12,8 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
-class ReferenceLinks extends Links {
-  private implicit val logger = Logger.getLogger(classOf[ReferenceLinks].getName)
+class ReferenceLinksContent extends Links {
+  private implicit val logger = Logger.getLogger(classOf[ReferenceLinksContent].getName)
 
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
@@ -54,12 +54,12 @@ class ReferenceLinks extends Links {
 
   override protected def links: Seq[EvalLink] = {
     def linkageRule = linkingTask.linkSpec.rule
-    def alignment = linkingTask.alignment
+    def referenceLinks = linkingTask.referenceLinks
     def instances = linkingTask.cache.instances
 
     ShowLinks() match {
       case Positive => {
-        for (link <- alignment.positive.toSeq.view) yield instances.positive.get(link) match {
+        for (link <- referenceLinks.positive.toSeq.view) yield instances.positive.get(link) match {
           case Some(instances) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, instances, -1.0).get
 
@@ -81,7 +81,7 @@ class ReferenceLinks extends Links {
         }
       }
       case Negative => {
-        for (link <- alignment.negative.toSeq.view) yield instances.negative.get(link) match {
+        for (link <- referenceLinks.negative.toSeq.view) yield instances.negative.get(link) match {
           case Some(instances) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, instances, -1.0).get
 
@@ -122,8 +122,8 @@ class ReferenceLinks extends Links {
   }
 
   private def resetLink(link: Link) = {
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link), User().project)
+    val referenceLinks = linkingTask.referenceLinks
+    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.copy(positive = referenceLinks.positive - link, negative = referenceLinks.negative - link), User().project)
 
     User().project.linkingModule.update(updatedTask)
     User().task = updatedTask

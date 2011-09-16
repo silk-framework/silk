@@ -2,19 +2,19 @@
 
   <lift:bind-at name="definitions">
 
-    <link type="text/css" href="static/css/linklist.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/links.css" rel="stylesheet" />
     <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
     <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
 
     <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
     <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
 
-    <script type="text/javascript" src="static/js/linklist.js"></script>
+    <script type="text/javascript" src="static/js/links.js"></script>
 
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:referenceLinks.toolbar>
+    <lift:referenceLinksToolbar>
       <ul>
         <li>
           <entry:selectLinks/>
@@ -33,8 +33,8 @@
         </li>
       </ul>
       <entry:scripts />
-    </lift:referenceLinks.toolbar>
-    <div id="importReferenceLinksDialog" title="Open Alignment">
+    </lift:referenceLinksToolbar>
+    <div id="importReferenceLinksDialog" title="Open Reference Links">
       <lift:importReferenceLinksDialog form="POST" multipart="true">
         <entry:file/>
         <br/>
@@ -45,7 +45,7 @@
 
   <lift:bind-at name="content">
 
-    <lift:comet type="ReferenceLinks" name="ReferenceLinks">
+    <lift:comet type="ReferenceLinksContent" name="ReferenceLinksContent">
 
       <entry:script/>
 

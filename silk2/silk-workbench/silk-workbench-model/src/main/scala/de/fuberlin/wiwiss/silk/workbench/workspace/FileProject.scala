@@ -5,7 +5,7 @@ import modules.output.{OutputTask, OutputConfig, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
-import de.fuberlin.wiwiss.silk.evaluation.AlignmentReader
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
@@ -18,8 +18,7 @@ import de.fuberlin.wiwiss.silk.output.Output
 /**
  * Implementation of a project which is stored on the local file system.
  */
-class FileProject(file : File) extends Project
-{
+class FileProject(file : File) extends Project {
   private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
   private var cachedConfig : Option[ProjectConfig] = None
@@ -34,20 +33,15 @@ class FileProject(file : File) extends Project
   /**
    * Reads the project configuration.
    */
-  override def config =
-  {
-    if(cachedConfig.isEmpty)
-    {
+  override def config = {
+    if(cachedConfig.isEmpty) {
       val configFile = file + "/config.xml"
 
-      if(configFile.exists)
-      {
+      if(configFile.exists) {
         val configXML = XML.loadFile(configFile)
         val prefixes = Prefixes.fromXML(configXML \ "Prefixes" head)
         cachedConfig = Some(ProjectConfig(prefixes))
-      }
-      else
-      {
+      } else {
         cachedConfig = Some(ProjectConfig.default)
       }
     }
@@ -58,8 +52,7 @@ class FileProject(file : File) extends Project
   /**
    * Writes the updated project configuration.
    */
-  override def config_=(config : ProjectConfig)
-  {
+  override def config_=(config : ProjectConfig) {
     val configXMl =
       <ProjectConfig>
       { config.prefixes.toXML }
@@ -88,8 +81,7 @@ class FileProject(file : File) extends Project
   /**
    * The source module which encapsulates all data sources.
    */
-  class FileSourceModule(file : File) extends SourceModule
-  {
+  class FileSourceModule(file : File) extends SourceModule {
     file.mkdirs()
 
     @volatile
@@ -121,8 +113,7 @@ class FileProject(file : File) extends Project
   /**
    * The linking module which encapsulates all linking tasks.
    */
-  class FileLinkingModule(file : File) extends LinkingModule
-  {
+  class FileLinkingModule(file : File) extends LinkingModule {
     @volatile
     private var cachedTasks : Map[Identifier, LinkingTask] = load()
 
@@ -138,13 +129,11 @@ class FileProject(file : File) extends Project
 
     override def config_=(c : LinkingConfig) {}
 
-    override def tasks =
-    {
+    override def tasks = {
       cachedTasks.values
     }
 
-    override def update(task : LinkingTask)
-    {
+    override def update(task : LinkingTask) {
       cachedTasks += (task.name -> task)
       updatedTasks += (task.name -> task)
       lastUpdateTime = System.currentTimeMillis
@@ -152,8 +141,7 @@ class FileProject(file : File) extends Project
       logger.info("Updated linking task '" + task.name + "' in project '" + name + "'")
     }
 
-    override def remove(taskId : Identifier)
-    {
+    override def remove(taskId : Identifier) {
       (file + ("/" + taskId)).deleteRecursive()
 
       cachedTasks -= taskId
@@ -162,8 +150,7 @@ class FileProject(file : File) extends Project
       logger.info("Removed linking task '" + taskId + "' from project '" + name + "'")
     }
 
-    private def load() : Map[Identifier, LinkingTask] =
-    {
+    private def load() : Map[Identifier, LinkingTask] = {
       file.mkdir()
 
       val tasks =
@@ -173,9 +160,9 @@ class FileProject(file : File) extends Project
 
           val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
 
-          val alignment = AlignmentReader.readAlignment(file + ("/" + fileName + "/alignment.xml"))
+          val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
 
-          val task: LinkingTask = LinkingTask(linkSpec, alignment)
+          val task: LinkingTask = LinkingTask(linkSpec, referenceLinks)
 
           //Load the cache
           try {
@@ -194,8 +181,7 @@ class FileProject(file : File) extends Project
       tasks.map(task => (task.name, task)).toMap
     }
 
-    def write()
-    {
+    def write() {
       val tasksToWrite = updatedTasks.values.toList
       updatedTasks --= tasksToWrite.map(_.name)
 
@@ -208,38 +194,30 @@ class FileProject(file : File) extends Project
         implicit val prefixes = Prefixes.empty
 
         task.linkSpec.toXML.write(taskDir+ "/linkSpec.xml")
-        task.alignment.toXML.write(taskDir+ "/alignment.xml")
+        task.referenceLinks.toXML.write(taskDir+ "/alignment.xml")
         task.cache.toXML.write(taskDir +  "/cache.xml")
       }
     }
 
-    object WriteThread extends Thread
-    {
+    object WriteThread extends Thread {
       private val interval = 5000L
 
-      override def run()
-      {
-        while(true)
-        {
+      override def run() {
+        while(true) {
           val time = System.currentTimeMillis - lastUpdateTime
 
-          if(updatedTasks.isEmpty)
-          {
+          if(updatedTasks.isEmpty) {
             Thread.sleep(interval)
           }
-          else if(time >= interval)
-          {
-            try
-            {
+          else if(time >= interval) {
+            try {
               linkingModule.write()
             }
-            catch
-            {
+            catch {
               case ex : Exception => logger.log(Level.WARNING, "Error writing linking tasks", ex)
             }
           }
-          else
-          {
+          else {
             Thread.sleep(interval - time)
           }
         }
@@ -250,32 +228,27 @@ class FileProject(file : File) extends Project
    /**
    * The linking module which encapsulates all linking tasks.
    */
-  class FileOutputModule(file : File) extends OutputModule
-  {
+  class FileOutputModule(file : File) extends OutputModule {
     file.mkdirs()
 
     def config = OutputConfig()
 
     def config_=(c: OutputConfig) { }
 
-    override def tasks = synchronized
-    {
-      for(fileName <- file.list.toList) yield
-      {
+    override def tasks = synchronized {
+      for(fileName <- file.list.toList) yield {
         val output = Output.load(file + ("/" + fileName))
 
         OutputTask(output)
       }
     }
 
-    override def update(task : OutputTask) = synchronized
-    {
+    override def update(task : OutputTask) = synchronized {
       task.output.toXML.write(file + ("/" + task.name + ".xml"))
       logger.info("Updated output '" + task.name + "' in project '" + name + "'")
     }
 
-    override def remove(taskId : Identifier) = synchronized
-    {
+    override def remove(taskId : Identifier) = synchronized {
       (file + ("/" + taskId + ".xml")).deleteRecursive()
       logger.info("Removed output '" + taskId + "' from project '" + name + "'")
     }

@@ -7,5 +7,5 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskStatusListener
 /**
  * Shows the progress of the evaluation task.
  */
-class LinkGenerationProgress extends ProgressWidget(new CurrentTaskStatusListener(CurrentGenerateLinksTask)) {
+class GenerateLinksProgress extends ProgressWidget(new CurrentTaskStatusListener(CurrentGenerateLinksTask)) {
 }

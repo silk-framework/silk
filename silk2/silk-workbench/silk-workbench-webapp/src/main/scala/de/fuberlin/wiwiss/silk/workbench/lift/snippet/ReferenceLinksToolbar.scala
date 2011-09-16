@@ -9,9 +9,9 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{ReferenceType, Pos
 import xml._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS._
 
-class ReferenceLinks {
+class ReferenceLinksToolbar {
 
-  def toolbar(xhtml : NodeSeq) : NodeSeq = {
+  def render(xhtml : NodeSeq) : NodeSeq = {
     def setChecked(input : Elem, linkType : ReferenceType) = {
       if(ShowLinks() == linkType)
         input % Attribute("checked", Text("checked"), Null)

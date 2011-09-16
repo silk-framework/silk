@@ -33,8 +33,8 @@ trait RateLinkButtons { self: Links =>
 
   private def confirmLink(link: Link) = {
     val project = User().project
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive + link, negative = alignment.negative - link), project)
+    val referenceLinks = linkingTask.referenceLinks
+    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.copy(positive = referenceLinks.positive + link, negative = referenceLinks.negative - link), project)
 
     project.linkingModule.update(updatedTask)
     User().task = updatedTask
@@ -44,8 +44,8 @@ trait RateLinkButtons { self: Links =>
 
   private def declineLink(link: Link) = {
     val project = User().project
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative + link), project)
+    val referenceLinks = linkingTask.referenceLinks
+    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.copy(positive = referenceLinks.positive - link, negative = referenceLinks.negative + link), project)
 
     project.linkingModule.update(updatedTask)
     User().task = updatedTask
@@ -55,8 +55,8 @@ trait RateLinkButtons { self: Links =>
 
   private def resetLink(link: Link) = {
     val project = User().project
-    val alignment = linkingTask.alignment
-    val updatedTask = linkingTask.updateAlignment(alignment.copy(positive = alignment.positive - link, negative = alignment.negative - link), project)
+    val referenceLinks = linkingTask.referenceLinks
+    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.copy(positive = referenceLinks.positive - link, negative = referenceLinks.negative - link), project)
 
     project.linkingModule.update(updatedTask)
     User().task = updatedTask

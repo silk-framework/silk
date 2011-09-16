@@ -5,26 +5,29 @@ import xml.{NodeSeq, Text}
 
 class ReferenceLinksHelp extends LinksHelp {
 
+  /**
+   * Re-renders the widget if the current linking task (and with it the reference links) has been changed.
+   */
   private val taskListener = User().onUpdate {
     case User.CurrentTaskChanged(_) => reRender()
     case _ =>
   }
 
-  override def renderOverview = {
+  override def overview = {
     <div>
       The reference links of this linking task.
     </div>
   }
 
-  override def renderActions = {
-    val alignment = User().linkingTask.alignment
-    if(alignment.isEmpty) {
+  override def actions = {
+    val links = User().linkingTask.referenceLinks
+    if(links.isEmpty) {
       Text("This linking task does not contain any reference links yet.") ++
       howToAddReferenceLinks
-    } else if(alignment.positive.isEmpty) {
+    } else if(links.positive.isEmpty) {
       Text("This linking task does not contain any positive reference links yet.") ++
       howToAddReferenceLinks
-    } else if(alignment.negative.isEmpty) {
+    } else if(links.negative.isEmpty) {
       Text("This linking task does not contain any negative reference links yet.") ++
       howToAddReferenceLinks
     } else {

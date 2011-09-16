@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.datasource.Source
 import xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
-import de.fuberlin.wiwiss.silk.evaluation.AlignmentReader
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectConfig, Project}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{LinkingTask, Cache}
@@ -39,9 +39,9 @@ object ProjectImporter
   private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) =
   {
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
-    val alignment = AlignmentReader.readAlignment(xml \ "Alignment" \ "_" head)
+    val referenceLinks = ReferenceLinksReader.readReferenceLinks(xml \ "Alignment" \ "_" head)
 
-    lazy val task: LinkingTask = LinkingTask(linkSpec, alignment)
+    lazy val task: LinkingTask = LinkingTask(linkSpec, referenceLinks)
     task.cache.fromXML(xml \ "Cache" \ "_" head, project, task)
     task.cache.load(project, task)
     task

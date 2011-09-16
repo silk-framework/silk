@@ -4,7 +4,7 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.Constants
-import de.fuberlin.wiwiss.silk.evaluation.Alignment
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.SHtml
 import net.liftweb.util.Helpers._
@@ -42,7 +42,7 @@ class CreateLinkingTaskDialog {
             outputs = Nil
           )
 
-        val linkingTask = LinkingTask(linkSpec, Alignment(), new Cache())
+        val linkingTask = LinkingTask(linkSpec, ReferenceLinks(), new Cache())
 
         User().project.linkingModule.update(linkingTask)
 

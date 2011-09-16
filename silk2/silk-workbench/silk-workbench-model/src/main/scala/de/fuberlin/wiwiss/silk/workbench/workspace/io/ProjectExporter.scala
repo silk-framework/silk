@@ -50,7 +50,7 @@ object ProjectExporter
   {
     <LinkingTask>
       <LinkSpecification>{task.linkSpec.toXML}</LinkSpecification>
-      <Alignment>{task.alignment.toXML}</Alignment>
+      <Alignment>{task.referenceLinks.toXML}</Alignment>
       <Cache>{task.cache.toXML}</Cache>
     </LinkingTask>
   }

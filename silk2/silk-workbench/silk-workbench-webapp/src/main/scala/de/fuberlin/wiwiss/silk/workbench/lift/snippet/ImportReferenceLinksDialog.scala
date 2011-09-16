@@ -11,7 +11,7 @@ import net.liftweb.http.js.JsCmds.OnLoad
 import de.fuberlin.wiwiss.silk.linkspec.DatasetSpecification
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
-import de.fuberlin.wiwiss.silk.evaluation.{Alignment, AlignmentReader}
+import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, ReferenceLinksReader}
 
 class ImportReferenceLinksDialog {
 
@@ -25,13 +25,13 @@ class ImportReferenceLinksDialog {
 
   private def loadFromFile(fileHolder: FileParamHolder) = fileHolder match {
     case FileParamHolder(_, _, fileName, data) => {
-      val alignment = fileName.split('.').last match {
-        case "xml" | "rdf" => AlignmentReader.readAlignment(new ByteArrayInputStream(data))
-        case "nt" => AlignmentReader.readNTriples(Source.fromBytes(data))
+      val referenceLinks = fileName.split('.').last match {
+        case "xml" | "rdf" => ReferenceLinksReader.readReferenceLinks(new ByteArrayInputStream(data))
+        case "nt" => ReferenceLinksReader.readNTriples(Source.fromBytes(data))
         case ext => throw new IllegalArgumentException("Unsupported file extension: '" + ext + "'.")
       }
 
-      updateAlignment(alignment)
+      updateReferenceLinks(referenceLinks)
     }
     case _ =>
   }
@@ -53,7 +53,7 @@ class ImportReferenceLinksDialog {
 
     val links = sourceLinks ++ targetLinks
 
-    updateAlignment(Alignment(links.toSet))
+    updateReferenceLinks(ReferenceLinks(links.toSet))
   }
 
   private def getInstances(dataset: DatasetSpecification, uris: Seq[String] = Seq.empty) = {
@@ -68,16 +68,16 @@ class ImportReferenceLinksDialog {
     source.retrieve(instanceSpec, uris)
   }
 
-  private def updateAlignment(alignment: Alignment) {
-    //If the alignment does not define any negative links -> generate some
-    if (alignment.negative.isEmpty) {
-      val updatedLinkingTask = User().linkingTask.updateAlignment(alignment.generateNegative, User().project)
+  private def updateReferenceLinks(referenceLinks: ReferenceLinks) {
+    //No negative links loaded -> generate some
+    if (referenceLinks.negative.isEmpty) {
+      val updatedLinkingTask = User().linkingTask.updateReferenceLinks(referenceLinks.generateNegative, User().project)
 
       User().project.linkingModule.update(updatedLinkingTask)
       User().task = updatedLinkingTask
     }
     else {
-      val updatedLinkingTask = User().linkingTask.updateAlignment(alignment, User().project)
+      val updatedLinkingTask = User().linkingTask.updateReferenceLinks(referenceLinks, User().project)
       User().project.linkingModule.update(updatedLinkingTask)
       User().task = updatedLinkingTask
     }

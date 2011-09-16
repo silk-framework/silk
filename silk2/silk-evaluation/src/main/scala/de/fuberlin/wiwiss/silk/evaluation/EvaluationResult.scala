@@ -12,12 +12,12 @@ class EvaluationResult(val truePositives: Int, val trueNegatives: Int,
   def score: Double = mcc
 
   /**
-   * The '''specificity''' or '''true negative rate (TNR)''' is the proportion of the links which have not been generated of the negative links in the alignment.
+   * The '''specificity''' or '''true negative rate (TNR)''' is the proportion of the links which have not been generated of the negative reference links.
    */
   def specificity = trueNegatives.toDouble / (trueNegatives + falsePositives)
 
   /**
-   * The '''recall''', '''sensitivity''' or '''true positive rate (TPR)''' is the proportion of the links which have been generated of the positive links in the alignment.
+   * The '''recall''', '''sensitivity''' or '''true positive rate (TPR)''' is the proportion of the links which have been generated of the positive reference links.
    */
   def recall = truePositives.toDouble / (truePositives + falseNegatives)
 

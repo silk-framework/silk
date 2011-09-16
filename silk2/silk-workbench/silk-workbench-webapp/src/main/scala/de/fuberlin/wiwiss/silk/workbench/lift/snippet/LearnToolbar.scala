@@ -6,7 +6,7 @@ import net.liftweb.http.SHtml
 import de.fuberlin.wiwiss.silk.learning.CrossValidationTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
-class LearningToolbar {
+class LearnToolbar {
 
   def render(xhtml: NodeSeq): NodeSeq = {
     bind("entry", xhtml,

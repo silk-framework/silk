@@ -8,7 +8,7 @@ import net.liftweb.http.js.JsCmds.Alert
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskValueListener, CurrentTaskStatusListener}
 import de.fuberlin.wiwiss.silk.output.Link
 
-class SampledLinks extends Links with RateLinkButtons {
+class SampleLinksContent extends Links with RateLinkButtons {
 
   override protected val showDetails = false
 
@@ -29,12 +29,12 @@ class SampledLinks extends Links with RateLinkButtons {
   }
 
   override protected def links: Seq[EvalLink] = {
-    def alignment = linkingTask.alignment
+    def links = linkingTask.referenceLinks
 
     for (link <- CurrentSampleLinksTask().links.view) yield {
-      if (alignment.positive.contains(link)) {
+      if (links.positive.contains(link)) {
         new EvalLink(link, Correct, Generated)
-      } else if (alignment.negative.contains(link)) {
+      } else if (links.negative.contains(link)) {
         new EvalLink(link, Incorrect, Generated)
       } else {
         new EvalLink(link, Unknown, Generated)

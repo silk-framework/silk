@@ -14,12 +14,12 @@ trait Help extends CometActor {
   /**
    * A short overview of the current tab.
    */
-  protected def renderOverview: NodeSeq
+  protected def overview: NodeSeq
 
   /**
    * A list of recommended actions
    */
-  protected def renderActions: NodeSeq = NodeSeq.Empty
+  protected def actions: NodeSeq = NodeSeq.Empty
 
   /**
    * Renders this widget.
@@ -35,17 +35,17 @@ trait Help extends CometActor {
    * Renders the static part of the help
    */
   private def renderStatic = {
-    <b>Overview</b><br/> ++ renderOverview
+    <b>Overview</b><br/> ++ overview
   }
 
   /**
    * Renders the dynamic part of the help.
    */
   private def renderDynamic = {
-    val actions = renderActions
-    if(actions.isEmpty)
-      actions
+    val nodes = actions
+    if(nodes.isEmpty)
+      nodes
     else
-      <br/><b>Next Steps</b><br/> ++ actions
+      <br/><b>Next Steps</b><br/> ++ nodes
   }
 }

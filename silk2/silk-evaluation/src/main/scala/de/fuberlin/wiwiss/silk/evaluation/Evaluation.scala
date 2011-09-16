@@ -14,8 +14,8 @@ object Evaluation {
       case _ => throw new IllegalArgumentException("No reference file specified. Please set the 'referenceFile' property")
     }
 
-    val evalAlignment = AlignmentReader.read(evalFile)
-    val referenceAlignment = AlignmentReader.read(referenceFile)
+    val evalAlignment = ReferenceLinksReader.read(evalFile)
+    val referenceAlignment = ReferenceLinksReader.read(referenceFile)
 
     //println("Evaluation aligments: " + evalAlignment.size)
     //println("Reference aligments: " + referenceAlignment.size)
