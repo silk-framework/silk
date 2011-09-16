@@ -3,16 +3,11 @@ body {
   background: #f7f7f7;
 }
 
-#content {
-  padding: 14px 14px;
-}
-
 #wrapper {
   border: 1px solid #DBDBDB;
   background: #ffffff;
-  padding: 12px;
+  padding: 10px;
   padding-bottom: 6px;
-
 }
 
 p {
@@ -91,6 +86,12 @@ a:hover {
   padding-top: 4px;
 }
 
+.individual-buttons {
+  width: 50px;
+  margin-left: 10px;
+  margin-top: 4px;
+}
+
 .confidencebar {
   width: 75px;
   height: 15px;
@@ -115,11 +116,6 @@ a:hover {
 
 .grey {
   background: #F8F8F8;
-}
-
-.individual-buttons {
-  margin-left: 10px;
-  margin-top: 4px;
 }
 
 .individual-over {
