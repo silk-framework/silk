@@ -42,7 +42,7 @@ class CreateLinkingTaskDialog {
             outputs = Nil
           )
 
-        val linkingTask = LinkingTask(linkSpec, ReferenceLinks(), new Cache())
+        val linkingTask = LinkingTask(User().project, linkSpec, ReferenceLinks())
 
         User().project.linkingModule.update(linkingTask)
 
