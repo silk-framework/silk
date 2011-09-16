@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
-class ReferenceLinks extends LinkList {
+class ReferenceLinks extends Links {
   private implicit val logger = Logger.getLogger(classOf[ReferenceLinks].getName)
 
   /**Minimum time in milliseconds between two successive updates*/

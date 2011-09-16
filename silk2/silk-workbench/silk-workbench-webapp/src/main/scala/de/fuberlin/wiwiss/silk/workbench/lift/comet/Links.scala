@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
 /**
  * A widget which displays a list of links.
  */
-trait LinkList extends CometActor {
+trait Links extends CometActor {
   protected def linkingTask = User().linkingTask
 
   /**The number of links shown on one page */
