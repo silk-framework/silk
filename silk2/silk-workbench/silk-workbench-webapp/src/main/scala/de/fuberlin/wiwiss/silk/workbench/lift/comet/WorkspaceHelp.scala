@@ -10,7 +10,7 @@ class WorkspaceHelp extends Help {
   override def overview = {
     <div>
       Use the workspace to manage different projects.
-      Each project consists of data sources, linking tasks and output.
+      Each project consists of data sources, linking tasks and output tasks.
     </div>
   }
 

@@ -51,7 +51,7 @@ class LearnHelp extends Help {
     } else {
       <div>
         Select a linkage rule and load it into the editor.
-        If no good linkage rules have been found, check if the reference links are good and start a new learning run.
+        If no good linkage rules have been found, check the reference links and start a new learning run.
       </div>
     }
   }

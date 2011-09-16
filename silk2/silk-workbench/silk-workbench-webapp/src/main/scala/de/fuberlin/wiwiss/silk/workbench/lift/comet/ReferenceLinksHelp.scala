@@ -16,6 +16,8 @@ class ReferenceLinksHelp extends LinksHelp {
   override def overview = {
     <div>
       The reference links of this linking task.
+      Positive reference links represent definitive matches, while negative reference links represent definitive non-matches.
+      The reference links are used for evaluating the quality of the current linkage rule as well as for learning new linkage rules.
     </div>
   }
 
