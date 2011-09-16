@@ -374,8 +374,16 @@ function getDeleteIcon(elementId) {
   img.attr("src", "static/img/delete.png");
   img.attr("align", "right");
   img.attr("style", "cursor:pointer;");
-  img.attr("onclick", "jsPlumb.removeAllEndpoints('" + elementId+"');$('" + elementId+"').remove(); UnTip(); modifyLinkSpec()");
+  //We need to set a time-out here as a element should not remove its own parent in its event handler
+  img.attr("onclick", "setTimeout(\"removeElement('" + elementId + "');\", 100);");
   return img;
+}
+
+function removeElement(elementId) {
+  jsPlumb.removeAllEndpoints(elementId);
+  $(elementId).remove();
+  UnTip();
+  modifyLinkSpec();
 }
 
 function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
@@ -982,6 +990,8 @@ function serializeLinkSpec() {
   var c = jsPlumb.getConnections();
   if (c[jsPlumb.getDefaultScope()] !== undefined) {
     var connections = "";
+    var sources = [];
+    var targets = [];
     for (var i = 0; i < c[jsPlumb.getDefaultScope()].length; i++)
     {
       var source = c[jsPlumb.getDefaultScope()][i].sourceId;
