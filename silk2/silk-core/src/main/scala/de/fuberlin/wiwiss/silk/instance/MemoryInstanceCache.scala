@@ -45,11 +45,12 @@ class MemoryInstanceCache(val instanceSpec: InstanceSpecification, runtimeConfig
    */
   private def add(instance: Instance, indexFunction: Instance => Set[Int]) {
     if (!allInstances.contains(instance.uri)) {
-      val index = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
+      val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
 
-      for (block <- index.map(_ % blockCount)) {
+      for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
         blocks(block).add(instance, Index.build(index))
       }
+
       allInstances += instance.uri
       instanceCounter += 1
     }
