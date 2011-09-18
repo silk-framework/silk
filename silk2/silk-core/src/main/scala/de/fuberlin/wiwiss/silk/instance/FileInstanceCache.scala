@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.util.logging.Logger
 import java.io._
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import de.fuberlin.wiwiss.silk.util.Timer
 
 /**
  * An instance cache, which caches the instances on the local file system.
@@ -22,15 +23,13 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
 
     try {
       for (instance <- instances) {
-        val index = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
+        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
 
-        for (block <- index.map(_ % blockCount)) {
-          if (block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
-
+        for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
           blocks(block).write(instance, Index.build(index))
         }
 
-        if (!index.isEmpty) instanceCount += 1
+        if (!indices.isEmpty) instanceCount += 1
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
@@ -143,7 +142,7 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
     }
 
     private def readPartitionFromFile(partition: Int) = {
-      val stream = new DataInputStream(new FileInputStream(blockDir + "/partition" + partition.toString))
+      val stream = new DataInputStream(new BufferedInputStream(new FileInputStream(blockDir + "/partition" + partition.toString)))
 
       try {
         Partition.deserialize(stream, instanceSpec)
@@ -156,7 +155,7 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
     private def writePartitionToFile() {
       if (partitionCount == 1) blockDir.mkdirs()
 
-      val stream = new DataOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1).toString))
+      val stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1).toString)))
 
       try {
         Partition(currentInstances, currentIndices, count).serialize(stream)

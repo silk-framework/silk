@@ -28,11 +28,9 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
       var instanceCount = 0
 
       for (instance <- instances) {
-        val index = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
+        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
 
-        for (block <- index.map(_ % blockCount)) {
-          if (block < 0 || block >= blockCount) throw new IllegalArgumentException("Invalid blocking function. (Allocated Block: " + block + ")")
-
+        for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
           blockWriters(block).write(instance, Index.build(index))
         }
 
@@ -124,7 +122,7 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
     }
 
     def read(partition: Int): Partition = {
-      val stream = new DataInputStream(fs.open(blockPath.suffix("/partition" + partition)))
+      val stream = new DataInputStream(new BufferedInputStream(fs.open(blockPath.suffix("/partition" + partition))))
 
       try {
         val count = stream.readInt()
@@ -174,7 +172,7 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
     }
 
     private def writePartition() {
-      val stream = new DataOutputStream(fs.create(blockPath.suffix("/partition" + partitionCount)))
+      val stream = new DataOutputStream(new BufferedOutputStream(fs.create(blockPath.suffix("/partition" + partitionCount))))
 
       try {
         stream.writeInt(count)
