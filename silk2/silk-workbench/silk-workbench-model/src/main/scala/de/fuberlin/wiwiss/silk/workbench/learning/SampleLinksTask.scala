@@ -115,9 +115,9 @@ class SampleLinksTask(sources: Traversable[Source],
       case i: PathInput => Seq(i.path)
     }
 
-    for (rule <- rules) {
-      println(collectPaths(rule.operator.get).mkString)
-    }
+//    for (rule <- rules) {
+//      println(collectPaths(rule.operator.get).mkString)
+//    }
     //println(rules.mkString("\n"))
 
     rules
@@ -154,8 +154,8 @@ class SampleLinksTask(sources: Traversable[Source],
     val r = linkSpec.rule(link.instances.get) > 0.
     val fitness = LinkageRuleEvaluator(linkSpec.rule, referenceInstances)
 
-    println(r +  " " + fitness + " " + link)
-    println(linkSpec.rule)
+//    println(r +  " " + fitness + " " + link)
+//    println(linkSpec.rule)
 
     if(r) max(fitness.fMeasure, minFMeasure) else 0.0
   }

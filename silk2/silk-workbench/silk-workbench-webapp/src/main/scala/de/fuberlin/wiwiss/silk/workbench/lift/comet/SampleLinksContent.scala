@@ -1,11 +1,9 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
-import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskRunning, TaskStarted, TaskStatus}
+import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
 import de.fuberlin.wiwiss.silk.workbench.learning.{SampleLinksTask, CurrentSampleLinksTask}
-import net.liftweb.http.js.JsCmds.Alert
-import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskValueListener, CurrentTaskStatusListener}
+import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskValueListener
 import de.fuberlin.wiwiss.silk.output.Link
 
 class SampleLinksContent extends Links with RateLinkButtons {
