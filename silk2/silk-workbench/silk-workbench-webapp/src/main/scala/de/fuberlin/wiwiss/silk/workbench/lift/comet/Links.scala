@@ -9,8 +9,9 @@ import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
+import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import java.util.logging.Logger
 
 /**
  * A widget which displays a list of links.
@@ -38,7 +39,7 @@ trait Links extends CometActor {
   protected def renderButtons(link: EvalLink): NodeSeq = NodeSeq.Empty
 
   /**Prefixes used to shorten URIs. We use known prefixes from the global registry and from the project */
-  private implicit var prefixes = PrefixRegistry.all ++ User().project.config.prefixes
+  private var prefixes = PrefixRegistry.all ++ User().project.config.prefixes
 
   override protected val dontCacheRendering = true
 
@@ -158,14 +159,17 @@ trait Links extends CometActor {
     <li>
       <span class={divClassPrefix+"-value"}>{ instance.uri }</span>
       <ul>
-        { for((path, index) <- instance.spec.paths.zipWithIndex) yield renderValues(path, instance.evaluate(index), divClassPrefix) }       </ul>
+        { for((path, index) <- instance.spec.paths.zipWithIndex) yield renderValues(path, instance.evaluate(index), divClassPrefix) }
+      </ul>
     </li>
   }
 
   private def renderValues(path: Path, values: Set[String], divClassPrefix: String) = {
+    val firstValues = values.take(11)
     <li>
       { path.serialize }
-      { values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+      { firstValues.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+      { if(firstValues.size > 10) "..." else NodeSeq.Empty }
     </li>
   }
 
