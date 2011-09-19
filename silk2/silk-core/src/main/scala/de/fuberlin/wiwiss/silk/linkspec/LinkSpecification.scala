@@ -145,6 +145,7 @@ object LinkSpecification {
   private def readTransformInput(node: Node)(implicit prefixes: Prefixes) = {
     val id = Operator.readId(node)
     val inputs = readInputs(node.child)
+    if(inputs.isEmpty) throw new ValidationException("No input defined", id, "Transformation")
 
     try {
       val transformer = Transformer(node \ "@function" text, readParams(node))
