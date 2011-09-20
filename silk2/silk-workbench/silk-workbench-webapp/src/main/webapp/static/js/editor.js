@@ -26,10 +26,15 @@ var customPropertyPathsCreated = false;
 var cycleFound = false;
 
 var modificationTimer;
+var reverting = false;
+
 var confirmOnExit = false;
 
 jsPlumb.Defaults.Container = "droppable";
 jsPlumb.Defaults.Connector = new jsPlumb.Connectors.Bezier(80);
+
+var instanceStack = new Array();
+var instanceIndex = -1;
 
 var endpointOptions =
 {
@@ -144,10 +149,15 @@ function getCurrentElementName(elId) {
 }
 
 var validateLinkSpec = function() {
+    console.log("validateLinkSpec");
     var errors = new Array();
     var root_elements = new Array();
     var totalNumberElements = 0;
     removeHighlighting();
+
+    console.log("reverting = " + reverting);
+    if (!reverting) saveInstance();
+    reverting = false;
 
     // if only one element exists
     if ($("#droppable > div.dragDiv").length === 1) {
@@ -233,6 +243,7 @@ var validateLinkSpec = function() {
 };
 
 function modifyLinkSpec() {
+  console.log("modifyLinkSpec");
   confirmOnExit = true;
   showPendingIcon();
   clearTimeout(modificationTimer);
@@ -240,6 +251,7 @@ function modifyLinkSpec() {
 }
 
 function updateStatus(errorMessages, warningMessages, infoMessages) {
+  console.log("updateStatus");
   $("#info-box").html("");
   if (errorMessages.length > 0) {
     $("#info-box").append(printErrorMessages(errorMessages));
@@ -404,10 +416,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#" + boxName;
-    box1.draggable(
-    {
-      containment: '#droppable'
-    });
+    jsPlumb.draggable(box1);
     box1.appendTo("#droppable");
 
     boxes[level].push(box1);
@@ -521,10 +530,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#" + boxName;
-    box1.draggable(
-    {
-      containment: '#droppable'
-    });
+    jsPlumb.draggable(box1);
     box1.appendTo("#droppable");
 
     boxes[level].push(box1);
@@ -654,10 +660,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#" + boxName;
-    box1.draggable(
-    {
-      containment: '#droppable'
-    });
+    jsPlumb.draggable(box1);
     box1.appendTo("#droppable");
 
     boxes[level].push(box1);
@@ -754,10 +757,7 @@ function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
     box1.attr("style", "left: " + left + "px; top: " + height + "px; position: absolute;");
 
     var number = "#" + boxName;
-    box1.draggable(
-    {
-      containment: '#droppable'
-    });
+    jsPlumb.draggable(box1);
     box1.appendTo("#droppable");
 
     boxes[level].push(box1);
@@ -1083,16 +1083,7 @@ $(function ()
         */
 
         $(number).prepend('<div class="label">' + boxid + '</div>');
-        $(number).draggable(
-        {
-          containment: '#droppable',
-            drag: function(event, ui) {
-              jsPlumb.repaint(number);
-            },
-            stop: function(event, ui) {
-              jsPlumb.repaint(number);
-            }
-        });
+        jsPlumb.draggable($(number));
 
         if (draggedId.search(/aggregator/) != -1)
         {
@@ -1137,24 +1128,29 @@ $(function ()
   });
 
   jsPlumb.bind("jsPlumbConnection", {
-    jsPlumbConnection: function() {
+    jsPlumbConnection: function(e) {
         modifyLinkSpec();
 	}
   });
   jsPlumb.bind("jsPlumbConnectionDetached", {
-    jsPlumbConnectionDetached: function() {
+    jsPlumbConnectionDetached: function(e) {
         modifyLinkSpec();
 	}
   });
 
   $("input[type!='text']").live('change', function(e) {
-    modifyLinkSpec();
+      reverting = true;
+      modifyLinkSpec();
   });
   $("input[type='text']").live('keyup', function(e) {
-    modifyLinkSpec();
+      reverting = true;
+      modifyLinkSpec();
   });
 
   $("#toolbar").append('<div id="validation-icons"></div>');
+  $("#toolbar").prepend('<button id ="redo" onclick="redo();" style="float: left; margin: 3px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span>Redo</span></button>');
+  $("#toolbar").prepend('<button id="undo" onclick="undo();" style="float: left; margin: 3px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span>Undo</span></button>');
+  $("#toolbar").prepend('<div id="status" style="float: left;"> STATUS </div>');
   $("#validation-icons").append('<div id="tick" style="display: none"></div>');
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
@@ -1205,7 +1201,112 @@ $(function ()
     $(this).parent().removeClass('active').attr('title', newPath).html(newPath);
   });
 
+  saveInstance();
 });
+
+function undo() {
+    if (instanceIndex > 0) loadInstance(instanceIndex - 1);
+
+}
+function redo() {
+    if (instanceIndex < instanceStack.length - 1) loadInstance(instanceIndex + 1);
+}
+
+function loadInstance(index) {
+    console.log("loading...");
+    reverting = true;
+    instanceIndex = index;
+
+    var elements = instanceStack[index];
+    var endpoint_right;
+    var endpoint_left;
+
+    jsPlumb.detachEveryConnection();
+    $("#droppable").html("");
+
+    for (var i = 0; i<elements.length; i++) {
+
+       endpoint_right = null;
+       endpoint_left = null;
+       var box = elements[i][0];
+       var boxid = box.attr('id');
+       var boxclass = box.attr('class');
+
+       $("#droppable").append(box);
+
+        if (boxclass.search(/aggregate/) != -1)
+        {
+          endpoint_left = jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="compare"], canvas[elType="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }, uuid: boxid}, endpointOptions1));
+          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions2);
+          box.nextUntil("div", ".ui-draggable").attr("elType", "aggregate");
+        }
+        if (boxclass.search(/transform/) != -1)
+        {
+          endpoint_left = jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }, uuid: boxid}, endpointOptions1));
+          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions2);
+          box.nextUntil("div", ".ui-draggable").attr("elType", "transform");
+        }
+        if (boxclass.search(/compare/) != -1)
+        {
+          endpoint_left = jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }, uuid: boxid}, endpointOptions1));
+          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions2);
+          box.nextUntil("div", ".ui-draggable").attr("elType", "compare");
+        }
+        if (boxclass.search(/source/) != -1)
+        {
+          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions);
+          box.nextUntil("div", ".ui-draggable").attr("elType", "source");
+        }
+        if (boxclass.search(/target/) != -1)
+        {
+          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions);
+          box.nextUntil("div", ".ui-draggable").attr("elType", "target");
+        }
+
+        elements[i][2] = endpoint_right;
+        elements[i][3] = jsPlumb.getEndpoint(elements[i][1]);
+        jsPlumb.draggable(box);
+    }
+
+    for (var j = 0; j<elements.length; j++) {
+        var endp_left = elements[j][2];
+        var endp_right = elements[j][3];
+
+        if (endp_left && endp_right) {
+            jsPlumb.connect({
+                sourceEndpoint: endp_left,
+                targetEndpoint: endp_right
+            });
+        }
+    }
+
+    $("#status").html(instanceIndex+1 + " / "+instanceStack.length);
+    modifyLinkSpec();
+
+}
+
+function saveInstance() {
+    console.log('saving...');
+    var elements = new Array();
+    var targets = new Array();
+    var i = 0;
+    $("#droppable > div.dragDiv").each(function() {
+        elements[i] = new Array();
+        var id = $(this).attr('id');
+        elements[i][0] = $(this);
+        var conns = jsPlumb.getConnections({source: id});
+        targets = conns[jsPlumb.getDefaultScope()];
+        if (targets !== undefined && targets.length > 0) {
+            var target = targets[0].target;
+            elements[i][1] = target.attr('id');
+        }
+        i++;
+    });
+    instanceStack[++instanceIndex] = elements;
+    instanceStack.splice(instanceIndex + 1);
+    $("#status").html(instanceIndex+1 + " / "+instanceStack.length);
+}
+
 
 function decodeHtml(value)
 {
