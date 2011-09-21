@@ -23,7 +23,7 @@ object StartLearningDialog extends Dialog {
 
   private val components = CheckboxesField("Components", "Which components of the link specification should be learned", "Transformations" :: "Aggregations" :: Nil, () => Set("Transformations", "Aggregations"))
 
-  override val fields = mode :: populationSize :: iterations :: components :: Nil
+  override val fields = mode :: populationSize :: iterations :: Nil
 
   override protected def dialogParams = ("autoOpen" -> "false") :: ("width" -> "600") :: ("modal" -> "true") :: Nil
 
