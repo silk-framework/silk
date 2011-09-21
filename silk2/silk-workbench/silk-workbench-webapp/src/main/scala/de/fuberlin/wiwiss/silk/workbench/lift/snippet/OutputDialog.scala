@@ -15,6 +15,9 @@ object OutputDialog extends StrategyDialog[LinkWriter] {
 
   override protected val strategies = LinkWriter.strategy("file") :: LinkWriter.strategy("sparul") :: Nil
 
+  //Close the current task if the window is closed
+  override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
+
   override protected def currentObj = {
     if (User().outputTaskOpen) {
       Some(User().outputTask.output.writer)
