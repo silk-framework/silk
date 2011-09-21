@@ -118,17 +118,18 @@ abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]
 /**
  * Listens to the current status of the current users task.
  */
-class CurrentTaskStatusListener(userData: UserData[_ <: HasStatus]) extends Listener[TaskStatus] with HasStatus {
+class CurrentTaskStatusListener[TaskType <: HasStatus](userData: UserData[TaskType]) extends Listener[TaskStatus] with HasStatus {
 
   updateStatus(userData().status)
   userData.onUpdate(Listener)
   statusLogLevel = Level.FINEST
   progressLogLevel = Level.FINEST
 
-  @volatile private var task = userData()
+  @volatile protected var task = userData()
 
-  private object Listener extends (HasStatus => Unit) {
-    def apply(task: HasStatus) {
+  private object Listener extends (TaskType => Unit) {
+    def apply(newTask: TaskType) {
+      task = newTask
       task.onUpdate(StatusListener)
     }
   }

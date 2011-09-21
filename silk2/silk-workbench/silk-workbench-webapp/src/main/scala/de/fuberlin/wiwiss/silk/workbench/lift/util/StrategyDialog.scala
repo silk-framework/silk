@@ -57,7 +57,7 @@ trait StrategyDialog[T <: Strategy] {
         Commands.close & Workspace.updateCmd
       } catch {
         case ex : Exception => {
-          Workspace.hideLoadingDialogCmd & JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
+          Workspace.hideLoadingDialogCmd & Alert(ex.getMessage.encJs)
         }
       }
     }
