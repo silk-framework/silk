@@ -149,13 +149,10 @@ function getCurrentElementName(elId) {
 }
 
 var validateLinkSpec = function() {
-    console.log("validateLinkSpec");
     var errors = new Array();
     var root_elements = new Array();
     var totalNumberElements = 0;
     removeHighlighting();
-
-    console.log("reverting = " + reverting);
     if (!reverting) saveInstance();
     reverting = false;
 
@@ -243,7 +240,6 @@ var validateLinkSpec = function() {
 };
 
 function modifyLinkSpec() {
-  console.log("modifyLinkSpec");
   confirmOnExit = true;
   showPendingIcon();
   clearTimeout(modificationTimer);
@@ -251,7 +247,6 @@ function modifyLinkSpec() {
 }
 
 function updateStatus(errorMessages, warningMessages, infoMessages) {
-  console.log("updateStatus");
   $("#info-box").html("");
   if (errorMessages.length > 0) {
     $("#info-box").append(printErrorMessages(errorMessages));
@@ -1063,6 +1058,7 @@ function serializeLinkSpec() {
 
 $(function ()
 {
+  modifyLinkSpec();
   $("#droppable").droppable(
   //{ tolerance: 'touch' },
   {
@@ -1148,15 +1144,17 @@ $(function ()
   });
 
   $("#toolbar").append('<div id="validation-icons"></div>');
-  $("#toolbar").prepend('<button id ="redo" onclick="redo();" style="float: left; margin: 3px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span>Redo</span></button>');
-  $("#toolbar").prepend('<button id="undo" onclick="undo();" style="float: left; margin: 3px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span>Undo</span></button>');
-  $("#toolbar").prepend('<div id="status" style="float: left;"> STATUS </div>');
+  $("#toolbar").prepend('<button id="redo" onclick="redo();" style="float: left; margin: 3px;"><span>Redo</span></button>');
+  $("#toolbar").prepend('<button id="undo" onclick="undo();" style="float: left; margin: 3px;"><span>Undo</span></button>');
   $("#validation-icons").append('<div id="tick" style="display: none"></div>');
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="pending" style="display: none"></div>');
   $("#validation-icons").append('<div id="info" style="display: none"><span class="precission"></span><span class="recall"></span><span class="measure"></span></div>');
   $("#toolbar").append('<div id="info-box" style="display: none"></div>');
+
+  $("#undo").button({ disabled: true });
+  $("#redo").button({ disabled: true });
 
   $("#exclamation, #warning").mouseover(function() {
    $(this).attr("style", "cursor:pointer;");
@@ -1201,7 +1199,6 @@ $(function ()
     $(this).parent().removeClass('active').attr('title', newPath).html(newPath);
   });
 
-  saveInstance();
 });
 
 function undo() {
@@ -1213,16 +1210,18 @@ function redo() {
 }
 
 function loadInstance(index) {
-    console.log("loading...");
     reverting = true;
     instanceIndex = index;
-
+    updateRevertButtons();
     var elements = instanceStack[index];
     var endpoint_right;
     var endpoint_left;
 
     jsPlumb.detachEveryConnection();
-    $("#droppable").html("");
+    $("#droppable > div.dragDiv").each(function () {
+        jsPlumb.removeAllEndpoints($(this).attr('id'));
+        $(this).remove();
+    });
 
     for (var i = 0; i<elements.length; i++) {
 
@@ -1280,13 +1279,11 @@ function loadInstance(index) {
         }
     }
 
-    $("#status").html(instanceIndex+1 + " / "+instanceStack.length);
     modifyLinkSpec();
 
 }
 
 function saveInstance() {
-    console.log('saving...');
     var elements = new Array();
     var targets = new Array();
     var i = 0;
@@ -1304,9 +1301,21 @@ function saveInstance() {
     });
     instanceStack[++instanceIndex] = elements;
     instanceStack.splice(instanceIndex + 1);
-    $("#status").html(instanceIndex+1 + " / "+instanceStack.length);
+    updateRevertButtons();
 }
 
+function updateRevertButtons() {
+    if (instanceIndex > 0) {
+        $("#undo").button("enable");
+    } else {
+        $("#undo").button("disable");
+    }
+    if (instanceIndex  < instanceStack.length - 1) {
+        $("#redo").button("enable");
+    } else {
+        $("#redo").button("disable");
+    }
+}
 
 function decodeHtml(value)
 {
