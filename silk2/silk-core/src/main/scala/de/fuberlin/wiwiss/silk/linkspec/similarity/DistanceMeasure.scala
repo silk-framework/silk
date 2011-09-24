@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
 import scala.math.min
 
 trait DistanceMeasure extends Strategy {
+  //TODO accept set instead of traversable?
   def apply(values1: Traversable[String], values2: Traversable[String], limit: Double = Double.PositiveInfinity): Double
 
   def index(values: Set[String], limit: Double): Set[Seq[Int]] = Set(Seq(0))

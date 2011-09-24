@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 class JaccardDistance extends DistanceMeasure {
   private val blockCount = 1000
 
-  override def apply(values1: Traversable[String], values2: Traversable[String], threshold: Double): Double = {
+  override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
     val set1 = values1.toSet
     val set2 = values2.toSet
 
@@ -17,12 +17,14 @@ class JaccardDistance extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / unionSize
   }
 
-//  override def index(str: String, threshold: Double): Set[Seq[Int]] = {
-//    val
-//    Set(Seq((str.hashCode % blockCount).abs))
-//  }
-//
-//  override def blockCounts(threshold: Double): Seq[Int] = {
-//    Seq(blockCount)
-//  }
+  override def index(values: Set[String], limit: Double): Set[Seq[Int]] = {
+    //The number of values we need to index
+    val indexSize = math.round(values.size * limit + 0.5).toInt
+
+    values.take(indexSize).map(value => Seq((value.hashCode % blockCount).abs))
+  }
+
+  override def blockCounts(threshold: Double): Seq[Int] = {
+    Seq(blockCount)
+  }
 }
