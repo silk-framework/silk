@@ -5,11 +5,11 @@ import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
 
 @StrategyAnnotation(id = "concat", label = "Concatenate", description = "Concatenates strings from two inputs.")
 class ConcatTransformer(glue: String = "") extends Transformer {
-  override def apply(values: Seq[Traversable[String]]): Traversable[String] = {
+  override def apply(values: Seq[Set[String]]): Set[String] = {
     for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
   }
 
-  private def cartesianProduct(strings: Seq[Traversable[String]]): Traversable[List[String]] = {
+  private def cartesianProduct(strings: Seq[Set[String]]): Set[List[String]] = {
     if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
     else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
   }

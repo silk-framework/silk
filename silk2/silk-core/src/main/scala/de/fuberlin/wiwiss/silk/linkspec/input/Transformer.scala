@@ -6,14 +6,14 @@ import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
  * Transforms values.
  */
 trait Transformer extends Strategy {
-  def apply(values: Seq[Traversable[String]]): Traversable[String]
+  def apply(values: Seq[Set[String]]): Set[String]
 }
 
 /**
  * Simple transformer which transforms all values of the first input.
  */
 trait SimpleTransformer extends Transformer {
-  override def apply(values: Seq[Traversable[String]]): Traversable[String] = {
+  override final def apply(values: Seq[Set[String]]): Set[String] = {
     values.head.map(evaluate)
   }
 

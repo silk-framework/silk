@@ -6,7 +6,7 @@ import scala.math.min
 trait DistanceMeasure extends Strategy {
   def apply(values1: Traversable[String], values2: Traversable[String], limit: Double = Double.PositiveInfinity): Double
 
-  def index(value: String, limit: Double): Set[Seq[Int]] = Set(Seq(0))
+  def index(values: Set[String], limit: Double): Set[Seq[Int]] = Set(Seq(0))
 
   def blockCounts(limit: Double): Seq[Int] = Seq(1)
 
@@ -53,7 +53,7 @@ trait DistanceMeasure extends Strategy {
  * A simple similarity measure which compares pairs of values.
  */
 trait SimpleDistanceMeasure extends DistanceMeasure {
-  def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
+  override final def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
     var minDistance = Double.MaxValue
 
     for (str1 <- values1; str2 <- values2) {
@@ -64,10 +64,19 @@ trait SimpleDistanceMeasure extends DistanceMeasure {
     minDistance
   }
 
+  override final def index(values: Set[String], limit: Double): Set[Seq[Int]] =  {
+    values.flatMap(value => indexValue(value, limit))
+  }
+
   /**
-   * Evaluates the similarity of a pair of similarity values.
+   * Computes the similarity of a pair of values.
    */
   def evaluate(value1: String, value2: String, limit: Double = Double.PositiveInfinity): Double
+
+  /**
+   * Computes the index of a single value.
+   */
+  def indexValue(value: String, limit: Double): Set[Seq[Int]] = Set(Seq(0))
 }
 
 object DistanceMeasure extends Factory[DistanceMeasure]

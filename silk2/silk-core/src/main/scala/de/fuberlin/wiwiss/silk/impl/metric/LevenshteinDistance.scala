@@ -19,7 +19,7 @@ case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends
     }
   }
 
-  override def index(str: String, limit: Double): Set[Seq[Int]] = {
+  override def indexValue(str: String, limit: Double): Set[Seq[Int]] = {
     val qGrams = str.qGrams(q)
     val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 
