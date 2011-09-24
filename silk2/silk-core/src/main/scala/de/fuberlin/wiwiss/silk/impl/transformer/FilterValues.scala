@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 class FilterValues(blacklist: String) extends Transformer {
   val filterValues = blacklist.split(",").map(_.trim.toLowerCase).toSet
 
-  override def apply(values: Seq[Traversable[String]]) = {
+  override def apply(values: Seq[Set[String]]) = {
     values.head.map(_.toLowerCase).filterNot(filterValues.contains)
   }
 }

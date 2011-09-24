@@ -31,11 +31,11 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers {
   }
 
   "LevenshteinDistance" should "index '0' to the first block" in {
-    metric.index("0", 0.0) should equal(Set(Seq(0)))
+    metric.indexValue("0", 0.0) should equal(Set(Seq(0)))
   }
 
   "LevenshteinDistance" should "index 'zzzzz' to the last block" in {
-    metric.index("zzzzz", 0.0) should equal(Set(Seq(metric.blockCounts(0.0).head - 1)))
+    metric.indexValue("zzzzz", 0.0) should equal(Set(Seq(metric.blockCounts(0.0).head - 1)))
   }
 
   // Invalid if q > 1:

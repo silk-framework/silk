@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.linkspec.Operator
 case class TransformInput(id: Identifier = Operator.generateId, inputs: Seq[Input], transformer: Transformer) extends Input {
   require(inputs.size > 0, "Number of inputs must be > 0.")
 
-  def apply(instances: SourceTargetPair[Instance]): Traversable[String] = {
+  def apply(instances: SourceTargetPair[Instance]): Set[String] = {
     val values = for (input <- inputs) yield input(instances)
 
     transformer(values)

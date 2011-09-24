@@ -23,24 +23,19 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
     val values1 = inputs.source(instances)
     val values2 = inputs.target(instances)
 
-    if (values1.isEmpty || values2.isEmpty) {
+    if (values1.isEmpty || values2.isEmpty)
       None
-    }
     else {
       val distance = metric(values1, values2, threshold * (1.0 - limit))
 
-      if (distance == 0.0 && threshold == 0.0) {
+      if (distance == 0.0 && threshold == 0.0)
         Some(1.0)
-      }
-      else if (distance <= threshold) {
+      else if (distance <= threshold)
         Some(1.0 - distance / threshold)
-      }
-      else if (!required) {
+      else if (!required)
         Some(-1.0)
-      }
-      else {
+      else
         None
-      }
     }
   }
 
@@ -59,7 +54,7 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
 
     val distanceLimit = threshold * (1.0 - limit)
 
-    values.flatMap(value => metric.index(value, distanceLimit)).toSet
+    metric.index(values, distanceLimit)
   }
 
   /**

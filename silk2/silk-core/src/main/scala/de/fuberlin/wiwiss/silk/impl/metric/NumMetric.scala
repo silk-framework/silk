@@ -50,7 +50,7 @@ class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Double = D
     }
   }
 
-  override def index(str: String, limit: Double): Set[Seq[Int]] = {
+  override def indexValue(str: String, limit: Double): Set[Seq[Int]] = {
     if (indexEnabled) {
       str match {
         case DoubleLiteral(num) => {

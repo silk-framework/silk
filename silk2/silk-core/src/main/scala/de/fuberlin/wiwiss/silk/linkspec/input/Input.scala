@@ -16,7 +16,7 @@ trait Input extends Operator {
    * @param instances The pair of instances.
    * @return The values.
    */
-  def apply(instances: SourceTargetPair[Instance]): Traversable[String]
+  def apply(instances: SourceTargetPair[Instance]): Set[String]
 
   def toXML(implicit prefixes: Prefixes): Node
 }

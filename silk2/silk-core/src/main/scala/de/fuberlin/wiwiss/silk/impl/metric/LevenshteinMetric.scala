@@ -16,8 +16,8 @@ case class LevenshteinMetric(minChar: Char = '0', maxChar: Char = 'z') extends S
     levenshtein.evaluate(str1, str2, limit * scale) / scale
   }
 
-  override def index(str: String, limit: Double): Set[Seq[Int]] = {
-    levenshtein.index(str, limit * str.length)
+  override def indexValue(str: String, limit: Double): Set[Seq[Int]] = {
+    levenshtein.indexValue(str, limit * str.length)
   }
 
   override def blockCounts(threshold: Double): Seq[Int] = {

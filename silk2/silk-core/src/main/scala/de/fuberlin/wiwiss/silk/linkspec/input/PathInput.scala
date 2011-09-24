@@ -15,16 +15,13 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    * @param instances The pair of instances.
    * @return The values.
    */
-  override def apply(instances: SourceTargetPair[Instance]) = {
-    if (instances.source.spec.variable == path.variable) {
+  override def apply(instances: SourceTargetPair[Instance]): Set[String] = {
+    if (instances.source.spec.variable == path.variable)
       instances.source.evaluate(path)
-    }
-    else if (instances.target.spec.variable == path.variable) {
+    else if (instances.target.spec.variable == path.variable)
       instances.target.evaluate(path)
-    }
-    else {
-      Traversable.empty
-    }
+    else
+      Set.empty
   }
 
   override def toXML(implicit prefixes: Prefixes) = <Input id={id} path={path.serialize}/>
