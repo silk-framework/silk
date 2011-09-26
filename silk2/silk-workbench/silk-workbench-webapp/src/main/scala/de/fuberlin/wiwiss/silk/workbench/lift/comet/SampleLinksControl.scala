@@ -3,7 +3,8 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListener}
-import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentSampleLinksTask, CurrentLearningTask, SampleLinksTask}
+import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentSampleLinksTask, CurrentLearningTask}
+import de.fuberlin.wiwiss.silk.learning.sampling.SampleLinksTask
 
 class SampleLinksControl extends DynamicButton {
 
