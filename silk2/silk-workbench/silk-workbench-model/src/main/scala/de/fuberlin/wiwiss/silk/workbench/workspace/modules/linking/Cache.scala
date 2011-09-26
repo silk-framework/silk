@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking
 
-import de.fuberlin.wiwiss.silk.instance.{InstanceSpecification, Instance}
+import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity}
 import xml.{NodeBuffer, Node}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
@@ -9,48 +9,47 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.task._
-import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
-import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, ReferenceInstances}
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.lang.InterruptedException
 import java.util.logging.Level
 
 //TODO use options?
 //TODO store path frequencies
-class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecification] = null,
-            private var existingInstances: ReferenceInstances = ReferenceInstances.empty) extends HasStatus {
+class Cache(private var existingEntityDescs: SourceTargetPair[EntityDescription] = null,
+            private var existingEntities: ReferenceEntities = ReferenceEntities.empty) extends HasStatus {
 
-  /**The cached instance specifications containing the most frequent paths */
-  @volatile private var cachedInstanceSpecs: SourceTargetPair[InstanceSpecification] = null
+  /**The cached entity descriptions containing the most frequent paths */
+  @volatile private var cachedEntityDescs: SourceTargetPair[EntityDescription] = null
 
-  /**The cached instances */
-  @volatile private var cachedInstances: ReferenceInstances = ReferenceInstances.empty
+  /**The cached entities */
+  @volatile private var cachedEntities: ReferenceEntities = ReferenceEntities.empty
 
   @volatile private var loadingThread: CacheLoader = null
 
   progressLogLevel = Level.FINE
 
-  /**The cached instance specifications containing the most frequent paths */
-  def instanceSpecs = cachedInstanceSpecs
+  /**The cached entity descriptions containing the most frequent paths */
+  def entityDescs = cachedEntityDescs
 
-  /**The cached instances */
-  def instances = cachedInstances
+  /**The cached entities */
+  def entities = cachedEntities
 
   /**
    * Update this cache.
    */
   def update() = {
     removeSubscriptions()
-    new Cache(instanceSpecs, instances)
+    new Cache(entityDescs, entities)
   }
 
   /**
    * Reloads the cache.
    */
   def reload(project : Project, task: LinkingTask) {
-    existingInstanceSpecs = null
-    cachedInstanceSpecs = null
-    existingInstances = ReferenceInstances.empty
-    cachedInstances = ReferenceInstances.empty
+    existingEntityDescs = null
+    cachedEntityDescs = null
+    existingEntities = ReferenceEntities.empty
+    cachedEntities = ReferenceEntities.empty
 
     load(project, task)
   }
@@ -73,45 +72,45 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
   def toXML(implicit prefixes: Prefixes): Node = {
     val nodes = new NodeBuffer()
 
-    if (instanceSpecs != null) {
+    if (entityDescs != null) {
       nodes.append(
-        <InstanceSpecifications>
+        <EntityDescriptions>
           <Source>
-            {instanceSpecs.source.toXML}
+            {entityDescs.source.toXML}
           </Source>
           <Target>
-            {instanceSpecs.target.toXML}
+            {entityDescs.target.toXML}
           </Target>
-        </InstanceSpecifications>)
+        </EntityDescriptions>)
     }
 
     nodes.append(
-      <PositiveInstances>
-        {for (SourceTargetPair(sourceInstance, targetInstance) <- instances.positive.values) yield {
+      <PositiveEntities>
+        {for (SourceTargetPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
         <Pair>
           <Source>
-            {sourceInstance.toXML}
+            {sourceEntity.toXML}
           </Source>
           <Target>
-            {targetInstance.toXML}
+            {targetEntity.toXML}
           </Target>
         </Pair>
       }}
-      </PositiveInstances>)
+      </PositiveEntities>)
 
     nodes.append(
-      <NegativeInstances>
-        {for (SourceTargetPair(sourceInstance, targetInstance) <- instances.negative.values) yield {
+      <NegativeEntities>
+        {for (SourceTargetPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
         <Pair>
           <Source>
-            {sourceInstance.toXML}
+            {sourceEntity.toXML}
           </Source>
           <Target>
-            {targetInstance.toXML}
+            {targetEntity.toXML}
           </Target>
         </Pair>
       }}
-      </NegativeInstances>)
+      </NegativeEntities>)
 
     <Cache>
       {nodes}
@@ -126,7 +125,7 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
       updateStatus(TaskStarted("Loading cache"))
       try {
         loadPaths()
-        loadInstances()
+        loadEntities()
         updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))
         if(!isInterrupted) {
           project.linkingModule.update(task)
@@ -149,118 +148,118 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
     private def loadPaths() {
       updateStatus("Retrieving frequent property paths", 0.0)
 
-      //Create an instance spec from the link specification
-      val currentInstanceSpecs = InstanceSpecification.retrieve(task.linkSpec)
+      //Create an entity description from the link specification
+      val currentEntityDescs = EntityDescription.retrieve(task.linkSpec)
 
       //Check if the restriction has been changed
-      if(existingInstanceSpecs != null &&
-         currentInstanceSpecs.source.restrictions == existingInstanceSpecs.source.restrictions &&
-         currentInstanceSpecs.target.restrictions == existingInstanceSpecs.target.restrictions) {
-        cachedInstanceSpecs = existingInstanceSpecs
+      if(existingEntityDescs != null &&
+         currentEntityDescs.source.restrictions == existingEntityDescs.source.restrictions &&
+         currentEntityDescs.target.restrictions == existingEntityDescs.target.restrictions) {
+        cachedEntityDescs = existingEntityDescs
       } else {
-        cachedInstanceSpecs = null
-        cachedInstances = ReferenceInstances.empty
+        cachedEntityDescs = null
+        cachedEntities = ReferenceEntities.empty
       }
 
-      if (cachedInstanceSpecs == null) {
+      if (cachedEntityDescs == null) {
         //Retrieve most frequent paths
         val paths = for ((source, dataset) <- sources zip task.linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
 
-        //Add the frequent paths to the instance specification
-        cachedInstanceSpecs = for ((instanceSpec, paths) <- currentInstanceSpecs zip paths) yield instanceSpec.copy(paths = (instanceSpec.paths ++ paths.map(_._1)).distinct)
+        //Add the frequent paths to the entity description
+        cachedEntityDescs = for ((entityDesc, paths) <- currentEntityDescs zip paths) yield entityDesc.copy(paths = (entityDesc.paths ++ paths.map(_._1)).distinct)
       } else {
-        //Add the existing paths to the instance specification
-        cachedInstanceSpecs = for ((spec1, spec2) <- currentInstanceSpecs zip existingInstanceSpecs) yield spec1.copy(paths = (spec1.paths ++ spec2.paths).distinct)
+        //Add the existing paths to the entity description
+        cachedEntityDescs = for ((spec1, spec2) <- currentEntityDescs zip existingEntityDescs) yield spec1.copy(paths = (spec1.paths ++ spec2.paths).distinct)
       }
     }
 
     /**
-     * Loads the instances.
+     * Loads the entities.
      */
-    private def loadInstances() {
-      updateStatus("Loading instances", 0.2)
+    private def loadEntities() {
+      updateStatus("Loading entities", 0.2)
 
       val linkCount = task.referenceLinks.positive.size + task.referenceLinks.negative.size
       var loadedLinks = 0
 
       for (link <- task.referenceLinks.positive) {
         if(isInterrupted) throw new InterruptedException()
-        cachedInstances = instances.withPositive(loadPositiveLink(link))
+        cachedEntities = entities.withPositive(loadPositiveLink(link))
         loadedLinks += 1
         updateStatus(0.2 + 0.8 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- task.referenceLinks.negative) {
         if(isInterrupted) throw new InterruptedException()
-        cachedInstances = instances.withNegative(loadNegativeLink(link))
+        cachedEntities = entities.withNegative(loadNegativeLink(link))
         loadedLinks += 1
         updateStatus(0.2 + 0.8 * (loadedLinks.toDouble / linkCount))
       }
     }
 
     private def loadPositiveLink(link: Link) = {
-      existingInstances.positive.get(link) match {
-        case None => retrieveInstancePair(link)
-        case Some(instancePair) => updateInstancePair(instancePair)
+      existingEntities.positive.get(link) match {
+        case None => retrieveEntityPair(link)
+        case Some(entityPair) => updateEntityPair(entityPair)
       }
     }
 
     private def loadNegativeLink(link: Link) = {
-      existingInstances.negative.get(link) match {
-        case None => retrieveInstancePair(link)
-        case Some(instancePair) => updateInstancePair(instancePair)
+      existingEntities.negative.get(link) match {
+        case None => retrieveEntityPair(link)
+        case Some(entityPair) => updateEntityPair(entityPair)
       }
     }
 
-    private def retrieveInstancePair(uris: SourceTargetPair[String]) = {
+    private def retrieveEntityPair(uris: SourceTargetPair[String]) = {
       SourceTargetPair(
-        source = sources.source.retrieve(instanceSpecs.source, uris.source :: Nil).head,
-        target = sources.target.retrieve(instanceSpecs.target, uris.target :: Nil).head
+        source = sources.source.retrieve(entityDescs.source, uris.source :: Nil).head,
+        target = sources.target.retrieve(entityDescs.target, uris.target :: Nil).head
       )
     }
 
-    private def updateInstancePair(instances: SourceTargetPair[Instance]) = {
+    private def updateEntityPair(entities: SourceTargetPair[Entity]) = {
       SourceTargetPair(
-        source = updateInstance(instances.source, instanceSpecs.source, sources.source),
-        target = updateInstance(instances.target, instanceSpecs.target, sources.target)
+        source = updateEntity(entities.source, entityDescs.source, sources.source),
+        target = updateEntity(entities.target, entityDescs.target, sources.target)
       )
     }
 
     /**
-     * Updates an instance so that it conforms to a new instance specification.
-     * All property paths values which are not available in the given instance are loaded from the source.
+     * Updates an entity so that it conforms to a new entity description.
+     * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateInstance(instance: Instance, instanceSpec: InstanceSpecification, source: DataSource) = {
-      if (instance.spec.paths == instanceSpec.paths) {
-        //The given instance already contains all paths in the correct order.
-        instance
+    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource) = {
+      if (entity.desc.paths == entityDesc.paths) {
+        //The given entity already contains all paths in the correct order.
+        entity
       } else {
-        //Compute the paths which are missing on the given instance
-        val existingPaths = instance.spec.paths.toSet
-        val missingPaths = instanceSpec.paths.filterNot(existingPaths.contains)
+        //Compute the paths which are missing on the given entity
+        val existingPaths = entity.desc.paths.toSet
+        val missingPaths = entityDesc.paths.filterNot(existingPaths.contains)
 
-        //Retrieve an instance with all missing paths
-        val missingInstance =
+        //Retrieve an entity with all missing paths
+        val missingEntity =
           source.retrieve(
-            instanceSpec = instance.spec.copy(paths = missingPaths),
-            instances = instance.uri :: Nil
+            entityDesc = entity.desc.copy(paths = missingPaths),
+            entities = entity.uri :: Nil
           ).head
 
-        //Collect values from the existing and the new instance
+        //Collect values from the existing and the new entity
         val values =
-          for(path <- instanceSpec.paths) yield {
-            val pathIndex = instance.spec.paths.indexOf(path)
+          for(path <- entityDesc.paths) yield {
+            val pathIndex = entity.desc.paths.indexOf(path)
             if(pathIndex != -1)
-              instance.evaluate(pathIndex)
+              entity.evaluate(pathIndex)
             else
-              missingInstance.evaluate(path)
+              missingEntity.evaluate(path)
           }
 
-        //Return the updated instance
-        new Instance(
-          uri = instance.uri,
+        //Return the updated entity
+        new Entity(
+          uri = entity.uri,
           values = values,
-          spec = instanceSpec
+          desc = entityDesc
         )
       }
     }
@@ -270,43 +269,43 @@ class Cache(private var existingInstanceSpecs: SourceTargetPair[InstanceSpecific
 
 object Cache {
   def fromXML(node: Node) = {
-    val existingInstanceSpecs = {
-      if (node \ "InstanceSpecifications" isEmpty) {
+    val existingEntityDescs = {
+      if (node \ "EntityDescriptions" isEmpty) {
         null
       } else {
-        val sourceSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Source" \ "_" head)
-        val targetSpec = InstanceSpecification.fromXML(node \ "InstanceSpecifications" \ "Target" \ "_" head)
+        val sourceSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Source" \ "_" head)
+        val targetSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Target" \ "_" head)
         new SourceTargetPair(sourceSpec, targetSpec)
       }
     }
 
-    val positiveInstances: Traversable[SourceTargetPair[Instance]] = {
-      if (node \ "PositiveInstances" isEmpty) {
+    val positiveEntities: Traversable[SourceTargetPair[Entity]] = {
+      if (node \ "PositiveEntities" isEmpty) {
         Traversable.empty
       } else {
-        for (pairNode <- node \ "PositiveInstances" \ "Pair" toList) yield {
+        for (pairNode <- node \ "PositiveEntities" \ "Pair" toList) yield {
           SourceTargetPair(
-            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
-            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
+            Entity.fromXML(pairNode \ "Source" \ "Entity" head, existingEntityDescs.source),
+            Entity.fromXML(pairNode \ "Target" \ "Entity" head, existingEntityDescs.target))
         }
       }
     }
 
-    val negativeInstances: Traversable[SourceTargetPair[Instance]] = {
-      if (node \ "NegativeInstances" isEmpty) {
+    val negativeEntities: Traversable[SourceTargetPair[Entity]] = {
+      if (node \ "NegativeEntities" isEmpty) {
         Traversable.empty
       } else {
-        for (pairNode <- node \ "NegativeInstances" \ "Pair" toList) yield {
+        for (pairNode <- node \ "NegativeEntities" \ "Pair" toList) yield {
           SourceTargetPair(
-            Instance.fromXML(pairNode \ "Source" \ "Instance" head, existingInstanceSpecs.source),
-            Instance.fromXML(pairNode \ "Target" \ "Instance" head, existingInstanceSpecs.target))
+            Entity.fromXML(pairNode \ "Source" \ "Entity" head, existingEntityDescs.source),
+            Entity.fromXML(pairNode \ "Target" \ "Entity" head, existingEntityDescs.target))
         }
       }
     }
 
-    val existingInstances = ReferenceInstances.fromInstances(positiveInstances, negativeInstances)
+    val existingEntities = ReferenceEntities.fromEntities(positiveEntities, negativeEntities)
 
-    new Cache(existingInstanceSpecs, existingInstances)
+    new Cache(existingEntityDescs, existingEntities)
   }
 }
 

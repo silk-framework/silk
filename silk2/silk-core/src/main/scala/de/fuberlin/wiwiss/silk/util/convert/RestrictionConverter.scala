@@ -3,12 +3,12 @@ package de.fuberlin.wiwiss.silk.util.convert
 
 import util.parsing.combinator.RegexParsers
 import de.fuberlin.wiwiss.silk.util.ValidationException
-import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.entity.Path
 import util.parsing.input.CharSequenceReader
 
-import de.fuberlin.wiwiss.silk.instance.{Restriction, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.{Restriction, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.instance.Restriction.{Operator, Or, Condition, And}
+import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Or, Condition, And}
 
 
 /**

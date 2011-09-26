@@ -1,14 +1,14 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import de.fuberlin.wiwiss.silk.util.task.Task
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.util.logging.Level
 import scala.util.Random
 
 /**
  * Performs multiple cross validation runs and outputs the statistics.
  */
-class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
+class CrossValidationTask(entities : ReferenceEntities) extends Task[Unit] {
   /** The number of cross validation runs. */
   private val numRuns = 10
 
@@ -41,7 +41,7 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
    * Executes one cross validation run.
    */
   private def crossValidation(run: Int): Iterable[Seq[LearningResult]] = {
-    val splits = splitReferenceInstances()
+    val splits = splitReferenceEntities()
 
     for((split, index) <- splits.zipWithIndex) yield {
       val learningTask = new LearningTask(split, config)
@@ -63,16 +63,16 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
   }
 
   /**
-   * Splits the reference instances..
+   * Splits the reference entities..
    */
-  private def splitReferenceInstances(): IndexedSeq[LearningInput] = {
-    //Get the positive and negative reference instances
-    val posInstances = Random.shuffle(instances.positive.values)
-    val negInstances = Random.shuffle(instances.negative.values)
+  private def splitReferenceEntities(): IndexedSeq[LearningInput] = {
+    //Get the positive and negative reference entities
+    val posEntities = Random.shuffle(entities.positive.values)
+    val negEntities = Random.shuffle(entities.negative.values)
 
-    //Split the reference instances into numFolds samples
-    val posSamples = posInstances.grouped((posInstances.size.toDouble / numFolds).ceil.toInt).toStream
-    val negSamples = negInstances.grouped((negInstances.size.toDouble / numFolds).ceil.toInt).toStream
+    //Split the reference entities into numFolds samples
+    val posSamples = posEntities.grouped((posEntities.size.toDouble / numFolds).ceil.toInt).toStream
+    val negSamples = negEntities.grouped((negEntities.size.toDouble / numFolds).ceil.toInt).toStream
 
     //Generate numFold splits
     val posSplits = (posSamples ++ posSamples).sliding(posSamples.size).take(posSamples.size)
@@ -82,8 +82,8 @@ class CrossValidationTask(instances : ReferenceInstances) extends Task[Unit] {
     val splits =
       for((p, n) <- posSplits zip negSplits) yield {
         LearningInput(
-          trainingInstances = ReferenceInstances.fromInstances(p.tail.flatten, n.tail.flatten),
-          validationInstances = ReferenceInstances.fromInstances(p.head, n.head)
+          trainingEntities = ReferenceEntities.fromEntities(p.tail.flatten, n.tail.flatten),
+          validationEntities = ReferenceEntities.fromEntities(p.head, n.head)
         )
       }
 

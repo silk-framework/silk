@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.learning.generation
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.instance.Path
-import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
+import de.fuberlin.wiwiss.silk.entity.Path
+import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode
 
 class FullGenerator(components: Components) {
 

@@ -3,8 +3,8 @@ package de.fuberlin.wiwiss.silk.util.convert
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.instance.{Path, SparqlRestriction, Restriction}
-import de.fuberlin.wiwiss.silk.instance.Restriction.{Or, Condition}
+import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, Restriction}
+import de.fuberlin.wiwiss.silk.entity.Restriction.{Or, Condition}
 
 class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   implicit val prefixes: Prefixes = Map(

@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import org.apache.hadoop.io.Writable
 import java.io.{DataInput, DataOutput}
 
-class InstanceConfidence(var similarity : Double, var targetUri : String) extends Writable
+class EntityConfidence(var similarity : Double, var targetUri : String) extends Writable
 {
   def this() = this(0.0, null)
 

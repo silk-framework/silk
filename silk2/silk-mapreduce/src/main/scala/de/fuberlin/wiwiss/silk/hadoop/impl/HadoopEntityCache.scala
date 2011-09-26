@@ -2,15 +2,15 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import java.util.logging.Logger
 import org.apache.hadoop.fs.{Path, FileSystem}
-import de.fuberlin.wiwiss.silk.instance._
+import de.fuberlin.wiwiss.silk.entity._
 import java.io._
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 
 /**
- * An instance cache, which uses the Hadoop FileSystem API.
- * This can be used to cache the instances on any file system which is supported by Hadoop e.g. the Hadoop Distributed FileSystem.
+ * An entity cache, which uses the Hadoop FileSystem API.
+ * This can be used to cache the entities on any file system which is supported by Hadoop e.g. the Hadoop Distributed FileSystem.
  */
-class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSystem, path: Path, runtimeConfig: RuntimeConfig) extends InstanceCache {
+class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path: Path, runtimeConfig: RuntimeConfig) extends EntityCache {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -18,30 +18,30 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
 
   @volatile private var writing = false
 
-  override def write(instances: Traversable[Instance], indexFunction: Instance => Set[Int]) {
+  override def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int]) {
     writing = true
 
     try {
       fs.delete(path, true)
 
       val blockWriters = (for (i <- 0 until blockCount) yield new BlockWriter(i)).toArray
-      var instanceCount = 0
+      var entityCount = 0
 
-      for (instance <- instances) {
-        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
+      for (entity <- entities) {
+        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
-          blockWriters(block).write(instance, Index.build(index))
+          blockWriters(block).write(entity, Index.build(index))
         }
 
-        instanceCount += 1
+        entityCount += 1
       }
 
       blockWriters.foreach(_.close())
 
       blocks.foreach(_.reload())
 
-      logger.info("Written " + instanceCount + " instances.")
+      logger.info("Written " + entityCount + " entities.")
     }
     finally {
       writing = false
@@ -126,15 +126,15 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
 
       try {
         val count = stream.readInt()
-        val instances = new Array[Instance](count)
+        val entities = new Array[Entity](count)
         val indices = new Array[Index](count)
 
         for (i <- 0 until count) {
-          instances(i) = Instance.deserialize(stream, instanceSpec)
+          entities(i) = Entity.deserialize(stream, entityDesc)
           indices(i) = Index.deserialize(stream)
         }
 
-        Partition(instances, indices)
+        Partition(entities, indices)
       }
       finally {
         stream.close()
@@ -143,7 +143,7 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
   }
 
   private class BlockWriter(block: Int) {
-    private var instances = new Array[Instance](runtimeConfig.partitionSize)
+    private var entities = new Array[Entity](runtimeConfig.partitionSize)
     private var indices = new Array[Index](runtimeConfig.partitionSize)
     private var count = 0
 
@@ -152,8 +152,8 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
 
     private var partitionCount = 0
 
-    def write(instance: Instance, index: Index) {
-      instances(count) = instance
+    def write(entity: Entity, index: Index) {
+      entities(count) = entity
       indices(count) = index
       count += 1
 
@@ -167,7 +167,7 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
       if (count > 0) {
         writePartition()
       }
-      instances = null
+      entities = null
       indices = null
     }
 
@@ -177,7 +177,7 @@ class HadoopInstanceCache(val instanceSpec: InstanceSpecification, fs: FileSyste
       try {
         stream.writeInt(count)
         for (i <- 0 until count) {
-          instances(i).serialize(stream)
+          entities(i).serialize(stream)
           indices(i).serialize(stream)
         }
       }

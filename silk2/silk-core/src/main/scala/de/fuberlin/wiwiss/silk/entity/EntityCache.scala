@@ -1,20 +1,20 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import xml.Node
 
 /**
- * A cache of instances.
+ * A cache of entities.
  */
-trait InstanceCache {
+trait EntityCache {
   /**
-   * The instance specification of the instances in this cache.
+   * The entity description of the entities in this cache.
    */
-  def instanceSpec: InstanceSpecification
+  def entityDesc: EntityDescription
 
   /**
    * Writes to this cache.
    */
-  def write(instances: Traversable[Instance], indexFunction: Instance => Set[Int])
+  def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int])
 
   /**
    * True, if the cache is being written at the moment.
@@ -29,18 +29,18 @@ trait InstanceCache {
   /**
    * Reads the complete cache.
    */
-  def readAll = new Traversable[Instance] {
-    def foreach[U](f: Instance => U) {
+  def readAll = new Traversable[Entity] {
+    def foreach[U](f: Entity => U) {
       for (block <- 0 until blockCount;
            partition <- 0 until partitionCount(block);
-           instance <- read(block, partition).instances) {
-        f(instance)
+           entity <- read(block, partition).entities) {
+        f(entity)
       }
     }
   }
 
   /**
-   * Removes all instances from this cache.
+   * Removes all entities from this cache.
    */
   def clear()
 
@@ -60,38 +60,38 @@ trait InstanceCache {
    * Serializes the complete Cache as XML
    */
   def toXML = {
-    <InstanceCache>
+    <EntityCache>
       {for (block <- 0 until blockCount) yield {
       <Block id={block.toString}>
         {for (partition <- 0 until partitionCount(block)) yield {
         <Partition>
-          {for (instance <- read(block, partition).instances) yield instance.toXML}
+          {for (entity <- read(block, partition).entities) yield entity.toXML}
         </Partition>
       }}
       </Block>
     }}
-    </InstanceCache>
+    </EntityCache>
   }
 
   /**
-   * Reads instances from XML
+   * Reads entities from XML
    */
-  def fromXML(node: Node, instanceSpec: InstanceSpecification) {
-    val instances = new Traversable[Instance] {
+  def fromXML(node: Node, entityDesc: EntityDescription) {
+    val entities = new Traversable[Entity] {
       var currentBlock = 0
 
-      override def foreach[U](f: Instance => U) {
+      override def foreach[U](f: Entity => U) {
         for (blockNode <- node \ "Block") {
           currentBlock = (blockNode \ "@id" text).toInt
 
           for (partitionNode <- blockNode \ "Partition";
-               instanceNode <- partitionNode \ "_") {
-            f(Instance.fromXML(instanceNode, instanceSpec))
+               entityNode <- partitionNode \ "_") {
+            f(Entity.fromXML(entityNode, entityDesc))
           }
         }
       }
     }
 
-    write(instances, _ => Set(instances.currentBlock))
+    write(entities, _ => Set(entities.currentBlock))
   }
 }

@@ -7,35 +7,31 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
  * The Silk Server configuration.
  * The following properties are supported:
  *   - `configDir`: The directory where the Silk configuration files can be found
- *   - `writeUnknownInstances`: Specifies whether unmatched instances should be added to the instance cache
- *   - `returnUnknownInstances`: Specifies whether the server response should contain unknown instances too
+ *   - `writeUnknownEntities`: Specifies whether unmatched entities should be added to the entity cache
+ *   - `returnUnknownEntities`: Specifies whether the server response should contain unknown entities too
  */
-object ServerConfig
-{
+object ServerConfig {
     /**
      * Loads the server configuration.
      */
-    def load() =
-    {
+    def load() = {
         val configDir = new File(System.getProperty("configDir", "./config"))
         if(!configDir.exists) throw new FileNotFoundException("Config directory " + configDir + " not found. Please specify a valid configuration directory using the system property 'configDir'")
 
-        val writeUnknownInstances = System.getProperty("writeUnknownInstances", "false") match
-        {
+        val writeUnknownEntities = System.getProperty("writeUnknownEntities", "false") match {
             case BooleanLiteral(b) => b
-            case _ => throw new IllegalArgumentException("'writeUnknownInstances' must be a boolean")
+            case _ => throw new IllegalArgumentException("'writeUnknownEntities' must be a boolean")
         }
 
-        val returnUnknownInstances = System.getProperty("returnUnknownInstances", "false") match
-        {
+        val returnUnknownEntities = System.getProperty("returnUnknownEntities", "false") match {
             case BooleanLiteral(b) => b
-            case _ => throw new IllegalArgumentException("'returnUnknownInstances' must be a boolean")
+            case _ => throw new IllegalArgumentException("'returnUnknownEntities' must be a boolean")
         }
 
-        ServerConfig(configDir, writeUnknownInstances, returnUnknownInstances)
+        ServerConfig(configDir, writeUnknownEntities, returnUnknownEntities)
     }
 }
 
 case class ServerConfig(configDir : File ,
-                        writeUnknownInstances : Boolean,
-                        returnUnknownInstances : Boolean)
+                        writeUnknownEntities : Boolean,
+                        returnUnknownEntities : Boolean)

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import util.parsing.input.CharSequenceReader
 import util.parsing.combinator.RegexParsers

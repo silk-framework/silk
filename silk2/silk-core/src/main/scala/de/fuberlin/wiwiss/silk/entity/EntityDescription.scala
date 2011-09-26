@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import de.fuberlin.wiwiss.silk.linkspec._
 import similarity.{SimilarityOperator, Comparison, Aggregation}
@@ -7,15 +7,15 @@ import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
-case class InstanceSpecification(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
+case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
   def pathIndex(path: Path) = {
     paths.indexWhere(_ == path) match {
-      case -1 => throw new NoSuchElementException("Path " + path + " not found on instance.")
+      case -1 => throw new NoSuchElementException("Path " + path + " not found on entity.")
       case index => index
     }
   }
 
-  def merge(other: InstanceSpecification) = {
+  def merge(other: EntityDescription) = {
     require(variable == other.variable)
     require(restrictions == other.restrictions)
 
@@ -23,7 +23,7 @@ case class InstanceSpecification(variable: String, restrictions: SparqlRestricti
   }
 
   def toXML = {
-    <InstanceSpecification>
+    <EntityDescription>
       <Variable>{variable}</Variable>
       {restrictions.toXML}
       <Paths> {
@@ -32,20 +32,20 @@ case class InstanceSpecification(variable: String, restrictions: SparqlRestricti
         }
       }
       </Paths>
-    </InstanceSpecification>
+    </EntityDescription>
   }
 }
 
-object InstanceSpecification {
+object EntityDescription {
   def fromXML(node: Node) = {
-    new InstanceSpecification(
+    new EntityDescription(
       variable = (node \ "Variable").text.trim,
       restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
       paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq[Node]) yield Path.parse(pathNode.text.trim)
     )
   }
 
-  def retrieve(linkSpec: LinkSpecification): SourceTargetPair[InstanceSpecification] = {
+  def retrieve(linkSpec: LinkSpecification): SourceTargetPair[EntityDescription] = {
     val sourceVar = linkSpec.datasets.source.variable
     val targetVar = linkSpec.datasets.target.variable
 
@@ -62,10 +62,10 @@ object InstanceSpecification {
       case None => Set[Path]()
     }
 
-    val sourceInstanceSpec = new InstanceSpecification(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
-    val targetInstanceSpec = new InstanceSpecification(targetVar, targetRestriction, targetPaths.toIndexedSeq)
+    val sourceEntityDesc = new EntityDescription(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
+    val targetEntityDesc = new EntityDescription(targetVar, targetRestriction, targetPaths.toIndexedSeq)
 
-    SourceTargetPair(sourceInstanceSpec, targetInstanceSpec)
+    SourceTargetPair(sourceEntityDesc, targetEntityDesc)
   }
 
   private def collectPaths(variable: String)(operator: SimilarityOperator): Set[Path] = operator match {

@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.Path
 
 /**
  * Executes Silk - MapReduce.
- * Prior to running this, the instance cache must be created using the Load class.
+ * Prior to running this, the entity cache must be created using the Load class.
  *
  * @see Load
  */
@@ -74,7 +74,7 @@ class Match(inputPath : String, outputPath : String, linkSpec : Option[String], 
 
     job.setOutputFormatClass(classOf[SilkOutputFormat])
     job.setOutputKeyClass(classOf[Text])
-    job.setOutputValueClass(classOf[InstanceConfidence])
+    job.setOutputValueClass(classOf[EntityConfidence])
   }
 
   /**

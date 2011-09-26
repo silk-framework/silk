@@ -1,19 +1,19 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
-import impl.HadoopInstanceCache
+import impl.HadoopEntityCache
 import de.fuberlin.wiwiss.silk.config.SilkConfig
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.LoadTask
-import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 
 /**
- * Populates the instance cache.
+ * Populates the entity cache.
  */
-class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Option[String], hadoopConfig : org.apache.hadoop.conf.Configuration)
+class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[String], hadoopConfig : org.apache.hadoop.conf.Configuration)
 {
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -21,7 +21,7 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
   {
     DefaultImplementations.register()
 
-    val config = loadConfig(new Path(silkConfigPath), new Path(instanceCachePath))
+    val config = loadConfig(new Path(silkConfigPath), new Path(entityCachePath))
 
     val linkSpecs = linkSpec match
     {
@@ -31,19 +31,19 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
 
     for(linkSpec <- linkSpecs)
     {
-      write(config, linkSpec, new Path(instanceCachePath))
+      write(config, linkSpec, new Path(entityCachePath))
     }
   }
 
-  private def loadConfig(filePath : Path, instanceCachePath : Path) : SilkConfig =
+  private def loadConfig(filePath : Path, entityCachePath : Path) : SilkConfig =
   {
-    //Create two FileSystem objects, because the config file and the instance cache might be located in different file systems
+    //Create two FileSystem objects, because the config file and the entity cache might be located in different file systems
     val configFS = FileSystem.get(filePath.toUri, hadoopConfig)
-    val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
+    val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
-    //Copy the config file into the instance cache directory
+    //Copy the config file into the entity cache directory
     val inputStream = configFS.open(filePath)
-    val outputStream = cacheFS.create(instanceCachePath.suffix("/config.xml"))
+    val outputStream = cacheFS.create(entityCachePath.suffix("/config.xml"))
     try
     {
       val buffer = new Array[Byte](4096)
@@ -72,17 +72,17 @@ class Load(silkConfigPath : String, instanceCachePath : String, linkSpec : Optio
     }
   }
 
-  private def write(config : SilkConfig, linkSpec : LinkSpecification, instanceCachePath : Path)
+  private def write(config : SilkConfig, linkSpec : LinkSpecification, entityCachePath : Path)
   {
-    val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
+    val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
     val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
-    val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
+    val entityDesc = EntityDescription.retrieve(linkSpec)
 
     val caches = SourceTargetPair(
-      new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
-      new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
+      new HadoopEntityCache(entityDesc.source, cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
+      new HadoopEntityCache(entityDesc.target, cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )
 
     new LoadTask(sources, caches, linkSpec.rule.index(_))()

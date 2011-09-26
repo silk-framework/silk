@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.util.sparql
 import de.fuberlin.wiwiss.silk.util.Timer
 import java.net.URI
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 
 /**
  * Compares the performance of the different path collectors.

@@ -9,7 +9,7 @@ import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
-import de.fuberlin.wiwiss.silk.instance.{Path, Instance}
+import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import java.util.logging.Logger
 
@@ -28,7 +28,7 @@ trait Links extends CometActor {
 
   protected val showDetails = true
 
-  protected val showInstances = false
+  protected val showEntities = false
 
   protected def registerEvents() {}
 
@@ -128,7 +128,7 @@ trait Links extends CometActor {
       </div>
       <div class="link-details" id={getId(link, "details")}>
         { if(showDetails) renderDetails(link.details) else NodeSeq.Empty }
-        { if(showInstances) renderInstances(link.instances) else NodeSeq.Empty }
+        { if(showEntities) renderEntities(link.entities) else NodeSeq.Empty }
       </div>
       <div style="clear:both"></div>
     </div>
@@ -143,23 +143,23 @@ trait Links extends CometActor {
     }
   }
 
-  private def renderInstances(instances: Option[SourceTargetPair[Instance]]) = {
-    instances match {
-      case Some(SourceTargetPair(sourceInstance, targetInstance)) => {
+  private def renderEntities(entities: Option[SourceTargetPair[Entity]]) = {
+    entities match {
+      case Some(SourceTargetPair(sourceEntity, targetEntity)) => {
         <ul class="details-tree">
-          { renderInstance(sourceInstance, "source") }
-          { renderInstance(targetInstance, "target") }
+          { renderEntity(sourceEntity, "source") }
+          { renderEntity(targetEntity, "target") }
         </ul>
       }
       case None => Text("No properties loaded")
     }
   }
 
-  private def renderInstance(instance: Instance, divClassPrefix: String) = {
+  private def renderEntity(entity: Entity, divClassPrefix: String) = {
     <li>
-      <span class={divClassPrefix+"-value"}>{ instance.uri }</span>
+      <span class={divClassPrefix+"-value"}>{ entity.uri }</span>
       <ul>
-        { for((path, index) <- instance.spec.paths.zipWithIndex) yield renderValues(path, instance.evaluate(index), divClassPrefix) }
+        { for((path, index) <- entity.desc.paths.zipWithIndex) yield renderValues(path, entity.evaluate(index), divClassPrefix) }
       </ul>
     </li>
   }

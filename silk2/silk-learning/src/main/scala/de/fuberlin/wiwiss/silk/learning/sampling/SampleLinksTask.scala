@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workbench.learning
+package de.fuberlin.wiwiss.silk.learning.sampling
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.datasource.Source
@@ -8,21 +8,21 @@ import math.log
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import util.Random
 import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.evaluation.{ReferenceInstances, LinkageRuleEvaluator}
+import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
-import de.fuberlin.wiwiss.silk.instance.{Instance, Path, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
 import math.max
-import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkageRule, LinkSpecification}
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregation, DistanceMeasure, Comparison}
-import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput}
+import de.fuberlin.wiwiss.silk.linkspec.{LinkageRule, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkspec.similarity.{DistanceMeasure, Comparison}
+import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
                       paths: SourceTargetPair[Traversable[Path]],
-                      referenceInstances: ReferenceInstances,
+                      referenceEntities: ReferenceEntities,
                       population: Population) extends ValueTask[Seq[Link]](Seq.empty) {
 
   private val testLinkCount = 10
@@ -56,7 +56,7 @@ class SampleLinksTask(sources: Traversable[Source],
     canceled = false
 
     if (population.isEmpty) {
-      if(referenceInstances.negative.isEmpty || referenceInstances.positive.isEmpty) {
+      if(referenceEntities.negative.isEmpty || referenceEntities.positive.isEmpty) {
         logger.info("No reference links defined. Sampling links from fully random population.")
         val input = LearningInput()
         val config = LearningConfiguration.load()
@@ -65,9 +65,9 @@ class SampleLinksTask(sources: Traversable[Source],
         find(task.apply())
       } else {
         logger.info("Learning has not been executed yet. Generating new population to sample from.")
-        val input = LearningInput(referenceInstances)
+        val input = LearningInput(referenceEntities)
         val config = LearningConfiguration.load()
-        val generator = LinkageRuleGenerator(referenceInstances, config.components)
+        val generator = LinkageRuleGenerator(referenceEntities, config.components)
         val task = new GeneratePopulationTask(input, generator, config)
         find(task.apply())
       }
@@ -86,13 +86,13 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private def find(population: Population) {
     val linkSpecs = retrieveLinkageRules(population).map(r => linkSpec.copy(rule = r))
-    val instanceSpecs = linkSpecs.map(InstanceSpecification.retrieve).reduce((a, b) => SourceTargetPair(a.source merge b.source, a.target merge b.target))
+    val entityDescs = linkSpecs.map(EntityDescription.retrieve).reduce((a, b) => SourceTargetPair(a.source merge b.source, a.target merge b.target))
     val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
     updateStatus("Sampling")
     for((linkSpec, index) <- linkSpecs.toSeq.zipWithIndex) {
       if (canceled) return
-      val links = generateLinks(sourcePair, linkSpec, instanceSpecs)
+      val links = generateLinks(sourcePair, linkSpec, entityDescs)
       val ratedLinks = rateLinks(sourcePair, linkSpecs, links)
       value.update(value.get ++ ratedLinks)
       updateStatus("Sampling", (index + 1).toDouble / linkSpecs.size)
@@ -123,10 +123,10 @@ class SampleLinksTask(sources: Traversable[Source],
     rules
   }
 
-  private def generateLinks(sources: SourceTargetPair[Source], linkSpec: LinkSpecification, instanceSpecPair: SourceTargetPair[InstanceSpecification]) = {
+  private def generateLinks(sources: SourceTargetPair[Source], linkSpec: LinkSpecification, entityDescPair: SourceTargetPair[EntityDescription]) = {
     val generateLinksTask =
       new GenerateLinksTask(sources, linkSpec, Traversable.empty, runtimeConfig) {
-        override def instanceSpecs = instanceSpecPair
+        override def entityDescs = entityDescPair
       }
 
     currentGenerateLinksTask = Some(generateLinksTask)
@@ -141,26 +141,23 @@ class SampleLinksTask(sources: Traversable[Source],
   private def rateLink(sources: SourceTargetPair[Source], linkSpecs: Traversable[LinkSpecification], link: Link) = {
 
     val a = linkSpecs.map(isLink(_, link)).sum
-    val b = linkSpecs.map(s => LinkageRuleEvaluator(s.rule, referenceInstances).fMeasure).sum
+    val b = linkSpecs.map(s => LinkageRuleEvaluator(s.rule, referenceEntities).fMeasure).sum
 
     val p = if(b > 0.0) a / b else 0.5
 
     val entropy = 0.0 - p * log(p) / log(2) - (1 - p) * log(1 - p) / log(2)
 
-    new Link(link.source, link.target, entropy, link.instances.get)
+    new Link(link.source, link.target, entropy, link.entities.get)
   }
 
   private def isLink(linkSpec: LinkSpecification, link: Link) = {
-    val r = linkSpec.rule(link.instances.get) > 0.0
-    val fitness = LinkageRuleEvaluator(linkSpec.rule, referenceInstances)
-
-//    println(r +  " " + fitness + " " + link)
-//    println(linkSpec.rule)
+    val r = linkSpec.rule(link.entities.get) > 0.0
+    val fitness = LinkageRuleEvaluator(linkSpec.rule, referenceEntities)
 
     if(r) max(fitness.fMeasure, minFMeasure) else 0.0
   }
 }
 
 object SampleLinksTask {
-  def empty = new SampleLinksTask(Traversable.empty, LinkSpecification(), SourceTargetPair.fill(Traversable.empty), ReferenceInstances.empty, Population())
+  def empty = new SampleLinksTask(Traversable.empty, LinkSpecification(), SourceTargetPair.fill(Traversable.empty), ReferenceEntities.empty, Population())
 }
