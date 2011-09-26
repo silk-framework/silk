@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 
 import similarity._
 import input.{Input, TransformInput, Transformer, PathInput}
-import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.entity.Path
 import xml.Node
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.config.Prefixes

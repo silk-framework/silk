@@ -17,11 +17,11 @@
       <Param name="graph" value="http://dbpedia.org" />
       <Param name="retryCount" value="100" />
       <Param name="retryPause" value="1000" />
-      <!--<Param name="instanceList" value="http://dbpedia.org/resource/Chuo_University" />-->
+      <!--<Param name="entityList" value="http://dbpedia.org/resource/Chuo_University" />-->
     </DataSource>
     <DataSource id="lgdb" type="sparqlEndpoint">
       <Param name="endpointURI" value="http://linkedgeodata.org/sparql" />
-      <!--<Param name="instanceList" value="http://linkedgeodata.org/triplify/node274311826" />-->
+      <!--<Param name="entityList" value="http://linkedgeodata.org/triplify/node274311826" />-->
     </DataSource>
   </DataSources>
 

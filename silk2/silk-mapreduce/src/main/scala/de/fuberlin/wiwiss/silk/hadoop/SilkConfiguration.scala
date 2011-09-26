@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
-import impl.HadoopInstanceCache
+import impl.HadoopEntityCache
 import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
-import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.SilkConfig
 
 object SilkConfiguration {
@@ -23,15 +23,15 @@ object SilkConfiguration {
 }
 
 class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configuration) {
-  def instanceCachePath = new Path(hadoopConfig.get(SilkConfiguration.InputParam))
+  def entityCachePath = new Path(hadoopConfig.get(SilkConfiguration.InputParam))
 
   def outputPath = new Path(hadoopConfig.get(SilkConfiguration.OutputParam))
 
-  private lazy val cacheFS = FileSystem.get(instanceCachePath.toUri, hadoopConfig)
+  private lazy val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
   lazy val config = {
     DefaultImplementations.register()
-    SilkConfig.load(cacheFS.open(instanceCachePath.suffix("/config.xml")))
+    SilkConfig.load(cacheFS.open(entityCachePath.suffix("/config.xml")))
   }
 
   lazy val linkSpec = {
@@ -39,13 +39,13 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
     config.linkSpec(linkSpecId)
   }
 
-  lazy val instanceSpecs = InstanceSpecification.retrieve(linkSpec)
+  lazy val entityDescs = EntityDescription.retrieve(linkSpec)
 
   lazy val sourceCache = {
-    new HadoopInstanceCache(instanceSpecs.source, cacheFS, instanceCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime)
+    new HadoopEntityCache(entityDescs.source, cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime)
   }
 
   lazy val targetCache = {
-    new HadoopInstanceCache(instanceSpecs.target, cacheFS, instanceCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
+    new HadoopEntityCache(entityDescs.target, cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
   }
 }

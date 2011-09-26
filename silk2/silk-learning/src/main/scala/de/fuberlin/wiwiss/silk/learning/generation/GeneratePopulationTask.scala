@@ -20,7 +20,7 @@ class GeneratePopulationTask(input: LearningInput, generator: LinkageRuleGenerat
 
   private def generateIndividual(): Individual = {
     val linkageRule = generateRule()
-    val fitness = LinkageRuleEvaluator(linkageRule.build, input.trainingInstances)
+    val fitness = LinkageRuleEvaluator(linkageRule.build, input.trainingEntities)
 
     Individual(linkageRule, fitness)
   }

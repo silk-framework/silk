@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import xml.Elem
 import de.fuberlin.wiwiss.silk.config.Prefixes

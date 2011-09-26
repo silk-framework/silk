@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
-import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path}
+import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path}
 
 /**
  * Retrieves the most frequent property paths.

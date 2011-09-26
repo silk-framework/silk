@@ -23,7 +23,7 @@ trait StrategyDialog[T <: Strategy] {
   /** The strategy which can be selected by the user. */
   protected val strategies : Seq[StrategyDescription[T]]
 
-  /** The current strategy instance */
+  /** The current strategy entity */
   protected def currentObj : Option[T]
 
   /** Executed when the form is submitted. */

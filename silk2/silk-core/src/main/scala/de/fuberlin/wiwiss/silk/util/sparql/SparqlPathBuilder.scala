@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
-import de.fuberlin.wiwiss.silk.instance._
+import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**

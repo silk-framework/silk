@@ -11,7 +11,7 @@ import net.liftweb.common.Empty
 import de.fuberlin.wiwiss.silk.linkspec._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.{SetHtml, OnLoad}
-import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 
 /**
  * A dialog to edit linking tasks.

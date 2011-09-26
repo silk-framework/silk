@@ -10,7 +10,7 @@ class SampleLinksContent extends Links with RateLinkButtons {
 
   override protected val showDetails = false
 
-  override protected val showInstances = true
+  override protected val showEntities = true
 
   override protected val showStatus = false
 
