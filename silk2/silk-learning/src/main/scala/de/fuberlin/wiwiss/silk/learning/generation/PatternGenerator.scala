@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.learning.generation
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.individual._
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer

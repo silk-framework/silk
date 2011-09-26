@@ -31,22 +31,22 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
     stop = false
     ineffectiveIterations = 0
 
-    val instances = input.trainingInstances
-    val generator = LinkageRuleGenerator(instances, config.components)
+    val referenceEntities = input.trainingEntities
+    val generator = LinkageRuleGenerator(referenceEntities, config.components)
 
     //Generate initial population
     if(!stop) executeTask(new GeneratePopulationTask(input, generator, config))
 
     while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
-      executeTask(new ReproductionTask(value.get.population, instances, generator, config))
+      executeTask(new ReproductionTask(value.get.population, referenceEntities, generator, config))
 
       if (value.get.iterations % config.parameters.cleanFrequency == 0 && !stop) {
-        executeTask(new CleanPopulationTask(value.get.population, instances, generator))
+        executeTask(new CleanPopulationTask(value.get.population, referenceEntities, generator))
       }
     }
 
     if(!value.get.population.isEmpty)
-      executeTask(new CleanPopulationTask(value.get.population, instances, generator))
+      executeTask(new CleanPopulationTask(value.get.population, referenceEntities, generator))
 
     value.get
   }
@@ -84,7 +84,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
         iterations = iterations,
         time = System.currentTimeMillis() - startTime,
         population = population,
-        validationResult = LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingInstances),
+        validationResult = LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingEntities),
         status = status
       )
 

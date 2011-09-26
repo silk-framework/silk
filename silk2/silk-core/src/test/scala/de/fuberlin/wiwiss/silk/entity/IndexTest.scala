@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec

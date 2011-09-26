@@ -11,7 +11,7 @@ import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.common.Empty
-import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.linkspec.{LinkageRule, LinkFilter, DatasetSpecification, LinkSpecification}
 
 /**

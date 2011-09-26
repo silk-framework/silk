@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.util
 import de.fuberlin.wiwiss.silk.util.sparql.SparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, ForwardOperator}
+import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, ForwardOperator}
 
 /**
  * Retrieves property paths from the Wiki ontology within the LDE context

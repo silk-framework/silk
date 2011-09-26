@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 
 /**
  * A Silk linking configuration.
- * Specifies how multiple sources are interlinked by defining a link specification for each type of instance to be interlinked.
+ * Specifies how multiple sources are interlinked by defining a link specification for each type of entity to be interlinked.
  *
  * @param prefixes The prefixes which are used throughout the configuration to shorten URIs
  * @param sources The sources which should be interlinked

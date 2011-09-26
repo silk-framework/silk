@@ -1,25 +1,25 @@
 package de.fuberlin.wiwiss.silk.jena
 
-import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
+import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "linkedData", label = "Linked Data", description = "TODO")
 class LinkedDataSource extends DataSource {
-  override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
-    require(!instances.isEmpty, "Retrieving all instances not supported")
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+    require(!entities.isEmpty, "Retrieving all entities not supported")
 
     val model = ModelFactory.createDefaultModel
-    for (uri <- instances) {
+    for (uri <- entities) {
       model.read(uri)
     }
 
     val endpoint = new JenaSparqlEndpoint(model)
 
-    val instanceRetriever = InstanceRetriever(endpoint)
+    val entityRetriever = EntityRetriever(endpoint)
 
-    instanceRetriever.retrieve(instanceSpec, instances)
+    entityRetriever.retrieve(entityDesc, entities)
   }
 }

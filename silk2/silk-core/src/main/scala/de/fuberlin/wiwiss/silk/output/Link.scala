@@ -3,10 +3,10 @@ package de.fuberlin.wiwiss.silk.output
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
-import de.fuberlin.wiwiss.silk.instance.Instance
+import de.fuberlin.wiwiss.silk.entity.Entity
 
 /**
- * Represents a link between two instances.
+ * Represents a link between two entities.
  *
  * @param source the source URI
  * @param target the target URI
@@ -14,11 +14,11 @@ import de.fuberlin.wiwiss.silk.instance.Instance
  */
 class Link(source: String, target: String,
            val details: Option[Link.Confidence] = None,
-           val instances: Option[SourceTargetPair[Instance]] = None) extends SourceTargetPair[String](source, target) {
+           val entities: Option[SourceTargetPair[Entity]] = None) extends SourceTargetPair[String](source, target) {
 
   def this(source: String, target: String, confidence: Double) = this (source, target, Some(Link.SimpleConfidence(Some(confidence))))
 
-  def this(source: String, target: String, confidence: Double, instances: SourceTargetPair[Instance]) = this (source, target, Some(Link.SimpleConfidence(Some(confidence))), Some(instances))
+  def this(source: String, target: String, confidence: Double, entities: SourceTargetPair[Entity]) = this (source, target, Some(Link.SimpleConfidence(Some(confidence))), Some(entities))
 
   /**
    * The confidence that this link is correct. Allowed values: [-1.0, 1.0].

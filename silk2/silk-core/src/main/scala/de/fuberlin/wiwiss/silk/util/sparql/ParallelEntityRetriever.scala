@@ -1,45 +1,45 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
-import de.fuberlin.wiwiss.silk.instance.{Path, Instance, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{Path, Entity, EntityDescription}
 import collection.mutable.SynchronizedQueue
 import java.util.logging.{Level, Logger}
 
 /**
- * InstanceRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single instances.
+ * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
  */
-class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = false) extends InstanceRetriever {
+class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = false) extends EntityRetriever {
   private val varPrefix = "v"
 
   private val maxQueueSize = 1000
 
-  private val logger = Logger.getLogger(classOf[ParallelInstanceRetriever].getName)
+  private val logger = Logger.getLogger(classOf[ParallelEntityRetriever].getName)
 
   @volatile private var canceled = false
 
   /**
-   * Retrieves instances with a given instance specification.
+   * Retrieves entities with a given entity description.
    *
-   * @param instanceSpec The instance specification
-   * @param instances The URIs of the instances to be retrieved. If empty, all instances will be retrieved.
-   * @return The retrieved instances
+   * @param entityDesc The entity description
+   * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
+   * @return The retrieved entities
    */
-  override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
     canceled = false
-    if(instanceSpec.paths.size <= 1)
-      new SimpleInstanceRetriever(endpoint, pageSize, graphUri).retrieve(instanceSpec, instances)
+    if(entityDesc.paths.size <= 1)
+      new SimpleEntityRetriever(endpoint, pageSize, graphUri).retrieve(entityDesc, entities)
     else
-      new InstanceTraversable(instanceSpec, instances)
+      new EntityTraversable(entityDesc, entities)
   }
 
   /**
-   * Wraps a Traversable of SPARQL results and retrieves instances from them.
+   * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class InstanceTraversable(instanceSpec: InstanceSpecification, instanceUris: Seq[String]) extends Traversable[Instance] {
-    override def foreach[U](f: Instance => U) {
+  private class EntityTraversable(entityDesc: EntityDescription, entityUris: Seq[String]) extends Traversable[Entity] {
+    override def foreach[U](f: Entity => U) {
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- instanceSpec.paths) yield new PathRetriever(instanceUris, instanceSpec, path)
+      val pathRetrievers = for (path <- entityDesc.paths) yield new PathRetriever(entityUris, entityDesc, path)
 
       pathRetrievers.foreach(_.start())
 
@@ -48,7 +48,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
           val pathValues = for (pathRetriever <- pathRetrievers) yield pathRetriever.next()
 
           if (pathValues.tail.forall(_.uri == pathValues.head.uri)) {
-            f(new Instance(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, instanceSpec))
+            f(new Entity(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, entityDesc))
 
             counter += 1
           }
@@ -60,11 +60,11 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
       }
       catch {
         case ex: InterruptedException => {
-          logger.log(Level.INFO, "Canceled retrieving instances for '" + instanceSpec.restrictions + "'")
+          logger.log(Level.INFO, "Canceled retrieving entities for '" + entityDesc.restrictions + "'")
           canceled = true
         }
         case ex: Exception => {
-          logger.log(Level.WARNING, "Failed to execute query for '" + instanceSpec.restrictions + "'", ex)
+          logger.log(Level.WARNING, "Failed to execute query for '" + entityDesc.restrictions + "'", ex)
           canceled = true
         }
       }
@@ -72,21 +72,21 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
       if (inconsistentOrder) {
         if (!useOrderBy) {
           logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
-          val instanceRetriever = new ParallelInstanceRetriever(endpoint, pageSize, graphUri, true)
-          val instances = instanceRetriever.retrieve(instanceSpec, instanceUris)
-          instances.drop(counter).foreach(f)
+          val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
+          val entities = entityRetriever.retrieve(entityDesc, entityUris)
+          entities.drop(counter).foreach(f)
         }
         else {
           logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by.")
-          val simpleInstanceRetriever = new SimpleInstanceRetriever(endpoint, pageSize, graphUri)
-          val instances = simpleInstanceRetriever.retrieve(instanceSpec, instanceUris)
-          instances.drop(counter).foreach(f)
+          val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
+          val entities = simpleEntityRetriever.retrieve(entityDesc, entityUris)
+          entities.drop(counter).foreach(f)
         }
       }
     }
   }
 
-  private class PathRetriever(instanceUris: Seq[String], instanceSpec: InstanceSpecification, path: Path) extends Thread {
+  private class PathRetriever(entityUris: Seq[String], entityDesc: EntityDescription, path: Path) extends Thread {
     private val queue = new SynchronizedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null
@@ -112,16 +112,16 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
 
     override def run() {
       try {
-        if (instanceUris.isEmpty) {
-          //Query for all instances
+        if (entityUris.isEmpty) {
+          //Query for all entities
           val sparqlResults = queryPath()
           parseResults(sparqlResults)
         }
         else {
-          //Query for a list of instances
-          for (instanceUri <- instanceUris) {
-            val sparqlResults = queryPath(Some(instanceUri))
-            parseResults(sparqlResults, Some(instanceUri))
+          //Query for a list of entities
+          for (entityUri <- entityUris) {
+            val sparqlResults = queryPath(Some(entityUri))
+            parseResults(sparqlResults, Some(entityUri))
           }
         }
       }
@@ -134,7 +134,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
       //Select
       var sparql = "SELECT "
       if (fixedSubject.isEmpty) {
-        sparql += "?" + instanceSpec.variable + " "
+        sparql += "?" + entityDesc.variable + " "
       }
       sparql += "?" + varPrefix + "0\n"
 
@@ -146,17 +146,16 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
       fixedSubject match {
         case Some(subjectUri) => {
           sparql += SparqlPathBuilder(path :: Nil, "<" + subjectUri + ">", "?" + varPrefix)
-          //sparql += instanceSpec.restrictions.toSparql.replaceAll("\\?" + instanceSpec.variable, "<" + subjectUri + ">") + "\n"
         }
         case None => {
-          sparql += instanceSpec.restrictions.toSparql + "\n"
-          sparql += SparqlPathBuilder(path :: Nil, "?" + instanceSpec.variable, "?" + varPrefix)
+          sparql += entityDesc.restrictions.toSparql + "\n"
+          sparql += SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
         }
       }
       sparql += "}"
 
       if (useOrderBy && fixedSubject.isEmpty) {
-        sparql += " ORDER BY " + "?" + instanceSpec.variable
+        sparql += " ORDER BY " + "?" + entityDesc.variable
       }
 
       endpoint.query(sparql)
@@ -173,7 +172,7 @@ class ParallelInstanceRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, 
 
         if (!fixedSubject.isDefined) {
           //Check if we are still reading values for the current subject
-          val subject = result.get(instanceSpec.variable) match {
+          val subject = result.get(entityDesc.variable) match {
             case Some(Resource(value)) => Some(value)
             case _ => None
           }

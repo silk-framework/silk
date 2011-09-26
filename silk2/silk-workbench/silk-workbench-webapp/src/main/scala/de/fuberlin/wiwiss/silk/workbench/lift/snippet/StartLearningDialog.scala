@@ -50,7 +50,7 @@ object StartLearningDialog extends Dialog {
 
   private def createInput() = {
     LearningInput(
-      trainingInstances = User().linkingTask.cache.instances,
+      trainingEntities = User().linkingTask.cache.entities,
       seedLinkageRules = if(mode.value == "Improve Linkage Rule") List(User().linkingTask.linkSpec.rule) else Nil
     )
   }

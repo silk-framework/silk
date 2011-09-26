@@ -1,18 +1,18 @@
 package de.fuberlin.wiwiss.silk
 
 import datasource.Source
-import instance.{Instance, InstanceSpecification, InstanceCache}
+import entity.{Entity, EntityDescription, EntityCache}
 import util.SourceTargetPair
 import java.util.logging.{Level, Logger}
 import util.task.{TaskFinished, Future, Task}
 
 /**
- * Loads the instance cache
+ * Loads the entity cache
  */
-//TODO remove indexFunction argument by integrating it into instance cache
+//TODO remove indexFunction argument by integrating it into entity cache
 class LoadTask(sources: SourceTargetPair[Source],
-               caches: SourceTargetPair[InstanceCache],
-               indexFunction: Instance => Set[Int]) extends Task[Unit] {
+               caches: SourceTargetPair[EntityCache],
+               indexFunction: Entity => Set[Int]) extends Task[Unit] {
   taskName = "Loading"
 
   @volatile var exception: Exception = null
@@ -67,15 +67,15 @@ class LoadTask(sources: SourceTargetPair[Source],
 
   class LoadingThread(selectSource: Boolean) extends Thread {
     private val source = sources.select(selectSource)
-    private val instanceCache = caches.select(selectSource)
+    private val entityCache = caches.select(selectSource)
 
     override def run() {
       try {
-        logger.info("Loading instances of dataset " + source.dataSource.toString)
+        logger.info("Loading entitys of dataset " + source.dataSource.toString)
 
-        instanceCache.clear()
-        instanceCache.write(source.retrieve(instanceCache.instanceSpec), indexFunction)
-        instanceCache.close()
+        entityCache.clear()
+        entityCache.write(source.retrieve(entityCache.entityDesc), indexFunction)
+        entityCache.close()
       } catch {
         case ex: Exception => {
           logger.log(Level.WARNING, "Error loading resources", ex)

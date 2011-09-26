@@ -9,10 +9,10 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
    */
   def generateNegative = {
     val positiveLinksSeq = positive.toSeq
-    val sourceInstances = positiveLinksSeq.map(_.source)
-    val targetInstances = positiveLinksSeq.map(_.target)
+    val sourceEntities = positiveLinksSeq.map(_.source)
+    val targetEntities = positiveLinksSeq.map(_.target)
 
-    val negativeLinks = for ((s, t) <- sourceInstances zip (targetInstances.tail :+ targetInstances.head)) yield new Link(s, t, 1.0)
+    val negativeLinks = for ((s, t) <- sourceEntities zip (targetEntities.tail :+ targetEntities.head)) yield new Link(s, t, 1.0)
 
     copy(negative = negativeLinks.toSet)
   }

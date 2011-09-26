@@ -10,7 +10,7 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.OnLoad
 import de.fuberlin.wiwiss.silk.linkspec.DatasetSpecification
 import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.instance.{Path, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, ReferenceLinksReader}
 
 class ImportReferenceLinksDialog {
@@ -39,16 +39,16 @@ class ImportReferenceLinksDialog {
   private def loadFromSources()  {
     val datasets = User().linkingTask.linkSpec.datasets
 
-    val sourceInstances = getInstances(datasets.source).toList
-    val targetInstances = getInstances(datasets.target).toList
+    val sourceEntities = getEntities(datasets.source).toList
+    val targetEntities = getEntities(datasets.target).toList
 
-    val sourceUris = sourceInstances.map(_.uri).toSet
-    val targetUris = targetInstances.map(_.uri).toSet
+    val sourceUris = sourceEntities.map(_.uri).toSet
+    val targetUris = targetEntities.map(_.uri).toSet
 
-    val sourceLinks = sourceInstances.flatMap(i => i.evaluate(0).map(new Link(i.uri, _)))
+    val sourceLinks = sourceEntities.flatMap(i => i.evaluate(0).map(new Link(i.uri, _)))
                                      .filter(link => targetUris.contains(link.target))
 
-    val targetLinks = targetInstances.flatMap(i => i.evaluate(0).map(new Link(_, i.uri)))
+    val targetLinks = targetEntities.flatMap(i => i.evaluate(0).map(new Link(_, i.uri)))
                                      .filter(link => sourceUris.contains(link.source))
 
     val links = sourceLinks ++ targetLinks
@@ -56,16 +56,16 @@ class ImportReferenceLinksDialog {
     updateReferenceLinks(ReferenceLinks(links.toSet))
   }
 
-  private def getInstances(dataset: DatasetSpecification, uris: Seq[String] = Seq.empty) = {
+  private def getEntities(dataset: DatasetSpecification, uris: Seq[String] = Seq.empty) = {
     val source = User().project.sourceModule.task(dataset.sourceId).source
-    val instanceSpec =
-      InstanceSpecification(
+    val entityDesc =
+      EntityDescription(
         variable = dataset.variable,
         restrictions = dataset.restriction,
         paths = IndexedSeq(Path.parse("?" + dataset.variable + "/<http://www.w3.org/2002/07/owl#sameAs>"))
       )
 
-    source.retrieve(instanceSpec, uris)
+    source.retrieve(entityDesc, uris)
   }
 
   private def updateReferenceLinks(referenceLinks: ReferenceLinks) {

@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import java.io.File
-import de.fuberlin.wiwiss.silk.instance.{FileInstanceCache, MemoryInstanceCache, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{FileEntityCache, MemoryEntityCache, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
@@ -19,17 +19,17 @@ class GenerateLinksTask(sources: Traversable[Source],
                         outputs: Traversable[Output] = Traversable.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
-  /** The task used for loading the instances into the cache */
+  /** The task used for loading the entitys into the cache */
   @volatile private var loadTask: LoadTask = null
 
-  /** The task used for matching the instances */
+  /** The task used for matching the entitys */
   @volatile private var matchTask: MatchTask = null
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
-  /** The instance specification which defines which instances are retrieved by this task */
-  def instanceSpecs = InstanceSpecification.retrieve(linkSpec)
+  /** The entity descriptions which define which entities are retrieved by this task */
+  def entityDescs = EntityDescription.retrieve(linkSpec)
 
   /** The links which have been generated so far by this task */
   def links = value.get
@@ -54,14 +54,14 @@ class GenerateLinksTask(sources: Traversable[Source],
       //Retrieve sources
       val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
-      //Instance caches
+      //entity caches
       val caches = createCaches()
 
       //Create tasks
       loadTask = new LoadTask(sourcePair, caches, linkSpec.rule.index(_))
       matchTask = new MatchTask(linkSpec, caches, runtimeConfig)
 
-      //Load instances
+      //Load entities
       if (runtimeConfig.reloadCache) loadTask.runInBackground()
 
       //Execute matching
@@ -82,16 +82,16 @@ class GenerateLinksTask(sources: Traversable[Source],
 
   private def createCaches() = {
     if (runtimeConfig.useFileCache) {
-      val cacheDir = new File(runtimeConfig.homeDir + "/instanceCache/" + linkSpec.id)
+      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + linkSpec.id)
 
       SourceTargetPair(
-        source = new FileInstanceCache(instanceSpecs.source, cacheDir + "/source/", runtimeConfig),
-        target = new FileInstanceCache(instanceSpecs.target, cacheDir + "/target/", runtimeConfig)
+        source = new FileEntityCache(entityDescs.source, cacheDir + "/source/", runtimeConfig),
+        target = new FileEntityCache(entityDescs.target, cacheDir + "/target/", runtimeConfig)
       )
     } else {
       SourceTargetPair(
-        source = new MemoryInstanceCache(instanceSpecs.source, runtimeConfig),
-        target = new MemoryInstanceCache(instanceSpecs.target, runtimeConfig)
+        source = new MemoryEntityCache(entityDescs.source, runtimeConfig),
+        target = new MemoryEntityCache(entityDescs.target, runtimeConfig)
       )
     }
   }

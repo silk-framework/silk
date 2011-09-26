@@ -1,39 +1,38 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import java.util.logging.Logger
 import java.io._
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.util.Timer
 
 /**
- * An instance cache, which caches the instances on the local file system.
+ * An entity cache, which caches the entities on the local file system.
  */
-class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runtimeConfig: RuntimeConfig = RuntimeConfig()) extends InstanceCache {
+class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
   private val logger = Logger.getLogger(getClass.getName)
 
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
   @volatile private var writing = false
 
-  override def write(instances: Traversable[Instance], indexFunction: Instance => Set[Int]) {
+  override def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int]) {
     val startTime = System.currentTimeMillis()
     writing = true
-    var instanceCount = 0
+    var entityCount = 0
 
     try {
-      for (instance <- instances) {
-        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(instance) else Set(0)
+      for (entity <- entities) {
+        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
-          blocks(block).write(instance, Index.build(index))
+          blocks(block).write(entity, Index.build(index))
         }
 
-        if (!indices.isEmpty) instanceCount += 1
+        if (!indices.isEmpty) entityCount += 1
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
-      logger.info("Finished writing " + instanceCount + " instances with type '" + instanceSpec.restrictions + "' in " + time + " seconds")
+      logger.info("Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
     } finally {
       writing = false
     }
@@ -73,7 +72,7 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
 
     private val blockDir = dir + "/block" + block.toString + "/"
 
-    private val currentInstances = new Array[Instance](runtimeConfig.partitionSize)
+    private val currentEntities = new Array[Entity](runtimeConfig.partitionSize)
     private val currentIndices = new Array[Index](runtimeConfig.partitionSize)
     @volatile private var count = 0
 
@@ -99,7 +98,7 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
       //Load the last partition in memory
       if (partitionCount > 0) {
         val readPartition = readPartitionFromFile(partitionCount - 1)
-        Array.copy(readPartition.instances, 0, currentInstances, 0, readPartition.size)
+        Array.copy(readPartition.entities, 0, currentEntities, 0, readPartition.size)
         Array.copy(readPartition.indices, 0, currentIndices, 0, readPartition.size)
         count = readPartition.size
       }
@@ -107,17 +106,17 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
 
     def read(partitionIndex: Int): Partition = {
       if (partitionIndex == partitionCount - 1) {
-        Partition(currentInstances, currentIndices, count)
+        Partition(currentEntities, currentIndices, count)
       }
       else {
         readPartitionFromFile(partitionIndex)
       }
     }
 
-    def write(instance: Instance, index: Index) {
+    def write(entity: Entity, index: Index) {
       if (partitionCount == 0) partitionCount = 1
 
-      currentInstances(count) = instance
+      currentEntities(count) = entity
       currentIndices(count) = index
       count += 1
 
@@ -145,7 +144,7 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
       val stream = new DataInputStream(new BufferedInputStream(new FileInputStream(blockDir + "/partition" + partition.toString)))
 
       try {
-        Partition.deserialize(stream, instanceSpec)
+        Partition.deserialize(stream, entityDesc)
       }
       finally {
         stream.close()
@@ -158,7 +157,7 @@ class FileInstanceCache(val instanceSpec: InstanceSpecification, dir: File, runt
       val stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1).toString)))
 
       try {
-        Partition(currentInstances, currentIndices, count).serialize(stream)
+        Partition(currentEntities, currentIndices, count).serialize(stream)
       }
       finally {
         stream.close()
