@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.linkspec
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.instance.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 
 /**
  * Defines a dataset.

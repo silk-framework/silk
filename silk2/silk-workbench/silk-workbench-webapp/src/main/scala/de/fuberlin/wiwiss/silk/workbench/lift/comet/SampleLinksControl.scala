@@ -20,8 +20,8 @@ class SampleLinksControl extends DynamicButton {
         new SampleLinksTask(
           sources = User().project.sourceModule.tasks.map(_.source),
           linkSpec = User().linkingTask.linkSpec,
-          paths = User().linkingTask.cache.instanceSpecs.map(_.paths),
-          referenceInstances = User().linkingTask.cache.instances,
+          paths = User().linkingTask.cache.entityDescs.map(_.paths),
+          referenceEntities = User().linkingTask.cache.entities,
           population = CurrentLearningTask().value.get.population
         )
 

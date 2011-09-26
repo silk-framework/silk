@@ -16,7 +16,7 @@ object SourceTaskDialog extends Dialog {
 
   private val uriField = StringField("Endpoint URI", "The URI of the SPARQL endpoint", () => getParam("endpointURI"))
 
-  private val graphField = StringField("Graph URI", "Only retrieve instances from a specific graph", () => getParam("graph"))
+  private val graphField = StringField("Graph URI", "Only retrieve entities from a specific graph", () => getParam("graph"))
 
   private val retryCountField = StringField("Retry count", "To recover from intermittent SPARQL endpoint connection failures, " +
                    "the 'retryCount' parameter specifies the number of times to retry connecting.", () => getParam("retryCount"))

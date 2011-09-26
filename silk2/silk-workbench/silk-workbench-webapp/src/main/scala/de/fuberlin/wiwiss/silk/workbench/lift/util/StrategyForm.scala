@@ -5,7 +5,7 @@ import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Parameter, StrategyDescription}
 
 /**
- * A form which allows the user to create instances of a specific strategy.
+ * A form which allows the user to create entities of a specific strategy.
  */
 class StrategyForm[T <: Strategy](val strategy : StrategyDescription[T], currentObj : () => Option[T])
 {
@@ -55,7 +55,7 @@ class StrategyForm[T <: Strategy](val strategy : StrategyDescription[T], current
   }
 
   /**
-   * Creates a new instance of the strategy based on the entered values.
+   * Creates a new entity of the strategy based on the entered values.
    */
   def create() =
   {

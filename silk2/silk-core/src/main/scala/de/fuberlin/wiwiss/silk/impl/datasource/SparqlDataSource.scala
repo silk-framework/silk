@@ -3,27 +3,27 @@ package de.fuberlin.wiwiss.silk.impl.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.net.URI
 import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
-import de.fuberlin.wiwiss.silk.util.sparql.{SparqlSamplePathsCollector, SparqlAggregatePathsCollector, InstanceRetriever, RemoteSparqlEndpoint}
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlSamplePathsCollector, SparqlAggregatePathsCollector, EntityRetriever, RemoteSparqlEndpoint}
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecification}
+import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescription}
 
 /**
- * DataSource which retrieves all instances from a SPARQL endpoint
+ * DataSource which retrieves all entities from a SPARQL endpoint
  *
  * Parameters:
  * - '''endpointURI''': The URI of the SPARQL endpoint
  * - '''login (optional)''': Login required for authentication
  * - '''password (optional)''': Password required for authentication
- * - '''graph (optional)''': Only retrieve instances from a specific graph
+ * - '''graph (optional)''': Only retrieve entities from a specific graph
  * - '''pageSize (optional)''': The number of solutions to be retrieved per SPARQL query (default: 1000)
- * - '''instanceList (optional)''': A list of instances to be retrieved. If not given, all instances will be retrieved. Multiple instances are separated by a space.
+ * - '''entityList (optional)''': A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by a space.
  * - '''pauseTime (optional)''': The number of milliseconds to wait between subsequent query 
  * - '''retryCount (optional)''': The number of retires if a query fails
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
  */
-@StrategyAnnotation(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all instances from a SPARQL endpoint")
+@StrategyAnnotation(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all entities from a SPARQL endpoint")
 class SparqlDataSource(endpointURI: String, login: String = null, password: String = null,
-                       graph: String = null, pageSize: Int = 1000, instanceList: String = null,
+                       graph: String = null, pageSize: Int = 1000, entityList: String = null,
                        pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000) extends DataSource {
   private val uri = new URI(endpointURI)
 
@@ -38,14 +38,14 @@ class SparqlDataSource(endpointURI: String, login: String = null, password: Stri
 
   private val graphUri = if (graph == null) None else Some(graph)
 
-  private val instanceUris = Option(instanceList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
+  private val entityUris = Option(entityList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
   private val logger = Logger.getLogger(SparqlDataSource.getClass.getName)
 
-  override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]) = {
-    val instanceRetriever = InstanceRetriever(createEndpoint(), pageSize, graphUri)
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
+    val entityRetriever = EntityRetriever(createEndpoint(), pageSize, graphUri)
 
-    instanceRetriever.retrieve(instanceSpec, instanceUris union instances)
+    entityRetriever.retrieve(entityDesc, entityUris union entities)
   }
 
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {

@@ -30,7 +30,7 @@ object Silk {
    *  - 'configFile' (required): The configuration file
    *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
    *  - 'threads' (optional): The number of threads to be be used for matching.
-   *  - 'reload' (optional): Specifies if the instance cache is to be reloaded before executing the matching. Default: true
+   *  - 'reload' (optional): Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def execute() {
     System.getProperty("logQueries") match {
@@ -69,7 +69,7 @@ object Silk {
    * @param configFile The configuration file.
    * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
    * @param numThreads The number of threads to be used for matching.
-   * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
+   * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     executeConfig(SilkConfig.load(configFile), linkSpecID, numThreads, reload)
@@ -81,7 +81,7 @@ object Silk {
    * @param configFile The configuration.
    * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
    * @param numThreads The number of threads to be used for matching.
-   * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
+   * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeConfig(config: SilkConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     if (linkSpecID != null) {
@@ -102,7 +102,7 @@ object Silk {
    * @param config The configuration.
    * @param linkSpec The link specifications to be executed.
    * @param numThreads The number of threads to be used for matching.
-   * @param reload Specifies if the instance cache is to be reloaded before executing the matching. Default: true
+   * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   private def executeLinkSpec(config: SilkConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     new GenerateLinksTask(

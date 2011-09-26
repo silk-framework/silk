@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning.generation
 
-import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.entity.Path
 import util.Random
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair

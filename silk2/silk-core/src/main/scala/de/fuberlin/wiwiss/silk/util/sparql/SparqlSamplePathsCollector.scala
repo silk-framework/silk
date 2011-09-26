@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.util.sparql
 
 import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, ForwardOperator, Path}
+import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, ForwardOperator, Path}
 
 /**
- * Retrieves the most frequent paths of a number of random sample instances.
+ * Retrieves the most frequent paths of a number of random sample entities.
  *
  * It is typically faster than SparqlAggregatePathsCollector but also less precise.
  *
@@ -14,8 +14,8 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, ForwardOperator, Pat
  * - It returns a maximum of 100 paths
  */
 object SparqlSamplePathsCollector extends SparqlPathsCollector {
-  /**Number of sample instances */
-  private val maxInstances = 100
+  /**Number of sample entities */
+  private val maxEntities = 100
 
   /**The minimum frequency of a property to be considered relevant */
   private val MinFrequency = 0.7
@@ -25,44 +25,44 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
     val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
 
-    val sampleInstances = {
+    val sampleEntities = {
       if (variable.isEmpty)
-        getAllInstances(endpoint)
+        getAllEntities(endpoint)
       else
-        getInstances(endpoint, restrictions, variable)
+        getEntities(endpoint, restrictions, variable)
     }
 
-    getInstancesPaths(endpoint, sampleInstances, variable, limit.getOrElse(100))
+    getEntitiesPaths(endpoint, sampleEntities, variable, limit.getOrElse(100))
   }
 
-  private def getAllInstances(endpoint: SparqlEndpoint): Traversable[String] = {
+  private def getAllEntities(endpoint: SparqlEndpoint): Traversable[String] = {
     val sparql = "SELECT ?s WHERE { ?s ?p ?o }"
 
-    val results = endpoint.query(sparql, maxInstances)
+    val results = endpoint.query(sparql, maxEntities)
 
     results.map(_("s").value)
   }
 
-  private def getInstances(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String): Traversable[String] = {
+  private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String): Traversable[String] = {
     val sparql = "SELECT ?" + variable + " WHERE {\n" +
       restrictions.toSparql + "\n" +
       "}"
 
-    val results = endpoint.query(sparql, maxInstances)
+    val results = endpoint.query(sparql, maxEntities)
 
     results.map(_(variable).value)
   }
 
-  private def getInstancesPaths(endpoint: SparqlEndpoint, instances: Traversable[String], variable: String, limit: Int): Traversable[(Path, Double)] = {
+  private def getEntitiesPaths(endpoint: SparqlEndpoint, entities: Traversable[String], variable: String, limit: Int): Traversable[(Path, Double)] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
-    val instanceArray = instances.toArray
+    val entityArray = entities.toArray
 
     //Get all properties
-    val properties = instanceArray.flatMap(instance => getInstanceProperties(endpoint, instance, variable))
+    val properties = entityArray.flatMap(entity => getEntityProperties(endpoint, entity, variable))
 
     //Compute the frequency of each property
-    val propertyFrequencies = properties.groupBy(x => x).mapValues(_.size.toDouble / instanceArray.size).toList
+    val propertyFrequencies = properties.groupBy(x => x).mapValues(_.size.toDouble / entityArray.size).toList
 
     //Choose the relevant properties
     val relevantProperties = propertyFrequencies.filter {
@@ -75,11 +75,11 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     relevantProperties
   }
 
-  private def getInstanceProperties(endpoint: SparqlEndpoint, instanceUri: String, variable: String): Traversable[Path] = {
+  private def getEntityProperties(endpoint: SparqlEndpoint, entityUri: String, variable: String): Traversable[Path] = {
     var sparql = ""
     sparql += "SELECT DISTINCT ?p \n"
     sparql += "WHERE {\n"
-    sparql += " <" + instanceUri + "> ?p ?o\n"
+    sparql += " <" + entityUri + "> ?p ?o\n"
     sparql += "}"
 
     for (result <- endpoint.query(sparql); binding <- result.values)

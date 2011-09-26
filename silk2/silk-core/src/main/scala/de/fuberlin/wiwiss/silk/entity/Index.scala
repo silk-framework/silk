@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.instance
+package de.fuberlin.wiwiss.silk.entity
 
 import java.io.{DataInputStream, DataOutputStream}
 

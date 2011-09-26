@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.evaluation
 import de.fuberlin.wiwiss.silk.linkspec.LinkageRule
 
 object LinkageRuleEvaluator {
-  def apply(LinkageRule: LinkageRule, instances: ReferenceInstances): EvaluationResult = {
+  def apply(LinkageRule: LinkageRule, entity: ReferenceEntities): EvaluationResult = {
     var truePositives: Int = 0
     var trueNegatives: Int = 0
     var falsePositives: Int = 0
@@ -14,8 +14,8 @@ object LinkageRuleEvaluator {
     var positiveError = 0.0
     var negativeError = 0.0
 
-    for (instancePair <- instances.positive.values) {
-      val confidence = LinkageRule(instancePair, 0.0)
+    for (entityPair <- entity.positive.values) {
+      val confidence = LinkageRule(entityPair, 0.0)
 
       if (confidence >= 0.0) {
         truePositives += 1
@@ -27,8 +27,8 @@ object LinkageRuleEvaluator {
       }
     }
 
-    for (instancePair <- instances.negative.values) {
-      val confidence = LinkageRule(instancePair, 0.0)
+    for (entityPair <- entity.negative.values) {
+      val confidence = LinkageRule(entityPair, 0.0)
 
       if (confidence >= 0.0) {
         falsePositives += 1
@@ -42,8 +42,8 @@ object LinkageRuleEvaluator {
 
     //    val score =
     //    {
-    //      val positiveScore = 1.0 - positiveError / instances.positive.size
-    //      val negativeScore = 1.0 - negativeError / instances.negative.size
+    //      val positiveScore = 1.0 - positiveError / entities.positive.size
+    //      val negativeScore = 1.0 - negativeError / entities.negative.size
     //
     //      if(positiveScore + negativeScore == 0.0)
     //      {

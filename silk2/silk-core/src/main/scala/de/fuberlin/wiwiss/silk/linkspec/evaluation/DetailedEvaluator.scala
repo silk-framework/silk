@@ -5,17 +5,17 @@ import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation, Sim
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.output.Link.InputValue
 import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, PathInput, Input}
-import de.fuberlin.wiwiss.silk.instance.Instance
+import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.linkspec.LinkageRule
 
 object DetailedEvaluator {
-  def apply(condition: LinkageRule, instances: SourceTargetPair[Instance], limit: Double = -1.0): Option[Link] = {
+  def apply(condition: LinkageRule, entities: SourceTargetPair[Entity], limit: Double = -1.0): Option[Link] = {
     condition.operator match {
       case Some(op) => {
-        val confidence = evaluateOperator(op, instances, limit)
+        val confidence = evaluateOperator(op, entities, limit)
 
         if (confidence.value.getOrElse(-1.0) >= limit) {
-          Some(new Link(instances.source.uri, instances.target.uri, Some(confidence), Some(instances)))
+          Some(new Link(entities.source.uri, entities.target.uri, Some(confidence), Some(entities)))
         }
         else {
           None
@@ -23,7 +23,7 @@ object DetailedEvaluator {
       }
       case None => {
         if (limit == -1.0) {
-          Some(new Link(instances.source.uri, instances.target.uri, Some(Link.SimpleConfidence(Some(-1.0))), Some(instances)))
+          Some(new Link(entities.source.uri, entities.target.uri, Some(Link.SimpleConfidence(Some(-1.0))), Some(entities)))
         }
         else {
           None
@@ -32,12 +32,12 @@ object DetailedEvaluator {
     }
   }
 
-  private def evaluateOperator(operator: SimilarityOperator, instances: SourceTargetPair[Instance], threshold: Double) = operator match {
-    case aggregation: Aggregation => evaluateAggregation(aggregation, instances, threshold)
-    case comparison: Comparison => evaluateComparison(comparison, instances, threshold)
+  private def evaluateOperator(operator: SimilarityOperator, entities: SourceTargetPair[Entity], threshold: Double) = operator match {
+    case aggregation: Aggregation => evaluateAggregation(aggregation, entities, threshold)
+    case comparison: Comparison => evaluateComparison(comparison, entities, threshold)
   }
 
-  private def evaluateAggregation(aggregation: Aggregation, instances: SourceTargetPair[Instance], threshold: Double): Link.AggregatorConfidence = {
+  private def evaluateAggregation(aggregation: Aggregation, entities: SourceTargetPair[Entity], threshold: Double): Link.AggregatorConfidence = {
     val totalWeights = aggregation.operators.map(_.weight).sum
 
     var isNone = false
@@ -45,7 +45,7 @@ object DetailedEvaluator {
     val operatorValues = {
       for (operator <- aggregation.operators) yield {
         val updatedThreshold = aggregation.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
-        val value = evaluateOperator(operator, instances, updatedThreshold)
+        val value = evaluateOperator(operator, entities, updatedThreshold)
         if (operator.required && value.value.isEmpty) isNone = true
 
         value
@@ -62,14 +62,14 @@ object DetailedEvaluator {
       Link.AggregatorConfidence(aggregatedValue, aggregation, operatorValues)
   }
 
-  private def evaluateComparison(comparison: Comparison, instances: SourceTargetPair[Instance], threshold: Double): Link.ComparisonConfidence = {
-    val distance = comparison.apply(instances, threshold)
+  private def evaluateComparison(comparison: Comparison, entities: SourceTargetPair[Entity], threshold: Double): Link.ComparisonConfidence = {
+    val distance = comparison.apply(entities, threshold)
 
     val sourceInput = findInput(comparison.inputs.source)
     val targetInput = findInput(comparison.inputs.target)
 
-    val sourceValue = InputValue(sourceInput, comparison.inputs.source(instances))
-    val targetValue = InputValue(targetInput, comparison.inputs.target(instances))
+    val sourceValue = InputValue(sourceInput, comparison.inputs.source(entities))
+    val targetValue = InputValue(targetInput, comparison.inputs.target(entities))
 
     Link.ComparisonConfidence(distance, comparison, sourceValue, targetValue)
   }

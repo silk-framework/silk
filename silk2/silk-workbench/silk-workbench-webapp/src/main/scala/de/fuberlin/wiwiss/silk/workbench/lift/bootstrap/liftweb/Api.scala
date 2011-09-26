@@ -1,7 +1,7 @@
 package bootstrap.liftweb
 
 import xml.PrettyPrinter
-import de.fuberlin.wiwiss.silk.instance.Path
+import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregator, DistanceMeasure}
@@ -44,17 +44,17 @@ object Api {
     val linkingTask = User().linkingTask
     val datasets = linkingTask.linkSpec.datasets
     val restrictions = linkingTask.linkSpec.datasets.map(_.restriction)
-    val instanceSpecs = linkingTask.cache.instanceSpecs
-    val sourcePaths = if(instanceSpecs != null) instanceSpecs.source.paths else List[Path]()
-    val targetPaths = if(instanceSpecs != null) instanceSpecs.target.paths else List[Path]()
+    val entityDescs = linkingTask.cache.entityDescs
+    val sourcePaths = if(entityDescs != null) entityDescs.source.paths else List[Path]()
+    val targetPaths = if(entityDescs != null) entityDescs.target.paths else List[Path]()
 
     val sourceField = JField("source", JObject(JField("id", JString(datasets.source.sourceId)) ::
-                                               JField("paths", JArray(generateInstancePaths(sourcePaths, maxPathCount).toList)) ::
+                                               JField("paths", JArray(generateEntityPaths(sourcePaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(sourcePaths.size)) ::
                                                JField("restrictions", JString(restrictions.source.toString)) ::
                                                JField("variable", JString(datasets.source.variable)) :: Nil))
     val targetField = JField("target", JObject(JField("id", JString(datasets.target.sourceId)) ::
-                                               JField("paths", JArray(generateInstancePaths(targetPaths, maxPathCount).toList)) ::
+                                               JField("paths", JArray(generateEntityPaths(targetPaths, maxPathCount).toList)) ::
                                                JField("availablePaths", JInt(targetPaths.size)) ::
                                                JField("restrictions", JString(restrictions.target.toString)) ::
                                                JField("variable", JString(datasets.target.variable)) :: Nil))
@@ -64,7 +64,7 @@ object Api {
       case _ => None
     }
 
-    val isLoadingField = JField("isLoading", JBool(errorMsg.isEmpty && instanceSpecs == null))
+    val isLoadingField = JField("isLoading", JBool(errorMsg.isEmpty && entityDescs == null))
 
     val json = errorMsg match {
       case None => JObject(sourceField :: targetField :: isLoadingField :: Nil)
@@ -74,7 +74,7 @@ object Api {
     Full(JsonResponse(json))
   }
 
-  private def generateInstancePaths(paths : Traversable[Path], maxPathCount : Int)(implicit prefixes : Prefixes) = {
+  private def generateEntityPaths(paths : Traversable[Path], maxPathCount : Int)(implicit prefixes : Prefixes) = {
     for(path <- paths.toSeq.take(maxPathCount)) yield {
       JObject(JField("path", JString(path.serialize)) :: JField("frequency", JDouble(1.0)) :: Nil)
     }

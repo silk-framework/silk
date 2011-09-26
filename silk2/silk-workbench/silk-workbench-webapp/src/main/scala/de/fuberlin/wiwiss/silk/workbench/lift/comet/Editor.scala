@@ -115,10 +115,10 @@ class Editor extends CometActor {
       ("Cache loading") :: Nil
     } else if(linkingTask.cache.status.failed) {
       ("Cache loading failed") :: Nil
-    } else if (linkingTask.cache.instances.positive.isEmpty || linkingTask.cache.instances.negative.isEmpty) {
+    } else if (linkingTask.cache.entities.positive.isEmpty || linkingTask.cache.entities.negative.isEmpty) {
       ("No reference links") :: Nil
     } else {
-      val r = LinkageRuleEvaluator(linkingTask.linkSpec.rule, linkingTask.cache.instances)
+      val r = LinkageRuleEvaluator(linkingTask.linkSpec.rule, linkingTask.cache.entities)
 
       ("Precision = %.2f".format(r.precision)) ::
       ("Recall = %.2f".format(r.recall)) ::
@@ -164,42 +164,4 @@ class Editor extends CometActor {
       }
     }
   }
-
-  //  private def generatePathsFunction() =
-  //  {
-  //    JsCmds.Function("retrievePaths", Nil, JsCmds.JsReturn(SHtml.ajaxInvoke(() => Str("test").cmd)._2))
-  //  }
-  //
-  //  private def generatePathsObj() =
-  //  {
-  //    new JsObj
-  //    {
-  //      val props = ("source", generateSelectedPathsObj(true)) ::
-  //                  ("target", generateSelectedPathsObj(false)) :: Nil
-  //    }.cmd
-  //  }
-  //
-  //  private def generateSelectedPathsObj(selectSource : Boolean) =
-  //  {
-  //    val dataset = Project().linkSpec.datasets.select(selectSource)
-  //
-  //    val instanceSpec = Project().cache.instanceSpecs.select(selectSource)
-  //
-  //    new JsObj
-  //    {
-  //      val props = ("id", Str(dataset.sourceId)) ::
-  //                  ("paths", JsArray(instanceSpec.paths.map(generatePathObj) : _*)) ::
-  //                  ("availablePaths", Num(instanceSpec.paths.size)) ::
-  //                  ("restrictions", Str(instanceSpec.restrictions)) :: Nil
-  //    }
-  //  }
-  //
-  //  private def generatePathObj(path : Path) =
-  //  {
-  //    new JsObj
-  //    {
-  //      val props = ("path", Str(path.toString)) ::
-  //                  ("frequency", Num(1.0)) :: Nil
-  //    }
-  //  }
 }

@@ -55,13 +55,13 @@ class ReferenceLinksContent extends Links {
   override protected def links: Seq[EvalLink] = {
     def linkageRule = linkingTask.linkSpec.rule
     def referenceLinks = linkingTask.referenceLinks
-    def instances = linkingTask.cache.instances
+    def entities = linkingTask.cache.entities
 
     ShowLinks() match {
       case Positive => {
-        for (link <- referenceLinks.positive.toSeq.view) yield instances.positive.get(link) match {
-          case Some(instances) => {
-            val evaluatedLink = DetailedEvaluator(linkageRule, instances, -1.0).get
+        for (link <- referenceLinks.positive.toSeq.view) yield entities.positive.get(link) match {
+          case Some(entities) => {
+            val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
@@ -81,9 +81,9 @@ class ReferenceLinksContent extends Links {
         }
       }
       case Negative => {
-        for (link <- referenceLinks.negative.toSeq.view) yield instances.negative.get(link) match {
-          case Some(instances) => {
-            val evaluatedLink = DetailedEvaluator(linkageRule, instances, -1.0).get
+        for (link <- referenceLinks.negative.toSeq.view) yield entities.negative.get(link) match {
+          case Some(entities) => {
+            val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
@@ -133,14 +133,14 @@ class ReferenceLinksContent extends Links {
 
   private def showAllProperties(link: EvalLink) = {
 
-    val instances = User().linkingTask.cache.instances
+    val entities = User().linkingTask.cache.entities
 
-    val instancePair = instances.positive.get(link).getOrElse(instances.negative(link))
+    val entityPair = entities.positive.get(link).getOrElse(entities.negative(link))
 
-    for(instance <- instancePair) {
-      println(instance.uri)
-      for((path, index) <- instance.spec.paths.zipWithIndex) {
-        println(path.toString + instance.evaluate(index))
+    for(entity <- entityPair) {
+      println(entity.uri)
+      for((path, index) <- entity.desc.paths.zipWithIndex) {
+        println(path.toString + entity.evaluate(index))
       }
       println()
     }

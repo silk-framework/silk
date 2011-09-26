@@ -10,6 +10,6 @@ class LearnToolbar {
 
   def render(xhtml: NodeSeq): NodeSeq = {
     bind("entry", xhtml,
-         "startCrossValidation" -> SHtml.button("Cross validation", () => new CrossValidationTask(User().linkingTask.cache.instances).run()))
+         "startCrossValidation" -> SHtml.button("Cross validation", () => new CrossValidationTask(User().linkingTask.cache.entities).run()))
   }
 }

@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.util.sparql
 
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.{Timer, Uri}
-import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, BackwardOperator, Path, ForwardOperator}
+import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, BackwardOperator, Path, ForwardOperator}
 
 /**
  * Retrieves the most frequent property paths by issuing a SPARQL 1.1 aggregation query.
@@ -17,7 +17,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   private implicit val logger = Logger.getLogger(SparqlAggregatePathsCollector.getClass.getName)
 
   /**
-   * Retrieves a list of properties which are defined on most instances.
+   * Retrieves a list of properties which are defined on most entities.
    */
   def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
     val restrictionVariable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')

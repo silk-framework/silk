@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import config.RuntimeConfig
-import instance.InstanceCache
+import entity.EntityCache
 import linkspec.evaluation.DetailedEvaluator
 import linkspec.LinkSpecification
 import java.util.logging.Level
@@ -14,10 +14,10 @@ import util.task.ValueTask
 
 /**
  * Executes the matching.
- * Generates links between the instances according to the link specification.
+ * Generates links between the entitys according to the link specification.
  */
 class MatchTask(linkSpec: LinkSpecification,
-                caches: SourceTargetPair[InstanceCache],
+                caches: SourceTargetPair[EntityCache],
                 runtimeConfig: RuntimeConfig = RuntimeConfig(),
                 sourceEqualsTarget: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
   taskName = "Matching"
@@ -94,7 +94,7 @@ class MatchTask(linkSpec: LinkSpecification,
   }
 
   /**
-   * Monitors the instance caches and schedules new matching threads whenever a new partition has been loaded.
+   * Monitors the entity caches and schedules new matching threads whenever a new partition has been loaded.
    */
   private class SchedulerThread(executor: CompletionService[Traversable[Link]]) extends Thread {
     @volatile var taskCount = 0
@@ -171,7 +171,7 @@ class MatchTask(linkSpec: LinkSpecification,
   }
 
   /**
-   * Matches the instances of two partitions.
+   * Matches the entitys of two partitions.
    */
   private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[Traversable[Link]] {
     override def call(): Traversable[Link] = {
@@ -185,18 +185,18 @@ class MatchTask(linkSpec: LinkSpecification,
              tStart = if (sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
              t <- tStart until targetPartition.size;
              if !runtimeConfig.blocking.isEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
-          val sourceInstance = sourcePartition.instances(s)
-          val targetInstance = targetPartition.instances(t)
-          val instances = SourceTargetPair(sourceInstance, targetInstance)
+          val sourceEntity = sourcePartition.entities(s)
+          val targetEntity = targetPartition.entities(t)
+          val entities = SourceTargetPair(sourceEntity, targetEntity)
 
           if (!runtimeConfig.generateDetailedLinks) {
-            val confidence = linkSpec.rule(instances, 0.0)
+            val confidence = linkSpec.rule(entities, 0.0)
 
             if (confidence >= 0.0) {
-              links ::= new Link(sourceInstance.uri, targetInstance.uri, confidence)
+              links ::= new Link(sourceEntity.uri, targetEntity.uri, confidence)
             }
           } else {
-            for (link <- DetailedEvaluator(linkSpec.rule, instances, 0.0)) {
+            for (link <- DetailedEvaluator(linkSpec.rule, entities, 0.0)) {
               links ::= link
             }
           }

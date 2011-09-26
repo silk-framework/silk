@@ -1,22 +1,22 @@
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.instance.InstanceSpecification
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 
 /**
- * A source of instances.
+ * A source of entities.
  */
 case class Source(id: Identifier, dataSource: DataSource) {
   /**
-   * Retrieves instances from this source which satisfy a specific instance specification.
+   * Retrieves entities from this source which satisfy a specific entity description.
    *
-   * @param instanceSpec The instance specification
-   * @param instances The URIs of the instances to be retrieved. If empty, all instances will be retrieved.
+   * @param entityDesc The entity description
+   * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    *
-   * @return A Traversable over the instances. The evaluation of the Traversable may be non-strict.
+   * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
-  def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String] = Seq.empty) = dataSource.retrieve(instanceSpec, instances)
+  def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty) = dataSource.retrieve(entityDesc, entities)
 
   def toXML: Node = dataSource match {
     case DataSource(dataSourceType, params) => {
