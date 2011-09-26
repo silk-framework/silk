@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workbench.learning
+package de.fuberlin.wiwiss.silk.learning.sampling
 
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
 import de.fuberlin.wiwiss.silk.datasource.Source
