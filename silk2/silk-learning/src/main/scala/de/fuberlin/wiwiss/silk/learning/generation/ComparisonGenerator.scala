@@ -5,7 +5,7 @@ import util.Random
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.individual._
 
-class ComparisonGenerator(inputGenerators: SourceTargetPair[InputGenerator], measure: StrategyNode[DistanceMeasure], maxThreshold: Double) {
+class ComparisonGenerator(inputGenerators: SourceTargetPair[InputGenerator], measure: FunctionNode[DistanceMeasure], maxThreshold: Double) {
 
   def apply() = {
     ComparisonNode(

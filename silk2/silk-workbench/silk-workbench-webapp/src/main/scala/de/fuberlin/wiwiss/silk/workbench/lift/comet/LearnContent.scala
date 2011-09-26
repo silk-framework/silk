@@ -185,7 +185,7 @@ class LearnContent extends CometActor {
   private def renderOperator(op: Operator): Elem = op match  {
     case Aggregation(id, required, weight, operators, aggregator) => {
       <li>
-        <span class="aggregation">Aggregation: {aggregator.strategyId}</span>
+        <span class="aggregation">Aggregation: {aggregator.pluginId}</span>
         <ul>
         { operators.map(renderOperator) }
         </ul>
@@ -193,7 +193,7 @@ class LearnContent extends CometActor {
     }
     case Comparison(id, required, threshold, weight, SourceTargetPair(input1, input2), metric) => {
       <li>
-        <span class="comparison">Comparison: {metric.strategyId}</span>
+        <span class="comparison">Comparison: {metric.pluginId}</span>
         <ul>
           { renderOperator(input1) }
           { renderOperator(input2) }
@@ -202,7 +202,7 @@ class LearnContent extends CometActor {
     }
     case TransformInput(id, inputs, transformer) => {
       <li>
-        <span class="transformation">Transformation: {transformer.strategyId}</span>
+        <span class="transformation">Transformation: {transformer.pluginId}</span>
         <ul>
           { inputs.map(renderOperator) }
         </ul>

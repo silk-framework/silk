@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.instance.Path
 import util.Random
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.learning.individual.{PathInputNode, InputNode, TransformNode, StrategyNode}
+import de.fuberlin.wiwiss.silk.learning.individual.{PathInputNode, InputNode, TransformNode, FunctionNode}
 
 class InputGenerator(input: InputNode, useTransformations: Boolean) {
 
@@ -15,7 +15,7 @@ class InputGenerator(input: InputNode, useTransformations: Boolean) {
   def apply(): InputNode = {
     if(useTransformations && Random.nextDouble < transformationProbability) {
       val transformer = transformers(Random.nextInt(transformers.size))
-      TransformNode(input.isSource, input :: Nil, StrategyNode(transformer, Nil, Transformer))
+      TransformNode(input.isSource, input :: Nil, FunctionNode(transformer, Nil, Transformer))
     } else {
       input
     }

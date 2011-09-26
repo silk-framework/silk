@@ -2,9 +2,9 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import scala.math.max
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "levenshtein", label = "Normalized Levenshtein distance", description = "Normalized Levenshtein distance.")
+@Plugin(id = "levenshtein", label = "Normalized Levenshtein distance", description = "Normalized Levenshtein distance.")
 case class LevenshteinMetric(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
   private val q = 1
 

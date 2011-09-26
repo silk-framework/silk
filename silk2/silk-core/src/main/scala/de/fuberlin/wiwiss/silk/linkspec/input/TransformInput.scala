@@ -22,8 +22,8 @@ case class TransformInput(id: Identifier = Operator.generateId, inputs: Seq[Inpu
   }
 
   override def toXML(implicit prefixes: Prefixes) = transformer match {
-    case Transformer(strategy, params) => {
-      <TransformInput id={id} function={strategy}>
+    case Transformer(func, params) => {
+      <TransformInput id={id} function={func}>
         {inputs.map { input => input.toXML }}
         {params.map { case (name, value) => <Param name={name} value={value}/>  }}
       </TransformInput>

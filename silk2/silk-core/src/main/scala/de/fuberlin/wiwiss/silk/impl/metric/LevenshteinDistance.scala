@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math.{min, max, abs}
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 
-@StrategyAnnotation(id = "levenshteinDistance", label = "Levenshtein distance", description = "Levenshtein distance.")
+@Plugin(id = "levenshteinDistance", label = "Levenshtein distance", description = "Levenshtein distance.")
 case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
   /**The size of the q-Grams to be indexed */
   private val q = 2

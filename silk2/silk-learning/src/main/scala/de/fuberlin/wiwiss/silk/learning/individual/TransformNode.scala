@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.learning.individual
 
 import de.fuberlin.wiwiss.silk.linkspec.input.{TransformInput, Transformer}
 
-case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer: StrategyNode[Transformer]) extends InputNode {
+case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer: FunctionNode[Transformer]) extends InputNode {
   override val children = transformer :: inputs
 
   override def updateChildren(children: List[Node]) = {
@@ -10,7 +10,7 @@ case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer
       case c: InputNode => c
     }
     val newTransformer = children.collect {
-      case c: StrategyNode[Transformer] => c
+      case c: FunctionNode[Transformer] => c
     }.head
 
     TransformNode(isSource, newInputs, newTransformer)
@@ -27,7 +27,7 @@ case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer
 object TransformNode {
   def load(input: TransformInput, isSource: Boolean) = {
     val inputNodes = input.inputs.map(i => InputNode.load(i, isSource)).toList
-    val transformerNode = StrategyNode.load(input.transformer, Transformer)
+    val transformerNode = FunctionNode.load(input.transformer, Transformer)
 
     TransformNode(isSource, inputNodes, transformerNode)
   }

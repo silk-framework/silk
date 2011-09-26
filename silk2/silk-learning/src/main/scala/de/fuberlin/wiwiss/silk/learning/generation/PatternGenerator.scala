@@ -39,7 +39,7 @@ class PatternGenerator(components: Components) {
     private def createGenerator(pathPair : SourceTargetPair[Path]) = {
       new ComparisonGenerator(
         inputGenerators = InputGenerator.fromPathPair(pathPair, components.transformations),
-        measure = StrategyNode("levenshteinDistance", Nil, DistanceMeasure),
+        measure = FunctionNode("levenshteinDistance", Nil, DistanceMeasure),
         maxThreshold = 10.0
       )
     }
@@ -63,18 +63,18 @@ class PatternGenerator(components: Components) {
           TransformNode(
             isSource = true,
             inputs = PathInputNode(latPaths.source, true) :: PathInputNode(longPaths.source, true) :: Nil,
-            transformer = StrategyNode("concat", ParameterNode("glue", " ") :: Nil, Transformer)
+            transformer = FunctionNode("concat", ParameterNode("glue", " ") :: Nil, Transformer)
           ),
           TransformNode(
             isSource = false,
             inputs = PathInputNode(latPaths.target, false) :: PathInputNode(longPaths.target, false) :: Nil,
-            transformer = StrategyNode("concat", ParameterNode("glue", " ") :: Nil, Transformer)
+            transformer = FunctionNode("concat", ParameterNode("glue", " ") :: Nil, Transformer)
           )
         )
 
       new ComparisonGenerator(
         inputGenerators = InputGenerator.fromInputPair(inputs, components.transformations),
-        measure = StrategyNode("wgs84", ParameterNode("unit", "km") :: Nil, DistanceMeasure),
+        measure = FunctionNode("wgs84", ParameterNode("unit", "km") :: Nil, DistanceMeasure),
         maxThreshold = 50.0
       )
     }

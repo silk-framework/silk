@@ -2,12 +2,12 @@ package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.{Formatter, Link, LinkWriter}
 import java.io.{Writer, OutputStreamWriter, FileOutputStream}
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 /**
  * A file writer.
  */
-@StrategyAnnotation(id = "file", label = "File")
+@Plugin(id = "file", label = "File")
 case class FileWriter(file: String = "output.nt", format: String = "ntriples") extends LinkWriter {
   private val formatter = Formatter(format)
 

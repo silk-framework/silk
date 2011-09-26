@@ -65,8 +65,8 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
   }
 
   override def toXML(implicit prefixes: Prefixes) = metric match {
-    case DistanceMeasure(strategy, params) => {
-      <Compare id={id} required={required.toString} weight={weight.toString} metric={strategy} threshold={threshold.toString}>
+    case DistanceMeasure(func, params) => {
+      <Compare id={id} required={required.toString} weight={weight.toString} metric={func} threshold={threshold.toString}>
         {inputs.source.toXML}{inputs.target.toXML}{params.map {
         case (name, value) => <Param name={name} value={value}/>
       }}

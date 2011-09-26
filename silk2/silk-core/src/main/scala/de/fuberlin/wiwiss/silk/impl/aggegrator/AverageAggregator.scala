@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.impl.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkspec.similarity.MultiIndexAggregator
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "average", label = "Average", description = "Computes the weighted average.")
+@Plugin(id = "average", label = "Average", description = "Computes the weighted average.")
 class AverageAggregator() extends MultiIndexAggregator {
   private val positiveWeight: Int = 9
   private val negativeWeight: Int = 10

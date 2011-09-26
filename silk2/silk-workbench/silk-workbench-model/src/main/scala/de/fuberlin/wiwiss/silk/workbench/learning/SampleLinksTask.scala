@@ -108,12 +108,12 @@ class SampleLinksTask(sources: Traversable[Source],
     if(rules.size < testRulesCount)
       rules = Seq(defaultLinkageRule) ++ rules ++ Random.shuffle(population.individuals.map(_.node.build)).take(testRulesCount - rules.size - 1)
 
-    def collectPaths(op: Operator): Seq[Path] = op match {
-      case agg: Aggregation => agg.operators.flatMap(collectPaths)
-      case cmp: Comparison => cmp.inputs.flatMap(collectPaths)
-      case t: TransformInput => t.inputs.flatMap(collectPaths)
-      case i: PathInput => Seq(i.path)
-    }
+//    def collectPaths(op: Operator): Seq[Path] = op match {
+//      case agg: Aggregation => agg.operators.flatMap(collectPaths)
+//      case cmp: Comparison => cmp.inputs.flatMap(collectPaths)
+//      case t: TransformInput => t.inputs.flatMap(collectPaths)
+//      case i: PathInput => Seq(i.path)
+//    }
 
 //    for (rule <- rules) {
 //      println(collectPaths(rule.operator.get).mkString)
@@ -151,7 +151,7 @@ class SampleLinksTask(sources: Traversable[Source],
   }
 
   private def isLink(linkSpec: LinkSpecification, link: Link) = {
-    val r = linkSpec.rule(link.instances.get) > 0.
+    val r = linkSpec.rule(link.instances.get) > 0.0
     val fitness = LinkageRuleEvaluator(linkSpec.rule, referenceInstances)
 
 //    println(r +  " " + fitness + " " + link)

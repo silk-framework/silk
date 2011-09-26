@@ -2,12 +2,12 @@ package de.fuberlin.wiwiss.silk.impl.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkspec.similarity.MultiIndexAggregator
 import scala.math._
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 /**
  * Computes the weighted geometric mean.
  */
-@StrategyAnnotation(
+@Plugin(
   id = "geometricMean",
   label = "Geometric mean",
   description = "Compute the (weighted) geometric mean.")

@@ -1,16 +1,15 @@
-package de.fuberlin.wiwiss.silk.util.strategy
+package de.fuberlin.wiwiss.silk.util.plugin
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import de.fuberlin.wiwiss.silk.util.ValidationException
-import java.lang.annotation.Annotation
 import java.lang.reflect.{InvocationTargetException, Constructor}
 
 /**
- * Describes a strategy.
+ * Describes a plugin.
  */
-class StrategyDescription[+T <: Strategy](val id: String, val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+class PluginDescription[+T <: AnyPlugin](val id: String, val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
   /**
-   * Creates a new instance of this strategy.
+   * Creates a new instance of this plugin.
    */
   def apply(parameterValues: Map[String, String]): T = {
     val parsedParameters = parseParameters(parameterValues)
@@ -57,60 +56,60 @@ class StrategyDescription[+T <: Strategy](val id: String, val label: String, val
 }
 
 /**
- * Factory for strategy description.
+ * Factory for plugin description.
  */
-object StrategyDescription {
+object PluginDescription {
   /**
-   * Creates a new strategy description from a class.
+   * Creates a new plugin description from a class.
    */
-  def apply[T <: Strategy](strategy: Class[T]): StrategyDescription[T] = {
-    getAnnotation(strategy) match {
-      case Some(annotation) => createFromAnnotation(strategy, annotation)
-      case None => createFromClass(strategy)
+  def apply[T <: AnyPlugin](pluginClass: Class[T]): PluginDescription[T] = {
+    getAnnotation(pluginClass) match {
+      case Some(annotation) => createFromAnnotation(pluginClass, annotation)
+      case None => createFromClass(pluginClass)
     }
   }
 
-  private def getAnnotation[T <: Strategy](strategy: Class[T]): Option[StrategyAnnotation] = {
-    Option(strategy.getAnnotation(classOf[StrategyAnnotation]))
+  private def getAnnotation[T <: AnyPlugin](pluginClass: Class[T]): Option[Plugin] = {
+    Option(pluginClass.getAnnotation(classOf[Plugin]))
   }
 
-  private def createFromAnnotation[T <: Strategy](strategy: Class[T], annotation: StrategyAnnotation) = {
-    new StrategyDescription(
+  private def createFromAnnotation[T <: AnyPlugin](pluginClass: Class[T], annotation: Plugin) = {
+    new PluginDescription(
       id = annotation.id,
       label = annotation.label,
       description = annotation.description,
-      parameters = getParameters(strategy),
-      constructor = getConstructor(strategy)
+      parameters = getParameters(pluginClass),
+      constructor = getConstructor(pluginClass)
     )
   }
 
-  private def createFromClass[T <: Strategy](strategy: Class[T]) = {
-    new StrategyDescription(
-      id = strategy.getSimpleName,
-      label =  strategy.getSimpleName,
+  private def createFromClass[T <: AnyPlugin](pluginClass: Class[T]) = {
+    new PluginDescription(
+      id = pluginClass.getSimpleName,
+      label =  pluginClass.getSimpleName,
       description = "",
-      parameters = getParameters(strategy),
-      constructor = getConstructor(strategy)
+      parameters = getParameters(pluginClass),
+      constructor = getConstructor(pluginClass)
     )
   }
 
-  private def getConstructor[T <: Strategy](strategy: Class[T]): Constructor[T] = {
-    strategy.getConstructors.toList match {
+  private def getConstructor[T <: AnyPlugin](pluginClass: Class[T]): Constructor[T] = {
+    pluginClass.getConstructors.toList match {
       case constructor :: _ => constructor.asInstanceOf[Constructor[T]]
-      case Nil => throw new InvalidStrategyException("Strategy " + strategy.getName + " does not provide a constructor")
+      case Nil => throw new InvalidPluginException("Plugin " + pluginClass.getName + " does not provide a constructor")
     }
   }
 
-  private def getParameters[T <: Strategy](strategy: Class[T]): Array[Parameter] = {
-    val constructor = getConstructor(strategy)
+  private def getParameters[T <: AnyPlugin](pluginClass: Class[T]): Array[Parameter] = {
+    val constructor = getConstructor(pluginClass)
 
     val paranamer = new BytecodeReadingParanamer()
     val parameterNames = paranamer.lookupParameterNames(constructor)
     val parameterTypes = constructor.getGenericParameterTypes
-    val defaultValues = getDefaultValues(strategy, parameterNames.size)
+    val defaultValues = getDefaultValues(pluginClass, parameterNames.size)
 
     for (((parName, parType), defaultValue) <- parameterNames zip parameterTypes zip defaultValues) yield {
-      if (!parType.isInstanceOf[Class[_]]) throw new InvalidStrategyException("Unsupported parameter type in strategy " + strategy.getName + ": " + parType)
+      if (!parType.isInstanceOf[Class[_]]) throw new InvalidPluginException("Unsupported parameter type in plugin " + pluginClass.getName + ": " + parType)
 
       val dataType = parType.asInstanceOf[Class[_]].getName match {
         case "java.lang.String" => Parameter.Type.String
@@ -118,16 +117,16 @@ object StrategyDescription {
         case "int" => Parameter.Type.Int
         case "double" => Parameter.Type.Double
         case "boolean" => Parameter.Type.Boolean
-        case _ => throw new InvalidStrategyException("Unsupported parameter type: " + parType)
+        case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
       }
 
       Parameter(parName, dataType, "No description", defaultValue)
     }
   }
 
-  private def getDefaultValues[T <: Strategy](strategy: Class[T], count: Int): Array[Option[AnyRef]] = {
+  private def getDefaultValues[T <: AnyPlugin](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
     try {
-      val clazz = Class.forName(strategy.getName + "$")
+      val clazz = Class.forName(pluginClass.getName + "$")
       val module = clazz.getField("MODULE$").get(null)
       val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
 

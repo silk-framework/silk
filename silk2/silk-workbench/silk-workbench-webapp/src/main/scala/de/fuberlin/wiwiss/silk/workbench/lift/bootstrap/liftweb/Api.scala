@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.util.strategy.{Parameter, Strategy}
+import de.fuberlin.wiwiss.silk.util.plugin.{Parameter, AnyPlugin}
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.{ProjectExporter, SilkConfigExporter}
 import net.liftweb.common.Full
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
@@ -90,12 +90,12 @@ object Api {
     Full(JsonResponse(json))
   }
 
-  private def generateFactoryOperators[T <: Strategy](factory : de.fuberlin.wiwiss.silk.util.strategy.Factory[T]) = {
-    for(strategy <- factory.availableStrategies.toSeq.sortBy(_.label)) yield {
-      JObject(JField("id", JString(strategy.id)) ::
-              JField("label", JString(strategy.label)) ::
-              JField("description", JString(strategy.description)) ::
-              JField("parameters", JArray(generateFactoryParameters(strategy.parameters).toList)) :: Nil)
+  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.util.plugin.PluginFactory[T]) = {
+    for(plugin <- factory.availablePlugins.toSeq.sortBy(_.label)) yield {
+      JObject(JField("id", JString(plugin.id)) ::
+              JField("label", JString(plugin.label)) ::
+              JField("description", JString(plugin.description)) ::
+              JField("parameters", JArray(generateFactoryParameters(plugin.parameters).toList)) :: Nil)
     }
   }
 

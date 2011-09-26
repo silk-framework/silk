@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "concat", label = "Concatenate", description = "Concatenates strings from two inputs.")
+@Plugin(id = "concat", label = "Concatenate", description = "Concatenates strings from two inputs.")
 class ConcatTransformer(glue: String = "") extends Transformer {
   override def apply(values: Seq[Set[String]]): Set[String] = {
     for (sequence <- cartesianProduct(values)) yield evaluate(sequence)

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.transformer
 
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "removeBlanks", label = "Remove blanks", description = "Remove whitespace from a string.")
+@Plugin(id = "removeBlanks", label = "Remove blanks", description = "Remove whitespace from a string.")
 class RemoveBlanksTransformer() extends ReplaceTransformer(" ", "")

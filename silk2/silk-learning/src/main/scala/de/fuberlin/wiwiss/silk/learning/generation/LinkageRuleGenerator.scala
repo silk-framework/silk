@@ -4,7 +4,7 @@ import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, AggregationNode}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
-import de.fuberlin.wiwiss.silk.learning.individual.StrategyNode._
+import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode._
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.instance.Path
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair

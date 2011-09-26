@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Link}
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "memory", label = "Memory")
+@Plugin(id = "memory", label = "Memory")
 case class MemoryWriter() extends LinkWriter {
   private var _links = List[Link]()
 

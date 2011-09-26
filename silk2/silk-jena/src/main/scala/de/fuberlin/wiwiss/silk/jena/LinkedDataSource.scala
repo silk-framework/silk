@@ -4,9 +4,9 @@ import de.fuberlin.wiwiss.silk.instance.{Instance, InstanceSpecification}
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.util.sparql.InstanceRetriever
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "linkedData", label = "Linked Data", description = "TODO")
+@Plugin(id = "linkedData", label = "Linked Data", description = "TODO")
 class LinkedDataSource extends DataSource {
   override def retrieve(instanceSpec: InstanceSpecification, instances: Seq[String]): Traversable[Instance] = {
     require(!instances.isEmpty, "Retrieving all instances not supported")

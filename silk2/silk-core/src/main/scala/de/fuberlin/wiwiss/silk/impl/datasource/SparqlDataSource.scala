@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.impl.datasource
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.net.URI
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.sparql.{SparqlSamplePathsCollector, SparqlAggregatePathsCollector, InstanceRetriever, RemoteSparqlEndpoint}
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecification}
@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecif
  * - '''retryCount (optional)''': The number of retires if a query fails
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
  */
-@StrategyAnnotation(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all instances from a SPARQL endpoint")
+@Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all instances from a SPARQL endpoint")
 class SparqlDataSource(endpointURI: String, login: String = null, password: String = null,
                        graph: String = null, pageSize: Int = 1000, instanceList: String = null,
                        pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000) extends DataSource {

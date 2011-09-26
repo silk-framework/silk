@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.linkspec.similarity
 
-import de.fuberlin.wiwiss.silk.util.strategy.{Strategy, Factory}
+import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, PluginFactory}
 import scala.math.min
 
-trait DistanceMeasure extends Strategy {
+trait DistanceMeasure extends AnyPlugin {
   //TODO accept set instead of traversable?
   def apply(values1: Traversable[String], values2: Traversable[String], limit: Double = Double.PositiveInfinity): Double
 
@@ -50,4 +50,4 @@ trait DistanceMeasure extends Strategy {
   }
 }
 
-object DistanceMeasure extends Factory[DistanceMeasure]
+object DistanceMeasure extends PluginFactory[DistanceMeasure]

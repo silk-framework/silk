@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.linkspec.input
 
-import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
 
 /**
  * Transforms values.
  */
-trait Transformer extends Strategy {
+trait Transformer extends AnyPlugin {
   def apply(values: Seq[Set[String]]): Set[String]
 }
 
@@ -20,4 +20,4 @@ trait SimpleTransformer extends Transformer {
   def evaluate(value: String): String
 }
 
-object Transformer extends Factory[Transformer]
+object Transformer extends PluginFactory[Transformer]
