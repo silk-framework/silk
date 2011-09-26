@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import java.util.regex.Pattern
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 
@@ -63,7 +63,7 @@ import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
  *
  * @author Florian Kleedorfer, Research Studios Austria
  */
-@StrategyAnnotation(id = "tokenwiseDistance", label = "Token-wise Distance", description = "Token-wise string distance using the specified metric")
+@Plugin(id = "tokenwiseDistance", label = "Token-wise Distance", description = "Token-wise string distance using the specified metric")
 case class TokenwiseStringDistance(
         ignoreCase: Boolean = true,
         metricName: String = "levenshtein",

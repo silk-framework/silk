@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 
-@StrategyAnnotation(
+@Plugin(
   id = "dateTime",
   label = "DateTime",
   description = "Distance between two date time values (xsd:dateTime format) in seconds.")

@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
 import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 /**
  * Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
  */
-@StrategyAnnotation(id = "alignment", label = "Alignment", description = "Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.")
+@Plugin(id = "alignment", label = "Alignment", description = "Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.")
 class AlignmentFormatter() extends XMLFormatter {
   override def header = {
     "<?xml version='1.0' encoding='utf-8' standalone='no'?>\n" +

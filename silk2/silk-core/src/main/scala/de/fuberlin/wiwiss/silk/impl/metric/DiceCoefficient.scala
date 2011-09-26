@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 
-@StrategyAnnotation(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
+@Plugin(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
 class DiceCoefficient extends DistanceMeasure {
   private val blockCount = 1000
 

@@ -63,7 +63,7 @@ object SourceTaskDialog extends Dialog {
         case DataSource(id, params) => params.get(name).getOrElse("")
       }
     } else {
-      val sparqlEndpointDesc = DataSource.availableStrategies.find(_.id == "sparqlEndpoint").get
+      val sparqlEndpointDesc = DataSource.availablePlugins.find(_.id == "sparqlEndpoint").get
       val param = sparqlEndpointDesc.parameters.find(_.name == name).get
 
       param.defaultValue.flatMap(Option(_)).map(_.toString).getOrElse("")

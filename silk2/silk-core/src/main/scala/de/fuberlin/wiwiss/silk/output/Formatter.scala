@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.output
 
-import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
 
 /**
  * Serializes a link.
  */
-trait Formatter extends Strategy {
+trait Formatter extends AnyPlugin {
   def header: String = ""
 
   def footer: String = ""
@@ -16,4 +16,4 @@ trait Formatter extends Strategy {
 /**
  * Formatter factory
  */
-object Formatter extends Factory[Formatter]
+object Formatter extends PluginFactory[Formatter]

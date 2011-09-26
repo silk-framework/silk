@@ -1,13 +1,13 @@
 package de.fuberlin.wiwiss.silk.output
 
-import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
 
 /**
  * Represents an abstraction over an writer of links.
  *
  * Implementing classes of this trait must override the write method.
  */
-trait LinkWriter extends Strategy {
+trait LinkWriter extends AnyPlugin {
   /**
    * Initializes this writer.
    */
@@ -24,4 +24,4 @@ trait LinkWriter extends Strategy {
   def close() {}
 }
 
-object LinkWriter extends Factory[LinkWriter]
+object LinkWriter extends PluginFactory[LinkWriter]

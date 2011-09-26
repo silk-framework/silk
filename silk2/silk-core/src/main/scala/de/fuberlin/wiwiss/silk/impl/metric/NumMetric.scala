@@ -4,9 +4,9 @@ import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(
+@Plugin(
   id = "num",
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers and normalizes it using the maxDistance." +

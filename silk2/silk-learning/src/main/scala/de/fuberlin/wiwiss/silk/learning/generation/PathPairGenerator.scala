@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.learning.generation
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceInstances
 import de.fuberlin.wiwiss.silk.instance.{Instance, Path}
 import de.fuberlin.wiwiss.silk.util.SourceTargetPair
-import de.fuberlin.wiwiss.silk.learning.individual.StrategyNode
+import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
@@ -22,13 +22,29 @@ class PathPairGenerator(components: Components) {
       //Return all path pairs
       val pathPairs = PairGenerator(distinctPaths, instances)
 
+      //pathPairs.foreach(p => printLink(p, instances))
+      //pathPairs.foreach(println)
+
       pathPairs.flatMap(createGenerators)
     }
   }
 
+//  private def printLink(pathPair: SourceTargetPair[Path], instances: ReferenceInstances) {
+//    println("-------------------------------------")
+//    println(pathPair.mkString(" - "))
+//    println("P")
+//    for(instancePair <- instances.positive.values) {
+//      println(instancePair.source.evaluate(pathPair.source).mkString(", ") + "\n---\n" + instancePair.target.evaluate(pathPair.target).mkString(", "))
+//    }
+//    println("N")
+//    for(instancePair <- instances.negative.values) {
+//      println(instancePair.source.evaluate(pathPair.source).mkString(", ") + "\n---\n" + instancePair.target.evaluate(pathPair.target).mkString(", "))
+//    }
+//  }
+
   private def createGenerators(pathPair: SourceTargetPair[Path]) = {
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), StrategyNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), StrategyNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
   }
 
   /**
@@ -81,10 +97,13 @@ class PathPairGenerator(components: Components) {
     }
 
     private def pathValuesMatch(instances: ReferenceInstances, pathPair: SourceTargetPair[Path]): Boolean = {
-      val positiveMatches = instances.positive.values.filter(i => matches(i, pathPair)).size
-      val negativeMatches = instances.negative.values.filter(i => matches(i, pathPair)).size
+      val positiveMatches = instances.positive.values.filter(i => matches(i, pathPair))
+      val negativeMatches = instances.negative.values.filter(i => matches(i, pathPair))
 
-      positiveMatches > negativeMatches
+      val positive = positiveMatches.size.toDouble / instances.positive.size
+      val negative = negativeMatches.size.toDouble / instances.negative.size
+
+      positive > negative
     }
 
     private def matches(instancePair: SourceTargetPair[Instance], pathPair: SourceTargetPair[Path]): Boolean = {

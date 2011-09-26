@@ -3,10 +3,10 @@ package de.fuberlin.wiwiss.silk.impl.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.io.File
 import de.fuberlin.wiwiss.silk.instance.{FileInstanceCache, InstanceSpecification, Instance}
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 
-@StrategyAnnotation(id = "cache", label = "Cache")
+@Plugin(id = "cache", label = "Cache")
 class CacheDataSource(dir: String) extends DataSource {
   private val file = new File(dir)
 

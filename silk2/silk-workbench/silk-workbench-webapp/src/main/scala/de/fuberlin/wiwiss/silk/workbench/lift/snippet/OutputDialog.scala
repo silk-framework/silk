@@ -4,16 +4,16 @@ import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.output.{Output, LinkWriter}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.output.OutputTask
-import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, StrategyDialog}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, PluginDialog}
 
-object OutputDialog extends StrategyDialog[LinkWriter] {
+object OutputDialog extends PluginDialog[LinkWriter] {
   override def title = "Output"
 
   private val nameField = StringField("name", "The name of this source task", () => if (User().outputTaskOpen) User().outputTask.name.toString else "")
 
   override protected val fields = nameField :: Nil
 
-  override protected val strategies = LinkWriter.strategy("file") :: LinkWriter.strategy("sparul") :: Nil
+  override protected val plugins = LinkWriter.plugin("file") :: LinkWriter.plugin("sparul") :: Nil
 
   //Close the current task if the window is closed
   override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams

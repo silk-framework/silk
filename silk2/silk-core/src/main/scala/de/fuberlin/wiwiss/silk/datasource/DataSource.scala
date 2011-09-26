@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.instance.{SparqlRestriction, Path, InstanceSpecification, Instance}
 
 /**
  * The base trait of a concrete source of instances.
  */
-trait DataSource extends Strategy {
+trait DataSource extends AnyPlugin {
   /**
    * Retrieves instances from this source which satisfy a specific instance specification.
    *
@@ -33,4 +33,4 @@ trait DataSource extends Strategy {
   }
 }
 
-object DataSource extends Factory[DataSource]
+object DataSource extends PluginFactory[DataSource]

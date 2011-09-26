@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "jaro", label = "Jaro distance", description = "String similarity based on the Jaro distance metric.")
+@Plugin(id = "jaro", label = "Jaro distance", description = "String similarity based on the Jaro distance metric.")
 class JaroDistanceMetric() extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     JaroDinstanceMetric.jaro(str1, str2)

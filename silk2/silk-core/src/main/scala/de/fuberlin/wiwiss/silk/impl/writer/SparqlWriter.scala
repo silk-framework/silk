@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.impl.writer
 
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.output.{Link, LinkWriter}
 import java.io.{OutputStreamWriter, Writer}
 import java.util.logging.Logger
@@ -10,7 +10,7 @@ import io.Source
 /**
  * A link writer which writes to a SPARQL/Update endpoint.
  */
-@StrategyAnnotation(id = "sparul", label = "SPARQL/Update")
+@Plugin(id = "sparul", label = "SPARQL/Update")
 case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
   /**Maximum number of statements per request. */
   private val StatementsPerRequest = 200;

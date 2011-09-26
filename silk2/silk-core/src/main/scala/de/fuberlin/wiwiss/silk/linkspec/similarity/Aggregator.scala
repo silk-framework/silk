@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.linkspec.similarity
 
 import scala.math.max
-import de.fuberlin.wiwiss.silk.util.strategy.{Factory, Strategy}
+import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
 
-trait Aggregator extends Strategy {
+trait Aggregator extends AnyPlugin {
   def evaluate(weightedValues: Traversable[(Int, Double)]): Option[Double]
 
   /**
@@ -22,7 +22,7 @@ trait Aggregator extends Strategy {
   }
 }
 
-object Aggregator extends Factory[Aggregator]
+object Aggregator extends PluginFactory[Aggregator]
 
 trait FlatIndexAggregator extends Aggregator {
   override def combineIndexes(indexSet1: Set[Seq[Int]], blockCounts1: Seq[Int],

@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.impl.metric
 import math._
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import java.util.logging.Logger
 
 /**
@@ -14,7 +14,7 @@ import java.util.logging.Logger
  * unit = "meter" or "m" , "kilometer" or "km" (default) - the unit in which the distance is measure
  * @autor Konrad Höffner (AKSW, Uni Leipzig)
  */
-@StrategyAnnotation(
+@Plugin(
   id = "wgs84",
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")

@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.impl.metric
 
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
-import de.fuberlin.wiwiss.silk.util.strategy.StrategyAnnotation
+import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@StrategyAnnotation(id = "jaccard", label = "Jaccard", description = "Jaccard similarity coefficient.")
+@Plugin(id = "jaccard", label = "Jaccard", description = "Jaccard similarity coefficient.")
 class JaccardDistance extends DistanceMeasure {
   private val blockCount = 1000
 

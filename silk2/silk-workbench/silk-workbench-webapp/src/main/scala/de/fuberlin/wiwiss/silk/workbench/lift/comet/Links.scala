@@ -187,7 +187,7 @@ trait Links extends CometActor {
   private def renderSimilarity(similarity: Link.Confidence): NodeSeq = similarity match {
     case Link.AggregatorConfidence(value, aggregation, children) => {
       <li>
-        <span class="aggregation">Aggregation: {aggregation.aggregator.strategyId} ({aggregation.id})</span>{ renderConfidence(value) }
+        <span class="aggregation">Aggregation: {aggregation.aggregator.pluginId} ({aggregation.id})</span>{ renderConfidence(value) }
           <ul>
             { children.map(renderSimilarity) }
           </ul>
@@ -195,7 +195,7 @@ trait Links extends CometActor {
     }
     case Link.ComparisonConfidence(value, comparison, input1, input2) => {
       <li>
-        <span class="comparison">Comparison: {comparison.metric.strategyId} ({comparison.id})</span>{ renderConfidence(value) }
+        <span class="comparison">Comparison: {comparison.metric.pluginId} ({comparison.id})</span>{ renderConfidence(value) }
           <ul>
             { renderInputValue(input1, "source") }
             { renderInputValue(input2, "target") }
