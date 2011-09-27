@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
-import de.fuberlin.wiwiss.silk.util.{ParallelMapper, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util.{ParallelMapper, DPair}
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
@@ -56,7 +56,7 @@ class ReproductionTask(population: Population, referenceEntities: ReferenceEntit
     val sourceIndividual = select()
     val targetLinkageRule = if (Random.nextDouble < config.reproduction.mutationProbability) generator() else select().node
 
-    operator(SourceTargetPair(sourceIndividual.node, targetLinkageRule)) match {
+    operator(DPair(sourceIndividual.node, targetLinkageRule)) match {
       case Some(node) => {
         val startTime = System.currentTimeMillis()
 

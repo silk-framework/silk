@@ -3,14 +3,14 @@ package de.fuberlin.wiwiss.silk.linkspec.similarity
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.linkspec.input.Input
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.util.{Identifier, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkspec.Operator
 
 /**
  * A comparison computes the similarity of two inputs.
  */
 case class Comparison(id: Identifier = Operator.generateId, required: Boolean = false, threshold: Double = 0.0, weight: Int = 1,
-                      inputs: SourceTargetPair[Input], metric: DistanceMeasure) extends SimilarityOperator {
+                      inputs: DPair[Input], metric: DistanceMeasure) extends SimilarityOperator {
   /**
    * Computes the similarity between two entities.
    *
@@ -19,7 +19,7 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
    *
    * @return The confidence as a value between -1.0 and 1.0.
    */
-  override def apply(entities: SourceTargetPair[Entity], limit: Double): Option[Double] = {
+  override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
     val values1 = inputs.source(entities)
     val values2 = inputs.target(entities)
 
@@ -48,7 +48,7 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   override def index(entity: Entity, limit: Double): Set[Seq[Int]] = {
-    val entityPair = SourceTargetPair.fill(entity)
+    val entityPair = DPair.fill(entity)
 
     val values = inputs.source(entityPair) ++ inputs.target(entityPair)
 

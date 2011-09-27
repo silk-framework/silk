@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkspec
 
 import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import math.abs
 import similarity.SimilarityOperator
@@ -20,7 +20,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
    *         -1.0 for definitive non-matches.
    *         +1.0 for definitive matches.
    */
-  def apply(entities: SourceTargetPair[Entity], limit: Double = 0.0): Double = {
+  def apply(entities: DPair[Entity], limit: Double = 0.0): Double = {
     operator match {
       case Some(op) => op(entities, limit).getOrElse(-1.0)
       case None => -1.0

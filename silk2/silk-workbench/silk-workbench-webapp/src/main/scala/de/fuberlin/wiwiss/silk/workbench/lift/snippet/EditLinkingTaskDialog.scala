@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 import net.liftweb.http.js.JE.JsRaw
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.Cache
 import net.liftweb.http.SHtml
@@ -31,7 +31,7 @@ class EditLinkingTaskDialog {
         val linkingTask = User().linkingTask
         implicit val prefixes = User().project.config.prefixes
 
-        val updatedDatasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
+        val updatedDatasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
                                                DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction)))
 
         val updatedLinkSpec = linkingTask.linkSpec.copy(id = name, datasets = updatedDatasets, linkType = linkType)

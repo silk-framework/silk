@@ -17,7 +17,7 @@ import java.util.logging.Logger
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
                              linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs"),
-                             datasets: SourceTargetPair[DatasetSpecification] = SourceTargetPair.fill(DatasetSpecification.empty),
+                             datasets: DPair[DatasetSpecification] = DPair.fill(DatasetSpecification.empty),
                              rule: LinkageRule = LinkageRule(),
                              filter: LinkFilter = LinkFilter(),
                              outputs: Traversable[Output] = Traversable.empty) {
@@ -65,7 +65,7 @@ object LinkSpecification {
     new LinkSpecification(
       id,
       resolveQualifiedName((node \ "LinkType").text.trim, prefixes),
-      new SourceTargetPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
+      new DPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
       DatasetSpecification.fromXML(node \ "TargetDataset" head)),
       readLinkageRule(linkageRuleNode.getOrElse(linkConditionNode.get)),
       filter,
@@ -115,7 +115,7 @@ object LinkSpecification {
         required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
         threshold = threshold,
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-        inputs = SourceTargetPair(inputs(0), inputs(1)),
+        inputs = DPair(inputs(0), inputs(1)),
         metric = metric
       )
     } catch {

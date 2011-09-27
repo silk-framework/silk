@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.impl.metric
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import util.Random
 
 class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers {
@@ -41,7 +41,7 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers {
   // Invalid if q > 1:
   //  it should "generate one more index than the edit distance" in
   //  {
-  //    val SourceTargetPair(source, target) = randomValues(10, 5)
+  //    val DPair(source, target) = randomValues(10, 5)
   //    val distance = metric.evaluate(source, target)
   //
   //    metric.index(source, distance).size should equal(distance + 1)
@@ -70,12 +70,12 @@ object LevenshteinDistanceTest {
   /**
    * Generates a pair of random strings with a specified maximum edit distance.
    */
-  private def randomValues(size: Int, maxDistance: Int): SourceTargetPair[String] = {
+  private def randomValues(size: Int, maxDistance: Int): DPair[String] = {
     val sourceStr = Random.alphanumeric.take(size).mkString
 
     val targetStr = randomEdits(sourceStr, maxDistance)
 
-    SourceTargetPair(sourceStr, targetStr)
+    DPair(sourceStr, targetStr)
   }
 
   private def randomEdits(str: String, maxDistance: Int): String = {

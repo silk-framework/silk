@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
 import collection.immutable.List._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
@@ -15,11 +15,11 @@ import java.util.logging.Level
 
 //TODO use options?
 //TODO store path frequencies
-class Cache(private var existingEntityDescs: SourceTargetPair[EntityDescription] = null,
+class Cache(private var existingEntityDescs: DPair[EntityDescription] = null,
             private var existingEntities: ReferenceEntities = ReferenceEntities.empty) extends HasStatus {
 
   /**The cached entity descriptions containing the most frequent paths */
-  @volatile private var cachedEntityDescs: SourceTargetPair[EntityDescription] = null
+  @volatile private var cachedEntityDescs: DPair[EntityDescription] = null
 
   /**The cached entities */
   @volatile private var cachedEntities: ReferenceEntities = ReferenceEntities.empty
@@ -86,7 +86,7 @@ class Cache(private var existingEntityDescs: SourceTargetPair[EntityDescription]
 
     nodes.append(
       <PositiveEntities>
-        {for (SourceTargetPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
+        {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
         <Pair>
           <Source>
             {sourceEntity.toXML}
@@ -100,7 +100,7 @@ class Cache(private var existingEntityDescs: SourceTargetPair[EntityDescription]
 
     nodes.append(
       <NegativeEntities>
-        {for (SourceTargetPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
+        {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
         <Pair>
           <Source>
             {sourceEntity.toXML}
@@ -211,15 +211,15 @@ class Cache(private var existingEntityDescs: SourceTargetPair[EntityDescription]
       }
     }
 
-    private def retrieveEntityPair(uris: SourceTargetPair[String]) = {
-      SourceTargetPair(
+    private def retrieveEntityPair(uris: DPair[String]) = {
+      DPair(
         source = sources.source.retrieve(entityDescs.source, uris.source :: Nil).head,
         target = sources.target.retrieve(entityDescs.target, uris.target :: Nil).head
       )
     }
 
-    private def updateEntityPair(entities: SourceTargetPair[Entity]) = {
-      SourceTargetPair(
+    private def updateEntityPair(entities: DPair[Entity]) = {
+      DPair(
         source = updateEntity(entities.source, entityDescs.source, sources.source),
         target = updateEntity(entities.target, entityDescs.target, sources.target)
       )
@@ -275,28 +275,28 @@ object Cache {
       } else {
         val sourceSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Source" \ "_" head)
         val targetSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Target" \ "_" head)
-        new SourceTargetPair(sourceSpec, targetSpec)
+        new DPair(sourceSpec, targetSpec)
       }
     }
 
-    val positiveEntities: Traversable[SourceTargetPair[Entity]] = {
+    val positiveEntities: Traversable[DPair[Entity]] = {
       if (node \ "PositiveEntities" isEmpty) {
         Traversable.empty
       } else {
         for (pairNode <- node \ "PositiveEntities" \ "Pair" toList) yield {
-          SourceTargetPair(
+          DPair(
             Entity.fromXML(pairNode \ "Source" \ "Entity" head, existingEntityDescs.source),
             Entity.fromXML(pairNode \ "Target" \ "Entity" head, existingEntityDescs.target))
         }
       }
     }
 
-    val negativeEntities: Traversable[SourceTargetPair[Entity]] = {
+    val negativeEntities: Traversable[DPair[Entity]] = {
       if (node \ "NegativeEntities" isEmpty) {
         Traversable.empty
       } else {
         for (pairNode <- node \ "NegativeEntities" \ "Pair" toList) yield {
-          SourceTargetPair(
+          DPair(
             Entity.fromXML(pairNode \ "Source" \ "Entity" head, existingEntityDescs.source),
             Entity.fromXML(pairNode \ "Target" \ "Entity" head, existingEntityDescs.target))
         }

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
@@ -35,7 +35,7 @@ class CreateLinkingTaskDialog {
           LinkSpecification(
             id = name,
             linkType = linkType,
-            datasets = SourceTargetPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
+            datasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
                                         DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction))),
             rule = LinkageRule(None),
             filter = LinkFilter(),

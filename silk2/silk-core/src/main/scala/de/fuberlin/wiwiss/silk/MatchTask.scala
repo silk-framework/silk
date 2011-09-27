@@ -8,7 +8,7 @@ import java.util.logging.Level
 import output.Link
 import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
-import util.SourceTargetPair
+import util.DPair
 import scala.math.{min, max}
 import util.task.ValueTask
 
@@ -17,7 +17,7 @@ import util.task.ValueTask
  * Generates links between the entitys according to the link specification.
  */
 class MatchTask(linkSpec: LinkSpecification,
-                caches: SourceTargetPair[EntityCache],
+                caches: DPair[EntityCache],
                 runtimeConfig: RuntimeConfig = RuntimeConfig(),
                 sourceEqualsTarget: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
   taskName = "Matching"
@@ -187,7 +187,7 @@ class MatchTask(linkSpec: LinkSpecification,
              if !runtimeConfig.blocking.isEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
           val sourceEntity = sourcePartition.entities(s)
           val targetEntity = targetPartition.entities(t)
-          val entities = SourceTargetPair(sourceEntity, targetEntity)
+          val entities = DPair(sourceEntity, targetEntity)
 
           if (!runtimeConfig.generateDetailedLinks) {
             val confidence = linkSpec.rule(entities, 0.0)

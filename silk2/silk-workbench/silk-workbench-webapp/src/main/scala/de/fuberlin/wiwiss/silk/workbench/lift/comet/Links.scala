@@ -10,7 +10,7 @@ import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import java.util.logging.Logger
 
 /**
@@ -143,9 +143,9 @@ trait Links extends CometActor {
     }
   }
 
-  private def renderEntities(entities: Option[SourceTargetPair[Entity]]) = {
+  private def renderEntities(entities: Option[DPair[Entity]]) = {
     entities match {
-      case Some(SourceTargetPair(sourceEntity, targetEntity)) => {
+      case Some(DPair(sourceEntity, targetEntity)) => {
         <ul class="details-tree">
           { renderEntity(sourceEntity, "source") }
           { renderEntity(targetEntity, "target") }

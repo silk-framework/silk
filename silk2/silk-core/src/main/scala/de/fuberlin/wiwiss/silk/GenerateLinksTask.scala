@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import java.util.logging.LogRecord
-import de.fuberlin.wiwiss.silk.util.{CollectLogs, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 import de.fuberlin.wiwiss.silk.output.{Output, Link}
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
@@ -84,12 +84,12 @@ class GenerateLinksTask(sources: Traversable[Source],
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + linkSpec.id)
 
-      SourceTargetPair(
+      DPair(
         source = new FileEntityCache(entityDescs.source, cacheDir + "/source/", runtimeConfig),
         target = new FileEntityCache(entityDescs.target, cacheDir + "/target/", runtimeConfig)
       )
     } else {
-      SourceTargetPair(
+      DPair(
         source = new MemoryEntityCache(entityDescs.source, runtimeConfig),
         target = new MemoryEntityCache(entityDescs.target, runtimeConfig)
       )

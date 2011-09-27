@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.{NodeSeq, Elem}
 import net.liftweb.http.{SHtml, CometActor}
@@ -191,7 +191,7 @@ class LearnContent extends CometActor {
         </ul>
       </li>
     }
-    case Comparison(id, required, threshold, weight, SourceTargetPair(input1, input2), metric) => {
+    case Comparison(id, required, threshold, weight, DPair(input1, input2), metric) => {
       <li>
         <span class="comparison">Comparison: {metric.pluginId}</span>
         <ul>

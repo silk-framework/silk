@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
  * Holds the dataset of a link specification.
@@ -16,7 +16,7 @@ class Dataset(val name: String, config: SilkConfig, linkSpec: LinkSpecification,
 
   private val entityDescs = EntityDescription.retrieve(linkSpec)
 
-  private val caches = SourceTargetPair(new MemoryEntityCache(entityDescs.source),
+  private val caches = DPair(new MemoryEntityCache(entityDescs.source),
     new MemoryEntityCache(entityDescs.target))
 
   new LoadTask(sources, caches, linkSpec.rule.index(_))()
@@ -45,7 +45,7 @@ class Dataset(val name: String, config: SilkConfig, linkSpec: LinkSpecification,
 
     var links: Seq[Link] = Seq.empty
     if (entityCache.entityCount > 0) {
-      val matcher = new MatchTask(linkSpec, SourceTargetPair(entityCache, caches.target))
+      val matcher = new MatchTask(linkSpec, DPair(entityCache, caches.target))
       links = matcher()
     }
 
