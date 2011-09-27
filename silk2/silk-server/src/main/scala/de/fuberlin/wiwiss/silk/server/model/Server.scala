@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
+import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
 import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.impl.writer.NTriplesFormatter
-import de.fuberlin.wiwiss.silk.jena.{FileDataSource, RdfDataSource}
+import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
+import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.config.SilkConfig
+import de.fuberlin.wiwiss.silk.config.LinkingConfig
 
 /**
  * The Silk Server.
@@ -53,7 +53,7 @@ object Server {
  *
  */
 private class Server {
-  DefaultImplementations.register()
+  DefaultPlugins.register()
   DataSource.register(classOf[RdfDataSource])
   DataSource.register(classOf[FileDataSource])
 
@@ -66,7 +66,7 @@ private class Server {
   val datasets : Traversable[Dataset] = {
     //Iterate through all configuration files and create a dataset for each link spec
     for( file <- serverConfig.configDir.listFiles if file.getName.endsWith("xml");
-         config = SilkConfig.load(file);
+         config = LinkingConfig.load(file);
          linkSpec <- config.linkSpecs) yield {
       new Dataset(name = file.getName.takeWhile(_ != '.'),
                   config = config,

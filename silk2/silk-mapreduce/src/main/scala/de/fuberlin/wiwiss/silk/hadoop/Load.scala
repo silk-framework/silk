@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopEntityCache
-import de.fuberlin.wiwiss.silk.config.SilkConfig
-import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
+import de.fuberlin.wiwiss.silk.config.LinkingConfig
+import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
@@ -19,7 +19,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
 
   def apply()
   {
-    DefaultImplementations.register()
+    DefaultPlugins.register()
 
     val config = loadConfig(new Path(silkConfigPath), new Path(entityCachePath))
 
@@ -35,7 +35,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
     }
   }
 
-  private def loadConfig(filePath : Path, entityCachePath : Path) : SilkConfig =
+  private def loadConfig(filePath : Path, entityCachePath : Path) : LinkingConfig =
   {
     //Create two FileSystem objects, because the config file and the entity cache might be located in different file systems
     val configFS = FileSystem.get(filePath.toUri, hadoopConfig)
@@ -64,7 +64,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
     val stream = configFS.open(filePath)
     try
     {
-      SilkConfig.load(stream)
+      LinkingConfig.load(stream)
     }
     finally
     {
@@ -72,7 +72,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
     }
   }
 
-  private def write(config : SilkConfig, linkSpec : LinkSpecification, entityCachePath : Path)
+  private def write(config : LinkingConfig, linkSpec : LinkSpecification, entityCachePath : Path)
   {
     val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 

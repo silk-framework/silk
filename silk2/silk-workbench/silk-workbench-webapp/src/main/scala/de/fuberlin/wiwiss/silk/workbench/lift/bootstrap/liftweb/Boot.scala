@@ -3,12 +3,12 @@ package bootstrap.liftweb
 import _root_.net.liftweb.http._
 import _root_.net.liftweb.sitemap._
 import _root_.net.liftweb.sitemap.Loc._
-import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
+import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
 import js.jquery.JQuery14Artifacts
 import net.liftweb.widgets.autocomplete.AutoComplete
 import scala.xml.Text
 import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
-import de.fuberlin.wiwiss.silk.jena.JenaImplementations
+import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 
 /**
   * Configures the Silk Workbench WebApp.
@@ -24,8 +24,8 @@ class Boot {
   def boot {
     User.userManager = UserManager.is _
 
-    DefaultImplementations.register()
-    JenaImplementations.register()
+    DefaultPlugins.register()
+    JenaPlugins.register()
 
     LiftRules.jsArtifacts = JQuery14Artifacts
     LiftRules.maxMimeSize = 1024L * 1024L * 1024L
