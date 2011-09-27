@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.hadoop.impl
 import de.fuberlin.wiwiss.silk.entity.Entity
 import java.io._
 import org.apache.hadoop.io.Writable
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
  * Represents a pair of source and target entity.
@@ -40,5 +40,5 @@ class EntityPair(var sourceEntity : Entity, var targetEntity : Entity) extends W
 }
 
 object EntityPair {
-  implicit def toPair(pair : EntityPair) = SourceTargetPair(pair.sourceEntity, pair.targetEntity)
+  implicit def toPair(pair : EntityPair) = DPair(pair.sourceEntity, pair.targetEntity)
 }

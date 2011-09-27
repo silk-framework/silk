@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk
 
 import datasource.Source
-import entity.{Entity, EntityDescription, EntityCache}
-import util.SourceTargetPair
+import entity.{Entity, EntityCache}
+import util.DPair
 import java.util.logging.{Level, Logger}
 import util.task.{TaskFinished, Future, Task}
 
@@ -10,8 +10,8 @@ import util.task.{TaskFinished, Future, Task}
  * Loads the entity cache
  */
 //TODO remove indexFunction argument by integrating it into entity cache
-class LoadTask(sources: SourceTargetPair[Source],
-               caches: SourceTargetPair[EntityCache],
+class LoadTask(sources: DPair[Source],
+               caches: DPair[EntityCache],
                indexFunction: Entity => Set[Int]) extends Task[Unit] {
   taskName = "Loading"
 

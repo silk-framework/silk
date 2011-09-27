@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, PluginFactory}
 import de.fuberlin.wiwiss.silk.learning.individual.LinkageRuleNode
 
@@ -9,11 +9,11 @@ import de.fuberlin.wiwiss.silk.learning.individual.LinkageRuleNode
 /**
  * A crossover operator takes a pair of nodes and combines them into a new node.
  */
-trait CrossoverOperator extends (SourceTargetPair[LinkageRuleNode] => Option[LinkageRuleNode]) with AnyPlugin {
+trait CrossoverOperator extends (DPair[LinkageRuleNode] => Option[LinkageRuleNode]) with AnyPlugin {
   /**
    * Applies this crossover operator to a specific pair of nodes.
    */
-  def apply(nodePair: SourceTargetPair[LinkageRuleNode]): Option[LinkageRuleNode]
+  def apply(nodePair: DPair[LinkageRuleNode]): Option[LinkageRuleNode]
 
   override def toString = getClass.getSimpleName
 }

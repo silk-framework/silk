@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.learning.generation
 import de.fuberlin.wiwiss.silk.entity.Path
 import util.Random
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.learning.individual.{PathInputNode, InputNode, TransformNode, FunctionNode}
 
 class InputGenerator(input: InputNode, useTransformations: Boolean) {
@@ -24,15 +24,15 @@ class InputGenerator(input: InputNode, useTransformations: Boolean) {
 
 object InputGenerator {
 
-  def fromPathPair(pathPair: SourceTargetPair[Path], useTransformations: Boolean) = {
-    SourceTargetPair(
+  def fromPathPair(pathPair: DPair[Path], useTransformations: Boolean) = {
+    DPair(
       source = new InputGenerator(PathInputNode(pathPair.source, true), useTransformations),
       target = new InputGenerator(PathInputNode(pathPair.target, false), useTransformations)
     )
   }
 
-  def fromInputPair(inputPair: SourceTargetPair[InputNode], useTransformations: Boolean) = {
-    SourceTargetPair(
+  def fromInputPair(inputPair: DPair[InputNode], useTransformations: Boolean) = {
+    DPair(
       source = new InputGenerator(inputPair.source, useTransformations),
       target = new InputGenerator(inputPair.target, useTransformations)
     )

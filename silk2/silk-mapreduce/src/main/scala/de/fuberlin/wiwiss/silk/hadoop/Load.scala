@@ -8,7 +8,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
 import de.fuberlin.wiwiss.silk.LoadTask
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
  * Populates the entity cache.
@@ -80,7 +80,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
 
     val entityDesc = EntityDescription.retrieve(linkSpec)
 
-    val caches = SourceTargetPair(
+    val caches = DPair(
       new HadoopEntityCache(entityDesc.source, cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
       new HadoopEntityCache(entityDesc.target, cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )

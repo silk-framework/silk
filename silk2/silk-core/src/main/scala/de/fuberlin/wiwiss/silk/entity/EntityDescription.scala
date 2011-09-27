@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.entity
 import de.fuberlin.wiwiss.silk.linkspec._
 import similarity.{SimilarityOperator, Comparison, Aggregation}
 import input.{TransformInput, PathInput, Input}
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
@@ -45,7 +45,7 @@ object EntityDescription {
     )
   }
 
-  def retrieve(linkSpec: LinkSpecification): SourceTargetPair[EntityDescription] = {
+  def retrieve(linkSpec: LinkSpecification): DPair[EntityDescription] = {
     val sourceVar = linkSpec.datasets.source.variable
     val targetVar = linkSpec.datasets.target.variable
 
@@ -65,7 +65,7 @@ object EntityDescription {
     val sourceEntityDesc = new EntityDescription(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
     val targetEntityDesc = new EntityDescription(targetVar, targetRestriction, targetPaths.toIndexedSeq)
 
-    SourceTargetPair(sourceEntityDesc, targetEntityDesc)
+    DPair(sourceEntityDesc, targetEntityDesc)
   }
 
   private def collectPaths(variable: String)(operator: SimilarityOperator): Set[Path] = operator match {

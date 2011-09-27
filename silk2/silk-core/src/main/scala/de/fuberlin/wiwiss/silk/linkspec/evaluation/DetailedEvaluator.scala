@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.linkspec.evaluation
 
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.output.Link.InputValue
@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.linkspec.LinkageRule
 
 object DetailedEvaluator {
-  def apply(condition: LinkageRule, entities: SourceTargetPair[Entity], limit: Double = -1.0): Option[Link] = {
+  def apply(condition: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[Link] = {
     condition.operator match {
       case Some(op) => {
         val confidence = evaluateOperator(op, entities, limit)
@@ -32,12 +32,12 @@ object DetailedEvaluator {
     }
   }
 
-  private def evaluateOperator(operator: SimilarityOperator, entities: SourceTargetPair[Entity], threshold: Double) = operator match {
+  private def evaluateOperator(operator: SimilarityOperator, entities: DPair[Entity], threshold: Double) = operator match {
     case aggregation: Aggregation => evaluateAggregation(aggregation, entities, threshold)
     case comparison: Comparison => evaluateComparison(comparison, entities, threshold)
   }
 
-  private def evaluateAggregation(aggregation: Aggregation, entities: SourceTargetPair[Entity], threshold: Double): Link.AggregatorConfidence = {
+  private def evaluateAggregation(aggregation: Aggregation, entities: DPair[Entity], threshold: Double): Link.AggregatorConfidence = {
     val totalWeights = aggregation.operators.map(_.weight).sum
 
     var isNone = false
@@ -62,7 +62,7 @@ object DetailedEvaluator {
       Link.AggregatorConfidence(aggregatedValue, aggregation, operatorValues)
   }
 
-  private def evaluateComparison(comparison: Comparison, entities: SourceTargetPair[Entity], threshold: Double): Link.ComparisonConfidence = {
+  private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): Link.ComparisonConfidence = {
     val distance = comparison.apply(entities, threshold)
 
     val sourceInput = findInput(comparison.inputs.source)

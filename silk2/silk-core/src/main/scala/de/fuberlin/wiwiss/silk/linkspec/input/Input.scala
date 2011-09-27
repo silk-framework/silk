@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkspec.input
 
 import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkspec.Operator
@@ -16,7 +16,7 @@ trait Input extends Operator {
    * @param entities The pair of entities.
    * @return The values.
    */
-  def apply(entities: SourceTargetPair[Entity]): Set[String]
+  def apply(entities: DPair[Entity]): Set[String]
 
   def toXML(implicit prefixes: Prefixes): Node
 }

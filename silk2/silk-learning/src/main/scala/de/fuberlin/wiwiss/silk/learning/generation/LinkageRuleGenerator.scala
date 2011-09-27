@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode._
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.entity.Path
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 
 class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
 
@@ -52,7 +52,7 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 
 object LinkageRuleGenerator {
 
-  def apply(paths: SourceTargetPair[Traversable[Path]], components: Components) = {
+  def apply(paths: DPair[Traversable[Path]], components: Components) = {
     new LinkageRuleGenerator((new FullGenerator(components).apply(paths) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
   }
 

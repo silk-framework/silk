@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec.input
 
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.util.{Identifier, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkspec.Operator
 
 /**
@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.linkspec.Operator
 case class TransformInput(id: Identifier = Operator.generateId, inputs: Seq[Input], transformer: Transformer) extends Input {
   require(inputs.size > 0, "Number of inputs must be > 0.")
 
-  def apply(entities: SourceTargetPair[Entity]): Set[String] = {
+  def apply(entities: DPair[Entity]): Set[String] = {
     val values = for (input <- inputs) yield input(entities)
 
     transformer(values)

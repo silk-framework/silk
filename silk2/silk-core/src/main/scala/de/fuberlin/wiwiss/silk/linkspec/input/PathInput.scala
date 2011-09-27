@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.linkspec.input
 
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.util.{Identifier, SourceTargetPair}
+import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkspec.Operator
 
 /**
@@ -15,7 +15,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    * @param entities The pair of entities.
    * @return The values.
    */
-  override def apply(entities: SourceTargetPair[Entity]): Set[String] = {
+  override def apply(entities: DPair[Entity]): Set[String] = {
     if (entities.source.desc.variable == path.variable)
       entities.source.evaluate(path)
     else if (entities.target.desc.variable == path.variable)

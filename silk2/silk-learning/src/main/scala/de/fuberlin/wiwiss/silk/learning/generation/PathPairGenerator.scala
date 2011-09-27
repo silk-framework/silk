@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning.generation
 
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode
 import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
@@ -30,7 +30,7 @@ class PathPairGenerator(components: Components) {
   }
 
 //TODO remove
-//  private def printLink(pathPair: SourceTargetPair[Path], instances: ReferenceInstances) {
+//  private def printLink(pathPair: DPair[Path], instances: ReferenceInstances) {
 //    println("-------------------------------------")
 //    println(pathPair.mkString(" - "))
 //    println("P")
@@ -43,7 +43,7 @@ class PathPairGenerator(components: Components) {
 //    }
 //  }
 
-  private def createGenerators(pathPair: SourceTargetPair[Path]) = {
+  private def createGenerators(pathPair: DPair[Path]) = {
     new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
     new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
   }
@@ -62,8 +62,8 @@ class PathPairGenerator(components: Components) {
    * Removes paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
    */
   private object DuplicateRemover {
-    def apply(paths: SourceTargetPair[Traversable[Path]], entities: ReferenceEntities) = {
-      SourceTargetPair(
+    def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
+      DPair(
         source = removeDuplicatePaths(entities.positive.values.map(_.source) ++ entities.negative.values.map(_.source), paths.source),
         target = removeDuplicatePaths(entities.positive.values.map(_.target) ++ entities.negative.values.map(_.target), paths.target)
       )
@@ -71,17 +71,17 @@ class PathPairGenerator(components: Components) {
 
     private def removeDuplicatePaths(entities: Traversable[Entity], paths: Traversable[Path]): Traversable[Path] = {
       for(path :: tail <- paths.toList.tails.toTraversable
-          if !tail.exists(p => pathsMatch(entities, SourceTargetPair(path, p)))) yield path
+          if !tail.exists(p => pathsMatch(entities, DPair(path, p)))) yield path
     }
 
-    private def pathsMatch(entities: Traversable[Entity], pathPair: SourceTargetPair[Path]): Boolean = {
+    private def pathsMatch(entities: Traversable[Entity], pathPair: DPair[Path]): Boolean = {
       entities.forall(pathsMatch(_, pathPair))
     }
 
-    private def pathsMatch(entities: Entity, pathPair: SourceTargetPair[Path]): Boolean = {
+    private def pathsMatch(entities: Entity, pathPair: DPair[Path]): Boolean = {
       val values = pathPair.map(entities.evaluate)
 
-      val valuePairs = for(v1 <- values.source; v2 <- values.target) yield SourceTargetPair(v1, v2)
+      val valuePairs = for(v1 <- values.source; v2 <- values.target) yield DPair(v1, v2)
 
       valuePairs.exists(p => p.source.toLowerCase == p.target.toLowerCase)
     }
@@ -91,13 +91,13 @@ class PathPairGenerator(components: Components) {
    * Generates all pair of paths with overlapping values.
    */
   private object PairGenerator {
-    def apply(paths: SourceTargetPair[Traversable[Path]], entities: ReferenceEntities) = {
-      val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield SourceTargetPair(sourcePath, targetPath)
+    def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
+      val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
 
       pathPairs.filter(pathValuesMatch(entities, _))
     }
 
-    private def pathValuesMatch(instances: ReferenceEntities, pathPair: SourceTargetPair[Path]): Boolean = {
+    private def pathValuesMatch(instances: ReferenceEntities, pathPair: DPair[Path]): Boolean = {
       val positiveMatches = instances.positive.values.filter(i => matches(i, pathPair))
       val negativeMatches = instances.negative.values.filter(i => matches(i, pathPair))
 
@@ -107,7 +107,7 @@ class PathPairGenerator(components: Components) {
       positive > negative
     }
 
-    private def matches(entityPair: SourceTargetPair[Entity], pathPair: SourceTargetPair[Path]): Boolean = {
+    private def matches(entityPair: DPair[Entity], pathPair: DPair[Path]): Boolean = {
       val sourceValues = entityPair.source.evaluate(pathPair.source)
       val targetValues = entityPair.target.evaluate(pathPair.target)
 

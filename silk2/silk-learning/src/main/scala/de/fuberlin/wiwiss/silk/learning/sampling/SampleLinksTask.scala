@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning.sampling
 
-import de.fuberlin.wiwiss.silk.util.SourceTargetPair
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.learning.individual.Population
@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
-                      paths: SourceTargetPair[Traversable[Path]],
+                      paths: DPair[Traversable[Path]],
                       referenceEntities: ReferenceEntities,
                       population: Population) extends ValueTask[Seq[Link]](Seq.empty) {
 
@@ -42,7 +42,7 @@ class SampleLinksTask(sources: Traversable[Source],
   private val defaultLinkageRule =
     LinkageRule(Some(Comparison(
       inputs =
-        SourceTargetPair(
+        DPair(
           source = PathInput(path = Path.parse("?" + linkSpec.datasets.source.variable + "/<http://www.w3.org/2000/01/rdf-schema#label>")),
           target = PathInput(path = Path.parse("?" + linkSpec.datasets.target.variable + "/<http://www.w3.org/2000/01/rdf-schema#label>"))
         ),
@@ -86,7 +86,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private def find(population: Population) {
     val linkSpecs = retrieveLinkageRules(population).map(r => linkSpec.copy(rule = r))
-    val entityDescs = linkSpecs.map(EntityDescription.retrieve).reduce((a, b) => SourceTargetPair(a.source merge b.source, a.target merge b.target))
+    val entityDescs = linkSpecs.map(EntityDescription.retrieve).reduce((a, b) => DPair(a.source merge b.source, a.target merge b.target))
     val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
     updateStatus("Sampling")
@@ -123,7 +123,7 @@ class SampleLinksTask(sources: Traversable[Source],
     rules
   }
 
-  private def generateLinks(sources: SourceTargetPair[Source], linkSpec: LinkSpecification, entityDescPair: SourceTargetPair[EntityDescription]) = {
+  private def generateLinks(sources: DPair[Source], linkSpec: LinkSpecification, entityDescPair: DPair[EntityDescription]) = {
     val generateLinksTask =
       new GenerateLinksTask(sources, linkSpec, Traversable.empty, runtimeConfig) {
         override def entityDescs = entityDescPair
@@ -134,11 +134,11 @@ class SampleLinksTask(sources: Traversable[Source],
     generateLinksTask.toTraversable.find(_.size > testLinkCount).getOrElse(generateLinksTask.links).take(testLinkCount)
   }
 
-  private def rateLinks(sources: SourceTargetPair[Source], linkSpecs: Traversable[LinkSpecification], links: Traversable[Link]) = {
+  private def rateLinks(sources: DPair[Source], linkSpecs: Traversable[LinkSpecification], links: Traversable[Link]) = {
     for(link <- links) yield rateLink(sources, linkSpecs, link)
   }
 
-  private def rateLink(sources: SourceTargetPair[Source], linkSpecs: Traversable[LinkSpecification], link: Link) = {
+  private def rateLink(sources: DPair[Source], linkSpecs: Traversable[LinkSpecification], link: Link) = {
 
     val a = linkSpecs.map(isLink(_, link)).sum
     val b = linkSpecs.map(s => LinkageRuleEvaluator(s.rule, referenceEntities).fMeasure).sum
@@ -159,5 +159,5 @@ class SampleLinksTask(sources: Traversable[Source],
 }
 
 object SampleLinksTask {
-  def empty = new SampleLinksTask(Traversable.empty, LinkSpecification(), SourceTargetPair.fill(Traversable.empty), ReferenceEntities.empty, Population())
+  def empty = new SampleLinksTask(Traversable.empty, LinkSpecification(), DPair.fill(Traversable.empty), ReferenceEntities.empty, Population())
 }
