@@ -4,7 +4,6 @@ import math._
 import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import java.util.logging.Logger
 
 /**
  * This metric takes geographical coordinates of two points,
@@ -12,7 +11,7 @@ import java.util.logging.Logger
  * the nearness of those two points in air line distance. The default metric is the distance of the two points in meters but its behaviour is configurable
  * via the following parameters:
  * unit = "meter" or "m" , "kilometer" or "km" (default) - the unit in which the distance is measure
- * @autor Konrad Höffner (AKSW, Uni Leipzig)
+ * @author Konrad Höffner (AKSW, Uni Leipzig)
  */
 @Plugin(
   id = "wgs84",
