@@ -15,9 +15,9 @@ import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
 import math.max
-import de.fuberlin.wiwiss.silk.linkspec.{LinkageRule, LinkSpecification}
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{DistanceMeasure, Comparison}
-import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
+import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure, Comparison}
+import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "jaro", label = "Jaro distance", description = "String similarity based on the Jaro distance metric.")

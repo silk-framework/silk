@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.entity
 
-import de.fuberlin.wiwiss.silk.linkspec._
+import de.fuberlin.wiwiss.silk.linkagerule._
 import similarity.{SimilarityOperator, Comparison, Aggregation}
 import input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.util.DPair

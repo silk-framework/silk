@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer
 
-import de.fuberlin.wiwiss.silk.linkspec.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import java.nio.charset.Charset
 

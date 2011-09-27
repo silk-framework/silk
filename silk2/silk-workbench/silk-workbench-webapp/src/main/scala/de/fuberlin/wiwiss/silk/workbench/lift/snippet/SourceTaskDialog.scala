@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.linkspec.DatasetSpecification
+import de.fuberlin.wiwiss.silk.linkagerule.DatasetSpecification
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, Dialog}
 
 /**

@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, Aggregation
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 import de.fuberlin.wiwiss.silk.learning.individual.FunctionNode._
-import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.util.DPair
 

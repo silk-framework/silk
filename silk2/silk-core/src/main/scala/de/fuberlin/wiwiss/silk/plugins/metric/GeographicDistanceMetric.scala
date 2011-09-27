@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.metric
 
 import math._
-import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 

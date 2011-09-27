@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking
 
-import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project

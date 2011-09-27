@@ -3,8 +3,8 @@ package bootstrap.liftweb
 import xml.PrettyPrinter
 import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregator, DistanceMeasure}
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.util.plugin.{Parameter, AnyPlugin}
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.{ProjectExporter, SilkConfigExporter}
 import net.liftweb.common.Full

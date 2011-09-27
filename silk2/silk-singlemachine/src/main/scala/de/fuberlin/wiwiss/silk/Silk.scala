@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk
 import config.LinkingConfig
 import plugins.Plugins
 import java.io.File
-import linkspec.LinkSpecification
+import linkagerule.LinkSpecification
 import plugins.jena.JenaPlugins
 import util.StringUtils._
 import util.CollectLogs

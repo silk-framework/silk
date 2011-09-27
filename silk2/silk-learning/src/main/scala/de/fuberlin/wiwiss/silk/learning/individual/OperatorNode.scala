@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning.individual
 
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation, SimilarityOperator}
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
 
 trait OperatorNode extends Node {
   def build: SimilarityOperator

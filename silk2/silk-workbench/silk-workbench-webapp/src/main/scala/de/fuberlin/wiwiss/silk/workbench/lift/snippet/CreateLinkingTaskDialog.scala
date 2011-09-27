@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, Linki
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.common.Empty
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.linkspec.{LinkageRule, LinkFilter, DatasetSpecification, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule, LinkFilter, DatasetSpecification, LinkSpecification}
 
 /**
  * A dialog to create new linking tasks.

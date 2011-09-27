@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkspec.similarity.FlatIndexAggregator
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.FlatIndexAggregator
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "max", label = "Maximum", description = "Selects the maximum value.")

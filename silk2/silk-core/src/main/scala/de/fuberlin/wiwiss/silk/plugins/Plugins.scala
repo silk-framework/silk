@@ -6,8 +6,8 @@ import aggegrator._
 import writer._
 import metric._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregator, DistanceMeasure}
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.Timer
@@ -35,7 +35,7 @@ object Plugins {
 
   /**
    * Registers all default plugins.
-   * This is done manually instead of using automatic classpath lookup for performance reasons.
+   * For performance reasons, this is done manually instead of using automatic classpath lookup.
    */
   private def registerDefaultPlugins() {
     DataSource.register(classOf[SparqlDataSource])

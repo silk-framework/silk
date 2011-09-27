@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import java.util.logging.Logger

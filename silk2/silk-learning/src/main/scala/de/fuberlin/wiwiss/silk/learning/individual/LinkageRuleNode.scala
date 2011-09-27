@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning.individual
 
-import de.fuberlin.wiwiss.silk.linkspec.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 case class LinkageRuleNode(aggregation: Option[OperatorNode]) extends Node {
   override val children = aggregation.toList
