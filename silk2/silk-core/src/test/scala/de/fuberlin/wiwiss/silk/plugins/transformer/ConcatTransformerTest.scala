@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.plugins.transformer
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 
 class ConcatTransformerTest extends FlatSpec with ShouldMatchers {
-  DefaultPlugins.register()
+  Plugins.register()
 
   val transformer = new ConcatTransformer()
 

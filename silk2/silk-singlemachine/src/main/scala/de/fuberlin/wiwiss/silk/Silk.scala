@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
 import config.LinkingConfig
-import plugins.DefaultPlugins
+import plugins.Plugins
 import java.io.File
 import linkspec.LinkSpecification
 import plugins.jena.JenaPlugins
@@ -21,7 +21,7 @@ object Silk {
   val DefaultThreads = 8
 
   //Register all available plugins
-  DefaultPlugins.register()
+  Plugins.register()
   JenaPlugins.register()
 
   /**

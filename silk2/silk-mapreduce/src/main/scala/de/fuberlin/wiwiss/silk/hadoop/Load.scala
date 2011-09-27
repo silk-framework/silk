@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopEntityCache
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
@@ -19,7 +19,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
 
   def apply()
   {
-    DefaultPlugins.register()
+    Plugins.register()
 
     val config = loadConfig(new Path(silkConfigPath), new Path(entityCachePath))
 
