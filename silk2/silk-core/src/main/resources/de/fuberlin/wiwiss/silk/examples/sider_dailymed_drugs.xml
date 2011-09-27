@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Silk>
+    <Prefixes>
+        <Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />
+        <Prefix id="rdfs" namespace="http://www.w3.org/2000/01/rdf-schema#" />
+        <Prefix id="foaf" namespace="http://xmlns.com/foaf/0.1/" />
+        <Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#" />
+        <Prefix id="dbpedia-owl" namespace="http://dbpedia.org/ontology/" />
+        <Prefix id="dbpedia" namespace="http://dbpedia.org/resource/" />
+        <Prefix id="dbpedia-prop" namespace="http://dbpedia.org/property/" />
+        <Prefix id="dc" namespace="http://purl.org/dc/terms/" />
+        <Prefix id="dailymed" namespace="http://www4.wiwiss.fu-berlin.de/dailymed/resource/dailymed/" />
+        <Prefix id="opencyc" namespace="http://sw.opencyc.org/2008/06/10/concept/" />
+        <Prefix id="sider" namespace="http://www4.wiwiss.fu-berlin.de/sider/resource/sider/" />
+    </Prefixes>
+
+    <DataSources>
+        <DataSource id="sider" type="sparqlEndpoint">
+            <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/sider/sparql" />
+        </DataSource>
+
+        <DataSource id="dailymed" type="sparqlEndpoint">
+            <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/dailymed/sparql" />
+        </DataSource>
+    </DataSources>
+
+    <Interlinks>
+        <Interlink id="drugs">
+            <LinkType>owl:sameAs</LinkType>
+
+            <SourceDataset dataSource="sider" var="a">
+                <RestrictTo>
+                    ?a rdf:type sider:drugs
+                </RestrictTo>
+            </SourceDataset>
+
+            <TargetDataset dataSource="dailymed" var="b">
+                <RestrictTo>
+                    ?b rdf:type dailymed:drugs
+                </RestrictTo>
+            </TargetDataset>
+
+            <LinkageRule>
+                <Aggregate type="max">
+                    <Compare metric="jaroWinkler" threshold="0.05">
+                        <TransformInput function="lowerCase">
+                            <Input path="?a/rdfs:label" />
+                        </TransformInput>
+                        <TransformInput function="lowerCase">
+                            <Input path="?b/rdfs:label" />
+                        </TransformInput>
+                    </Compare>
+                    <Compare metric="jaroWinkler" threshold="0.05">
+                        <TransformInput function="lowerCase">
+                            <Input path="?a/rdfs:label" />
+                        </TransformInput>
+                        <TransformInput function="lowerCase">
+                            <Input path="?b/dailymed:name" />
+                        </TransformInput>
+                    </Compare>
+                    <Compare metric="jaroWinkler" threshold="0.05">
+                        <TransformInput function="lowerCase">
+                            <Input path="?a/rdfs:label" />
+                        </TransformInput>
+                        <TransformInput function="lowerCase">
+                            <Input path="?b/dailymed:genericMedicine" />
+                        </TransformInput>
+                    </Compare>
+                </Aggregate>
+            </LinkageRule>
+
+            <Filter />
+
+            <Outputs>
+                <Output maxConfidence="0.1" type="file" >
+                  <Param name="file" value="sider_dailymed_drugs_verify_links.xml"/>
+                  <Param name="format" value="alignment"/>
+                </Output>
+                <Output minConfidence="0.1" type="file">
+                  <Param name="file" value="sider_dailymed_drugs_accepted_links.xml"/>
+                  <Param name="format" value="alignment"/>
+                </Output>
+            </Outputs>
+        </Interlink>
+    </Interlinks>
+</Silk>

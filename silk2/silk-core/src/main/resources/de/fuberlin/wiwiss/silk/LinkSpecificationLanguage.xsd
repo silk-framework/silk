@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="DataSource">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required" />
+      <xs:attribute name="type" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Param">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="value" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="AnyInput" abstract="true" />
+
+  <xs:element name="Input" substitutionGroup="AnyInput">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:string" use="optional" />
+      <xs:attribute name="path" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="TransformInput" substitutionGroup="AnyInput">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="AnyInput" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional" />
+      <xs:attribute name="function" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Compare">
+    <xs:complexType>
+      <xs:sequence>
+        <!-- Errors if number of inputs is different from 2 are handled in code to give better error messages -->
+        <xs:element ref="AnyInput" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional" />
+      <xs:attribute name="metric" type="xs:string" use="required" />
+      <xs:attribute name="threshold" type="xs:double" />
+      <xs:attribute name="weight" type="xs:unsignedShort" />
+      <xs:attribute name="required" type="xs:boolean" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Aggregate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="Aggregate" />
+          <xs:element ref="Compare" />
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional" />
+      <xs:attribute name="type" type="xs:string" use="required" />
+      <xs:attribute name="weight" type="xs:unsignedShort" />
+      <xs:attribute name="required" type="xs:boolean" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Outputs">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Output" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Output">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="optional" />
+      <xs:attribute name="type" type="xs:string" />
+      <xs:attribute name="minConfidence" type="xs:decimal" use="optional" />
+      <xs:attribute name="maxConfidence" type="xs:decimal" use="optional" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Interlink">
+    <xs:complexType>
+      <xs:sequence>
+
+        <xs:element name="LinkType" type="xs:string" />
+
+        <xs:element name="SourceDataset">
+          <xs:complexType>
+            <xs:choice>
+              <xs:element name="RestrictTo" minOccurs="0" type="xs:string" />
+            </xs:choice>
+            <xs:attribute name="dataSource" type="xs:string" use="required" />
+            <xs:attribute name="var" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="TargetDataset">
+          <xs:complexType>
+            <xs:choice>
+              <xs:element name="RestrictTo" minOccurs="0" type="xs:string" />
+            </xs:choice>
+            <xs:attribute name="dataSource" type="xs:string" use="required" />
+            <xs:attribute name="var" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+
+        <!-- <LinkCondition> has been renamed to <LinkageRule> but we still need to support it -->
+        <xs:element name="LinkCondition" minOccurs="0">
+          <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="1">
+              <xs:element ref="Aggregate" />
+              <xs:element ref="Compare" />
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="LinkageRule" minOccurs="0">
+          <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="1">
+              <xs:element ref="Aggregate" />
+              <xs:element ref="Compare" />
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Filter">
+          <xs:complexType>
+            <xs:attribute name="threshold" type="xs:decimal" use="optional" />
+            <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ref="Outputs" minOccurs="0"/>
+
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="Silk">
+    <xs:complexType>
+      <xs:sequence>
+
+        <xs:element name="Prefixes">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="Prefix">
+                <xs:complexType>
+                  <xs:attribute name="id" type="xs:string" use="required" />
+                  <xs:attribute name="namespace" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="DataSources" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="DataSource" minOccurs="0" maxOccurs="unbounded" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="Blocking" minOccurs="0">
+          <xs:complexType>
+            <xs:attribute name="enabled" type="xs:boolean" use="optional" />
+            <xs:attribute name="blocks" type="xs:unsignedShort" use="optional" />
+          </xs:complexType>
+        </xs:element>
+        
+        <xs:element name="Interlinks">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="Interlink" maxOccurs="unbounded" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element ref="Outputs" minOccurs="0"/>
+
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
