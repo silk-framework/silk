@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.datasource.Source
 import xml.Node

@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.linkspec.{Operator, LinkageRule}
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkspec.input.{PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
+import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.{NodeSeq, Elem}

@@ -4,7 +4,7 @@ import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
 import modules.output.{MemoryOutputModule, OutputTask, OutputConfig, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}

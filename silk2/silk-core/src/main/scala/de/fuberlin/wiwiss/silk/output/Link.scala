@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.output
 
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.linkspec.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkspec.input.PathInput
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
+import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.entity.Entity
 
 /**

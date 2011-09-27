@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.metric
 
-import de.fuberlin.wiwiss.silk.linkspec.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "jaccard", label = "Jaccard", description = "Jaccard similarity coefficient.")

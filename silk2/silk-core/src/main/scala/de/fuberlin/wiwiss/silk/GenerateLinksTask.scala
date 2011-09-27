@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 import de.fuberlin.wiwiss.silk.output.{Output, Link}
-import de.fuberlin.wiwiss.silk.linkspec.LinkSpecification
+import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig

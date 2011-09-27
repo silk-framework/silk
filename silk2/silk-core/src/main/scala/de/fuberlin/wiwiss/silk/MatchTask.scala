@@ -2,8 +2,8 @@ package de.fuberlin.wiwiss.silk
 
 import config.RuntimeConfig
 import entity.EntityCache
-import linkspec.evaluation.DetailedEvaluator
-import linkspec.LinkSpecification
+import linkagerule.evaluation.DetailedEvaluator
+import linkagerule.LinkSpecification
 import java.util.logging.Level
 import output.Link
 import java.util.concurrent._

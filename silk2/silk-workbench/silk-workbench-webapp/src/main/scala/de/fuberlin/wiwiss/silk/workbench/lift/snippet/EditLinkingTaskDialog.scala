@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.workbench.Constants
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.Cache
 import net.liftweb.http.SHtml
 import net.liftweb.common.Empty
-import de.fuberlin.wiwiss.silk.linkspec._
+import de.fuberlin.wiwiss.silk.linkagerule._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.{SetHtml, OnLoad}
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction

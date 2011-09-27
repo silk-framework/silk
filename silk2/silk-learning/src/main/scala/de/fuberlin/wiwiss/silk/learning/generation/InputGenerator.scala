@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.learning.generation
 
 import de.fuberlin.wiwiss.silk.entity.Path
 import util.Random
-import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.learning.individual.{PathInputNode, InputNode, TransformNode, FunctionNode}
 
