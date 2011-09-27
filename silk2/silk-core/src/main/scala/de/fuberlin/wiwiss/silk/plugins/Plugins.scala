@@ -9,12 +9,21 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkspec.input.Transformer
 import de.fuberlin.wiwiss.silk.linkspec.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
+import java.io.File
+import de.fuberlin.wiwiss.silk.util.Timer
+import java.util.logging.Logger
 
 /**
- * Registers all default implementations.
+ * Registers all default plugins.
  */
-object DefaultPlugins {
-  def register() {
+object Plugins {
+  private var registered = false
+
+  private implicit val logger = Logger.getLogger(Plugins.getClass.getName)
+
+  def register(pluginsDir: File = new File(System.getProperty("user.home") + "/.silk/plugins/")): Unit = synchronized {
+    if(registered) return
+
     DataSource.register(classOf[SparqlDataSource])
     DataSource.register(classOf[CacheDataSource])
 
@@ -65,5 +74,20 @@ object DefaultPlugins {
 
     Formatter.register(classOf[NTriplesFormatter])
     Formatter.register(classOf[AlignmentFormatter])
+
+    //Register external plugins
+    Timer("Registering external plugins") {
+      if(pluginsDir.isDirectory) {
+        DataSource.registerJars(pluginsDir)
+        Transformer.registerJars(pluginsDir)
+        DistanceMeasure.registerJars(pluginsDir)
+        Aggregator.registerJars(pluginsDir)
+      }
+      else {
+       logger.info("No plugins loaded because the plugin directory " + pluginsDir + " has not been found.")
+      }
+    }
+
+    registered = true
   }
 }

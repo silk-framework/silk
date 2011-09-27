@@ -3,7 +3,7 @@ package bootstrap.liftweb
 import _root_.net.liftweb.http._
 import _root_.net.liftweb.sitemap._
 import _root_.net.liftweb.sitemap.Loc._
-import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 import js.jquery.JQuery14Artifacts
 import net.liftweb.widgets.autocomplete.AutoComplete
 import scala.xml.Text
@@ -24,7 +24,7 @@ class Boot {
   def boot {
     User.userManager = UserManager.is _
 
-    DefaultPlugins.register()
+    Plugins.register()
     JenaPlugins.register()
 
     LiftRules.jsArtifacts = JQuery14Artifacts

@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.hadoop
 
 import impl.HadoopEntityCache
 import org.apache.hadoop.fs.{FileSystem, Path}
-import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 
@@ -30,7 +30,7 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
   private lazy val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
   lazy val config = {
-    DefaultPlugins.register()
+    Plugins.register()
     LinkingConfig.load(cacheFS.open(entityCachePath.suffix("/config.xml")))
   }
 

@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.plugins.transformer
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 
 class UpperCaseTransformerTest extends FlatSpec with ShouldMatchers {
-  DefaultPlugins.register()
+  Plugins.register()
 
   val transformer = new UpperCaseTransformer()
 

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
@@ -53,7 +53,7 @@ object Server {
  *
  */
 private class Server {
-  DefaultPlugins.register()
+  Plugins.register()
   DataSource.register(classOf[RdfDataSource])
   DataSource.register(classOf[FileDataSource])
 
