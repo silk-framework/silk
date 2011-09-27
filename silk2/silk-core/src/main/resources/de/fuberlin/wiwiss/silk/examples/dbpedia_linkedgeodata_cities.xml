@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Silk>
+  <Prefixes>
+	  <Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />
+	  <Prefix id="rdfs" namespace="http://www.w3.org/2000/01/rdf-schema#" />
+	  <Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#" />
+	  <Prefix id="dbpedia" namespace="http://dbpedia.org/ontology/" />
+    <Prefix id="lgdp" namespace="http://linkedgeodata.org/property/" />
+    <Prefix id="lgdo" namespace="http://linkedgeodata.org/ontology/" />
+    <Prefix id="georss" namespace="http://www.georss.org/georss/" />
+    <Prefix id="wgs84" namespace="http://www.w3.org/2003/01/geo/wgs84_pos#" />
+  </Prefixes>
+
+  <DataSources>
+    <DataSource id="dbpedia" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://lod.openlinksw.com/sparql" />
+      <Param name="graph" value="http://dbpedia.org" />
+      <Param name="retryCount" value="500" />
+      <Param name="retryPause" value="5000" />
+    </DataSource>
+    <DataSource id="lgdb" type="sparqlEndpoint">
+      <Param name="endpointURI" value="http://linkedgeodata.org/sparql" />
+      <Param name="retryCount" value="100" />
+      <Param name="retryPause" value="1000" />
+    </DataSource>
+  </DataSources>
+
+    <Blocking blocks="1" enabled="false" />
+
+  <Interlinks>
+    <Interlink id="cities">
+      <LinkType>owl:sameAs</LinkType>
+
+      <SourceDataset dataSource="dbpedia" var="a">
+        <RestrictTo>
+          ?a rdf:type dbpedia:Settlement
+        </RestrictTo>
+      </SourceDataset>
+      <TargetDataset dataSource="lgdb" var="b">
+        <RestrictTo>
+          {
+          { ?b rdf:type lgdo:City }
+          UNION
+          { ?b rdf:type lgdo:Town }
+          UNION
+          { ?b rdf:type lgdo:Village }
+          }
+        </RestrictTo>
+      </TargetDataset>
+
+      <LinkageRule>
+        <Aggregate type="average">
+          <Aggregate type="max" required="true" >
+            <!-- We need two comparators because some resources in LinkedGeoData do not provided an english label -->
+            <Compare metric="levenshteinDistance" threshold="1">
+              <Input path="?a/rdfs:label[@lang='en']" />
+              <Input path="?b/rdfs:label[@lang='en']" />
+            </Compare>
+            <Compare metric="levenshteinDistance" threshold="1">
+              <Input path="?a/rdfs:label[@lang='en']" />
+              <Input path="?b/rdfs:label[@lang='']" />
+            </Compare>
+          </Aggregate>
+          <Compare metric="wgs84" threshold="50" required="true">
+            <Input path="?a/wgs84:geometry" />
+            <Input path="?b/wgs84:geometry" />
+            <Param name="unit" value="km"/>
+          </Compare>
+       </Aggregate>              
+      </LinkageRule>
+
+      <Filter />
+
+      <Outputs>
+        <Output type="file">
+          <Param name="file" value="dbpedia_lgdb.nt"/>
+          <Param name="format" value="ntriples"/>
+        </Output>
+      </Outputs>
+
+    </Interlink>
+  </Interlinks>
+</Silk>
