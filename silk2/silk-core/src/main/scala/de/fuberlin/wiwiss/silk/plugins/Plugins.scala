@@ -14,16 +14,30 @@ import de.fuberlin.wiwiss.silk.util.Timer
 import java.util.logging.Logger
 
 /**
- * Registers all default plugins.
+ * Registers all default plugins as well as external plugins found in the provided directory.
  */
 object Plugins {
+  /** Indicates if register() has already been called */
   private var registered = false
 
   private implicit val logger = Logger.getLogger(Plugins.getClass.getName)
 
+  /**
+   * Registers all default plugins as well as external plugins found in the provided directory.
+   */
   def register(pluginsDir: File = new File(System.getProperty("user.home") + "/.silk/plugins/")): Unit = synchronized {
-    if(registered) return
+    if(!registered) {
+      registerDefaultPlugins()
+      registerExternalPlugins(pluginsDir)
+      registered = true
+    }
+  }
 
+  /**
+   * Registers all default plugins.
+   * This is done manually instead of using automatic classpath lookup for performance reasons.
+   */
+  private def registerDefaultPlugins() {
     DataSource.register(classOf[SparqlDataSource])
     DataSource.register(classOf[CacheDataSource])
 
@@ -74,8 +88,12 @@ object Plugins {
 
     Formatter.register(classOf[NTriplesFormatter])
     Formatter.register(classOf[AlignmentFormatter])
+  }
 
-    //Register external plugins
+  /**
+   * Registers external plugins.
+   */
+  private def registerExternalPlugins(pluginsDir: File) {
     Timer("Registering external plugins") {
       if(pluginsDir.isDirectory) {
         DataSource.registerJars(pluginsDir)
@@ -87,7 +105,5 @@ object Plugins {
        logger.info("No plugins loaded because the plugin directory " + pluginsDir + " has not been found.")
       }
     }
-
-    registered = true
   }
 }
