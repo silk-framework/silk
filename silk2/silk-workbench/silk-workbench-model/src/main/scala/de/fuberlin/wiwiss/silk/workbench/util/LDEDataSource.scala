@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.util
 
-import de.fuberlin.wiwiss.silk.impl.datasource.SparqlDataSource
+import de.fuberlin.wiwiss.silk.plugins.datasource.SparqlDataSource
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path}
 

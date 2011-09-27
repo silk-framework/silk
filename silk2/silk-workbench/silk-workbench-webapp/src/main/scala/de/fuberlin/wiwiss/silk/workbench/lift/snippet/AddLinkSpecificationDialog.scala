@@ -7,7 +7,7 @@ import java.io.ByteArrayInputStream
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.SilkConfigImporter
-import de.fuberlin.wiwiss.silk.config.SilkConfig
+import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import net.liftweb.http.{S, SHtml, FileParamHolder}
 import de.fuberlin.wiwiss.silk.util.ValidationException
 
@@ -22,7 +22,7 @@ class AddLinkSpecificationDialog {
       try {
         fileHolder match {
           case FileParamHolder(_, mime, _, data) => {
-            val config = SilkConfig.load(new ByteArrayInputStream(data))
+            val config = LinkingConfig.load(new ByteArrayInputStream(data))
 
             SilkConfigImporter(config, User().project)
           }

@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk
 
-import config.SilkConfig
-import impl.DefaultImplementations
+import config.LinkingConfig
+import plugins.DefaultPlugins
 import java.io.File
-import jena.JenaImplementations
 import linkspec.LinkSpecification
+import plugins.jena.JenaPlugins
 import util.StringUtils._
 import util.CollectLogs
 import java.util.logging.{Level, Logger}
@@ -20,9 +20,9 @@ object Silk {
    */
   val DefaultThreads = 8
 
-  //Register all available implementations
-  DefaultImplementations.register()
-  JenaImplementations.register()
+  //Register all available plugins
+  DefaultPlugins.register()
+  JenaPlugins.register()
 
   /**
    * Executes Silk.
@@ -72,7 +72,7 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    executeConfig(SilkConfig.load(configFile), linkSpecID, numThreads, reload)
+    executeConfig(LinkingConfig.load(configFile), linkSpecID, numThreads, reload)
   }
 
   /**
@@ -83,7 +83,7 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  def executeConfig(config: SilkConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
+  def executeConfig(config: LinkingConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     if (linkSpecID != null) {
       //Execute a specific link specification
       val linkSpec = config.linkSpec(linkSpecID)
@@ -104,7 +104,7 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  private def executeLinkSpec(config: SilkConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
+  private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     new GenerateLinksTask(
       sources = config.sources,
       linkSpec = linkSpec,

@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.server.model
 
-import de.fuberlin.wiwiss.silk.config.SilkConfig
+import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, MemoryEntityCache}
@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 /**
  * Holds the dataset of a link specification.
  */
-class Dataset(val name: String, config: SilkConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean) {
+class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean) {
   private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
   private val entityDescs = EntityDescription.retrieve(linkSpec)

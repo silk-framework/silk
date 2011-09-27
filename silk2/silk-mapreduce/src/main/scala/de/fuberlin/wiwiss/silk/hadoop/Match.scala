@@ -5,7 +5,7 @@ import org.apache.hadoop.mapreduce._
 import lib.output.FileOutputFormat
 import org.apache.hadoop.io.Text
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.impl.DefaultImplementations
+import de.fuberlin.wiwiss.silk.plugins.DefaultPlugins
 import org.apache.hadoop.fs.Path
 
 /**
@@ -45,7 +45,7 @@ class Match(inputPath : String, outputPath : String, linkSpec : Option[String], 
    */
   private def setupJob(job : Job)
   {
-    DefaultImplementations.register()
+    DefaultPlugins.register()
 
     val config = SilkConfiguration.get(job.getConfiguration)
 
