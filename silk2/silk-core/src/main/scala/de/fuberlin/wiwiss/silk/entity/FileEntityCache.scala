@@ -56,6 +56,7 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
   }
 
   override def clear() {
+    dir.deleteRecursive()
     for (block <- blocks) {
       block.clear()
     }
@@ -130,8 +131,6 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
     def clear() {
       partitionCount = 0
       count = 0
-      //TODO execute deleteRecursive once on whole cache?
-      blockDir.deleteRecursive()
     }
 
     def close() {

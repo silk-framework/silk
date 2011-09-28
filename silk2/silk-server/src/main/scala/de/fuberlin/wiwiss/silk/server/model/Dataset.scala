@@ -45,7 +45,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
 
     var links: Seq[Link] = Seq.empty
     if (entityCache.entityCount > 0) {
-      val matcher = new MatchTask(linkSpec, DPair(entityCache, caches.target))
+      val matcher = new MatchTask(linkSpec.rule, DPair(entityCache, caches.target))
       links = matcher()
     }
 
