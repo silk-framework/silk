@@ -4,6 +4,7 @@ import math._
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 /**
  * This metric takes geographical coordinates of two points,
@@ -24,8 +25,6 @@ class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasur
 
   private val unitMultiplier: Double = multipliers.get(unit).getOrElse(1)
 
-  private val blockOverlap = 0.5
-
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     //Parse the coordinates and return a similarity value if both coordinates could be extracted.
     (getCoordinates(str1), getCoordinates(str2)) match {
@@ -34,40 +33,38 @@ class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasur
     }
   }
 
-  override def indexValue(str: String, limit: Double): Set[Seq[Int]] = {
+  override def indexValue(str: String, limit: Double): Index = {
     getCoordinates(str) match {
       case Some(coords) => {
-        val latIndex = (coords.lat + 90.0) / 180.0
-        val longIndex = (coords.long + 180.0) / 360.0 * cos(deg2rad(coords.lat))
+        val latIndex= indexLatitude((coords.lat + 90.0) / 180.0, limit)
+        val lonIndex = indexLongitude((coords.long + 180.0) / 360.0 * cos(deg2rad(coords.lat)), limit)
 
-        getBlocks(Seq(latIndex, longIndex), blockOverlap, limit)
+        latIndex conjunction lonIndex
       }
-      case None => Set.empty
+      case None => Index.empty
     }
   }
 
-  override def blockCounts(limit: Double): Seq[Int] = {
-    Seq(latitudeBlockCount(limit), longitudeBlockCount(limit))
-  }
+//  private def indexLatitude(latitude: Double, limit: Double) = {
+//    val earthCircumferenceEquatorial = 40075160.0
+//    val distInMeters = limit / unitMultiplier
+//    val latitudeLimit = earthCircumferenceEquatorial / distInMeters * 180.0
+//
+//    EIndex.continuous(latitude, 1.0, latitudeLimit)
+//  }
 
-  private def latitudeBlockCount(limit: Double) = {
+  private def indexLatitude(latitude: Double, limit: Double) = {
     val earthCircumferenceEquatorial = 40075160.0
+    val normalizedLimit = limit / (earthCircumferenceEquatorial * unitMultiplier)
 
-    val distInMeters = limit / unitMultiplier
-
-    val latitudeBlocks = earthCircumferenceEquatorial / distInMeters * blockOverlap
-
-    latitudeBlocks.toInt
+    Index.continuous(latitude, 0.0, 1.0, normalizedLimit)
   }
 
-  private def longitudeBlockCount(limit: Double) = {
+  private def indexLongitude(longitude: Double, limit: Double) = {
     val earthCircumferenceMeridional = 40008000.0
+    val normalizedLimit = limit / (earthCircumferenceMeridional * unitMultiplier)
 
-    val distInMeters = limit / unitMultiplier
-
-    val longitudeBlocks = earthCircumferenceMeridional / distInMeters * blockOverlap
-
-    longitudeBlocks.toInt
+    Index.continuous(longitude, 0.0, 1.0, normalizedLimit)
   }
 
   /**

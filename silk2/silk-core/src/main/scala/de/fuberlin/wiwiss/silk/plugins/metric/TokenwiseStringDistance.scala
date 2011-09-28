@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import java.util.regex.Pattern
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 /**
  * <p>
@@ -313,10 +314,10 @@ case class TokenwiseStringDistance(
    * Very simple indexing function that requires at least one common token in strings for them to
    * be compared
    */
-  override def indexValue(value: String, limit: Double): Set[Seq[Int]] = {
+  override def indexValue(value: String, limit: Double): Index = {
     val tokens = tokenize(value)
     if (tokens.isEmpty) {
-      Set(Seq(0))
+      Index.empty
     } else {
       if (useIncrementalIdfWeights){
         documentCount += 1
@@ -325,13 +326,9 @@ case class TokenwiseStringDistance(
         }
       }
       //Set(tokens.map(_.hashCode % blockCounts.head).toSeq)
-      (for (token <- tokens.distinct) yield {
-        metric.indexValue(token, limit)
-      }).flatten.toSet
+      val tokenIndexes = for (token <- tokens.distinct) yield metric.indexValue(token, limit)
+
+      tokenIndexes.reduce(_ merge _)
     }
   }
-
-
-  override def blockCounts(limit : Double) : Seq[Int] = Seq(1000)
-
 }

@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import math.min
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 /**
  * A simple similarity measure which compares pairs of values.
@@ -17,8 +18,11 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
     minDistance
   }
 
-  override final def index(values: Set[String], limit: Double): Set[Seq[Int]] =  {
-    values.flatMap(value => indexValue(value, limit))
+  override final def index(values: Set[String], limit: Double): Index = {
+    if(values.isEmpty)
+      Index.empty
+    else
+      values.map(indexValue(_, limit)).reduce(_ merge _)
   }
 
   /**
@@ -29,5 +33,5 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
   /**
    * Computes the index of a single value.
    */
-  def indexValue(value: String, limit: Double): Set[Seq[Int]] = Set(Seq(0))
+  def indexValue(value: String, limit: Double): Index = Index.default
 }

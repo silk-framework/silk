@@ -19,10 +19,10 @@ class GenerateLinksTask(sources: Traversable[Source],
                         outputs: Traversable[Output] = Traversable.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
-  /** The task used for loading the entitys into the cache */
+  /** The task used for loading the entities into the cache */
   @volatile private var loadTask: LoadTask = null
 
-  /** The task used for matching the entitys */
+  /** The task used for matching the entities */
   @volatile private var matchTask: MatchTask = null
 
   /** The warnings which occurred during execution */
@@ -54,12 +54,12 @@ class GenerateLinksTask(sources: Traversable[Source],
       //Retrieve sources
       val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
-      //entity caches
+      //Entity caches
       val caches = createCaches()
 
       //Create tasks
       loadTask = new LoadTask(sourcePair, caches, linkSpec.rule.index(_))
-      matchTask = new MatchTask(linkSpec, caches, runtimeConfig)
+      matchTask = new MatchTask(linkSpec.rule, caches, runtimeConfig)
 
       //Load entities
       if (runtimeConfig.reloadCache) loadTask.runInBackground()

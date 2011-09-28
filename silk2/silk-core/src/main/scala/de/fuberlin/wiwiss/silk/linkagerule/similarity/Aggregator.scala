@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 trait Aggregator extends AnyPlugin {
   def evaluate(weightedValues: Traversable[(Int, Double)]): Option[Double]
@@ -8,13 +9,7 @@ trait Aggregator extends AnyPlugin {
   /**
    * Combines two indexes into one.
    */
-  def combineIndexes(indexSet1: Set[Seq[Int]], blockCounts1: Seq[Int],
-                     indexSet2: Set[Seq[Int]], blockCounts2: Seq[Int]): Set[Seq[Int]]
-
-  /**
-   * Combines two block counts into one.
-   */
-  def combineBlockCounts(blockCounts1: Seq[Int], blockCounts2: Seq[Int]): Seq[Int]
+  def combineIndexes(index1: Index, index2: Index): Index
 
   def computeThreshold(threshold: Double, weight: Double): Double = {
     threshold

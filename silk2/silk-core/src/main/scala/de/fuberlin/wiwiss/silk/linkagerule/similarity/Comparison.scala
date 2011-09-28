@@ -3,9 +3,9 @@ package de.fuberlin.wiwiss.silk.linkagerule.similarity
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.linkagerule.input.Input
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
+import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
 
 /**
  * A comparison computes the similarity of two inputs.
@@ -48,7 +48,7 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  override def index(entity: Entity, limit: Double): Set[Seq[Int]] = {
+  override def index(entity: Entity, limit: Double): Index = {
     val entityPair = DPair.fill(entity)
 
     val values = inputs.source(entityPair) ++ inputs.target(entityPair)
@@ -56,13 +56,6 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
     val distanceLimit = threshold * (1.0 - limit)
 
     metric.index(values, distanceLimit)
-  }
-
-  /**
-   * The number of blocks in each dimension of the index.
-   */
-  override def blockCounts(limit: Double) = {
-    metric.blockCounts(threshold * (1.0 - limit))
   }
 
   override def toXML(implicit prefixes: Prefixes) = metric match {

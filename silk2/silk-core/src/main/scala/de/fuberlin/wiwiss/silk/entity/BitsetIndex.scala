@@ -5,15 +5,15 @@ import java.io.{DataInputStream, DataOutputStream}
 /**
  * Efficient index.
  */
-//Test if we need a bitset anymore (due to optimizations in the cache we have fewer indices per entity now)
-final class Index private(private val bitset: Array[Long]) {
+//TODO Test if we need a bitset anymore (due to optimizations in the cache we have fewer indices per entity now)
+final class BitsetIndex private(private val bitset: Array[Long]) {
   /**
    * Checks if this index matches another index.
    */
-  def matches(other: Index) = {
+  def matches(other: BitsetIndex) = {
     var found = false
     var i = 0
-    while (!found && i < Index.Size) {
+    while (!found && i < BitsetIndex.Size) {
       found = (bitset(i) & other.bitset(i)) != 0
       i += 1
     }
@@ -26,7 +26,7 @@ final class Index private(private val bitset: Array[Long]) {
   }
 }
 
-object Index {
+object BitsetIndex {
   /**
    * Size of the index i.e. the number of long integers used to represent the bit set.
    */
@@ -41,10 +41,10 @@ object Index {
       array(ci >> 6) |= (1L << ci)
     }
 
-    new Index(array)
+    new BitsetIndex(array)
   }
 
   def deserialize(stream: DataInputStream) = {
-    new Index(Array.fill(Size)(stream.readLong))
+    new BitsetIndex(Array.fill(Size)(stream.readLong))
   }
 }

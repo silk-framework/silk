@@ -3,8 +3,8 @@ package de.fuberlin.wiwiss.silk
 import config.RuntimeConfig
 import entity.EntityCache
 import linkagerule.evaluation.DetailedEvaluator
-import config.LinkSpecification
 import java.util.logging.Level
+import linkagerule.LinkageRule
 import output.Link
 import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
@@ -14,16 +14,25 @@ import util.task.ValueTask
 
 /**
  * Executes the matching.
- * Generates links between the entitys according to the link specification.
+ * Generates links between the entities according to a linkage rule.
+ *
+ * @param linkageRule The linkage rules used for matching
+ * @param caches The pair of caches which contains the entities to be matched
+ * @param runtimeConfig The runtime configuration
+ * @param sourceEqualsTarget Can be set to true if the source and the target cache are equal to enable faster matching in that case.
  */
-class MatchTask(linkSpec: LinkSpecification,
+class MatchTask(linkageRule: LinkageRule,
                 caches: DPair[EntityCache],
                 runtimeConfig: RuntimeConfig = RuntimeConfig(),
                 sourceEqualsTarget: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
-  taskName = "Matching"
 
+  /** The name of this task. */
+  taskName = "MatchTask"
+
+  /** The buffer which holds the generated links. */
   private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
 
+  /** Indicates if this task has been canceled. */
   @volatile private var cancelled = false
 
   /**
@@ -63,24 +72,20 @@ class MatchTask(linkSpec: LinkSpecification,
     }
 
     //Shutdown
-    if (scheduler.isAlive) {
+    if (scheduler.isAlive)
       scheduler.interrupt()
-    }
-    if (cancelled) {
+
+    if(cancelled)
       executorService.shutdownNow()
-    }
-    else {
+    else
       executorService.shutdown()
-    }
 
     //Log result
     val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
-    if (cancelled) {
+    if (cancelled)
       logger.info("Matching cancelled after " + time)
-    }
-    else {
+    else
       logger.info("Executed matching in " + time)
-    }
 
     linkBuffer
   }
@@ -125,11 +130,10 @@ class MatchTask(linkSpec: LinkSpecification,
     private def updateSourcePartitions(includeLastPartitions: Boolean) {
       val newSourcePartitions = {
         for (block <- 0 until caches.source.blockCount) yield {
-          if (includeLastPartitions) {
+          if (includeLastPartitions)
             caches.source.partitionCount(block)
-          } else {
+          else
             max(0, caches.source.partitionCount(block) - 1)
-          }
         }
       }.toArray
 
@@ -171,7 +175,7 @@ class MatchTask(linkSpec: LinkSpecification,
   }
 
   /**
-   * Matches the entitys of two partitions.
+   * Matches the entities of two partitions.
    */
   private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[Traversable[Link]] {
     override def call(): Traversable[Link] = {
@@ -190,13 +194,13 @@ class MatchTask(linkSpec: LinkSpecification,
           val entities = DPair(sourceEntity, targetEntity)
 
           if (!runtimeConfig.generateDetailedLinks) {
-            val confidence = linkSpec.rule(entities, 0.0)
+            val confidence = linkageRule(entities, 0.0)
 
             if (confidence >= 0.0) {
               links ::= new Link(sourceEntity.uri, targetEntity.uri, confidence)
             }
           } else {
-            for (link <- DetailedEvaluator(linkSpec.rule, entities, 0.0)) {
+            for (link <- DetailedEvaluator(linkageRule, entities, 0.0)) {
               links ::= link
             }
           }

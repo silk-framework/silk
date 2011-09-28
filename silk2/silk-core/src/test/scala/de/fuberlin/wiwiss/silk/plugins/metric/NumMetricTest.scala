@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
 
 class NumMetricTest extends FlatSpec with ShouldMatchers {
-  val metric = new NumMetric(maxDistance = 1.0, minValue = 0.0, maxValue = 1.0)
+  val metric = new NumMetric(minValue = 0.0, maxValue = 1.0)
   val t = 0.9
 
   "NumMetric" should "return (threshold - abs(num1 - num2)) / threshold" in {

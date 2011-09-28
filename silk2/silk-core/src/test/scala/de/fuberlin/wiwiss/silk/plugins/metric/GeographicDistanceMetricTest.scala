@@ -22,17 +22,19 @@ object GeographicDistanceMetricTest {
 
     // distance between (0,0) and (180,0)
     println(new GeographicDistanceMetric().evaluate("POINT(0 0)", "POINT(180 0)"))
-    // distance between London and Berlin in Kilometers
+    // distance between London and Berlin in km
     println(new GeographicDistanceMetric(unit = "kilometer").evaluate("POINT(-0.124722 51.5081)", "POINT(13.3989 52.5006)"))
     // between London and London
     println(new GeographicDistanceMetric().evaluate("POINT(-0.124722 51.5081)", "POINT(-0.124722 51.5081)"))
     // between London and London, some insignificant digits changed
     println(new GeographicDistanceMetric().evaluate("POINT(-0.124 51.4)", "POINT(-0.124722 51.5081)"))
 
-    // distance between London and Berlin with parameter
-    println(new GeographicDistanceMetric(unit = "km").evaluate("POINT(-0.124722 51.5081)", "POINT(13.3989 52.5006)"))
-    // distance between London and Berlin with threshold 50 km
-    println(new GeographicDistanceMetric(unit = "km").evaluate("POINT(-0.124722 51.5081)", "POINT(13.3989 52.5006)"))
-
+    // distance between London and Berlin in km
+    val metric = new GeographicDistanceMetric()
+    println(metric.evaluate("POINT(-0.124722 51.5081)", "POINT(13.3989 52.5006)"))
+    println(metric.indexValue("POINT(-0.124722 51.5081)", 900.0))
+    println(metric.indexValue("POINT(13.3989 52.5006)", 900.0))
+    println(metric.indexValue("POINT(-0.124722 51.5081)", 300.0))
+    println(metric.indexValue("POINT(13.3989 52.5006)", 300.0))
   }
 }

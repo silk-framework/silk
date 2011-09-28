@@ -38,30 +38,8 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
    */
   def index(entity: Entity, limit: Double = 0.0): Set[Int] = {
     operator match {
-      case Some(op) => {
-        val indexes = op.index(entity, limit)
-
-        //Convert the index vectors to scalars in the range [0, Int.MaxValue]
-        for (index <- indexes) yield {
-          val flatIndex = (index zip op.blockCounts(limit)).foldLeft(0) {
-            case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight
-          }
-
-          if (flatIndex == Int.MinValue) 0 else abs(flatIndex)
-        }
-      }
+      case Some(op) => op.index(entity, limit).flatten
       case None => Set.empty
-    }
-
-  }
-
-  /**
-   * The number of blocks in each dimension of the index.
-   */
-  def blockCount(threshold: Double) = {
-    operator match {
-      case Some(op) => op.blockCounts(threshold).foldLeft(1)(_ * _)
-      case None => 1
     }
   }
 

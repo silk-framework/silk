@@ -48,7 +48,7 @@ class MemoryEntityCache(val entityDesc: EntityDescription, runtimeConfig: Runtim
       val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
 
       for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
-        blocks(block).add(entity, Index.build(index))
+        blocks(block).add(entity, BitsetIndex.build(index))
       }
 
       allEntities += entity.uri
@@ -80,11 +80,11 @@ class MemoryEntityCache(val entityDesc: EntityDescription, runtimeConfig: Runtim
 
   private class Block(block: Int) {
     private val entities = ArrayBuffer(ArrayBuffer[Entity]())
-    private val indices = ArrayBuffer(ArrayBuffer[Index]())
+    private val indices = ArrayBuffer(ArrayBuffer[BitsetIndex]())
 
     def apply(index: Int) = Partition(entities(index).toArray, indices(index).toArray)
 
-    def add(entity: Entity, index: Index) {
+    def add(entity: Entity, index: BitsetIndex) {
       if (entities.last.size < runtimeConfig.partitionSize) {
         entities.last.append(entity)
         indices.last.append(index)
