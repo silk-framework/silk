@@ -2,7 +2,9 @@ package de.fuberlin.wiwiss.silk.hadoop.load
 
 import java.io.IOException
 
-//TODO add graph
+/**
+ * RDF Quad. At the moment we don't store the fourth component.
+ */
 class Quad(val subject : String, val predicate : String, val value : String)
 
 object Quad

@@ -5,7 +5,7 @@ import java.io.{DataInputStream, DataOutputStream}
 /**
  * Efficient index.
  */
-//Test if we need a bitset anymore (due to optimizations in the cache we have fewer indices per entity now)
+//TODO Test if we need a bitset anymore (due to optimizations in the cache we have fewer indices per entity now)
 final class Index private(private val bitset: Array[Long]) {
   /**
    * Checks if this index matches another index.
