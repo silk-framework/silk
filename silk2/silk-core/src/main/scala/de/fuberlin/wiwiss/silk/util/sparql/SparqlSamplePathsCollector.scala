@@ -36,7 +36,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getAllEntities(endpoint: SparqlEndpoint): Traversable[String] = {
-    val sparql = "SELECT ?s WHERE { ?s ?p ?o }"
+    val sparql = "SELECT ?s WHERE { ?s ?p ?o } LIMIT " + maxEntities
 
     val results = endpoint.query(sparql, maxEntities)
 
@@ -46,7 +46,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String): Traversable[String] = {
     val sparql = "SELECT ?" + variable + " WHERE {\n" +
       restrictions.toSparql + "\n" +
-      "}"
+      "} LIMIT " + maxEntities
 
     val results = endpoint.query(sparql, maxEntities)
 
@@ -59,7 +59,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     val entityArray = entities.toArray
 
     //Get all properties
-    val properties = entityArray.flatMap(entity => getEntityProperties(endpoint, entity, variable))
+    val properties = entityArray.flatMap(entity => getEntityProperties(endpoint, entity, variable, limit))
 
     //Compute the frequency of each property
     val propertyFrequencies = properties.groupBy(x => x).mapValues(_.size.toDouble / entityArray.size).toList
@@ -75,12 +75,12 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     relevantProperties
   }
 
-  private def getEntityProperties(endpoint: SparqlEndpoint, entityUri: String, variable: String): Traversable[Path] = {
+  private def getEntityProperties(endpoint: SparqlEndpoint, entityUri: String, variable: String, limit: Int): Traversable[Path] = {
     var sparql = ""
     sparql += "SELECT DISTINCT ?p \n"
     sparql += "WHERE {\n"
     sparql += " <" + entityUri + "> ?p ?o\n"
-    sparql += "}"
+    sparql += "} LIMIT " + limit
 
     for (result <- endpoint.query(sparql); binding <- result.values)
     yield Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
