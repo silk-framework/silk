@@ -37,11 +37,11 @@
 
       <LinkageRule>
         <Aggregate type="max">
-          <Compare metric="jaro" threshold="0.1">
+          <Compare metric="levenshteinDistance" threshold="1">
             <Input path="?a/dbpedia:director/rdfs:label" />
             <Input path="?b/rdfs:label" />
           </Compare>
-          <Compare metric="jaro" threshold="0.1">
+          <Compare metric="levenshteinDistance" threshold="1">
             <Input path="?a/dbpedia:director/rdfs:label" />
             <Input path="?b/movie:director_name" />
           </Compare>
