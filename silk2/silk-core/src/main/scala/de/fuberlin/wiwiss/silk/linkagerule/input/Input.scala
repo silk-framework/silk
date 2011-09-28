@@ -20,3 +20,12 @@ trait Input extends Operator {
 
   def toXML(implicit prefixes: Prefixes): Node
 }
+
+object Input {
+  def fromXML(nodes: Seq[Node])(implicit prefixes: Prefixes): Seq[Input] = {
+    nodes.collect {
+      case node @ <Input/> => PathInput.fromXML(node)
+      case node @ <TransformInput>{_*}</TransformInput> => TransformInput.fromXML(node)
+    }
+  }
+}

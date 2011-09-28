@@ -44,3 +44,12 @@ trait SimilarityOperator extends Operator {
 
   def toXML(implicit prefixes: Prefixes): Node
 }
+
+object SimilarityOperator {
+  def fromXML(nodes: Seq[Node])(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Seq[SimilarityOperator] = {
+    nodes.collect {
+      case node@ <Aggregate>{_*}</Aggregate> => Aggregation.fromXML(node)
+      case node@ <Compare>{_*}</Compare> => Comparison.fromXML(node)
+    }
+  }
+}

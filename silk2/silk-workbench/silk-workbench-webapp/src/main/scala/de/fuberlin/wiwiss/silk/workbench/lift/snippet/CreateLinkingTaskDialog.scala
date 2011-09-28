@@ -12,7 +12,8 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, Linki
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.common.Empty
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule, LinkFilter, DatasetSpecification, LinkSpecification}
+import de.fuberlin.wiwiss.silk.config.{LinkFilter, DatasetSpecification, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 /**
  * A dialog to create new linking tasks.
@@ -36,7 +37,7 @@ class CreateLinkingTaskDialog {
             id = name,
             linkType = linkType,
             datasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
-                                        DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction))),
+                             DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction))),
             rule = LinkageRule(None),
             filter = LinkFilter(),
             outputs = Nil

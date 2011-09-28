@@ -3,8 +3,9 @@ package de.fuberlin.wiwiss.silk.linkagerule.similarity
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.linkagerule.input.Input
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
+import xml.Node
+import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 
 /**
  * A comparison computes the similarity of two inputs.
@@ -71,6 +72,32 @@ case class Comparison(id: Identifier = Operator.generateId, required: Boolean = 
         case (name, value) => <Param name={name} value={value}/>
       }}
       </Compare>
+    }
+  }
+}
+
+object Comparison {
+  def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
+    val id = Operator.readId(node)
+    val inputs = Input.fromXML(node.child)
+    if(inputs.size != 2) throw new ValidationException("A comparison must have exactly 2 inputs ", id, "Comparison")
+
+    try {
+      val requiredStr = node \ "@required" text
+      val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
+      val weightStr = node \ "@weight" text
+      val metric = DistanceMeasure(node \ "@metric" text, Operator.readParams(node))
+
+      Comparison(
+        id = id,
+        required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
+        threshold = threshold,
+        weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
+        inputs = DPair(inputs(0), inputs(1)),
+        metric = metric
+      )
+    } catch {
+      case ex: Exception => throw new ValidationException(ex.getMessage, id, "Comparison")
     }
   }
 }

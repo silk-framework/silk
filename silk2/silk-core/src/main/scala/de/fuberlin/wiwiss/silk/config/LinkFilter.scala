@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.linkagerule
+package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
 import java.util.logging.Logger

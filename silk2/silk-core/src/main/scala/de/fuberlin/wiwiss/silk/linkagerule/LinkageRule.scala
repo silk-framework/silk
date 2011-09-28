@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import math.abs
 import similarity.SimilarityOperator
+import xml.Node
 
 /**
  * A Linkage Rule specifies the conditions which must hold true so that a link is generated between two entities.
@@ -71,5 +72,11 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
     <LinkageRule>
       {operator.toList.map(_.toXML)}
     </LinkageRule>
+  }
+}
+
+object LinkageRule {
+  def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
+    LinkageRule(SimilarityOperator.fromXML(node.child).headOption)
   }
 }

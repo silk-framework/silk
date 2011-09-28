@@ -5,7 +5,6 @@ import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import math.log
-import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import util.Random
 import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
@@ -15,9 +14,10 @@ import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
 import math.max
-import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule, LinkSpecification}
+import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure, Comparison}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,

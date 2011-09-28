@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import java.io.StringReader
-import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import java.util.logging.{Level, Logger}

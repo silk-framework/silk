@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
+import config.LinkFilter
 import de.fuberlin.wiwiss.silk.util.task.Task
-import linkagerule.LinkFilter
 import output.Link
 import collection.mutable.{ArrayBuffer, Buffer}
 
