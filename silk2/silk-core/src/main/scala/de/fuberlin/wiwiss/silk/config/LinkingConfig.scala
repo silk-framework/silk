@@ -66,7 +66,7 @@ case class LinkingConfig(prefixes: Prefixes,
 }
 
 object LinkingConfig {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   def empty = LinkingConfig(Prefixes.empty, RuntimeConfig(), Nil, Nil, Nil)
 

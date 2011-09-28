@@ -30,7 +30,7 @@ case class Source(id: Identifier, dataSource: DataSource) {
 }
 
 object Source {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   def load = {
     new ValidatingXMLReader(node => fromXML(node), schemaLocation)

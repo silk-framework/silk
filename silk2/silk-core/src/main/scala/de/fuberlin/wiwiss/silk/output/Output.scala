@@ -62,7 +62,7 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
 }
 
 object Output {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   def load = {
     new ValidatingXMLReader(node => fromXML(node), schemaLocation)

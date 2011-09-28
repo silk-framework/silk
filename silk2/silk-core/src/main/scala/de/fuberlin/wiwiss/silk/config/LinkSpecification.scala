@@ -36,7 +36,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
 }
 
 object LinkSpecification {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/linkspec/LinkSpecificationLanguage.xsd"
+  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   private val logger = Logger.getLogger(LinkSpecification.getClass.getName)
 
