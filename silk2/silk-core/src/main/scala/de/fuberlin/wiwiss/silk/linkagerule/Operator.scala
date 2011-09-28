@@ -32,4 +32,11 @@ object Operator {
   def readId(xml: Node): Identifier = {
     (xml \ "@id").headOption.map(_.text).map(Identifier(_)).getOrElse(generateId)
   }
+
+  /**
+   * Reads the parameters of an operator.
+   */
+  def readParams(node: Node): Map[String, String] = {
+    (node \ "Param").map(p => (p \ "@name" text, p \ "@value" text)).toMap
+  }
 }

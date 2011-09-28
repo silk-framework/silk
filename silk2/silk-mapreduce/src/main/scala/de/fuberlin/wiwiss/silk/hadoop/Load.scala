@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.LoadTask
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.DPair

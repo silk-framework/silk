@@ -12,6 +12,7 @@ import de.fuberlin.wiwiss.silk.linkagerule._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.{SetHtml, OnLoad}
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.config.DatasetSpecification
 
 /**
  * A dialog to edit linking tasks.
@@ -32,7 +33,7 @@ class EditLinkingTaskDialog {
         implicit val prefixes = User().project.config.prefixes
 
         val updatedDatasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
-                                               DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction)))
+                                    DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction)))
 
         val updatedLinkSpec = linkingTask.linkSpec.copy(id = name, datasets = updatedDatasets, linkType = linkType)
 

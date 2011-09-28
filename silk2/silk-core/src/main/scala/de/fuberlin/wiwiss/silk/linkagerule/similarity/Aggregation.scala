@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
+import xml.Node
 
 case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, weight: Int,
                        operators: Seq[SimilarityOperator], aggregator: Aggregator) extends SimilarityOperator {
@@ -86,5 +87,22 @@ case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, 
         {operators.map(_.toXML)}
       </Aggregate>
     }
+  }
+}
+
+object Aggregation {
+  def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Aggregation = {
+    val requiredStr = node \ "@required" text
+    val weightStr = node \ "@weight" text
+
+    val aggregator = Aggregator(node \ "@type" text, Operator.readParams(node))
+
+    Aggregation(
+      id = Operator.readId(node),
+      required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
+      weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
+      operators = SimilarityOperator.fromXML(node.child),
+      aggregator = aggregator
+    )
   }
 }

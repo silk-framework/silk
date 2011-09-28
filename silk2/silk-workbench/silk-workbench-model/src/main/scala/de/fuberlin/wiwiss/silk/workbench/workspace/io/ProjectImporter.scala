@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.workspace.io
 import de.fuberlin.wiwiss.silk.datasource.Source
 import xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectConfig, Project}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask

@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk
 import config.RuntimeConfig
 import entity.EntityCache
 import linkagerule.evaluation.DetailedEvaluator
-import linkagerule.LinkSpecification
+import config.LinkSpecification
 import java.util.logging.Level
 import output.Link
 import java.util.concurrent._

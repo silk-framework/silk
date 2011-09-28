@@ -5,7 +5,7 @@ import similarity.{SimilarityOperator, Comparison, Aggregation}
 import input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.util.DPair
 import xml.Node
-import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
 
 case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
   def pathIndex(path: Path) = {

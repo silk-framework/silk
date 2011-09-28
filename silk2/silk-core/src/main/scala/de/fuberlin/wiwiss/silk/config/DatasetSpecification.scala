@@ -1,8 +1,7 @@
-package de.fuberlin.wiwiss.silk.linkagerule
+package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 
 /**

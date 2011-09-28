@@ -7,7 +7,7 @@ import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes

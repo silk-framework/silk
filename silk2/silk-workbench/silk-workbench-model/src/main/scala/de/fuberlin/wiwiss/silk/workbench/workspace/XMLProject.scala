@@ -1,16 +1,15 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
-import modules.output.{MemoryOutputModule, OutputTask, OutputConfig, OutputModule}
+import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
+import modules.output.MemoryOutputModule
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Node, Elem}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 
 /**
  * Implementation of a project which maps an XML Silk Link Specification document.

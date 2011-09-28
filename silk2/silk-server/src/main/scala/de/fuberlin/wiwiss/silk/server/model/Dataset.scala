@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, MemoryEntityCache}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.DPair
 

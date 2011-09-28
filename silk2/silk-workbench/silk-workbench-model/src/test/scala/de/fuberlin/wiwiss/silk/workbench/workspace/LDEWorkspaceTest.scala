@@ -5,7 +5,7 @@ import modules.source.SourceTask
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.linkagerule.{LinkFilter, LinkSpecification}
+import de.fuberlin.wiwiss.silk.config.{LinkFilter, LinkSpecification}
 import java.net.URI
 import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 
