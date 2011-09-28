@@ -31,7 +31,7 @@ class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path:
         val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
-          blockWriters(block).write(entity, Index.build(index))
+          blockWriters(block).write(entity, BitsetIndex.build(index))
         }
 
         entityCount += 1
@@ -127,11 +127,11 @@ class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path:
       try {
         val count = stream.readInt()
         val entities = new Array[Entity](count)
-        val indices = new Array[Index](count)
+        val indices = new Array[BitsetIndex](count)
 
         for (i <- 0 until count) {
           entities(i) = Entity.deserialize(stream, entityDesc)
-          indices(i) = Index.deserialize(stream)
+          indices(i) = BitsetIndex.deserialize(stream)
         }
 
         Partition(entities, indices)
@@ -144,7 +144,7 @@ class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path:
 
   private class BlockWriter(block: Int) {
     private var entities = new Array[Entity](runtimeConfig.partitionSize)
-    private var indices = new Array[Index](runtimeConfig.partitionSize)
+    private var indices = new Array[BitsetIndex](runtimeConfig.partitionSize)
     private var count = 0
 
     private val blockPath = path.suffix("/block" + block + "/")
@@ -152,7 +152,7 @@ class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path:
 
     private var partitionCount = 0
 
-    def write(entity: Entity, index: Index) {
+    def write(entity: Entity, index: BitsetIndex) {
       entities(count) = entity
       indices(count) = index
       count += 1

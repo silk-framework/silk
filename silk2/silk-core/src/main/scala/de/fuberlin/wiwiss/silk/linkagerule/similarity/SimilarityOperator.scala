@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
-import de.fuberlin.wiwiss.silk.linkagerule.Operator
+import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
 
 /**
  * An operator computes the similarity between two entities.
@@ -34,13 +34,7 @@ trait SimilarityOperator extends Operator {
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  def index(entity: Entity, limit: Double): Set[Seq[Int]]
-
-  /**
-   * The number of blocks in each dimension of the index.
-   */
-  //TODO rename to indexSize?
-  def blockCounts(limit: Double): Seq[Int]
+  def index(entity: Entity, limit: Double): Index
 
   def toXML(implicit prefixes: Prefixes): Node
 }

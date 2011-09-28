@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "jaccard", label = "Jaccard", description = "Jaccard similarity coefficient.")
 class JaccardDistance extends DistanceMeasure {
-  private val blockCount = 1000
 
   override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
     val set1 = values1.toSet
@@ -17,14 +17,10 @@ class JaccardDistance extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / unionSize
   }
 
-  override def index(values: Set[String], limit: Double): Set[Seq[Int]] = {
+  override def index(values: Set[String], limit: Double) = {
     //The number of values we need to index
     val indexSize = math.round(values.size * limit + 0.5).toInt
 
-    values.take(indexSize).map(value => Seq((value.hashCode % blockCount).abs))
-  }
-
-  override def blockCounts(threshold: Double): Seq[Int] = {
-    Seq(blockCount)
+    Index.oneDim(values.take(indexSize).map(_.hashCode))
   }
 }

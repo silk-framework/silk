@@ -1,8 +1,9 @@
 package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.MultiIndexAggregator
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import scala.math._
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 /**
  * Computes the weighted geometric mean.
@@ -11,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
   id = "geometricMean",
   label = "Geometric mean",
   description = "Compute the (weighted) geometric mean.")
-class GeometricMeanAggregator() extends MultiIndexAggregator {
+class GeometricMeanAggregator() extends Aggregator {
   override def evaluate(values: Traversable[(Int, Double)]) = {
     if (!values.isEmpty) {
       val weightedProduct = values.map { case (weight, value) => pow(value, weight) }.reduceLeft(_ * _)
@@ -23,4 +24,9 @@ class GeometricMeanAggregator() extends MultiIndexAggregator {
       None
     }
   }
+
+  /**
+   * Combines two indexes into one.
+   */
+  override def combineIndexes(index1: Index, index2: Index)= index1 conjunction index2
 }

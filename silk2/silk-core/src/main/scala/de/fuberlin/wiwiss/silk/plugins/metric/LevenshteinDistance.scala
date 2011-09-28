@@ -4,41 +4,37 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math.{min, max, abs}
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "levenshteinDistance", label = "Levenshtein distance", description = "Levenshtein distance.")
 case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+
   /**The size of the q-Grams to be indexed */
   private val q = 2
 
   override def evaluate(str1: String, str2: String, limit: Double) = {
-    if (abs(str1.length - str2.length) > limit) {
+    if (abs(str1.length - str2.length) > limit)
       Double.PositiveInfinity
-    }
-    else {
+    else
       evaluateDistance(str1, str2)
-    }
   }
 
-  override def indexValue(str: String, limit: Double): Set[Seq[Int]] = {
+  override def indexValue(str: String, limit: Double): Index = {
     val qGrams = str.qGrams(q)
     val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 
-    val index = qGramsReordered.take(limit.toInt * q + 1).map(indexQGram).toSet
+    val indices = qGramsReordered.take(limit.toInt * q + 1).map(indexQGram).toSet
 
-    index
+    Index.oneDim(indices, BigInt(maxChar - minChar + 1).pow(q).toInt)
   }
 
-  private def indexQGram(qGram: String): Seq[Int] = {
+  private def indexQGram(qGram: String): Int = {
     def combine(index: Int, char: Char) = {
       val croppedChar = min(max(char, minChar), maxChar)
       index * (maxChar - minChar + 1) + croppedChar - minChar
     }
 
-    Seq(qGram.foldLeft(0)(combine))
-  }
-
-  override def blockCounts(threshold: Double): Seq[Int] = {
-    Seq(BigInt(maxChar - minChar + 1).pow(q).toInt)
+    qGram.foldLeft(0)(combine)
   }
 
   /**

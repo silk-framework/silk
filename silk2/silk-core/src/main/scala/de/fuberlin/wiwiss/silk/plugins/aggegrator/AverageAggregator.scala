@@ -1,10 +1,11 @@
 package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.MultiIndexAggregator
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "average", label = "Average", description = "Computes the weighted average.")
-class AverageAggregator() extends MultiIndexAggregator {
+class AverageAggregator() extends Aggregator {
   private val positiveWeight: Int = 9
   private val negativeWeight: Int = 10
 
@@ -32,6 +33,11 @@ class AverageAggregator() extends MultiIndexAggregator {
       None
     }
   }
+
+  /**
+   * Combines two indexes into one.
+   */
+  override def combineIndexes(index1: Index, index2: Index)= index1 conjunction index2
 
   override def computeThreshold(limit: Double, weight: Double): Double = {
     1.0 - ((1.0 - limit) / weight) + positiveWeight.toDouble / negativeWeight

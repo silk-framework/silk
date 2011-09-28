@@ -3,8 +3,8 @@ package de.fuberlin.wiwiss.silk.linkagerule.similarity
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
-import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import xml.Node
+import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
 
 case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, weight: Int,
                        operators: Seq[SimilarityOperator], aggregator: Aggregator) extends SimilarityOperator {
@@ -40,45 +40,25 @@ case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, 
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  override def index(entity: Entity, threshold: Double): Set[Seq[Int]] = {
+  override def index(entity: Entity, threshold: Double): Index = {
     val totalWeights = operators.map(_.weight).sum
 
     val indexSets = {
       for (op <- operators) yield {
         val index = op.index(entity, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights))
-        val blockCounts = op.blockCounts(threshold)
 
-        if (op.required && index.isEmpty) return Set.empty;
+        if (op.required && index.isEmpty) return Index.empty;
 
-        (index, blockCounts)
+        index
       }
     }
 
     if (indexSets.isEmpty) {
-      Set.empty
+      Index.empty
     }
     else {
-      val combined = indexSets.reduceLeft[(Set[Seq[Int]], Seq[Int])] {
-        case ((indexSet1, blockCounts1), (indexSet2, blockCounts2)) => {
-          val combinedIndexSet = aggregator.combineIndexes(indexSet1, blockCounts1, indexSet2, blockCounts2)
-          val combinedBlockCounts = aggregator.combineBlockCounts(blockCounts1, blockCounts2)
-
-          (combinedIndexSet, combinedBlockCounts)
-        }
-      }
-
-      combined._1
+      indexSets.reduceLeft[Index](aggregator.combineIndexes(_, _))
     }
-  }
-
-  /**
-   * The number of blocks in each dimension of the index.
-   */
-  override def blockCounts(threshold: Double): Seq[Int] = {
-    val totalWeights = operators.map(_.weight).sum
-
-    operators.map(op => op.blockCounts(aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)))
-      .foldLeft(Seq[Int]())((blockCounts1, blockCounts2) => aggregator.combineBlockCounts(blockCounts1, blockCounts2))
   }
 
   override def toXML(implicit prefixes: Prefixes) = aggregator match {

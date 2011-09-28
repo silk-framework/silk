@@ -25,7 +25,7 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
         val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
-          blocks(block).write(entity, Index.build(index))
+          blocks(block).write(entity, BitsetIndex.build(index))
         }
 
         if (!indices.isEmpty) entityCount += 1
@@ -56,6 +56,7 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
   }
 
   override def clear() {
+    dir.deleteRecursive()
     for (block <- blocks) {
       block.clear()
     }
@@ -73,7 +74,7 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
     private val blockDir = dir + "/block" + block.toString + "/"
 
     private val currentEntities = new Array[Entity](runtimeConfig.partitionSize)
-    private val currentIndices = new Array[Index](runtimeConfig.partitionSize)
+    private val currentIndices = new Array[BitsetIndex](runtimeConfig.partitionSize)
     @volatile private var count = 0
 
     if (runtimeConfig.reloadCache)
@@ -113,7 +114,7 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
       }
     }
 
-    def write(entity: Entity, index: Index) {
+    def write(entity: Entity, index: BitsetIndex) {
       if (partitionCount == 0) partitionCount = 1
 
       currentEntities(count) = entity
@@ -130,8 +131,6 @@ class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfi
     def clear() {
       partitionCount = 0
       count = 0
-      //TODO execute deleteRecursive once on whole cache?
-      blockDir.deleteRecursive()
     }
 
     def close() {

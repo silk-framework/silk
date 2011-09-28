@@ -2,11 +2,10 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
 class DiceCoefficient extends DistanceMeasure {
-  private val blockCount = 1000
-
   override def apply(values1: Traversable[String], values2: Traversable[String], threshold: Double): Double = {
     val set1 = values1.toSet
     val set2 = values2.toSet
@@ -17,14 +16,10 @@ class DiceCoefficient extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / totalSize
   }
 
-  override def index(values: Set[String], limit: Double): Set[Seq[Int]] = {
+  override def index(values: Set[String], limit: Double): Index = {
     //The number of values we need to index
     val indexSize = math.round((2.0 * values.size * limit / (1 + limit)) + 0.5).toInt
 
-    values.take(indexSize).map(value => Seq((value.hashCode % blockCount).abs))
-  }
-
-  override def blockCounts(threshold: Double): Seq[Int] = {
-    Seq(blockCount)
+    Index.oneDim(values.take(indexSize).map(value => value.hashCode))
   }
 }
