@@ -3,7 +3,33 @@ package de.fuberlin.wiwiss.silk.evaluation
 import de.fuberlin.wiwiss.silk.output.Link
 import xml.Node
 
+/**
+ * A set of positive and negative reference links.
+ */
 case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] = Set.empty) {
+  /**
+   * Adds a new positive reference link and returns the updated reference links.
+   * Removes the given link from the negative reference links if it is contained in it.
+   */
+  def withPositive(link: Link) = {
+    ReferenceLinks(positive + link, negative - link)
+  }
+
+  /**
+   * Adds a new negative reference link and returns the updated reference links.
+   * Removes the given link from the positive reference links if it is contained in it.
+   */
+  def withNegative(link: Link) = {
+    ReferenceLinks(positive - link, negative + link)
+  }
+
+  /**
+   * Removes a link and returns the updated reference links.
+   */
+  def without(link: Link) = {
+    ReferenceLinks(positive - link, negative - link)
+  }
+
   /**
    * Generates negative reference links from the positive reference links.
    */

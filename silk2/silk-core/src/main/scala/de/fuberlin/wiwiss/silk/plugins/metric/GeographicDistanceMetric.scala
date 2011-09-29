@@ -45,14 +45,6 @@ class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasur
     }
   }
 
-//  private def indexLatitude(latitude: Double, limit: Double) = {
-//    val earthCircumferenceEquatorial = 40075160.0
-//    val distInMeters = limit / unitMultiplier
-//    val latitudeLimit = earthCircumferenceEquatorial / distInMeters * 180.0
-//
-//    EIndex.continuous(latitude, 1.0, latitudeLimit)
-//  }
-
   private def indexLatitude(latitude: Double, limit: Double) = {
     val earthCircumferenceEquatorial = 40075160.0
     val normalizedLimit = limit / (earthCircumferenceEquatorial * unitMultiplier)
