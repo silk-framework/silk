@@ -1121,7 +1121,7 @@ $(function ()
         var offset = $(number).offset();
         var scrollleft = $("#droppable").scrollLeft();
         var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-206+scrolltop+scrolltop;
+        var top = offset.top-142+scrolltop+scrolltop;
         var left = offset.left-518+scrollleft+scrollleft;
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
