@@ -206,7 +206,7 @@ var validateLinkSpec = function() {
         errors.push(errorObj);
 
       // no root elements
-      } else if (root_elements.length == 0) {
+      } else if (root_elements.length == 0 && totalNumberElements > 0) {
         errorObj = new Object;
         errorObj.id = 0;
         errorObj.message = "Error: No root element found.";
