@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
 
-case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, weight: Int,
+case class Aggregation(id: Identifier = Operator.generateId, required: Boolean = false, weight: Int = 1,
                        operators: Seq[SimilarityOperator], aggregator: Aggregator) extends SimilarityOperator {
   /**
    * Computes the similarity between two entities.
@@ -18,14 +18,12 @@ case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, 
    *         None, if no similarity could be computed.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val totalWeights = operators.map(_.weight).sum
+    val totalWeights = operators.map(_.weight).sum //TODO only weight non-required operators which return a value
 
-    val weightedValues = {
-      for (operator <- operators) yield {
-        val value = operator(entities, aggregator.computeThreshold(limit, operator.weight.toDouble / totalWeights))
-        if (operator.required && value.isEmpty) return None
-
-        (operator.weight, value.getOrElse(-1.0))
+    val weightedValues = operators.collect{op =>
+      op(entities, aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)) match {
+        case Some(v) => (op.weight, v)
+        case None if op.required => return None
       }
     }
 
@@ -53,12 +51,10 @@ case class Aggregation(id: Identifier = Operator.generateId, required: Boolean, 
       }
     }
 
-    if (indexSets.isEmpty) {
+    if (indexSets.isEmpty)
       Index.empty
-    }
-    else {
+    else
       indexSets.reduceLeft[Index](aggregator.combineIndexes(_, _))
-    }
   }
 
   override def toXML(implicit prefixes: Prefixes) = aggregator match {
