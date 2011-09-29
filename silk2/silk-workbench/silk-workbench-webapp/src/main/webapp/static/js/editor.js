@@ -149,11 +149,14 @@ function getCurrentElementName(elId) {
 }
 
 var validateLinkSpec = function() {
+    //console.log("validateLinkSpec");
     var errors = new Array();
     var root_elements = new Array();
     var totalNumberElements = 0;
     removeHighlighting();
-    if (!reverting) saveInstance();
+    if (!reverting) {
+        saveInstance();
+    }
     reverting = false;
 
     // if only one element exists
@@ -240,6 +243,7 @@ var validateLinkSpec = function() {
 };
 
 function modifyLinkSpec() {
+  //console.log("modifyLinkSpec");
   confirmOnExit = true;
   showPendingIcon();
   clearTimeout(modificationTimer);
@@ -247,6 +251,7 @@ function modifyLinkSpec() {
 }
 
 function updateStatus(errorMessages, warningMessages, infoMessages) {
+  //console.log("updateStatus");
   $("#info-box").html("");
   if (errorMessages.length > 0) {
     $("#info-box").append(printErrorMessages(errorMessages));
@@ -860,6 +865,7 @@ function load()
   });
   updateWindowWidth();
   rearrangeBoxes();
+  saveInstance();
 }
 
 
@@ -1059,6 +1065,7 @@ function serializeLinkSpec() {
 $(function ()
 {
   modifyLinkSpec();
+
   $("#droppable").droppable(
   //{ tolerance: 'touch' },
   {
@@ -1135,17 +1142,16 @@ $(function ()
   });
 
   $("input[type!='text']").live('change', function(e) {
-      reverting = true;
       modifyLinkSpec();
   });
   $("input[type='text']").live('keyup', function(e) {
-      reverting = true;
       modifyLinkSpec();
   });
 
   $("#toolbar").append('<div id="validation-icons"></div>');
   $("#toolbar").prepend('<button id="redo" onclick="redo();" style="float: left; margin: 3px;"><span>Redo</span></button>');
   $("#toolbar").prepend('<button id="undo" onclick="undo();" style="float: left; margin: 3px;"><span>Undo</span></button>');
+  //$("#toolbar").prepend('<div id="status">STATUS</div>');
   $("#validation-icons").append('<div id="tick" style="display: none"></div>');
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
@@ -1210,6 +1216,7 @@ function redo() {
 }
 
 function loadInstance(index) {
+    //console.log("loadInstance("+index+")");
     reverting = true;
     instanceIndex = index;
     updateRevertButtons();
@@ -1227,11 +1234,13 @@ function loadInstance(index) {
 
        endpoint_right = null;
        endpoint_left = null;
-       var box = elements[i][0];
+       var box = elements[i][0].clone();
        var boxid = box.attr('id');
        var boxclass = box.attr('class');
 
-       $("#droppable").append(box);
+        //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
+
+        $("#droppable").append(box);
 
         if (boxclass.search(/aggregate/) != -1)
         {
@@ -1280,17 +1289,18 @@ function loadInstance(index) {
     }
 
     modifyLinkSpec();
-
 }
 
 function saveInstance() {
+    //console.log("saveInstance");
     var elements = new Array();
     var targets = new Array();
     var i = 0;
     $("#droppable > div.dragDiv").each(function() {
         elements[i] = new Array();
-        var id = $(this).attr('id');
-        elements[i][0] = $(this);
+        var box = $(this).clone();
+        var id = box.attr('id');
+        elements[i][0] = box;
         var conns = jsPlumb.getConnections({source: id});
         targets = conns[jsPlumb.getDefaultScope()];
         if (targets !== undefined && targets.length > 0) {
@@ -1299,9 +1309,12 @@ function saveInstance() {
         }
         i++;
     });
+
     instanceStack[++instanceIndex] = elements;
     instanceStack.splice(instanceIndex + 1);
     updateRevertButtons();
+
+    //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
 }
 
 function updateRevertButtons() {
