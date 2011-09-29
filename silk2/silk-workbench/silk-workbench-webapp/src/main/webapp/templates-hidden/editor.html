@@ -21,6 +21,7 @@
     <script type="text/javascript" src="static/js/excanvas.js"></script>
 
     <script type="text/javascript" src="static/js/jquery.jsPlumb-1.2.4-all.js"></script>
+    <script type="text/javascript" src="static/js/jquery.blockUI.js"></script>
 
     <script type="text/javascript" src="static/js/editor.js"></script>
 
@@ -68,5 +69,18 @@
     <div id="content">
       <lift:bind name="content" />
     </div>
+
+   <script type="text/javascript">
+       $("#content").block({
+            message: null,
+            fadeOut: 0,
+            fadeIn: 0,
+            overlayCSS:  {
+                backgroundColor: '#000',
+                opacity: 0
+            }
+       });
+   </script>
+
   </body>
 </html>

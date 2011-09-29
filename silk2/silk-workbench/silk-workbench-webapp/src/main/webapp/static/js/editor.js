@@ -28,13 +28,14 @@ var cycleFound = false;
 var modificationTimer;
 var reverting = false;
 
+var instanceStack = new Array();
+var instanceIndex = -1;
+var instanceSaved = false;
+
 var confirmOnExit = false;
 
 jsPlumb.Defaults.Container = "droppable";
 jsPlumb.Defaults.Connector = new jsPlumb.Connectors.Bezier(80);
-
-var instanceStack = new Array();
-var instanceIndex = -1;
 
 var endpointOptions =
 {
@@ -865,7 +866,6 @@ function load()
   });
   updateWindowWidth();
   rearrangeBoxes();
-  saveInstance();
 }
 
 
@@ -1313,7 +1313,10 @@ function saveInstance() {
     instanceStack[++instanceIndex] = elements;
     instanceStack.splice(instanceIndex + 1);
     updateRevertButtons();
-
+    if (!instanceSaved) {
+        $("#content").unblock();
+    }
+    instanceSaved = true;
     //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
 }
 
