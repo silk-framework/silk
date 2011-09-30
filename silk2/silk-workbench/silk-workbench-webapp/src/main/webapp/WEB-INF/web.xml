@@ -21,7 +21,7 @@
   <servlet>
     <servlet-name>Silk Workbench</servlet-name>
     <!--<servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>--><!-- Tomcat -->
-    <servlet-class>org.mortbay.jetty.servlet.DefaultServlet</servlet-class><!-- Jetty -->
+    <servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class><!-- Jetty -->
     <init-param>
       <param-name>useFileMappedBuffer</param-name>
       <param-value>false</param-value>
