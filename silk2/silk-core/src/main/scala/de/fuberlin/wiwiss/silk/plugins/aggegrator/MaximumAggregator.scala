@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "max", label = "Maximum", description = "Selects the maximum value.")
-class MaximumAggregator() extends Aggregator {
+case class MaximumAggregator() extends Aggregator {
   /**
    * Returns the maximum of the provided values.
    */

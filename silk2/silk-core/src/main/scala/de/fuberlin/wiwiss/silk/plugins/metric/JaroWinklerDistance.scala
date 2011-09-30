@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "jaroWinkler", label = "Jaro-Winkler distance", description = "String similarity based on the Jaro-Winkler metric.")
-class JaroWinklerDistance() extends SimpleDistanceMeasure {
+case class JaroWinklerDistance() extends SimpleDistanceMeasure {
   // maximum prefix length to use
   private final val MINPREFIXTESTLENGTH: Int = 4 //using value from lingpipe (was 6)
 

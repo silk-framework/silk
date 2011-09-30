@@ -53,7 +53,18 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
   }
 }
 
+/**
+ * Creates new linkage rules.
+ */
 object LinkageRule {
+  /**
+   * Creates a new linkage rule with one root operator.
+   */
+  def apply(operator: SimilarityOperator): LinkageRule = LinkageRule(Some(operator))
+
+  /**
+   * Reads a linkage rule from xml.
+   */
   def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
     LinkageRule(SimilarityOperator.fromXML(node.child).headOption)
   }

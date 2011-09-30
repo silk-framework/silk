@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.Index
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers."
 )
-class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Double = Double.PositiveInfinity) extends SimpleDistanceMeasure {
+case class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Double = Double.PositiveInfinity) extends SimpleDistanceMeasure {
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
 
   private val maxBlockCount = 10000

@@ -6,8 +6,14 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
 
-case class Aggregation(id: Identifier = Operator.generateId, required: Boolean = false, weight: Int = 1,
-                       operators: Seq[SimilarityOperator], aggregator: Aggregator) extends SimilarityOperator {
+/**
+ * An aggregation combines multiple similarity values into a single value.
+ */
+case class Aggregation(id: Identifier = Operator.generateId,
+                       required: Boolean = false,
+                       weight: Int = 1,
+                       aggregator: Aggregator,
+                       operators: Seq[SimilarityOperator]) extends SimilarityOperator {
   /**
    * Computes the similarity between two entities.
    *
@@ -18,7 +24,7 @@ case class Aggregation(id: Identifier = Operator.generateId, required: Boolean =
    *         None, if no similarity could be computed.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val totalWeights = operators.map(_.weight).sum //TODO only weight non-required operators which return a value
+    val totalWeights = operators.map(_.weight).sum
 
     val weightedValues = operators.collect{op =>
       op(entities, aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)) match {
