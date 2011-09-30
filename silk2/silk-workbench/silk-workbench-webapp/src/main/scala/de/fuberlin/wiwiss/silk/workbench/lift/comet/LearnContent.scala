@@ -183,7 +183,7 @@ class LearnContent extends CometActor {
    * Renders a link condition operator.
    */
   private def renderOperator(op: Operator): Elem = op match  {
-    case Aggregation(id, required, weight, operators, aggregator) => {
+    case Aggregation(id, required, weight, aggregator, operators) => {
       <li>
         <span class="aggregation">Aggregation: {aggregator.pluginId}</span>
         <ul>
@@ -191,7 +191,7 @@ class LearnContent extends CometActor {
         </ul>
       </li>
     }
-    case Comparison(id, required, threshold, weight, DPair(input1, input2), metric) => {
+    case Comparison(id, required, threshold, weight, metric, DPair(input1, input2)) => {
       <li>
         <span class="comparison">Comparison: {metric.pluginId}</span>
         <ul>
@@ -200,7 +200,7 @@ class LearnContent extends CometActor {
         </ul>
       </li>
     }
-    case TransformInput(id, inputs, transformer) => {
+    case TransformInput(id, transformer, inputs) => {
       <li>
         <span class="transformation">Transformation: {transformer.pluginId}</span>
         <ul>

@@ -33,4 +33,7 @@ trait DataSource extends AnyPlugin {
   }
 }
 
+/**
+ * Creates new data source instances.
+ */
 object DataSource extends PluginFactory[DataSource]

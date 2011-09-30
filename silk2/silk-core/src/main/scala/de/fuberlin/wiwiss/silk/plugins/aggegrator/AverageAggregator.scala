@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "average", label = "Average", description = "Computes the weighted average.")
-class AverageAggregator() extends Aggregator {
+case class AverageAggregator() extends Aggregator {
   private val positiveWeight: Int = 9
   private val negativeWeight: Int = 10
 

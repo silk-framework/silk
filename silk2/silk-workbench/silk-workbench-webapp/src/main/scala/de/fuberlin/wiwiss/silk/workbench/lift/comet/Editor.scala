@@ -76,11 +76,11 @@ class Editor extends CometActor {
       linkSpecVarCmd & updateStatusCall(errors = Traversable.empty, warnings = warnings.map(_.getMessage), infos = evaluateLinkSpec(User().linkingTask))
     } catch {
       case ex: ValidationException => {
-        logger.log(Level.INFO, "Cannot save invalid link specification", ex)
+        logger.log(Level.INFO, "Invalid linkage rule")
         updateStatusCall(errors = ex.errors, warnings = Traversable.empty, infos = Traversable.empty)
       }
       case ex: Exception => {
-        logger.log(Level.INFO, "Failed to save link specification", ex)
+        logger.log(Level.INFO, "Failed to save linkage rule", ex)
         updateStatusCall(errors = ValidationError("Error in back end: " + ex.getMessage) :: Nil, warnings = Traversable.empty, infos = Traversable.empty)
       }
     }

@@ -10,8 +10,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
 /**
  * A comparison computes the similarity of two inputs.
  */
-case class Comparison(id: Identifier = Operator.generateId, required: Boolean = false, threshold: Double = 0.0, weight: Int = 1,
-                      inputs: DPair[Input], metric: DistanceMeasure) extends SimilarityOperator {
+case class Comparison(id: Identifier = Operator.generateId,
+                      required: Boolean = false,
+                      weight: Int = 1,
+                      threshold: Double = 0.0,
+                      metric: DistanceMeasure,
+                      inputs: DPair[Input]) extends SimilarityOperator {
   /**
    * Computes the similarity between two entities.
    *

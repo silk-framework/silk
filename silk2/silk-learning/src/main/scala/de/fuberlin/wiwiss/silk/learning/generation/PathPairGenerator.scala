@@ -104,7 +104,7 @@ class PathPairGenerator(components: Components) {
       val positive = positiveMatches.size.toDouble / instances.positive.size
       val negative = negativeMatches.size.toDouble / instances.negative.size
 
-      positive > negative
+      positive >= negative
     }
 
     private def matches(entityPair: DPair[Entity], pathPair: DPair[Path]): Boolean = {

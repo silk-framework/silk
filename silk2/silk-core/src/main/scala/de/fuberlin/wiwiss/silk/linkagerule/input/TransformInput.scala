@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 /**
  * A TransformInput applies a transformation to input values.
  */
-case class TransformInput(id: Identifier = Operator.generateId, inputs: Seq[Input], transformer: Transformer) extends Input {
+case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: Seq[Input]) extends Input {
   require(inputs.size > 0, "Number of inputs must be > 0.")
 
   def apply(entities: DPair[Entity]): Set[String] = {
@@ -40,7 +40,7 @@ object TransformInput {
 
     try {
       val transformer = Transformer(node \ "@function" text, Operator.readParams(node))
-      TransformInput(id, inputs, transformer)
+      TransformInput(id, transformer, inputs)
     } catch {
       case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")
     }

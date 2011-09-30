@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.Index
 
 @Plugin(id = "min", label = "Minimum", description = "Selects the minimum value.")
-class MinimumAggregator() extends Aggregator {
+case class MinimumAggregator() extends Aggregator {
   /**
    * Returns the minimum of the provided values.
    */

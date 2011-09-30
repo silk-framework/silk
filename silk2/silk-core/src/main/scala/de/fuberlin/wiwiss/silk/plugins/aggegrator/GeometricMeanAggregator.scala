@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.Index
   id = "geometricMean",
   label = "Geometric mean",
   description = "Compute the (weighted) geometric mean.")
-class GeometricMeanAggregator() extends Aggregator {
+case class GeometricMeanAggregator() extends Aggregator {
   override def evaluate(values: Traversable[(Int, Double)]) = {
     if (!values.isEmpty) {
       val weightedProduct = values.map { case (weight, value) => pow(value, weight) }.reduceLeft(_ * _)

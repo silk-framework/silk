@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.Index
  * Computes the weighted quadratic mean.
  */
 @Plugin(id = "quadraticMean", label = "Euclidian distance", description = "Calculates the Euclidian distance.")
-class QuadraticMeanAggregator() extends Aggregator {
+case class QuadraticMeanAggregator() extends Aggregator {
   override def evaluate(values: Traversable[(Int, Double)]) = {
     if (!values.isEmpty) {
       val sqDistance = values.map { case (weight, value) => weight * value * value }.reduceLeft(_ + _)

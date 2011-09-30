@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
  */
 @Plugin(id = "qGrams", label = "qGrams", description = "String similarity based on q-grams (by default q=2).")
 //TODO this is actually the Dice’s Coefficient with a qGrams tokenizer, if we add a qGrams tokenizer we could remove it...
-class QGramsMetric(q: Int = 2) extends SimpleDistanceMeasure {
+case class QGramsMetric(q: Int = 2) extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     val qGrams1 = str1.qGrams(q)
     val qGrams2 = str2.qGrams(q)

@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.Index
   id = "wgs84",
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
-class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasure {
+case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasure {
   require(Set("m", "meter", "km", "kilometer").contains(unit), "Invalid unit: '" + unit + "'. Allowed units: \"m\", \"meter\", \"km\", \"kilometer\"")
 
   private val multipliers = Map("km" -> 0.001, "kilometer" -> 0.001, "meter" -> 1.0, "m" -> 1.0)

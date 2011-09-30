@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
   id = "date",
   label = "Date",
   description = "The distance in days between two dates ('YYYY-MM-DD' format).")
-class DateMetric() extends SimpleDistanceMeasure {
+case class DateMetric() extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     try {
       val datatypeFactory = DatatypeFactory.newInstance

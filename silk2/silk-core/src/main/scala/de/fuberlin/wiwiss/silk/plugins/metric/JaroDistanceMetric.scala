@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "jaro", label = "Jaro distance", description = "String similarity based on the Jaro distance metric.")
-class JaroDistanceMetric() extends SimpleDistanceMeasure {
+case class JaroDistanceMetric() extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     JaroDinstanceMetric.jaro(str1, str2)
   }
