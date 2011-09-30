@@ -13,12 +13,15 @@ import java.util.logging.{Level, Logger}
  * Executes the complete Silk workflow.
  */
 object Silk {
-  private val logger = Logger.getLogger(Silk.getClass.getName)
-
   /**
    * The default number of threads to be used for matching.
    */
   val DefaultThreads = 8
+
+  private val logger = Logger.getLogger(Silk.getClass.getName)
+
+  //Print welcome message on start-up
+  println("Silk Link Discovery Framework - Version 2.5")
 
   //Register all available plugins
   Plugins.register()
