@@ -37,14 +37,14 @@ object DetailedEvaluator {
     case comparison: Comparison => evaluateComparison(comparison, entities, threshold)
   }
 
-  private def evaluateAggregation(aggregation: Aggregation, entities: DPair[Entity], threshold: Double): Link.AggregatorConfidence = {
-    val totalWeights = aggregation.operators.map(_.weight).sum
+  private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): Link.AggregatorConfidence = {
+    val totalWeights = agg.operators.map(_.weight).sum
 
     var isNone = false
 
     val operatorValues = {
-      for (operator <- aggregation.operators) yield {
-        val updatedThreshold = aggregation.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
+      for (operator <- agg.operators) yield {
+        val updatedThreshold = agg.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
         val value = evaluateOperator(operator, entities, updatedThreshold)
         if (operator.required && value.value.isEmpty) isNone = true
 
@@ -52,14 +52,14 @@ object DetailedEvaluator {
       }
     }
 
-    val weightedValues = aggregation.operators.map(_.weight) zip operatorValues.map(_.value.getOrElse(-1.0))
+    val weightedValues = for((weight, Some(value)) <- agg.operators.map(_.weight) zip operatorValues.map(_.value)) yield (weight, value)
 
-    val aggregatedValue = aggregation.aggregator.evaluate(weightedValues)
+    val aggregatedValue = agg.aggregator.evaluate(weightedValues)
 
     if (isNone)
-      Link.AggregatorConfidence(None, aggregation, operatorValues)
+      Link.AggregatorConfidence(None, agg, operatorValues)
     else
-      Link.AggregatorConfidence(aggregatedValue, aggregation, operatorValues)
+      Link.AggregatorConfidence(aggregatedValue, agg, operatorValues)
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): Link.ComparisonConfidence = {
@@ -76,6 +76,6 @@ object DetailedEvaluator {
 
   private def findInput(input: Input): PathInput = input match {
     case input: PathInput => input
-    case TransformInput(_, inputs, _) => findInput(inputs.head)
+    case TransformInput(_, _, inputs) => findInput(inputs.head)
   }
 }
