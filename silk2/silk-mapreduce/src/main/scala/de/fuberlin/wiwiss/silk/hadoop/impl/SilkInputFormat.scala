@@ -4,7 +4,8 @@ import org.apache.hadoop.mapreduce._
 import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
 import org.apache.hadoop.io.NullWritable
 import collection.immutable.HashSet
-import de.fuberlin.wiwiss.silk.entity.{Partition, Entity}
+import de.fuberlin.wiwiss.silk.entity.Entity
+import de.fuberlin.wiwiss.silk.cache.Partition
 
 class SilkInputFormat extends InputFormat[NullWritable, EntityPair]
 {

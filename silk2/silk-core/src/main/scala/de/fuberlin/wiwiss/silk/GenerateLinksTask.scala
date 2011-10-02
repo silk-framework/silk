@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
-import entity.{Link, FileEntityCache, MemoryEntityCache, EntityDescription}
+import cache.{MemoryEntityCache, FileEntityCache}
+import entity.{Link, EntityDescription}
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 import de.fuberlin.wiwiss.silk.output.{Output}

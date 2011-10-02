@@ -1,8 +1,9 @@
-package de.fuberlin.wiwiss.silk.entity
+package de.fuberlin.wiwiss.silk.cache
 
 import collection.mutable.ArrayBuffer
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
 
 /**
  * An entity cache, which caches the entities in memory and allows adding new entities at runtime.
