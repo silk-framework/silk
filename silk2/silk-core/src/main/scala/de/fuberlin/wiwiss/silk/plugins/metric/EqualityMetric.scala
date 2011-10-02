@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(id = "equality", label = "Equality", description = "Return 1 if strings are equal, 0 otherwise.")
 case class EqualityMetric() extends SimpleDistanceMeasure {

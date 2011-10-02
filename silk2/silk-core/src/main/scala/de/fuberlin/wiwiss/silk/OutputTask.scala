@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk
 
-import output.{Output, Link}
+import entity.Link
+import output.{Output}
 import util.task.Task
 import util.Uri
 

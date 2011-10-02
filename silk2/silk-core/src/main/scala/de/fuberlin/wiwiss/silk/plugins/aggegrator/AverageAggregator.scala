@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(id = "average", label = "Average", description = "Computes the weighted average.")
 case class AverageAggregator() extends Aggregator {

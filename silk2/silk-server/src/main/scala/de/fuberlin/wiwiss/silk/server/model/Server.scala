@@ -2,11 +2,11 @@ package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * The Silk Server.
@@ -110,7 +110,7 @@ private class Server {
       //Format unmatched entities
       val formattedUnmatchedEntities =
         for(unmatchedEntity <- unmatchedEntities)
-          yield formatter.format(new Link(unmatchedEntity, unknownEntitiyUri, 0.0), matchResultPropertyUri)
+          yield formatter.format(new Link(unmatchedEntity, unknownEntitiyUri), matchResultPropertyUri)
 
       //Return result
       formattedLinks.mkString + formattedUnmatchedEntities.mkString

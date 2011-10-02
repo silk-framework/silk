@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.learning.sampling
 
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import math.log
 import util.Random
@@ -12,12 +11,12 @@ import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
-import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
 import math.max
 import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure, Comparison}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
+import de.fuberlin.wiwiss.silk.entity.{Link, Path, EntityDescription}
 
 class SampleLinksTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
@@ -31,7 +30,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private val minFMeasure = 0.1
 
-  private val runtimeConfig = RuntimeConfig(useFileCache = false, generateDetailedLinks = true)
+  private val runtimeConfig = RuntimeConfig(useFileCache = false, generateLinksWithEntities = true)
 
   @volatile private var currentGenerateLinksTask: Option[GenerateLinksTask] = None
 
@@ -86,7 +85,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
   private def find(population: Population) {
     val linkSpecs = retrieveLinkageRules(population).map(r => linkSpec.copy(rule = r))
-    val entityDescs = linkSpecs.map(EntityDescription.retrieve).reduce((a, b) => DPair(a.source merge b.source, a.target merge b.target))
+    val entityDescs = linkSpecs.map(_.entityDescriptions).reduce((a, b) => DPair(a.source merge b.source, a.target merge b.target))
     val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
 
     updateStatus("Sampling")
@@ -147,7 +146,7 @@ class SampleLinksTask(sources: Traversable[Source],
 
     val entropy = 0.0 - p * log(p) / log(2) - (1 - p) * log(1 - p) / log(2)
 
-    new Link(link.source, link.target, entropy, link.entities.get)
+    new Link(link.source, link.target, Some(entropy), link.entities)
   }
 
   private def isLink(linkSpec: LinkSpecification, link: Link) = {
