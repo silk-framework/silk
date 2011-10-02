@@ -5,6 +5,7 @@ import org.apache.hadoop.fs.{Path, FileSystem}
 import de.fuberlin.wiwiss.silk.entity._
 import java.io._
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import de.fuberlin.wiwiss.silk.cache.{BitsetIndex, Partition, EntityCache}
 
 /**
  * An entity cache, which uses the Hadoop FileSystem API.

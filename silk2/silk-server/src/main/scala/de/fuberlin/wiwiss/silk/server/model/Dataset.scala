@@ -5,7 +5,8 @@ import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription, MemoryEntityCache}
+import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
+import de.fuberlin.wiwiss.silk.cache.MemoryEntityCache
 
 /**
  * Holds the dataset of a link specification.

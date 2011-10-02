@@ -1,7 +1,8 @@
 package de.fuberlin.wiwiss.silk
 
+import cache.EntityCache
 import datasource.Source
-import entity.{Entity, EntityCache}
+import entity.Entity
 import util.DPair
 import java.util.logging.{Level, Logger}
 import util.task.{TaskFinished, Future, Task}

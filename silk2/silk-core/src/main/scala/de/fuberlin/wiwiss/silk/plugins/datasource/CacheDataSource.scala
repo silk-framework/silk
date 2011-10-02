@@ -4,8 +4,9 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.entity.{FileEntityCache, Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.cache.FileEntityCache
 
 @Plugin(id = "cache", label = "Cache")
 class CacheDataSource(linkageRule: LinkageRule, dir: String) extends DataSource {
