@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk
 
 /**
- * Provides classes to represent a link specification.
+ * Provides classes to represent linkage rules.
  */
-package object linkspec
+package object linkagerule
