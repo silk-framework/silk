@@ -1,13 +1,19 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{LinkType, Correctness}
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink
 
 /**
  * An evaluation link.
  */
-class EvalLink(link : Link, val correct : Correctness, val linkType : LinkType) extends Link(link.source, link.target, link.details, link.entities)
+class EvalLink(link: DetailedLink,
+               val correct: Correctness,
+               val linkType: LinkType) extends DetailedLink(link.source, link.target, link.entities, link.details)
 {
+  def this(link: Link, correct: Correctness, linkType: LinkType) = {
+    this(new DetailedLink(link), correct, linkType)
+  }
 }
 
 object EvalLink

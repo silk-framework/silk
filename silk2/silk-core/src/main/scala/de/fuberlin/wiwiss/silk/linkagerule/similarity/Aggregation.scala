@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
-import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import xml.Node
-import de.fuberlin.wiwiss.silk.linkagerule.{Index, Operator}
+import de.fuberlin.wiwiss.silk.linkagerule.Operator
+import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 
 /**
  * An aggregation combines multiple similarity values into a single value.

@@ -1,7 +1,8 @@
 package de.fuberlin.wiwiss.silk
 
+import cache.EntityCache
 import datasource.Source
-import entity.{Entity, EntityCache}
+import entity.Entity
 import util.DPair
 import java.util.logging.{Level, Logger}
 import util.task.{TaskFinished, Future, Task}
@@ -9,10 +10,9 @@ import util.task.{TaskFinished, Future, Task}
 /**
  * Loads the entity cache
  */
-//TODO remove indexFunction argument by integrating it into entity cache
 class LoadTask(sources: DPair[Source],
-               caches: DPair[EntityCache],
-               indexFunction: Entity => Set[Int]) extends Task[Unit] {
+               caches: DPair[EntityCache]) extends Task[Unit] {
+
   taskName = "Loading"
 
   @volatile var exception: Exception = null
@@ -74,7 +74,7 @@ class LoadTask(sources: DPair[Source],
         logger.info("Loading entities of dataset " + source.dataSource.toString)
 
         entityCache.clear()
-        entityCache.write(source.retrieve(entityCache.entityDesc), indexFunction)
+        entityCache.write(source.retrieve(entityCache.entityDesc))
         entityCache.close()
       } catch {
         case ex: Exception => {

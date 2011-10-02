@@ -2,32 +2,27 @@ package de.fuberlin.wiwiss.silk.linkagerule.evaluation
 
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
-import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.output.Link.InputValue
 import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
-import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.entity.Entity
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
 
 object DetailedEvaluator {
-  def apply(condition: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[Link] = {
+  def apply(condition: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[DetailedLink] = {
     condition.operator match {
       case Some(op) => {
         val confidence = evaluateOperator(op, entities, limit)
 
-        if (confidence.value.getOrElse(-1.0) >= limit) {
-          Some(new Link(entities.source.uri, entities.target.uri, Some(confidence), Some(entities)))
-        }
-        else {
+        if (confidence.value.getOrElse(-1.0) >= limit)
+          Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(confidence)))
+        else
           None
-        }
       }
       case None => {
-        if (limit == -1.0) {
-          Some(new Link(entities.source.uri, entities.target.uri, Some(Link.SimpleConfidence(Some(-1.0))), Some(entities)))
-        }
-        else {
+        if (limit == -1.0)
+          Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(SimpleConfidence(Some(-1.0)))))
+        else
           None
-        }
       }
     }
   }
@@ -37,7 +32,7 @@ object DetailedEvaluator {
     case comparison: Comparison => evaluateComparison(comparison, entities, threshold)
   }
 
-  private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): Link.AggregatorConfidence = {
+  private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): DetailedLink.AggregatorConfidence = {
     val totalWeights = agg.operators.map(_.weight).sum
 
     var isNone = false
@@ -57,12 +52,12 @@ object DetailedEvaluator {
     val aggregatedValue = agg.aggregator.evaluate(weightedValues)
 
     if (isNone)
-      Link.AggregatorConfidence(None, agg, operatorValues)
+      AggregatorConfidence(None, agg, operatorValues)
     else
-      Link.AggregatorConfidence(aggregatedValue, agg, operatorValues)
+      AggregatorConfidence(aggregatedValue, agg, operatorValues)
   }
 
-  private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): Link.ComparisonConfidence = {
+  private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): DetailedLink.ComparisonConfidence = {
     val distance = comparison.apply(entities, threshold)
 
     val sourceInput = findInput(comparison.inputs.source)
@@ -71,7 +66,7 @@ object DetailedEvaluator {
     val sourceValue = InputValue(sourceInput, comparison.inputs.source(entities))
     val targetValue = InputValue(targetInput, comparison.inputs.target(entities))
 
-    Link.ComparisonConfidence(distance, comparison, sourceValue, targetValue)
+    ComparisonConfidence(distance, comparison, sourceValue, targetValue)
   }
 
   private def findInput(input: Input): PathInput = input match {

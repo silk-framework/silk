@@ -78,13 +78,13 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
 
     val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
-    val entityDesc = EntityDescription.retrieve(linkSpec)
+    val entityDesc = linkSpec.entityDescriptions
 
     val caches = DPair(
-      new HadoopEntityCache(entityDesc.source, cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
-      new HadoopEntityCache(entityDesc.target, cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
+      new HadoopEntityCache(entityDesc.source, linkSpec.rule.index(_), cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
+      new HadoopEntityCache(entityDesc.target, linkSpec.rule.index(_), cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )
 
-    new LoadTask(sources, caches, linkSpec.rule.index(_))()
+    new LoadTask(sources, caches)()
   }
 }

@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.util.task._
-import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.SHtml
 import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}
@@ -9,8 +8,9 @@ import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, User}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
 import de.fuberlin.wiwiss.silk.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 
-class GenerateLinksContent extends Links with RateLinkButtons {
+class GenerateLinksContent extends LinksContent with RateLinkButtons {
 
   /**Minimum time in milliseconds between two successive updates*/
   private val minUpdatePeriod = 3000L
@@ -56,12 +56,13 @@ class GenerateLinksContent extends Links with RateLinkButtons {
     def referenceLinks = linkingTask.referenceLinks
 
     for (link <- generateLinksTask.links.view) yield {
+      val detailedLink = DetailedEvaluator(linkingTask.linkSpec.rule, link.entities.get).get
       if (referenceLinks.positive.contains(link)) {
-        new EvalLink(link, Correct, Generated)
+        new EvalLink(detailedLink, Correct, Generated)
       } else if (referenceLinks.negative.contains(link)) {
-        new EvalLink(link, Incorrect, Generated)
+        new EvalLink(detailedLink, Incorrect, Generated)
       } else {
-        new EvalLink(link, Unknown, Generated)
+        new EvalLink(detailedLink, Unknown, Generated)
       }
     }
   }

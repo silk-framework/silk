@@ -1,7 +1,8 @@
 package de.fuberlin.wiwiss.silk.plugins.writer
 
-import de.fuberlin.wiwiss.silk.output.{Link, Formatter}
+import de.fuberlin.wiwiss.silk.output.{Formatter}
 import xml.NodeSeq
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * Base trait of all formatters using XML.

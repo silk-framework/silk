@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(id = "min", label = "Minimum", description = "Selects the minimum value.")
 case class MinimumAggregator() extends Aggregator {

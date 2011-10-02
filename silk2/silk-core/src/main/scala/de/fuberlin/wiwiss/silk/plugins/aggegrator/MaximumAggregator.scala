@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(id = "max", label = "Maximum", description = "Selects the maximum value.")
 case class MaximumAggregator() extends Aggregator {

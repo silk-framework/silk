@@ -24,7 +24,7 @@ object ConfidenceSorterAscending extends LinkSorter
 {
   def apply(links : Seq[EvalLink]) : Seq[EvalLink] =
   {
-    links.sortBy(_.confidence)
+    links.sortBy(_.confidence.getOrElse(-1.0))
   }
 }
 
@@ -32,6 +32,6 @@ object ConfidenceSorterDescending extends LinkSorter
 {
   def apply(links : Seq[EvalLink]) : Seq[EvalLink] =
   {
-    links.sortBy(-_.confidence)
+    links.sortBy(-_.confidence.getOrElse(-1.0))
   }
 }

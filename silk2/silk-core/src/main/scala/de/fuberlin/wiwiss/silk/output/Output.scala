@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.output
 import java.util.logging.Logger
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * Represents an abstraction over an output of links.
@@ -31,8 +32,8 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
   def write(link: Link, predicateUri: String) {
     require(isOpen, "Output must be opened befored writing statements to it")
 
-    if ((minConfidence.isEmpty || link.confidence >= minConfidence.get) &&
-      (maxConfidence.isEmpty || link.confidence < maxConfidence.get)) {
+    if ((minConfidence.isEmpty || link.confidence.getOrElse(-1.0) >= minConfidence.get) &&
+        (maxConfidence.isEmpty || link.confidence.getOrElse(-1.0) < maxConfidence.get)) {
       writer.write(link, predicateUri)
       linkCount += 1
     }

@@ -5,7 +5,7 @@ import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.AverageAggregator
 import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualToOption

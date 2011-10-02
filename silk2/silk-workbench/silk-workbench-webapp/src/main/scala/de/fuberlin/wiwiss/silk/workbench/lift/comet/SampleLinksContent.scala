@@ -2,12 +2,13 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
-import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentSampleLinksTask}
+import de.fuberlin.wiwiss.silk.workbench.learning.CurrentSampleLinksTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskValueListener
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.learning.sampling.SampleLinksTask
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink
 
-class SampleLinksContent extends Links with RateLinkButtons {
+class SampleLinksContent extends LinksContent with RateLinkButtons {
 
   override protected val showDetails = false
 
@@ -39,6 +40,6 @@ class SampleLinksContent extends Links with RateLinkButtons {
         new EvalLink(link, Unknown, Generated)
       }
     }
-  }.sortBy(-_.confidence)
+  }.sortBy(-_.confidence.getOrElse(-1.0))
 
 }

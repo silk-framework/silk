@@ -5,12 +5,16 @@ import org.apache.hadoop.fs.{Path, FileSystem}
 import de.fuberlin.wiwiss.silk.entity._
 import java.io._
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import de.fuberlin.wiwiss.silk.cache.{BitsetIndex, Partition, EntityCache}
 
 /**
  * An entity cache, which uses the Hadoop FileSystem API.
  * This can be used to cache the entities on any file system which is supported by Hadoop e.g. the Hadoop Distributed FileSystem.
  */
-class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path: Path, runtimeConfig: RuntimeConfig) extends EntityCache {
+class HadoopEntityCache(val entityDesc: EntityDescription,
+                        val indexFunction: (Entity => Index),
+                        fs: FileSystem, path: Path,
+                        runtimeConfig: RuntimeConfig) extends EntityCache {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -18,7 +22,7 @@ class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path:
 
   @volatile private var writing = false
 
-  override def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int]) {
+  override def write(entities: Traversable[Entity]) {
     writing = true
 
     try {
@@ -28,7 +32,7 @@ class HadoopEntityCache(val entityDesc: EntityDescription, fs: FileSystem, path:
       var entityCount = 0
 
       for (entity <- entities) {
-        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
+        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
           blockWriters(block).write(entity, BitsetIndex.build(index))

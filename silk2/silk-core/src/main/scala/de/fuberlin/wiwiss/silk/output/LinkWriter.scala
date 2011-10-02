@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.output
 
 import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * Represents an abstraction over an writer of links.
