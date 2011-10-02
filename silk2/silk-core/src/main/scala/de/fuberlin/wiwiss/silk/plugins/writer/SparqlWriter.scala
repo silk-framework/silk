@@ -1,11 +1,12 @@
 package de.fuberlin.wiwiss.silk.plugins.writer
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.output.{Link, LinkWriter}
+import de.fuberlin.wiwiss.silk.output.{LinkWriter}
 import java.io.{OutputStreamWriter, Writer}
 import java.util.logging.Logger
 import java.net.{URLEncoder, URL, HttpURLConnection}
 import io.Source
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * A link writer which writes to a SPARQL/Update endpoint.

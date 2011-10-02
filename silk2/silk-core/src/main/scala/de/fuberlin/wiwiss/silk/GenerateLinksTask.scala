@@ -1,14 +1,14 @@
 package de.fuberlin.wiwiss.silk
 
+import entity.{Link, FileEntityCache, MemoryEntityCache, EntityDescription}
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
-import de.fuberlin.wiwiss.silk.output.{Output, Link}
+import de.fuberlin.wiwiss.silk.output.{Output}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import java.io.File
-import de.fuberlin.wiwiss.silk.entity.{FileEntityCache, MemoryEntityCache, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
@@ -29,7 +29,7 @@ class GenerateLinksTask(sources: Traversable[Source],
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
   /** The entity descriptions which define which entities are retrieved by this task */
-  def entityDescs = EntityDescription.retrieve(linkSpec)
+  def entityDescs = linkSpec.entityDescriptions
 
   /** The links which have been generated so far by this task */
   def links = value.get
@@ -58,7 +58,7 @@ class GenerateLinksTask(sources: Traversable[Source],
       val caches = createCaches()
 
       //Create tasks
-      loadTask = new LoadTask(sourcePair, caches, linkSpec.rule.index(_))
+      loadTask = new LoadTask(sourcePair, caches)
       matchTask = new MatchTask(linkSpec.rule, caches, runtimeConfig)
 
       //Load entities
@@ -85,13 +85,13 @@ class GenerateLinksTask(sources: Traversable[Source],
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + linkSpec.id)
 
       DPair(
-        source = new FileEntityCache(entityDescs.source, cacheDir + "/source/", runtimeConfig),
-        target = new FileEntityCache(entityDescs.target, cacheDir + "/target/", runtimeConfig)
+        source = new FileEntityCache(entityDescs.source, linkSpec.rule.index(_), cacheDir + "/source/", runtimeConfig),
+        target = new FileEntityCache(entityDescs.target, linkSpec.rule.index(_), cacheDir + "/target/", runtimeConfig)
       )
     } else {
       DPair(
-        source = new MemoryEntityCache(entityDescs.source, runtimeConfig),
-        target = new MemoryEntityCache(entityDescs.target, runtimeConfig)
+        source = new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_), runtimeConfig),
+        target = new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_), runtimeConfig)
       )
     }
   }

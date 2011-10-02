@@ -39,13 +39,13 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
     config.linkSpec(linkSpecId)
   }
 
-  lazy val entityDescs = EntityDescription.retrieve(linkSpec)
+  lazy val entityDescs = linkSpec.entityDescriptions
 
   lazy val sourceCache = {
-    new HadoopEntityCache(entityDescs.source, cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime)
+    new HadoopEntityCache(entityDescs.source, linkSpec.rule.index(_), cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime)
   }
 
   lazy val targetCache = {
-    new HadoopEntityCache(entityDescs.target, cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
+    new HadoopEntityCache(entityDescs.target, linkSpec.rule.index(_), cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
   }
 }

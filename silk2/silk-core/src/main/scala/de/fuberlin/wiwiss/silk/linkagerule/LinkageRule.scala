@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import math.abs
 import similarity.SimilarityOperator
 import xml.Node
+import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 
 /**
  * A Linkage Rule specifies the conditions which must hold true so that a link is generated between two entities.
@@ -36,10 +36,10 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  def index(entity: Entity, limit: Double = 0.0): Set[Int] = {
+  def index(entity: Entity, limit: Double = 0.0): Index = {
     operator match {
-      case Some(op) => op.index(entity, limit).flatten
-      case None => Set.empty
+      case Some(op) => op.index(entity, limit)
+      case None => Index.empty
     }
   }
 

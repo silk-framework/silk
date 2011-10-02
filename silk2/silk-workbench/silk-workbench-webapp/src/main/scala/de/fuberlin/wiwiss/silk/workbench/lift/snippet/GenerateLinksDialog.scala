@@ -22,7 +22,7 @@ object GenerateLinksDialog extends Dialog {
   private val logger = Logger.getLogger(getClass.getName)
 
   /** We use a custom runtime config */
-  private val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateDetailedLinks = true)
+  private val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
 
   override protected def onSubmit() = {
     val generateLinksTask =

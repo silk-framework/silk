@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.writer
 
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.

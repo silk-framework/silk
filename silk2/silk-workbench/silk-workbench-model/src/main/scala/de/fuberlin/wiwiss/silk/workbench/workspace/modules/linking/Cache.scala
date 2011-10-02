@@ -1,17 +1,16 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking
 
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity}
 import xml.{NodeBuffer, Node}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
 import collection.immutable.List._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.lang.InterruptedException
 import java.util.logging.Level
+import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription, Entity}
 
 //TODO use options?
 //TODO store path frequencies
@@ -149,7 +148,7 @@ class Cache(private var existingEntityDescs: DPair[EntityDescription] = null,
       updateStatus("Retrieving frequent property paths", 0.0)
 
       //Create an entity description from the link specification
-      val currentEntityDescs = EntityDescription.retrieve(task.linkSpec)
+      val currentEntityDescs = task.linkSpec.entityDescriptions
 
       //Check if the restriction has been changed
       if(existingEntityDescs != null &&

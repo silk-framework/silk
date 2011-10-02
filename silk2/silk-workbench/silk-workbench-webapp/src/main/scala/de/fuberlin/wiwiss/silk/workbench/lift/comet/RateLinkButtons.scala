@@ -3,15 +3,15 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
 import xml.NodeSeq
 import net.liftweb.http.SHtml
-import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * Adds buttons to rate a link to a link list.
  */
-trait RateLinkButtons { self: Links =>
+trait RateLinkButtons { self: LinksContent =>
 
   override protected def renderButtons(link: EvalLink): NodeSeq = {
     <div id={getId(link, "confirmedLink")} style={if(link.correct == Correct) "display:block" else "display:none"}>

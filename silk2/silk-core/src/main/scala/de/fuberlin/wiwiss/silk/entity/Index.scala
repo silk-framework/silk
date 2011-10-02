@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.linkagerule
+package de.fuberlin.wiwiss.silk.entity
 
 import math.{min, max}
 

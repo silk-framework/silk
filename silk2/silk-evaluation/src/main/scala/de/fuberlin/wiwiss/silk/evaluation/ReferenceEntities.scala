@@ -1,8 +1,7 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.output.Link
+import de.fuberlin.wiwiss.silk.entity.{Link, Entity}
 
 /**
  * Holds the entities which correspond to a set of reference links.

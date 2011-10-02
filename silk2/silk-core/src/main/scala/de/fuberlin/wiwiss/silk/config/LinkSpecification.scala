@@ -5,6 +5,9 @@ import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.util._
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
+import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
+import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
 
 /**
  * Represents a Silk Link Specification.
@@ -32,6 +35,44 @@ case class LinkSpecification(id: Identifier = Identifier.random,
       {outputs.map(_.toXML)}
       </Outputs>
     </Interlink>
+  }
+
+  def entityDescriptions: DPair[EntityDescription] = {
+    val sourceVar = datasets.source.variable
+    val targetVar = datasets.target.variable
+
+    val sourceRestriction = datasets.source.restriction
+    val targetRestriction = datasets.target.restriction
+
+    val sourcePaths = rule.operator match {
+      case Some(operator) => collectPaths(sourceVar)(operator)
+      case None => Set[Path]()
+    }
+
+    val targetPaths = rule.operator match {
+      case Some(operator) => collectPaths(targetVar)(operator)
+      case None => Set[Path]()
+    }
+
+    val sourceEntityDesc = new EntityDescription(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
+    val targetEntityDesc = new EntityDescription(targetVar, targetRestriction, targetPaths.toIndexedSeq)
+
+    DPair(sourceEntityDesc, targetEntityDesc)
+  }
+
+  private def collectPaths(variable: String)(operator: SimilarityOperator): Set[Path] = operator match {
+    case aggregation: Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
+    case comparison: Comparison => {
+      val sourcePaths = collectPathsFromInput(variable)(comparison.inputs.source)
+      val targetPaths = collectPathsFromInput(variable)(comparison.inputs.target)
+      (sourcePaths ++ targetPaths).toSet
+    }
+  }
+
+  private def collectPathsFromInput(variable: String)(param: Input): Set[Path] = param match {
+    case p: PathInput if p.path.variable == variable => Set(p.path)
+    case p: TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
+    case _ => Set()
   }
 }
 

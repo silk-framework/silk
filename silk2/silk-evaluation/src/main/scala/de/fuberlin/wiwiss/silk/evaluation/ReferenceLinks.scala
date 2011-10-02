@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
-import de.fuberlin.wiwiss.silk.output.Link
 import xml.Node
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * A set of positive and negative reference links.
@@ -38,7 +38,7 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
     val sourceEntities = positiveLinksSeq.map(_.source)
     val targetEntities = positiveLinksSeq.map(_.target)
 
-    val negativeLinks = for ((s, t) <- sourceEntities zip (targetEntities.tail :+ targetEntities.head)) yield new Link(s, t, 1.0)
+    val negativeLinks = for ((s, t) <- sourceEntities zip (targetEntities.tail :+ targetEntities.head)) yield new Link(s, t)
 
     copy(negative = negativeLinks.toSet)
   }
@@ -72,7 +72,7 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
           <entity1 rdf:resource={link.source}/>
           <entity2 rdf:resource={link.target}/>
           <relation>{relation}</relation>
-          <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">{link.confidence.toString}</measure>
+          <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">{link.confidence.getOrElse(0.0).toString}</measure>
         </Cell>
       </map>
     }

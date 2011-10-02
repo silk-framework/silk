@@ -8,21 +8,25 @@ import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 /**
  * An entity cache, which caches the entities on the local file system.
  */
-class FileEntityCache(val entityDesc: EntityDescription, dir: File, runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
+class FileEntityCache(val entityDesc: EntityDescription,
+                      val indexFunction: (Entity => Index),
+                      dir: File,
+                      runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
+
   private val logger = Logger.getLogger(getClass.getName)
 
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
   @volatile private var writing = false
 
-  override def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int]) {
+  override def write(entities: Traversable[Entity]) {
     val startTime = System.currentTimeMillis()
     writing = true
     var entityCount = 0
 
     try {
       for (entity <- entities) {
-        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
+        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
           blocks(block).write(entity, BitsetIndex.build(index))

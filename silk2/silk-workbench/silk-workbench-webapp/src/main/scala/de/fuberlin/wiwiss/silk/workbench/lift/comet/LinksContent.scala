@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import net.liftweb.http.js.{JsCmd, JsCmds}
-import de.fuberlin.wiwiss.silk.output.Link
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
@@ -9,14 +8,15 @@ import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
-import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
 import de.fuberlin.wiwiss.silk.util.DPair
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.entity.{Link, Path, Entity}
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
 
 /**
  * A widget which displays a list of links.
  */
-trait Links extends CometActor {
+trait LinksContent extends CometActor {
   protected def linkingTask = User().linkingTask
 
   /**The number of links shown on one page */
@@ -128,13 +128,13 @@ trait Links extends CometActor {
       </div>
       <div class="link-details" id={getId(link, "details")}>
         { if(showDetails) renderDetails(link.details) else NodeSeq.Empty }
-        { if(showEntities) renderEntities(link.entities) else NodeSeq.Empty }
+        { if(showEntities) renderEntities(link.entities.get) else NodeSeq.Empty }
       </div>
       <div style="clear:both"></div>
     </div>
   }
 
-  private def renderConfidence(link: Link): NodeSeq = link.details match {
+  private def renderConfidence(link: EvalLink): NodeSeq = link.details match {
     case None => <div class="confidencebar">Pending...</div>
     case Some(sim) => {
       <div class="confidencebar">
@@ -143,16 +143,11 @@ trait Links extends CometActor {
     }
   }
 
-  private def renderEntities(entities: Option[DPair[Entity]]) = {
-    entities match {
-      case Some(DPair(sourceEntity, targetEntity)) => {
-        <ul class="details-tree">
-          { renderEntity(sourceEntity, "source") }
-          { renderEntity(targetEntity, "target") }
-        </ul>
-      }
-      case None => Text("No properties loaded")
-    }
+  private def renderEntities(entities: DPair[Entity]) = {
+    <ul class="details-tree">
+      { renderEntity(entities.source, "source") }
+      { renderEntity(entities.target, "target") }
+    </ul>
   }
 
   private def renderEntity(entity: Entity, divClassPrefix: String) = {
@@ -173,7 +168,7 @@ trait Links extends CometActor {
     </li>
   }
 
-  private def renderDetails(details: Option[Link.Confidence]): NodeSeq = {
+  private def renderDetails(details: Option[Confidence]): NodeSeq = {
     details match {
       case Some(similarity) => {
         <ul class="details-tree">
@@ -184,8 +179,8 @@ trait Links extends CometActor {
     }
   }
 
-  private def renderSimilarity(similarity: Link.Confidence): NodeSeq = similarity match {
-    case Link.AggregatorConfidence(value, aggregation, children) => {
+  private def renderSimilarity(similarity: Confidence): NodeSeq = similarity match {
+    case AggregatorConfidence(value, aggregation, children) => {
       <li>
         <span class="aggregation">Aggregation: {aggregation.aggregator.pluginId} ({aggregation.id})</span>{ renderConfidence(value) }
           <ul>
@@ -193,7 +188,7 @@ trait Links extends CometActor {
           </ul>
       </li>
     }
-    case Link.ComparisonConfidence(value, comparison, input1, input2) => {
+    case ComparisonConfidence(value, comparison, input1, input2) => {
       <li>
         <span class="comparison">Comparison: {comparison.metric.pluginId} ({comparison.id})</span>{ renderConfidence(value) }
           <ul>
@@ -202,7 +197,7 @@ trait Links extends CometActor {
           </ul>
       </li>
     }
-    case Link.SimpleConfidence(value) => {
+    case SimpleConfidence(value) => {
       <li>Link Specification is empty</li>
     }
   }
@@ -212,7 +207,7 @@ trait Links extends CometActor {
     case None => NodeSeq.Empty
   }
 
-  private def renderInputValue(value : Link.InputValue, divClassPrefix : String) = {
+  private def renderInputValue(value : InputValue, divClassPrefix : String) = {
     <li>
       <span class="input">Input ({value.input.id})<span class={divClassPrefix+"-path"}>{value.input.path.serialize}</span>{value.values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span>
     </li>
