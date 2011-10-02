@@ -1,11 +1,10 @@
 package de.fuberlin.wiwiss.silk
 
 import config.RuntimeConfig
-import entity.EntityCache
+import entity.{Link, EntityCache}
 import linkagerule.evaluation.DetailedEvaluator
 import java.util.logging.Level
 import linkagerule.LinkageRule
-import output.Link
 import java.util.concurrent._
 import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
 import util.DPair
@@ -192,17 +191,11 @@ class MatchTask(linkageRule: LinkageRule,
           val sourceEntity = sourcePartition.entities(s)
           val targetEntity = targetPartition.entities(t)
           val entities = DPair(sourceEntity, targetEntity)
+          val attachedEntities = if(runtimeConfig.generateLinksWithEntities) Some(entities) else None
+          val confidence = linkageRule(entities, 0.0)
 
-          if (!runtimeConfig.generateDetailedLinks) {
-            val confidence = linkageRule(entities, 0.0)
-
-            if (confidence >= 0.0) {
-              links ::= new Link(sourceEntity.uri, targetEntity.uri, confidence)
-            }
-          } else {
-            for (link <- DetailedEvaluator(linkageRule, entities, 0.0)) {
-              links ::= link
-            }
+          if (confidence >= 0.0) {
+            links ::= new Link(sourceEntity.uri, targetEntity.uri, Some(confidence), attachedEntities)
           }
         }
       }

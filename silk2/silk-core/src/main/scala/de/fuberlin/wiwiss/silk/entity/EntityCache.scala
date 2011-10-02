@@ -12,9 +12,14 @@ trait EntityCache {
   def entityDesc: EntityDescription
 
   /**
+   * The index function according to which the entities are indexed.
+   */
+  def indexFunction: (Entity => Index)
+
+  /**
    * Writes to this cache.
    */
-  def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int])
+  def write(entities: Traversable[Entity])
 
   /**
    * True, if the cache is being written at the moment.
@@ -92,6 +97,6 @@ trait EntityCache {
       }
     }
 
-    write(entities, _ => Set(entities.currentBlock))
+    write(entities)
   }
 }

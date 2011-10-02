@@ -1,11 +1,7 @@
 package de.fuberlin.wiwiss.silk.entity
 
-import de.fuberlin.wiwiss.silk.linkagerule._
-import similarity.{SimilarityOperator, Comparison, Aggregation}
-import input.{TransformInput, PathInput, Input}
-import de.fuberlin.wiwiss.silk.util.DPair
 import xml.Node
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
   def pathIndex(path: Path) = {
@@ -43,43 +39,5 @@ object EntityDescription {
       restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
       paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq[Node]) yield Path.parse(pathNode.text.trim)
     )
-  }
-
-  def retrieve(linkSpec: LinkSpecification): DPair[EntityDescription] = {
-    val sourceVar = linkSpec.datasets.source.variable
-    val targetVar = linkSpec.datasets.target.variable
-
-    val sourceRestriction = linkSpec.datasets.source.restriction
-    val targetRestriction = linkSpec.datasets.target.restriction
-
-    val sourcePaths = linkSpec.rule.operator match {
-      case Some(operator) => collectPaths(sourceVar)(operator)
-      case None => Set[Path]()
-    }
-
-    val targetPaths = linkSpec.rule.operator match {
-      case Some(operator) => collectPaths(targetVar)(operator)
-      case None => Set[Path]()
-    }
-
-    val sourceEntityDesc = new EntityDescription(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
-    val targetEntityDesc = new EntityDescription(targetVar, targetRestriction, targetPaths.toIndexedSeq)
-
-    DPair(sourceEntityDesc, targetEntityDesc)
-  }
-
-  private def collectPaths(variable: String)(operator: SimilarityOperator): Set[Path] = operator match {
-    case aggregation: Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
-    case comparison: Comparison => {
-      val sourcePaths = collectPathsFromInput(variable)(comparison.inputs.source)
-      val targetPaths = collectPathsFromInput(variable)(comparison.inputs.target)
-      (sourcePaths ++ targetPaths).toSet
-    }
-  }
-
-  private def collectPathsFromInput(variable: String)(param: Input): Set[Path] = param match {
-    case p: PathInput if p.path.variable == variable => Set(p.path)
-    case p: TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
-    case _ => Set()
   }
 }

@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import java.util.regex.Pattern
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
  * <p>

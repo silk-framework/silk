@@ -37,6 +37,7 @@ class GenerateLinksControl extends DynamicButton {
         case _: TaskFinished => {
           label = "Start"
           val warnings = task.warnings
+          if(!warnings.isEmpty)
             partialUpdate(Alert("There have been warnings while generating the links: " + warnings.map(_.getMessage).mkString("\n")))
         }
         case _ =>

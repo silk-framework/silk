@@ -8,10 +8,9 @@ import net.liftweb.http.{SHtml, FileParamHolder}
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.OnLoad
-import de.fuberlin.wiwiss.silk.output.Link
-import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, ReferenceLinksReader}
 import de.fuberlin.wiwiss.silk.config.DatasetSpecification
+import de.fuberlin.wiwiss.silk.entity.{Link, Path, EntityDescription}
 
 class ImportReferenceLinksDialog {
 

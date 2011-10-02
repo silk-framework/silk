@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math._
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(
   id = "num",

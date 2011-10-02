@@ -7,7 +7,10 @@ import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 /**
  * An entity cache, which caches the entities in memory and allows adding new entities at runtime.
  */
-class MemoryEntityCache(val entityDesc: EntityDescription, runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
+class MemoryEntityCache(val entityDesc: EntityDescription,
+                        val indexFunction: (Entity => Index),
+                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
+
   private val logger = Logger.getLogger(getClass.getName)
 
   private var blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
@@ -21,13 +24,13 @@ class MemoryEntityCache(val entityDesc: EntityDescription, runtimeConfig: Runtim
   /**
    * Writes to this cache.
    */
-  override def write(entities: Traversable[Entity], indexFunction: Entity => Set[Int]) {
+  override def write(entities: Traversable[Entity]) {
     val startTime = System.currentTimeMillis()
     writing = true
 
     try {
       for (entity <- entities) {
-        add(entity, indexFunction)
+        add(entity)
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
@@ -43,9 +46,9 @@ class MemoryEntityCache(val entityDesc: EntityDescription, runtimeConfig: Runtim
   /**
    * Adds a single entity to the cache.
    */
-  private def add(entity: Entity, indexFunction: Entity => Set[Int]) {
+  private def add(entity: Entity) {
     if (!allEntities.contains(entity.uri)) {
-      val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity) else Set(0)
+      val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
       for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
         blocks(block).add(entity, BitsetIndex.build(index))

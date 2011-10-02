@@ -3,10 +3,9 @@ package de.fuberlin.wiwiss.silk.server.model
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription, MemoryEntityCache}
 
 /**
  * Holds the dataset of a link specification.
@@ -14,12 +13,12 @@ import de.fuberlin.wiwiss.silk.util.DPair
 class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean) {
   private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
-  private val entityDescs = EntityDescription.retrieve(linkSpec)
+  private val entityDescs = linkSpec.entityDescriptions
 
-  private val caches = DPair(new MemoryEntityCache(entityDescs.source),
-    new MemoryEntityCache(entityDescs.target))
+  private val caches = DPair(new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_)),
+                             new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_)))
 
-  new LoadTask(sources, caches, linkSpec.rule.index(_))()
+  new LoadTask(sources, caches)()
 
   /**
    * Matches a set of entities with all entities in this dataset.
@@ -38,10 +37,10 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
    * Generates all links where the provided entities are the link source.
    */
   private def generateLinks(source: DataSource) = {
-    val entityCache = new MemoryEntityCache(entityDescs.source)
+    val entityCache = new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_))
 
     val entities = source.retrieve(entityDescs.source).toList
-    entityCache.write(entities, linkSpec.rule.index(_))
+    entityCache.write(entities)
 
     var links: Seq[Link] = Seq.empty
     if (entityCache.entityCount > 0) {
@@ -53,9 +52,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
     val unmatchedEntities = entities.filterNot(entity => matchedEntities.contains(entity.uri))
 
     if (writeUnmatchedEntities) {
-      //TODO enable blocking
-      caches.target.write(unmatchedEntities, linkSpec.rule.index(_))
-      //targetCache.write(unmatchedEntities, linkSpec.blocking)
+      caches.target.write(unmatchedEntities)
     }
 
     MatchResult(links, linkSpec.linkType, unmatchedEntities.map(_.uri).toSet)

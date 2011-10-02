@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
-import de.fuberlin.wiwiss.silk.output.Link
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserData}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import net.liftweb.http.SHtml
@@ -11,8 +10,9 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
 import de.fuberlin.wiwiss.silk.util.task._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
+import de.fuberlin.wiwiss.silk.entity.Link
 
-class ReferenceLinksContent extends Links {
+class ReferenceLinksContent extends LinksContent {
   private implicit val logger = Logger.getLogger(classOf[ReferenceLinksContent].getName)
 
   /**Minimum time in milliseconds between two successive updates*/
@@ -65,7 +65,7 @@ class ReferenceLinksContent extends Links {
 
             new EvalLink(
               link = evaluatedLink,
-              correct = if (evaluatedLink.confidence >= 0.0) Correct else Incorrect,
+              correct = if (evaluatedLink.confidence.get >= 0.0) Correct else Incorrect,
               linkType = Positive
             )
           }
@@ -87,7 +87,7 @@ class ReferenceLinksContent extends Links {
 
             new EvalLink(
               link = evaluatedLink,
-              correct = if (evaluatedLink.confidence >= 0.0) Incorrect else Correct,
+              correct = if (evaluatedLink.confidence.get >= 0.0) Incorrect else Correct,
               linkType = Negative
             )
           }

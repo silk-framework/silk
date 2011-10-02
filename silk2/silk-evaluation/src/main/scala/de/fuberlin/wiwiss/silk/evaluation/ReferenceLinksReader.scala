@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.evaluation
 
 import io.Source
-import de.fuberlin.wiwiss.silk.output.Link
 import java.io.{InputStream, File}
 import xml.{Node, XML}
+import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * Reads the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
@@ -35,7 +35,7 @@ object ReferenceLinksReader {
       new Link(
         source = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
         target = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-        confidence = (cell \ "measure").text.toDouble
+        confidence = Some((cell \ "measure").text.toDouble)
       )
     }
   }
@@ -45,7 +45,7 @@ object ReferenceLinksReader {
   def readNTriples(source: Source): ReferenceLinks = {
     val positiveLinks =
       for (NTriplesRegex(sourceUri, targetUri) <- source.getLines()) yield {
-        new Link(sourceUri, targetUri, 0.0)
+        new Link(sourceUri, targetUri)
       }
 
     new ReferenceLinks(positiveLinks.toSet, Set.empty)
@@ -56,7 +56,7 @@ object ReferenceLinksReader {
   def readN3Debug(source: Source): ReferenceLinks = {
     val positiveLinks =
       for (N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines()) yield {
-        new Link(sourceUri, targetUri, confidence.toDouble)
+        new Link(sourceUri, targetUri, Some(confidence.toDouble))
       }
 
     new ReferenceLinks(positiveLinks.toSet, Set.empty)

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import math.min
-import de.fuberlin.wiwiss.silk.linkagerule.Index
+import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
  * A simple similarity measure which compares pairs of values.
