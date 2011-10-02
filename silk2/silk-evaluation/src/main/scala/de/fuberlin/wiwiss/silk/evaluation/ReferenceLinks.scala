@@ -53,6 +53,9 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
    */
   def isComplete = !positive.isEmpty && !negative.isEmpty
 
+  /**
+   * Serializes reference links as XML using the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
+   */
   def toXML: Node = {
     <rdf:RDF xmlns='http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'
              xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
@@ -77,4 +80,14 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
       </map>
     }
   }
+}
+
+/**
+ * Loads reference links.
+ */
+object ReferenceLinks {
+  /**
+   * Reads reference links specified in the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
+   */
+  def fromXML(node: Node) = ReferenceLinksReader.readReferenceLinks(node)
 }
