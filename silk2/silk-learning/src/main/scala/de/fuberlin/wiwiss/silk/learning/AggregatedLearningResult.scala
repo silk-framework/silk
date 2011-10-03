@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.learning
 
-import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleComplexity, AggregatedComplexity, AggregatedEvaluationResult, VariableStatistic}
+import de.fuberlin.wiwiss.silk.evaluation.statistics.{LinkageRuleComplexity, AggregatedComplexity, AggregatedEvaluationResult, VariableStatistic}
 
 /**
  * The aggregated result of multiple learning runs.
