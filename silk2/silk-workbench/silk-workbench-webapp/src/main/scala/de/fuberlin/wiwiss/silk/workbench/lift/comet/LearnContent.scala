@@ -13,7 +13,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleComplexity
+import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, CurrentTaskValueListener, User}
 import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}

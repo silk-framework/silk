@@ -1,11 +1,12 @@
-package de.fuberlin.wiwiss.silk.evaluation
+package de.fuberlin.wiwiss.silk.evaluation.statistics
+
 
 import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 
 /**
- * Complexity measures of a link specification.
+ * Complexity measures of a linkage rule.
  *
  * @param comparisonCount The number of comparisons in the condition.
  * @param transformationCount The number of transformations in the condition.
@@ -13,11 +14,11 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 case class LinkageRuleComplexity(comparisonCount: Int, transformationCount: Int)
 
 /**
- * Evaluates the complexity of a link condition.
+ * Evaluates the complexity of a linkage rule.
  */
 object LinkageRuleComplexity {
   /**
-   * Evaluates the complexity of a link condition.
+   * Evaluates the complexity of a linkage rule.
    */
   def apply(linkageRule: LinkageRule): LinkageRuleComplexity = {
     LinkageRuleComplexity(
@@ -27,14 +28,14 @@ object LinkageRuleComplexity {
   }
 
   /**
-   * Collects all operators of the link condition.
+   * Collects all operators of the linkage rule.
    */
   private def collectOperators(linkageRule: LinkageRule): Traversable[Operator] = {
     linkageRule.operator.toTraversable.flatMap(collectOperators)
   }
 
   /**
-   * Collects all operators of the link condition.
+   * Collects all operators of the linkage rule.
    */
   private def collectOperators(root: Operator): Traversable[Operator] = root match {
     case Aggregation(_, _, _, _, ops) => root +: ops.flatMap(collectOperators)

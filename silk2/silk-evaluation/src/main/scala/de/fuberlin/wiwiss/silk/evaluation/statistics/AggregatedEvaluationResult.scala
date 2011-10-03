@@ -1,7 +1,9 @@
-package de.fuberlin.wiwiss.silk.evaluation
+package de.fuberlin.wiwiss.silk.evaluation.statistics
+
+import de.fuberlin.wiwiss.silk.evaluation.EvaluationResult
 
 /**
- * The aggregated result of multiple evaluations
+ * The aggregated result of multiple evaluations.
  */
 case class AggregatedEvaluationResult(fMeasure: VariableStatistic, mcc: VariableStatistic, score: VariableStatistic)
 
