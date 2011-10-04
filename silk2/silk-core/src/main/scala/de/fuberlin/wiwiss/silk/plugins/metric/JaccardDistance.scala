@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(id = "jaccard", label = "Jaccard", description = "Jaccard similarity coefficient.")
-case class JaccardDistance extends DistanceMeasure {
+case class JaccardDistance() extends DistanceMeasure {
 
   override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
     val set1 = values1.toSet
