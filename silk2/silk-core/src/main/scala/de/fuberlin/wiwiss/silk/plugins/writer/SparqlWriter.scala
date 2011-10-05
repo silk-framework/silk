@@ -60,7 +60,7 @@ case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
     writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
     statements = 0;
 
-    writer.write("request=")
+    writer.write("query=")
     if (graphUri.isEmpty) {
       writer.write("INSERT+DATA+%7B")
     }
