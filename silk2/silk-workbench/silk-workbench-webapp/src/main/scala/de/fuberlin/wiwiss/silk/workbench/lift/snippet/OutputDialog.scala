@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, PluginDialog}
 object OutputDialog extends PluginDialog[LinkWriter] {
   override def title = "Output"
 
-  private val nameField = StringField("name", "The name of this source task", () => if (User().outputTaskOpen) User().outputTask.name.toString else "")
+  private val nameField = StringField("name", "The name of this output", () => if (User().outputTaskOpen) User().outputTask.name.toString else "")
 
   override protected val fields = nameField :: Nil
 
@@ -19,12 +19,10 @@ object OutputDialog extends PluginDialog[LinkWriter] {
   override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
 
   override protected def currentObj = {
-    if (User().outputTaskOpen) {
+    if (User().outputTaskOpen)
       Some(User().outputTask.output.writer)
-    }
-    else {
+    else
       None
-    }
   }
 
   override protected def onSubmit(linkWriter: LinkWriter) {
