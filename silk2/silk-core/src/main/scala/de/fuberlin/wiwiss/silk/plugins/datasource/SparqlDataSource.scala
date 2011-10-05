@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescriptio
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
  */
 @Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all entities from a SPARQL endpoint")
-class SparqlDataSource(endpointURI: String, login: String = null, password: String = null,
+case class SparqlDataSource(endpointURI: String, login: String = null, password: String = null,
                        graph: String = null, pageSize: Int = 1000, entityList: String = null,
                        pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000) extends DataSource {
   private val uri = new URI(endpointURI)

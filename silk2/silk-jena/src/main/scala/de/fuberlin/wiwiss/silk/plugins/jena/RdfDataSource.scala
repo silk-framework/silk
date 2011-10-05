@@ -16,7 +16,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.SparqlAggregatePathsCollector
  * - '''format''': The format of the input data. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3"
  */
 @Plugin(id = "rdf", label = "RDF", description = "A DataSource where all entities are given directly in the configuration.")
-class RdfDataSource(input: String, format: String) extends DataSource {
+case class RdfDataSource(input: String, format: String) extends DataSource {
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(input), null, format)
 
