@@ -63,7 +63,7 @@ class PluginForm[T <: AnyPlugin](val plugin : PluginDescription[T], currentObj :
     def value() = {
       currentObj() match {
         case Some(obj) if obj.pluginId == plugin.id => param(obj).toString
-        case _ => param.defaultValue.getOrElse("").toString
+        case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
       }
     }
 
