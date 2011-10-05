@@ -71,6 +71,7 @@ trait PluginDialog[T <: AnyPlugin] {
       <div id={id + "-select"}>
       { SHtml.ajaxSelectObj(pluginForms.map(f => (f, f.plugin.label)), Full(selectedForm), updateForm) }
       </div> {
+        pluginForms.map(_.renderDescription()).reduce(_ ++ _) ++
         SHtml.ajaxForm(
           <table> {
             for(field <- fields) yield {
