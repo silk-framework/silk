@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.plugins.writer
 import de.fuberlin.wiwiss.silk.output.{Formatter, LinkWriter}
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Link
-import java.io.{BufferedWriter, Writer}
+import java.io.{File, BufferedWriter, Writer}
 
 /**
  * A file writer.
@@ -15,7 +15,7 @@ case class FileWriter(file: String = "output.nt", format: String = "ntriples") e
   private var out: Writer = null
 
   override def open() {
-    val filePath = System.getProperty("user.home") + "/.silk/output/" + file
+    val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.home") + "/.silk/output/" + file
     out = new BufferedWriter(new java.io.FileWriter(filePath))
     out.write(formatter.header)
   }
