@@ -15,7 +15,7 @@ case class FileWriter(file: String = "output.nt", format: String = "ntriples") e
   private var out: Writer = null
 
   override def open() {
-    val filePath = System.getProperty("user.home") + "/.silk/" + file
+    val filePath = System.getProperty("user.home") + "/.silk/output/" + file
     out = new BufferedWriter(new java.io.FileWriter(filePath))
     out.write(formatter.header)
   }
