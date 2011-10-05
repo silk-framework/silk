@@ -164,12 +164,12 @@ object Workspace {
   private def createSourceTaskFunction: JsCmd = {
     def callback(projectName: String): JsCmd = {
       User().project = User().workspace.project(projectName)
-      SourceTaskDialog.openCmd
+      SourceTaskDialog.Commands.open
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
     val openSourceTaskDialog = JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
-    openSourceTaskDialog
+    SourceTaskDialog.Commands.init & openSourceTaskDialog
   }
 
   /**
@@ -182,7 +182,7 @@ object Workspace {
       User().project = User().workspace.project(projectName)
       User().task = User().project.sourceModule.task(taskName)
 
-      SourceTaskDialog.openCmd
+      SourceTaskDialog.Commands.open
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
