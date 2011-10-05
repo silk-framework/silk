@@ -45,10 +45,15 @@ trait PluginDialog[T <: AnyPlugin] {
   }
 
   /**
+   * The selected plugin form
+   */
+  @volatile private var selectedForm: PluginForm[T] = _
+
+  /**
    * Renders this dialog.
    */
   def render(in : NodeSeq) : NodeSeq = {
-    var selectedForm = currentForm
+    selectedForm = currentForm
 
     def submit() = {
       try {
@@ -105,6 +110,9 @@ trait PluginDialog[T <: AnyPlugin] {
      * Command which opens this dialog.
      */
     def open = {
+      //Update the selected form
+      selectedForm = currentForm
+
       //Update all fields and open the dialog
       val updateFields = fields.map(_.updateValueCmd).reduceLeft(_ & _)
       val resetSelect = JsRaw("$('#" + id + "-select select option').removeAttr('selected')")
