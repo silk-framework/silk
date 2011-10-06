@@ -1,14 +1,14 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
-import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
+import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
- * An operator computes the similarity between two entities.
- * It is the base class of aggregations and comparisons.
+ * An operator which computes the similarity between two entities.
+ * Base class of aggregations and comparisons.
  */
 trait SimilarityOperator extends Operator {
   val required: Boolean
@@ -36,6 +36,9 @@ trait SimilarityOperator extends Operator {
    */
   def index(entity: Entity, limit: Double): Index
 
+  /**
+   * Serializes this operator as XML.
+   */
   def toXML(implicit prefixes: Prefixes): Node
 }
 

@@ -11,7 +11,7 @@ class ComparisonGenerator(inputGenerators: DPair[InputGenerator], measure: Funct
     ComparisonNode(
       inputs = inputGenerators.map(_.apply()),
       threshold =  Random.nextDouble() * maxThreshold,
-      weight = Random.nextInt(20),
+      weight = 1 + Random.nextInt(20),
       metric = measure
     )
   }

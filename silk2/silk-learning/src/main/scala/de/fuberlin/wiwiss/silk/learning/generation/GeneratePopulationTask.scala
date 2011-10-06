@@ -7,6 +7,9 @@ import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
 
+/**
+ * Generates a new population of linkage rules.
+ */
 class GeneratePopulationTask(input: LearningInput, generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
 
   override def execute(): Population = {
@@ -26,10 +29,9 @@ class GeneratePopulationTask(input: LearningInput, generator: LinkageRuleGenerat
   }
 
   private def generateRule() = {
-    if(!input.seedLinkageRules.isEmpty && Random.nextDouble() < 0.1) {
+    if(!input.seedLinkageRules.isEmpty && Random.nextDouble() < 0.1)
       LinkageRuleNode.load(input.seedLinkageRules.toSeq(Random.nextInt(input.seedLinkageRules.size)))
-    } else {
+    else
       generator()
-    }
   }
 }
