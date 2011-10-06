@@ -59,10 +59,10 @@ class PluginForm[T <: AnyPlugin](val plugin : PluginDescription[T], currentObj :
     plugin(paramValues)
   }
 
-  private def createField(param : Parameter) = {
+  private def createField(param: Parameter) = {
     def value() = {
       currentObj() match {
-        case Some(obj) if obj.pluginId == plugin.id => param(obj).toString
+        case Some(obj) if obj.pluginId == plugin.id => Option(param(obj)).getOrElse("").toString
         case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
       }
     }
