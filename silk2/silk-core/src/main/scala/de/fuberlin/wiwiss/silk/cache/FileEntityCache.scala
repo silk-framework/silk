@@ -27,6 +27,8 @@ class FileEntityCache(val entityDesc: EntityDescription,
 
     try {
       for (entity <- entities) {
+        if(Thread.currentThread().isInterrupted) throw new InterruptedException()
+
         val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
