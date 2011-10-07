@@ -48,7 +48,6 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
     new Index(combinedIndices, combinedSizes)
   }
 
-  //TODO check if we can use disjunction here
   def merge(other: Index) = {
     require(sizes == other.sizes, "Indexes must have same size")
     new Index(indices ++ other.indices, sizes)
