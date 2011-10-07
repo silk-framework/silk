@@ -268,8 +268,16 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
   }
   if (infoMessages != null && infoMessages.length > 0) {
     $("#info > .precission").html(infoMessages[0]);
-    $("#info > .recall").html(infoMessages[1]);
-    $("#info > .measure").html(infoMessages[2]);
+    if (infoMessages[1] !== undefined) {
+        $("#info > .recall").html(infoMessages[1]).css("display", "block");
+    } else {
+         $("#info > .recall").css("display", "none");
+    }
+    if (infoMessages[2] !== undefined) {
+        $("#info > .measure").html(infoMessages[2]).css("display", "block");
+    } else {
+         $("#info > .measure").css("display", "none");
+    }
     $("#info").css("display", "block");
   }
 }
@@ -1155,7 +1163,7 @@ $(function ()
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="pending" style="display: none"></div>');
-  $("#validation-icons").append('<div id="info" style="display: none"><span class="precission"></span><span class="recall"></span><span class="measure"></span></div>');
+  $("#validation-icons").append('<div id="info" style="display: none"><span class="precission"></span><span class="recall" style="display: none"></span><span class="measure" style="display: none"></span></div>');
   $("#toolbar").append('<div id="info-box" style="display: none"></div>');
 
   $("#undo").button({ disabled: true });
