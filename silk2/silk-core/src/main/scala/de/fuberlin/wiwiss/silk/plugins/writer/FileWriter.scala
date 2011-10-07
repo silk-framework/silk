@@ -15,8 +15,13 @@ case class FileWriter(file: String = "output.nt", format: String = "ntriples") e
   private var out: Writer = null
 
   override def open() {
+    //Translate relative paths to absolute paths
     val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.home") + "/.silk/output/" + file
+    //Create parent directory
+    new File(filePath).getParentFile.mkdirs()
+    //Create buffered writer
     out = new BufferedWriter(new java.io.FileWriter(filePath))
+    //Write header
     out.write(formatter.header)
   }
 
