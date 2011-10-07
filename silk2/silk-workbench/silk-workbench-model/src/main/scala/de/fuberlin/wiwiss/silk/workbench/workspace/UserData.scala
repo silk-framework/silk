@@ -56,7 +56,6 @@ trait Listener[T] extends Observable[T] {
     } else {
       val time = System.currentTimeMillis() - lastUpdateTime
       if (time > maxFrequency) {
-        //println("IMMIDIATE UPDATE")
         onUpdate(value)
         lastUpdateTime = System.currentTimeMillis()
       } else {
@@ -77,7 +76,6 @@ trait Listener[T] extends Observable[T] {
         try {
           scheduled = false
           lastUpdateTime = System.currentTimeMillis()
-          //println("DELAYED UPDATE")
           onUpdate(lastMessage.get)
         } catch {
           case ex: Exception => logger.log(Level.WARNING, "Error on update", ex)
@@ -89,18 +87,14 @@ trait Listener[T] extends Observable[T] {
 
 object Listener {
   private val executor = Executors.newScheduledThreadPool(1)
-
-
 }
 
 /**
  * Listens to the current value of the current users task.
  */
-abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]) {
+abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]) extends Listener[T] {
 
   userData.onUpdate(Listener)
-
-  protected def onUpdate(value: T)
 
   private object Listener extends (ValueTask[T] => Unit) {
     def apply(task: ValueTask[T]) {
@@ -110,7 +104,7 @@ abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]
 
   private object ValueListener extends (T => Unit) {
     def apply(value: T) {
-      onUpdate(value)
+      update(value)
     }
   }
 }
