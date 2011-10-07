@@ -1151,8 +1151,7 @@ $(function ()
   $("#toolbar").append('<div id="validation-icons"></div>');
   $("#toolbar").prepend('<button id="redo" onclick="redo();" style="float: left; margin: 3px;"><span>Redo</span></button>');
   $("#toolbar").prepend('<button id="undo" onclick="undo();" style="float: left; margin: 3px;"><span>Undo</span></button>');
-  //$("#toolbar").prepend('<div id="status">STATUS</div>');
-  $("#validation-icons").append('<div id="tick" style="display: none"></div>');
+  $("#validation-icons").append('<div id="tick" style="display: none" onmouseover="Tip(\'Validated successfully.\', DELAY, 50, WIDTH, 135, FIX, [\'tick\', -102, 3]);" onmouseout="UnTip();"></div>');
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="pending" style="display: none"></div>');
@@ -1238,8 +1237,6 @@ function loadInstance(index) {
        var boxid = box.attr('id');
        var boxclass = box.attr('class');
 
-        //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
-
         $("#droppable").append(box);
 
         if (boxclass.search(/aggregate/) != -1)
@@ -1317,7 +1314,6 @@ function saveInstance() {
         $("#content").unblock();
     }
     instanceSaved = true;
-    //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
 }
 
 function updateRevertButtons() {
