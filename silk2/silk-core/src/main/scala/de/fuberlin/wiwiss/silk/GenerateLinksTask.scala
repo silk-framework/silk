@@ -97,7 +97,7 @@ class GenerateLinksTask(sources: Traversable[Source],
     }
   }
 
-  override def stopExecution() {
+  override protected def stopExecution() {
     if (loadTask != null) loadTask.cancel()
     if (matchTask != null) matchTask.cancel()
   }
