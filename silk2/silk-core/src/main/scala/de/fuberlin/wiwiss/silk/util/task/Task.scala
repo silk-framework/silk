@@ -28,7 +28,7 @@ trait Task[+T] extends HasStatus with (() => T) {
       result
     } catch {
       case ex: Exception => {
-        logger.log(Level.WARNING, taskName + "failed", ex)
+        logger.log(Level.WARNING, taskName + " failed", ex)
         updateStatus(TaskFinished(taskName, false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex
       }
@@ -48,7 +48,7 @@ trait Task[+T] extends HasStatus with (() => T) {
    * Subclasses need to override stopExecution() to allow cancellation.
    */
   def cancel() {
-    if(status.isRunning) {
+    if(status.isRunning && !status.isInstanceOf[TaskCanceling]) {
       updateStatus(TaskCanceling(taskName, status.progress))
       currentSubTask.map(_.cancel())
       stopExecution()
