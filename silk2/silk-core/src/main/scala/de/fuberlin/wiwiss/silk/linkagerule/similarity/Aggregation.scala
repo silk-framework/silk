@@ -16,7 +16,8 @@ case class Aggregation(id: Identifier = Operator.generateId,
                        operators: Seq[SimilarityOperator]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
-  require(!operators.isEmpty, "!operators.isEmpty")
+  //TODO learning currently may produce empty aggreagations when cleaning
+  //require(!operators.isEmpty, "!operators.isEmpty")
 
   /**
    * Computes the similarity between two entities.
