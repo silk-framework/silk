@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.util
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, Parameter, PluginDescription}
+import java.util.UUID
 
 /**
  * A form which allows the user to create instances of a specific plugin.
@@ -10,8 +11,11 @@ import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, Parameter, PluginDescript
 class PluginForm[T <: AnyPlugin](val plugin : PluginDescription[T], currentObj : () => Option[T]) {
   private val fields = plugin.parameters.map(createField)
 
+  /** The id of this form */
+  private lazy val id : String = UUID.randomUUID.toString
+
   def renderDescription(): NodeSeq = {
-    <div id={"description-" + plugin.id} style="padding-top: 10px; padding-bottom: 10px;">
+    <div id={"description-" + id} style="padding-top: 10px; padding-bottom: 10px;">
     { plugin.description }
     </div>
   }
@@ -20,7 +24,7 @@ class PluginForm[T <: AnyPlugin](val plugin : PluginDescription[T], currentObj :
    * Renders this form to HTML.
    */
   def render(): NodeSeq = {
-    <div id={"plugin-" + plugin.id}> {
+    <div id={"plugin-" + id}> {
       <table> {
         for(field <- fields) yield {
           <tr>
@@ -45,9 +49,9 @@ class PluginForm[T <: AnyPlugin](val plugin : PluginDescription[T], currentObj :
     val cmd = fields.map(_.updateValueCmd).fold(JS.Empty)(_ & _)
 
     if(plugin.id == selectedPlugin.id)
-      cmd & JsShowId("description-" + plugin.id) & JsShowId("plugin-" + plugin.id)
+      cmd & JsShowId("description-" + id) & JsShowId("plugin-" + id)
     else
-      cmd & JsHideId("description-" + plugin.id) & JsHideId("plugin-" + plugin.id)
+      cmd & JsHideId("description-" + id) & JsHideId("plugin-" + id)
   }
 
   /**
