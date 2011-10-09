@@ -1,10 +1,11 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.workbench.learning.CurrentLearningTask
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.StartLearningDialog
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
-import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListener}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{UserDataListener, User, CurrentTaskStatusListener}
+import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentPopulation, CurrentLearningTask}
+import de.fuberlin.wiwiss.silk.learning.individual.Population
+import de.fuberlin.wiwiss.silk.util.task.{TaskRunning, TaskFinished, TaskStarted, TaskStatus}
 
 /**
  * Button to control the learning process.
@@ -43,6 +44,10 @@ class LearnControl extends DynamicButton {
         case _: TaskFinished => {
           label = "Start"
           enabled = true
+          CurrentPopulation() = task.value.get.population
+        }
+        case _: TaskRunning => {
+          CurrentPopulation() = task.value.get.population
         }
         case _ =>
       }

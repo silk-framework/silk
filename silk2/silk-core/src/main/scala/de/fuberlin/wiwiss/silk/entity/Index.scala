@@ -56,6 +56,8 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
       sizes = for((s1, s2) <- sizes zip other.sizes) yield max(s1, s2)
     )
   }
+
+  def crop(maxSize: Int) = new Index(indices.take(maxSize), sizes)
 }
 
 object Index {

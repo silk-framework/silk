@@ -89,11 +89,20 @@ object Listener {
   private val executor = Executors.newScheduledThreadPool(1)
 }
 
+abstract class UserDataListener[T](userData: UserData[T]) extends Listener[T] {
+  userData.onUpdate(Listener)
+
+  private object Listener extends (T => Unit) {
+    def apply(value: T) {
+      update(value)
+    }
+  }
+}
+
 /**
  * Listens to the current value of the current users task.
  */
 abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]) extends Listener[T] {
-
   userData.onUpdate(Listener)
 
   private object Listener extends (ValueTask[T] => Unit) {
@@ -113,7 +122,6 @@ abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]
  * Listens to the current status of the current users task.
  */
 class CurrentTaskStatusListener[TaskType <: HasStatus](userData: UserData[TaskType]) extends Listener[TaskStatus] with HasStatus {
-
   updateStatus(userData().status)
   userData.onUpdate(Listener)
   statusLogLevel = Level.FINEST

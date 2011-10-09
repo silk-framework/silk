@@ -11,7 +11,8 @@ import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 /**
  * Learns a linkage rule from reference links.
  */
-class LearningTask(input: LearningInput = LearningInput.empty, config: LearningConfiguration = LearningConfiguration.empty) extends ValueTask[LearningResult](LearningResult()) {
+class LearningTask(input: LearningInput = LearningInput.empty,
+                   config: LearningConfiguration = LearningConfiguration.empty) extends ValueTask[LearningResult](LearningResult()) {
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val scoreEpsilon = 0.0001
@@ -76,7 +77,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
       if (population.bestIndividual.fitness.fMeasure > config.parameters.destinationfMeasure)
         LearningResult.Success
       else if (ineffectiveIterations >= config.parameters.maxIneffectiveIterations)
-          LearningResult.MaximumIneffectiveIterationsReached
+        LearningResult.MaximumIneffectiveIterationsReached
       else if (iterations >= config.parameters.maxIterations)
         LearningResult.MaximumIterationsReached
       else
@@ -87,7 +88,7 @@ class LearningTask(input: LearningInput = LearningInput.empty, config: LearningC
         iterations = iterations,
         time = System.currentTimeMillis() - startTime,
         population = population,
-        validationResult = LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingEntities),
+        validationResult = LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingEntities), //TODO should this be validation Entities?
         status = status
       )
 
