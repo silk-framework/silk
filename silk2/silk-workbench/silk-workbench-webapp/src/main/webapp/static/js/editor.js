@@ -269,12 +269,12 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
   if (infoMessages != null && infoMessages.length > 0) {
     $("#info > .precission").html(infoMessages[0]);
     if (infoMessages[1] !== undefined) {
-        $("#info > .recall").html(infoMessages[1]).css("display", "block");
+        $("#info > .recall").html(infoMessages[1]).css("display", "inline");
     } else {
          $("#info > .recall").css("display", "none");
     }
     if (infoMessages[2] !== undefined) {
-        $("#info > .measure").html(infoMessages[2]).css("display", "block");
+        $("#info > .measure").html(infoMessages[2]).css("display", "inline");
     } else {
          $("#info > .measure").css("display", "none");
     }
