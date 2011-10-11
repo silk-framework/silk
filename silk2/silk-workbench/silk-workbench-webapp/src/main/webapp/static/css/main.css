@@ -193,3 +193,7 @@ div.actions .ui-button-text {
   float:right;
   padding: 5px;
 }
+
+div#newproject {
+    margin-top: 0px;
+}
