@@ -51,7 +51,7 @@
 	    });
     </script>
   </head>
-  <body onresize="updateWindowWidth();" onunload="jsPlumb.unload();">
+  <body onresize="updateWindowSize();" onunload="jsPlumb.unload();">
   <script type="text/javascript" src="static/js/wz_tooltip.js"></script>
     <lift:msgs/>
     <div id="tabbar">
@@ -71,7 +71,7 @@
     </div>
 
    <script type="text/javascript">
-       $("#content").block({
+       $("#droppable, .draggables").block({
             message: null,
             fadeOut: 0,
             fadeIn: 0,
