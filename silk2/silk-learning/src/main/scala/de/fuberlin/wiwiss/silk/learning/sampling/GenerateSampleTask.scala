@@ -52,7 +52,8 @@ class GenerateSampleTask(sources: Traversable[Source],
     }
     generateLinksTask.value.onUpdate(listener)
     updateStatus(0.0)
-    executeSubTask(generateLinksTask, 1.0, true)
+    executeSubTask(generateLinksTask, 0.8, true)
+    updateStatus("Generating population")
 
     //for(link <- op.getLinks()) println(link)
 
@@ -61,6 +62,7 @@ class GenerateSampleTask(sources: Traversable[Source],
     println("EVALUATING " + links.size)
 
     population = new PopulationFromSample(links).evaluate()
+    updateStatus("Sampling", 0.9)
 
     links = new SampleFromPopulationTask(population, links).apply()
 
@@ -112,15 +114,16 @@ class GenerateSampleTask(sources: Traversable[Source],
     val weight = 1
 
     def index(entity: Entity, limit: Double): Index = {
-      val entities = DPair.fill(entity)
-
-      val allPaths = paths.source.toSet ++ paths.target.toSet
-
-      val inputs = allPaths.map(p => PathInput(path = p))
-
-      val index = inputs.map(i => i(entities)).map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
-
-      index
+//      val entities = DPair.fill(entity)
+//
+//      val allPaths = paths.source.toSet ++ paths.target.toSet
+//
+//      val inputs = allPaths.map(p => PathInput(path = p))
+//
+//      val index = inputs.map(i => i(entities)).map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
+//
+//      index
+      Index.default
     }
 
     def toXML(implicit prefixes: Prefixes): Node = throw new UnsupportedOperationException("Cannot serialize " + getClass.getName)

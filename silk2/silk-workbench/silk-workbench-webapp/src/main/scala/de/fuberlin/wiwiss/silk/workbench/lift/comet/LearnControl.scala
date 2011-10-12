@@ -44,10 +44,10 @@ class LearnControl extends DynamicButton {
         case _: TaskFinished => {
           label = "Start"
           enabled = true
-          CurrentPopulation() = task.value.get.population
+          partialUpdate{ CurrentPopulation() = task.value.get.population }
         }
         case _: TaskRunning => {
-          CurrentPopulation() = task.value.get.population
+          partialUpdate{ CurrentPopulation() = task.value.get.population }
         }
         case _ =>
       }

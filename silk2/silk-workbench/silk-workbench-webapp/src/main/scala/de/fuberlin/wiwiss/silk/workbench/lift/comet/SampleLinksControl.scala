@@ -43,7 +43,7 @@ class SampleLinksControl extends DynamicButton {
     override def onUpdate(status: TaskStatus) {
       status match {
         case _: TaskStarted => label = "Stop"
-        case _: TaskFinished => {
+        case _: TaskFinished => partialUpdate {
           label = "Start"
           CurrentPopulation() = task.population
           val links = task.links

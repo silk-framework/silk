@@ -3,8 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
-
   <properties>
     <silk.version>2.5</silk.version>
     <scala.version>2.9.1</scala.version>
@@ -12,11 +10,58 @@
     <scala.plugin.version>2.15.2</scala.plugin.version>
   </properties>
 
+  <modelVersion>4.0.0</modelVersion>
   <groupId>de.fuberlin.wiwiss.silk</groupId>
   <artifactId>silk</artifactId>
   <packaging>pom</packaging>
-  <version>2.5</version>
   <name>Silk</name>
+  <version>2.5</version>
+  <description>The Silk framework is a tool for discovering relationships between data items within different Linked Data sources. Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web.</description>
+  <url>http://www4.wiwiss.fu-berlin.de/bizer/silk/</url>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>http://www.assembla.com/code/silk/git/nodes</url>
+    <connection>scm:git://git.assembla.com/silk.git</connection>
+    <developerConnection>scm:git@git.assembla.com:silk.git</developerConnection>
+  </scm>
+  <developers>
+    <developer>
+      <id>robertisele</id>
+      <name>Robert Isele</name>
+      <email>mail@robertisele.com</email>
+    </developer>
+    <developer>
+      <id>anjeve</id>
+      <name>Anja Jentzsch</name>
+      <email>anja@anjeve.de</email>
+    </developer>
+    <developer>
+      <id>bizer</id>
+      <name>Chris Bizer</name>
+      <email>chris@bizer.de</email>
+    </developer>
+    <developer>
+      <id>beckr</id>
+      <name>Christian Becker</name>
+      <email>chris@beckr.org</email>
+    </developer>
+    <developer>
+      <id>muri</id>
+      <name>Michal Murawicki</name>
+      <email>m.murawicki@fu-berlin.de</email>
+    </developer>
+    <developer>
+      <id>a-matteini</id>
+      <name>Andrea Matteini</name>
+      <email>a.matteini@mes-info.de</email>
+    </developer>
+  </developers>
 
   <modules>
     <module>silk-core</module>
@@ -144,5 +189,22 @@
     </pluginRepository>
 
   </pluginRepositories>
+
+   <distributionManagement>
+     <repository>
+       <id>scala-tools.org</id>
+       <url>
+         http://nexus.scala-tools.org/content/repositories/releases/
+       </url>
+     </repository>
+
+     <snapshotRepository>
+       <id>scala-tools.org</id>
+       <url>
+         http://nexus.scala-tools.org/content/repositories/snapshots/
+       </url>
+       <uniqueVersion>false</uniqueVersion>
+     </snapshotRepository>
+   </distributionManagement>
 
 </project>
