@@ -24,12 +24,15 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *         None, if no similarity could be computed.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val totalWeights = operators.map(_.weight).sum
+    val totalWeights = operators.foldLeft(0)(_ + _.weight)
 
-    val weightedValues = operators.collect{op =>
-      op(entities, aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)) match {
-        case Some(v) => (op.weight, v)
+    var weightedValues: List[(Int, Double)] = Nil
+    for(op <- operators) {
+      val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
+      op(entities, opThreshold) match {
+        case Some(v) => weightedValues ::= (op.weight, v)
         case None if op.required => return None
+        case None =>
       }
     }
 

@@ -10,6 +10,8 @@ import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transformation to them.
  */
 case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
+  @volatile private var cachedPathIndex = -1
+
   /**
    * Retrieves the values of this input for a given entity.
    *
@@ -18,11 +20,21 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    */
   override def apply(entities: DPair[Entity]): Set[String] = {
     if (entities.source.desc.variable == path.variable)
-      entities.source.evaluate(path)
+      eval(entities.source)
     else if (entities.target.desc.variable == path.variable)
-      entities.target.evaluate(path)
+      eval(entities.target)
     else
       Set.empty
+  }
+
+  private def eval(entity: Entity) = {
+    var index = cachedPathIndex
+    if(index == -1 || entity.desc.paths(index) != path) {
+      index = entity.desc.pathIndex(path)
+      cachedPathIndex = index
+    }
+
+    entity.evaluate(index)
   }
 
   override def toXML(implicit prefixes: Prefixes) = <Input id={id} path={path.serialize}/>

@@ -43,28 +43,34 @@ case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends
    */
   private def evaluateDistance(row: String, col: String): Double = {
     //Handle trivial cases when one string is empty
-    if (row.isEmpty) return col.size;
-    if (col.isEmpty) return row.size;
+    if (row.isEmpty) return col.length
+    if (col.isEmpty) return row.length
 
     //Create two row vectors
-    var r0 = new Array[Int](row.size + 1)
-    var r1 = new Array[Int](row.size + 1)
+    var r0 = new Array[Int](row.length + 1)
+    var r1 = new Array[Int](row.length + 1)
 
     // Initialize the first row
-    for (rowIdx <- 1 to row.size) r0(rowIdx) = rowIdx;
+    var rowIdx = 1
+    while(rowIdx <= row.length) {
+      r0(rowIdx) = rowIdx
+      rowIdx += 1
+    }
 
     //Build the matrix
     var rowC: Char = 0
     var colC: Char = 0
-    for (iCol <- 1 to col.size) {
+    var iCol = 1
+    while(iCol <= col.length) {
       //Set the first element to the column number
       r1(0) = iCol;
 
-      colC = col(iCol - 1)
+      colC = col.charAt(iCol - 1)
 
       //Compute current column
-      for (iRow <- 1 to row.size) {
-        rowC = row(iRow - 1)
+      var iRow = 1
+      while(iRow <= row.length) {
+        rowC = row.charAt(iRow - 1)
 
         // Find minimum cost
         val cost = if (rowC == colC) 0 else 1
@@ -75,20 +81,29 @@ case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends
           r0(iRow - 1) + cost) // substitution
 
         //Update row
-        r1(iRow) = min;
+        r1(iRow) = min
+
+        iRow += 1
       }
 
       //Swap the rows
       val vTmp = r0;
       r0 = r1;
       r1 = vTmp;
+
+      iCol += 1
     }
 
-    r0(row.size)
+    r0(row.length)
   }
 
   @inline
-  private def min3(x: Int, y: Int, z: Int) = min(min(x, y), z)
+  private def min3(x: Int, y: Int, z: Int) = {
+    if(x <= y)
+      if(z <= x) z else x
+    else
+      if(z <= y) z else y
+  }
 
   //Original levenshtein implementation
   //  private def evaluateDistanceOld(str1 : String, str2 : String, limit : Int) : Double =

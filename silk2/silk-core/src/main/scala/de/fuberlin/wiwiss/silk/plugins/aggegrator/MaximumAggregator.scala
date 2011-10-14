@@ -10,7 +10,16 @@ case class MaximumAggregator() extends Aggregator {
    * Returns the maximum of the provided values.
    */
   override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (values.isEmpty) None else Some(values.map(_._2).max)
+    if (values.isEmpty)
+      None
+    else {
+      var max = Double.MinValue
+      for(value <- values) {
+        if(value._2 > max)
+          max = value._2
+      }
+      Some(max)
+    }
   }
 
   /**
