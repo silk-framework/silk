@@ -36,7 +36,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getAllEntities(endpoint: SparqlEndpoint): Traversable[String] = {
-    val sparql = "SELECT ?s WHERE { ?s ?p ?o } LIMIT " + maxEntities
+    val sparql = "SELECT ?s WHERE { ?s ?p ?o }"
 
     val results = endpoint.query(sparql, maxEntities)
 
@@ -44,7 +44,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String): Traversable[String] = {
-    val sparql = "SELECT ?" + variable + " WHERE { " + restrictions.toSparql + " } LIMIT " + maxEntities
+    val sparql = "SELECT ?" + variable + " WHERE { " + restrictions.toSparql + " }"
 
     val results = endpoint.query(sparql, maxEntities)
 
@@ -76,9 +76,9 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     sparql += "SELECT DISTINCT ?p \n"
     sparql += "WHERE {\n"
     sparql += " <" + entityUri + "> ?p ?o\n"
-    sparql += "} LIMIT " + limit
+    sparql += "}"
 
-    for (result <- endpoint.query(sparql); binding <- result.values) yield
+    for (result <- endpoint.query(sparql, limit); binding <- result.values) yield
       Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
   }
 }

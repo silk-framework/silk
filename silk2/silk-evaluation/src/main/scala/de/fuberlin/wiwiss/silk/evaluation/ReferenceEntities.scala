@@ -8,6 +8,7 @@ import de.fuberlin.wiwiss.silk.entity.{Link, Entity}
  */
 case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
                              negative: Map[Link, DPair[Entity]] = Map.empty) {
+
   def withPositive(entityPair: DPair[Entity]) = {
     copy(positive = positive + (new Link(entityPair.source.uri, entityPair.target.uri) -> entityPair))
   }

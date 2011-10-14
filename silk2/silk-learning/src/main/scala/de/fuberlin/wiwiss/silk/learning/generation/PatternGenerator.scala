@@ -40,7 +40,7 @@ class PatternGenerator(components: Components) {
       new ComparisonGenerator(
         inputGenerators = InputGenerator.fromPathPair(pathPair, components.transformations),
         measure = FunctionNode("levenshteinDistance", Nil, DistanceMeasure),
-        maxThreshold = 10.0
+        maxThreshold = 2.0
       )
     }
   }

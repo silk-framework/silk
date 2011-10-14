@@ -1,87 +1,55 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
-import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.config.DatasetSpecification
-import de.fuberlin.wiwiss.silk.workbench.lift.util.{StringField, Dialog}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.{PluginDialog, StringField}
+import xml.NodeSeq
+import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
 
 /**
  * A dialog to create and edit a source task.
  */
-object SourceTaskDialog extends Dialog {
-  private val nameField = StringField("Name", "The name of this source task", () => if (User().sourceTaskOpen) User().sourceTask.source.id else "")
+object SourceTaskDialog extends PluginDialog[DataSource] {
+  override def title = "Source"
 
-  private val uriField = StringField("Endpoint URI", "The URI of the SPARQL endpoint", () => getParam("endpointURI"))
+  private val nameField = StringField("name", "The name of this source task", () => if (User().sourceTaskOpen) User().sourceTask.name.toString else "")
 
-  private val graphField = StringField("Graph URI", "Only retrieve entities from a specific graph", () => getParam("graph"))
+  override protected val fields = nameField :: Nil
 
-  private val retryCountField = StringField("Retry count", "To recover from intermittent SPARQL endpoint connection failures, " +
-                   "the 'retryCount' parameter specifies the number of times to retry connecting.", () => getParam("retryCount"))
-
-  private val retryPauseField = StringField("Retry pause", "To recover from intermittent SPARQL endpoint connection failures, " +
-                   "the 'retryPause' parameter specifies how long to wait between retries.", () => getParam("retryPause"))
-
-  override val fields = nameField :: uriField :: graphField :: retryCountField :: retryPauseField :: Nil
-
-  override def title = if (User().sourceTaskOpen) "Edit source task" else "Create source task"
+  override protected val plugins = DataSource.plugin("sparqlEndpoint") :: DataSource.plugin("file") :: Nil
 
   //Close the current task if the window is closed
   override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
 
-  override def onSubmit() = {
-    val newSource = createSource()
+  override protected def currentObj = {
+    if (User().sourceTaskOpen)
+      Some(User().sourceTask.source.dataSource)
+    else
+      None
+  }
+
+  override protected def onSubmit(dataSource: DataSource) {
+    val newSource = SourceTask(Source(nameField.value, dataSource))
+
+    User().project.sourceModule.update(newSource)
 
     if (User().sourceTaskOpen && User().sourceTask.name != newSource.name) {
-      val currentSource = User().sourceTask
-
-      User().project.sourceModule.remove(currentSource.name)
-      User().project.sourceModule.update(newSource)
+      User().project.sourceModule.remove(User().sourceTask.name)
 
       //Update all linking tasks to point to the updated task
       val linkingModule = User().project.linkingModule
-      val updateFunc = new UpdateLinkingTask(currentSource.name, newSource.name)
+      val updateFunc = new UpdateLinkingTask(User().sourceTask.name, newSource.name)
       val updatedLinkingTasks = linkingModule.tasks.collect(updateFunc)
       for (linkingTask <- updatedLinkingTasks) {
         linkingModule.update(linkingTask)
       }
-    } else {
-      User().project.sourceModule.update(newSource)
-    }
-
-    Workspace.updateCmd
-  }
-
-  /**
-   * Gets a parameter.
-   */
-  private def getParam(name: String): String = {
-    if (User().sourceTaskOpen) {
-      User().sourceTask.source.dataSource match {
-        case DataSource(id, params) => params.get(name).getOrElse("")
-      }
-    } else {
-      val sparqlEndpointDesc = DataSource.availablePlugins.find(_.id == "sparqlEndpoint").get
-      val param = sparqlEndpointDesc.parameters.find(_.name == name).get
-
-      param.defaultValue.flatMap(Option(_)).map(_.toString).getOrElse("")
     }
   }
 
-  /**
-   * Creates a new source task from the current dialog values.
-   */
-  private def createSource() = {
-    var params = Map("endpointURI" -> uriField.value, "retryCount" -> retryCountField.value, "retryPause" -> retryPauseField.value)
-    if (graphField.value != "") {
-      params += ("graph" -> graphField.value)
-    }
-
-    val source = Source(nameField.value, DataSource("sparqlEndpoint", params))
-    SourceTask(source)
-  }
+  override def render(in: NodeSeq): NodeSeq = super.render(in)
 
   /**
    * Partial function which updates the source of a linking task.
@@ -103,5 +71,4 @@ object SourceTaskDialog extends Dialog {
         ds
     }
   }
-
 }
