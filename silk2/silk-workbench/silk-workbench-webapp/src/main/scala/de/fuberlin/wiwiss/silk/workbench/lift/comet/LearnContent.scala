@@ -14,10 +14,10 @@ import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
 import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity
-import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, CurrentTaskValueListener, User}
 import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 import net.liftweb.http.js.JsCmds.{Confirm, OnLoad, SetHtml, Script}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{UserDataListener, CurrentTaskStatusListener, CurrentTaskValueListener, User}
 
 /**
  * Widget which shows the current population.
@@ -25,7 +25,7 @@ import net.liftweb.http.js.JsCmds.{Confirm, OnLoad, SetHtml, Script}
 class LearnContent extends CometActor {
 
   /** The individuals to be rendered. */
-  private def individuals = CurrentLearningTask().value.get.population.individuals
+  private def individuals = CurrentPopulation().individuals
 
   /** The number of links shown on one page. */
   private val pageSize = 100
@@ -34,11 +34,10 @@ class LearnContent extends CometActor {
   override protected val dontCacheRendering = true
 
   /**
-   * Listens to events of the current learning task.
-   * Whenever the population is changed the learning tasks fires an event on which we redraw the widget.
+   * Redraw the widget whenever the current population is updated.
    */
-  private val learningTaskListener = new CurrentTaskValueListener(CurrentLearningTask) {
-    override def onUpdate(result: LearningResult) {
+  private val populationListener = new UserDataListener(CurrentPopulation) {
+    override def onUpdate(population: Population) {
       partialUpdate(updateListCmd)
     }
   }
@@ -191,9 +190,9 @@ class LearnContent extends CometActor {
         </ul>
       </li>
     }
-    case Comparison(id, required, threshold, weight, metric, DPair(input1, input2)) => {
+    case Comparison(id, required, weight, threshold, metric, DPair(input1, input2)) => {
       <li>
-        <span class="comparison">Comparison: {metric.pluginId}</span>
+        <span class="comparison">Comparison: {metric.pluginId} ({threshold.toString})</span>
         <ul>
           { renderOperator(input1) }
           { renderOperator(input2) }

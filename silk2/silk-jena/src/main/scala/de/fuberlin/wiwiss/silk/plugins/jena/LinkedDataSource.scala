@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "linkedData", label = "Linked Data", description = "TODO")
-class LinkedDataSource extends DataSource {
+case class LinkedDataSource() extends DataSource {
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
     require(!entities.isEmpty, "Retrieving all entities not supported")
 

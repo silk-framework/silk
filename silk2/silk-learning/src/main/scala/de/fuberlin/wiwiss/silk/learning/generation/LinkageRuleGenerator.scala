@@ -52,10 +52,6 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 
 object LinkageRuleGenerator {
 
-  def apply(paths: DPair[Traversable[Path]], components: Components) = {
-    new LinkageRuleGenerator((new FullGenerator(components).apply(paths) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
-  }
-
   def apply(entities: ReferenceEntities, components: Components) = {
     val paths = entities.positive.values.head.map(_.desc.paths)
 

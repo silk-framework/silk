@@ -2,11 +2,9 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
-import de.fuberlin.wiwiss.silk.workbench.learning.CurrentSampleLinksTask
-import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskValueListener
-import de.fuberlin.wiwiss.silk.learning.sampling.SampleLinksTask
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink
+import de.fuberlin.wiwiss.silk.workbench.learning.CurrentValidationLinks
+import de.fuberlin.wiwiss.silk.workbench.workspace.UserDataListener
 
 class SampleLinksContent extends LinksContent with RateLinkButtons {
 
@@ -16,13 +14,7 @@ class SampleLinksContent extends LinksContent with RateLinkButtons {
 
   override protected val showStatus = false
 
-  private var sampleLinksTask = CurrentSampleLinksTask()
-
-  private val currentSampleLinksTaskListener = (task: SampleLinksTask) => { sampleLinksTask = task }
-
-  CurrentSampleLinksTask.onUpdate(currentSampleLinksTaskListener)
-
-  private val linkListener = new CurrentTaskValueListener(CurrentSampleLinksTask) {
+  private val linkListener = new UserDataListener(CurrentValidationLinks) {
     override def onUpdate(links: Seq[Link]) {
       partialUpdate(updateLinksCmd)
     }
@@ -31,15 +23,14 @@ class SampleLinksContent extends LinksContent with RateLinkButtons {
   override protected def links: Seq[EvalLink] = {
     def links = linkingTask.referenceLinks
 
-    for (link <- CurrentSampleLinksTask().links.view) yield {
-      if (links.positive.contains(link)) {
+    for (link <- CurrentValidationLinks().view) yield {
+      if (links.positive.contains(link))
         new EvalLink(link, Correct, Generated)
-      } else if (links.negative.contains(link)) {
+      else if (links.negative.contains(link))
         new EvalLink(link, Incorrect, Generated)
-      } else {
+      else
         new EvalLink(link, Unknown, Generated)
-      }
     }
-  }.sortBy(-_.confidence.getOrElse(-1.0))
+  }.sortBy(_.confidence.get.abs)
 
 }

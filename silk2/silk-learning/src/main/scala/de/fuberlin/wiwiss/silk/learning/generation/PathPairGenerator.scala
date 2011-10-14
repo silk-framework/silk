@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
  */
 class PathPairGenerator(components: Components) {
   def apply(entities: ReferenceEntities): Traversable[ComparisonGenerator] = {
-    if(entities.positive.isEmpty || entities.negative.isEmpty) {
+    if(entities.positive.isEmpty) {
       Traversable.empty
     } else {
       //Get all paths except sameAs paths
@@ -44,7 +44,7 @@ class PathPairGenerator(components: Components) {
 //  }
 
   private def createGenerators(pathPair: DPair[Path]) = {
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 5.0) ::
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 2.0) ::
     new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
   }
 
@@ -97,14 +97,20 @@ class PathPairGenerator(components: Components) {
       pathPairs.filter(pathValuesMatch(entities, _))
     }
 
-    private def pathValuesMatch(instances: ReferenceEntities, pathPair: DPair[Path]): Boolean = {
-      val positiveMatches = instances.positive.values.filter(i => matches(i, pathPair))
-      val negativeMatches = instances.negative.values.filter(i => matches(i, pathPair))
+    private def pathValuesMatch(entities: ReferenceEntities, pathPair: DPair[Path]): Boolean = {
+      val positiveMatches = entities.positive.values.filter(i => matches(i, pathPair))
+      val positive = positiveMatches.size.toDouble / entities.positive.size
 
-      val positive = positiveMatches.size.toDouble / instances.positive.size
-      val negative = negativeMatches.size.toDouble / instances.negative.size
+      if(entities.negative.size > 0) {
+        val negativeMatches = entities.negative.values.filter(i => matches(i, pathPair))
+        val negative = negativeMatches.size.toDouble / entities.negative.size
 
-      positive >= negative
+        positive >= negative
+      }
+      else {
+        //TODO use a threshold higher than 0 here?
+        positive > 0
+      }
     }
 
     private def matches(entityPair: DPair[Entity], pathPair: DPair[Path]): Boolean = {

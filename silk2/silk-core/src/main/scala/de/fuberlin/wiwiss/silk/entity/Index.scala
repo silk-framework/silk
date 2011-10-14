@@ -48,11 +48,16 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
     new Index(combinedIndices, combinedSizes)
   }
 
-  //TODO check if we can use disjunction here
   def merge(other: Index) = {
-    require(sizes == other.sizes, "Indexes must have same size")
-    new Index(indices ++ other.indices, sizes)
+    require(sizes.size == other.sizes.size, "Indexes must have same number of dimensions")
+
+    new Index(
+      indices = indices ++ other.indices,
+      sizes = for((s1, s2) <- sizes zip other.sizes) yield max(s1, s2)
+    )
   }
+
+  def crop(maxSize: Int) = new Index(indices.take(maxSize), sizes)
 }
 
 object Index {

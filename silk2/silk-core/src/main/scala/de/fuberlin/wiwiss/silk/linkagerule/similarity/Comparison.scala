@@ -16,6 +16,10 @@ case class Comparison(id: Identifier = Operator.generateId,
                       threshold: Double = 0.0,
                       metric: DistanceMeasure,
                       inputs: DPair[Input]) extends SimilarityOperator {
+
+  require(weight > 0, "weight > 0")
+  require(threshold >= 0.0, "threshold >= 0.0")
+
   /**
    * Computes the similarity between two entities.
    *

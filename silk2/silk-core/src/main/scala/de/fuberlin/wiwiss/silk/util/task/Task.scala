@@ -28,7 +28,7 @@ trait Task[+T] extends HasStatus with (() => T) {
       result
     } catch {
       case ex: Exception => {
-        logger.log(Level.WARNING, taskName + "failed", ex)
+        logger.log(Level.WARNING, taskName + " failed", ex)
         updateStatus(TaskFinished(taskName, false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex
       }
@@ -48,7 +48,7 @@ trait Task[+T] extends HasStatus with (() => T) {
    * Subclasses need to override stopExecution() to allow cancellation.
    */
   def cancel() {
-    if(status.isRunning) {
+    if(status.isRunning && !status.isInstanceOf[TaskCanceling]) {
       updateStatus(TaskCanceling(taskName, status.progress))
       currentSubTask.map(_.cancel())
       stopExecution()
@@ -65,15 +65,30 @@ trait Task[+T] extends HasStatus with (() => T) {
    */
   protected def stopExecution() { }
 
-  protected def executeSubTask[R](subTask: Task[R], finalProgress: Double = 1.0): R = {
+  /**
+   * Executes a sub task inside this task.
+   *
+   * @param subTask The sub task to be executed.
+   * @param finalProgress
+   * @param silent If true, the update messages of the subtask will not be logged.
+   */
+  protected def executeSubTask[R](subTask: Task[R], finalProgress: Double = 1.0, silent: Boolean = false): R = {
     require(finalProgress >= status.progress, "finalProgress >= progress")
 
+    //Set the current sub task
     currentSubTask = Some(subTask)
 
     //Disable logging of the subtask as this task will do the logging
-    val subTaskLogLevel = subTask.statusLogLevel
     subTask.statusLogLevel = Level.FINEST
     subTask.progressLogLevel = Level.FINEST
+
+    //If silent, disable logging and restore the old settings later.
+    val oldStatusLogLevel = statusLogLevel
+    val oldProgressLogLevel = progressLogLevel
+    if(silent) {
+      statusLogLevel = Level.FINEST
+      progressLogLevel = Level.FINEST
+    }
 
     //Subscribe to status changes of the sub task
     val listener = new (TaskStatus => Unit) {
@@ -97,8 +112,10 @@ trait Task[+T] extends HasStatus with (() => T) {
       subTask.onUpdate(listener)
       subTask()
     } finally {
-      subTask.statusLogLevel = subTaskLogLevel
       currentSubTask = None
+      //Restore original logging levels
+      statusLogLevel = oldStatusLogLevel
+      progressLogLevel = oldProgressLogLevel
     }
   }
 }

@@ -11,7 +11,7 @@ import de.fuberlin.wiwiss.silk.entity.Link
 /**
  * A link writer which writes to a SPARQL/Update endpoint.
  */
-@Plugin(id = "sparul", label = "SPARQL/Update")
+@Plugin(id = "sparul", label = "SPARQL/Update", description = "Writes the links to a store using SPARQL/Update.")
 case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
   /**Maximum number of statements per request. */
   private val StatementsPerRequest = 200;
@@ -60,7 +60,7 @@ case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
     writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
     statements = 0;
 
-    writer.write("request=")
+    writer.write("query=")
     if (graphUri.isEmpty) {
       writer.write("INSERT+DATA+%7B")
     }

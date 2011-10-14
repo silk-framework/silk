@@ -46,7 +46,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
   /**
    * Serializes this Link Condition as XML.
    */
-  def toXML(implicit prefixes: Prefixes) = {
+  def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
     <LinkageRule>
       {operator.toList.map(_.toXML)}
     </LinkageRule>

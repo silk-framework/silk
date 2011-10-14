@@ -4,6 +4,7 @@ import collection.mutable.ArrayBuffer
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
+import java.lang.InterruptedException
 
 /**
  * An entity cache, which caches the entities in memory and allows adding new entities at runtime.
@@ -31,6 +32,7 @@ class MemoryEntityCache(val entityDesc: EntityDescription,
 
     try {
       for (entity <- entities) {
+        if(Thread.currentThread().isInterrupted) throw new InterruptedException()
         add(entity)
       }
 

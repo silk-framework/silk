@@ -268,8 +268,16 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
   }
   if (infoMessages != null && infoMessages.length > 0) {
     $("#info > .precission").html(infoMessages[0]);
-    $("#info > .recall").html(infoMessages[1]);
-    $("#info > .measure").html(infoMessages[2]);
+    if (infoMessages[1] !== undefined) {
+        $("#info > .recall").html(infoMessages[1]).css("display", "inline");
+    } else {
+         $("#info > .recall").css("display", "none");
+    }
+    if (infoMessages[2] !== undefined) {
+        $("#info > .measure").html(infoMessages[2]).css("display", "inline");
+    } else {
+         $("#info > .measure").css("display", "none");
+    }
     $("#info").css("display", "block");
   }
 }
@@ -864,19 +872,21 @@ function load()
       $("#linklimit").val($(this).attr("limit"));
     }
   });
-  updateWindowWidth();
+  updateWindowSize();
   rearrangeBoxes();
 }
 
 
-function updateWindowWidth() {
+function updateWindowSize() {
   var window_width =  $(window).width();
+  var window_height =  $(window).height();
   if (window_width>1100) {
     $(".wrapper").width(window_width-10);
-    $("#droppable").width(window_width-290);
-  } else {
-    $(".wrapper").width(1000+1200-window_width);
-    $("#droppable").width(830);
+    $("#droppable").width(window_width-280);
+  }
+  if (window_height > 600) {
+    $(".droppable_outer, #droppable").height(window_height-165);
+    $(".scrollboxes").height((window_height/5)-63.5);
   }
 }
 
@@ -1121,8 +1131,8 @@ $(function ()
         var offset = $(number).offset();
         var scrollleft = $("#droppable").scrollLeft();
         var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-142+scrolltop+scrolltop;
-        var left = offset.left-518+scrollleft+scrollleft;
+        var top = offset.top-118+scrolltop+scrolltop;
+        var left = offset.left-504+scrollleft+scrollleft;
         $(number).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
         jsPlumb.repaint(number);
         modifyLinkSpec();
@@ -1151,12 +1161,11 @@ $(function ()
   $("#toolbar").append('<div id="validation-icons"></div>');
   $("#toolbar").prepend('<button id="redo" onclick="redo();" style="float: left; margin: 3px;"><span>Redo</span></button>');
   $("#toolbar").prepend('<button id="undo" onclick="undo();" style="float: left; margin: 3px;"><span>Undo</span></button>');
-  //$("#toolbar").prepend('<div id="status">STATUS</div>');
-  $("#validation-icons").append('<div id="tick" style="display: none"></div>');
+  $("#validation-icons").append('<div id="tick" style="display: none" onmouseover="Tip(\'Validated successfully.\', DELAY, 20, WIDTH, 135, FIX, [\'tick\', -102, 3]);" onmouseout="UnTip();"></div>');
   $("#validation-icons").append('<div id="exclamation" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="warning" style="display: none"><span class="number-messages"></span></div>');
   $("#validation-icons").append('<div id="pending" style="display: none"></div>');
-  $("#validation-icons").append('<div id="info" style="display: none"><span class="precission"></span><span class="recall"></span><span class="measure"></span></div>');
+  $("#validation-icons").append('<div id="info" style="display: none"><span class="precission"></span><span class="recall" style="display: none"></span><span class="measure" style="display: none"></span></div>');
   $("#toolbar").append('<div id="info-box" style="display: none"></div>');
 
   $("#undo").button({ disabled: true });
@@ -1205,6 +1214,14 @@ $(function ()
     $(this).parent().removeClass('active').attr('title', newPath).html(newPath);
   });
 
+  $("#source_restriction, #target_restriction").live('mouseover', function() {
+    var txt = $(this).text();
+    Tip(txt, DELAY, 20);
+  });
+  $("#source_restriction, #target_restriction").live('mouseout', function() {
+    UnTip();
+  });
+
 });
 
 function undo() {
@@ -1237,8 +1254,6 @@ function loadInstance(index) {
        var box = elements[i][0].clone();
        var boxid = box.attr('id');
        var boxclass = box.attr('class');
-
-        //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
 
         $("#droppable").append(box);
 
@@ -1317,7 +1332,6 @@ function saveInstance() {
         $("#content").unblock();
     }
     instanceSaved = true;
-    //$("#status").html(instanceIndex+1 + "/" + instanceStack.length);
 }
 
 function updateRevertButtons() {
@@ -1364,18 +1378,18 @@ function getPropertyPaths(deleteExisting)
     if (!customPropertyPathsCreated || deleteExisting) {
 
         var box = $(document.createElement('div'));
-        box.html("<span style='font-weight: bold;'>Source:</span> <span id='source_id'></span>").appendTo("#paths");
+        box.css("padding-top","4px");
+        box.html("<span style='font-weight: bold; color: #582271;'>Source:</span> <span id='source_id'></span>").appendTo("#paths");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
         box.addClass('more');
-        box.html("<span class='restriction'><span style='font-weight: bold;'>Restriction:</span> <span id='source_restriction'></span></span>").appendTo("#paths");
+        box.html("<span class='restriction'><span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;'>Restriction: </span><span id='source_restriction'></span></span><div style='clear: both;'></div>").appendTo("#paths");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
         box.attr("id", "sourcepaths");
         box.addClass("scrollboxes");
-        box.css("height","32px");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
@@ -1430,19 +1444,19 @@ function getPropertyPaths(deleteExisting)
         box.appendTo("#sourcepaths");
 
         var box = $(document.createElement('div'));
-        box.html("<span style='font-weight: bold;'>Target:</span> <span id='target_id'></span>").appendTo("#paths");
+        box.css("padding-top","4px");
+        box.html("<span style='font-weight: bold; color: #782626;'>Target:</span> <span id='target_id'></span>").appendTo("#paths");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
         box.addClass('more');
-        box.html("<span class='restriction'><span style='font-weight: bold;'>Restriction:</span> <span id='target_restriction'></span></span>").appendTo("#paths");
+        box.html("<span class='restriction'><span style='font-weight: bold; float: left; padding-right: 5px; color: #782626;'>Restriction:</span><span id='target_restriction'></span></span><div style='clear: both;'></div>").appendTo("#paths");
         box.appendTo("#paths");
 
 
         var box = $(document.createElement('div'));
         box.attr("id", "targetpaths");
         box.addClass("scrollboxes");
-        box.css("height","32px");
         box.appendTo("#paths");
 
         var box = $(document.createElement('div'));
@@ -1517,11 +1531,8 @@ function getPropertyPaths(deleteExisting)
       document.getElementById("paths").removeChild(document.getElementById("loading"));
 
     $(".restriction").show();
-    $("#sourcepaths, #targetpaths").css("height","115px");
     $("#source_id").html(data.source.id);
     $("#source_restriction").html(data.source.restrictions);
-
-    if ($("#source_restriction").height()>18) $("#sourcepaths").css("height","97px");
 
     var list_item_id = 1;
 
@@ -1592,7 +1603,6 @@ function getPropertyPaths(deleteExisting)
 
     $("#target_id").html(data.target.id);
     $("#target_restriction").html(data.target.restrictions);
-    if ($("#target_restriction").height()>18) $("#targetpaths").css("height","97px");
 
     var list_item_id = 1;
 
@@ -1662,6 +1672,7 @@ function getPropertyPaths(deleteExisting)
     }
     */
     }
+    updateWindowSize();
   });
 }
 

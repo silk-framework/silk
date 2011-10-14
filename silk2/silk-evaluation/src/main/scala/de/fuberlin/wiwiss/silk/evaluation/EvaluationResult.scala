@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.evaluation
 import scala.math.sqrt
 
 /**
- * Holds the evaluation result of a link specification.
+ * Holds the evaluation result of a linkage rule.
  * Provides various information retrieval metrics.
  */
 class EvaluationResult(val truePositives: Int, val trueNegatives: Int,
