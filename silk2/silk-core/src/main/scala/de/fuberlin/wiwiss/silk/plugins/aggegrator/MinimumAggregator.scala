@@ -10,7 +10,16 @@ case class MinimumAggregator() extends Aggregator {
    * Returns the minimum of the provided values.
    */
   override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (values.isEmpty) None else Some(values.map(_._2).min)
+    if (values.isEmpty)
+      None
+    else {
+      var min = Double.MaxValue
+      for(value <- values) {
+        if(value._2 < min)
+          min = value._2
+      }
+      Some(min)
+    }
   }
 
   /**

@@ -4,11 +4,17 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
+  /**
+   * Retrieves the index of a given path.
+   */
   def pathIndex(path: Path) = {
-    paths.indexWhere(_ == path) match {
-      case -1 => throw new NoSuchElementException("Path " + path + " not found on entity.")
-      case index => index
+    var index = 0
+    while(path != paths(index)) {
+      index += 1
+      if(index >= paths.size)
+        throw new NoSuchElementException("Path " + path + " not found on entity.")
     }
+    index
   }
 
   def merge(other: EntityDescription) = {
