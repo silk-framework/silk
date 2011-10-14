@@ -6,7 +6,6 @@ ws.activeNodesId = new Array();
 // -- init
 $(document).ready(
    function(){
-      $(".ui-icon:not(.ui-icon-closethick)").removeClass('ui-icon');
       initLoadingDialog();
       // override forms 'onsubmit' attribute, in order to call loadingShow() before than ajax call
       $("form").each(function() {
@@ -288,6 +287,7 @@ function updateWorkspace(obj){
 
         $("#tree").treeview({animated:"fast"});
         $(".ui-icon").removeClass('ui-icon');
+        $(".ui-icon-closethick").addClass('ui-icon');
         loadingHide();
     }
 
