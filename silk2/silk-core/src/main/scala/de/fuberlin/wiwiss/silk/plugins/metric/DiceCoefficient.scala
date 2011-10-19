@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(id = "dice", label = "Dice coefficient", description = "Dice similarity coefficient.")
-case class DiceCoefficient extends DistanceMeasure {
+case class DiceCoefficient() extends DistanceMeasure {
   override def apply(values1: Traversable[String], values2: Traversable[String], threshold: Double): Double = {
     val set1 = values1.toSet
     val set2 = values2.toSet
