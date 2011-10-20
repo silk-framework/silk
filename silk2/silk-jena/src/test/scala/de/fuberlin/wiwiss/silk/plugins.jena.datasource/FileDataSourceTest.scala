@@ -13,7 +13,7 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
     "dbpedia-owl" -> "http://dbpedia.org/ontology/"
   )
 
-  val file = getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/jena/test.nt").getFile
+  val file = getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource/test.nt").getFile
 
   val source = new FileDataSource(file, "N-TRIPLE")
 
