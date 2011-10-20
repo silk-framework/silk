@@ -2,7 +2,10 @@ package de.fuberlin.wiwiss.silk.cache
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class BitsetIndexTest extends FlatSpec with ShouldMatchers {
   val a1 = BitsetIndex.build(Set(1, 2, 3))
   val a2 = BitsetIndex.build(Set(3, 4, 5))
