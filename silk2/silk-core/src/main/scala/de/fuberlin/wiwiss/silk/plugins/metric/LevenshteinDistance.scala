@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
 case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   /**The size of the q-Grams to be indexed */
-  private val q = 2
+  private val q = 1
 
   override def evaluate(str1: String, str2: String, limit: Double) = {
     if (abs(str1.length - str2.length) > limit)
