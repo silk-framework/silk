@@ -184,20 +184,29 @@ class MatchTask(linkageRule: LinkageRule,
         val sourcePartition = caches.source.read(blockIndex, sourcePartitionIndex)
         val targetPartition = caches.target.read(blockIndex, targetPartitionIndex)
 
-        for (s <- 0 until sourcePartition.size;
-             tStart = if (sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0;
-             t <- tStart until targetPartition.size;
-             if !runtimeConfig.blocking.isEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
-          val sourceEntity = sourcePartition.entities(s)
-          val targetEntity = targetPartition.entities(t)
-          val entities = DPair(sourceEntity, targetEntity)
-          val attachedEntities = if(runtimeConfig.generateLinksWithEntities) Some(entities) else None
-          val confidence = linkageRule(entities, 0.0)
+        //Iterate over all entities in the source partition
+        var s = 0
+        while(s < sourcePartition.size) {
+          //Iterate over all entities in the target partition
+          var t = if (sourceEqualsTarget && sourcePartitionIndex == targetPartitionIndex) s + 1 else 0
+          while(t < targetPartition.size) {
+            //Check if the indices match
+            if(!runtimeConfig.blocking.isEnabled || (sourcePartition.indices(s) matches targetPartition.indices(t))) {
+              val sourceEntity = sourcePartition.entities(s)
+              val targetEntity = targetPartition.entities(t)
+              val entities = DPair(sourceEntity, targetEntity)
+              val attachedEntities = if(runtimeConfig.generateLinksWithEntities) Some(entities) else None
+              val confidence = linkageRule(entities, 0.0)
 
-          if (confidence >= 0.0) {
-            links ::= new Link(sourceEntity.uri, targetEntity.uri, Some(confidence), attachedEntities)
+              if (confidence >= 0.0) {
+                links ::= new Link(sourceEntity.uri, targetEntity.uri, Some(confidence), attachedEntities)
+              }
+            }
+            t += 1
           }
+          s += 1
         }
+
       }
       catch {
         case ex: Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
