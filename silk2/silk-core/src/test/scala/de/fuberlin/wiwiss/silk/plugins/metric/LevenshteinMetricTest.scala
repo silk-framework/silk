@@ -3,6 +3,10 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class LevenshteinMetricTest extends FlatSpec with ShouldMatchers {
   //  val metric = new LevenshteinMetric()
   //

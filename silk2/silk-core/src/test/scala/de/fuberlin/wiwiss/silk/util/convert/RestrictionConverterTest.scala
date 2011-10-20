@@ -6,6 +6,10 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, Restriction}
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Or, Condition}
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
