@@ -139,7 +139,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       sparql += "?" + varPrefix + "0\n"
 
       //Graph
-      for (graph <- graphUri) sparql += "FROM <" + graph + ">\n"
+      for (graph <- graphUri if !graph.isEmpty) sparql += "FROM <" + graph + ">\n"
 
       //Body
       sparql += "WHERE {\n"

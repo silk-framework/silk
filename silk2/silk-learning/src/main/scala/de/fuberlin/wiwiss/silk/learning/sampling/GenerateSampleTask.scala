@@ -59,6 +59,8 @@ class GenerateSampleTask(sources: Traversable[Source],
 
     var links = op.getLinks()
 
+    //TODO check if any links have been loaded and warn
+
     population = new PopulationFromSample(links).evaluate()
     updateStatus("Sampling", 0.9)
 
