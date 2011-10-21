@@ -18,6 +18,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule._
 import de.fuberlin.wiwiss.silk.plugins.metric.{EqualityMetric, LevenshteinDistance}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import util.Random
+import de.fuberlin.wiwiss.silk.util.RandomUtils._
 
 class GenerateSampleTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
@@ -73,10 +74,9 @@ class GenerateSampleTask(sources: Traversable[Source],
     val links = Array.fill(paths.source.size, paths.target.size)(Seq[Link]())
 
     def getLinks() = {
-      //TODO choose random instead of head
       val a = links.flatten.flatten
-      val c = a.groupBy(_.source).values.map(_.head)
-               .groupBy(_.target).values.map(_.head)
+      val c = a.groupBy(_.source).values.map(randomElement(_))
+               .groupBy(_.target).values.map(randomElement(_))
       Random.shuffle(c.toSeq).take(1000)
     }
 
