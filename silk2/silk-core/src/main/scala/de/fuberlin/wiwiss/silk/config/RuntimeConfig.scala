@@ -14,7 +14,7 @@ package de.fuberlin.wiwiss.silk.config
 case class RuntimeConfig(blocking: Blocking = Blocking(),
                          useFileCache: Boolean = true,
                          reloadCache: Boolean = true,
-                         partitionSize: Int = 1000,
+                         partitionSize: Int = 10000,
                          numThreads: Int = 8,
                          generateLinksWithEntities: Boolean = false,
                          homeDir: String = System.getProperty("user.home") + "/.silk/") {

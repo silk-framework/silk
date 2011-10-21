@@ -5,6 +5,10 @@ import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
 import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class QuadraticMeanAggregatorTest extends FlatSpec with ShouldMatchers {
   val aggregator = new QuadraticMeanAggregator()
 

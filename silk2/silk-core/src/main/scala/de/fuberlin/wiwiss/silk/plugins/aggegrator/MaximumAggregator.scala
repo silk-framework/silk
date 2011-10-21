@@ -25,5 +25,5 @@ case class MaximumAggregator() extends Aggregator {
   /**
    * Combines two indexes into one.
    */
-  override def combineIndexes(index1: Index, index2: Index)= index1 disjunction index2
+  override def combineIndexes(index1: Index, index2: Index)= index1 merge index2
 }

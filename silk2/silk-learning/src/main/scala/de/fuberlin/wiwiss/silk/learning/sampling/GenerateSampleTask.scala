@@ -17,6 +17,7 @@ import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, Prefixes, LinkSpecificatio
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule._
 import de.fuberlin.wiwiss.silk.plugins.metric.{EqualityMetric, LevenshteinDistance}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
+import util.Random
 
 class GenerateSampleTask(sources: Traversable[Source],
                       linkSpec: LinkSpecification,
@@ -55,11 +56,7 @@ class GenerateSampleTask(sources: Traversable[Source],
     executeSubTask(generateLinksTask, 0.8, true)
     updateStatus("Generating population")
 
-    //for(link <- op.getLinks()) println(link)
-
     var links = op.getLinks()
-
-    println("EVALUATING " + links.size)
 
     population = new PopulationFromSample(links).evaluate()
     updateStatus("Sampling", 0.9)
@@ -80,7 +77,7 @@ class GenerateSampleTask(sources: Traversable[Source],
       val a = links.flatten.flatten
       val c = a.groupBy(_.source).values.map(_.head)
                .groupBy(_.target).values.map(_.head)
-      c.take(1000).toSeq
+      Random.shuffle(c.toSeq).take(1000)
     }
 
     val metric = EqualityMetric()
@@ -114,16 +111,15 @@ class GenerateSampleTask(sources: Traversable[Source],
     val weight = 1
 
     def index(entity: Entity, limit: Double): Index = {
-//      val entities = DPair.fill(entity)
-//
-//      val allPaths = paths.source.toSet ++ paths.target.toSet
-//
-//      val inputs = allPaths.map(p => PathInput(path = p))
-//
-//      val index = inputs.map(i => i(entities)).map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
-//
-//      index
-      Index.default
+      val entities = DPair.fill(entity)
+
+      val allPaths = paths.source.toSet ++ paths.target.toSet
+
+      val inputs = allPaths.map(p => PathInput(path = p))
+
+      val index = inputs.map(i => i(entities)).map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
+
+      index
     }
 
     def toXML(implicit prefixes: Prefixes): Node = throw new UnsupportedOperationException("Cannot serialize " + getClass.getName)

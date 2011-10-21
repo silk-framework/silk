@@ -4,6 +4,10 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class DateTimeMetricTest extends FlatSpec with ShouldMatchers {
   val metric = new DateTimeMetric()
 

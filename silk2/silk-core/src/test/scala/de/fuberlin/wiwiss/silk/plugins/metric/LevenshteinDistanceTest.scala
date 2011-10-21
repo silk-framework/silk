@@ -2,9 +2,10 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.util.DPair
-import util.Random
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
+@RunWith(classOf[JUnitRunner])
 class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers {
 
   val metric = new LevenshteinDistance()
