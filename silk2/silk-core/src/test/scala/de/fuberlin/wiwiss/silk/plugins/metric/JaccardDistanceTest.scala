@@ -4,6 +4,10 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class JaccardDistanceTest extends FlatSpec with ShouldMatchers {
   val distance = new JaccardDistance()
 

@@ -10,6 +10,10 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualToOption
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class AggregationTest extends FlatSpec with ShouldMatchers {
   val aggregator = new AverageAggregator()
 

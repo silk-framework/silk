@@ -51,7 +51,7 @@ class SampleLinksControl extends DynamicButton {
           //Categorize links
           val posLinks = links.filter(_.confidence.get > 0.99).take(3)
           val negLinks = links.filter(_.confidence.get < -0.99).take(3)
-          val valLinks = links.filter(l => l.confidence.get >= -0.99 && l.confidence.get <= 0.99).take(5)
+          val valLinks = links.filter(l => l.confidence.get >= -0.99 && l.confidence.get <= 0.99).take(10)
 
           //Add new reference links
           val project = User().project

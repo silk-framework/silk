@@ -21,7 +21,7 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.5")
+  println("Silk Link Discovery Framework - Version 2.5.1")
 
   //Register all available plugins
   Plugins.register()

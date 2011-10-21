@@ -3,6 +3,10 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
 class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
   val metric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs who", nonStopwordWeight = 0.1, stopwordWeight = 0.001)
 

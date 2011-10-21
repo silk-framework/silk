@@ -49,8 +49,4 @@ case class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Doubl
       Index.default
     }
   }
-
-  private def blockCount(limit: Double) = {
-    min(maxBlockCount, ((maxValue - minValue) / limit * blockOverlap).toInt)
-  }
 }
