@@ -1287,14 +1287,12 @@ function loadInstance(index) {
         }
 
         elements[i][2] = endpoint_right;
-        elements[i][3] = jsPlumb.getEndpoint(elements[i][1]);
         jsPlumb.draggable(box);
     }
 
     for (var j = 0; j<elements.length; j++) {
         var endp_left = elements[j][2];
-        var endp_right = elements[j][3];
-
+        var endp_right = jsPlumb.getEndpoint(elements[j][1]);
         if (endp_left && endp_right) {
             jsPlumb.connect({
                 sourceEndpoint: endp_left,
