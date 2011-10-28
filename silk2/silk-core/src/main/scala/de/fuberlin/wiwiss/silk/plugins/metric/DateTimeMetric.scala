@@ -10,10 +10,11 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
   label = "DateTime",
   description = "Distance between two date time values (xsd:dateTime format) in seconds.")
 case class DateTimeMetric() extends SimpleDistanceMeasure {
+
+  private val datatypeFactory = DatatypeFactory.newInstance
+
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     try {
-      val datatypeFactory = DatatypeFactory.newInstance
-
       val date1 = datatypeFactory.newXMLGregorianCalendar(str1)
       val date2 = datatypeFactory.newXMLGregorianCalendar(str2)
 
