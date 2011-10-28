@@ -19,7 +19,7 @@ object SourceTaskDialog extends PluginDialog[DataSource] {
 
   override protected val fields = nameField :: Nil
 
-  override protected val plugins = DataSource.plugin("sparqlEndpoint") :: DataSource.plugin("file") :: Nil
+  override protected val plugins = DataSource.availablePlugins.toSeq
 
   //Close the current task if the window is closed
   override protected def dialogParams = ("close" -> "closeTask") :: super.dialogParams
