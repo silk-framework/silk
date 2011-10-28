@@ -10,7 +10,7 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
   override final def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
     var minDistance = Double.MaxValue
 
-    for (str1 <- values1; str2 <- values2) {
+    for (str1 <- values1; str2 <- values2 if minDistance > 0.0) {
       val distance = evaluate(str1, str2, min(limit, minDistance))
       minDistance = min(minDistance, distance)
     }
