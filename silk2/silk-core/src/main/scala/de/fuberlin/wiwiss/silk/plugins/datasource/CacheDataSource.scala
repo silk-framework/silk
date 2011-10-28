@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.cache.FileEntityCache
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
 
-@Plugin(id = "cache", label = "Cache")
+@Plugin(id = "cache", label = "Cache", description= "Reads the entities from an existing Silk entity cache.")
 case class CacheDataSource(dir: String) extends DataSource {
   private val file = new File(dir)
 

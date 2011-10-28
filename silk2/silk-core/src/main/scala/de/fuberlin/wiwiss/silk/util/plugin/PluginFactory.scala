@@ -3,13 +3,14 @@ package de.fuberlin.wiwiss.silk.util.plugin
 import java.io.File
 import java.net.{URL, URLClassLoader}
 import org.clapper.classutil._
+import collection.immutable.ListMap
 
 /**
  * An abstract Factory.
  */
 class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, String]) => T) {
-  /** Map of all plugins by their id */
-  private var plugins = Map[String, PluginDescription[T]]()
+  /** Map of all plugins by their id. This is a list map as it preserves the iteration order of the entries. */
+  private var plugins = ListMap[String, PluginDescription[T]]()
 
   /**
    * Creates a new instance of a specific plugin.
@@ -40,7 +41,7 @@ class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, Str
   /**
    * List of all registered plugins.
    */
-  def availablePlugins: Traversable[PluginDescription[T]] = plugins.values
+  def availablePlugins: Seq[PluginDescription[T]] = plugins.values.toSeq
 
   /**
    * Registers a single plugin.
