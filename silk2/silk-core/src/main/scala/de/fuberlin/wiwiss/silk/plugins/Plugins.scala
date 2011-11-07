@@ -47,6 +47,7 @@ object Plugins {
     Transformer.register(classOf[RemoveBlanksTransformer])
     Transformer.register(classOf[LowerCaseTransformer])
     Transformer.register(classOf[UpperCaseTransformer])
+    Transformer.register(classOf[CapitalizeTransformer])
     Transformer.register(classOf[NumReduceTransformer])
     Transformer.register(classOf[StemmerTransformer])
     Transformer.register(classOf[StripPrefixTransformer])
