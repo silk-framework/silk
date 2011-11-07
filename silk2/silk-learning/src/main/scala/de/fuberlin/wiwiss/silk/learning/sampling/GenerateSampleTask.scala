@@ -55,16 +55,27 @@ class GenerateSampleTask(sources: Traversable[Source],
     generateLinksTask.value.onUpdate(listener)
     updateStatus(0.0)
     executeSubTask(generateLinksTask, 0.8, true)
-    updateStatus("Generating population")
+
 
     var links = op.getLinks()
 
     //TODO check if any links have been loaded and warn
 
-    population = new PopulationFromSample(links).evaluate()
+    if(population.isEmpty) {
+      updateStatus("Generating population")
+      population = new PopulationFromSample(links).evaluate()
+    }
+
     updateStatus("Sampling", 0.9)
 
-    links = new SampleFromPopulationTask(population, links).apply()
+//    val link = links.find(l => l.source == "http://dbpedia.org/resource/Topaz_%281969_film%29" && l.target == "http://data.linkedmdb.org/resource/film/230").get
+//    val rating = rate(link)
+//    println(rating)
+
+
+    val filteredPopulation = FilterPopulation(population, links)
+
+    links = new SampleFromPopulationTask(filteredPopulation, links).apply()
 
     value.update(links)
 
@@ -94,12 +105,23 @@ class GenerateSampleTask(sources: Traversable[Source],
           (targetPath, targetIndex) <- paths.target.zipWithIndex) {
         val sourceValues = entities.source.evaluate(sourcePath)
         val targetValues = entities.target.evaluate(targetPath)
+        val size = links(sourceIndex)(targetIndex).size
+        val labelLinks = links(0)(0).size
 
-        if(links(sourceIndex)(targetIndex).size <= 1000 && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
+//        if(entities.source.uri == "http://dbpedia.org/resource/Jagged_Edge_%28film%29" && entities.target.uri == "http://data.linkedmdb.org/resource/film/1932") {
+//          links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
+//        }
+
+//        if(entities.source.uri == "http://dbpedia.org/resource/Topaz_%281969_film%29" && entities.target.uri == "http://data.linkedmdb.org/resource/film/230") {
+//          links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
+//        }
+
+        if(size <= 1000 && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
           links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
+          //println(sourceIndex + " - " + targetIndex)
         }
 
-        if (links(sourceIndex)(targetIndex).size > 1000 && links(0)(0).size > 1000)
+        if (size > 1000 && labelLinks > 100)
           generateLinksTask.cancel()
       }
 
