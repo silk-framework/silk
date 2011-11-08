@@ -18,7 +18,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   private val maxEntities = 100
 
   /**The minimum frequency of a property to be considered relevant */
-  private val MinFrequency = 0.7
+  private val MinFrequency = 0.01
 
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
