@@ -14,7 +14,7 @@ import java.io.{File, FileInputStream}
  * - '''file''': The RDF file
  * - '''format''': The format of the RDF file. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3"
  */
-@Plugin(id = "file", label = "RDF dump", description = "DataSource which retrieves all entities from an RDF file. By default the dumps are read from {user.dir}/.silk/datasets/")
+@Plugin(id = "file", label = "RDF dump", description = "DataSource which retrieves all entities from an RDF file. By default the dumps are read from {user.dir}/.silk/datasets/. Suported formats are: \"RDF/XML\", \"N-TRIPLE\", \"TURTLE\", \"TTL\", \"N3\"")
 case class FileDataSource(file: String, format: String) extends DataSource {
   private val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.home") + "/.silk/datasets/" + file
 
