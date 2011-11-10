@@ -65,7 +65,7 @@ class ReferenceLinksContent extends LinksContent {
 
             new EvalLink(
               link = evaluatedLink,
-              correct = if (evaluatedLink.confidence.get >= 0.0) Correct else Incorrect,
+              correct = if (evaluatedLink.confidence.getOrElse(-1.0) >= 0.0) Correct else Incorrect,
               linkType = Positive
             )
           }
@@ -87,7 +87,7 @@ class ReferenceLinksContent extends LinksContent {
 
             new EvalLink(
               link = evaluatedLink,
-              correct = if (evaluatedLink.confidence.get >= 0.0) Incorrect else Correct,
+              correct = if (evaluatedLink.confidence.getOrElse(-1.0) >= 0.0) Incorrect else Correct,
               linkType = Negative
             )
           }

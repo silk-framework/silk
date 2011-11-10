@@ -55,17 +55,17 @@ object LinkageRuleEvaluator {
     //      }
     //    }
 
-    //    val score =
-    //    {
-    //      val cross = positiveScore * negativeScore - negativeError * positiveError
-    //      val sum = (positiveScore + negativeError) * (positiveScore + positiveError) * (negativeScore + negativeError) * (negativeScore + positiveError)
-    //
-    //      if(sum != 0.0) cross.toDouble / sqrt(sum.toDouble) else 0.0
-    //    }
-
-    val score = {
-      (positiveScore / (positiveScore + positiveError)) * (negativeScore / (negativeScore + negativeError))
-    }
+//        val score =
+//        {
+//          val cross = positiveScore * negativeScore - negativeError * positiveError
+//          val sum = (positiveScore + negativeError) * (positiveScore + positiveError) * (negativeScore + negativeError) * (negativeScore + positiveError)
+//
+//          if(sum != 0.0) cross.toDouble / math.sqrt(sum.toDouble) else 0.0
+//        }
+//
+//    val score = {
+//      (positiveScore / (positiveScore + positiveError)) * (negativeScore / (negativeScore + negativeError))
+//    }
 
     new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
   }

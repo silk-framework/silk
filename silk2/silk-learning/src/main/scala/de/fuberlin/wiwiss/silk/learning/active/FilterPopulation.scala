@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.learning.sampling
+package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.util.DPair._
@@ -8,13 +8,13 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.util.DPair
 
-object FilterPopulation {
-  def apply(population: Population, links: Seq[Link]) = {
+private object FilterPopulation {
+  def apply(population: Population, links: Traversable[Link]) = {
     Population(population.individuals.filter(i => rateRule(i.node.build, links)))
   }
 
-  private def rateRule(rule: LinkageRule, links: Seq[Link]): Boolean = {
-    val entityPairs = links.map(_.entities.get)
+  private def rateRule(rule: LinkageRule, links: Traversable[Link]): Boolean = {
+    val entityPairs = links.toSeq.map(_.entities.get)
     val shuffledEntityPairs = for((s, t) <- entityPairs.map(_.source) zip (entityPairs.tail.map(_.target) :+ entityPairs.head.target)) yield DPair(s, t)
 
     val count = (entityPairs ++ shuffledEntityPairs).filter(rule(_) > 0).size

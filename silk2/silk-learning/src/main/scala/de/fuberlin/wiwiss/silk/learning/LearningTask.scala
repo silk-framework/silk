@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
  * Learns a linkage rule from reference links.
  */
 class LearningTask(input: LearningInput = LearningInput.empty,
-                   config: LearningConfiguration = LearningConfiguration.empty) extends ValueTask[LearningResult](LearningResult()) {
+                   config: LearningConfiguration = LearningConfiguration.load()) extends ValueTask[LearningResult](LearningResult()) {
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val scoreEpsilon = 0.0001

@@ -52,9 +52,12 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 
 object LinkageRuleGenerator {
 
-  def apply(entities: ReferenceEntities, components: Components) = {
-    val paths = entities.positive.values.head.map(_.desc.paths)
-
-    new LinkageRuleGenerator((new PathPairGenerator(components).apply(entities) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
+  def apply(entities: ReferenceEntities, components: Components = Components()) = {
+    if(entities.positive.isEmpty)
+      new LinkageRuleGenerator(IndexedSeq.empty, components)
+    else {
+      val paths = entities.positive.values.head.map(_.desc.paths)
+      new LinkageRuleGenerator((new PathPairGenerator(components).apply(entities) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
+    }
   }
 }
