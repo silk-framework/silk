@@ -45,7 +45,8 @@ class PathPairGenerator(components: Components) {
 
   private def createGenerators(pathPair: DPair[Path]) = {
     new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 2.0) ::
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) :: Nil
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
+    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("date", Nil, DistanceMeasure), 1000.0) :: Nil
   }
 
   /**
@@ -105,7 +106,7 @@ class PathPairGenerator(components: Components) {
         val negativeMatches = entities.negative.values.filter(i => matches(i, pathPair))
         val negative = negativeMatches.size.toDouble / entities.negative.size
 
-        positive >= negative
+        positive > 0 && positive * 2.0 >= negative
       }
       else {
         //TODO use a threshold higher than 0 here?

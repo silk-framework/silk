@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.learning.sampling
+package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.learning.LearningInput._
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator._
@@ -14,7 +14,7 @@ import util.Random
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 
-class PopulationFromSample(links: Seq[Link]) {
+private class PopulationFromSample(links: Traversable[Link]) {
 
   def evaluate() = {
     val input = LearningInput()//TODO Include current linkage rule?

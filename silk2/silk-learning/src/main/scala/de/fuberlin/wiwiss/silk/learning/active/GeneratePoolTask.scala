@@ -1,45 +1,30 @@
-package de.fuberlin.wiwiss.silk.learning.sampling
+package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.learning.individual.Population._
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
-import de.fuberlin.wiwiss.silk.{LoadTask, GenerateLinksTask}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
-import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
-import de.fuberlin.wiwiss.silk.plugins.metric.LevenshteinDistance._
-import de.fuberlin.wiwiss.silk.entity.{Index, Entity, Link, Path}
-import xml.Node
-import de.fuberlin.wiwiss.silk.config.RuntimeConfig._
-import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, Prefixes, LinkSpecification}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule._
-import de.fuberlin.wiwiss.silk.plugins.metric.{EqualityMetric, LevenshteinDistance}
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
-import util.Random
 import de.fuberlin.wiwiss.silk.util.RandomUtils._
+import util.Random
+import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
+import xml.Node
+import de.fuberlin.wiwiss.silk.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.entity.{Path, Index, Entity, Link}
+import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.plugins.metric.EqualityMetric
+import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 
-class GenerateSampleTask(sources: Traversable[Source],
-                      linkSpec: LinkSpecification,
-                      paths: DPair[Seq[Path]],
-                      referenceEntities: ReferenceEntities = ReferenceEntities.empty,
-                      var population: Population = Population()) extends ValueTask[Seq[Link]](Seq.empty) {
+private class GeneratePoolTask(sources: Traversable[Source],
+                       linkSpec: LinkSpecification,
+                       paths: DPair[Seq[Path]]) extends ValueTask[Seq[Link]](Seq.empty) {
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-  def links = value.get
+  private var generateLinksTask: GenerateLinksTask = _
 
   override protected def execute(): Seq[Link] = {
-    sampleLinks()
-  }
-
-  var generateLinksTask: GenerateLinksTask = _
-
-  private def sampleLinks() = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
-                           linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
-
+                          linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
     val op = new TestOperator()
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
@@ -56,30 +41,9 @@ class GenerateSampleTask(sources: Traversable[Source],
     updateStatus(0.0)
     executeSubTask(generateLinksTask, 0.8, true)
 
-
-    var links = op.getLinks()
-
-    //TODO check if any links have been loaded and warn
-
-    if(population.isEmpty) {
-      updateStatus("Generating population")
-      population = new PopulationFromSample(links).evaluate()
-    }
-
-    updateStatus("Sampling", 0.9)
-
-//    val link = links.find(l => l.source == "http://dbpedia.org/resource/Topaz_%281969_film%29" && l.target == "http://data.linkedmdb.org/resource/film/230").get
-//    val rating = rate(link)
-//    println(rating)
-
-
-    val filteredPopulation = FilterPopulation(population, links)
-
-    links = new SampleFromPopulationTask(filteredPopulation, links).apply()
-
-    value.update(links)
-
-    links
+    val pool = op.getLinks()
+    assert(!pool.isEmpty, "Could not load any links")
+    pool
   }
 
   private class TestOperator() extends SimilarityOperator {
@@ -148,8 +112,4 @@ class GenerateSampleTask(sources: Traversable[Source],
 
     def toXML(implicit prefixes: Prefixes): Node = throw new UnsupportedOperationException("Cannot serialize " + getClass.getName)
   }
-}
-
-object GenerateSampleTask {
-  def empty = new GenerateSampleTask(Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty, Population())
 }

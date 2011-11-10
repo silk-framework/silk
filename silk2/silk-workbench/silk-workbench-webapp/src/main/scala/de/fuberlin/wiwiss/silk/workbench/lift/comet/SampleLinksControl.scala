@@ -3,9 +3,9 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListener}
-import de.fuberlin.wiwiss.silk.learning.sampling.GenerateSampleTask
-import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentValidationLinks, CurrentPopulation, CurrentSampleLinksTask}
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
+import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentPool, CurrentValidationLinks, CurrentPopulation, CurrentSampleLinksTask}
 
 class SampleLinksControl extends DynamicButton {
 
@@ -19,11 +19,12 @@ class SampleLinksControl extends DynamicButton {
   override protected def onPressed() = {
     if (!CurrentSampleLinksTask().status.isRunning) {
       val sampleLinksTask =
-        new GenerateSampleTask(
+        new ActiveLearningTask(
           sources = User().project.sourceModule.tasks.map(_.source),
           linkSpec = User().linkingTask.linkSpec,
           paths = User().linkingTask.cache.entityDescs.map(_.paths),
           referenceEntities = User().linkingTask.cache.entities,
+          pool = CurrentPool(),
           population = CurrentPopulation()
         )
 
@@ -45,26 +46,29 @@ class SampleLinksControl extends DynamicButton {
         case _: TaskStarted => label = "Stop"
         case _: TaskFinished => partialUpdate {
           label = "Start"
+          CurrentPool() = task.pool
           CurrentPopulation() = task.population
           val links = task.links
 
+          println("Best: " + task.population.bestIndividual.fitness.mcc)
+
           //Categorize links
-          val posLinks = links.filter(_.confidence.get > 0.99).take(3)
-          val negLinks = links.filter(_.confidence.get < -0.99).take(3)
-          val valLinks = links.filter(l => l.confidence.get >= -0.99 && l.confidence.get <= 0.99).sortBy(_.confidence.get.abs)//.take(10)
+          //val posLinks = links.filter(_.confidence.get > 0.99).take(3)
+          //val negLinks = links.filter(_.confidence.get < -0.99).take(3)
+          //val valLinks = links.filter(l => l.confidence.get >= -0.99 && l.confidence.get <= 0.99)//.take(10)
 
           //Add new reference links
-          val project = User().project
-          val linkingTask = User().linkingTask
-          val referenceLinks = linkingTask.referenceLinks
-          val updatedReferenceLinks = ReferenceLinks(referenceLinks.positive ++ posLinks, referenceLinks.negative ++ negLinks)
-          val updatedTask = linkingTask.updateReferenceLinks(updatedReferenceLinks, project)
-
-          project.linkingModule.update(updatedTask)
-          User().task = updatedTask
+//          val project = User().project
+//          val linkingTask = User().linkingTask
+//          val referenceLinks = linkingTask.referenceLinks
+//          val updatedReferenceLinks = ReferenceLinks(referenceLinks.positive ++ posLinks, referenceLinks.negative ++ negLinks)
+//          val updatedTask = linkingTask.updateReferenceLinks(updatedReferenceLinks, project)
+//
+//          project.linkingModule.update(updatedTask)
+//          User().task = updatedTask
 
           //Set validation links
-          CurrentValidationLinks() = valLinks ++ posLinks ++ negLinks
+          CurrentValidationLinks() = links
         }
         case _ =>
       }

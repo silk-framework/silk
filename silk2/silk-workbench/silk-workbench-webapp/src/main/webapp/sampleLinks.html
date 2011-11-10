@@ -14,12 +14,15 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:sampleLinksToolbar form="POST">
+    <lift:sampleLinksToolbar>
       <ul>
         <li>
           <lift:comet type="SampleLinksControl" name="SampleLinksControl" />
         </li>
         <li>
+          <lift:comet type="LearnStatus" name="LearnStatus" />
+        </li>
+        <li style="float:right; margin-right: 10px">
           <lift:comet type="SampleLinksProgress" name="SampleLinksProgress" />
         </li>
       </ul>

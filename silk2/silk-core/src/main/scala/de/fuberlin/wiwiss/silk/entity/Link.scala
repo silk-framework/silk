@@ -34,4 +34,9 @@ class Link(source: String,
   }
 
   override def hashCode = (source + target).hashCode
+
+  def update(source: String = source,
+            target: String = target,
+            confidence: Option[Double] = confidence,
+            entities: Option[DPair[Entity]] = entities) = new Link(source, target, confidence, entities)
 }
