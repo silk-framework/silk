@@ -17,12 +17,12 @@ import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity
 import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 import net.liftweb.http.js.JsCmds.{Confirm, OnLoad, SetHtml, Script}
-import de.fuberlin.wiwiss.silk.workbench.workspace.{UserDataListener, CurrentTaskStatusListener, CurrentTaskValueListener, User}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{TaskDataListener, CurrentTaskStatusListener, CurrentTaskValueListener, User}
 
 /**
  * Widget which shows the current population.
  */
-class LearnContent extends CometActor {
+class PopulationContent extends CometActor {
 
   /** The individuals to be rendered. */
   private def individuals = CurrentPopulation().individuals
@@ -36,7 +36,7 @@ class LearnContent extends CometActor {
   /**
    * Redraw the widget whenever the current population is updated.
    */
-  private val populationListener = new UserDataListener(CurrentPopulation) {
+  private val populationListener = new TaskDataListener(CurrentPopulation) {
     override def onUpdate(population: Population) {
       partialUpdate(updateListCmd)
     }

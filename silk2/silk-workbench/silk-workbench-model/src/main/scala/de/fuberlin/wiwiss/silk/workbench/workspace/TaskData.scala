@@ -107,7 +107,7 @@ object Listener {
   private val executor = Executors.newScheduledThreadPool(1)
 }
 
-abstract class UserDataListener[T](userData: TaskData[T]) extends Listener[T] {
+abstract class TaskDataListener[T](userData: TaskData[T]) extends Listener[T] {
   userData.onUpdate(Listener)
 
   private object Listener extends (T => Unit) {

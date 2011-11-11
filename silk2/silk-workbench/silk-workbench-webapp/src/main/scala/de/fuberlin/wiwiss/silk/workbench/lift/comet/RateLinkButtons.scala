@@ -7,6 +7,7 @@ import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 
 /**
  * Adds buttons to rate a link to a link list.
@@ -31,36 +32,26 @@ trait RateLinkButtons { self: LinksContent =>
     </div>
   }
 
-  private def confirmLink(link: Link) = {
-    val project = User().project
-    val referenceLinks = linkingTask.referenceLinks
-    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.withPositive(link), project)
-
-    project.linkingModule.update(updatedTask)
-    User().task = updatedTask
-
+  protected def confirmLink(link: Link) = {
+    updateReferenceLinks(linkingTask.referenceLinks.withPositive(link))
     JsShowId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink")) & JsHideId(getId(link, "undecidedLink"))
   }
 
-  private def declineLink(link: Link) = {
-    val project = User().project
-    val referenceLinks = linkingTask.referenceLinks
-    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.withNegative(link), project)
-
-    project.linkingModule.update(updatedTask)
-    User().task = updatedTask
-
+  protected def declineLink(link: Link) = {
+    updateReferenceLinks(linkingTask.referenceLinks.withNegative(link))
     JsShowId(getId(link, "declinedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "undecidedLink"))
   }
 
-  private def resetLink(link: Link) = {
+  protected def resetLink(link: Link) = {
+    updateReferenceLinks(linkingTask.referenceLinks.without(link))
+    JsShowId(getId(link, "undecidedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))
+  }
+
+  protected def updateReferenceLinks(referenceLinks: ReferenceLinks) {
     val project = User().project
-    val referenceLinks = linkingTask.referenceLinks
-    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks.without(link), project)
+    val updatedTask = linkingTask.updateReferenceLinks(referenceLinks, project)
 
     project.linkingModule.update(updatedTask)
     User().task = updatedTask
-
-    JsShowId(getId(link, "undecidedLink")) & JsHideId(getId(link, "confirmedLink")) & JsHideId(getId(link, "declinedLink"))
   }
 }
