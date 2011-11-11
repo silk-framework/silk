@@ -125,7 +125,7 @@ function confirmExit()
 {
   if(confirmOnExit)
   {
-    return "The current link specification is invalid. Leaving the editor will revert to the last valid link specification.";
+    return "The current linkage rule is invalid. Leaving the editor will revert to the last valid linkage rule.";
   }
 }
 

@@ -8,6 +8,7 @@ import java.util.UUID
 import xml.Text
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, TaskDataListener}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.LinkageRuleTree
+import net.liftweb.http.js.JE.JsRaw
 
 class LearnStatus extends CometActor {
 
@@ -18,7 +19,7 @@ class LearnStatus extends CometActor {
    */
   private val populationListener = new TaskDataListener(CurrentPopulation) {
     override def onUpdate(population: Population) {
-      partialUpdate(SetHtml(id, renderPopulation(population)))
+      partialUpdate(SetHtml(id, renderPopulation(population)) & JsRaw("initTrees()").cmd)
     }
   }
 

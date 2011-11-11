@@ -24,7 +24,7 @@ private class GeneratePoolTask(sources: Traversable[Source],
 
   override protected def execute(): Seq[Link] = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
-                          linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
+                           linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
     val op = new TestOperator()
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 

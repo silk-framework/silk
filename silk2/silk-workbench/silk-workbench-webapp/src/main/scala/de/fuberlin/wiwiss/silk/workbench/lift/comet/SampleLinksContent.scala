@@ -41,6 +41,8 @@ class SampleLinksContent extends LinksContent with RateLinkButtons {
   }
 
   private def startActiveLearningTask() {
+    User().linkingTask.cache.waitUntilLoaded()
+
     val task =
       new ActiveLearningTask(
         sources = User().project.sourceModule.tasks.map(_.source),
