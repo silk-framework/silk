@@ -48,7 +48,6 @@ class ActiveLearningTask(sources: Traversable[Source],
       for(i <- 1 to 3) {
         population = executeSubTask(new ReproductionTask(population, referenceEntities, generator, config), 0.9 + i / 3.0)
       }
-      println("P:" + referenceEntities.positive.size + " N: " + referenceEntities.negative.size)
     }
 
     //Sample links

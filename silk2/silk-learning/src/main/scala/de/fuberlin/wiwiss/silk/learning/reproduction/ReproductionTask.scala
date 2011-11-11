@@ -36,7 +36,10 @@ class ReproductionTask(population: Population, referenceEntities: ReferenceEntit
   private val individuals = population.individuals.toArray
 
   override def execute(): Population = {
-    val elite = individuals.sortBy(-_.fitness.score).take(config.reproduction.elitismCount)
+    //Get the best individuals and recompute their fitness as the reference links may have changed
+    val elite = individuals.sortBy(-_.fitness.score)
+                           .take(config.reproduction.elitismCount)
+                           .map(i => i.copy(fitness = LinkageRuleEvaluator(i.node.build, referenceEntities)))
 
     //Number of individuals to be generated
     val count = individuals.size - config.reproduction.elitismCount
@@ -56,21 +59,18 @@ class ReproductionTask(population: Population, referenceEntities: ReferenceEntit
     val sourceIndividual = select()
     val targetLinkageRule = if (Random.nextDouble < config.reproduction.mutationProbability) generator() else select().node
 
-    operator(DPair(sourceIndividual.node, targetLinkageRule)) match {
-      case Some(node) => {
-        val startTime = System.currentTimeMillis()
-
-        val fitness = LinkageRuleEvaluator(node.build, referenceEntities)
-
-        val time = System.currentTimeMillis() - startTime
-
-        Individual(node, fitness) //, if(keepHistory) Some(Individual.Base(operator, sourceIndividual)) else None, time)
+    val node =
+      operator(DPair(sourceIndividual.node, targetLinkageRule)) match {
+        case Some(resultNode) => {
+          resultNode
+        }
+        case None => {
+          //No compatible pairs for this operator found => return unmodified node
+          sourceIndividual.node
+        }
       }
-      case None => {
-        //No compatible pairs for this operator found => return unmodified node
-        sourceIndividual
-      }
-    }
+
+    Individual(node, LinkageRuleEvaluator(node.build, referenceEntities))
   }
 
   private def select(): Individual = {
