@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.UserData
+import de.fuberlin.wiwiss.silk.workbench.workspace.TaskData
 
-object LinkSorter extends UserData[LinkSorter](NoSorter)
+object LinkSorter extends TaskData[LinkSorter](NoSorter)
 {
   def sort(links : Seq[EvalLink]) : Seq[EvalLink] =
   {

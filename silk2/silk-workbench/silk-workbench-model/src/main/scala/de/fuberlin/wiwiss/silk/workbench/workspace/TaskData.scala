@@ -1,18 +1,22 @@
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import collection.mutable.{Subscriber, Publisher, WeakHashMap}
+import collection.mutable.WeakHashMap
 import de.fuberlin.wiwiss.silk.util.Observable
-import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, Task, HasStatus, ValueTask}
-import java.util.concurrent.{TimeUnit, Callable, Executors}
-import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
+import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, HasStatus, ValueTask}
+import java.util.concurrent.{TimeUnit, Executors}
 import java.util.logging.{Logger, Level}
 
 /**
- * Holds user specific data.
+ * Holds temporary user data for the current task.
+ *
+ * @param initialValue The initial value for a new task.
  */
-class UserData[T](initialValue: T) extends Observable[T] {
+class TaskData[T](initialValue: T) extends Observable[T] {
   /** Holds the current values of all users. */
   private val values = new WeakHashMap[User, T]()
+
+  /** Holds the listeners for all users. */
+  private val listeners = new WeakHashMap[User, User.Message => Unit]()
 
   /**
    * Retrieves the current value.
@@ -28,8 +32,22 @@ class UserData[T](initialValue: T) extends Observable[T] {
    * Updates the current value.
    */
   def update(newValue: T) {
-    values.update(User(), newValue)
+    val user = User()
+    //Update task value for this user
+    values.update(user, newValue)
+    //Reset value as soon as the task is changed
+    val handler = new MessageHandler(user)
+    user.onUpdate(handler)
+    listeners.update(user, handler)
+    //Publish new value to observers
     publish(newValue)
+  }
+
+  private class MessageHandler(user: User) extends (User.Message => Unit) {
+    def apply(msg: User.Message) {
+      if(msg.isInstanceOf[User.CurrentTaskChanged])
+        values.update(user, initialValue)
+    }
   }
 }
 
@@ -89,7 +107,7 @@ object Listener {
   private val executor = Executors.newScheduledThreadPool(1)
 }
 
-abstract class UserDataListener[T](userData: UserData[T]) extends Listener[T] {
+abstract class UserDataListener[T](userData: TaskData[T]) extends Listener[T] {
   userData.onUpdate(Listener)
 
   private object Listener extends (T => Unit) {
@@ -102,7 +120,7 @@ abstract class UserDataListener[T](userData: UserData[T]) extends Listener[T] {
 /**
  * Listens to the current value of the current users task.
  */
-abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]) extends Listener[T] {
+abstract class CurrentTaskValueListener[T](userData: TaskData[_ <: ValueTask[T]]) extends Listener[T] {
   userData.onUpdate(Listener)
 
   private object Listener extends (ValueTask[T] => Unit) {
@@ -121,7 +139,7 @@ abstract class CurrentTaskValueListener[T](userData: UserData[_ <: ValueTask[T]]
 /**
  * Listens to the current status of the current users task.
  */
-class CurrentTaskStatusListener[TaskType <: HasStatus](userData: UserData[TaskType]) extends Listener[TaskStatus] with HasStatus {
+class CurrentTaskStatusListener[TaskType <: HasStatus](userData: TaskData[TaskType]) extends Listener[TaskStatus] with HasStatus {
   updateStatus(userData().status)
   userData.onUpdate(Listener)
   statusLogLevel = Level.FINEST

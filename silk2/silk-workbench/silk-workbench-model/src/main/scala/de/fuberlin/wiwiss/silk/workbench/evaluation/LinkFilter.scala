@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.UserData
+import de.fuberlin.wiwiss.silk.workbench.workspace.TaskData
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
 
-object LinkFilter extends UserData[String]("") {
+object LinkFilter extends TaskData[String]("") {
   def filter(links : Seq[EvalLink]) : Seq[EvalLink] = {
     val value = apply().trim.toLowerCase
 

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
-import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserData}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{User, TaskData}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import net.liftweb.http.SHtml
 import xml.NodeSeq

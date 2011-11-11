@@ -61,7 +61,6 @@ trait User extends Observable[User.Message] {
    */
   def closeTask() {
     currentTask = None
-    CurrentGenerateLinksTask() = GenerateLinksTask.empty
   }
 
   /**
