@@ -7,6 +7,7 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import java.util.UUID
 import xml.Text
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, TaskDataListener}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.LinkageRuleTree
 
 class LearnStatus extends CometActor {
 
@@ -35,6 +36,7 @@ class LearnStatus extends CometActor {
     else
       Text("Fitness: " + "%.1f".format((population.bestIndividual.fitness.fMeasure) * 100) +
            "% Pos. Ref. Links: " + referenceLinks.positive.size +
-           " Neg. Ref. Links: " + referenceLinks.negative.size)
+           " Neg. Ref. Links: " + referenceLinks.negative.size) ++
+      LinkageRuleTree.render(population.bestIndividual.node.build)
   }
 }
