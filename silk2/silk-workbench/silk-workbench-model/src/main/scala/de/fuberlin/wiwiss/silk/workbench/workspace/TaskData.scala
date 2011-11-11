@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, HasStatus, ValueTask}
 import java.util.concurrent.{TimeUnit, Executors}
 import java.util.logging.{Logger, Level}
+import de.fuberlin.wiwiss.silk.workbench.workspace.User.CurrentTaskChanged
 
 /**
  * Holds temporary user data for the current task.
@@ -35,18 +36,21 @@ class TaskData[T](initialValue: T) extends Observable[T] {
     val user = User()
     //Update task value for this user
     values.update(user, newValue)
-    //Reset value as soon as the task is changed
-    val handler = new MessageHandler(user)
+    //Reset value if the task has been changed
+    val handler = new MessageHandler()
     user.onUpdate(handler)
     listeners.update(user, handler)
     //Publish new value to observers
     publish(newValue)
   }
 
-  private class MessageHandler(user: User) extends (User.Message => Unit) {
+  private class MessageHandler() extends (User.Message => Unit) {
     def apply(msg: User.Message) {
-      if(msg.isInstanceOf[User.CurrentTaskChanged])
-        values.update(user, initialValue)
+      msg match {
+        case CurrentTaskChanged(user, Some(previousTask), task) if previousTask.name != task.name =>
+          values.update(user, initialValue)
+        case _ =>
+      }
     }
   }
 }

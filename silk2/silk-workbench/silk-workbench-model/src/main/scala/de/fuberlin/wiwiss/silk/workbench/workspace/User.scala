@@ -34,8 +34,9 @@ trait User extends Observable[User.Message] {
    * Sets the current project of this user.
    */
   def project_=(project: Project) {
+    val previousProject = currentProject
     currentProject = Some(project)
-    publish(CurrentProjectChanged(project))
+    publish(CurrentProjectChanged(this, previousProject, project))
   }
 
   /**
@@ -52,8 +53,9 @@ trait User extends Observable[User.Message] {
    * Sets the current task of this user.
    */
   def task_=(task: ModuleTask) {
+    val previousTask = currentTask
     currentTask = Some(task)
-    publish(CurrentTaskChanged(task))
+    publish(CurrentTaskChanged(this, previousTask, task))
   }
 
   /**
@@ -129,10 +131,10 @@ object User {
   /**
    * Fired if the current project is changed.
    */
-  case class CurrentProjectChanged(project: Project) extends Message
+  case class CurrentProjectChanged(user: User, previousProject: Option[Project], project: Project) extends Message
 
   /**
    * Fired if the current task is changed.
    */
-  case class CurrentTaskChanged(task: ModuleTask) extends Message
+  case class CurrentTaskChanged(user: User, previousTask: Option[ModuleTask], task: ModuleTask) extends Message
 }
