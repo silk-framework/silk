@@ -10,7 +10,7 @@ trait LinksHelp extends Help {
       Confirms the link as correct. Confirmed links are part of the positive reference link set.
       <br/>
       <img src="./static/img/undecided.png"></img>
-      Contains link whose correctness is not decided i.e. which are not contained in the reference link sets.
+      Link whose correctness is undecided i.e. which is not contained in the reference link sets.
       <br/>
       <img src="./static/img/decline.png"></img>
       Confirms the link as incorrect. Incorrect links are part of the negative reference link set.
@@ -22,7 +22,7 @@ trait LinksHelp extends Help {
       You can add reference links the following ways:
       <ul>
         <li>Import existing reference links</li>
-        <li>Using the <em>Sample Links</em> Tab</li>
+        <li>Using the <em>Learn</em> Tab</li>
         <li>Using the <em>Generate Links</em> Tab</li>
       </ul>
     </div>

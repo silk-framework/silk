@@ -9,7 +9,6 @@ import xml.{NodeSeq, Elem}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JE.{Call, JsRaw}
-import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.learning.individual.{Population, Individual}
 import de.fuberlin.wiwiss.silk.learning.{LearningTask, LearningResult}
@@ -18,6 +17,7 @@ import de.fuberlin.wiwiss.silk.learning.LearningResult.Finished
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 import net.liftweb.http.js.JsCmds.{Confirm, OnLoad, SetHtml, Script}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{TaskDataListener, CurrentTaskStatusListener, CurrentTaskValueListener, User}
+import de.fuberlin.wiwiss.silk.workbench.lift.util.{LinkageRuleTree, JS}
 
 /**
  * Widget which shows the current population.
@@ -165,53 +165,8 @@ class PopulationContent extends CometActor {
     implicit val prefixes = User().project.config.prefixes
 
     <div class="individual-details" id={getId(individual, "details")}>
-      { renderLinkageRule(individual.node.build) }
+      { LinkageRuleTree.render(individual.node.build) }
     </div>
-  }
-
-  /**
-   * Renders a link condition as a tree.
-   */
-  private def renderLinkageRule(rule: LinkageRule)(implicit prefixes: Prefixes) = {
-    <ul class="details-tree">
-    { for(aggregation <- rule.operator.toList) yield renderOperator(aggregation) }
-    </ul>
-  }
-
-  /**
-   * Renders a link condition operator.
-   */
-  private def renderOperator(op: Operator): Elem = op match  {
-    case Aggregation(id, required, weight, aggregator, operators) => {
-      <li>
-        <span class="aggregation">Aggregation: {aggregator.pluginId}</span>
-        <ul>
-        { operators.map(renderOperator) }
-        </ul>
-      </li>
-    }
-    case Comparison(id, required, weight, threshold, metric, DPair(input1, input2)) => {
-      <li>
-        <span class="comparison">Comparison: {metric.pluginId} ({threshold.toString})</span>
-        <ul>
-          { renderOperator(input1) }
-          { renderOperator(input2) }
-        </ul>
-      </li>
-    }
-    case TransformInput(id, transformer, inputs) => {
-      <li>
-        <span class="transformation">Transformation: {transformer.pluginId}</span>
-        <ul>
-          { inputs.map(renderOperator) }
-        </ul>
-      </li>
-    }
-    case PathInput(id, path) => {
-      <li>
-        <span class="input">Input: {path.serialize}</span>
-      </li>
-    }
   }
 
   def loadIndividualCmd(individual: Individual) = {

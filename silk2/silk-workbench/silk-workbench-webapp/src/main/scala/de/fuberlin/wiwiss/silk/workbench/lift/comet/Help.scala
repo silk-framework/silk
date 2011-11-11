@@ -1,8 +1,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import xml.NodeSeq
-import net.liftweb.http.{SHtml, CometActor}
-import net.liftweb.http.js.JE.JsRaw
+import net.liftweb.http.CometActor
 
 /**
  * A widget which shows context-sensitive help to the current tab.
@@ -17,7 +16,7 @@ trait Help extends CometActor {
   protected def overview: NodeSeq
 
   /**
-   * A list of recommended actions
+   * A list of recommended actions.
    */
   protected def actions: NodeSeq = NodeSeq.Empty
 

@@ -2,7 +2,9 @@
 
   <lift:bind-at name="definitions">
 
+    <link type="text/css" href="static/css/table.css" rel="stylesheet" />
     <link type="text/css" href="static/css/links.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/linkageRuleTree.css" rel="stylesheet" />
     <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
     <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
 
@@ -14,7 +16,7 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:sampleLinksToolbar>
+    <lift:learnToolbar>
       <ul>
         <li>
           <lift:comet type="LearnControl" name="LearnControl" />
@@ -26,7 +28,7 @@
           <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
         </li>
       </ul>
-    </lift:sampleLinksToolbar>
+    </lift:learnToolbar>
   </lift:bind-at>
 
   <lift:bind-at name="content">

@@ -1,0 +1,49 @@
+body {
+  color: #656565;
+  background: #f7f7f7;
+}
+
+#wrapper {
+  border: 1px solid #DBDBDB;
+  background: #ffffff;
+  padding: 10px;
+  padding-bottom: 6px;
+}
+
+p {
+  margin-top: 4px;
+}
+
+a img {
+  border: none;
+}
+
+a {
+  color: #656565;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #1c1c1c;
+  text-decoration: none;
+}
+
+#results {
+  width: 1125px;
+  overflow: auto;
+  border-bottom: 1px solid #DBDBDB;
+}
+
+#filter {
+  float: right !important;
+  margin-right: 0px !important;
+}
+
+#filter input {
+  background: none repeat scroll 0 0 #faf9f9;
+  border: 1px solid #CCCCCC;
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1) inset;
+  padding: 2px;
+  color: #555555;
+}
+

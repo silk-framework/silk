@@ -51,7 +51,7 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
   /**
    * True, if there are positive as well as negative reference links.
    */
-  def isComplete = !positive.isEmpty && !negative.isEmpty
+  def isDefined = !positive.isEmpty && !negative.isEmpty
 
   /**
    * Serializes reference links as XML using the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
