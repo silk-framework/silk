@@ -14,6 +14,8 @@ class EvalLink(link: DetailedLink,
   def this(link: Link, correct: Correctness, linkType: LinkType) = {
     this(new DetailedLink(link), correct, linkType)
   }
+
+  def updateCorrectness(correct: Correctness) = new EvalLink(this, correct, linkType)
 }
 
 object EvalLink

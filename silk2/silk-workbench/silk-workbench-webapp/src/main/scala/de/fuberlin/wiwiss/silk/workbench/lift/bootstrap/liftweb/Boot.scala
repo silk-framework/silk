@@ -46,9 +46,9 @@ class Boot {
         Menu(Loc("Workspace", List("index"), workspaceText)) ::
         Menu(Loc("Editor", List("editor"), linkSpecText, ifLinkingTaskOpen)) ::
         Menu(Loc("Generate Links", List("generateLinks"), "Generate Links", ifLinkingTaskOpen)) ::
-        Menu(Loc("Sample Links", List("sampleLinks"), "Sample Links", ifLinkingTaskOpen)) ::
-        Menu(Loc("Reference Links", List("referenceLinks"), "Reference Links", ifLinkingTaskOpen)) ::
         Menu(Loc("Learn", List("learn"), "Learn", ifLinkingTaskOpen)) ::
+        Menu(Loc("Reference Links", List("referenceLinks"), "Reference Links", ifLinkingTaskOpen)) ::
+        Menu(Loc("Population", List("population"), "Population", ifLinkingTaskOpen)) ::
         Nil
 
     LiftRules.setSiteMap(SiteMap(entries:_*))

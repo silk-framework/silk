@@ -6,7 +6,7 @@ import net.liftweb.http.CometActor
 import net.liftweb.http.js.JsCmds.SetHtml
 import java.util.UUID
 import xml.Text
-import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserDataListener}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{User, TaskDataListener}
 
 class LearnStatus extends CometActor {
 
@@ -15,7 +15,7 @@ class LearnStatus extends CometActor {
   /**
    * Redraw the widget whenever the current population is updated.
    */
-  private val populationListener = new UserDataListener(CurrentPopulation) {
+  private val populationListener = new TaskDataListener(CurrentPopulation) {
     override def onUpdate(population: Population) {
       partialUpdate(SetHtml(id, renderPopulation(population)))
     }

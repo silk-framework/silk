@@ -1,8 +1,6 @@
 package de.fuberlin.wiwiss.silk.entity
 
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 
 /**
  * Represents a link between two entities.

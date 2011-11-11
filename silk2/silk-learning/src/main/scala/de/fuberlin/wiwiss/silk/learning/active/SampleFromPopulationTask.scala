@@ -16,12 +16,13 @@ private class SampleFromPopulationTask(population: Population, links: Seq[Link],
   private val shuffledLinks = for((s, t) <- links zip (links.tail :+ links.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
 
   /**
-   * Weight the linkage rules by their fMeasure.
+   * Weight the linkage rules.
    * Better linkage rules will have a bigger weight in the information gain computation.
    */
   private val weightedRules = {
-    //val goodIndividuals = if(population.)
-    for(individual <- population.individuals.toSeq) yield {
+    val bestScore = population.individuals.map(_.fitness.score).max
+    val topIndividuals = population.individuals.toSeq.filter(_.fitness.score >= bestScore * 0.5)
+    for(individual <- topIndividuals) yield {
       new WeightedLinkageRule(individual)
     }
   }
@@ -49,6 +50,9 @@ private class SampleFromPopulationTask(population: Population, links: Seq[Link],
   }
 
   override protected def execute(): Seq[Link] = {
+    println("AGREEMENT: " + links.map(entropy).minBy(_.abs))
+    println("MAXDIST: " + links.map(distance2).max)
+
     val valLinks = for(link <- (links ++ shuffledLinks)) yield link.update(confidence = Some(rate(link)))
     valLinks.sortBy(_.confidence.get.abs).take(3)
   }
@@ -79,6 +83,14 @@ private class SampleFromPopulationTask(population: Population, links: Seq[Link],
     val negDist = negativePoints.map(distance(_, c)).min
 
     (negDist - posDist) / (posDist + negDist)
+  }
+
+  def distance2(link: Link) = {
+    val c = weightedRules.map(_.apply(link.entities.get))
+
+    val minDist = (positivePoints ++ negativePoints).map(distance(_, c)).min
+
+    minDist
   }
 
   def distance(v1: Seq[Double], v2: Seq[Double]) = {

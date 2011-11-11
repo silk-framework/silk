@@ -15,6 +15,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask, LearningConfiguration}
 
+//TODO support canceling
 class ActiveLearningTask(sources: Traversable[Source],
                          linkSpec: LinkSpecification,
                          paths: DPair[Seq[Path]],
