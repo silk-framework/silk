@@ -33,47 +33,53 @@
 
   <lift:bind-at name="content">
 
-    <h2>Learned Linkage Rule</h2>
+    <div class="wrapper-header">
+      <h2 style="margin-top: 0; margin-bottom: 0">Learned Linkage Rule</h2>
+    </div>
 
-    <lift:comet type="LearnStatus" name="LearnStatus" />
+    <div class="wrapper">
+      <lift:comet type="LearnStatus" name="LearnStatus" />
+    </div>
 
-    <h2>Uncertain links</h2>
+    <div class="wrapper-header">
+      <h2 style="margin-top: 0; margin-bottom: 0">Uncertain links</h2>
+    </div>
 
-    <lift:comet type="SampleLinksContent" name="SampleLinksContent">
+    <div class="wrapper">
+      <lift:comet type="SampleLinksContent" name="SampleLinksContent">
 
-      <entry:script/>
+        <entry:script/>
 
-      <div id="wrapper">
+          <div id="tree-header">
+            <div class="left">
+              <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+              <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+            </div>
+            <div class="middle">
+              <div class="navigation"></div>
+            </div>
+            <div class="right">
+              <entry:filter/>
+            </div>
+          </div>
 
-      <div id="tree-header">
-        <div class="left">
-          <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
-          <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
-        </div>
-        <div class="middle">
-          <div class="navigation"></div>
-        </div>
-        <div class="right">
-          <entry:filter/>
-        </div>
-      </div>
+          <div style="clear: both"></div>
 
-      <div style="clear: both"></div>
+          <p>
+            <entry:list/>
+          </p>
 
-      <p>
-        <entry:list/>
-      </p>
+          <div style="clear:both;"></div>
 
-      <div style="clear:both;"></div>
+          <div id="tree-footer">
+            <div class="navigation"></div>
+          </div>
 
-      <div id="tree-footer">
-        <div class="navigation"></div>
-      </div>
+          <div style="clear: both"></div>
 
-      <div style="clear: both"></div>
-      </div>
+      </lift:comet>
 
-    </lift:comet>
+    </div>
 
   </lift:bind-at>
 
