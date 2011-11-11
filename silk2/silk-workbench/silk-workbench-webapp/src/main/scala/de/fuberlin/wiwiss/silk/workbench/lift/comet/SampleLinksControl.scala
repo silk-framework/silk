@@ -4,7 +4,6 @@ import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListener}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentPool, CurrentValidationLinks, CurrentPopulation, CurrentSampleLinksTask}
 
 class SampleLinksControl extends DynamicButton {
@@ -48,27 +47,7 @@ class SampleLinksControl extends DynamicButton {
           label = "Start"
           CurrentPool() = task.pool
           CurrentPopulation() = task.population
-          val links = task.links
-
-          println("Best: " + task.population.bestIndividual.fitness.mcc)
-
-          //Categorize links
-          //val posLinks = links.filter(_.confidence.get > 0.99).take(3)
-          //val negLinks = links.filter(_.confidence.get < -0.99).take(3)
-          //val valLinks = links.filter(l => l.confidence.get >= -0.99 && l.confidence.get <= 0.99)//.take(10)
-
-          //Add new reference links
-//          val project = User().project
-//          val linkingTask = User().linkingTask
-//          val referenceLinks = linkingTask.referenceLinks
-//          val updatedReferenceLinks = ReferenceLinks(referenceLinks.positive ++ posLinks, referenceLinks.negative ++ negLinks)
-//          val updatedTask = linkingTask.updateReferenceLinks(updatedReferenceLinks, project)
-//
-//          project.linkingModule.update(updatedTask)
-//          User().task = updatedTask
-
-          //Set validation links
-          CurrentValidationLinks() = links
+          CurrentValidationLinks() = task.links
         }
         case _ =>
       }

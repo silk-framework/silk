@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.UserDataListener
 import de.fuberlin.wiwiss.silk.workbench.learning.CurrentPopulation
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import net.liftweb.http.CometActor
 import net.liftweb.http.js.JsCmds.SetHtml
 import java.util.UUID
 import xml.Text
+import de.fuberlin.wiwiss.silk.workbench.workspace.{User, UserDataListener}
 
 class LearnStatus extends CometActor {
 
@@ -29,9 +29,12 @@ class LearnStatus extends CometActor {
   }
 
   private def renderPopulation(population: Population) = {
+    val referenceLinks = User().linkingTask.referenceLinks
     if(population.isEmpty)
       Text("Learning not started")
     else
-      Text("Fitness: " + population.bestIndividual.fitness.fMeasure)
+      Text("Fitness: " + "%.1f".format((population.bestIndividual.fitness.fMeasure) * 100) +
+           "% Pos. Ref. Links: " + referenceLinks.positive.size +
+           " Neg. Ref. Links: " + referenceLinks.negative.size)
   }
 }

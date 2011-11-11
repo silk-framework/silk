@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.workbench.learning
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.UserData
+import de.fuberlin.wiwiss.silk.workbench.workspace.TaskData
 import de.fuberlin.wiwiss.silk.learning.individual.Individual
 
 /**
  * Holds the current population sorter.
  */
-object PopulationSorter extends UserData[PopulationSorter](ScoreSorterDescending) {
+object PopulationSorter extends TaskData[PopulationSorter](ScoreSorterDescending) {
   def sort(individuals: Seq[Individual]): Seq[Individual] = {
     apply()(individuals)
   }
