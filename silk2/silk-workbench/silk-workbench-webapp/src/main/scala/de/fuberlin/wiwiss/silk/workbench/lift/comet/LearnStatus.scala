@@ -32,11 +32,12 @@ class LearnStatus extends CometActor {
   private def renderPopulation(population: Population) = {
     val referenceLinks = User().linkingTask.referenceLinks
     if(population.isEmpty)
-      Text("Learning not started")
+      Text("No linkage rule learned yet.")
     else
-      Text("Fitness: " + "%.1f".format((population.bestIndividual.fitness.fMeasure) * 100) +
-           "% Pos. Ref. Links: " + referenceLinks.positive.size +
-           " Neg. Ref. Links: " + referenceLinks.negative.size) ++
-      LinkageRuleTree.render(population.bestIndividual.node.build)
+      <div>
+        Fitness: {"%.1f".format((population.bestIndividual.fitness.fMeasure) * 100)} (based on {referenceLinks.positive.size} positive and {referenceLinks.negative.size} negative reference links)
+        <br/>
+        { LinkageRuleTree.render(population.bestIndividual.node.build) }
+      </div>
   }
 }
