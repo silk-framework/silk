@@ -9,7 +9,7 @@ class ReferenceLinksHelp extends LinksHelp {
    * Re-renders the widget if the current linking task (and with it the reference links) has been changed.
    */
   private val taskListener = User().onUpdate {
-    case User.CurrentTaskChanged(_) => reRender()
+    case _: User.CurrentTaskChanged => reRender()
     case _ =>
   }
 

@@ -10,7 +10,7 @@ class LearnHelp extends LinksHelp {
    * Re-renders the widget if the current linking task has been changed.
    */
   private val linkingTaskListener = User().onUpdate {
-    case User.CurrentTaskChanged(_) => reRender()
+    case _: User.CurrentTaskChanged => reRender()
     case _ =>
   }
 

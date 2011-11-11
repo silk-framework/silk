@@ -30,7 +30,7 @@ private class CacheStatus extends Observable[TaskStatus] {
   private object CurrentTaskListener extends (Message => Unit) {
     def apply(event: Message) {
       event match {
-        case CurrentTaskChanged(linkingTask: LinkingTask) => linkingTask.cache.onUpdate(StatusListener)
+        case CurrentTaskChanged(_, _, task: LinkingTask) => task.cache.onUpdate(StatusListener)
         case _ =>
       }
     }

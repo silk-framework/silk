@@ -65,6 +65,10 @@ class Cache(private var existingEntityDescs: DPair[EntityDescription] = null,
     loadingThread.start()
   }
 
+  def waitUntilLoaded() {
+    Option(loadingThread).map(_.join())
+  }
+
   /**
    * Serializes the cache to XML.
    */
@@ -139,6 +143,8 @@ class Cache(private var existingEntityDescs: DPair[EntityDescription] = null,
           updateStatus(TaskFinished("Loading cache", false, System.currentTimeMillis - startTime, Some(ex)))
         }
       }
+
+      loadingThread = null
     }
 
     /**
@@ -197,16 +203,26 @@ class Cache(private var existingEntityDescs: DPair[EntityDescription] = null,
     }
 
     private def loadPositiveLink(link: Link) = {
-      existingEntities.positive.get(link) match {
-        case None => retrieveEntityPair(link)
-        case Some(entityPair) => updateEntityPair(entityPair)
+      link.entities match {
+        case Some(entities) => entities
+        case None => {
+          existingEntities.positive.get(link) match {
+            case None => retrieveEntityPair(link)
+            case Some(entityPair) => updateEntityPair(entityPair)
+          }
+        }
       }
     }
 
     private def loadNegativeLink(link: Link) = {
-      existingEntities.negative.get(link) match {
-        case None => retrieveEntityPair(link)
-        case Some(entityPair) => updateEntityPair(entityPair)
+      link.entities match {
+        case Some(entities) => entities
+        case None => {
+          existingEntities.negative.get(link) match {
+            case None => retrieveEntityPair(link)
+            case Some(entityPair) => updateEntityPair(entityPair)
+          }
+        }
       }
     }
 

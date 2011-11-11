@@ -4,12 +4,14 @@ body {
 }
 
 .wrapper-header {
+  font-size: 15px;
+  font-weight:bold;
   border: 1px solid #DBDBDB;
   border-bottom: 0;
   padding-left: 10px;
   padding-top: 5px;
   padding-bottom: 5px;
-  background: #f7f7f7;
+  background: #e8e8ff;
 }
 
 .wrapper {
