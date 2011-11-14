@@ -11,7 +11,9 @@ import de.fuberlin.wiwiss.silk.cache.MemoryEntityCache
 /**
  * Holds the dataset of a link specification.
  */
-class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean) {
+class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean,
+              matchOnlyInProvidedGraph: Boolean)
+                {
   private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
 
   private val entityDescs = linkSpec.entityDescriptions
@@ -40,12 +42,28 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
   private def generateLinks(source: DataSource) = {
     val entityCache = new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_))
 
+
+
+    val targetInstanceCache = if (matchOnlyInProvidedGraph){
+      new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_))
+    } else {
+      caches.target
+    }
+    
     val entities = source.retrieve(entityDescs.source).toList
     entityCache.write(entities)
+    if (matchOnlyInProvidedGraph) {
+      val targetEntities = source.retrieve(entityDescs.target).toList
+      targetInstanceCache.write(targetEntities)
+    }
 
     var links: Seq[Link] = Seq.empty
     if (entityCache.entityCount > 0) {
-      val matcher = new MatchTask(linkSpec.rule, DPair(entityCache, caches.target))
+      val matcher = if (matchOnlyInProvidedGraph){
+        new MatchTask(linkSpec.rule, DPair(entityCache, targetInstanceCache))
+      } else {
+        new MatchTask(linkSpec.rule, DPair(entityCache, caches.target))  
+      }
       links = matcher()
     }
 
@@ -53,7 +71,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
     val unmatchedEntities = entities.filterNot(entity => matchedEntities.contains(entity.uri))
 
     if (writeUnmatchedEntities) {
-      caches.target.write(unmatchedEntities)
+      if (!matchOnlyInProvidedGraph) caches.target.write(unmatchedEntities)
     }
 
     MatchResult(links, linkSpec.linkType, unmatchedEntities.map(_.uri).toSet)

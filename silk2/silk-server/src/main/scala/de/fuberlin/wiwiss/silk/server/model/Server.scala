@@ -4,9 +4,9 @@ import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
-import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.Link
+import java.util.logging.{Level, Logger}
 
 /**
  * The Silk Server.
@@ -47,6 +47,12 @@ object Server {
     require(server != null, "Server must be initialized")
     server.process(source)
   }
+
+  def processAndReturnLinks(instanceSource : DataSource) : Traversable[MatchResult] =
+  {
+    require(server != null, "Server must be initialized")
+    server.processAndReturnLinks(instanceSource)
+  }
 }
 
 /**
@@ -56,6 +62,8 @@ private class Server {
   Plugins.register()
   DataSource.register(classOf[RdfDataSource])
   DataSource.register(classOf[FileDataSource])
+  DataSource.register(classOf[NopDataSource])
+
 
   val serverConfig = ServerConfig.load()
 
@@ -71,7 +79,8 @@ private class Server {
       new Dataset(name = file.getName.takeWhile(_ != '.'),
                   config = config,
                   linkSpec = linkSpec,
-                  writeUnmatchedEntities = serverConfig.writeUnknownEntities)
+                  writeUnmatchedEntities = serverConfig.writeUnknownEntities,
+                  matchOnlyInProvidedGraph = serverConfig.matchOnlyInProvidedGraph)
     }
   }
 
@@ -81,7 +90,16 @@ private class Server {
 
   private val unknownEntitiyUri = silkUriPrefix + "UnknownEntity"
 
-  def process(source : DataSource) : String = {
+  def processAndReturnLinks(source : DataSource) : Traversable[MatchResult] =
+  {
+    Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
+    val results = datasets.map(m => m(source))
+    Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
+    results
+ }
+
+  def process(source : DataSource) : String =
+  {
     //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
     val matchResults = datasets.map(m => m(source))
     //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
