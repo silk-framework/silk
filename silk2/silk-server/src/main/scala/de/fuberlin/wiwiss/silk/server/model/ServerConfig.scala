@@ -9,6 +9,9 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
  *   - `configDir`: The directory where the Silk configuration files can be found
  *   - `writeUnknownEntities`: Specifies whether unmatched entities should be added to the entity cache
  *   - `returnUnknownEntities`: Specifies whether the server response should contain unknown entities too
+ *   - `matchOnlyInProvidedGraph`: Specifies whether to look for links within all data (pulled from the datasource as
+ *   well as data provided to service method in previous calls) or only within the data provided to the service
+ *   method in the current call.
  */
 object ServerConfig {
     /**
@@ -28,10 +31,16 @@ object ServerConfig {
             case _ => throw new IllegalArgumentException("'returnUnknownEntities' must be a boolean")
         }
 
-        ServerConfig(configDir, writeUnknownEntities, returnUnknownEntities)
+        val matchOnlyInProvidedGraph = System.getProperty("matchOnlyInProvidedGraph", "false") match {
+            case BooleanLiteral(b) => b
+            case _ => throw new IllegalArgumentException("'matchOnlyInProvidedGraph' must be a boolean")
+        }
+
+        ServerConfig(configDir, writeUnknownEntities, returnUnknownEntities, matchOnlyInProvidedGraph)
     }
 }
 
 case class ServerConfig(configDir : File ,
                         writeUnknownEntities : Boolean,
-                        returnUnknownEntities : Boolean)
+                        returnUnknownEntities : Boolean,
+                        matchOnlyInProvidedGraph: Boolean)
