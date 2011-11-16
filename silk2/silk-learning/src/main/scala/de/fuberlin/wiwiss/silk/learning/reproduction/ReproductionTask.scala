@@ -2,13 +2,14 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
 import de.fuberlin.wiwiss.silk.util.{ParallelMapper, DPair}
-import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
+import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-class ReproductionTask(population: Population, referenceEntities: ReferenceEntities, generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
+class ReproductionTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
 
   /**
    * The operators which will be employed for crossover.
@@ -37,9 +38,9 @@ class ReproductionTask(population: Population, referenceEntities: ReferenceEntit
 
   override def execute(): Population = {
     //Get the best individuals and recompute their fitness as the reference links may have changed
-    val elite = individuals.sortBy(-_.fitness.score)
+    val elite = individuals.sortBy(-_.fitness)
                            .take(config.reproduction.elitismCount)
-                           .map(i => i.copy(fitness = LinkageRuleEvaluator(i.node.build, referenceEntities)))
+                           .map(i => i.copy(fitness = fitnessFunction(i.node.build)))
 
     //Number of individuals to be generated
     val count = individuals.size - config.reproduction.elitismCount
@@ -70,12 +71,12 @@ class ReproductionTask(population: Population, referenceEntities: ReferenceEntit
         }
       }
 
-    Individual(node, LinkageRuleEvaluator(node.build, referenceEntities))
+    Individual(node, fitnessFunction(node.build))
   }
 
   private def select(): Individual = {
     val tournamentNodes = List.fill(config.reproduction.tournamentSize)(individuals(Random.nextInt(individuals.size)))
 
-    tournamentNodes.reduceLeft((n1, n2) => if (n1.fitness.score > n2.fitness.score) n1 else n2)
+    tournamentNodes.reduceLeft((n1, n2) => if (n1.fitness > n2.fitness) n1 else n2)
   }
 }

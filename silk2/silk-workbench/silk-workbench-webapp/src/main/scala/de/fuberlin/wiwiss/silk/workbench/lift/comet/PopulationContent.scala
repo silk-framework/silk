@@ -18,6 +18,7 @@ import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 import net.liftweb.http.js.JsCmds.{Confirm, OnLoad, SetHtml, Script}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{TaskDataListener, CurrentTaskStatusListener, CurrentTaskValueListener, User}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{LinkageRuleTree, JS}
+import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 
 /**
  * Widget which shows the current population.
@@ -58,7 +59,9 @@ class PopulationContent extends CometActor {
   }
 
   private def showList(page: Int): JsCmd = {
-    val sortedIndividuals = PopulationSorter.sort(individuals.toSeq)
+    val entities = User().linkingTask.cache.entities
+    val evaluatedIndividuals = for(i <- individuals) yield new EvalIndividual(i, LinkageRuleEvaluator(i.node.build, entities))
+    val sortedIndividuals = PopulationSorter.sort(evaluatedIndividuals.toSeq)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
     SetHtml("results", renderPopulation(pageIndividuals)) & Call("initTrees").cmd & Call("updateResultsWidth").cmd
@@ -67,7 +70,7 @@ class PopulationContent extends CometActor {
   /**
    * Renders the population.
    */
-  private def renderPopulation(individuals: Seq[Individual]) = {
+  private def renderPopulation(individuals: Seq[EvalIndividual]) = {
     <div>
       <div class="individual">
         <div class="individual-header heading">
@@ -107,7 +110,7 @@ class PopulationContent extends CometActor {
   /**
    * Renders a single individual.
    */
-  private def renderIndividual(individual: Individual, counter: Int) = {
+  private def renderIndividual(individual: EvalIndividual, counter: Int) = {
     <div class="individual" id={getId(individual)} >
       { renderIndividualHeader(individual, counter) }
       { renderIndividualContent(individual) }
@@ -118,15 +121,15 @@ class PopulationContent extends CometActor {
   /**
    * Renders the list header of a single individual.
    */
-  private def renderIndividualHeader(individual: Individual, counter: Int) = {
+  private def renderIndividualHeader(individual: EvalIndividual, counter: Int) = {
     <div class={if (counter%2==0) "individual-header grey" else "individual-header" }
          onmouseover="$(this).addClass('individual-over');"
          onmouseout="$(this).removeClass('individual-over');">
       <div id={getId(individual, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
       <div class="individual-desc">{renderDescription(individual)}</div>
-      <div class="individual-score">{renderScore(individual.fitness.score)}</div>
-      <div class="individual-mcc">{renderScore(individual.fitness.mcc)}</div>
-      <div class="individual-f1">{renderScore(individual.fitness.fMeasure)}</div>
+      <div class="individual-score">{renderScore(individual.fitness)}</div>
+      <div class="individual-mcc">{renderScore(individual.scores.mcc)}</div>
+      <div class="individual-f1">{renderScore(individual.scores.fMeasure)}</div>
       <div class="individual-buttons">{renderButtons(individual)}</div>
     </div>
   }
@@ -134,7 +137,7 @@ class PopulationContent extends CometActor {
   /**
    * Renders the description of an individual.
    */
-  private def renderDescription(individual: Individual) = {
+  private def renderDescription(individual: EvalIndividual) = {
     val complexity = LinkageRuleComplexity(individual.node.build)
 
     complexity.comparisonCount + " Comparisons and " + complexity.transformationCount + " Transformations"
@@ -152,7 +155,7 @@ class PopulationContent extends CometActor {
   /**
    * Renders the action buttons for an individual.
    */
-  private def renderButtons(individual: Individual) = {
+  private def renderButtons(individual: EvalIndividual) = {
     val image = <img src="./static/img/learn/load.png" title="Load this linkage rule in the editor" />
 
     SHtml.a(() => loadIndividualCmd(individual), image)
@@ -161,7 +164,7 @@ class PopulationContent extends CometActor {
   /**
    * Renders the content of a single indivual.
    */
-  private def renderIndividualContent(individual: Individual) = {
+  private def renderIndividualContent(individual: EvalIndividual) = {
     implicit val prefixes = User().project.config.prefixes
 
     <div class="individual-details" id={getId(individual, "details")}>
@@ -169,7 +172,7 @@ class PopulationContent extends CometActor {
     </div>
   }
 
-  def loadIndividualCmd(individual: Individual) = {
+  def loadIndividualCmd(individual: EvalIndividual) = {
     def load() = {
       val linkingTask = User().linkingTask
       val linkSpec = linkingTask.linkSpec
@@ -186,7 +189,7 @@ class PopulationContent extends CometActor {
   /**
    * Generates a new id based on an individual.
    */
-  private def getId(individual : Individual, prefix : String = "") = {
+  private def getId(individual : EvalIndividual, prefix : String = "") = {
     prefix + individual.hashCode
   }
 }

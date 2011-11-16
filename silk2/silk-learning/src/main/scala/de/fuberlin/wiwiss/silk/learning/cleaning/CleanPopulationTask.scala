@@ -5,8 +5,9 @@ import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluat
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual._
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-class CleanPopulationTask(population: Population, entities: ReferenceEntities, generator: LinkageRuleGenerator) extends Task[Population] {
+class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Task[Population] {
 
   /**Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001
@@ -20,16 +21,15 @@ class CleanPopulationTask(population: Population, entities: ReferenceEntities, g
 
     val randomIndividuals = new ParallelMapper(0 until population.individuals.size - distinctIndividuals.size).map { i =>
         val linkageRule = generator()
-        val fitness = LinkageRuleEvaluator(linkageRule.build, entities)
 
-        Individual(linkageRule, fitness)
+        Individual(linkageRule, fitnessFunction(linkageRule.build))
     }
 
     Population(distinctIndividuals ++ randomIndividuals)
   }
 
   private def removeDuplicates(individuals: Traversable[Individual]) = {
-    val sortedIndividuals = individuals.toSeq.sortBy(-_.fitness.score)
+    val sortedIndividuals = individuals.toSeq.sortBy(-_.fitness)
 
     var currentIndividual = sortedIndividuals.head
     var distinctIndividuals = currentIndividual :: Nil
@@ -76,11 +76,11 @@ class CleanPopulationTask(population: Population, entities: ReferenceEntities, g
 
   private def cleanIndividual(individual: Individual): Individual = {
     val root = NodeTraverser(individual.node)
-    implicit val fitness = individual.fitness.fMeasure
+    implicit val fitness = individual.fitness
 
     val cleanLinkageRule = clean(root).asInstanceOf[LinkageRuleNode]
 
-    Individual(cleanLinkageRule, individual.fitness) //, Some(Individual.Base(null, individual)), individual.time)
+    Individual(cleanLinkageRule, individual.fitness)
   }
 
   /**
@@ -144,7 +144,6 @@ class CleanPopulationTask(population: Population, entities: ReferenceEntities, g
 
   private def evaluate(node: NodeTraverser) = {
     val linkageRule = node.root.node.asInstanceOf[LinkageRuleNode]
-
-    LinkageRuleEvaluator(linkageRule.build, entities).fMeasure
+    fitnessFunction(linkageRule.build)
   }
 }

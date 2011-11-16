@@ -36,7 +36,7 @@ class LearnStatus extends CometActor {
       Text("No linkage rule learned yet.")
     else
       <div>
-        Fitness: {"%.1f".format((population.bestIndividual.fitness.fMeasure) * 100)} (based on {referenceLinks.positive.size} positive and {referenceLinks.negative.size} negative reference links)
+        Fitness: {"%.1f".format((population.bestIndividual.fitness) * 100)} (based on {referenceLinks.positive.size} positive and {referenceLinks.negative.size} negative reference links)
         <br/>
         { LinkageRuleTree.render(population.bestIndividual.node.build) }
       </div>

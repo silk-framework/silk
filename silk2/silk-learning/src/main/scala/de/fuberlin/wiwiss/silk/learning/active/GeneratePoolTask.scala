@@ -41,9 +41,12 @@ private class GeneratePoolTask(sources: Traversable[Source],
     updateStatus(0.0)
     executeSubTask(generateLinksTask, 0.8, true)
 
-    val pool = op.getLinks()
-    assert(!pool.isEmpty, "Could not load any links")
-    pool
+    val links = op.getLinks()
+    assert(!links.isEmpty, "Could not load any links")
+
+    val shuffledLinks = for((s, t) <- links zip (links.tail :+ links.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
+
+    links ++ shuffledLinks
   }
 
   private class TestOperator() extends SimilarityOperator {
