@@ -14,6 +14,8 @@ class LearnStatus extends CometActor {
 
   private val id = UUID.randomUUID.toString
 
+  override protected val dontCacheRendering = true
+
   /**
    * Redraw the widget whenever the current population is updated.
    */

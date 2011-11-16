@@ -10,7 +10,10 @@ class LearnControl extends DynamicButton {
 
   override protected val dontCacheRendering = true
 
-  label = "Start"
+  override def render = {
+    label = if(CurrentPopulation().isEmpty) "Start" else "Done"
+    super.render
+  }
 
   /**
    * Called when the button has been pressed.
