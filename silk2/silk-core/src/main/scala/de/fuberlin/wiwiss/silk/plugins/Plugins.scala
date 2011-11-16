@@ -75,6 +75,7 @@ object Plugins {
     DistanceMeasure.register(classOf[GeographicDistanceMetric])
     DistanceMeasure.register(classOf[JaccardDistance])
     DistanceMeasure.register(classOf[DiceCoefficient])
+    DistanceMeasure.register(classOf[SoftJaccardDistance])
     DistanceMeasure.register(classOf[TokenwiseStringDistance])
 
     Aggregator.register(classOf[AverageAggregator])
