@@ -1,19 +1,20 @@
 package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.reproduction.ReproductionTask
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
 import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask, LearningConfiguration}
+import util.control.Breaks._
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import de.fuberlin.wiwiss.silk.learning.individual.{FitnessFunction, Population}
+import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 
 //TODO support canceling
 class ActiveLearningTask(sources: Traversable[Source],
@@ -28,51 +29,39 @@ class ActiveLearningTask(sources: Traversable[Source],
   override protected def execute(): Seq[Link] = {
     //Build unlabeled pool
     if(pool.isEmpty) {
-      pool = executeSubTask(new GeneratePoolTask(sources, linkSpec, paths), 0.8)
+      updateStatus("Loading")
+      pool = executeSubTask(new GeneratePoolTask(sources, linkSpec, paths), 0.5)
     }
 
     //Build population
     val config = LearningConfiguration.load()
-    val generator = LinkageRuleGenerator(referenceEntities, config.components)
+    val generator = LinkageRuleGenerator(ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
 
     if(population.isEmpty) {
-      if(referenceEntities.isDefined) {
-        val task = new LearningTask(LearningInput(referenceEntities), config)
-        population = task().population
-      } else {
-        updateStatus("Generating population")
-        population = new PopulationFromSample(pool).evaluate()
-        population = FilterPopulation(population, pool)
-      }
+      updateStatus("Generating population", 0.6)
+      population = executeSubTask(new GeneratePopulationTask(Traversable(linkSpec.rule), generator, config), 0.7)
     }
-    else if(referenceEntities.isDefined)  {
-      for(i <- 1 to 3) {
-        population = executeSubTask(new ReproductionTask(population, referenceEntities, generator, config), 0.9 + i / 3.0)
-      }
+
+    //Evolve population
+    val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
+    val fitnessFunction = new FitnessFunction(completeEntities, pool)
+
+    val prevFitness = population.bestIndividual.fitness
+    for(i <- 1 to 20 if i == 1 || population.bestIndividual.fitness < prevFitness) {
+      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), 0.7 + i / 10.0)
     }
 
     //Sample links
     updateStatus("Sampling", 0.9)
 
-    val valLinks = new SampleFromPopulationTask(population, pool.toSeq, referenceEntities).apply()
+    val valLinks = new SampleFromPopulationTask(population, pool.toSeq, completeEntities).apply()
     value.update(valLinks)
 
     //Clean population
     if(referenceEntities.isDefined)
-      population = executeSubTask(new CleanPopulationTask(population, referenceEntities, generator))
-
-    //computePropertyDisagreement(population)
+      population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator))
 
     valLinks
-  }
-
-  private def computePropertyDisagreement(p: Population) {
-    val link = links.head
-
-    for(individual <- p.individuals) {
-      val rule = individual.node.build
-      println(formatRule(rule) + " " + individual.fitness.mcc + " " + rule(link.entities.get))
-    }
   }
 
   private def formatRule(rule: LinkageRule) = {

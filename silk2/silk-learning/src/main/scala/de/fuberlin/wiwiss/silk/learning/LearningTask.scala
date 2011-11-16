@@ -7,6 +7,7 @@ import java.util.logging.Level
 import reproduction.ReproductionTask
 import de.fuberlin.wiwiss.silk.util.task.{Task, ValueTask}
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 /**
  * Learns a linkage rule from reference links.
@@ -36,21 +37,22 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     ineffectiveIterations = 0
 
     val referenceEntities = input.trainingEntities
+    val fitnessFunction = (rule: LinkageRule) => LinkageRuleEvaluator(rule, referenceEntities).score
     val generator = LinkageRuleGenerator(referenceEntities, config.components)
 
     //Generate initial population
-    if(!stop) executeTask(new GeneratePopulationTask(input, generator, config))
+    if(!stop) executeTask(new GeneratePopulationTask(input.seedLinkageRules, generator, config))
 
     while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
-      executeTask(new ReproductionTask(value.get.population, referenceEntities, generator, config))
+      executeTask(new ReproductionTask(value.get.population, fitnessFunction, generator, config))
 
       if (value.get.iterations % config.parameters.cleanFrequency == 0 && !stop) {
-        executeTask(new CleanPopulationTask(value.get.population, referenceEntities, generator))
+        executeTask(new CleanPopulationTask(value.get.population, fitnessFunction, generator))
       }
     }
 
     if(!value.get.population.isEmpty)
-      executeTask(new CleanPopulationTask(value.get.population, referenceEntities, generator))
+      executeTask(new CleanPopulationTask(value.get.population, fitnessFunction, generator))
 
     value.get
   }
@@ -64,7 +66,7 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     val population = executeSubTask(task)
     val iterations = {
       if(task.isInstanceOf[ReproductionTask]) {
-        if (population.bestIndividual.fitness.score <= bestScore + scoreEpsilon)
+        if (population.bestIndividual.fitness <= bestScore + scoreEpsilon)
           ineffectiveIterations += 1
 
         value.get.iterations + 1
@@ -74,7 +76,7 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     }
 
     val status =
-      if (population.bestIndividual.fitness.fMeasure > config.parameters.destinationfMeasure)
+      if (population.bestIndividual.fitness > config.parameters.destinationfMeasure)
         LearningResult.Success
       else if (ineffectiveIterations >= config.parameters.maxIneffectiveIterations)
         LearningResult.MaximumIneffectiveIterationsReached
@@ -99,6 +101,6 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     if(value.get.population.isEmpty)
       Double.NegativeInfinity
     else
-      value.get.population.bestIndividual.fitness.score
+      value.get.population.bestIndividual.fitness
   }
 }

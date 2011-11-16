@@ -10,6 +10,7 @@ import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.util.DPair
 
 class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
+  require(!comparisonGenerators.isEmpty, "comparisonGenerators most not be empty")
 
   private val aggregations = "max" :: "min" :: "average" :: Nil
 

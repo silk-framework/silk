@@ -3,12 +3,17 @@ package de.fuberlin.wiwiss.silk.learning
 import individual.Population
 import de.fuberlin.wiwiss.silk.evaluation.EvaluationResult
 import de.fuberlin.wiwiss.silk.learning.LearningResult._
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 case class LearningResult(iterations: Int = 0,
                           time: Long = 0,
                           population: Population = Population(),
+                          trainingResult: EvaluationResult =  new EvaluationResult(0, 0, 0, 0),
                           validationResult: EvaluationResult = new EvaluationResult(0, 0, 0, 0),
-                          status: Status = NotStarted)
+                          status: Status = NotStarted) {
+
+  def linkageRule = population.bestIndividual.node.build
+}
 
 object LearningResult {
   sealed trait Status
