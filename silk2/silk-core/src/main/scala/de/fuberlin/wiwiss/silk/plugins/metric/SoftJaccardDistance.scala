@@ -2,30 +2,30 @@ package de.fuberlin.wiwiss.silk.plugins.metric
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
-import de.fuberlin.wiwiss.silk.entity.Index
 
-@Plugin(id = "softjaccard", label = "Soft Jaccard", description = "Soft Jaccard similarity coefficient.")
-case class SoftJaccardDistance() extends DistanceMeasure {
+@Plugin(id = "softjaccard",
+        label = "Soft Jaccard",
+        description = "Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of 'maxDistance' are considered equivalent.")
+case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
 
-  private val maxDistance = 0.1
+  private val levenshtein = LevenshteinDistance()
 
-  private val metric = LevenshteinMetric()
+  private val jaccard = JaccardDistance()
 
   override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
-    val intersectionScore = values1.map(v1 => values2.map(v2 => metric.evaluate(v1, v2, maxDistance)).min).filter(_ > maxDistance).map(1.0 - _).sum
-    val unionSize = (values1 ++ values2).toSet.size
+    //Replace all values in values1 with their equivalent in values2 while keeping values without any equivalent
+    val values1Replaced = values1.flatMap{v1 =>
+      val equivalentValues = values2.filter(v2 => levenshtein.evaluate(v1, v2, maxDistance) <= maxDistance)
+      if(equivalentValues.isEmpty) Traversable(v1) else equivalentValues
+    }
 
-    1.0 - intersectionScore / unionSize
+    jaccard(values1Replaced, values2)
   }
 
-//  private def similarityScore(v1: String, values2: Traversable[String]) = {
-//  }
+  override def index(values: Set[String], limit: Double) = {
+    //The number of values we need to index
+    val indexSize = math.round(values.size * limit + 0.5).toInt
 
-//TODO indexing
-//  override def index(values: Set[String], limit: Double) = {
-//    //The number of values we need to index
-//    val indexSize = math.round(values.size * limit + 0.5).toInt
-//
-//    Index.oneDim(values.take(indexSize).map(_.hashCode))
-//  }
+    values.take(indexSize).map(levenshtein.indexValue(_, limit)).reduce(_ merge _)
+  }
 }
