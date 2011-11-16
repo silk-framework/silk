@@ -47,6 +47,8 @@ class TaskData[T](initialValue: T) extends Observable[T] {
   private class MessageHandler() extends (User.Message => Unit) {
     def apply(msg: User.Message) {
       msg match {
+        case CurrentTaskChanged(user, None, task) =>
+          values.update(user, initialValue)
         case CurrentTaskChanged(user, Some(previousTask), task) if previousTask.name != task.name =>
           values.update(user, initialValue)
         case _ =>
