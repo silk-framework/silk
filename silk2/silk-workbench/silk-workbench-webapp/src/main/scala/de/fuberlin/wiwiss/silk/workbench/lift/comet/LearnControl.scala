@@ -2,9 +2,10 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
-import de.fuberlin.wiwiss.silk.workbench.workspace.{User, CurrentTaskStatusListener}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentPool, CurrentValidationLinks, CurrentPopulation, CurrentActiveLearningTask}
+import de.fuberlin.wiwiss.silk.workbench.workspace.{TaskDataListener, User, CurrentTaskStatusListener}
+import de.fuberlin.wiwiss.silk.learning.individual.Population
 
 class LearnControl extends DynamicButton {
 
@@ -62,6 +63,17 @@ class LearnControl extends DynamicButton {
           CurrentValidationLinks() = task.links
         }
         case _ =>
+      }
+    }
+  }
+
+  /**
+   * Listens to changes of the current population.
+   */
+  private val populationListener = new TaskDataListener(CurrentPopulation) {
+    override def onUpdate(population: Population) {
+      if(population.isEmpty) {
+        label = "Start"
       }
     }
   }
