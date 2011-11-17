@@ -7,6 +7,7 @@
     <base target="_top" />
 </HEAD>
 <BODY>
+<?php $wbsg_project = "Silk"; include_once('C:\!htdocs\navbar.inc.php'); ?>
 <DIV id=logo><A href="http://www.fu-berlin.de/"><IMG src="images/fu-logo.gif" alt="Freie Universit&auml;t Berlin Logo" width="225" height="63"></A> </DIV>
 <DIV id=header>
 <H1 style="FONT-SIZE: 250%">Silk - A Link Discovery Framework for the Web of Data</H1>
@@ -22,6 +23,11 @@
 <P>The Silk framework is a tool for discovering relationships between data items within different Linked Data sources.<BR>
   Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web.</P>
 
+<div id="boxcontainer">
+	<div id="downloadbox" class="box">
+	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.1.zip"><span>Download Silk<br/><small>v2.5.1, released 2011-10-21</small></span></a>
+	</div>
+</div>
 <H2 id=news>News</H2>
 <ul>
   <li><strong>2011-10-21:</strong> Version 2.5.1 released including various improvements to the Workbench.</li>
@@ -210,7 +216,7 @@ For questions and feedback please use the <a href="http://groups.google.com/grou
 </p>
 
 <H2 id=development><a name="download"></a>Download </H2>
-<P>Silk is downloadable from its <A href="http://www.assembla.com/spaces/silk/">project page on Assembla</A>.
+<p>All stable releases can be <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/">downloaded</a>.<br />
 The framework can be used under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License</a>. </P>
 <P>The latest source code is available from the project's <A href="http://www.assembla.com/code/silk/git/nodes">Git repository</A> and can be browsed online.</P>
 
