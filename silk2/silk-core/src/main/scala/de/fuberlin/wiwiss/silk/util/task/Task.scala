@@ -27,7 +27,7 @@ trait Task[+T] extends HasStatus with (() => T) {
       updateStatus(TaskFinished(taskName, true, System.currentTimeMillis - startTime))
       result
     } catch {
-      case ex: Exception => {
+      case ex: Throwable => {
         logger.log(Level.WARNING, taskName + " failed", ex)
         updateStatus(TaskFinished(taskName, false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex

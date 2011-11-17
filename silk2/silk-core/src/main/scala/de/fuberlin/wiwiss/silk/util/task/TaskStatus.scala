@@ -56,6 +56,12 @@ case class TaskRunning(message: String, override val progress: Double) extends T
   override def isRunning = true
 }
 
+/**
+ * Indicating that the task has been requested to stop but has not stopped yet.
+ *
+ * @param name The name of the task.
+ * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
+ */
 case class TaskCanceling(name: String, override val progress: Double) extends TaskStatus {
   override def message = "Stopping " + name
   override def isRunning = true
@@ -69,7 +75,7 @@ case class TaskCanceling(name: String, override val progress: Double) extends Ta
  * @param time The time in milliseconds needed to execute the task.
  * @param exception The exception, if the task failed.
  */
-case class TaskFinished(name: String, success: Boolean, time: Long, exception: Option[Exception] = None) extends TaskStatus {
+case class TaskFinished(name: String, success: Boolean, time: Long, exception: Option[Throwable] = None) extends TaskStatus {
   override def message = exception match {
     case None => name + " finished in " + formattedTime
     case Some(ex) => name + " failed after " + formattedTime + ": " + ex.getMessage
