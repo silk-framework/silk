@@ -16,19 +16,24 @@
   </lift:bind-at>
 
   <lift:bind-at name="toolbar">
-    <lift:learnToolbar>
-      <ul>
-        <li>
-          <lift:comet type="LearnControl" name="LearnControl" />
-        </li>
-        <li>
-          <lift:comet type="LearnProgress" name="LearnProgress" />
-        </li>
-        <li>
-          <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
-        </li>
-      </ul>
-    </lift:learnToolbar>
+    <ul>
+      <li>
+        <lift:comet type="LearnControl" name="LearnControl" />
+      </li>
+      <li>
+        <lift:comet type="LearnProgress" name="LearnProgress" />
+      </li>
+      <li>
+        <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
+      </li>
+      <li>
+        <lift:learnConfigButton />
+      </li>
+      <li>
+        <lift:learnResetButton />
+      </li>
+    </ul>
+    <lift:learnConfigDialog/>
   </lift:bind-at>
 
   <lift:bind-at name="content">

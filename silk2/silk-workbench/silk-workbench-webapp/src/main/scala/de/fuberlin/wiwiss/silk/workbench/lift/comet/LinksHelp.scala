@@ -10,7 +10,7 @@ trait LinksHelp extends Help {
       Confirms the link as correct. Confirmed links are part of the positive reference link set.
       <br/>
       <img src="./static/img/undecided.png"></img>
-      Link whose correctness is undecided i.e. which is not contained in the reference link sets.
+      Link whose correctness is unknown.
       <br/>
       <img src="./static/img/decline.png"></img>
       Confirms the link as incorrect. Incorrect links are part of the negative reference link set.

@@ -10,11 +10,10 @@ import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
 import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
-import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask, LearningConfiguration}
-import util.control.Breaks._
-import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{FitnessFunction, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 
 //TODO support canceling
 class ActiveLearningTask(sources: Traversable[Source],
@@ -36,23 +35,28 @@ class ActiveLearningTask(sources: Traversable[Source],
     //Build population
     val config = LearningConfiguration.load()
     val generator = LinkageRuleGenerator(ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
+    val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
 
     if(population.isEmpty) {
-      updateStatus("Generating population", 0.6)
-      population = executeSubTask(new GeneratePopulationTask(Traversable(linkSpec.rule), generator, config), 0.7)
+      updateStatus("Generating population", 0.5)
+      population = executeSubTask(new GeneratePopulationTask(Traversable(linkSpec.rule), generator, config), 0.6)
     }
 
     //Evolve population
     val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
     val fitnessFunction = new FitnessFunction(completeEntities, pool)
 
-    val prevFitness = population.bestIndividual.fitness
-    for(i <- 1 to 20 if i == 1 || population.bestIndividual.fitness < prevFitness) {
-      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), 0.7 + i / 10.0)
+    for(i <- 1 to 31
+        if i > 1 || population.bestIndividual.fitness < targetFitness
+        if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < 0.99) {
+      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), 0.6 + i / 250.0)
+      if(i % 5 == 0) {
+        population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator), 0.6 + i / 250.0)
+      }
     }
 
     //Sample links
-    updateStatus("Sampling", 0.9)
+    updateStatus("Sampling", 0.8)
 
     val valLinks = new SampleFromPopulationTask(population, pool.toSeq, completeEntities).apply()
     value.update(valLinks)
