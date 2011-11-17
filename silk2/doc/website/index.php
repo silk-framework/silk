@@ -25,11 +25,12 @@
 
 <div id="boxcontainer">
 	<div id="downloadbox" class="box">
-	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.1.zip"><span>Download Silk<br/><small>v2.5.1, released 2011-10-21</small></span></a>
+	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.2.zip"><span>Download Silk<br/><small>v2.5.2, released 2011-11-17</small></span></a>
 	</div>
 </div>
 <H2 id=news>News</H2>
 <ul>
+  <li><strong>2011-11-17:</strong> Version 2.5.2 released adding active learning of linkage rules.</li>
   <li><strong>2011-10-21:</strong> Version 2.5.1 released including various improvements to the Workbench.</li>
   <li><strong>2011-10-03:</strong> Version 2.5 released adding support for learning linkage rules.</li>
   <li><strong>2011-07-22:</strong> Version 2.4.2 released adding SPARQL/Update output, improved indexing and many improvements to the Silk Workbench.</li>
@@ -124,6 +125,11 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <th>Version</th>
         <th>Comment</th>
         <th>Release Date</th>
+      </tr>
+      <tr>
+        <td>2.5.2</td>
+        <td>Adding active learning of linkage rules.</td>
+        <td>2011-11-17</td>
       </tr>
       <tr id="grey">
         <td>2.5.1</td>
