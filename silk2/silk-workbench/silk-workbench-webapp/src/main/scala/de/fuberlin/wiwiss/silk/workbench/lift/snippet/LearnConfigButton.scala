@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
-import net.liftweb.util.BindHelpers._
+import net.liftweb.http.SHtml
 
-class LearnToolbar {
+class LearnConfigButton {
   def render(xhtml: NodeSeq): NodeSeq = {
-    bind("entry", xhtml)
+    SHtml.ajaxButton("Advanced", () => LearnConfigDialog.openCmd)
   }
 }

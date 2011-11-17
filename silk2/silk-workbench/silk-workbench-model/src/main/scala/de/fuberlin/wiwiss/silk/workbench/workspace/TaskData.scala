@@ -44,6 +44,13 @@ class TaskData[T](initialValue: T) extends Observable[T] {
     publish(newValue)
   }
 
+  /**
+   * Resets to the initial value.
+   */
+  def reset() {
+    update(initialValue)
+  }
+
   private class MessageHandler() extends (User.Message => Unit) {
     def apply(msg: User.Message) {
       msg match {

@@ -21,7 +21,7 @@ class RelearnButton extends CometActor {
   private val disabledImg = <img src="./static/img/uncorrect.png" title="Cancel learning" />
 
   def render = {
-    SHtml.a(() => learn(), <div id={id}>{enabledImg}</div>)
+    SHtml.a(() => learn(), <div id={id}>{if(!CurrentLearningTask().status.isRunning) enabledImg else disabledImg}</div>)
   }
 
   private def learn() = {

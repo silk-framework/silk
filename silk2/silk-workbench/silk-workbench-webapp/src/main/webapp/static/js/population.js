@@ -16,11 +16,11 @@ function handlePaginationClick(new_page_index, pagination_container) {
 function initPagination(number_results) {
 
   $(".navigation").pagination(number_results, {
-    items_per_page:100,
+    items_per_page:20,
     callback:handlePaginationClick
   });
-  var navi_width = 94 + (number_results/100)*34;
-  if (number_results < 101) navi_width = 124;
+  var navi_width = 94 + (number_results/20)*34;
+  if (number_results < 21) navi_width = 124;
   if (number_results > 1100) navi_width = 525;
   $(".navigation").css("width", navi_width + "px").css("float", "none").css("margin", "0 auto");
 }
