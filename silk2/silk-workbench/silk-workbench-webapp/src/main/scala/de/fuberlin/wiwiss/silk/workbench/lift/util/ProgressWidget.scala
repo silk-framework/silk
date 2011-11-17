@@ -41,7 +41,7 @@ class ProgressWidget(val task: Observable[TaskStatus], hide: Boolean = false) ex
       JsShowId("progresswidget") &
       JsRaw("$('#progresswidget').attr('title', '" + status + "');") &
       JsRaw("$('#progressbar').progressbar({value: 0});").cmd &
-      SetHtml("progresstext", Text("Failed to load cache"))
+      SetHtml("progresstext", Text("Failed"))
     } else {
       val showCmd = status match {
         case _: TaskIdle | _: TaskFinished if hide => JsHideId("progresswidget")

@@ -46,7 +46,7 @@ class ActiveLearningTask(sources: Traversable[Source],
     val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
     val fitnessFunction = new FitnessFunction(completeEntities, pool)
 
-    for(i <- 1 to 31
+    for(i <- 1 to 51
         if i > 1 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < 0.99) {
       population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), 0.6 + i / 250.0)
