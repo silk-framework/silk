@@ -1,14 +1,15 @@
 package bootstrap.liftweb
 
-import _root_.net.liftweb.http._
 import _root_.net.liftweb.sitemap._
 import _root_.net.liftweb.sitemap.Loc._
 import de.fuberlin.wiwiss.silk.plugins.Plugins
-import js.jquery.JQuery14Artifacts
 import net.liftweb.widgets.autocomplete.AutoComplete
 import scala.xml.Text
 import de.fuberlin.wiwiss.silk.workbench.workspace.{FileUser, User}
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import net.liftweb.http._
+import js.jquery.JQuery14Artifacts
+import net.liftweb.util.NamedPF
 
 /**
   * Configures the Silk Workbench WebApp.
@@ -30,6 +31,20 @@ class Boot {
     LiftRules.jsArtifacts = JQuery14Artifacts
     LiftRules.maxMimeSize = 1024L * 1024L * 1024L
     LiftRules.maxMimeFileSize = 1024L * 1024L * 1024L
+
+    //Workaround to fix hardcoded resource paths
+    if(!LiftRules.context.path.isEmpty) {
+      LiftRules.resourceServerPath = LiftRules.context.path.stripPrefix("/") + "/classpath"
+
+      ResourceServer.allow({
+        case _ => true
+      })
+
+      LiftRules.statelessDispatchTable.prepend(NamedPF("Classpath service") {
+        case r@Req(mainPath :: subPath, suffx, _) if (mainPath == "classpath") =>
+          ResourceServer.findResourceInClasspath(r, r.path.wholePath.drop(1))
+      })
+    }
 
     AutoComplete.init()
 
