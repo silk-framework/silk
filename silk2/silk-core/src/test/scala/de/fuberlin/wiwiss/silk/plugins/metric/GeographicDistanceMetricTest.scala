@@ -1,40 +1,30 @@
 package de.fuberlin.wiwiss.silk.plugins.metric
 
-object GeographicDistanceMetricTest {
-  def aboutEquals(x: Double, y: Double): Boolean = {
-    val epsilon = 0.0001;
-    return (x - y) < epsilon || (y - x) < epsilon;
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.FlatSpec
+import org.scalatest.matchers.ShouldMatchers
+import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
+
+@RunWith(classOf[JUnitRunner])
+class GeographicDistanceMetricTest extends FlatSpec with ShouldMatchers {
+
+  "GeographicDistanceMetric" should "return 0.0 if the coordinates are equal" in {
+    val metric = new GeographicDistanceMetric()
+
+    metric.evaluate("37.807981 -122.264609", "37.807981 -122.264609") should be(approximatelyEqualTo(0.0))
+    metric.evaluate("POINT(-0.124722 51.5081)", "POINT(-0.124722 51.5081)") should be(approximatelyEqualTo(0.0))
   }
 
-  def main(args: Array[String]) {
-    val distances = Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    val t = 0.9
-    //		println(new GeographicDistanceMetric(Map.empty[String,String]).thresholdLogistic(50,40,20));
-    //		println(new GeographicDistanceMetric(Map.empty[String,String]).thresholdLogistic(50,60,20));
+  "GeographicDistanceMetric" should "return the distance of London and Berlin in kilometers" in {
+    val metric = new GeographicDistanceMetric("km")
 
-    //		for(distance <- distances)
-    //		{
-    //			assert(new GeographicDistanceMetric(Map.empty[String,String]).evaluate(distance)==distance);
-    //			assert(aboutEquals(new GeographicDistanceMetric(Map("threshold"->"10","curveStyle"->"linear")).evaluate(distance),(10-distance)/10.0));
-    //			println(new GeographicDistanceMetric(Map("threshold"->"10","curveStyle"->"logistic")).evaluate(distance));
-    //
-    //		}
+    metric.evaluate("POINT(-0.1167 51.5000)", "POINT(13.4000 52.5167)") should be(approximatelyEqualTo(930.60))
+  }
 
-    // distance between (0,0) and (180,0)
-    println(new GeographicDistanceMetric().evaluate("POINT(0 0)", "POINT(180 0)"))
-    // distance between London and Berlin in km
-    println(new GeographicDistanceMetric(unit = "kilometer").evaluate("POINT(-0.124722 51.5081)", "POINT(13.3989 52.5006)"))
-    // between London and London
-    println(new GeographicDistanceMetric().evaluate("POINT(-0.124722 51.5081)", "POINT(-0.124722 51.5081)"))
-    // between London and London, some insignificant digits changed
-    println(new GeographicDistanceMetric().evaluate("POINT(-0.124 51.4)", "POINT(-0.124722 51.5081)"))
+  "GeographicDistanceMetric" should "return the distance of London and Berlin in meters" in {
+    val metric = new GeographicDistanceMetric("m")
 
-    // distance between London and Berlin in km
-    val metric = new GeographicDistanceMetric()
-    println(metric.evaluate("POINT(-0.124722 51.5081)", "POINT(13.3989 52.5006)"))
-    println(metric.indexValue("POINT(-0.124722 51.5081)", 900.0))
-    println(metric.indexValue("POINT(13.3989 52.5006)", 900.0))
-    println(metric.indexValue("POINT(-0.124722 51.5081)", 300.0))
-    println(metric.indexValue("POINT(13.3989 52.5006)", 300.0))
+    metric.evaluate("POINT(-0.1167 51.5000)", "POINT(13.4000 52.5167)") should be(approximatelyEqualTo(930600.26))
   }
 }

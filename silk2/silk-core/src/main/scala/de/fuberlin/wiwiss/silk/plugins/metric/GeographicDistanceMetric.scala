@@ -91,11 +91,16 @@ case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceM
     // formula from http://www.zipcodeworld.com/samples/distance.java.html
     val theta = loc1.long - loc2.long // 180
     var dist = sin(deg2rad(loc1.lat)) * sin(deg2rad(loc2.lat)) + cos(deg2rad(loc1.lat)) * cos(deg2rad(loc2.lat)) * cos(deg2rad(theta))
-    dist = acos(dist)
-    dist = rad2deg(dist)
-    dist = dist * 60 * 1.1515 * 1.609344 * 1000; // in meters
-    dist = dist * unitMultiplier
-    dist
+    if(dist >= 1.0) {
+      0.0
+    }
+    else {
+      dist = acos(dist)
+      dist = rad2deg(dist)
+      dist = dist * 60 * 1.1515 * 1.609344 * 1000; // in meters
+      dist = dist * unitMultiplier
+      dist
+    }
   }
 
   /**
