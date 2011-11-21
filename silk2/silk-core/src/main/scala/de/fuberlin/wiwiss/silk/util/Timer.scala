@@ -6,7 +6,7 @@ import java.util.logging.Logger
  * Can be used to measure the time needed to execute a provided expression.
  */
 object Timer {
-  def apply[T](description: String)(f: => T)(implicit logger: Logger): T = {
+  def apply[T](description: String)(f: => T)(implicit logger: Logger = Logger.getAnonymousLogger): T = {
     val startTime = System.currentTimeMillis
 
     val result = f

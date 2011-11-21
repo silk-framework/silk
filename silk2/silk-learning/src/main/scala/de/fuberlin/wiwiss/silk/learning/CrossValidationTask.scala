@@ -4,13 +4,14 @@ import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.util.logging.Level
 import scala.util.Random
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 /**
  * Performs multiple cross validation runs and outputs the statistics.
  */
-class CrossValidationTask(entities : ReferenceEntities) extends Task[Unit] {
+class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traversable[LinkageRule] = Traversable.empty) extends Task[Unit] {
   /** The number of cross validation runs. */
-  private val numRuns = 10
+  private val numRuns = 2
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -82,6 +83,7 @@ class CrossValidationTask(entities : ReferenceEntities) extends Task[Unit] {
     val splits =
       for((p, n) <- posSplits zip negSplits) yield {
         LearningInput(
+          seedLinkageRules = seedLinkageRules,
           trainingEntities = ReferenceEntities.fromEntities(p.tail.flatten, n.tail.flatten),
           validationEntities = ReferenceEntities.fromEntities(p.head, n.head)
         )

@@ -85,12 +85,15 @@ class LearningTask(input: LearningInput = LearningInput.empty,
       else
         LearningResult.Running
 
+    val bestRule = population.bestIndividual.node.build
+
     val result =
       LearningResult(
         iterations = iterations,
         time = System.currentTimeMillis() - startTime,
         population = population,
-        validationResult = LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingEntities), //TODO should this be validation Entities?
+        trainingResult = LinkageRuleEvaluator(bestRule, input.trainingEntities),
+        validationResult = LinkageRuleEvaluator(bestRule, input.validationEntities),
         status = status
       )
 
