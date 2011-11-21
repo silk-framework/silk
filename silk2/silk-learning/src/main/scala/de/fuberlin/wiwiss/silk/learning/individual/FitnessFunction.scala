@@ -14,7 +14,7 @@ class FitnessFunction(referenceEntities: ReferenceEntities,
   def apply(linkageRule: LinkageRule) = {
     val score = LinkageRuleEvaluator(linkageRule, referenceEntities).score
 
-    val penalty = linkageRule.operator.map(countComparisons).getOrElse(0) / 100.0
+    val penalty = linkageRule.operator.map(countComparisons).getOrElse(0) / 300.0
 
     max(score - penalty, 0.0)
   }

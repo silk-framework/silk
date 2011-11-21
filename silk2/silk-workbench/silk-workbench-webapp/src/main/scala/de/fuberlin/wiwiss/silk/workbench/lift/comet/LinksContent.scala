@@ -8,10 +8,10 @@ import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import de.fuberlin.wiwiss.silk.workbench.evaluation._
-import de.fuberlin.wiwiss.silk.util.DPair
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.entity.{Link, Path, Entity}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
+import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
 
 /**
  * A widget which displays a list of links.
@@ -42,6 +42,8 @@ trait LinksContent extends CometActor {
   private var prefixes = PrefixRegistry.all ++ User().project.config.prefixes
 
   override protected val dontCacheRendering = true
+
+  protected val logger = Logger.getLogger(getClass.getName)
 
   override def render = {
     registerEvents()
