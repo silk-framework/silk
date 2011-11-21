@@ -132,7 +132,7 @@ trait PluginDialog[T <: AnyPlugin] {
       //Update all fields and open the dialog
       val updateFields = fields.map(_.updateValueCmd).reduceLeft(_ & _)
       val resetSelect = JsRaw("$('#" + id + "-select select option').removeAttr('selected')")
-      val updateSelect = JsRaw("$('#" + id + "-select select option:contains(\"" + currentForm.plugin.label + "\")').attr('selected', 'selected')")
+      val updateSelect = JsRaw("$('#" + id + "-select select option').filter(function() { return $(this).text() == \"" + currentForm.plugin.label + "\"; } ).attr('selected', 'selected')")
       val updateForms = pluginForms.map(_.updateCmd(currentForm.plugin)).reduce(_ & _)
       val openDialog = JsRaw("$('#" + id + "').dialog('open');").cmd
 
