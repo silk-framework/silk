@@ -10,9 +10,16 @@ import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
  * A link writer which writes to a SPARQL/Update endpoint.
+ *
+ * @param uri The uri of the SPARQL/Update endpoint e.g. http://localhost:8090/virtuoso/sparql.
+ * @param parameter The HTTP parameter used to submit queries. Defaults to "query" which works for most endpoints.
+ *                  Some endpoints require different parameters e.g. Sesame expects "update" and Joseki expects "request".
+ * @param graphUri The graph all statements are written into. Optional.
  */
 @Plugin(id = "sparul", label = "SPARQL/Update", description = "Writes the links to a store using SPARQL/Update.")
-case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
+case class SparqlWriter(uri: String,
+                        parameter: String = "query",
+                        graphUri: String = "") extends LinkWriter {
   /**Maximum number of statements per request. */
   private val StatementsPerRequest = 200;
 
@@ -48,25 +55,15 @@ case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
    * @throws IOException
    */
   private def beginSparul(newGraph: Boolean) {
-    //Preconditions
-    require(connection == null, "Connectiom already openend")
-
-    //Open a new HTTP connection
-    val url = new URL(uri)
-    connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setRequestMethod("POST")
-    connection.setDoOutput(true)
-    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-    writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
-    statements = 0;
-
-    writer.write("query=")
+    openConnection()
     if (graphUri.isEmpty) {
       writer.write("INSERT+DATA+%7B")
     }
     else {
       if (newGraph) {
         writer.write("CREATE+SILENT+GRAPH+%3C" + graphUri + "%3E+")
+        closeConnection()
+        openConnection()
       }
       writer.write("INSERT+DATA+INTO+%3C" + graphUri + "%3E+%7B")
     }
@@ -89,12 +86,32 @@ case class SparqlWriter(uri: String, graphUri: String = "") extends LinkWriter {
    * @throws IOException
    */
   private def endSparql() {
-    //End request
+    closeConnection()
+  }
+
+  private def openConnection() {
+    //Preconditions
+    require(connection == null, "Connectiom already openend")
+
+    //Open a new HTTP connection
+    val url = new URL(uri)
+    connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("POST")
+    connection.setDoOutput(true)
+    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+    writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
+    statements = 0;
+
+    writer.write(parameter + "=")
+  }
+
+  private def closeConnection() {
+    //Close connection
     writer.write("%7D")
     writer.close()
 
-    //Check response
-    if (connection.getResponseCode == 200) {
+    //Check if the HTTP response code is in the range 2xx
+    if (connection.getResponseCode / 100 == 2) {
       log.info(statements + " statements written to Store.")
     }
     else {
