@@ -67,8 +67,8 @@ object LinkingTaskDialog {
 
     //Variables to hold the values of the current linking task
     var name = task.map(_.name.toString).getOrElse("")
-    var sourceId = task.map(_.linkSpec.datasets.source.sourceId.toString).getOrElse(sourceIds.head)
-    var targetId = task.map(_.linkSpec.datasets.target.sourceId.toString).getOrElse(sourceIds.head)
+    var sourceId = task.map(_.linkSpec.datasets.source.sourceId.toString).getOrElse(sourceIds.head._1)
+    var targetId = task.map(_.linkSpec.datasets.target.sourceId.toString).getOrElse(sourceIds.head._1)
     var sourceRestriction = task.map(_.linkSpec.datasets.source.restriction.toSparql).getOrElse("?a rdf:type myprefix:myclass")
     var targetRestriction = task.map(_.linkSpec.datasets.target.restriction.toSparql).getOrElse("?b rdf:type myprefix:myclass")
     var linkType = task.map(_.linkSpec.linkType.toString).getOrElse("http://www.w3.org/2002/07/owl#sameAs")
