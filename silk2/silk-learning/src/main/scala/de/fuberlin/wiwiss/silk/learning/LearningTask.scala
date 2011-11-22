@@ -62,7 +62,7 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     while (!stop && !value.get.status.isInstanceOf[LearningResult.Finished]) {
       executeTask(new ReproductionTask(value.get.population, fitnessFunction, generator, config))
 
-      if (value.get.iterations % config.parameters.cleanFrequency == 0 && !stop) {
+      if (value.get.iterations % config.params.cleanFrequency == 0 && !stop) {
         executeTask(new CleanPopulationTask(value.get.population, fitnessFunction, generator))
       }
     }
@@ -92,11 +92,11 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     }
 
     val status =
-      if (population.bestIndividual.fitness > config.parameters.destinationfMeasure)
+      if (population.bestIndividual.fitness > config.params.destinationfMeasure)
         LearningResult.Success
-      else if (ineffectiveIterations >= config.parameters.maxIneffectiveIterations)
+      else if (ineffectiveIterations >= config.params.maxIneffectiveIterations)
         LearningResult.MaximumIneffectiveIterationsReached
-      else if (iterations >= config.parameters.maxIterations)
+      else if (iterations >= config.params.maxIterations)
         LearningResult.MaximumIterationsReached
       else
         LearningResult.Running

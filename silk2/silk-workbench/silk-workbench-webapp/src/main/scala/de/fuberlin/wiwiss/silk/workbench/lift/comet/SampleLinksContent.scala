@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.{User, TaskDataListener}
-import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentActiveLearningTask, CurrentPopulation, CurrentPool, CurrentValidationLinks}
+import de.fuberlin.wiwiss.silk.workbench.learning._
 
 class SampleLinksContent extends LinksContent with RateLinkButtons {
 
@@ -61,6 +61,7 @@ class SampleLinksContent extends LinksContent with RateLinkButtons {
 
     val task =
       new ActiveLearningTask(
+        config = CurrentConfiguration(),
         sources = User().project.sourceModule.tasks.map(_.source),
         linkSpec = User().linkingTask.linkSpec,
         paths = User().linkingTask.cache.entityDescs.map(_.paths),

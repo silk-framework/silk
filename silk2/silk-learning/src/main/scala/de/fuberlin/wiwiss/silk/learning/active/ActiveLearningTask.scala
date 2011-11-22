@@ -32,7 +32,8 @@ import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, Link
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 
 //TODO support canceling
-class ActiveLearningTask(sources: Traversable[Source],
+class ActiveLearningTask(config: LearningConfiguration,
+                         sources: Traversable[Source],
                          linkSpec: LinkSpecification,
                          paths: DPair[Seq[Path]],
                          referenceEntities: ReferenceEntities = ReferenceEntities.empty,
@@ -49,25 +50,26 @@ class ActiveLearningTask(sources: Traversable[Source],
     }
 
     //Build population
-    val config = LearningConfiguration.load()
     val generator = LinkageRuleGenerator(ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
     val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
 
     if(population.isEmpty) {
       updateStatus("Generating population", 0.5)
-      population = executeSubTask(new GeneratePopulationTask(Traversable(linkSpec.rule), generator, config), 0.6)
+      val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
+      population = executeSubTask(new GeneratePopulationTask(seedRules, generator, config), 0.6)
     }
 
     //Evolve population
     val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
     val fitnessFunction = new FitnessFunction(completeEntities, pool)
 
-    for(i <- 1 to 41
-        if i > 1 || population.bestIndividual.fitness < targetFitness
-        if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < 0.99) {
-      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), 0.6 + i / 250.0)
-      if(i % 5 == 0) {
-        population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator), 0.6 + i / 250.0)
+    for(i <- 0 until config.params.maxIterations
+        if i > 0 || population.bestIndividual.fitness < targetFitness
+        if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
+      val progress = 0.6 + 0.2 * (i + 1) / config.params.maxIterations
+      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), progress)
+      if(i % config.params.cleanFrequency == 0) {
+        population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator), progress)
       }
     }
 
@@ -100,5 +102,5 @@ class ActiveLearningTask(sources: Traversable[Source],
 }
 
 object ActiveLearningTask {
-  def empty = new ActiveLearningTask(Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
+  def empty = new ActiveLearningTask(LearningConfiguration.load(), Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
 }
