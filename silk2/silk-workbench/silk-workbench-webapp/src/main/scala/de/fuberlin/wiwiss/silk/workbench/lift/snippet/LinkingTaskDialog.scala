@@ -82,9 +82,7 @@ object LinkingTaskDialog {
 
       if(User().linkingTaskOpen) {
         val linkingTask = User().linkingTask
-
         val updatedLinkSpec = linkingTask.linkSpec.copy(id = name, datasets = datasets, linkType = linkType)
-
         val updatedLinkingTask = linkingTask.updateLinkSpec(updatedLinkSpec, User().project)
 
         if(linkingTask.name != updatedLinkingTask.name) {
@@ -104,7 +102,6 @@ object LinkingTaskDialog {
           )
 
         val linkingTask = LinkingTask(User().project, linkSpec, ReferenceLinks())
-
         User().project.linkingModule.update(linkingTask)
       }
 
