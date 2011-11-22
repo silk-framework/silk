@@ -40,7 +40,6 @@ class LinkingTaskDialog {
   /** Render the dialog */
   def render(xhtml: NodeSeq): NodeSeq = {
     <div id={LinkingTaskDialog.id} title="Linking Task">
-    { LinkingTaskDialog.renderDialog() }
     </div>
   }
 }
@@ -56,14 +55,12 @@ object LinkingTaskDialog {
   def closeCmd = JsRaw("$('#" + id + "').dialog('close');").cmd
 
   private def renderDialog(): NodeSeq = {
+    require(User().projectOpen, "LinkingTaskDialog requires an open project")
+
     val task = if(User().linkingTaskOpen) Some(User().linkingTask) else None
 
     //Generate the list of all available source ids
-    val sourceIds =
-      if(User().projectOpen)
-        for(task <- User().project.sourceModule.tasks.toSeq) yield (task.name.toString, task.name.toString)
-      else
-        Nil
+    val sourceIds = for(task <- User().project.sourceModule.tasks.toSeq) yield (task.name.toString, task.name.toString)
 
     //Variables to hold the values of the current linking task
     var name = task.map(_.name.toString).getOrElse("")
