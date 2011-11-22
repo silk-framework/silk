@@ -30,8 +30,8 @@ import de.fuberlin.wiwiss.silk.linkagerule.{input, LinkageRule}
 class GeneratePopulationTask(seedLinkageRules: Traversable[LinkageRule], generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
 
   override def execute(): Population = {
-    val individuals = new ParallelMapper(0 until config.parameters.populationSize).map { i =>
-      updateStatus(i.toDouble / config.parameters.populationSize);
+    val individuals = new ParallelMapper(0 until config.params.populationSize).map { i =>
+      updateStatus(i.toDouble / config.params.populationSize);
       generateIndividual()
     }
 

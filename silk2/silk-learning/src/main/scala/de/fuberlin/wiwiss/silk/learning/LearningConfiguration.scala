@@ -20,7 +20,7 @@ import reproduction.{ReproductionConfiguration}
 import xml.XML
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration._
 
-case class LearningConfiguration(components: Components, reproduction: ReproductionConfiguration, parameters: Parameters)
+case class LearningConfiguration(components: Components, reproduction: ReproductionConfiguration, params: Parameters)
 
 object LearningConfiguration {
 
@@ -35,7 +35,7 @@ object LearningConfiguration {
     LearningConfiguration(
       components = Components(),
       reproduction = ReproductionConfiguration(),
-      parameters = Parameters()
+      params = Parameters()
     )
   }
 
@@ -44,12 +44,15 @@ object LearningConfiguration {
   /**
    * The parameters of the learning algorithm.
    *
+   * @param seed Seed the population with the current linkage rule.
+   * @param populationSize The size of the population.
    * @param maxIterations The maximum number of iterations before giving up.
    * @param maxIneffectiveIterations The maximum number of subsequent iterations without any increase in fitness before giving up.
    * @param cleanFrequency The number of iterations between two runs of the cleaning algorithm.
    * @param destinationfMeasure The desired fMeasure. The algorithm will stop after reaching it.
    */
-  case class Parameters(populationSize: Int = 500,
+  case class Parameters(seed: Boolean = true,
+                        populationSize: Int = 500,
                         maxIterations: Int = 50,
                         maxIneffectiveIterations: Int = 50,
                         cleanFrequency: Int = 5,

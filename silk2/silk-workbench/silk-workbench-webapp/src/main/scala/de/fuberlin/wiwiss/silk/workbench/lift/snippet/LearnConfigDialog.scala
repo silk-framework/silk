@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2011 Freie Universität Berlin, MediaEvent Services GmbH & Co. KG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,17 +27,21 @@ import de.fuberlin.wiwiss.silk.workbench.learning.CurrentConfiguration
  */
 object LearnConfigDialog extends Dialog {
 
-  override val title = "Configuration"
+  override val title = "Learning Configuration"
 
-  //private val mode = RadioField("Mode", "", "New Linkage Rule" :: "Improve Linkage Rule" :: Nil, () => "New Linkage Rule")
+  private val mode_newRule = "New Linkage Rule"
 
-  private val populationSize = IntField("Population Size", "The number of individuals in the population", 1, 10000, () => CurrentConfiguration().parameters.populationSize)
+  private val mode_improveRule = "Improve Linkage Rule"
 
-  private val iterations = IntField("Iterations", "The number of iterations to be performed", 0, 1000, () => CurrentConfiguration().parameters.maxIterations)
+  private val mode = RadioField("Mode", "", mode_newRule :: mode_improveRule :: Nil, () => if(CurrentConfiguration().params.seed) mode_improveRule else mode_newRule)
+
+  private val populationSize = IntField("Population Size", "The number of individuals in the population", 1, 10000, () => CurrentConfiguration().params.populationSize)
+
+  private val iterations = IntField("Iterations", "The number of iterations to be performed", 0, 1000, () => CurrentConfiguration().params.maxIterations)
 
   private val components = CheckboxesField("Components", "Which components of the link specification should be learned", "Transformations" :: "Aggregations" :: Nil, () => Set("Transformations", "Aggregations"))
 
-  override val fields = populationSize :: iterations :: Nil
+  override val fields = mode :: populationSize :: iterations :: Nil
 
   override protected def dialogParams = ("autoOpen" -> "false") :: ("width" -> "600") :: ("modal" -> "true") :: Nil
 
@@ -50,7 +54,7 @@ object LearnConfigDialog extends Dialog {
     LearningConfiguration(
       components = Components(components.value.contains("Transformations"), components.value.contains("Aggregations")),
       reproduction = ReproductionConfiguration(),
-      parameters = Parameters(populationSize = populationSize.value, maxIterations = iterations.value)
+      params = Parameters(seed = (mode.value == mode_improveRule), populationSize = populationSize.value, maxIterations = iterations.value)
     )
   }
 }
