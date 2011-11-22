@@ -219,12 +219,12 @@ object Workspace {
     def callback(projectName: String): JsCmd = {
       User().project = User().workspace.project(projectName)
 
-      CreateLinkingTaskDialog.openCmd
+      LinkingTaskDialog.openCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
     val openLinkingTaskDialog = JsCmds.Function("createLinkingTask", "projectName" :: Nil, ajaxCall)
-    CreateLinkingTaskDialog.initCmd & openLinkingTaskDialog
+    LinkingTaskDialog.initCmd & openLinkingTaskDialog
   }
 
   /**
@@ -237,11 +237,11 @@ object Workspace {
       User().project = User().workspace.project(projectName)
       User().task = User().project.linkingModule.task(taskName)
 
-      EditLinkingTaskDialog.openCmd
+      LinkingTaskDialog.openCmd
     }
 
     val ajaxCall = SHtml.ajaxCall(JsRaw("projectName + ',' + taskName"), callback _)._2.cmd
-    EditLinkingTaskDialog.initCmd & JsCmds.Function("editLinkingTask", "projectName" :: "taskName" :: Nil, ajaxCall)
+    JsCmds.Function("editLinkingTask", "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 
   /*
