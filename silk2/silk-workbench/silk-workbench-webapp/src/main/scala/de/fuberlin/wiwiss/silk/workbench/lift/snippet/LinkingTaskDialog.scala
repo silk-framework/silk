@@ -58,20 +58,20 @@ object LinkingTaskDialog {
   private def renderDialog(): NodeSeq = {
     val task = if(User().linkingTaskOpen) Some(User().linkingTask) else None
 
-    //Variables to hold the values of the current linking task
-    var name = task.map(_.name.toString).getOrElse("")
-    var sourceId = task.map(_.linkSpec.datasets.source.sourceId.toString).getOrElse("")
-    var targetId = task.map(_.linkSpec.datasets.target.sourceId.toString).getOrElse("")
-    var sourceRestriction = task.map(_.linkSpec.datasets.source.restriction.toSparql).getOrElse("?a rdf:type myprefix:myclass")
-    var targetRestriction = task.map(_.linkSpec.datasets.target.restriction.toSparql).getOrElse("?b rdf:type myprefix:myclass")
-    var linkType = task.map(_.linkSpec.linkType.toString).getOrElse("http://www.w3.org/2002/07/owl#sameAs")
-
     //Generate the list of all available source ids
     val sourceIds =
       if(User().projectOpen)
         for(task <- User().project.sourceModule.tasks.toSeq) yield (task.name.toString, task.name.toString)
       else
         Nil
+
+    //Variables to hold the values of the current linking task
+    var name = task.map(_.name.toString).getOrElse("")
+    var sourceId = task.map(_.linkSpec.datasets.source.sourceId.toString).getOrElse(sourceIds.head)
+    var targetId = task.map(_.linkSpec.datasets.target.sourceId.toString).getOrElse(sourceIds.head)
+    var sourceRestriction = task.map(_.linkSpec.datasets.source.restriction.toSparql).getOrElse("?a rdf:type myprefix:myclass")
+    var targetRestriction = task.map(_.linkSpec.datasets.target.restriction.toSparql).getOrElse("?b rdf:type myprefix:myclass")
+    var linkType = task.map(_.linkSpec.linkType.toString).getOrElse("http://www.w3.org/2002/07/owl#sameAs")
 
     /** Commits the linking task when the dialog is submitted. */
     def submit() = JS.Try(){
