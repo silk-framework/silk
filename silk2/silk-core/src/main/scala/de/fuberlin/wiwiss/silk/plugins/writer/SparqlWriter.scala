@@ -102,6 +102,7 @@ case class SparqlWriter(uri: String,
    * @throws IOException
    */
   private def endSparql() {
+    writer.write("%7D")
     closeConnection()
   }
 
@@ -123,7 +124,6 @@ case class SparqlWriter(uri: String,
 
   private def closeConnection() {
     //Close connection
-    writer.write("%7D")
     writer.close()
 
     //Check if the HTTP response code is in the range 2xx

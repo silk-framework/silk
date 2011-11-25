@@ -56,10 +56,11 @@ class ActiveLearningTask(config: LearningConfiguration,
     if(population.isEmpty) {
       updateStatus("Generating population", 0.5)
       val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
-      population = executeSubTask(new GeneratePopulationTask(seedRules, generator, config), 0.6)
+      population = executeSubTask(new GeneratePopulationTask(seedRules, generator, config), 0.6, silent = true)
     }
 
     //Evolve population
+    //TODO include CompleteReferenceLinks into fitness function
     val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
     val fitnessFunction = new FitnessFunction(completeEntities, pool)
 
@@ -67,9 +68,9 @@ class ActiveLearningTask(config: LearningConfiguration,
         if i > 0 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
       val progress = 0.6 + 0.2 * (i + 1) / config.params.maxIterations
-      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), progress)
+      population = executeSubTask(new ReproductionTask(population, fitnessFunction, generator, config), progress, silent = true)
       if(i % config.params.cleanFrequency == 0) {
-        population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator), progress)
+        population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator), progress, silent = true)
       }
     }
 

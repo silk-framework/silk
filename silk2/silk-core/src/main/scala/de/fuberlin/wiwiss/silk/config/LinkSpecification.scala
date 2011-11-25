@@ -40,7 +40,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
   /**
    * Serializes this Link Specification as XML.
    */
-  def toXML(implicit prefixes: Prefixes): Node = {
+  def toXML(implicit prefixes: Prefixes = Prefixes.empty): Node = {
     <Interlink id={id}>
       <LinkType>{linkType.toTurtle}</LinkType>
       {datasets.source.toXML(true)}
