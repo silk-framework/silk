@@ -16,9 +16,9 @@ package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.learning.individual.Population
-import linkselector.{WeightedLinkageRule, EntropySelector}
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
+import linkselector.{UncertaintySelector, KullbackLeiblerDivergenceSelector, WeightedLinkageRule, EntropySelector}
 
 private class SampleFromPopulationTask(population: Population, unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities) extends ValueTask[Seq[Link]](Seq.empty) {
 
@@ -27,18 +27,19 @@ private class SampleFromPopulationTask(population: Population, unlabeledLinks: S
    * Better linkage rules will have a bigger weight in the information gain computation.
    */
   private val weightedRules = {
-    val bestFitness = population.individuals.map(_.fitness).max
-    val topIndividuals = population.individuals.toSeq.filter(_.fitness >= bestFitness * 0.5)
+    val bestFitness = population.bestIndividual.fitness
+    val topIndividuals = population.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
     for(individual <- topIndividuals) yield {
       new WeightedLinkageRule(individual)
     }
   }
 
   override protected def execute(): Seq[Link] = {
-    val selector = new EntropySelector(weightedRules, unlabeledLinks)
-    //val selector = new UncertaintySelector(weightedRules, unlabeledLinks, referenceEntities)
-    //val selector = new KullbackLeiblerDivergenceSelector(weightedRules, unlabeledLinks, referenceEntities)
-    selector()
+    //val entropySelector = new EntropySelector(weightedRules, unlabeledLinks)
+
+    val selector = new UncertaintySelector()
+    //val selector = new KullbackLeiblerDivergenceSelector()
+    selector(weightedRules, unlabeledLinks, referenceEntities)
   }
 
 }

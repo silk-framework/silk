@@ -47,6 +47,9 @@ class ActiveLearningTask(config: LearningConfiguration,
       pool = executeSubTask(new GeneratePoolTask(sources, linkSpec, paths), 0.5)
     }
 
+    //Assert that no reference links are in the pool
+    pool = pool.filterNot(referenceEntities.positive.contains).filterNot(referenceEntities.negative.contains)
+
     //Build population
     val generator = LinkageRuleGenerator(ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
     val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
@@ -83,20 +86,6 @@ class ActiveLearningTask(config: LearningConfiguration,
       population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator))
 
     valLinks
-  }
-
-  private def formatRule(rule: LinkageRule) = {
-    def collectPaths(op: Operator): Seq[Path] = op match {
-      case agg: Aggregation => agg.operators.flatMap(collectPaths)
-      case cmp: Comparison => cmp.inputs.flatMap(collectPaths)
-      case t: TransformInput => t.inputs.flatMap(collectPaths)
-      case i: PathInput => Seq(i.path)
-    }
-
-    val paths = collectPaths(rule.operator.get)
-    val shortPaths  = paths.map(_.serialize.split("[/#]").last.init)
-
-    shortPaths.mkString(" ")
   }
 }
 

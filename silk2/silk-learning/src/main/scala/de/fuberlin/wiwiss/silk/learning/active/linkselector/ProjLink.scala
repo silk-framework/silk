@@ -15,27 +15,11 @@
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity.Link
-import math.log
 
-class EntropySelector(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link]) {
-  def apply(): Seq[Link] = {
-    val valLinks = for(link <- unlabeledLinks) yield link.update(confidence = Some(entropy(link)))
-    valLinks.sortBy(-_.confidence.get).take(3)
-  }
+class ProjLink(val link: Link, val vector: Seq[Double])
 
-  def entropy(link: Link) = {
-    val fulfilledRules = rules.filter(rule => rule(link.entities.get) > 0.0)
-    val p = fulfilledRules.size.toDouble / rules.size
+object ProjLink {
+  def apply(link: Link, vector: Seq[Double]) = new ProjLink(link, vector)
 
-    (-p * log(p) - (1 - p) * log(1 - p)) / log(2)
-  }
+  def unapply(l: ProjLink): Option[(Link, Seq[Double])] = Some(l.link, l.vector)
 }
-
-
-
-
-
-
-
-
-

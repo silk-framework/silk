@@ -15,9 +15,29 @@
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 trait LinkSelector {
-  def apply(): Seq[Link]
+  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+    val proj = projection(rules, referenceEntities)
+
+    val positiveLinks = for((link, entityPair) <- referenceEntities.positive) yield link.update(entities = Some(entityPair))
+    val negativeLinks = for((link, entityPair) <- referenceEntities.negative) yield link.update(entities = Some(entityPair))
+
+    val unlabeled = unlabeledLinks.map(proj)
+    val positive = positiveLinks.map(proj)
+    val negative = negativeLinks.map(proj)
+
+    val rank = ranking(rules, unlabeled, positive, negative)
+    val rankedLinks = unlabeled.map(l => l.link.update(confidence = Some(rank(l))))
+
+    rankedLinks.sortBy(-_.confidence.get).take(3)
+  }
+
+  def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink)
+
+  def ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double)
 }
 
 

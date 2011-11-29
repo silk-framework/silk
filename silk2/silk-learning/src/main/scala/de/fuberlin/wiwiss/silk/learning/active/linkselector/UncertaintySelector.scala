@@ -17,39 +17,33 @@ package de.fuberlin.wiwiss.silk.learning.active.linkselector
 import de.fuberlin.wiwiss.silk.entity.Link
 import math.{pow, sqrt}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-class UncertaintySelector(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities) {
+//TODO rename?
+class UncertaintySelector() extends LinkSelector {
 
-  /** Each positive link defines a point in the space spanned by the linkage rules. */
-  val positivePoints: Traversable[Seq[Double]] = {
-    for((link, entityPair) <- referenceEntities.positive) yield {
-      rules.map(_.apply(entityPair))
+  override def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
+    new Projection(rules)
+  }
+
+  override def ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
+    new Ranking(rules, unlabeled, positive, negative)
+  }
+
+  private class Projection(rules: Seq[LinkageRule]) extends (Link => ProjLink) {
+    def apply(link: Link): ProjLink = {
+      ProjLink(link, rules.map(rule => rule(link.entities.get)))
     }
   }
 
-  /** Each negative link defines a point in the space spanned by the linkage rules. */
-  val negativePoints: Traversable[Seq[Double]] = {
-    for((link, entityPair) <- referenceEntities.negative) yield {
-      rules.map(_.apply(entityPair))
+  private class Ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]) extends (ProjLink => Double) {
+    def apply(p: ProjLink): Double = {
+      (positive ++ negative).map(distance(_, p)).min
     }
-  }
 
-  def apply(): Seq[Link] = {
-    val valLinks = for(link <- unlabeledLinks) yield link.update(confidence = Some(uncertainty(link)))
-    valLinks.sortBy(_.confidence.get.abs).take(3)
-  }
-
-  def uncertainty(link: Link) = {
-    val c = rules.map(rule => rule(link.entities.get))
-
-    val posDist = positivePoints.map(distance(_, c)).min
-    val negDist = negativePoints.map(distance(_, c)).min
-
-    (negDist - posDist) / (posDist + negDist)
-  }
-
-  def distance(v1: Seq[Double], v2: Seq[Double]) = {
-    sqrt((v1 zip v2).map(p => pow(p._1 - p._2, 2.0)).sum) / (2.0 * rules.size)
+    private def distance(v1: ProjLink, v2: ProjLink) = {
+      sqrt((v1.vector zip v2.vector).map(p => pow(p._1 - p._2, 2.0)).sum) / (2.0 * v1.vector.size)
+    }
   }
 }
 
