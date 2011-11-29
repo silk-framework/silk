@@ -37,7 +37,7 @@ class PathPairGenerator(components: Components) {
       val pathPairs = PairGenerator(distinctPaths, entities)
 
       //pathPairs.foreach(p => printLink(p, instances))
-      pathPairs.foreach(println)
+      //pathPairs.foreach(println)
 
       pathPairs.flatMap(createGenerators)
     }
