@@ -19,7 +19,6 @@ import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.learning.reproduction.ReproductionTask
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
 import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
@@ -28,6 +27,7 @@ import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{FitnessFunction, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, ReproductionTask}
 
 //TODO support canceling
 class ActiveLearningTask(config: LearningConfiguration,
@@ -78,7 +78,10 @@ class ActiveLearningTask(config: LearningConfiguration,
     //Sample links
     updateStatus("Sampling", 0.8)
 
-    val valLinks = new SampleFromPopulationTask(population, pool.toSeq, completeEntities).apply()
+    //TODO measure improvement of randomization
+    val randomizedPopulation = executeSubTask(new RandomizeTask(randomizedPopulation, fitnessFunction, generator, config), 0.8, silent = true)
+
+    val valLinks = new SampleFromPopulationTask(randomizedPopulation, pool.toSeq, completeEntities).apply()
     value.update(valLinks)
 
     //Clean population
