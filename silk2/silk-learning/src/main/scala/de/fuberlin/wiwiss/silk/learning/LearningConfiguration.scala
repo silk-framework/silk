@@ -15,7 +15,6 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import reproduction.{ReproductionConfiguration}
-import xml.XML
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration._
 
 case class LearningConfiguration(components: Components, reproduction: ReproductionConfiguration, params: Parameters)

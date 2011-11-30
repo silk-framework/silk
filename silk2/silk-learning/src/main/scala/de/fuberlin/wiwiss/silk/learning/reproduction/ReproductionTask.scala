@@ -15,40 +15,23 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
-import de.fuberlin.wiwiss.silk.util.{ParallelMapper, DPair}
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
+import de.fuberlin.wiwiss.silk.util.ParallelMapper
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-class ReproductionTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
-
-  /**
-   * The operators which will be employed for crossover.
-   */
-  private val crossoverOperators = {
-    var operators = List[CrossoverOperator]()
-
-    //We always learn thresholds and weights
-    operators ::= ThresholdCrossover()
-    operators ::= WeightCrossover()
-
-    if(config.components.transformations) {
-      operators ::= TransformationCrossover()
-    }
-
-    if(config.components.aggregations) {
-      operators ::= AggregationOperatorsCrossover()
-      operators ::= AggregationStrategyCrossover()
-      operators ::= OperatorCrossover()
-    }
-
-    operators
-  }
+class ReproductionTask(population: Population,
+                       fitnessFunction: (LinkageRule => Double),
+                       generator: LinkageRuleGenerator,
+                       config: LearningConfiguration) extends Task[Population] {
 
   private val individuals = population.individuals.toArray
+
+  private val crossover = new CrossoverFunction(fitnessFunction, config.components)
+
+  private val mutation = new MutationFunction(crossover, generator)
 
   override def execute(): Population = {
     //Get the best individuals and recompute their fitness as the reference links may have changed
@@ -67,25 +50,10 @@ class ReproductionTask(population: Population, fitnessFunction: (LinkageRule => 
   }
 
   private def reproduce(): Individual = {
-    //Choose a random crossover operator
-    val operator = crossoverOperators(Random.nextInt(crossoverOperators.size))
-
-    //Define the two crossover individuals: In case of mutation, we do a crossover with a new random node
-    val sourceIndividual = select()
-    val targetLinkageRule = if (Random.nextDouble < config.reproduction.mutationProbability) generator() else select().node
-
-    val node =
-      operator(DPair(sourceIndividual.node, targetLinkageRule)) match {
-        case Some(resultNode) => {
-          resultNode
-        }
-        case None => {
-          //No compatible pairs for this operator found => return unmodified node
-          sourceIndividual.node
-        }
-      }
-
-    Individual(node, fitnessFunction(node.build))
+    if(Random.nextDouble < config.reproduction.mutationProbability)
+      mutation(select())
+    else
+      crossover(select(), select())
   }
 
   private def select(): Individual = {
