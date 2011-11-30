@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import linkselector.{UncertaintySelector, KullbackLeiblerDivergenceSelector, WeightedLinkageRule, EntropySelector}
+import linkselector.{UniformSelector, KullbackLeiblerDivergenceSelector, WeightedLinkageRule, EntropySelector}
 
 private class SampleFromPopulationTask(population: Population, unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities) extends ValueTask[Seq[Link]](Seq.empty) {
 
@@ -37,7 +37,7 @@ private class SampleFromPopulationTask(population: Population, unlabeledLinks: S
   override protected def execute(): Seq[Link] = {
     //val entropySelector = new EntropySelector(weightedRules, unlabeledLinks)
 
-    val selector = new UncertaintySelector()
+    val selector = new UniformSelector()
     //val selector = new KullbackLeiblerDivergenceSelector()
     selector(weightedRules, unlabeledLinks, referenceEntities)
   }

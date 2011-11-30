@@ -17,6 +17,9 @@ package de.fuberlin.wiwiss.silk.learning.active.linkselector
 import de.fuberlin.wiwiss.silk.entity.Link
 import math.log
 
+/**
+ * Link Selector which selects the links with the highest vote entropy.
+ */
 class EntropySelector(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link]) {
   def apply(): Seq[Link] = {
     val valLinks = for(link <- unlabeledLinks) yield link.update(confidence = Some(entropy(link)))
