@@ -15,12 +15,14 @@
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity.Link
-import math.{pow, sqrt}
+import math.{pow, sqrt, abs}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-//TODO rename?
-class UncertaintySelector() extends LinkSelector {
+/**
+ * Link Selector which distributes the links uniformly.
+ */
+class UniformSelector() extends LinkSelector {
 
   override def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
     new Projection(rules)
@@ -39,10 +41,23 @@ class UncertaintySelector() extends LinkSelector {
   private class Ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]) extends (ProjLink => Double) {
     def apply(p: ProjLink): Double = {
       (positive ++ negative).map(distance(_, p)).min
+      
+//      var values = List[Double]()
+//
+//      for(i <- 0 until rules.size) {
+//        val posDist = for(r <- positive /*if rules(i)(r.link.entities.get) > 0.0*/) yield pow(r.vector(i) - p.vector(i), 2.0)
+//        val negDist = for(r <- negative /*if rules(i)(r.link.entities.get) <= 0.0*/) yield pow(r.vector(i) - p.vector(i), 2.0)
+//        val dist = posDist ++ negDist
+//
+//        if(!dist.isEmpty)
+//          values ::= dist.min
+//      }
+//
+//      sqrt(values.sum)
     }
 
     private def distance(v1: ProjLink, v2: ProjLink) = {
-      sqrt((v1.vector zip v2.vector).map(p => pow(p._1 - p._2, 2.0)).sum) / (2.0 * v1.vector.size)
+      (v1.vector zip v2.vector).map(p => abs(p._1 - p._2)).sum / (2.0 * v1.vector.size)
     }
   }
 }

@@ -25,7 +25,7 @@ import java.io.{FileWriter, BufferedWriter}
 import math.pow
 import de.fuberlin.wiwiss.silk.learning.active.CompleteReferenceLinks._
 import de.fuberlin.wiwiss.silk.learning.active.{CompleteReferenceLinks, ActiveLearningTask}
-import de.fuberlin.wiwiss.silk.learning.active.linkselector.{UncertaintySelector, ProjLink, KullbackLeiblerDivergenceSelector}
+import de.fuberlin.wiwiss.silk.learning.active.linkselector.{UniformSelector, ProjLink, KullbackLeiblerDivergenceSelector}
 
 class ActiveLearningEvaluator(config: LearningConfiguration,
                               sources: Traversable[Source],
@@ -73,7 +73,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val topIndividuals = population.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
       val rules = topIndividuals.map(_.node.build).toSeq
 
-      val kl = new UncertaintySelector()
+      val kl = new UniformSelector()
       val proj = kl.projection(rules, completeEntities)
 
       val positiveLinks = for((link, entityPair) <- completeEntities.positive) yield link.update(entities = Some(entityPair))
