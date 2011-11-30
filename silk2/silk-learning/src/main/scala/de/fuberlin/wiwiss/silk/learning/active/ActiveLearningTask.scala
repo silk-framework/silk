@@ -79,7 +79,7 @@ class ActiveLearningTask(config: LearningConfiguration,
     updateStatus("Sampling", 0.8)
 
     //TODO measure improvement of randomization
-    val randomizedPopulation = executeSubTask(new RandomizeTask(randomizedPopulation, fitnessFunction, generator, config), 0.8, silent = true)
+    val randomizedPopulation = executeSubTask(new RandomizeTask(population, fitnessFunction, generator, config), 0.8, silent = true)
 
     val valLinks = new SampleFromPopulationTask(randomizedPopulation, pool.toSeq, completeEntities).apply()
     value.update(valLinks)
