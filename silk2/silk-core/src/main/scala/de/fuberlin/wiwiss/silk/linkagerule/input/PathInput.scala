@@ -33,9 +33,10 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    * @return The values.
    */
   override def apply(entities: DPair[Entity]): Set[String] = {
-    if (entities.source.desc.variable == path.variable)
-      eval(entities.source)
-    else if (entities.target.desc.variable == path.variable)
+    if (entities.source.desc.variable == path.variable) {
+      val result = eval(entities.source)
+      result
+    } else if (entities.target.desc.variable == path.variable)
       eval(entities.target)
     else
       Set.empty

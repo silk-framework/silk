@@ -74,6 +74,7 @@ object Plugins {
     Transformer.register(classOf[RemoveValues])
     Transformer.register(classOf[RemoveEmptyValues])
     Transformer.register(classOf[Tokenizer])
+    Transformer.register(classOf[ConcatMultipleValuesTransformer])
     Transformer.register(classOf[MergeTransformer])
 
     DistanceMeasure.register(classOf[LevenshteinMetric])
@@ -83,6 +84,7 @@ object Plugins {
     DistanceMeasure.register(classOf[QGramsMetric])
     DistanceMeasure.register(classOf[EqualityMetric])
     DistanceMeasure.register(classOf[InequalityMetric])
+    DistanceMeasure.register(classOf[LowerThanMetric])
     DistanceMeasure.register(classOf[NumMetric])
     DistanceMeasure.register(classOf[DateMetric])
     DistanceMeasure.register(classOf[DateTimeMetric])
