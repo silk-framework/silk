@@ -24,10 +24,11 @@ import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
-import de.fuberlin.wiwiss.silk.learning.individual.{FitnessFunction, Population}
+import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, ReproductionTask}
+import linkselector.{UniformSelector, WeightedLinkageRule}
 
 //TODO support canceling
 class ActiveLearningTask(config: LearningConfiguration,
@@ -63,7 +64,7 @@ class ActiveLearningTask(config: LearningConfiguration,
     //Evolve population
     //TODO include CompleteReferenceLinks into fitness function
     val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
-    val fitnessFunction = new FitnessFunction(completeEntities, pool)
+    val fitnessFunction = config.fitnessFunction(completeEntities)
 
     for(i <- 0 until config.params.maxIterations
         if i > 0 || population.bestIndividual.fitness < targetFitness
@@ -75,13 +76,21 @@ class ActiveLearningTask(config: LearningConfiguration,
       }
     }
 
-    //Sample links
-    updateStatus("Sampling", 0.8)
+    //Select evaluation links
+    updateStatus("Selecting evaluation links", 0.8)
 
     //TODO measure improvement of randomization
     val randomizedPopulation = executeSubTask(new RandomizeTask(population, fitnessFunction, generator, config), 0.8, silent = true)
 
-    val valLinks = new SampleFromPopulationTask(randomizedPopulation, pool.toSeq, completeEntities).apply()
+    val weightedRules = {
+      val bestFitness = randomizedPopulation.bestIndividual.fitness
+      val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
+      for(individual <- topIndividuals) yield {
+        new WeightedLinkageRule(individual)
+      }
+    }
+
+    val valLinks = config.active.selector(weightedRules, pool.toSeq, completeEntities)
     value.update(valLinks)
 
     //Clean population

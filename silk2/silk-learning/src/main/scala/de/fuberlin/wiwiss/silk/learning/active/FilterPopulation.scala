@@ -22,6 +22,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.util.DPair
 
+//TODO not used at the moment
 private object FilterPopulation {
   def apply(population: Population, links: Traversable[Link]) = {
     Population(population.individuals.filter(i => rateRule(i.node.build, links)))

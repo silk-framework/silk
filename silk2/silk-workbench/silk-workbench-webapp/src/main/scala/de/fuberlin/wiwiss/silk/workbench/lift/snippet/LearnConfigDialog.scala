@@ -19,6 +19,7 @@ import de.fuberlin.wiwiss.silk.learning.reproduction._
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Components}
 import de.fuberlin.wiwiss.silk.workbench.lift.util._
 import de.fuberlin.wiwiss.silk.workbench.learning.CurrentConfiguration
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningConfiguration
 
 /**
  * Dialog which allows the user to configure the learning.
@@ -51,7 +52,6 @@ object LearnConfigDialog extends Dialog {
   private def createConfig() = {
     LearningConfiguration(
       components = Components(components.value.contains("Transformations"), components.value.contains("Aggregations")),
-      reproduction = ReproductionConfiguration(),
       params = Parameters(seed = (mode.value == mode_improveRule), populationSize = populationSize.value, maxIterations = iterations.value)
     )
   }
