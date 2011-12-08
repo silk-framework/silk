@@ -14,10 +14,16 @@
 
 package de.fuberlin.wiwiss.silk.learning
 
+import active.ActiveLearningConfiguration
+import individual.fitness.{MCCFitnessFunction, FitnessFunction}
 import reproduction.{ReproductionConfiguration}
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration._
 
-case class LearningConfiguration(components: Components, reproduction: ReproductionConfiguration, params: Parameters)
+case class LearningConfiguration(components: Components = Components(),
+                                 active: ActiveLearningConfiguration = ActiveLearningConfiguration(),
+                                 reproduction: ReproductionConfiguration = ReproductionConfiguration(),
+                                 fitnessFunction: FitnessFunction = MCCFitnessFunction(),
+                                 params: Parameters = Parameters())
 
 object LearningConfiguration {
 
@@ -29,11 +35,7 @@ object LearningConfiguration {
 
     //val xml = XML.load(getClass.getClassLoader.getResourceAsStream(defaultConfigFile))
 
-    LearningConfiguration(
-      components = Components(),
-      reproduction = ReproductionConfiguration(),
-      params = Parameters()
-    )
+    LearningConfiguration()
   }
 
   case class Components(transformations: Boolean = true, aggregations: Boolean = true)

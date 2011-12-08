@@ -29,6 +29,8 @@ class Link(source: String,
            val confidence: Option[Double] = None,
            val entities: Option[DPair[Entity]] = None) extends DPair[String](source, target) {
 
+  def this(link: Link) = this(link.source, link.target, link.confidence, link.entities)
+
   /**
    * Reverses the source and the target of this link.
    */

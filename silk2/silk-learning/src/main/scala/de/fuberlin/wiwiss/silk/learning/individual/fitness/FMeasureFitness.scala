@@ -12,13 +12,14 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning.active.linkselector
+package de.fuberlin.wiwiss.silk.learning.individual.fitness
 
-import de.fuberlin.wiwiss.silk.learning.individual.Individual
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import math.max
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 
-class WeightedLinkageRule(individual: Individual) extends LinkageRule(individual.node.build.operator) {
-  /** The weight of this linkage rule. Never smaller than 0.0001 */
-  val weight = max(0.0001, individual.fitness)
+case class FMeasureFitness() extends FitnessFunction {
+
+  def apply(referenceEntities: ReferenceEntities) = { (linkageRule: LinkageRule) =>
+    LinkageRuleEvaluator(linkageRule, referenceEntities).fMeasure
+  }
 }

@@ -51,7 +51,7 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     ineffectiveIterations = 0
 
     val referenceEntities = input.trainingEntities
-    val fitnessFunction = (rule: LinkageRule) => LinkageRuleEvaluator(rule, referenceEntities).score
+    val fitnessFunction = config.fitnessFunction(referenceEntities)
     val generator = LinkageRuleGenerator(referenceEntities, config.components)
 
     //Generate initial population

@@ -15,35 +15,15 @@
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity.Link
-import math.log
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
+import util.Random
 
 /**
- * Link Selector which selects the links with the highest vote entropy.
+ * Link Selector which selects a random link.
+ * This can be used as a baseline against other selectors can be compared.
  */
-class EntropySelector() extends LinkSelector {
-
+class RandomSelector extends LinkSelector {
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
-    val valLinks = for(link <- unlabeledLinks) yield link.update(confidence = Some(entropy(rules, link)))
-    valLinks.sortBy(-_.confidence.get).take(3)
-  }
-
-  private def entropy(rules: Seq[WeightedLinkageRule], link: Link) = {
-    val fulfilledRules = rules.filter(rule => rule(link.entities.get) > 0.0)
-    val p = fulfilledRules.size.toDouble / rules.size
-
-    if(p == 0.0 || p == 1.0)
-      0.0
-    else
-      (-p * log(p) - (1 - p) * log(1 - p)) / log(2)
+    Seq(unlabeledLinks(Random.nextInt(unlabeledLinks.size)))
   }
 }
-
-
-
-
-
-
-
-
-

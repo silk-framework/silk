@@ -12,13 +12,8 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning.active.linkselector
+package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.learning.individual.Individual
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import math.max
+import linkselector.{JensenShannonDivergenceSelector, UniformSelector, LinkSelector}
 
-class WeightedLinkageRule(individual: Individual) extends LinkageRule(individual.node.build.operator) {
-  /** The weight of this linkage rule. Never smaller than 0.0001 */
-  val weight = max(0.0001, individual.fitness)
-}
+case class ActiveLearningConfiguration(selector: LinkSelector = new JensenShannonDivergenceSelector())

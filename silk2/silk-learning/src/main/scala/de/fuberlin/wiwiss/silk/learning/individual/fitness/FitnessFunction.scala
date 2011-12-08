@@ -12,13 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning.active.linkselector
+package de.fuberlin.wiwiss.silk.learning.individual.fitness
 
-import de.fuberlin.wiwiss.silk.learning.individual.Individual
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import math.max
 
-class WeightedLinkageRule(individual: Individual) extends LinkageRule(individual.node.build.operator) {
-  /** The weight of this linkage rule. Never smaller than 0.0001 */
-  val weight = max(0.0001, individual.fitness)
-}
+trait FitnessFunction extends (ReferenceEntities => LinkageRule => Double)

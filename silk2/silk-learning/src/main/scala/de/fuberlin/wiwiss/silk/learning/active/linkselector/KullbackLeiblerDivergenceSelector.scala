@@ -16,87 +16,80 @@ package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.entity.Link
-import math.{pow, sqrt, log}
-import java.io.{FileWriter, BufferedWriter}
+import math.log
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 
-class KullbackLeiblerDivergenceSelector extends LinkSelector {
+/**
+ * Selects links with the highest Kullback-Leibler divergence as suggested in:
+ * Andrew McCallum and Kamal Nigam: Employing EM and Pool-Based Active Learning for Text Classification
+ *
+ * @param normalize If set to true, the divergence is also normalized by substracting the divergence to the nearest reference link.
+ */
+class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends LinkSelector {
 
-  override def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
-    new KullbackLeiblerDivergence(rules.map(rule => new ProbLinkageRule(rule, referenceEntities)).filter(_.isDefined))
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+    val proj = projection(rules, referenceEntities)
+
+    val positiveLinks = for((link, entityPair) <- referenceEntities.positive) yield link.update(entities = Some(entityPair))
+    val negativeLinks = for((link, entityPair) <- referenceEntities.negative) yield link.update(entities = Some(entityPair))
+
+    val unlabeled = unlabeledLinks.map(proj)
+    val positive = positiveLinks.map(proj)
+    val negative = negativeLinks.map(proj)
+
+    val rank = ranking(rules, unlabeled, positive, negative)
+    val rankedLinks = unlabeled.map(l => l.link.update(confidence = Some(rank(l))))
+
+    rankedLinks.sortBy(-_.confidence.get).take(3)
   }
 
-  override def ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
+  def projection(rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
+    new KullbackLeiblerDivergence(rules)
+  }
+
+  def ranking(rules: Seq[WeightedLinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
     new Ranking(rules, unlabeled, positive, negative)
   }
 
-  private class KullbackLeiblerDivergence(rules: Seq[ProbLinkageRule]) extends (Link => ProjLink) {
+  private class KullbackLeiblerDivergence(rules: Seq[WeightedLinkageRule]) extends (Link => ProjLink) {
     
     def apply(link: Link): ProjLink = {
       /** The consensus probability that this link is correct */
       val q = rules.map(probability(_, link)).sum / rules.size
 
-      //rank(ref) == 0
-      //rank(link) == r
-
-      //projection: for each rule: distance from next reference link which it fulfills
-      //example: rule1(ref1) == 0, rule1(ref2) == 1, rule1(link)==0 => dist == 0
-
-      val vector = 
-        if(q == 0.0 || q == 1.0)
-          rules.map(rule => 0.0)
-        else
-          rules.map(rule => kullbackLeiblerDivergence(q, rule, link))
+      val vector = rules.map(rule => kullbackLeiblerDivergenceProtected(probability(rule, link), q))
       
       new ProjLink(link, vector)
     }
 
-    def kullbackLeiblerDivergence(q: Double, rule: ProbLinkageRule, link: Link) = {
-      /** The probability that this link is true based on the given linkage rule */
-      val p = probability(rule, link)
+    def kullbackLeiblerDivergenceProtected(p: Double,  q: Double) = {
+      if(q == 0.0) kullbackLeiblerDivergence(p, 0.0001)
+      else if(q == 1.0) kullbackLeiblerDivergence(p, 0.9999)
+      else kullbackLeiblerDivergence(p, q)
+    }
 
+    def kullbackLeiblerDivergence(p: Double, q: Double) = {
       val p1 = if(p <= 0.0) 0.0 else p * log(p / q)
       val p2 = if(p >= 1.0) 0.0 else (1 - p) * log((1 - p) / (1 - q))
 
       (p1 + p2) / log(2)
     }
 
-    private def probability(rule: ProbLinkageRule, link: Link) = {
-      rule(link)
+    private def probability(rule: WeightedLinkageRule, link: Link) = {
+      if(rule(link.entities.get) > 0.0) rule.weight else 0.0
     }
   }
   
   private class Ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]) extends (ProjLink => Double) {
 
-//    val means = Array.fill(rules.size)(0.0)
-//    for(i <- 0 until rules.size) {
-//      means(i) = unlabeled.map(_.vector(i)).sum / unlabeled.size
-//    }
-//
-//    val variances = Array.fill(rules.size)(0.0)
-//    for(i <- 0 until rules.size) {
-//      variances(i) = unlabeled.map(p => pow(p.vector(i) - means(i), 2.0)).sum
-//    }
-//
-//    val maxIndex = (variances.zipWithIndex).maxBy(_._1)._2
-
     def apply(p: ProjLink): Double = {
-      //val informationGain = (positive ++ negative).map(r => (r.vector(maxIndex) - p.vector(maxIndex)).abs).min
-      //val informationGain = (positivePoints ++ negativePoints).map(r => distance(r, p)).sum
-      //val informationGain = (positive ++ negative).map(r => meanDistance(r, p)).min
-
-      p.vector.sum / p.vector.size
+      if(normalize)
+        (positive ++ negative).map(r => dist(r, p)).min
+      else 
+        p.vector.sum / p.vector.size
     }
 
-    private def distance(v1: ProjLink, v2: ProjLink) = {
-      sqrt((v1.vector zip v2.vector).map(p => pow(p._1 - p._2, 2.0)).sum) / (2.0 * v1.vector.size)
-    }
-
-    private def maxDistance(v1: ProjLink, v2: ProjLink) = {
-      (v1.vector zip v2.vector).map(p => (p._1 - p._2).abs).max
-    }
-
-    private def meanDistance(v1: ProjLink, v2: ProjLink) = {
+    private def dist(v1: ProjLink, v2: ProjLink) = {
       (v1.vector zip v2.vector).map(p => (p._1 - p._2).abs).sum / v1.vector.size
     }
   }
