@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <properties>
-    <silk.version>2.5.2</silk.version>
+    <silk.version>2.5.3</silk.version>
     <scala.version>2.9.1</scala.version>
     <scalatest.version>1.6.1</scalatest.version>
     <scala.plugin.version>2.15.2</scala.plugin.version>
@@ -15,7 +15,7 @@
   <artifactId>silk</artifactId>
   <packaging>pom</packaging>
   <name>Silk</name>
-  <version>2.5.2</version>
+  <version>2.5.3</version>
   <description>The Silk framework is a tool for discovering relationships between data items within different Linked Data sources. Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web.</description>
   <url>http://www4.wiwiss.fu-berlin.de/bizer/silk/</url>
   <licenses>
