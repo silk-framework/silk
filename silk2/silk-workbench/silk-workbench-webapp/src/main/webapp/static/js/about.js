@@ -14,7 +14,7 @@
 
 $(document).ready(function() {
 	var $dialog = $('<div id="about_dialog"></div>')
-		.html('<p>Silk Workbench, version 2.5.2</p>' +
+		.html('<p>Silk Workbench, version 2.5.3</p>' +
     '<p>© 2009-2011</p>' +
     '<p style="font-weight: bold;">Website</p>' +
     '<p style="margin-top:5px;"><a target="_blank" href="http://www4.wiwiss.fu-berlin.de/bizer/silk/">http://www4.wiwiss.fu-berlin.de/bizer/silk/</a></p>' +
