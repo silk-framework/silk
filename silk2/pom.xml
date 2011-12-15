@@ -75,6 +75,7 @@
   </modules>
 
   <build>
+    <sourceDirectory>src/main/scala</sourceDirectory>
     <plugins>
 
       <plugin>
