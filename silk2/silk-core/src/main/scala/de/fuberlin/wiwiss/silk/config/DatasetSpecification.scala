@@ -31,20 +31,20 @@ case class DatasetSpecification(sourceId: Identifier, variable: String, restrict
   /**
    * Serializes this Dataset Specification as XML.
    *
-   * @param If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
+   * @param asSource If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
   def toXML(asSource: Boolean) = {
     if (asSource) {
       <SourceDataset dataSource={sourceId} var={variable}>
         <RestrictTo>
-          {restriction}
+          {restriction.toSparql}
         </RestrictTo>
       </SourceDataset>
     }
     else {
       <TargetDataset dataSource={sourceId} var={variable}>
         <RestrictTo>
-          {restriction}
+          {restriction.toSparql}
         </RestrictTo>
       </TargetDataset>
     }
