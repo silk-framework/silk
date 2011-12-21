@@ -90,7 +90,7 @@ class LearningTask(input: LearningInput = LearningInput.empty,
     }
 
     val status =
-      if (population.bestIndividual.fitness > config.params.destinationfMeasure)
+      if (LinkageRuleEvaluator(population.bestIndividual.node.build, input.trainingEntities).fMeasure > config.params.destinationfMeasure)
         LearningResult.Success
       else if (ineffectiveIterations >= config.params.maxIneffectiveIterations)
         LearningResult.MaximumIneffectiveIterationsReached

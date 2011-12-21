@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
  */
 class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traversable[LinkageRule] = Traversable.empty) extends Task[Unit] {
   /** The number of cross validation runs. */
-  private val numRuns = 2
+  private val numRuns = 10
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -36,7 +36,6 @@ class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traver
   private val config = LearningConfiguration.load()
 
   /**
-   *
    * Executes all cross validation runs.
    */
   override def execute() {
@@ -97,7 +96,7 @@ class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traver
     val splits =
       for((p, n) <- posSplits zip negSplits) yield {
         LearningInput(
-          seedLinkageRules = seedLinkageRules,
+          seedLinkageRules = Seq.empty,
           trainingEntities = ReferenceEntities.fromEntities(p.tail.flatten, n.tail.flatten),
           validationEntities = ReferenceEntities.fromEntities(p.head, n.head)
         )
