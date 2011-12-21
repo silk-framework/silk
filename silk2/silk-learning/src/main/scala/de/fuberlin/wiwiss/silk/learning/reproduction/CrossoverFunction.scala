@@ -30,6 +30,8 @@ class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Co
   val operators = {
     var ops = List[CrossoverOperator]()
 
+//    ops ::= SubtreeCrossover()
+
     //We always learn thresholds and weights
     ops ::= ThresholdCrossover()
     ops ::= WeightCrossover()
