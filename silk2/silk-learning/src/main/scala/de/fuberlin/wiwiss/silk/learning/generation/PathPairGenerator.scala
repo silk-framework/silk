@@ -25,6 +25,9 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
  * Analyses the reference entities and generates pairs of paths.
  */
 class PathPairGenerator(components: Components) {
+  
+  private val minFrequency = 0.1
+  
   def apply(entities: ReferenceEntities): Traversable[ComparisonGenerator] = {
     if(entities.positive.isEmpty) {
       Traversable.empty
@@ -38,13 +41,14 @@ class PathPairGenerator(components: Components) {
 
       //pathPairs.foreach(p => printLink(p, instances))
       //pathPairs.foreach(println)
+      //val pathPairs = for(s <- paths.source; t <- paths.target) yield  DPair(s, t)
 
       pathPairs.flatMap(createGenerators)
     }
   }
 
 //TODO remove
-//  private def printLink(pathPair: DPair[Path], instances: ReferenceInstances) {
+//  private def printLink(pathPair: DPair[Path], instances: ReferenceEntities) {
 //    println("-------------------------------------")
 //    println(pathPair.mkString(" - "))
 //    println("P")
@@ -119,12 +123,11 @@ class PathPairGenerator(components: Components) {
       if(entities.negative.size > 0) {
         val negativeMatches = entities.negative.values.filter(i => matches(i, pathPair))
         val negative = negativeMatches.size.toDouble / entities.negative.size
-
-        positive > 0 && positive * 2.0 >= negative
+        
+        positive > minFrequency && positive * 2.0 >= negative
       }
       else {
-        //TODO use a threshold higher than 0 here?
-        positive > 0
+        positive > minFrequency
       }
     }
 
