@@ -23,14 +23,11 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
   override val children = inputs.source :: inputs.target :: metric :: Nil
 
   override def updateChildren(newChildren: List[Node]) = {
-    val inputNodes = newChildren.collect {
-      case c: InputNode => c
-    }
-    val metricNode = newChildren.collect {
-      case c: FunctionNode[DistanceMeasure] => c
-    }.head
+    val sourceInput = newChildren.collect{ case c: InputNode if c.isSource => c }.head
+    val targetInput = newChildren.collect{ case c: InputNode if !c.isSource => c }.head
+    val metricNode = newChildren.collect{ case c: FunctionNode[DistanceMeasure] => c }.head
 
-    ComparisonNode(DPair.fromSeq(inputNodes), threshold, weight, metricNode)
+    ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, metricNode)
   }
 
   override def build = {
