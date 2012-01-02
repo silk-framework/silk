@@ -19,7 +19,7 @@ package de.fuberlin.wiwiss.silk.linkagerule.input
  */
 abstract class SimpleTransformer extends Transformer {
   override final def apply(values: Seq[Set[String]]): Set[String] = {
-    values.head.map(evaluate)
+    values.reduce(_ ++ _).map(evaluate)
   }
 
   def evaluate(value: String): String
