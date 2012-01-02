@@ -14,13 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
+import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton}
 import de.fuberlin.wiwiss.silk.workbench.workspace.{TaskDataListener, User, CurrentTaskStatusListener}
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.workbench.learning._
-import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearningEvaluator, ActiveLearningTask}
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 
 class LearnControl extends DynamicButton {
 
@@ -35,19 +34,6 @@ class LearnControl extends DynamicButton {
    * Called when the button has been pressed.
    */
   override protected def onPressed() = {
-
-//    val task =
-//      new ActiveLearningEvaluator(
-//        config = CurrentConfiguration(),
-//        sources = User().project.sourceModule.tasks.map(_.source),
-//        linkSpec = User().linkingTask.linkSpec,
-//        paths = User().linkingTask.cache.entityDescs.map(_.paths),
-//        validationEntities = User().linkingTask.cache.entities
-//      )
-//    task.progressLogLevel = Level.FINEST
-//    task.runInBackground()
-//    JS.Empty
-
     if(User().linkingTask.cache.status.isRunning) {
       JS.Message("Cache not loaded yet.")
     }
