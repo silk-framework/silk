@@ -12,10 +12,10 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning
+package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.evaluation.statistics.{LinkageRuleComplexity, AggregatedComplexity, AggregatedEvaluationResult, VariableStatistic}
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
+import de.fuberlin.wiwiss.silk.learning.LearningResult
 
 /**
  * The aggregated result of multiple learning runs.

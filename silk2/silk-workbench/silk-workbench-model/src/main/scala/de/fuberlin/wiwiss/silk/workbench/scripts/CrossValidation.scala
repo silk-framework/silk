@@ -12,18 +12,35 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning
+package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.util.logging.Level
 import scala.util.Random
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.learning._
+
+object CrossValidation extends EvaluationScript {
+
+  override protected def run() {
+    val ex = Experiment.experiments.head
+    
+    ex.task.cache.waitUntilLoaded()
+
+    val task = new CrossValidation(ex.task.cache.entities)
+
+    task()
+
+    println("Evaluation finished")
+  }
+}
 
 /**
  * Performs multiple cross validation runs and outputs the statistics.
  */
-class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traversable[LinkageRule] = Traversable.empty) extends Task[Unit] {
+class CrossValidation(entities : ReferenceEntities) extends Task[Unit] {
+  require(entities.isDefined, "Reference Entities are required")
+  
   /** The number of cross validation runs. */
   private val numRuns = 10
 
@@ -46,15 +63,17 @@ class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traver
     //Aggregated the results of each iteration
     val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
 
-    println(AggregatedLearningResult.format(aggregatedResults, true, true).toLatex)
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = true).toLatex)
     println()
-    println(AggregatedLearningResult.format(aggregatedResults, false, true).toCsv)
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = true).toCsv)
   }
 
   /**
    * Executes one cross validation run.
    */
   private def crossValidation(run: Int): Iterable[Seq[LearningResult]] = {
+    logger.info("Cross validation run " + run)
+    
     val splits = splitReferenceEntities()
 
     for((split, index) <- splits.zipWithIndex) yield {
