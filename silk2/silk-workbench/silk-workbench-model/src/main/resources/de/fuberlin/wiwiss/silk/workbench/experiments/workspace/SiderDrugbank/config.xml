@@ -1,0 +1,15 @@
+<ProjectConfig>
+  <Prefixes>
+    <Prefix namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#" id="rdf"></Prefix>
+    <Prefix namespace="http://sw.opencyc.org/2008/06/10/concept/" id="opencyc"></Prefix>
+    <Prefix namespace="http://dbpedia.org/property/" id="dbpedia-prop"></Prefix>
+    <Prefix namespace="http://purl.org/dc/terms/" id="dc"></Prefix>
+    <Prefix namespace="http://dbpedia.org/resource/" id="dbpedia"></Prefix>
+    <Prefix namespace="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/" id="drugbank"></Prefix>
+    <Prefix namespace="http://www4.wiwiss.fu-berlin.de/sider/resource/sider/" id="sider"></Prefix>
+    <Prefix namespace="http://www.w3.org/2002/07/owl#" id="owl"></Prefix>
+    <Prefix namespace="http://xmlns.com/foaf/0.1/" id="foaf"></Prefix>
+    <Prefix namespace="http://www.w3.org/2000/01/rdf-schema#" id="rdfs"></Prefix>
+    <Prefix namespace="http://dbpedia.org/ontology/" id="dbpedia-owl"></Prefix>
+  </Prefixes>
+</ProjectConfig>

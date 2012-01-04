@@ -1,0 +1,164 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:align="http://knowledgeweb.semanticweb.org/heterogeneity/alignment#" xmlns="http://knowledgeweb.semanticweb.org/heterogeneity/alignment#">
+  <Alignment>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/5359"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00870"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">-1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/401"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00260"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">-1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/20585"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB01303"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">-1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/4771"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00191"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">-1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/5462337"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB01250"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/48041"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB01228"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/68740"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00399"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/2405"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00612"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/5184"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00747"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/175"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB03166"></entity2>
+        <relation>=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">0.7085939050438</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/3724"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB01124"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/3382"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00917"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/3519"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00273"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/3410"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00014"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/5482"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00859"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/4011"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00488"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/4603"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00919"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/2441"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00797"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/2678"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB01218"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+      </Cell>
+    </map>
+    <map>
+      <Cell>
+        <entity1 rdf:resource="http://www4.wiwiss.fu-berlin.de/sider/resource/drugs/1003"></entity1>
+        <entity2 rdf:resource="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB02831"></entity2>
+        <relation>!=</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">0.5992848177867932</measure>
+      </Cell>
+    </map>
+  </Alignment>
+</rdf:RDF>

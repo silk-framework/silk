@@ -1,0 +1,35 @@
+<Interlink id="drugs">
+  <LinkType>&lt;http://www.w3.org/2002/07/owl#sameAs&gt;</LinkType>
+  <SourceDataset dataSource="sider" var="a">
+    <RestrictTo> ?a &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://www4.wiwiss.fu-berlin.de/sider/resource/sider/drugs&gt; . </RestrictTo>
+  </SourceDataset>
+  <TargetDataset dataSource="drugbank" var="b">
+    <RestrictTo> ?b &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugs&gt; . </RestrictTo>
+  </TargetDataset>
+  <LinkageRule>
+    <Aggregate weight="1" type="max" required="false" id="unnamed_1">
+      <Compare weight="1" threshold="1.0" required="false" metric="levenshteinDistance" id="unnamed_6">
+        <TransformInput function="lowerCase" id="unnamed_2">
+          <Input path="?a/&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;" id="unnamed_3"></Input>
+        </TransformInput>
+        <TransformInput function="lowerCase" id="unnamed_4">
+          <Input path="?b/&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;" id="unnamed_5"></Input>
+        </TransformInput>
+        <Param name="minChar" value="0"></Param>
+        <Param name="maxChar" value="z"></Param>
+      </Compare>
+      <Compare weight="1" threshold="1.0" required="false" metric="levenshteinDistance" id="unnamed_11">
+        <TransformInput function="lowerCase" id="unnamed_7">
+          <Input path="?a/&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;" id="unnamed_8"></Input>
+        </TransformInput>
+        <TransformInput function="lowerCase" id="unnamed_9">
+          <Input path="?b/&lt;http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/synonym&gt;" id="unnamed_10"></Input>
+        </TransformInput>
+        <Param name="minChar" value="0"></Param>
+        <Param name="maxChar" value="z"></Param>
+      </Compare>
+    </Aggregate>
+  </LinkageRule>
+  <Filter limit="1"></Filter>
+  <Outputs> </Outputs>
+</Interlink>
