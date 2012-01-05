@@ -19,30 +19,55 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.util.logging.Level
 import scala.util.Random
 import de.fuberlin.wiwiss.silk.learning._
+import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
 
 object CrossValidation extends EvaluationScript {
 
   override protected def run() {
-    val ex = Experiment.experiments.head
-    
-    ex.task.cache.waitUntilLoaded()
-
-    val task = new CrossValidation(ex.task.cache.entities)
-
-    task()
-
+    runExperiment()
     println("Evaluation finished")
+  }
+
+  protected def runDefault() {
+    execute(
+      dataset = Dataset.fromWorkspace.head,
+      config = LearningConfiguration()
+    )
+  }
+
+  protected def runExperiment() {
+    val experiment = Experiment.seeding
+    val metrics = PerformanceMetric.all
+    val datasets = Dataset.fromWorkspace
+    
+    val values =
+      for(config <- experiment.configurations) yield {
+        for(ds <- datasets) yield {
+          execute(ds, config)
+        }
+      }
+    
+    val result = ResultTables.build(metrics, values, datasets.map(_.name), experiment.configurations.map(_.name))
+
+    println(result.toCsv)
+  }
+  
+  private def execute(dataset: Dataset, config: LearningConfiguration) = {
+    val cache = dataset.task.cache
+    cache.waitUntilLoaded()
+    val task = new CrossValidation(cache.entities, config)
+    task()
   }
 }
 
 /**
  * Performs multiple cross validation runs and outputs the statistics.
  */
-class CrossValidation(entities : ReferenceEntities) extends Task[Unit] {
+class CrossValidation(entities : ReferenceEntities, config: LearningConfiguration) extends Task[RunResult] {
   require(entities.isDefined, "Reference Entities are required")
   
   /** The number of cross validation runs. */
-  private val numRuns = 10
+  private val numRuns = 3
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -50,28 +75,29 @@ class CrossValidation(entities : ReferenceEntities) extends Task[Unit] {
   /** Don't log progress. */
   progressLogLevel = Level.FINE
 
-  private val config = LearningConfiguration.load()
-
   /**
    * Executes all cross validation runs.
    */
-  override def execute() {
+  override def execute() = {
     //Execute the cross validation runs
     val results = for(run <- 0 until numRuns; result <- crossValidation(run)) yield result
     //Make sure that all runs have the same number of results
     val paddedResults = results.map(r => r.padTo(results.map(_.size).max, r.last))
-    //Aggregated the results of each iteration
-    val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
+    
+    RunResult(paddedResults.map(r => Run(r.map(_.trainingResult.fMeasure))))
 
-    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = true).toLatex)
-    println()
-    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = true).toCsv)
+    //Aggregated the results of each iteration
+//    val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
+//
+//    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = true).toLatex)
+//    println()
+//    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = true).toCsv)
   }
 
   /**
    * Executes one cross validation run.
    */
-  private def crossValidation(run: Int): Iterable[Seq[LearningResult]] = {
+  private def crossValidation(run: Int): Seq[Seq[LearningResult]] = {
     logger.info("Cross validation run " + run)
     
     val splits = splitReferenceEntities()

@@ -5,17 +5,17 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 
-case class Experiment(name: String,
-                      task: LinkingTask,
-                      sources: DPair[Source])
+case class Dataset(name: String,
+                   task: LinkingTask,
+                   sources: DPair[Source])
 
-object Experiment {
+object Dataset {
 
-  def experiments: Seq[Experiment] = {
+  def fromWorkspace: Seq[Dataset] = {
     for(project <- User().workspace.projects.toSeq;
         task <- project.linkingModule.tasks) yield {
-      Experiment(
-        name = project.name + " - " + task.name,
+      Dataset(
+        name = project.name,
         task = task,
         sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
       )

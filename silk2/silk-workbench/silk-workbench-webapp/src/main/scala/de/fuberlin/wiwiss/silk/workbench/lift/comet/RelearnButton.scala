@@ -16,12 +16,12 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, User}
-import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentPopulation, CurrentLearningTask}
 import de.fuberlin.wiwiss.silk.util.task.{TaskRunning, TaskFinished, TaskStarted, TaskStatus}
 import net.liftweb.http.{CometActor, SHtml}
 import java.util.UUID
 import net.liftweb.http.js.JsCmds.SetHtml
 import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningConfiguration, LearningTask}
+import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentConfiguration, CurrentPopulation, CurrentLearningTask}
 
 class RelearnButton extends CometActor {
 
@@ -59,8 +59,7 @@ class RelearnButton extends CometActor {
         trainingEntities = User().linkingTask.cache.entities,
         seedLinkageRules = List(User().linkingTask.linkSpec.rule)
       )
-    val config = LearningConfiguration.load()
-    val task = new LearningTask(input, config)
+    val task = new LearningTask(input, CurrentConfiguration())
     CurrentLearningTask() = task
     task.runInBackground()
   }

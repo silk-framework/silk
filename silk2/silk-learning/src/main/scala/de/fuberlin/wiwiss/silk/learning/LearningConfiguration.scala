@@ -19,7 +19,8 @@ import individual.fitness.{MCCFitnessFunction, FitnessFunction}
 import reproduction.{ReproductionConfiguration}
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration._
 
-case class LearningConfiguration(components: Components = Components(),
+case class LearningConfiguration(name: String = "Unamed",
+                                 components: Components = Components(),
                                  active: ActiveLearningConfiguration = ActiveLearningConfiguration(),
                                  reproduction: ReproductionConfiguration = ReproductionConfiguration(),
                                  fitnessFunction: FitnessFunction = MCCFitnessFunction(),
@@ -27,18 +28,16 @@ case class LearningConfiguration(components: Components = Components(),
 
 object LearningConfiguration {
 
-  val defaultConfigFile = "de/fuberlin/wiwiss/silk/learning/config.xml"
+  def default = LearningConfiguration()
 
-  def empty = load()
-
-  def load() = {
-
-    //val xml = XML.load(getClass.getClassLoader.getResourceAsStream(defaultConfigFile))
-
-    LearningConfiguration()
-  }
-
-  case class Components(transformations: Boolean = true, aggregations: Boolean = true)
+  /**
+   * Specifies which components of the linkage rules are learned.
+   * 
+   * @param seed Preprocess Only generate linkage rules with compatible path pairs
+   * @param transformations Learn data transformations
+   * @param aggregations Learn aggregations
+   */
+  case class Components(seed: Boolean = true, transformations: Boolean = true, aggregations: Boolean = true)
 
   /**
    * The parameters of the learning algorithm.
