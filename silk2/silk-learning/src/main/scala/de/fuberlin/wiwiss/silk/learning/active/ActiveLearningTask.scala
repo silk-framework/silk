@@ -102,5 +102,5 @@ class ActiveLearningTask(config: LearningConfiguration,
 }
 
 object ActiveLearningTask {
-  def empty = new ActiveLearningTask(LearningConfiguration.load(), Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
+  def empty = new ActiveLearningTask(LearningConfiguration.default, Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
 }
