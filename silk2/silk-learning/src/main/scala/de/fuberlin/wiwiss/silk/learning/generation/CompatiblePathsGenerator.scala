@@ -24,26 +24,34 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 /**
  * Analyses the reference entities and generates pairs of paths.
  */
-class PathPairGenerator(components: Components) {
+class CompatiblePathsGenerator(components: Components) {
   
   private val minFrequency = 0.1
   
-  def apply(entities: ReferenceEntities): Traversable[ComparisonGenerator] = {
+  def apply(entities: ReferenceEntities, seed: Boolean): Traversable[ComparisonGenerator] = {
     if(entities.positive.isEmpty) {
       Traversable.empty
     } else {
       //Get all paths except sameAs paths
       val paths = PathsRetriever(entities)
-      //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
-      val distinctPaths = DuplicateRemover(paths, entities)
-      //Return all path pairs
-      val pathPairs = PairGenerator(distinctPaths, entities)
 
-      //pathPairs.foreach(p => printLink(p, instances))
-      //pathPairs.foreach(println)
-      //val pathPairs = for(s <- paths.source; t <- paths.target) yield  DPair(s, t)
+      if(seed) {
+        //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
+        val distinctPaths = DuplicateRemover(paths, entities)
+        //Return all path pairs
+        val pathPairs = PairGenerator(distinctPaths, entities)
 
-      pathPairs.flatMap(createGenerators)
+        //pathPairs.foreach(p => printLink(p, instances))
+        //pathPairs.foreach(println)
+
+        pathPairs.flatMap(createGenerators)
+      }
+      else {
+        for(s <- paths.source;
+            t <- paths.target;
+            generator <- createGenerators(DPair(s, t)))
+          yield generator
+      }
     }
   }
 

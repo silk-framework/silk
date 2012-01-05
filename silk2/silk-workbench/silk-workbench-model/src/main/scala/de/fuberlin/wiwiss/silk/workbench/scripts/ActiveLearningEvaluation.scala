@@ -7,10 +7,11 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Parameters
-import de.fuberlin.wiwiss.silk.workbench.scripts.ExperimentResult.{Table, Row}
+import de.fuberlin.wiwiss.silk.workbench.scripts.ResultTables.{Table, Row}
 import util.Random
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends App {
 
@@ -21,27 +22,27 @@ object ActiveLearningEvaluation extends App {
 
   val configurations =
     Seq(
-      "test1" -> LearningConfiguration.load().copy(params = Parameters(seed = false)),
-      "test2" -> LearningConfiguration.load().copy(params = Parameters(seed = false))
+      LearningConfiguration("test1", params = Parameters(seed = false)),
+      LearningConfiguration("test2", params = Parameters(seed = false))
     )
   
-  val experiments = Experiment.experiments
+  val datasets = Dataset.fromWorkspace
 
   val values =
-    for(ex <- experiments) yield {
-      for(config <- configurations.map(_._2)) yield {
-        new ActiveLearningEvaluator(config, ex).apply()
+    for(ds <- datasets) yield {
+      for(config <- configurations) yield {
+        new ActiveLearningEvaluator(config, ds).apply()
       }
     }
 
   val result =
-    ExperimentResult(
+    ResultTables(
       for((label, index) <- labels.zipWithIndex) yield {
         val rows =
-          for((c,v) <- configurations.map(_._1) zip values) yield {
+          for((c,v) <- configurations.map(_.name) zip values) yield {
             Row(c, v.map(_(index)))
           }
-        Table(label, experiments.map(_.name), rows)
+        Table(label, datasets.map(_.name), rows)
       }
     )
 
@@ -50,7 +51,7 @@ object ActiveLearningEvaluation extends App {
 }
 
 class ActiveLearningEvaluator(config: LearningConfiguration,
-                              experiment: Experiment) extends Task[Seq[Double]] {
+                              ds: Dataset) extends Task[Seq[Double]] {
 
   val numRuns = 10
 
@@ -60,15 +61,15 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
 
     //Random.nextDouble :: Random.nextDouble :: Random.nextDouble :: Nil
     0.1 :: 0.2 :: 0.3 :: Nil
-      //values = RunStatistic.meanIterations(results, 0.9) ::
-      //         RunStatistic.meanIterations(results, 0.95) ::
-      //         RunStatistic.meanIterations(results, 0.999) :: Nil
+      //values = RunResult.meanIterations(results, 0.9) ::
+      //         RunResult.meanIterations(results, 0.95) ::
+      //         RunResult.meanIterations(results, 0.999) :: Nil
     
   }
 
-  private def run(): RunStatistic = {
+  private def run(): Run = {
     var referenceEntities = ReferenceEntities()
-    val validationEntities = experiment.task.cache.entities
+    val validationEntities = ds.task.cache.entities
 
     val positiveValLinks = for((link, entityPair) <- validationEntities.positive) yield link.update(entities = Some(entityPair))
     val negativeValLinks = for((link, entityPair) <- validationEntities.negative) yield link.update(entities = Some(entityPair))
@@ -82,9 +83,9 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val task =
         new ActiveLearningTask(
           config = config,
-          sources = experiment.sources,
-          linkSpec = experiment.task.linkSpec,
-          paths = experiment.task.cache.entityDescs.map(_.paths),
+          sources = ds.sources,
+          linkSpec = ds.task.linkSpec,
+          paths = ds.task.cache.entityDescs.map(_.paths),
           referenceEntities = referenceEntities,
           pool = pool,
           population = population
@@ -103,7 +104,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       println(i + " - " + valScores)
       scores ::= valScores.fMeasure
       if(valScores.fMeasure > 0.999) {
-        return RunStatistic(scores.reverse)
+        return Run(scores.reverse)
       }
 
       //Evaluate new link
@@ -118,38 +119,6 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       }
     }
 
-    RunStatistic(scores.reverse)
-  }
-
-  private case class RunStatistic(results: List[Double]) {
-    def format() = {
-      "F-measure\n" + results.mkString("\n")
-    }
-
-    /**
-     * Compute the number of iterations needed to reach a specific F-measure.
-     */
-    def iterations(fMeasure: Double): Int = {
-      results.indexWhere(_ >= fMeasure) match {
-        case -1 => throw new IllegalArgumentException("Target F-measure " + fMeasure + " never reached.")
-        case i => i
-      }
-    }
-  }
-
-  private object RunStatistic {
-    def merge(statistics: List[RunStatistic]) = {
-      val maxIterations = statistics.map(_.results.size).max
-      val fMeasures = statistics.map(_.results.padTo(maxIterations, 1.0))
-      val meanfMeasures = fMeasures.transpose.map(d => d.sum / d.size)
-      RunStatistic(meanfMeasures)
-    }
-
-    /**
-     * Compute the average number of iterations needed to reach a specific F-measure.
-     */
-    def meanIterations(statistics: List[RunStatistic], fMeasure: Double): Double = {
-      statistics.map(_.iterations(fMeasure)).sum.toDouble / statistics.size
-    }
+    Run(scores.reverse)
   }
 }
