@@ -21,12 +21,32 @@ trait PerformanceMetric extends (RunResult => Double) {
 object PerformanceMetric {
 
   def all: Seq[PerformanceMetric] = {
-    MeanIterationsMetric("Mean iterations for 90%", 0.9) ::
-    MeanIterationsMetric("Mean iterations for 95%", 0.95) ::
-    MeanIterationsMetric("Mean iterations for 100%", 0.999) :: Nil
+    FixedIterationsFMeasure(0) :: Nil
+    //MeanIteration(0.9) ::
+    //MeanIterations(0.95) ::
+    //MeanIterations(0.999) :: Nil
   }
 
-  private case class MeanIterationsMetric(name: String, targetFMeasure: Double) extends PerformanceMetric {
+  /**
+   * Computes the F-measure after a fixed number of iterations.
+   */
+  private case class FixedIterationsFMeasure(round: Int = 0) extends PerformanceMetric  {
+    val name = round match {
+      case 0 => "Initial F-measure"
+      case _ => "F-measure in round " + round
+    }
+
+    def apply(result: RunResult) = {
+      result.runs.map(_.results(round)).sum.toDouble / result.runs.size
+    }
+  }
+
+  /**
+   * Computes the mean iterations needed to reach a specific F-measure.
+   */
+  private case class MeanIterations(targetFMeasure: Double = 0.999) extends PerformanceMetric {
+    val name = "Mean iterations for " + (targetFMeasure * 100.0 + 0.5).toInt + "% F-measure"
+
     def apply(result: RunResult) = {
       result.runs.map(_.iterations(targetFMeasure)).sum.toDouble / result.runs.size
     } 

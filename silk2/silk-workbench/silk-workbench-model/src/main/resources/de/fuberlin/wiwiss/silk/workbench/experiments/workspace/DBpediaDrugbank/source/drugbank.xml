@@ -1,3 +1,4 @@
-<DataSource type="sparqlEndpoint" id="drugbank">
-    <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/drugbank/sparql"></Param>
+<DataSource type="file" id="drugbank">
+  <Param name="file" value="drugbank.nt"></Param>
+  <Param name="format" value="N-TRIPLE"></Param>
 </DataSource>

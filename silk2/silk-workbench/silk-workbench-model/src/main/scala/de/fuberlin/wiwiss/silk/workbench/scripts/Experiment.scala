@@ -28,4 +28,8 @@ object Experiment {
   val seeding = Experiment("Seeding", LearningConfiguration("No Seeding", components = Components(seed = false)) :: defaultConfig)
 
   val transformations = Experiment("Transformations", LearningConfiguration("No Transformations", components = Components(transformations = false)) :: defaultConfig)
+
+  val crossover = Experiment("Crossover Operators", LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false)) :: defaultConfig)
+
+  //TODO bloating
 }
