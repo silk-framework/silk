@@ -14,6 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
+@deprecated("Use Table instead")
 case class ResultTable(header: Seq[String], values: Seq[Seq[String]]) {
 
   def toCsv = {

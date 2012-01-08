@@ -47,7 +47,7 @@ object CrossValidation extends EvaluationScript {
         }
       }
     
-    val result = ResultTables.build(metrics, values, datasets.map(_.name), experiment.configurations.map(_.name))
+    val result = MultipleTables.build(metrics, values, datasets.map(_.name), experiment.configurations.map(_.name))
 
     println(result.toCsv)
   }

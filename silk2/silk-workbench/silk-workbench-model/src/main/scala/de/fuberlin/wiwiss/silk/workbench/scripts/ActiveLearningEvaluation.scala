@@ -7,8 +7,6 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Parameters
-import de.fuberlin.wiwiss.silk.workbench.scripts.ResultTables.{Table, Row}
-import util.Random
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
@@ -36,13 +34,10 @@ object ActiveLearningEvaluation extends App {
     }
 
   val result =
-    ResultTables(
+    MultipleTables(
       for((label, index) <- labels.zipWithIndex) yield {
-        val rows =
-          for((c,v) <- configurations.map(_.name) zip values) yield {
-            Row(c, v.map(_(index)))
-          }
-        Table(label, datasets.map(_.name), rows)
+        val rows = for(v <- values) yield v.map(_(index))
+        Table(label, datasets.map(_.name), configurations.map(_.name), rows)
       }
     )
 
