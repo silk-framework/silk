@@ -37,7 +37,7 @@ object LearningConfiguration {
    * @param transformations Learn data transformations
    * @param aggregations Learn aggregations
    */
-  case class Components(seed: Boolean = true, transformations: Boolean = true, aggregations: Boolean = true)
+  case class Components(seed: Boolean = true, transformations: Boolean = true, aggregations: Boolean = true, useSpecializedCrossover: Boolean = true)
 
   /**
    * The parameters of the learning algorithm.
