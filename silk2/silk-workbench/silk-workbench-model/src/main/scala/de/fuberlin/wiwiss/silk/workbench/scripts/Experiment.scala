@@ -15,21 +15,53 @@
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
-import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Components}
+import de.fuberlin.wiwiss.silk.learning.individual.fitness.MCCFitnessFunction
+import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.FixedIterationsFMeasure._
+import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.FixedIterationsFMeasure
 
-case class Experiment(name: String, configurations: Seq[LearningConfiguration])
+case class Experiment(name: String, configurations: Seq[LearningConfiguration], metrics: Seq[PerformanceMetric])
 
 object Experiment {
 
   private val defaultConfig = LearningConfiguration("Our Approach") :: Nil
 
-  val default = Experiment("Default", defaultConfig)
+  val default = Experiment("Default", defaultConfig, Nil)
 
-  val seeding = Experiment("Seeding", LearningConfiguration("No Seeding", components = Components(seed = false)) :: defaultConfig)
+  val seeding =
+    Experiment("Seeding",
+      configurations =
+        LearningConfiguration("No Seeding",   components = Components(seed = false), params = Parameters(maxIterations = 11)) ::
+        LearningConfiguration("Out Approach", components = Components(seed = true),  params = Parameters(maxIterations = 11)) :: Nil,
+      metrics =
+        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
+    )
 
-  val transformations = Experiment("Transformations", LearningConfiguration("No Transformations", components = Components(transformations = false)) :: defaultConfig)
+  val transformations =
+    Experiment("Transformations",
+      configurations =
+        LearningConfiguration("No Transformations", components = Components(transformations = false), params = Parameters(maxIterations = 51)) ::
+        LearningConfiguration("With Transformations", components = Components(transformations = true), params = Parameters(maxIterations = 51)) :: Nil,
+      metrics =
+        FixedIterationsFMeasure(50) :: Nil
+    )
 
-  val crossover = Experiment("Crossover Operators", LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false)) :: defaultConfig)
+  val crossover =
+    Experiment("Crossover Operators",
+      configurations =
+        LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 51)) ::
+        LearningConfiguration("Our Approach", components = Components(useSpecializedCrossover = true), params = Parameters(maxIterations = 51)) :: Nil,
+      metrics =
+        FixedIterationsFMeasure(50) :: Nil
+    )
 
-  //TODO bloating
+  //TODO
+//  val bloating =
+//    Experiment(
+//      name = "Bloating",
+//      configurations = LearningConfiguration("None",     params = Parameters(cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.0))   ::
+//                       LearningConfiguration("Penalty",  params = Parameters(cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.005)) ::
+//                       LearningConfiguration("Cleaning", params = Parameters(cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.0))   ::
+//                       LearningConfiguration("Combined", params = Parameters(cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.005)) :: Nil
+//    )
 }

@@ -34,7 +34,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
   def toLatex = {
     val sb = new StringBuilder()
     
-    sb.append("\\begin{tabular}{| l | l | c | c | c | c |}\n")
+    sb.append("\\begin{tabular}{|l|" + header.map(_ => "c").mkString("|") + "|}\n")
     sb.append("\\hline\n")
     sb.append(name + " & " + header.mkString(" & ") + "\\\\\n")
     sb.append("\\hline\n")

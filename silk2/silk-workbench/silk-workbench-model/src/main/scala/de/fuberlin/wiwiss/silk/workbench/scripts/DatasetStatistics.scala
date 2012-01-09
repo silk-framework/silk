@@ -8,6 +8,9 @@ import de.fuberlin.wiwiss.silk.util.{DPair, Timer}
 import java.io.FileWriter
 import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
 
+/**
+ * Collects various statistics about the projects in the workspace.
+ */
 object DatasetStatistics extends App {
   implicit val log = Logger.getLogger(getClass.getName)
   Plugins.register()
@@ -15,9 +18,7 @@ object DatasetStatistics extends App {
 
   val datasets = Dataset.fromWorkspace
 
-  val measures = SourceEntities :: SourceProperties :: SourceUsedProperties ::
-                 TargetEntities :: TargetProperties :: TargetUsedProperties ::
-                 ReferenceLinks :: Nil    
+  val measures = Entities :: Properties :: UsedProperties :: ReferenceLinks :: Nil
 
   val table = Table("Dataset Statistics", datasets.map(_.name), measures.map(_.name), collect().transpose)
 
@@ -51,39 +52,26 @@ object DatasetStatistics extends App {
     def name: String
   }
   
-  object SourceEntities extends Measure {
-    def name = "Source: Number of entities"
-    def apply(data: TaskData) = data.entities.source.size
+  object Entities extends Measure {
+    def name = "Number of entities"
+    def apply(data: TaskData) = data.entities.source.size + data.entities.target.size
   }
 
-  object SourceProperties extends Measure {
-    def name = "Source: Total number of properties"
-    def apply(data: TaskData) = data.paths.source.size
-  }
-
-  object SourceUsedProperties extends Measure {
-    def name = "Source: Properties per entity"
+  object Properties extends Measure {
+    def name = "Total number of properties"
     def apply(data: TaskData) = {
-      val entities = data.entities.source
-      val count = entities.map(_.values.count(!_.isEmpty).toDouble).sum / entities.size
-      "%.1f".format(count)
+      val sourcePaths = data.paths.source.map(serialize)
+      val targetPaths = data.paths.target.map(serialize)
+      (sourcePaths ++ targetPaths).distinct.size
     }
+    /** Serializes the operators of a path without the variable. */
+    private def serialize(p: Path) = p.operators.map(_.serialize).mkString
   }
 
-  object TargetEntities extends Measure {
-    def name = "Target: Number of entities"
-    def apply(data: TaskData) = data.entities.target.size
-  }
-
-  object TargetProperties extends Measure {
-    def name = "Target: Total number of properties"
-    def apply(data: TaskData) = data.paths.target.size
-  }
-
-  object TargetUsedProperties extends Measure {
-    def name = "Target: Properties per entitiy"
+  object UsedProperties extends Measure {
+    def name = "Properties per entity"
     def apply(data: TaskData) = {
-      val entities = data.entities.target
+      val entities = data.entities.source ++ data.entities.target
       val count = entities.map(_.values.count(!_.isEmpty).toDouble).sum / entities.size
       "%.1f".format(count)
     }
