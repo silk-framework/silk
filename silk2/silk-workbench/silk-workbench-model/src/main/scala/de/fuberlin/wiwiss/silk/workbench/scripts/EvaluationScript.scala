@@ -16,8 +16,11 @@ package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import java.util.logging.Logger
 
 trait EvaluationScript extends App {
+
+  protected val log = Logger.getLogger(getClass.getName)
 
   Plugins.register()
   JenaPlugins.register()

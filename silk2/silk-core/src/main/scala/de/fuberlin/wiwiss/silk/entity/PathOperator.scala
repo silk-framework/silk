@@ -24,7 +24,7 @@ sealed abstract class PathOperator {
   /**
    * Serializes this operator using the Silk RDF path language.
    */
-  def serialize(implicit prefixes: Prefixes): String
+  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String
 
   override def toString = serialize(Prefixes.empty)
 }
