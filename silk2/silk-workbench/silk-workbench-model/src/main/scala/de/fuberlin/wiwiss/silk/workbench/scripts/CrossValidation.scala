@@ -24,23 +24,8 @@ import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
 object CrossValidation extends EvaluationScript {
 
   override protected def run() {
-    //runDefault()
     runExperiment()
     println("Evaluation finished")
-  }
-
-  protected def runDefault() {
-    val datasets = Dataset.fromWorkspace
-
-    //val result =
-      for(ds <- datasets) yield {
-        execute(
-          dataset = ds,
-          config = LearningConfiguration()
-        )
-      }
-
-    //println(result.toLatex)
   }
 
   protected def runExperiment() {
@@ -48,15 +33,22 @@ object CrossValidation extends EvaluationScript {
     val datasets = Dataset.fromWorkspace
     
     val values =
-      for(config <- experiment.configurations) yield {
-        for(ds <- datasets) yield {
+      for(ds <- datasets) yield {
+        for(config <- experiment.configurations) yield {
           execute(ds, config)
         }
       }
     
-    val result = MultipleTables.build(experiment.metrics, values, datasets.map(_.name), experiment.configurations.map(_.name))
+    val result =
+      MultipleTables.build(
+        metrics = experiment.metrics,
+        header = experiment.configurations.map(_.name),
+        rowLabels = datasets.map(_.name),
+        values = values
+      )
 
     println(result.toLatex)
+    println(result.transpose.toLatex)
   }
   
   private def execute(dataset: Dataset, config: LearningConfiguration) = {
@@ -75,7 +67,7 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
   require(entities.isDefined, "Reference Entities are required")
   
   /** The number of cross validation runs. */
-  private val numRuns = 10
+  private val numRuns = 1
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -90,14 +82,14 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
     //Execute the cross validation runs
     val results = for(run <- 0 until numRuns; result <- crossValidation(run)) yield result
     //Make sure that all runs have the same number of results
-    val paddedResults = results.map(r => r.padTo(results.map(_.size).max, r.last))
+    val paddedResults = results.map(r => r.padTo(config.params.maxIterations + 1, r.last))
 
-    //Aggregated the results of each iteration
-//    val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
-//
-//    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = true).toLatex)
-//    println()
-//    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = true).toCsv)
+    //Print aggregated results
+    val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
+
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = false).toLatex)
+    println()
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = false).toCsv)
 
     RunResult(paddedResults.map(r => Run(r.map(_.trainingResult.fMeasure))))
   }

@@ -14,19 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
-trait PerformanceMetric extends (RunResult => Double) {
+trait PerformanceMetric extends (RunResult => Any) {
   def name: String
 }
 
 object PerformanceMetric {
-
-  def all: Seq[PerformanceMetric] = {
-    FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
-    //MeanIteration(0.9) ::
-    //MeanIterations(0.95) ::
-    //MeanIterations(0.999) :: Nil
-  }
-
   /**
    * Computes the F-measure after a fixed number of iterations.
    */
@@ -37,7 +29,8 @@ object PerformanceMetric {
     }
 
     def apply(result: RunResult) = {
-      result.runs.map(_.results(round)).sum.toDouble / result.runs.size
+      val meanfMeasure = result.runs.map(_.results(round)).sum.toDouble / result.runs.size
+      ("%.3f").format(meanfMeasure)
     }
   }
 
