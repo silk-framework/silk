@@ -40,8 +40,8 @@ object Experiment {
   val transformations =
     Experiment("Transformations",
       configurations =
-        LearningConfiguration("No Transformations", components = Components(transformations = false), params = Parameters(maxIterations = 51)) ::
-        LearningConfiguration("With Transformations", components = Components(transformations = true), params = Parameters(maxIterations = 51)) :: Nil,
+        LearningConfiguration("No Transformations", components = Components(transformations = false), params = Parameters(maxIterations = 50)) ::
+        LearningConfiguration("With Transformations", components = Components(transformations = true), params = Parameters(maxIterations = 50)) :: Nil,
       metrics =
         FixedIterationsFMeasure(50) :: Nil
     )
@@ -49,10 +49,10 @@ object Experiment {
   val crossover =
     Experiment("Crossover Operators",
       configurations =
-        LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 51)) ::
-        LearningConfiguration("Our Approach", components = Components(useSpecializedCrossover = true), params = Parameters(maxIterations = 51)) :: Nil,
+        LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 21)) ::
+        LearningConfiguration("Our Approach", components = Components(useSpecializedCrossover = true), params = Parameters(maxIterations = 21)) :: Nil,
       metrics =
-        FixedIterationsFMeasure(50) :: Nil
+        FixedIterationsFMeasure(5) :: FixedIterationsFMeasure(10) :: FixedIterationsFMeasure(20) :: Nil
     )
 
   //TODO

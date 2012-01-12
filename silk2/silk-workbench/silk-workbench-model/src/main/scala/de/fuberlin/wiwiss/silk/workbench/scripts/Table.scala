@@ -15,6 +15,9 @@
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
 case class Table(name: String, header: Seq[String], rows: Seq[String], values: Seq[Seq[Any]]) {
+
+  def transpose = Table(name, rows, header, values.transpose)
+
   /**
    * Formats this table as CSV.
    */
@@ -33,15 +36,20 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
    */
   def toLatex = {
     val sb = new StringBuilder()
-    
+
+    sb.append("\\begin{table}\n")
+    sb.append("\\small\n")
     sb.append("\\begin{tabular}{|l|" + header.map(_ => "c").mkString("|") + "|}\n")
     sb.append("\\hline\n")
-    sb.append(name + " & " + header.mkString(" & ") + "\\\\\n")
+    sb.append(" & " + header.mkString(" & ") + "\\\\\n")
     sb.append("\\hline\n")
     for((label, row) <- rows zip values)
       sb.append(label + " & " + row.mkString(" & ") + "\\\\\n")
     sb.append("\\hline\n")
     sb.append("\\end{tabular}\n")
+    sb.append("%\\label{}\n")
+    sb.append("\\caption{" + name + "}\n")
+    sb.append("\\end{table}\n")
 
     sb.toString
   }
