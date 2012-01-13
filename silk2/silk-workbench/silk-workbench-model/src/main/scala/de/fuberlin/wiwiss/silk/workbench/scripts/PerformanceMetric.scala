@@ -14,6 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
+import de.fuberlin.wiwiss.silk.evaluation.statistics.VariableStatistic
+
 trait PerformanceMetric extends (RunResult => Any) {
   def name: String
 }
@@ -29,8 +31,7 @@ object PerformanceMetric {
     }
 
     def apply(result: RunResult) = {
-      val meanfMeasure = result.runs.map(_.results(round)).sum.toDouble / result.runs.size
-      ("%.3f").format(meanfMeasure)
+      VariableStatistic(result.runs.map(_.results(round)))
     }
   }
 

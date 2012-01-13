@@ -16,7 +16,6 @@
 
 package de.fuberlin.wiwiss.silk.evaluation.statistics
 
-
 import math.abs
 
 /**
@@ -29,6 +28,24 @@ case class VariableStatistic(mean: Double, standardDeviation: Double) {
   def map(f: Double => Double) = {
     VariableStatistic(f(mean), f(standardDeviation))
   }
+
+  /**
+   * Formats this variable statistics as a string.
+   *
+   * @param precision The number of digits after the decimal separator
+   * @param includeDeviation Include the standard deviation
+   */
+  def format(precision: Int = 3, includeDeviation: Boolean = true) = {
+    def meanStr = ("%." + precision + "f").format(mean)
+    def stdStr  = ("%." + precision + "f").format(standardDeviation)
+
+    if(includeDeviation)
+      meanStr + " (" + stdStr + ")"
+    else
+      meanStr
+  }
+  
+  override def toString = format()
 }
 
 /**
