@@ -67,7 +67,7 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
   require(entities.isDefined, "Reference Entities are required")
   
   /** The number of cross validation runs. */
-  private val numRuns = 1
+  private val numRuns = 3
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
