@@ -72,19 +72,10 @@ object AggregatedLearningResult {
     }
 
     private def row(res: AggregatedLearningResult, run: Int): Seq[String] = {
-      res.iterations.toString :: format(res.time.map(_ / 1000.0), 1) ::
-      format(res.trainingResult.fMeasure, 3) :: format(res.trainingResult.mcc, 3) ::
-      format(res.validationResult.fMeasure, 3) :: format(res.validationResult.mcc, 3) ::
-      format(res.complexity.comparisonCount, 3) :: format(res.complexity.transformationCount, 3) :: Nil
-    }
-
-    private def format(statistics: VariableStatistic, precision: Int = 3): String = {
-      val mean = ("%." + precision + "f").format(statistics.mean)
-
-      if(includeStandardDeviation)
-        mean + " (" + ("%." + precision + "f").format(statistics.standardDeviation) + ")"
-      else
-        mean
+      res.iterations.toString :: res.time.map(_ / 1000.0).format(1, includeStandardDeviation) ::
+      res.trainingResult.fMeasure.format(3, includeStandardDeviation) :: res.trainingResult.mcc.format(3, includeStandardDeviation) ::
+      res.validationResult.fMeasure.format(3, includeStandardDeviation) :: res.validationResult.mcc.format(3, includeStandardDeviation) ::
+      res.complexity.comparisonCount.format(3, includeStandardDeviation) :: res.complexity.transformationCount.format(3, includeStandardDeviation) :: Nil
     }
   }
 }
