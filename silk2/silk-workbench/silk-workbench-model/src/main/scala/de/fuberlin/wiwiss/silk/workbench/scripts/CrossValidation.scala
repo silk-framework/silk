@@ -29,7 +29,7 @@ object CrossValidation extends EvaluationScript {
   }
 
   protected def runExperiment() {
-    val experiment = Experiment.crossover
+    val experiment = Experiment.fitness
     val datasets = Dataset.fromWorkspace
     
     val values =
