@@ -14,7 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
-import de.fuberlin.wiwiss.silk.evaluation.statistics.VariableStatistic
+import de.fuberlin.wiwiss.silk.evaluation.statistics.AggregatedComplexity._
+import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity._
+import de.fuberlin.wiwiss.silk.evaluation.statistics.{LinkageRuleComplexity, AggregatedComplexity, VariableStatistic}
 
 trait PerformanceMetric extends (RunResult => Any) {
   def name: String
@@ -22,7 +24,7 @@ trait PerformanceMetric extends (RunResult => Any) {
 
 object PerformanceMetric {
   /**
-   * Computes the F-measure after a fixed number of iterations.
+   * Computes the validation F-measure after a fixed number of iterations.
    */
   case class FixedIterationsFMeasure(round: Int = 0) extends PerformanceMetric  {
     val name = round match {
@@ -31,7 +33,23 @@ object PerformanceMetric {
     }
 
     def apply(result: RunResult) = {
-      VariableStatistic(result.runs.map(_.results(round)))
+      VariableStatistic(result.runs.map(_.results(round).validationResult.fMeasure))
+    }
+  }
+
+  /**
+   * Computes the rule size after a fixed number of iterations.
+   */
+  case class Size(round: Int = 0) extends PerformanceMetric  {
+    val name = round match {
+      case 0 => "Initial comparisons"
+      case _ => "Comparisons in round " + round
+    }
+
+    def apply(result: RunResult) = {
+      val rules = result.runs.map(_.results(round).linkageRule)
+      val sizes = rules.map(LinkageRuleComplexity(_).size.toDouble)
+      VariableStatistic(sizes).mean
     }
   }
 

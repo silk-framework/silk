@@ -20,19 +20,13 @@ object DatasetStatistics extends App {
 
   val measures = Entities :: Properties :: UsedProperties :: ReferenceLinks :: Nil
 
-  val table = Table("Dataset Statistics", datasets.map(_.name), measures.map(_.name), collect().transpose)
+  val table = Table("Dataset Statistics", measures.map(_.name), datasets.map(_.name), datasets.map(collect))
 
   val writer = new FileWriter("statistics")
   writer.write(table.toLatex)
   writer.close()
 
   println("Finished")
-
-  private def collect(): Seq[Seq[Any]] = {
-    for(ds <- datasets) yield {
-      collect(ds)
-    }
-  }
   
   private def collect(ds: Dataset) = Timer("Collecting statistics for " + ds.name) {
     //Retrieve frequent paths
@@ -45,18 +39,30 @@ object DatasetStatistics extends App {
     val data = TaskData(ds.task, paths, entities)
     measures.map(_(data))
   }
-  
+
+  /**
+   * Holds the base information about a task.
+   */
   case class TaskData(task: LinkingTask, paths: DPair[Seq[Path]], entities: DPair[Seq[Entity]])
-  
+
+  /**
+   * A measure.
+   */
   trait Measure extends (TaskData => Any) {
     def name: String
   }
-  
+
+  /**
+   * The number of entities in both datasets.
+   */
   object Entities extends Measure {
     def name = "Number of entities"
     def apply(data: TaskData) = data.entities.source.size + data.entities.target.size
   }
 
+  /**
+   * The number of properties in total in both datasets.
+   */
   object Properties extends Measure {
     def name = "Total number of properties"
     def apply(data: TaskData) = {
@@ -68,6 +74,9 @@ object DatasetStatistics extends App {
     private def serialize(p: Path) = p.operators.map(_.serialize).mkString
   }
 
+  /**
+   * The average number of properties per entitiy.
+   */
   object UsedProperties extends Measure {
     def name = "Properties per entity"
     def apply(data: TaskData) = {
@@ -77,6 +86,9 @@ object DatasetStatistics extends App {
     }
   }
 
+  /**
+   * The total number of reference links (positive and negative).
+   */
   object ReferenceLinks extends Measure {
     def name = "Reference links"
     def apply(data: TaskData) = data.task.referenceLinks.positive.size + data.task.referenceLinks.negative.size
