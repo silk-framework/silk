@@ -19,14 +19,18 @@ import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Compo
 import de.fuberlin.wiwiss.silk.learning.individual.fitness.{FMeasureFitness, MCCFitnessFunction}
 import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.{Size, FixedIterationsFMeasure}
 
+/**
+ * An experiment consisting of a number of configurations which should be compared and a number of performance metrics.
+ */
 case class Experiment(name: String, configurations: Seq[LearningConfiguration], metrics: Seq[PerformanceMetric])
 
+/**
+ * All default experiments.
+ */
 object Experiment {
-
-  private val defaultConfig = LearningConfiguration("Our Approach") :: Nil
-
-  val default = Experiment("Default", defaultConfig, Nil)
-
+  /**
+   * Compares different seeding strategies.
+   */
   val seeding =
     Experiment("Seeding",
       configurations =
@@ -36,6 +40,9 @@ object Experiment {
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
     )
 
+  /**
+   * Evaluates the contribution of using data transformations in the rules.
+   */
   val transformations =
     Experiment("Transformations",
       configurations =
@@ -45,6 +52,9 @@ object Experiment {
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
     )
 
+  /**
+   * Evaluates the contribution of using specialized crossover operators over using subtree crossover.
+   */
   val crossover =
     Experiment("Crossover Operators",
       configurations =
@@ -54,15 +64,21 @@ object Experiment {
         FixedIterationsFMeasure(10) :: FixedIterationsFMeasure(25) :: FixedIterationsFMeasure(50) :: Nil
     )
 
+  /**
+   * Compares different fitness functions.
+   */
   val fitness =
     Experiment("Fitness Functions",
       configurations =
         LearningConfiguration("F-measure", fitnessFunction = MCCFitnessFunction(0.0), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("MCC", fitnessFunction = FMeasureFitness(), params = Parameters(maxIterations = 10)) :: Nil,
+        LearningConfiguration("MCC",       fitnessFunction = FMeasureFitness(),       params = Parameters(maxIterations = 10)) :: Nil,
       metrics =
         FixedIterationsFMeasure(10) :: Nil
     )
 
+  /**
+   * Compares different strategies for bloating control.
+   */
   val bloating =
     Experiment("Bloating",
       configurations = LearningConfiguration("None",     params = Parameters(maxIterations = 10, cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.0))   ::
