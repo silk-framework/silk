@@ -17,7 +17,6 @@ package de.fuberlin.wiwiss.silk.learning
 import individual.Population
 import de.fuberlin.wiwiss.silk.evaluation.EvaluationResult
 import de.fuberlin.wiwiss.silk.learning.LearningResult._
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 case class LearningResult(iterations: Int = 0,
                           time: Long = 0,

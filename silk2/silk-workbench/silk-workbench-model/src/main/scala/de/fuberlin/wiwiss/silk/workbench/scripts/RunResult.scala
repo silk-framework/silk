@@ -15,28 +15,26 @@
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
+import de.fuberlin.wiwiss.silk.learning.LearningResult
 
+/**
+ * Holds the result of a sequence of learning runs.
+ */
 case class RunResult(runs: Seq[Run]) {
   override def toString = runs.mkString("\n")
 }
 
 object RunResult {
-
-  //TODO delete?
-  def mergeRuns(runs: Seq[Run]) = {
-    val maxIterations = runs.map(_.results.size).max
-    val fMeasures = runs.map(_.results.padTo(maxIterations, 1.0))
-    val meanfMeasures = fMeasures.transpose.map(d => d.sum / d.size)
-    Run(meanfMeasures)
-  }
-  
-  case class Run(results: Seq[Double]) {
+  /**
+   * Holds the results of a single learning run.
+   */
+  case class Run(results: Seq[LearningResult]) {
     override def toString = results.mkString(", ")
     /**
      * Compute the number of iterations needed to reach a specific F-measure.
      */
     def iterations(fMeasure: Double): Int = {
-      results.indexWhere(_ >= fMeasure) match {
+      results.indexWhere(_.validationResult.fMeasure >= fMeasure) match {
         case -1 => 50//throw new IllegalArgumentException("Target F-measure " + fMeasure + " never reached.")
         case i => i
       }
