@@ -16,9 +16,8 @@ package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Components}
-import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.FixedIterationsFMeasure._
-import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.FixedIterationsFMeasure
 import de.fuberlin.wiwiss.silk.learning.individual.fitness.{FMeasureFitness, MCCFitnessFunction}
+import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.{Size, FixedIterationsFMeasure}
 
 case class Experiment(name: String, configurations: Seq[LearningConfiguration], metrics: Seq[PerformanceMetric])
 
@@ -40,8 +39,8 @@ object Experiment {
   val transformations =
     Experiment("Transformations",
       configurations =
-        LearningConfiguration("No Transf.", components = Components(transformations = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("With Transf.", components = Components(transformations = true), params = Parameters(maxIterations = 10)) :: Nil,
+        LearningConfiguration("No Transf.",   components = Components(transformations = false), params = Parameters(maxIterations = 10)) ::
+        LearningConfiguration("With Transf.", components = Components(transformations = true),  params = Parameters(maxIterations = 10)) :: Nil,
       metrics =
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
     )
@@ -49,10 +48,10 @@ object Experiment {
   val crossover =
     Experiment("Crossover Operators",
       configurations =
-        LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("Our Approach", components = Components(useSpecializedCrossover = true), params = Parameters(maxIterations = 10)) :: Nil,
+        LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 50)) ::
+        LearningConfiguration("Our Approach",      components = Components(useSpecializedCrossover = true),  params = Parameters(maxIterations = 50)) :: Nil,
       metrics =
-        FixedIterationsFMeasure(10) :: Nil
+        FixedIterationsFMeasure(10) :: FixedIterationsFMeasure(25) :: FixedIterationsFMeasure(50) :: Nil
     )
 
   val fitness =
@@ -64,13 +63,13 @@ object Experiment {
         FixedIterationsFMeasure(10) :: Nil
     )
 
-  //TODO
-//  val bloating =
-//    Experiment(
-//      name = "Bloating",
-//      configurations = LearningConfiguration("None",     params = Parameters(cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.0))   ::
-//                       LearningConfiguration("Penalty",  params = Parameters(cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.005)) ::
-//                       LearningConfiguration("Cleaning", params = Parameters(cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.0))   ::
-//                       LearningConfiguration("Combined", params = Parameters(cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.005)) :: Nil
-//    )
+  val bloating =
+    Experiment("Bloating",
+      configurations = LearningConfiguration("None",     params = Parameters(maxIterations = 10, cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.0))   ::
+                       LearningConfiguration("Penalty",  params = Parameters(maxIterations = 10, cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.005)) ::
+                       LearningConfiguration("Cleaning", params = Parameters(maxIterations = 10, cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.0))   ::
+                       LearningConfiguration("Combined", params = Parameters(maxIterations = 10, cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.005)) :: Nil,
+      metrics =
+        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Size(0) :: Size(10) :: Nil
+    )
 }

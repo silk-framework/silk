@@ -99,7 +99,8 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       println(i + " - " + valScores)
       scores ::= valScores.fMeasure
       if(valScores.fMeasure > 0.999) {
-        return Run(scores.reverse)
+        //TODO
+        //return Run(scores.reverse)
       }
 
       //Evaluate new link
@@ -114,6 +115,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       }
     }
 
-    Run(scores.reverse)
+    //TODO Run(scores.reverse)
+    null
   }
 }

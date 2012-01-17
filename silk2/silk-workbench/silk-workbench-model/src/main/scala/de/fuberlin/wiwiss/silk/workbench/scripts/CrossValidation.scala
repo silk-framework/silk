@@ -29,7 +29,7 @@ object CrossValidation extends EvaluationScript {
   }
 
   protected def runExperiment() {
-    val experiment = Experiment.fitness
+    val experiment = Experiment.bloating
     val datasets = Dataset.fromWorkspace
     
     val values =
@@ -91,7 +91,7 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
     println()
     println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = false).toCsv)
 
-    RunResult(paddedResults.map(r => Run(r.map(_.trainingResult.fMeasure))))
+    RunResult(paddedResults.map(Run(_)))
   }
 
   /**

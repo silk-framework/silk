@@ -38,7 +38,6 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     val sb = new StringBuilder()
 
     sb.append("\\begin{table}\n")
-    sb.append("\\small\n")
     sb.append("\\begin{tabular}{|l|" + header.map(_ => "c").mkString("|") + "|}\n")
     sb.append("\\hline\n")
     sb.append(" & " + header.mkString(" & ") + "\\\\\n")
@@ -47,8 +46,8 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
       sb.append(label + " & " + row.mkString(" & ") + "\\\\\n")
     sb.append("\\hline\n")
     sb.append("\\end{tabular}\n")
-    sb.append("%\\label{}\n")
     sb.append("\\caption{" + name + "}\n")
+    sb.append("%\\label{}\n")
     sb.append("\\end{table}\n")
 
     sb.toString
