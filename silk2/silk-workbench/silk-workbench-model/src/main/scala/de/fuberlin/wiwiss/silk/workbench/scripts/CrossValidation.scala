@@ -29,7 +29,7 @@ object CrossValidation extends EvaluationScript {
   }
 
   protected def runExperiment() {
-    val experiment = Experiment.bloating
+    val experiment = Experiment.seeding
     val datasets = Dataset.fromWorkspace
     
     val values =
@@ -38,9 +38,10 @@ object CrossValidation extends EvaluationScript {
           execute(ds, config)
         }
       }
-    
+
     val result =
       MultipleTables.build(
+        name = experiment.name,
         metrics = experiment.metrics,
         header = experiment.configurations.map(_.name),
         rowLabels = datasets.map(_.name),
@@ -67,7 +68,7 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
   require(entities.isDefined, "Reference Entities are required")
   
   /** The number of cross validation runs. */
-  private val numRuns = 3
+  private val numRuns = 10
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2

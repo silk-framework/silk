@@ -29,7 +29,7 @@ object PerformanceMetric {
   case class FixedIterationsFMeasure(round: Int = 0) extends PerformanceMetric  {
     val name = round match {
       case 0 => "Initial F-measure"
-      case _ => "F-measure in round " + round
+      case _ => "F-measure after " + round + " iterations"
     }
 
     def apply(result: RunResult) = {
@@ -42,14 +42,14 @@ object PerformanceMetric {
    */
   case class Size(round: Int = 0) extends PerformanceMetric  {
     val name = round match {
-      case 0 => "Initial comparisons"
-      case _ => "Comparisons in round " + round
+      case 0 => "Initial size"
+      case _ => "Size after " + round + " iterations"
     }
 
     def apply(result: RunResult) = {
       val rules = result.runs.map(_.results(round).linkageRule)
       val sizes = rules.map(LinkageRuleComplexity(_).size.toDouble)
-      VariableStatistic(sizes).mean
+      VariableStatistic(sizes).format(includeDeviation = false)
     }
   }
 
