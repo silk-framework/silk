@@ -34,7 +34,7 @@ object Experiment {
   val seeding =
     Experiment("Seeding",
       configurations =
-        LearningConfiguration("No Seeding",   components = Components(seed = false), params = Parameters(maxIterations = 10)) ::
+        LearningConfiguration("Random",       components = Components(seed = false), params = Parameters(maxIterations = 10)) ::
         LearningConfiguration("Our Approach", components = Components(seed = true),  params = Parameters(maxIterations = 10)) :: Nil,
       metrics =
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
@@ -56,9 +56,9 @@ object Experiment {
    * Evaluates the contribution of using specialized crossover operators over using subtree crossover.
    */
   val crossover =
-    Experiment("Crossover Operators",
+    Experiment("Crossover",
       configurations =
-        LearningConfiguration("Subtree Crossover", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 50)) ::
+        LearningConfiguration("Subtree C.", components = Components(useSpecializedCrossover = false), params = Parameters(maxIterations = 50)) ::
         LearningConfiguration("Our Approach",      components = Components(useSpecializedCrossover = true),  params = Parameters(maxIterations = 50)) :: Nil,
       metrics =
         FixedIterationsFMeasure(10) :: FixedIterationsFMeasure(25) :: FixedIterationsFMeasure(50) :: Nil
@@ -68,7 +68,7 @@ object Experiment {
    * Compares different fitness functions.
    */
   val fitness =
-    Experiment("Fitness Functions",
+    Experiment("Fitness functions",
       configurations =
         LearningConfiguration("F-measure", fitnessFunction = MCCFitnessFunction(0.0), params = Parameters(maxIterations = 10)) ::
         LearningConfiguration("MCC",       fitnessFunction = FMeasureFitness(),       params = Parameters(maxIterations = 10)) :: Nil,
@@ -80,7 +80,7 @@ object Experiment {
    * Compares different strategies for bloating control.
    */
   val bloating =
-    Experiment("Bloating",
+    Experiment("Bloating Control",
       configurations = LearningConfiguration("None",     params = Parameters(maxIterations = 10, cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.0))   ::
                        LearningConfiguration("Penalty",  params = Parameters(maxIterations = 10, cleanFrequency = Int.MaxValue), fitnessFunction = MCCFitnessFunction(0.005)) ::
                        LearningConfiguration("Cleaning", params = Parameters(maxIterations = 10, cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.0))   ::

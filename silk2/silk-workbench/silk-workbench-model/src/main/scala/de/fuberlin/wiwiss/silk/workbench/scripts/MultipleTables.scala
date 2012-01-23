@@ -11,11 +11,11 @@ case class MultipleTables(tables: Seq[Table]) {
 
 object MultipleTables {
 
-  def build(metrics: Seq[PerformanceMetric], header: Seq[String], rowLabels: Seq[String], values: Seq[Seq[RunResult]]) = {
+  def build(name: String, metrics: Seq[PerformanceMetric], header: Seq[String], rowLabels: Seq[String], values: Seq[Seq[RunResult]]) = {
     MultipleTables(
       for(metric <- metrics) yield {
         val rows = for(v <- values) yield v.map(metric)
-        Table(metric.name, header, rowLabels, rows)
+        Table(name + ": " + metric.name, header, rowLabels, rows)
       }
     )
   }
