@@ -21,7 +21,13 @@ import java.io.{DataOutput, DataInput}
  * A single entity.
  */
 class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: EntityDescription) {
-  def evaluate(path: Path): Set[String] = evaluate(desc.pathIndex(path))
+  
+  def evaluate(path: Path): Set[String] = {
+    if(path.operators.isEmpty)
+      Set(uri)
+    else
+      evaluate(desc.pathIndex(path))
+  }
 
   def evaluate(pathIndex: Int): Set[String] = values(pathIndex)
 
