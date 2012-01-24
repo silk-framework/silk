@@ -22,7 +22,7 @@ import util.matching.Regex
   id = "regexReplace",
   label = "Regex replace",
   description = "Replace all occurrences of a regex \"regex\" with \"replace\" in a string.")
-class RegexReplaceTransformer(regex: String, replace: String) extends SimpleTransformer {
+case class RegexReplaceTransformer(regex: String, replace: String) extends SimpleTransformer {
   private val compiledRegex = new Regex(regex)
 
   override def evaluate(value: String) = {
