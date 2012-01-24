@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
+
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
     <artifactId>silk</artifactId>
@@ -19,13 +19,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-	<build>
-		<plugins>
-			<plugin>
-      
-				<groupId>org.scala-tools</groupId>
-				<artifactId>maven-scala-plugin</artifactId>
-        
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.scala-tools</groupId>
+        <artifactId>maven-scala-plugin</artifactId>
         <configuration>
           <launchers>
             <launcher>
@@ -37,8 +35,7 @@
             </launcher>
           </launchers>
         </configuration>
-        
-			</plugin>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -56,10 +53,10 @@
         </configuration>
       </plugin>
 
-		</plugins>
-	</build>
+    </plugins>
+  </build>
 
-	<dependencies>
+  <dependencies>
 
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
@@ -68,11 +65,11 @@
     </dependency>
 
     <dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-core</artifactId>
-			<version>0.20.2</version>
-		</dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>0.20.2</version>
+    </dependency>
 
-	</dependencies>
+  </dependencies>
 
 </project>
