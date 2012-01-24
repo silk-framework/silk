@@ -41,13 +41,13 @@ object SparqlPathsCollectorTest {
     for(test <- tests) test.execute()
   }
 
-  private case class Test(name: String, uri: String, restriction: String)
-  {
+  private case class Test(name: String, uri: String, restriction: String) {
+
     def execute() {
       logger.info("Executing " + name + " test")
 
       val endpoint = new RemoteSparqlEndpoint(uri = new URI(uri), retryCount = 100)
-      val sparqlRestriction = SparqlRestriction.fromSparql(restriction)
+      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
       val limit = Some(50)
 
       Timer("SparqlAggregatePathsCollector") {

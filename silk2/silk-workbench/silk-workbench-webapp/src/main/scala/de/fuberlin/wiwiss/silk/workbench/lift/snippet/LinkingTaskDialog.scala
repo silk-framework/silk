@@ -72,8 +72,8 @@ object LinkingTaskDialog {
     def submit() = JS.Try(){
       implicit val prefixes = User().project.config.prefixes
 
-      val datasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(sourceRestriction)),
-                           DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(targetRestriction)))
+      val datasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, sourceRestriction)),
+                           DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, targetRestriction)))
 
       if(User().linkingTaskOpen) {
         val linkingTask = User().linkingTask

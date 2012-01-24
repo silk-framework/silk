@@ -29,20 +29,20 @@ case class DatasetSpecification(sourceId: Identifier, variable: String, restrict
   require(!variable.isEmpty, "Variable must be non-empty")
 
   /**
-   * Serializes this Dataset Specification as XML.
+   * Serializes this dataset specification as XML.
    *
    * @param asSource If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
   def toXML(asSource: Boolean) = {
     if (asSource) {
-      <SourceDataset dataSource={sourceId} var={variable}>
+      <SourceDataset dataSource={sourceId} var={restriction.variable}>
         <RestrictTo>
           {restriction.toSparql}
         </RestrictTo>
       </SourceDataset>
     }
     else {
-      <TargetDataset dataSource={sourceId} var={variable}>
+      <TargetDataset dataSource={sourceId} var={restriction.variable}>
         <RestrictTo>
           {restriction.toSparql}
         </RestrictTo>
@@ -56,10 +56,12 @@ object DatasetSpecification {
    * Creates a DatasetSpecification from XML.
    */
   def fromXML(node: Node)(implicit prefixes: Prefixes): DatasetSpecification = {
-    new DatasetSpecification(
-      node \ "@dataSource" text,
-      node \ "@var" text,
-      SparqlRestriction.fromSparql((node \ "RestrictTo").text.trim)
+    val variable = node \ "@var" text
+
+    DatasetSpecification(
+      sourceId = node \ "@dataSource" text,
+      variable = variable,
+      restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
     )
   }
 

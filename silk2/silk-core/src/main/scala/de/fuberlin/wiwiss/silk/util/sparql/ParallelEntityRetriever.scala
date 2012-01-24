@@ -61,9 +61,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
         while (pathRetrievers.forall(_.hasNext) && !inconsistentOrder) {
           val pathValues = for (pathRetriever <- pathRetrievers) yield pathRetriever.next()
 
-          if (pathValues.tail.forall(_.uri == pathValues.head.uri)) {
-            f(new Entity(pathValues.head.uri, pathValues.map(_.values).toIndexedSeq, entityDesc))
-
+          val uri = pathValues.head.uri
+          if (pathValues.tail.forall(_.uri == uri)) {
+            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entityDesc))
             counter += 1
           }
           else {
@@ -121,7 +121,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       //Throw exceptions which occurred during querying
       if (exception != null) throw exception
 
-      queue.dequeue
+      queue.dequeue()
     }
 
     override def run() {

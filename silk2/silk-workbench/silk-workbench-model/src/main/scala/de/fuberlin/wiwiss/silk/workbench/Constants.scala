@@ -14,8 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workbench
 
-object Constants
-{
+object Constants {
     val SourceId = "source"
     val TargetId = "target"
 

@@ -15,17 +15,16 @@
 package de.fuberlin.wiwiss.silk.entity
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import xml.Node
 import util.matching.Regex
 
 /**
  * Represents a SPARQL restriction.
  */
-class SparqlRestriction private(restrictionsFull: String, restrictionsQualified: String) {
+class SparqlRestriction private(val variable: String, restrictionsFull: String, restrictionsQualified: String) {
 
   def toSparql = restrictionsFull
 
-  def toXML = <Restrictions>{restrictionsFull}</Restrictions>
+  def isEmpty = restrictionsFull.isEmpty
 
   override def toString = restrictionsQualified
 
@@ -36,13 +35,9 @@ class SparqlRestriction private(restrictionsFull: String, restrictionsQualified:
 }
 
 object SparqlRestriction {
-  def empty = new SparqlRestriction("", "")
+  def empty = new SparqlRestriction("x", "", "")
 
-  def fromXML(node: Node)(implicit prefixes: Prefixes) = {
-    fromSparql(node.text)
-  }
-
-  def fromSparql(restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {
+  def fromSparql(variable: String, restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 
@@ -59,6 +54,6 @@ object SparqlRestriction {
       throw new IllegalArgumentException("The following prefixes are not defined: " + missingPrefixes.mkString(","))
     }
 
-    new SparqlRestriction(restrictionsFull, restrictionsQualified)
+    new SparqlRestriction(variable, restrictionsFull, restrictionsQualified)
   }
 }
