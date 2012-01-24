@@ -17,14 +17,32 @@ package de.fuberlin.wiwiss.silk.plugins.transformer
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import math.max
+import java.net.URLDecoder
+import java.util.logging.{Level, Logger}
 
-@Plugin(id = "stripUriPrefix", label = "Strip URI prefix", description = "Strips the URI prefix of a string.")
+@Plugin(id = "stripUriPrefix", label = "Strip URI prefix", description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'")
 class StripUriPrefixTransformer() extends SimpleTransformer {
+  private val log = Logger.getLogger(classOf[StripUriPrefixTransformer].getName)
+
   override def evaluate(value: String): String = {
-    val uriPrefixEnd = max(value.lastIndexOf("/"), value.lastIndexOf("#"))
-    if (uriPrefixEnd > -1)
-      value.substring(uriPrefixEnd + 1, value.size)
-    else
+    if(value.startsWith("http:")) {
+      //Remove prefix
+      val uriPrefixEnd = max(value.lastIndexOf("/"), value.lastIndexOf("#"))
+      val remainder = value.substring(uriPrefixEnd + 1)
+      //Decode url
+      val clean = remainder.replace('_', ' ')
+      try {
+        URLDecoder.decode(clean, "utf8")
+      }
+      catch {
+        case ex: Exception => {
+          log.log(Level.FINE, "Bad URI", ex)
+          clean
+        }
+      }
+    }
+    else {
       value
+    }
   }
 }

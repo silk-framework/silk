@@ -64,6 +64,7 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 object LinkageRuleGenerator {
 
   def apply(entities: ReferenceEntities, components: Components = Components()) = {
+    //TODO assert that the empty paths are included
     if(entities.positive.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {
