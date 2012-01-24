@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
 @Plugin(id = "removeValues", label = "Remove values", description = "Removes values.")
-class RemoveValues(blacklist: String) extends Transformer {
+case class RemoveValues(blacklist: String) extends Transformer {
   val filterValues = blacklist.split(",").map(_.trim.toLowerCase).toSet
 
   override def apply(values: Seq[Set[String]]) = {

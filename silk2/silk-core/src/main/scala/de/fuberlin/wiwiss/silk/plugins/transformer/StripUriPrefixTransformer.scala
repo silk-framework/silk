@@ -21,7 +21,7 @@ import java.net.URLDecoder
 import java.util.logging.{Level, Logger}
 
 @Plugin(id = "stripUriPrefix", label = "Strip URI prefix", description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'")
-class StripUriPrefixTransformer() extends SimpleTransformer {
+case class StripUriPrefixTransformer() extends SimpleTransformer {
   private val log = Logger.getLogger(classOf[StripUriPrefixTransformer].getName)
 
   override def evaluate(value: String): String = {
