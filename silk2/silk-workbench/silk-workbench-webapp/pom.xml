@@ -43,17 +43,17 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>7.4.5.v20110725</version>
+      <version>8.1.0.RC5</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-      <version>7.4.5.v20110725</version>
+      <version>8.1.0.RC5</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-continuation</artifactId>
-      <version>7.4.5.v20110725</version>
+      <version>8.1.0.RC5</version>
     </dependency>
   </dependencies>
 
@@ -89,17 +89,14 @@
       </plugin>
       <plugin>
         <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.26</version>
+
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>8.1.0.RC5</version>
         <configuration>
-          <contextPath>/</contextPath>
-          <scanIntervalSeconds>5</scanIntervalSeconds>
-          <connectors>
-            <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-              <port>8080</port>
-              <maxIdleTime>60000</maxIdleTime>
-            </connector>
-          </connectors>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
+          <webApp>
+            <contextPath>/</contextPath>
+          </webApp>
           <webDefaultXml>src/main/resources/webdefault.xml</webDefaultXml>
         </configuration>
       </plugin>
