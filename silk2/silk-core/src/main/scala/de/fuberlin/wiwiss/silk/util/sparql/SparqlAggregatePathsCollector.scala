@@ -34,18 +34,16 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
    * Retrieves a list of properties which are defined on most entities.
    */
   def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
-    val restrictionVariable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
-
-    val variable = if (restrictionVariable.isEmpty) "a" else restrictionVariable
-
-    val forwardPaths = getForwardPaths(endpoint, restrictions, variable, limit.getOrElse(100))
-    val backwardPaths = getBackwardPaths(endpoint, restrictions, variable, 10)
+    val forwardPaths = getForwardPaths(endpoint, restrictions, limit.getOrElse(100))
+    val backwardPaths = getBackwardPaths(endpoint, restrictions, 10)
 
     forwardPaths ++ backwardPaths
   }
 
-  private def getForwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String, limit: Int): Traversable[(Path, Double)] = {
+  private def getForwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
     Timer("Retrieving forward pathes for '" + restrictions + "'") {
+      val variable = restrictions.variable
+
       val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
         restrictions.toSparql + "\n" +
         "?" + variable + " ?p ?o\n" +
@@ -66,8 +64,10 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
     }
   }
 
-  private def getBackwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String, limit: Int): Traversable[(Path, Double)] = {
+  private def getBackwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
     Timer("Retrieving backward pathes for '" + restrictions + "'") {
+      val variable = restrictions.variable
+
       val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
         restrictions.toSparql + "\n" +
         "?s ?p ?" + variable + "\n" +
