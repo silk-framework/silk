@@ -84,7 +84,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
   }
 
   private def collectPathsFromInput(variable: String)(param: Input): Set[Path] = param match {
-    case p: PathInput if p.path.variable == variable => Set(p.path)
+    case p: PathInput if p.path.variable == variable && !p.path.operators.isEmpty => Set(p.path)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
     case _ => Set()
   }

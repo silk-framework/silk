@@ -33,22 +33,25 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    * @return The values.
    */
   override def apply(entities: DPair[Entity]): Set[String] = {
-    if (entities.source.desc.variable == path.variable) {
+    if (entities.source.desc.variable == path.variable)
       eval(entities.source)
-    } else if (entities.target.desc.variable == path.variable)
+    else if (entities.target.desc.variable == path.variable)
       eval(entities.target)
     else
       Set.empty
   }
 
   private def eval(entity: Entity) = {
-    var index = cachedPathIndex
-    if(index == -1 || entity.desc.paths(index) != path) {
-      index = entity.desc.pathIndex(path)
-      cachedPathIndex = index
+    if(path.operators.isEmpty)
+      Set(entity.uri)
+    else {
+      var index = cachedPathIndex
+      if(index == -1 || entity.desc.paths(index) != path) {
+        index = entity.desc.pathIndex(path)
+        cachedPathIndex = index
+      }
+      entity.evaluate(index)
     }
-
-    entity.evaluate(index)
   }
 
   override def toXML(implicit prefixes: Prefixes) = <Input id={id} path={path.serialize}/>
