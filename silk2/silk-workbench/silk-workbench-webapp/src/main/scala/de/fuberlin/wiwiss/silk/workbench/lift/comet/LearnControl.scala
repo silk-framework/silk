@@ -39,7 +39,7 @@ class LearnControl extends DynamicButton {
     }
     else if(label == "Done") {
       CurrentActiveLearningTask().cancel()
-      JS.Redirect("/population.html")
+      JS.Redirect("population.html")
     }
     else {
       if (!CurrentActiveLearningTask().status.isRunning) {

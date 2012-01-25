@@ -169,7 +169,7 @@ class PopulationContent extends CometActor {
 
       User().task = linkingTask.updateLinkSpec(linkSpec.copy(rule = newLinkageRule), User().project)
 
-      JS.Redirect("/editor.html")
+      JS.Redirect("editor.html")
     }
 
     Confirm("This will overwrite the current linkage rule!", SHtml.ajaxInvoke(load)._2.cmd)
