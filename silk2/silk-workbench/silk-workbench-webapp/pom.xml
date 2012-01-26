@@ -97,7 +97,8 @@
           <webApp>
             <contextPath>/</contextPath>
           </webApp>
-          <webDefaultXml>src/main/resources/webdefault.xml</webDefaultXml>
+          <!-- webDefaultXml is not supported in the current version of the jetty-maven-plugin anymore. -->
+          <!--<webDefaultXml>src/main/resources/webdefault.xml</webDefaultXml>-->
         </configuration>
       </plugin>
       <plugin>
