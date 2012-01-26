@@ -18,6 +18,7 @@ import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, AggregationNode}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
+import de.fuberlin.wiwiss.silk.entity.Path
 
 class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
   require(!comparisonGenerators.isEmpty, "comparisonGenerators most not be empty")
@@ -64,7 +65,6 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 object LinkageRuleGenerator {
 
   def apply(entities: ReferenceEntities, components: Components = Components()) = {
-    //TODO assert that the empty paths are included
     if(entities.positive.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {

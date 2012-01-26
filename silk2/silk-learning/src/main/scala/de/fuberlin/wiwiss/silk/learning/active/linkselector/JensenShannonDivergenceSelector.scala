@@ -14,8 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import math.{pow, sqrt, log}
+import math.log
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
@@ -33,23 +32,23 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
   }
   
   def rateLink(link: Link, rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): Double = {
-    val posDist = referenceEntities.positive.values.map(entityPair => distanceToReferenceLink(link, rules, entityPair, true)).min
-    val negDist = referenceEntities.negative.values.map(entityPair => distanceToReferenceLink(link, rules, entityPair, false)).min
+    val posDist = referenceEntities.positive.values.map(referencePair => distanceToReferenceLink(link, rules, referencePair, true)).min
+    val negDist = referenceEntities.negative.values.map(referencePair => distanceToReferenceLink(link, rules, referencePair, false)).min
     
     min(posDist, negDist)
   }
 
-  def distanceToReferenceLink(link: Link, rules: Seq[WeightedLinkageRule], entityPair: DPair[Entity], isPos: Boolean) =  {
+  def distanceToReferenceLink(link: Link, rules: Seq[WeightedLinkageRule], referencePair: DPair[Entity], isPos: Boolean) =  {
     val fulfilledRules = 
       if (fulfilledOnly) {
-        if(isPos) rules.filter(rule => rule(entityPair) > 0.0) else rules.filter(rule => rule(entityPair) <= 0.0)
+        if(isPos) rules.filter(rule => rule(referencePair) > 0.0) else rules.filter(rule => rule(referencePair) <= 0.0)
       }
       else
         rules
 
     val q = project(fulfilledRules, link.entities.get)
     
-    val p = project(fulfilledRules, entityPair)
+    val p = project(fulfilledRules, referencePair)
 
     jensenShannonDivergence(p, q) + 0.5 * entropy(q)
   }
@@ -61,8 +60,6 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
   private def probability(rule: WeightedLinkageRule, entityPair: DPair[Entity]) = {
     rule(entityPair) * 0.5 + 0.5
   }
-  
-  def test(a: Double, b: Double) = (a - b).abs + entropy((a + b) * 0.5)
 
   private def jensenShannonDivergence(p1: Double, p2: Double) = {
     entropy(0.5 * (p1 + p2)) - 0.5 * (entropy(p1) + entropy(p2))

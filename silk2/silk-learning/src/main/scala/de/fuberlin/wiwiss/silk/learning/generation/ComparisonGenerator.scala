@@ -19,13 +19,22 @@ import util.Random
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.individual._
 
+/**
+ * Generates random comparisons.
+ */
 class ComparisonGenerator(inputGenerators: DPair[InputGenerator], measure: FunctionNode[DistanceMeasure], maxThreshold: Double) {
 
+  /** The maximum weight of the generate comparisons */
+  val maxWeight = 20
+
+  /**
+   * Generates a new comparison.
+   */
   def apply() = {
     ComparisonNode(
       inputs = inputGenerators.map(_.apply()),
       threshold =  Random.nextDouble() * maxThreshold,
-      weight = 1 + Random.nextInt(20),
+      weight = Random.nextInt(maxWeight) + 1,
       metric = measure
     )
   }
