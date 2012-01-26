@@ -20,6 +20,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
+import de.fuberlin.wiwiss.silk.plugins.transformer.{LowerCaseTransformer, StripUriPrefixTransformer}
 
 /**
  * Analyses the reference entities and generates pairs of paths.
@@ -80,7 +81,8 @@ class CompatiblePathsGenerator(components: Components) {
    */
   private object PathsRetriever {
     def apply(entities: ReferenceEntities) = {
-      val allPaths = entities.positive.values.head.map(_.desc.paths)
+      val pair = entities.positive.values.head
+      val allPaths = pair.map(e => Path(e.desc.variable, Nil) +: e.desc.paths)
       allPaths.map(_.filterNot(_.toString.contains("sameAs")))
     }
   }
@@ -118,6 +120,8 @@ class CompatiblePathsGenerator(components: Components) {
    * Generates all pair of paths with overlapping values.
    */
   private object PairGenerator {
+    private val transformers = StripUriPrefixTransformer() :: LowerCaseTransformer() :: Nil
+    
     def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
       val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
 
@@ -149,12 +153,19 @@ class CompatiblePathsGenerator(components: Components) {
     }
 
     private def valuesMatch(value1: String, value2: String): Boolean = {
-      val tokens1 = value1.toLowerCase.split("\\s")
-      val tokens2 = value2.toLowerCase.split("\\s")
+      val tokens1 = value1.split("\\s")
+      val tokens2 = value2.split("\\s")
 
-      val valuePairs = for(t1 <- tokens1; t2 <- tokens2) yield t1 == t2
+      val valuePairs = for(t1 <- tokens1; t2 <- tokens2) yield tokensMatch(t1, t2)
 
       valuePairs.exists(identity)
+    }
+
+    private def tokensMatch(t1: String, t2: String): Boolean = {
+      val transformed1 = transformers.foldLeft(t1)((value, transformer) => transformer.evaluate(value))
+      val transformed2 = transformers.foldLeft(t2)((value, transformer) => transformer.evaluate(value))
+
+      transformed1 == transformed2
     }
   }
 }

@@ -29,6 +29,15 @@ case class Experiment(name: String, configurations: Seq[LearningConfiguration], 
  */
 object Experiment {
   /**
+   * Runs the default configuration.
+   */
+  val default =
+    Experiment("Default",
+      configurations = LearningConfiguration("Default") :: Nil,
+      metrics = FixedIterationsFMeasure(50) :: Nil
+    )
+
+  /**
    * Compares different seeding strategies.
    */
   val seeding =
