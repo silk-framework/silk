@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
  * @param variable Each data item will be bound to this variable.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSpecification(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
+case class Dataset(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
   require(!variable.isEmpty, "Variable must be non-empty")
 
   /**
@@ -51,19 +51,19 @@ case class DatasetSpecification(sourceId: Identifier, variable: String, restrict
   }
 }
 
-object DatasetSpecification {
+object Dataset {
   /**
    * Creates a DatasetSpecification from XML.
    */
-  def fromXML(node: Node)(implicit prefixes: Prefixes): DatasetSpecification = {
+  def fromXML(node: Node)(implicit prefixes: Prefixes): Dataset = {
     val variable = node \ "@var" text
 
-    DatasetSpecification(
+    Dataset(
       sourceId = node \ "@dataSource" text,
       variable = variable,
       restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
     )
   }
 
-  def empty = DatasetSpecification(Identifier.random, "x", SparqlRestriction.empty)
+  def empty = Dataset(Identifier.random, "x", SparqlRestriction.empty)
 }

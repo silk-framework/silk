@@ -31,7 +31,7 @@ import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
                              linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs"),
-                             datasets: DPair[DatasetSpecification] = DPair.fill(DatasetSpecification.empty),
+                             datasets: DPair[Dataset] = DPair.fill(Dataset.empty),
                              rule: LinkageRule = LinkageRule(),
                              filter: LinkFilter = LinkFilter(),
                              outputs: Traversable[Output] = Traversable.empty) {
@@ -120,8 +120,8 @@ object LinkSpecification {
     new LinkSpecification(
       id,
       resolveQualifiedName((node \ "LinkType").text.trim, prefixes),
-      new DPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
-      DatasetSpecification.fromXML(node \ "TargetDataset" head)),
+      new DPair(Dataset.fromXML(node \ "SourceDataset" head),
+      Dataset.fromXML(node \ "TargetDataset" head)),
       LinkageRule.fromXML(linkageRuleNode.getOrElse(linkConditionNode.get)),
       filter,
       (node \ "Outputs" \ "Output").map(Output.fromXML)

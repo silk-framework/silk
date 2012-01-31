@@ -43,11 +43,11 @@ class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends Link
     rankedLinks.sortBy(-_.confidence.get).take(3)
   }
 
-  def projection(rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
+  private def projection(rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
     new KullbackLeiblerDivergence(rules)
   }
 
-  def ranking(rules: Seq[WeightedLinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
+  private def ranking(rules: Seq[WeightedLinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
     new Ranking(rules, unlabeled, positive, negative)
   }
 
@@ -93,6 +93,8 @@ class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends Link
       (v1.vector zip v2.vector).map(p => (p._1 - p._2).abs).sum / v1.vector.size
     }
   }
+
+  private class ProjLink(val link: Link, val vector: Seq[Double])
 }
 
 

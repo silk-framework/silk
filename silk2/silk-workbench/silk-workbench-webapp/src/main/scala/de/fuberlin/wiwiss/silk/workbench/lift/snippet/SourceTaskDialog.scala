@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.config.DatasetSpecification
+import de.fuberlin.wiwiss.silk.config.Dataset
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{PluginDialog, StringField}
 import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
@@ -78,7 +78,7 @@ object SourceTaskDialog extends PluginDialog[DataSource] {
       task.updateLinkSpec(updatedLinkSpec, User().project)
     }
 
-    private def updateDataset(ds: DatasetSpecification) = {
+    private def updateDataset(ds: Dataset) = {
       if (ds.sourceId == oldSource)
         ds.copy(sourceId = newSource)
       else
