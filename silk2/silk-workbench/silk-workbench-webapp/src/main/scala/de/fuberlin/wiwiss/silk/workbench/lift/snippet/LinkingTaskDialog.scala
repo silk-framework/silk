@@ -23,7 +23,7 @@ import net.liftweb.http.SHtml
 import net.liftweb.util.Helpers._
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.config.{LinkFilter, DatasetSpecification, LinkSpecification}
+import de.fuberlin.wiwiss.silk.config.{LinkFilter, Dataset, LinkSpecification}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import net.liftweb.http.js.JsCmds.{SetHtml, OnLoad}
@@ -72,8 +72,8 @@ object LinkingTaskDialog {
     def submit() = JS.Try(){
       implicit val prefixes = User().project.config.prefixes
 
-      val datasets = DPair(DatasetSpecification(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, sourceRestriction)),
-                           DatasetSpecification(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, targetRestriction)))
+      val datasets = DPair(Dataset(sourceId, Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, sourceRestriction)),
+                           Dataset(targetId, Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, targetRestriction)))
 
       if(User().linkingTaskOpen) {
         val linkingTask = User().linkingTask

@@ -89,17 +89,8 @@ private class GeneratePoolTask(sources: Traversable[Source],
         val size = links(sourceIndex)(targetIndex).size
         val labelLinks = links(0)(0).size
 
-//        if(entities.source.uri == "http://dbpedia.org/resource/Jagged_Edge_%28film%29" && entities.target.uri == "http://data.linkedmdb.org/resource/film/1932") {
-//          links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
-//        }
-
-//        if(entities.source.uri == "http://dbpedia.org/resource/Topaz_%281969_film%29" && entities.target.uri == "http://data.linkedmdb.org/resource/film/230") {
-//          links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
-//        }
-
         if(size <= 1000 && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
           links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
-          //println(sourceIndex + " - " + targetIndex)
         }
 
         if (size > 1000 && labelLinks > 100)
