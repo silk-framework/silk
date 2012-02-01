@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
-import de.fuberlin.wiwiss.silk.plugins.transformer.{LowerCaseTransformer, StripUriPrefixTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.{Tokenizer, LowerCaseTransformer, StripUriPrefixTransformer}
 
 /**
  * Analyses the reference entities and generates pairs of paths.
@@ -43,7 +43,7 @@ class CompatiblePathsGenerator(components: Components) {
         val pathPairs = PairGenerator(distinctPaths, entities)
 
         //pathPairs.foreach(p => printLink(p, instances))
-        //pathPairs.foreach(println)
+        pathPairs.foreach(println)
 
         pathPairs.flatMap(createGenerators)
       }
@@ -92,15 +92,19 @@ class CompatiblePathsGenerator(components: Components) {
    */
   private object DuplicateRemover {
     def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
+      val sourceValues = entities.positive.values.map(_.source) ++ entities.negative.values.map(_.source)
+      val targetValues = entities.positive.values.map(_.target) ++ entities.negative.values.map(_.target)
+      
       DPair(
-        source = removeDuplicatePaths(entities.positive.values.map(_.source) ++ entities.negative.values.map(_.source), paths.source),
-        target = removeDuplicatePaths(entities.positive.values.map(_.target) ++ entities.negative.values.map(_.target), paths.target)
+        source = removeDuplicatePaths(sourceValues, paths.source),
+        target = removeDuplicatePaths(targetValues, paths.target)
       )
     }
 
     private def removeDuplicatePaths(entities: Traversable[Entity], paths: Traversable[Path]): Traversable[Path] = {
-      for(path :: tail <- paths.toList.tails.toTraversable
-          if !tail.exists(p => pathsMatch(entities, DPair(path, p)))) yield path
+      val pathTails = paths.toList.tails.toTraversable.par
+      val distinctPaths = for(path :: tail <- pathTails if !tail.exists(p => pathsMatch(entities, DPair(path, p)))) yield path
+      distinctPaths.seq
     }
 
     private def pathsMatch(entities: Traversable[Entity], pathPair: DPair[Path]): Boolean = {
@@ -120,22 +124,31 @@ class CompatiblePathsGenerator(components: Components) {
    * Generates all pair of paths with overlapping values.
    */
   private object PairGenerator {
-    private val transformers = StripUriPrefixTransformer() :: LowerCaseTransformer() :: Nil
+    private val transformers = Tokenizer() :: StripUriPrefixTransformer() :: LowerCaseTransformer() :: Nil
     
     def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
       val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
+      val posEntities = entities.positive.values.map(transformEntities)
+      val negEntities = entities.negative.values.map(transformEntities)
 
-      pathPairs.filter(pathValuesMatch(entities, _))
+      pathPairs.par.filter(pathValuesMatch(posEntities, negEntities, _)).seq
+    }
+    
+    private def transformEntities(entities: DPair[Entity]) = {
+      for(entity <- entities) yield {
+        new Entity(
+          uri = entity.uri,
+          values = for(values <- entity.values) yield transformers.foldLeft(values)((v, trans) => trans(Seq(v))),
+          desc = entity.desc
+        )
+      }
     }
 
-    private def pathValuesMatch(entities: ReferenceEntities, pathPair: DPair[Path]): Boolean = {
-      val positiveMatches = entities.positive.values.filter(i => matches(i, pathPair))
-      val positive = positiveMatches.size.toDouble / entities.positive.size
+    private def pathValuesMatch(posEntities: Traversable[DPair[Entity]], negEntities: Traversable[DPair[Entity]], pathPair: DPair[Path]): Boolean = {
+      val positive = posEntities.count(i => matches(i, pathPair)).toDouble / posEntities.size
 
-      if(entities.negative.size > 0) {
-        val negativeMatches = entities.negative.values.filter(i => matches(i, pathPair))
-        val negative = negativeMatches.size.toDouble / entities.negative.size
-        
+      if(!negEntities.isEmpty) {
+        val negative = negEntities.count(i => matches(i, pathPair)).toDouble / negEntities.size
         positive > minFrequency && positive * 2.0 >= negative
       }
       else {
@@ -147,25 +160,7 @@ class CompatiblePathsGenerator(components: Components) {
       val sourceValues = entityPair.source.evaluate(pathPair.source)
       val targetValues = entityPair.target.evaluate(pathPair.target)
 
-      val valuePairs = for(sourceValue <- sourceValues; targetValue <- targetValues) yield valuesMatch(sourceValue, targetValue)
-
-      valuePairs.exists(identity)
-    }
-
-    private def valuesMatch(value1: String, value2: String): Boolean = {
-      val tokens1 = value1.split("\\s")
-      val tokens2 = value2.split("\\s")
-
-      val valuePairs = for(t1 <- tokens1; t2 <- tokens2) yield tokensMatch(t1, t2)
-
-      valuePairs.exists(identity)
-    }
-
-    private def tokensMatch(t1: String, t2: String): Boolean = {
-      val transformed1 = transformers.foldLeft(t1)((value, transformer) => transformer.evaluate(value))
-      val transformed2 = transformers.foldLeft(t2)((value, transformer) => transformer.evaluate(value))
-
-      transformed1 == transformed2
+      sourceValues.exists(targetValues)
     }
   }
 }

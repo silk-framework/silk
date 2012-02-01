@@ -69,7 +69,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     val positiveValLinks = for((link, entityPair) <- validationEntities.positive) yield link.update(entities = Some(entityPair))
     val negativeValLinks = for((link, entityPair) <- validationEntities.negative) yield link.update(entities = Some(entityPair))
     var pool: Traversable[Link] = positiveValLinks ++ negativeValLinks
-    var population = Population()
+    var population = Population.empty
 
     //Holds the validation result from each iteration
     var scores = List[Double]()
