@@ -19,7 +19,10 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
 @Plugin(id = "tokenize", label = "Tokenize", description = "Tokenizes all input values.")
 case class Tokenizer(regex: String = "\\s") extends Transformer {
+
+  private[this] val compiledRegex = regex.r
+  
   override def apply(values: Seq[Set[String]]): Set[String] = {
-    values.head.flatMap(_.split(regex))
+    values.reduce(_ ++ _).flatMap(compiledRegex.split)
   }
 }
