@@ -35,7 +35,7 @@ class ActiveLearningTask(config: LearningConfiguration,
                          paths: DPair[Seq[Path]],
                          referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                          var pool: Traversable[Link] = Traversable.empty,
-                         var population: Population = Population()) extends ValueTask[Seq[Link]](Seq.empty) {
+                         var population: Population = Population.empty) extends ValueTask[Seq[Link]](Seq.empty) {
 
   def links = value.get
 
