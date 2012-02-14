@@ -53,7 +53,7 @@ case class Comparison(id: Identifier = Operator.generateId,
 
       if (distance == 0.0 && threshold == 0.0)
         Some(1.0)
-      else if (distance <= threshold)
+      else if (distance <= 2.0 * threshold)
         Some(1.0 - distance / threshold)
       else if (!required)
         Some(-1.0)
