@@ -18,7 +18,6 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(id = "merge", label = "Merge", description = "Merges the values of all inputs.")
-@deprecated("Not needed anymore as multiple inputs are merged by default in SimpleTransformer now.")
 case class MergeTransformer() extends Transformer {
   override def apply(values: Seq[Set[String]]): Set[String] = {
     values.reduce(_ union _)
