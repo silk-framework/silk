@@ -25,11 +25,14 @@ import de.fuberlin.wiwiss.silk.entity.{Link, Entity}
 case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
                              negative: Map[Link, DPair[Entity]] = Map.empty) {
 
-  /** True, if no entities are available */
+  /** True, if no entities are available. */
   def isEmpty = positive.isEmpty && negative.isEmpty
 
-  /** True, if positive and negative entities are available */
+  /** True, if positive and negative entities are available. */
   def isDefined = !positive.isEmpty && !negative.isEmpty
+
+  /** Merges this reference set with another reference set. */
+  def merge(ref: ReferenceEntities) =  ReferenceEntities(positive ++ ref.positive, negative ++ ref.negative)
 
   def withPositive(entityPair: DPair[Entity]) = {
     copy(positive = positive + (new Link(entityPair.source.uri, entityPair.target.uri) -> entityPair))

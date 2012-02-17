@@ -18,23 +18,25 @@ import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, AggregationNode}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
-import de.fuberlin.wiwiss.silk.entity.Path
 
 class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
-  require(!comparisonGenerators.isEmpty, "comparisonGenerators most not be empty")
+  require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
 
-  private val aggregations = "max" :: "min" :: "average" :: Nil
+  private val aggregations = 
+    if(components.nonlinear)
+      "max" :: "min" :: "average" :: Nil
+    else
+      "average" :: Nil
+  
+  /** The maximum weight of the generate aggregations */
+  private val maxWeight = 20
 
   private val minOperatorCount = 1
 
   private val maxOperatorCount = 2
 
   def apply() = {
-    if(components.aggregations) {
-      LinkageRuleNode(Some(generateAggregation()))
-    } else {
-      LinkageRuleNode(Some(generateComparison()))
-    }
+    LinkageRuleNode(Some(generateAggregation()))
   }
 
   /**
@@ -54,7 +56,12 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
       }
 
     //Build aggregation
-    new AggregationNode(aggregation, operators)
+    AggregationNode(
+      aggregation = aggregation,
+      weight = Random.nextInt(maxWeight) + 1,
+      required = Random.nextBoolean(),
+      operators = operators
+    )
   }
 
   private def generateComparison() = {

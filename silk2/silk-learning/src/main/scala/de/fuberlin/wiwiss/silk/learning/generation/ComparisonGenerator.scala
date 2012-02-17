@@ -35,6 +35,7 @@ class ComparisonGenerator(inputGenerators: DPair[InputGenerator], measure: Funct
       inputs = inputGenerators.map(_.apply()),
       threshold =  Random.nextDouble() * maxThreshold,
       weight = Random.nextInt(maxWeight) + 1,
+      required = Random.nextBoolean(),
       metric = measure
     )
   }

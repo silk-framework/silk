@@ -34,16 +34,16 @@ class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Co
       //We always learn thresholds and weights
       ops ::= ThresholdCrossover()
       ops ::= WeightCrossover()
+      ops ::= RequiredCrossover()
+      //We always modify existing aggregations
+      ops ::= AggregationOperatorsCrossover()
+      ops ::= AggregationStrategyCrossover()
 
-      if(components.transformations) {
+      if(components.transformations)
         ops ::= TransformationCrossover()
-      }
 
-      if(components.aggregations) {
-        ops ::= AggregationOperatorsCrossover()
-        ops ::= AggregationStrategyCrossover()
+      if(components.nonlinear)
         ops ::= OperatorCrossover()
-      }
 
       ops
     }
