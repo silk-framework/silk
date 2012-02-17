@@ -42,7 +42,9 @@ class ActiveLearningTask(config: LearningConfiguration,
   override protected def execute(): Seq[Link] = {
     updatePool()
 
-    val generator = Timer("LinkageRuleGenerator") { LinkageRuleGenerator(ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components) }
+    val generator = Timer("LinkageRuleGenerator") {
+      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
+    }
     val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
     
     buildPopulation(generator)

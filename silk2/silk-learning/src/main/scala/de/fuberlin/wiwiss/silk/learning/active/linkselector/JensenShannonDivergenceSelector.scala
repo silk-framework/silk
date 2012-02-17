@@ -28,13 +28,14 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
    * Returns the links with the highest Jensen-Shannon divergence from any reference link.
    */
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
-    val posDist = referenceEntities.positive.values.map(referencePair => new ReferenceLinkDistance(referencePair, rules, true))
-    val negDist = referenceEntities.negative.values.map(referencePair => new ReferenceLinkDistance(referencePair, rules, false))
-    val dist = posDist ++ negDist
-
-    val rankedLinks = unlabeledLinks.par.map(rankLink(dist))
-
-    rankedLinks.seq.sortBy(-_.confidence.get).take(3)
+    Seq.empty
+//    val posDist = referenceEntities.positive.values.map(referencePair => new ReferenceLinkDistance(referencePair, rules, true))
+//    val negDist = referenceEntities.negative.values.map(referencePair => new ReferenceLinkDistance(referencePair, rules, false))
+//    val dist = posDist ++ negDist
+//
+//    val rankedLinks = unlabeledLinks.par.map(rankLink(dist))
+//
+//    rankedLinks.seq.sortBy(-_.confidence.get).take(3)
   }
 
   /**
@@ -57,7 +58,7 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
       jensenShannonDivergence(p, qLink) + 0.5 * entropy(qLink)
     }
     
-    /** All linkage rules which are fulfilled this reference link */
+    /** All linkage rules which fulfill this reference link */
     private val fulfilledRules = {
       if (fulfilledOnly) {
         if(isPos) rules.filter(rule => rule(entities) > 0.0) else rules.filter(rule => rule(entities) <= 0.0)

@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.learning.individual
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure, Comparison}
 
-case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
+case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, required: Boolean, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
   require(inputs.source.isSource && !inputs.target.isSource, "inputs.source.isSource && !inputs.target.isSource")
 
   override val children = inputs.source :: inputs.target :: metric :: Nil
@@ -27,12 +27,12 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
     val targetInput = newChildren.collect{ case c: InputNode if !c.isSource => c }.head
     val metricNode = newChildren.collect{ case c: FunctionNode[DistanceMeasure] => c }.head
 
-    ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, metricNode)
+    ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, required, metricNode)
   }
 
   override def build = {
     Comparison(
-      required = false,
+      required = required,
       threshold = threshold,
       weight = weight,
       inputs = inputs.map(_.build),
@@ -48,6 +48,6 @@ object ComparisonNode {
 
     val metricNode = FunctionNode.load(comparison.metric, DistanceMeasure)
 
-    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, metricNode)
+    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, comparison.required, metricNode)
   }
 }
