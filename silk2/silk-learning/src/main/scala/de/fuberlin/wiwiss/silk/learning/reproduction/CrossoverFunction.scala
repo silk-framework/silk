@@ -42,7 +42,7 @@ class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Co
       if(components.transformations)
         ops ::= TransformationCrossover()
 
-      if(components.nonlinear)
+      if(components.hierarchies)
         ops ::= OperatorCrossover()
 
       ops

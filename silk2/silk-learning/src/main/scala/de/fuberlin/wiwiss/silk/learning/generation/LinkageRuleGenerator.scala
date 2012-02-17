@@ -21,12 +21,12 @@ import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
 class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
   require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
-
-  private val aggregations = 
-    if(components.nonlinear)
-      "max" :: "min" :: "average" :: Nil
-    else
-      "average" :: Nil
+  
+  private val aggregations = {
+    val linear = if(components.linear) "average" :: Nil else Nil
+    val boolean = if(components.boolean) "max" :: "min" :: Nil else Nil
+    linear ++ boolean
+  }
   
   /** The maximum weight of the generate aggregations */
   private val maxWeight = 20

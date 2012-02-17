@@ -38,6 +38,20 @@ object Experiment {
     )
 
   /**
+   * Evaluates different linkage rule representations.
+   */
+  val representations =
+    Experiment("representations",
+      configurations =
+        LearningConfiguration("Boolean",   components = Components(linear = false, boolean = true,  hierarchies = true,  transformations = false), params = Parameters(maxIterations = 10)) ::
+        LearningConfiguration("Linear",    components = Components(linear = true,  boolean = false, hierarchies = false, transformations = false), params = Parameters(maxIterations = 10)) ::
+        LearningConfiguration("Nonlinear", components = Components(linear = true,  boolean = true,  hierarchies = true,  transformations = false), params = Parameters(maxIterations = 10)) ::
+        LearningConfiguration("Full",      components = Components(linear = true,  boolean = true,  hierarchies = true,  transformations = true),  params = Parameters(maxIterations = 10)) :: Nil,
+      metrics =
+        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
+    )
+
+  /**
    * Compares different seeding strategies.
    */
   val seeding =
@@ -45,29 +59,6 @@ object Experiment {
       configurations =
         LearningConfiguration("Random",       components = Components(seed = false), params = Parameters(maxIterations = 10)) ::
         LearningConfiguration("Our Approach", components = Components(seed = true),  params = Parameters(maxIterations = 10)) :: Nil,
-      metrics =
-        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
-    )
-
-  /**
-   * Evaluates the contribution of using data transformations in the rules.
-   */
-  val transformations =
-    Experiment("Transformations",
-      configurations =
-        LearningConfiguration("No Transf.",   components = Components(transformations = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("With Transf.", components = Components(transformations = true),  params = Parameters(maxIterations = 10)) :: Nil,
-      metrics =
-        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
-    )
-
-  /**
-   * Evaluates the contribution of using data transformations in the rules.
-   */
-  val nonlinear =
-    Experiment("nonlinear",
-      configurations =
-        LearningConfiguration("linear", components = Components(nonlinear = false),  params = Parameters(maxIterations = 10)) :: Nil,
       metrics =
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
     )
