@@ -62,6 +62,17 @@ object Experiment {
     )
 
   /**
+   * Evaluates the contribution of using data transformations in the rules.
+   */
+  val nonlinear =
+    Experiment("nonlinear",
+      configurations =
+        LearningConfiguration("linear", components = Components(nonlinear = false),  params = Parameters(maxIterations = 10)) :: Nil,
+      metrics =
+        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
+    )
+
+  /**
    * Evaluates the contribution of using specialized crossover operators over using subtree crossover.
    */
   val crossover =
