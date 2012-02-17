@@ -33,11 +33,19 @@ object LearningConfiguration {
   /**
    * Specifies which components of the linkage rules are learned.
    * 
-   * @param seed Preprocess Only generate linkage rules with compatible path pairs
-   * @param transformations Learn data transformations
-   * @param nonlinear Learn non-linear rules
+   * @param seed Only generate linkage rules with compatible path pairs
+   * @param linear Include linear aggregations
+   * @param boolean Include boolean aggregations
+   * @param hierarchies Build aggregation hierarchies
+   * @param transformations Use transformations
+   * @param useSpecializedCrossover Use specialized crossover operations
    */
-  case class Components(seed: Boolean = true, transformations: Boolean = true, nonlinear: Boolean = true, useSpecializedCrossover: Boolean = true)
+  case class Components(seed: Boolean = true,
+                        linear: Boolean = true,
+                        boolean: Boolean = true,
+                        hierarchies: Boolean = true,
+                        transformations: Boolean = true,
+                        useSpecializedCrossover: Boolean = true)
 
   /**
    * The parameters of the learning algorithm.
