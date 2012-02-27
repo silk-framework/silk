@@ -29,7 +29,10 @@ class LearnResetButton {
     CurrentPopulation.reset()
     CurrentValidationLinks.reset()
     CurrentActiveLearningTask().cancel()
+    CurrentLearningTask().cancel()
+    CurrentActiveLearningTask.reset()
+    CurrentLearningTask.reset()
 
-    JS.Empty
+    JS.Reload
   }
 }
