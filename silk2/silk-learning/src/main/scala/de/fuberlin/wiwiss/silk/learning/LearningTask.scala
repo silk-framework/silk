@@ -44,6 +44,8 @@ class LearningTask(input: LearningInput = LearningInput.empty,
 
   def result = value.get
 
+  def isEmpty = input.trainingEntities.isEmpty
+
   override def execute(): LearningResult = {
     //Reset state
     startTime = System.currentTimeMillis
