@@ -18,7 +18,7 @@ object DatasetStatistics extends App {
 
   val datasets = Dataset.fromWorkspace
 
-  val measures = Entities :: Properties :: UsedProperties :: ReferenceLinks :: Nil
+  val measures = SourceEntities :: TargetEntities :: SourceProperties :: TargetProperties :: SourceCoverage :: TargetCoverage :: PosReferenceLinks :: NegReferenceLinks :: Nil
 
   val table = Table("Dataset Statistics", measures.map(_.name), datasets.map(_.name), datasets.map(collect))
 
@@ -55,42 +55,87 @@ object DatasetStatistics extends App {
   /**
    * The number of entities in both datasets.
    */
-  object Entities extends Measure {
-    def name = "Number of entities"
-    def apply(data: TaskData) = data.entities.source.size + data.entities.target.size
+  object SourceEntities extends Measure {
+    def name = "Source entities"
+    def apply(data: TaskData) = data.entities.source.size
+  }
+  
+  /**
+   * The number of entities in both datasets.
+   */
+  object TargetEntities extends Measure {
+    def name = "Target entities"
+    def apply(data: TaskData) = data.entities.target.size
   }
 
   /**
-   * The number of properties in total in both datasets.
+   * The number of properties in total in the source data set.
    */
-  object Properties extends Measure {
-    def name = "Total number of properties"
+  object SourceProperties extends Measure {
+    def name = "Source Properties"
     def apply(data: TaskData) = {
       val sourcePaths = data.paths.source.map(serialize)
+      sourcePaths.distinct.size
+    }
+    /** Serializes the operators of a path without the variable. */
+    private def serialize(p: Path) = p.operators.map(_.serialize).mkString
+  }
+  /**
+   * The number of properties in total in the target data set.
+   */
+  object TargetProperties extends Measure {
+    def name = "Target Properties"
+    def apply(data: TaskData) = {
       val targetPaths = data.paths.target.map(serialize)
-      (sourcePaths ++ targetPaths).distinct.size
+      targetPaths.distinct.size
     }
     /** Serializes the operators of a path without the variable. */
     private def serialize(p: Path) = p.operators.map(_.serialize).mkString
   }
 
   /**
-   * The average number of properties per entitiy.
+   * The average number of properties per entity.
    */
-  object UsedProperties extends Measure {
-    def name = "Properties per entity"
+  object SourceCoverage extends Measure {
+    def name = "Source Coverage"
     def apply(data: TaskData) = {
-      val entities = data.entities.source ++ data.entities.target
-      val count = entities.map(_.values.count(!_.isEmpty).toDouble).sum / entities.size
-      "%.1f".format(count)
+      val entities = data.entities.source
+      val propertyCount = SourceProperties(data)
+      val propertyOccurrences = entities.map(_.values.count(!_.isEmpty)).sum
+      val coverage = propertyOccurrences.toDouble / (propertyCount * entities.size)
+
+      "%.1f".format(coverage)
     }
   }
 
   /**
-   * The total number of reference links (positive and negative).
+   * The average number of properties per entity.
    */
-  object ReferenceLinks extends Measure {
-    def name = "Reference links"
-    def apply(data: TaskData) = data.task.referenceLinks.positive.size + data.task.referenceLinks.negative.size
+  object TargetCoverage extends Measure {
+    def name = "Target Coverage"
+    def apply(data: TaskData) = {
+      val entities = data.entities.target
+      val propertyCount = TargetProperties(data)
+      val propertyOccurrences = entities.map(_.values.count(!_.isEmpty)).sum
+      val coverage = propertyOccurrences.toDouble / (propertyCount * entities.size)
+
+      "%.1f".format(coverage)
+    }
+  }
+
+  /**
+   * The number of positive reference links.
+   */
+  object PosReferenceLinks extends Measure {
+    def name = "Pos. Reference links"
+    def apply(data: TaskData) = data.task.referenceLinks.positive.size
+  }
+
+  /**
+   * The number of negative reference links.
+   */
+  object NegReferenceLinks extends Measure {
+    def name = "Neg. Reference links"
+    def apply(data: TaskData) = data.task.referenceLinks.negative.size
   }
 }
