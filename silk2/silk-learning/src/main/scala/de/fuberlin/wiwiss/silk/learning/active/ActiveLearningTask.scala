@@ -37,6 +37,8 @@ class ActiveLearningTask(config: LearningConfiguration,
                          var pool: Traversable[Link] = Traversable.empty,
                          var population: Population = Population.empty) extends ValueTask[Seq[Link]](Seq.empty) {
 
+  def isEmpty = sources.isEmpty
+
   def links = value.get
 
   override protected def execute(): Seq[Link] = {
