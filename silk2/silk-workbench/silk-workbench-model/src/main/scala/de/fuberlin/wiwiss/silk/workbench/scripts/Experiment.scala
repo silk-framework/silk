@@ -43,12 +43,12 @@ object Experiment {
   val representations =
     Experiment("representations",
       configurations =
-        LearningConfiguration("Boolean",   components = Components(linear = false, boolean = true,  hierarchies = true,  transformations = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("Linear",    components = Components(linear = true,  boolean = false, hierarchies = false, transformations = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("Nonlinear", components = Components(linear = true,  boolean = true,  hierarchies = true,  transformations = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("Full",      components = Components(linear = true,  boolean = true,  hierarchies = true,  transformations = true),  params = Parameters(maxIterations = 10)) :: Nil,
+        LearningConfiguration("Boolean",   components = Components(linear = false, boolean = true,  hierarchies = true,  transformations = false), params = Parameters(maxIterations = 25)) ::
+        LearningConfiguration("Linear",    components = Components(linear = true,  boolean = false, hierarchies = false, transformations = false), params = Parameters(maxIterations = 25)) ::
+        LearningConfiguration("Nonlinear", components = Components(linear = true,  boolean = true,  hierarchies = true,  transformations = false), params = Parameters(maxIterations = 25)) ::
+        LearningConfiguration("Full",      components = Components(linear = true,  boolean = true,  hierarchies = true,  transformations = true),  params = Parameters(maxIterations = 25)) :: Nil,
       metrics =
-        FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
+          FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: FixedIterationsFMeasure(25) :: Nil
     )
 
   /**

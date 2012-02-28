@@ -15,28 +15,26 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workbench.workspace.CurrentTaskStatusListener
-import de.fuberlin.wiwiss.silk.util.task.{TaskRunning, TaskFinished, TaskStarted, TaskStatus}
-import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentPopulation, CurrentLearningTask}
+import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentValidationLinks, CurrentPopulation, CurrentPool, CurrentActiveLearningTask}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, ProgressWidget}
 
-class LearnProgress extends ProgressWidget(new CurrentTaskStatusListener(CurrentLearningTask), hide = true) {
+class ActiveLearnProgress extends ProgressWidget(new CurrentTaskStatusListener(CurrentActiveLearningTask), hide = true) {
  /**
-   * Listens to changes of the current learning task.
-   */
-  private val learningTaskListener = new CurrentTaskStatusListener(CurrentLearningTask) {
+  * Listens to changes of the current active learning task.
+  */
+  private val activeLearningTaskListener = new CurrentTaskStatusListener(CurrentActiveLearningTask) {
     override def onUpdate(status: TaskStatus) {
       status match {
-        case _: TaskStarted =>
         case _: TaskFinished => partialUpdate {
-          CurrentPopulation() = task.value.get.population
-          JS.Empty
-        }
-        case _: TaskRunning => partialUpdate {
-          CurrentPopulation() = task.value.get.population
+          CurrentPool() = task.pool
+          CurrentPopulation() = task.population
+          CurrentValidationLinks() = task.links
           JS.Empty
         }
         case _ =>
       }
     }
   }
+
 }
