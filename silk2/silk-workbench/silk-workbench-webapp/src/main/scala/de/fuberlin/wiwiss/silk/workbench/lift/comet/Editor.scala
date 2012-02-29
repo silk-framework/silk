@@ -14,7 +14,6 @@
 
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import java.io.StringReader
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.http.js.{JsCmd, JsCmds}
@@ -28,6 +27,10 @@ import net.liftweb.http.js.JE._
 import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import net.liftweb.http.{CometActor, SHtml}
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.workbench.workspace.io.SilkConfigExporter
+import java.io.StringReader
+import java.util.Properties
+import java.io.{FileNotFoundException, FileReader, File}
 
 /**
  * Link specification editor.
@@ -48,6 +51,33 @@ class Editor extends CometActor {
   private var currentInfos = Traversable[String]()
   private var currentWarnings = Traversable[String]()
   private var currentErrors = Traversable[ValidationError]()
+
+  private var repositories:Map[String, Map[String, String]] = Map()
+
+  try {
+    val configFile = new File("./config.properties");
+
+    val properties = new Properties()
+    properties.load(new FileReader(configFile))
+
+    if(properties.getProperty("linkSpecRepository") != null) {
+      val repositoryString = properties.getProperty("linkSpecRepository")
+      val repositoriesNames = repositoryString.split(" ")
+      repositoriesNames.foreach(
+        repository => {
+          val repositoryUrl = properties.getProperty("linkSpecRepository."+repository+".URL")
+          val repositoryApiKey = properties.getProperty("linkSpecRepository."+repository+".API_Key")
+          if ((repositoryUrl != null) && (repositoryApiKey != null)) {
+            repositories += repository -> Map("url" -> repositoryUrl, "apiKey" -> repositoryApiKey)
+          }
+        }
+      )
+    }
+  } catch {
+    case _ : FileNotFoundException =>
+      {
+      }
+  }
 
   /**
    * Renders the editor.
@@ -84,6 +114,16 @@ class Editor extends CometActor {
         //Commit
         project.linkingModule.update(updatedLinkingTask)
         User().task = updatedLinkingTask
+      }
+
+      // write to repositories defined in properties
+      if (!repositories.isEmpty) {
+        repositories.foreach(
+           repository => {
+             val repositoryWriter: RepositoryWriter = new RepositoryWriter(repository._1, repository._2)
+             repositoryWriter.post(LinkSpecification.load(prefixes)(new StringReader(linkSpecStr)), SilkConfigExporter.build().toXML.toString)
+           }
+        )
       }
 
       //Update link spec variable and notify user
