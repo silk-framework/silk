@@ -28,6 +28,8 @@ import net.liftweb.json.Printer.pretty
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.output.LinkWriter
 import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
+import java.util.Properties
+import java.io.{FileNotFoundException, FileReader, File}
 
 /**
  * Workspace snippet.
@@ -75,6 +77,7 @@ class Workspace {
 
 object Workspace {
   def javasScriptFunctions = {
+    createVoidVariables &
     updateCmd &
     createProjectFunction &
     removeProjectFunction &
@@ -83,6 +86,7 @@ object Workspace {
     setCurrentProjectFunction &
     editPrefixesFunction &
     createSourceTaskFunction &
+    createVoidSourceTaskFunction &
     editSourceTaskFunction &
     injectFunction("removeSourceTask", removeSourceTask _) &
     createLinkingTaskFunction &
@@ -185,6 +189,47 @@ object Workspace {
     val openSourceTaskDialog = JsCmds.Function("createSourceTask", "projectName" :: Nil, ajaxCall)
     SourceTaskDialog.Commands.init & openSourceTaskDialog
   }
+
+
+  private def createVoidVariables : JsCmd = {
+    var enableVoidSourceButton: Boolean = false
+    try {
+     val configFile = new File("./config.properties");
+
+     val properties = new Properties()
+     properties.load(new FileReader(configFile))
+
+     if(properties.getProperty("enableVoidSourceButton") != null) {
+       if(properties.getProperty("enableVoidSourceButton") == "true") {
+         enableVoidSourceButton = true
+       }
+     }
+    } catch {
+     case _ : FileNotFoundException =>
+       {
+       }
+    }
+
+    if (enableVoidSourceButton) {
+      JsRaw("var enableVoidSourceButton = true;").cmd
+    } else {
+      JsRaw("var enableVoidSourceButton = false;").cmd
+    }
+  }
+
+   /**
+  * JS Command which defines the createVoidSourceTask function
+  */
+ private def createVoidSourceTaskFunction: JsCmd = {
+   def callback(projectName: String): JsCmd = {
+     User().project = User().workspace.project(projectName)
+     VoidSourceTaskDialog.openCmd
+   }
+
+   val ajaxCall = SHtml.ajaxCall(JsRaw("projectName"), callback _)._2.cmd
+   val openSourceTaskDialog = JsCmds.Function("createVoidSourceTask", "projectName" :: Nil, ajaxCall)
+   openSourceTaskDialog
+ }
 
   /**
    * JS Command which defines the editSourceTask function
