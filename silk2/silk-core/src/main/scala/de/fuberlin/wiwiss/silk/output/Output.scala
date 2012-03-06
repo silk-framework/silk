@@ -64,6 +64,12 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
     logger.info("Wrote " + linkCount + " links")
   }
 
+  def writeAll(links: Traversable[Link], predicateUri: String) {
+    open()
+    for (link <- links) write(link, predicateUri)
+    close()
+  }
+
   //TODO write minConfidence, maxConfidence
   def toXML: Node = writer match {
     case LinkWriter(outputType, params) => {
