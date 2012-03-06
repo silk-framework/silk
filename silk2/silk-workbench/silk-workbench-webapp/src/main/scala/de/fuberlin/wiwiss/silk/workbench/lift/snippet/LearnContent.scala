@@ -41,7 +41,7 @@ class LearnContent {
         There are already {posCount} positive and {negCount} negative reference links.
         Start learning a linkage rules from existing reference links: {SHtml.ajaxButton("Start", startLearning(false))}
         <br/>
-        Start with existing reference links but find new links: {SHtml.ajaxButton("Start", startLearning(true))}
+        Start with existing reference links but find new reference links: {SHtml.ajaxButton("Start", startLearning(true))}
       </span>
     else
       <span>
