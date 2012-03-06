@@ -228,18 +228,18 @@ trait LinksContent extends CometActor {
     case AggregatorConfidence(value, aggregation, children) => {
       <li>
         <span class="aggregation">Aggregation: {aggregation.aggregator.pluginId} ({aggregation.id})</span>{ renderConfidence(value) }
-          <ul>
-            { children.map(renderSimilarity) }
-          </ul>
+        <ul>
+          { children.map(renderSimilarity) }
+        </ul>
       </li>
     }
     case ComparisonConfidence(value, comparison, input1, input2) => {
       <li>
         <span class="comparison">Comparison: {comparison.metric.pluginId} ({comparison.id})</span>{ renderConfidence(value) }
-          <ul>
-            { renderInputValue(input1, "source") }
-            { renderInputValue(input2, "target") }
-          </ul>
+        <ul>
+          { renderValue(input1, "source") }
+          { renderValue(input2, "target") }
+        </ul>
       </li>
     }
     case SimpleConfidence(value) => {
@@ -247,15 +247,31 @@ trait LinksContent extends CometActor {
     }
   }
 
+  private def renderValue(value: Value, divClassPrefix : String): NodeSeq = value match {
+    case TransformedValue(transform, values, children) => {
+      <li>
+        <span class="input">
+          Transform: {transform.transformer.pluginId} ({transform.id})
+          { values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+        </span>
+        <ul>
+          { children.map(v => renderValue(v, divClassPrefix)) }
+        </ul>
+      </li>
+    }
+    case InputValue(input, values) => {
+      <li>
+        <span class="input">
+          Input: {input.path.serialize} ({input.id})
+          { values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+        </span>
+      </li>
+    }
+  }
+  //<span class={divClassPrefix+"-path"}>{input.path.serialize}</span>
   private def renderConfidence(value : Option[Double]) = value match {
     case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v) * 100)}%</div></div>
     case None => NodeSeq.Empty
-  }
-
-  private def renderInputValue(value : InputValue, divClassPrefix : String) = {
-    <li>
-      <span class="input">Input ({value.input.id})<span class={divClassPrefix+"-path"}>{value.input.path.serialize}</span>{value.values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span>
-    </li>
   }
 
   protected def getId(link: Link, prefix: String = "") = {
