@@ -268,7 +268,7 @@ trait LinksContent extends CometActor {
       </li>
     }
   }
-  //<span class={divClassPrefix+"-path"}>{input.path.serialize}</span>
+
   private def renderConfidence(value : Option[Double]) = value match {
     case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v) * 100)}%</div></div>
     case None => NodeSeq.Empty
