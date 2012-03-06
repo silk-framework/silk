@@ -25,11 +25,12 @@
 
 <div id="boxcontainer">
 	<div id="downloadbox" class="box">
-	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.2.zip"><span>Download Silk<br/><small>v2.5.2, released 2011-11-17</small></span></a>
+	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.3.zip"><span>Download Silk<br/><small>v2.5.3, released 2012-03-06</small></span></a>
 	</div>
 </div>
 <H2 id=news>News</H2>
 <ul>
+  <li><strong>2012-03-06:</strong> Version 2.5.3 released including various improvements and bugfixes.</li>
   <li><strong>2012-02-21:</strong> Webinar about Silk Workbench. The <a href="http://www.youtube.com/watch?v=CPl5eeyW-Xk">screencast</a> and the <a href="http://www.slideshare.net/lod2project/slides-11702787" >slides</a> are available online.</li>
   <li><strong>2011-11-17:</strong> Version 2.5.2 released adding active learning of linkage rules.</li>
   <li><strong>2011-10-24:</strong> Presentation: Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleBizer-Silk-Learning-OM2011.pdf">Learning Linkage Rules using Genetic Programming</a>. 6th International Workshop on Ontology Matching. Bonn, Germany, October 2011.</li>
@@ -129,6 +130,11 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <th>Version</th>
         <th>Comment</th>
         <th>Release Date</th>
+      </tr>
+      <tr id="grey">
+        <td>2.5.3</td>
+        <td>Various improvements and bugfixes.</td>
+        <td>2012-03-06</td>
       </tr>
       <tr>
         <td>2.5.2</td>
