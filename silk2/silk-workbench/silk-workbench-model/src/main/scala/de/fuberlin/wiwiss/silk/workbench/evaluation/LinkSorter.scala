@@ -15,37 +15,66 @@
 package de.fuberlin.wiwiss.silk.workbench.evaluation
 
 import de.fuberlin.wiwiss.silk.workbench.workspace.TaskData
+import EvalLink._
 
-object LinkSorter extends TaskData[LinkSorter](NoSorter)
-{
-  def sort(links : Seq[EvalLink]) : Seq[EvalLink] =
-  {
+object LinkSorter extends TaskData[LinkSorter](NoSorter) {
+  def sort(links: Seq[EvalLink]): Seq[EvalLink] = {
     apply()(links)
   }
 }
 
-trait LinkSorter extends (Seq[EvalLink] => Seq[EvalLink])
-{
-  def apply(links : Seq[EvalLink]) : Seq[EvalLink]
+trait LinkSorter extends (Seq[EvalLink] => Seq[EvalLink]) {
+  def apply(links: Seq[EvalLink]): Seq[EvalLink]
 }
 
-object NoSorter extends LinkSorter
-{
-  def apply(links : Seq[EvalLink]) = links
+object NoSorter extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = links
 }
 
-object ConfidenceSorterAscending extends LinkSorter
-{
-  def apply(links : Seq[EvalLink]) : Seq[EvalLink] =
-  {
+object SourceUriSorterAscending extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = links.sortBy(_.source)
+}
+
+object SourceUriSorterDescending extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = links.sortBy(_.source).reverse
+}
+
+object TargetUriSorterAscending extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = links.sortBy(_.target)
+}
+
+object TargetUriSorterDescending extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = links.sortBy(_.target).reverse
+}
+
+object ConfidenceSorterAscending extends LinkSorter {
+  def apply(links: Seq[EvalLink]): Seq[EvalLink] = {
     links.sortBy(_.confidence.getOrElse(-1.0))
   }
 }
 
-object ConfidenceSorterDescending extends LinkSorter
-{
-  def apply(links : Seq[EvalLink]) : Seq[EvalLink] =
-  {
+object ConfidenceSorterDescending extends LinkSorter {
+  def apply(links: Seq[EvalLink]): Seq[EvalLink] = {
     links.sortBy(-_.confidence.getOrElse(-1.0))
+  }
+}
+
+object CorrectnessSorterAscending extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = {
+    links.sortBy{ _.correct match {
+      case Correct => 0
+      case Incorrect => 1
+      case Unknown => 2
+    }}
+  }
+}
+
+object CorrectnessSorterDescending extends LinkSorter {
+  def apply(links: Seq[EvalLink]) = {
+    links.sortBy{ _.correct match {
+      case Unknown => 0
+      case Correct => 1
+      case Incorrect => 2
+    }}
   }
 }

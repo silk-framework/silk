@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.entity.{Link, Path, Entity}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
-import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
+import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
  * A widget which displays a list of links.
@@ -82,11 +82,40 @@ trait LinksContent extends CometActor {
       <div>
         <div class="link">
           <div class="link-header heading">
-            <div class="link-source">Source: <span class="source-value">{linkingTask.linkSpec.datasets.source.sourceId}</span></div>
-            <div class="link-target">Target: <span class="target-value">{linkingTask.linkSpec.datasets.target.sourceId}</span></div>
-            <div class="link-confidence">{renderConfidenceHeader}</div>
+            <div class="link-source"> {
+              sortableHeader(
+                header = Text("Source:") ++ <span class="source-value">{linkingTask.linkSpec.datasets.source.sourceId}</span>,
+                ascendingSorter = SourceUriSorterAscending,
+                descendingSorter = SourceUriSorterDescending
+              )
+            }</div>
+            <div class="link-target"> {
+              sortableHeader(
+                header = Text("Target:") ++ <span class="target-value">{linkingTask.linkSpec.datasets.target.sourceId}</span>,
+                ascendingSorter = TargetUriSorterAscending,
+                descendingSorter = TargetUriSorterDescending
+              )
+            }</div>
+            <div class="link-confidence"> {
+              sortableHeader(
+                header = Text("Score"),
+                ascendingSorter = ConfidenceSorterAscending,
+                descendingSorter = ConfidenceSorterDescending
+              )
+            }</div>
             { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
-            { if(showButtons) <div class="link-buttons"><span>Correct?</span></div> else NodeSeq.Empty }
+            {
+              if(showButtons)
+                <div class="link-buttons"> {
+                  sortableHeader(
+                    header = <span>Correct?</span>,
+                    ascendingSorter = CorrectnessSorterAscending,
+                    descendingSorter = CorrectnessSorterDescending
+                  )
+                }</div>
+              else
+                NodeSeq.Empty
+            }
           </div>
         </div> {
           val filteredLinks = LinkFilter.filter(links)
@@ -101,24 +130,24 @@ trait LinksContent extends CometActor {
 
     SetHtml("results", html) & Call("initTrees").cmd & Call("updateResultsWidth").cmd
   }
-
-  private def renderConfidenceHeader = {
+  
+  private def sortableHeader(header: NodeSeq, ascendingSorter: LinkSorter, descendingSorter: LinkSorter) = {
     def sort() = {
-      if (LinkSorter() == ConfidenceSorterDescending) {
-        LinkSorter() = ConfidenceSorterAscending
-      } else {
-        LinkSorter() = ConfidenceSorterDescending
-      }
+      if (LinkSorter() == ascendingSorter)
+        LinkSorter() = descendingSorter
+      else
+        LinkSorter() = ascendingSorter
+
       updateLinksCmd
     }
 
     val icon = LinkSorter() match {
-      case ConfidenceSorterAscending => "./static/img/sort-ascending.png"
-      case ConfidenceSorterDescending => "./static/img/sort-descending.png"
+      case s if s == ascendingSorter => "./static/img/sort-ascending.png"
+      case s if s == descendingSorter => "./static/img/sort-descending.png"
       case _ => "./static/img/sort.png"
     }
 
-    SHtml.a(sort _, <span>Score<img src={icon}/></span>)
+    SHtml.a(sort _, <span>{header}<img src={icon}/></span>)
   }
 
   private def applyFilter(value: String) = {
