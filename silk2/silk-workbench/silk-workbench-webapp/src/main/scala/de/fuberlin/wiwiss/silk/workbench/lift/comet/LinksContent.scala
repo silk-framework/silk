@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
+import de.fuberlin.wiwiss.silk.workbench.util.{PrefixRegistry}
 import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
@@ -26,6 +26,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.entity.{Link, Path, Entity}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
 /**
  * A widget which displays a list of links.
