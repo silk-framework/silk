@@ -1,5 +1,3 @@
-package de.fuberlin.wiwiss.silk.workbench.util
-
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +11,8 @@ package de.fuberlin.wiwiss.silk.workbench.util
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package de.fuberlin.wiwiss.silk.workbench.util
 
 import io.Source
 import java.util.logging.{Level, Logger}
