@@ -8,12 +8,12 @@
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
     <artifactId>silk</artifactId>
-    <version>2.5.3</version>
+    <version>2.5.4</version>
   </parent>
   
   <groupId>de.fuberlin.wiwiss.silk</groupId>
   <artifactId>silk-server</artifactId>
-  <version>2.5.3</version>
+  <version>2.5.4</version>
   <packaging>war</packaging>
   <name>Silk Server</name>
 
