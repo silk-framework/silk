@@ -45,6 +45,18 @@ trait DataSource extends AnyPlugin {
   def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
     Traversable.empty
   }
+
+  /**
+   * Retrieve the most frequent types in the source.
+   * Implementations are only required to work on a best effort basis i.e. it does not necessarily return any types.
+   * The default implementation returns an empty traversable.
+   *
+   * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
+   *
+   */
+  def retrieveTypes(restrictions: SparqlRestriction = SparqlRestriction.empty, limit: Option[Int]): Traversable[(String, Double)] = {
+    Traversable.empty
+  }
 }
 
 /**
