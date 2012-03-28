@@ -81,7 +81,7 @@
       <xs:sequence>
         <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
-      <xs:attribute name="name" type="xs:string" use="optional" />
+      <xs:attribute name="id" type="xs:string" use="optional" />
       <xs:attribute name="type" type="xs:string" />
       <xs:attribute name="minConfidence" type="xs:decimal" use="optional" />
       <xs:attribute name="maxConfidence" type="xs:decimal" use="optional" />
