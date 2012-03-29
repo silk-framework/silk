@@ -78,6 +78,7 @@ class Workspace {
 object Workspace {
   def javasScriptFunctions = {
     createVoidVariables &
+    disableProjectEditing &
     updateCmd &
     createProjectFunction &
     removeProjectFunction &
@@ -214,6 +215,32 @@ object Workspace {
       JsRaw("var enableVoidSourceButton = true;").cmd
     } else {
       JsRaw("var enableVoidSourceButton = false;").cmd
+    }
+  }
+
+  private def disableProjectEditing : JsCmd = {
+    var disableProjectEditing: Boolean = false
+    try {
+      val configFile = new File("./config.properties");
+
+      val properties = new Properties()
+      properties.load(new FileReader(configFile))
+
+      if(properties.getProperty("enableOpenIdAuthentication") != null) {
+        if(properties.getProperty("enableOpenIdAuthentication") == "true") {
+          disableProjectEditing = true
+        }
+      }
+    } catch {
+      case _ : FileNotFoundException =>
+      {
+      }
+    }
+
+    if (disableProjectEditing) {
+      JsRaw("var disableProjectEditing = true;").cmd
+    } else {
+      JsRaw("var disableProjectEditing = false;").cmd
     }
   }
 
@@ -415,6 +442,32 @@ object Workspace {
     // TODO - Nested 'yield's seem to cause the (strange) compiler error: 'xxx is not an enclosing class'
     var projectList: List[JValue] = List()
 
+    //LATC-start
+
+    var userName:String = null
+
+    try {
+      val configFile = new File("./config.properties");
+
+      val properties = new Properties()
+      properties.load(new FileReader(configFile))
+
+      if ((properties.getProperty("enableOpenIdAuthentication") != null) && (properties.getProperty("enableOpenIdAuthentication") == "true")) {
+        //TODO interface connection: UserAuthentication getUsername(HttpServletRequest)
+        userName = "LATC"
+
+        val projectLikeUserName = for (project <- User().workspace.projects) yield project.name.toString
+        if (projectLikeUserName == null) {
+          User().workspace.createProject(userName)
+        }
+      }
+    } catch {
+      case _ : FileNotFoundException =>
+      {
+      }
+    }
+    //LATC-end
+
     for (project <- User().workspace.projects.toSeq.sortBy(n => (n.name.toString.toLowerCase))) {
       implicit val prefixes = project.config.prefixes
 
@@ -452,7 +505,15 @@ object Workspace {
         ("output" -> outputs)
       }
 
-      projectList :+= proj
+      //LATC-start
+      if (userName != null) {
+        if (userName == project.name.toString) {
+          projectList :+= proj
+        }
+      } else {
+        projectList :+= proj
+      }
+      //LATC-end
     }
 
     val projects = ("project" -> JArray(projectList))

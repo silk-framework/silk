@@ -208,11 +208,13 @@ function updateWorkspace(obj){
             $("#content").append(proj_actions);
 
         // new project button
-        if (!document.getElementById("newproject")) {
-            var newProj = document.createElement("div");
-            $(newProj).attr("id",'newproject');
-            addAction('add', 'Project','Create new project',"createProject()",newProj,"",true);
-            $(proj_actions).append(newProj);
+        if (disableProjectEditing===false) {
+            if (!document.getElementById("newproject")) {
+                var newProj = document.createElement("div");
+                $(newProj).attr("id",'newproject');
+                addAction('add', 'Project','Create new project',"createProject()",newProj,"",true);
+                $(proj_actions).append(newProj);
+            }
         }
 
         // import project button
@@ -260,7 +262,10 @@ function updateWorkspace(obj){
                 addAction('output_add', 'Output','Add output',"createOutput('"+project.name+"')",proj_actions,project.name,true);
                 addAction('add_linkspec', 'Link Spec', 'Add link specification', "addLinkSpecification('"+project.name+"')",proj_actions,project.name,true);
                 addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
-                addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
+                if (disableProjectEditing===false) {
+                  addAction('delete', 'Remove','Remove project',"confirmDelete('removeProject','"+project.name+"','')",proj_actions,'',true);
+                }
+
 
 
              // display dataSource
