@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 /**
  * Link Selector which selects the links with the highest vote entropy.
  */
-class EntropySelector() extends LinkSelector {
+case class EntropySelector() extends LinkSelector {
 
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     val valLinks = for(link <- unlabeledLinks) yield link.update(confidence = Some(entropy(rules, link)))

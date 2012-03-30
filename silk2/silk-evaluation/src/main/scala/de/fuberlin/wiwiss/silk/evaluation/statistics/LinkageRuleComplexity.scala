@@ -24,10 +24,11 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
 /**
  * Complexity measures of a linkage rule.
  *
- * @param comparisonCount The number of comparisons in the condition.
- * @param transformationCount The number of transformations in the condition.
+ * @param size The number of operators in total
+ * @param comparisonCount The number of comparisons.
+ * @param transformationCount The number of transformations.
  */
-case class LinkageRuleComplexity(comparisonCount: Int, transformationCount: Int)
+case class LinkageRuleComplexity(size: Int, comparisonCount: Int, transformationCount: Int)
 
 /**
  * Evaluates the complexity of a linkage rule.
@@ -37,9 +38,12 @@ object LinkageRuleComplexity {
    * Evaluates the complexity of a linkage rule.
    */
   def apply(linkageRule: LinkageRule): LinkageRuleComplexity = {
+    val ops = collectOperators(linkageRule)
+
     LinkageRuleComplexity(
-      comparisonCount = collectOperators(linkageRule).filter(_.isInstanceOf[Comparison]).size,
-      transformationCount = collectOperators(linkageRule).filter(_.isInstanceOf[TransformInput]).size
+      size = ops.size,
+      comparisonCount = ops.filter(_.isInstanceOf[Comparison]).size,
+      transformationCount = ops.filter(_.isInstanceOf[TransformInput]).size
     )
   }
 
@@ -51,7 +55,7 @@ object LinkageRuleComplexity {
   }
 
   /**
-   * Collects all operators of the linkage rule.
+   * Collects all sub operators.
    */
   private def collectOperators(root: Operator): Traversable[Operator] = root match {
     case Aggregation(_, _, _, _, ops) => root +: ops.flatMap(collectOperators)

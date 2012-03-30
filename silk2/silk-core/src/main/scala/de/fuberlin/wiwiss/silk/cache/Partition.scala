@@ -14,15 +14,15 @@
 
 package de.fuberlin.wiwiss.silk.cache
 
-import java.io.{DataInputStream, DataOutputStream}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity}
+import java.io.{DataInput, DataOutput}
 
 class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
   require(entities.size == indices.size, "entities.size == indices.size")
 
   def size = entities.size
 
-  def serialize(stream: DataOutputStream) {
+  def serialize(stream: DataOutput) {
     stream.writeInt(entities.size)
     for (i <- 0 until entities.size) {
       entities(i).serialize(stream)
@@ -48,7 +48,7 @@ object Partition {
     }
   }
 
-  def deserialize(stream: DataInputStream, desc: EntityDescription) = {
+  def deserialize(stream: DataInput, desc: EntityDescription) = {
     val partitionSize = stream.readInt()
     val entities = new Array[Entity](partitionSize)
     val indices = new Array[BitsetIndex](partitionSize)

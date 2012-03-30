@@ -17,6 +17,11 @@ package de.fuberlin.wiwiss.silk.learning.individual
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
 
 trait OperatorNode extends Node {
+
+  def weight: Int
+
+  def required: Boolean
+
   def build: SimilarityOperator
 }
 

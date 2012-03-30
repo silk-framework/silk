@@ -16,19 +16,17 @@ package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
-import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
-import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, ReproductionTask}
-import linkselector.{UniformSelector, WeightedLinkageRule}
+import linkselector.WeightedLinkageRule
+import de.fuberlin.wiwiss.silk.config.{Dataset, LinkSpecification}
+import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
 
 //TODO support canceling
 class ActiveLearningTask(config: LearningConfiguration,
@@ -37,11 +35,41 @@ class ActiveLearningTask(config: LearningConfiguration,
                          paths: DPair[Seq[Path]],
                          referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                          var pool: Traversable[Link] = Traversable.empty,
-                         var population: Population = Population()) extends ValueTask[Seq[Link]](Seq.empty) {
+                         var population: Population = Population.empty) extends ValueTask[Seq[Link]](Seq.empty) {
+
+  def isEmpty = sources.isEmpty
 
   def links = value.get
 
   override protected def execute(): Seq[Link] = {
+    updatePool()
+
+    val generator = Timer("LinkageRuleGenerator") {
+      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
+    }
+    val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
+    
+    buildPopulation(generator)
+
+    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool, population) }
+    val fitnessFunction = config.fitnessFunction(completeEntities)
+    
+    updatePopulation(generator, targetFitness, completeEntities, fitnessFunction)
+
+    //Select evaluation links
+    updateStatus("Selecting evaluation links", 0.8)
+
+    //TODO measure improvement of randomization
+    selectLinks(generator, completeEntities, fitnessFunction)
+
+    //Clean population
+    if(referenceEntities.isDefined)
+      population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator))
+
+    value.get
+  }
+  
+  private def updatePool() = Timer("Generating Pool")  {
     //Build unlabeled pool
     if(pool.isEmpty) {
       updateStatus("Loading")
@@ -50,22 +78,17 @@ class ActiveLearningTask(config: LearningConfiguration,
 
     //Assert that no reference links are in the pool
     pool = pool.filterNot(referenceEntities.positive.contains).filterNot(referenceEntities.negative.contains)
-
-    //Build population
-    val generator = LinkageRuleGenerator(ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
-    val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
-
+  }
+  
+  private def buildPopulation(generator: LinkageRuleGenerator) = Timer("Generating population") {
     if(population.isEmpty) {
       updateStatus("Generating population", 0.5)
       val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
       population = executeSubTask(new GeneratePopulationTask(seedRules, generator, config), 0.6, silent = true)
     }
-
-    //Evolve population
-    //TODO include CompleteReferenceLinks into fitness function
-    val completeEntities = CompleteReferenceLinks(referenceEntities, pool, population)
-    val fitnessFunction = config.fitnessFunction(completeEntities)
-
+  }
+  
+  private def updatePopulation(generator: LinkageRuleGenerator, targetFitness: Double, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double)) = Timer("Updating population") {
     for(i <- 0 until config.params.maxIterations
         if i > 0 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
@@ -75,32 +98,24 @@ class ActiveLearningTask(config: LearningConfiguration,
         population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator), progress, silent = true)
       }
     }
+  }
 
-    //Select evaluation links
-    updateStatus("Selecting evaluation links", 0.8)
-
-    //TODO measure improvement of randomization
+  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double))= Timer("Selecting links") {
     val randomizedPopulation = executeSubTask(new RandomizeTask(population, fitnessFunction, generator, config), 0.8, silent = true)
 
     val weightedRules = {
-      val bestFitness = randomizedPopulation.bestIndividual.fitness
-      val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
-      for(individual <- topIndividuals) yield {
-        new WeightedLinkageRule(individual)
-      }
+     val bestFitness = randomizedPopulation.bestIndividual.fitness
+     val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
+     for(individual <- topIndividuals) yield {
+       new WeightedLinkageRule(individual)
+     }
     }
 
     val valLinks = config.active.selector(weightedRules, pool.toSeq, completeEntities)
     value.update(valLinks)
-
-    //Clean population
-    if(referenceEntities.isDefined)
-      population = executeSubTask(new CleanPopulationTask(population, fitnessFunction, generator))
-
-    valLinks
   }
 }
 
 object ActiveLearningTask {
-  def empty = new ActiveLearningTask(LearningConfiguration.load(), Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
+  def empty = new ActiveLearningTask(LearningConfiguration.default, Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
 }

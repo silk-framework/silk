@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescriptio
  * DataSource which retrieves all entities from a SPARQL endpoint
  *
  * Parameters:
- * - '''endpointURI''': The URI of the SPARQL endpoint
+ * - '''endpointURI''': The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql
  * - '''login (optional)''': Login required for authentication
  * - '''password (optional)''': Password required for authentication
  * - '''graph (optional)''': Only retrieve entities from a specific graph
@@ -34,11 +34,13 @@ import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescriptio
  * - '''pauseTime (optional)''': The number of milliseconds to wait between subsequent query 
  * - '''retryCount (optional)''': The number of retires if a query fails
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
+ * - '''additionalParameters (optional)''' Additional parameters to be appended to every request e.g. &soft-limit=1
  */
 @Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "DataSource which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataSource(endpointURI: String, login: String = null, password: String = null,
-                       graph: String = null, pageSize: Int = 1000, entityList: String = null,
-                       pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000) extends DataSource {
+                            graph: String = null, pageSize: Int = 1000, entityList: String = null,
+                            pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
+                            additionalParameters: String = "") extends DataSource {
   private val uri = new URI(endpointURI)
 
   private val loginComplete = {
@@ -64,7 +66,7 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
 
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     //Create an endpoint which fails after 3 retries
-    val failFastEndpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, 3, 1000)
+    val failFastEndpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, 3, 1000, additionalParameters)
 
     try {
       SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)
@@ -78,7 +80,7 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
   }
 
   protected def createEndpoint() = {
-    new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, retryCount, retryPause)
+    new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, retryCount, retryPause, additionalParameters)
   }
 
   override def toString = endpointURI

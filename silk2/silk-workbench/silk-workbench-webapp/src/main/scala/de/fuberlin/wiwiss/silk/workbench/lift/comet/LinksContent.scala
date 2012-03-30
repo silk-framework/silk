@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
-import de.fuberlin.wiwiss.silk.workbench.lift.util.{PrefixRegistry, JS}
+import de.fuberlin.wiwiss.silk.workbench.util.{PrefixRegistry}
 import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}
@@ -25,7 +25,8 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation._
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.entity.{Link, Path, Entity}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
-import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
+import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 
 /**
  * A widget which displays a list of links.
@@ -82,11 +83,40 @@ trait LinksContent extends CometActor {
       <div>
         <div class="link">
           <div class="link-header heading">
-            <div class="link-source">Source: <span class="source-value">{linkingTask.linkSpec.datasets.source.sourceId}</span></div>
-            <div class="link-target">Target: <span class="target-value">{linkingTask.linkSpec.datasets.target.sourceId}</span></div>
-            <div class="link-confidence">{renderConfidenceHeader}</div>
+            <div class="link-source"> {
+              sortableHeader(
+                header = Text("Source:") ++ <span class="source-value">{linkingTask.linkSpec.datasets.source.sourceId}</span>,
+                ascendingSorter = SourceUriSorterAscending,
+                descendingSorter = SourceUriSorterDescending
+              )
+            }</div>
+            <div class="link-target"> {
+              sortableHeader(
+                header = Text("Target:") ++ <span class="target-value">{linkingTask.linkSpec.datasets.target.sourceId}</span>,
+                ascendingSorter = TargetUriSorterAscending,
+                descendingSorter = TargetUriSorterDescending
+              )
+            }</div>
+            <div class="link-confidence"> {
+              sortableHeader(
+                header = Text("Score"),
+                ascendingSorter = ConfidenceSorterAscending,
+                descendingSorter = ConfidenceSorterDescending
+              )
+            }</div>
             { if(showStatus) <div class="link-status"><span>Status</span></div> else NodeSeq.Empty }
-            { if(showButtons) <div class="link-buttons"><span>Correct?</span></div> else NodeSeq.Empty }
+            {
+              if(showButtons)
+                <div class="link-buttons"> {
+                  sortableHeader(
+                    header = <span>Correct?</span>,
+                    ascendingSorter = CorrectnessSorterAscending,
+                    descendingSorter = CorrectnessSorterDescending
+                  )
+                }</div>
+              else
+                NodeSeq.Empty
+            }
           </div>
         </div> {
           val filteredLinks = LinkFilter.filter(links)
@@ -101,24 +131,24 @@ trait LinksContent extends CometActor {
 
     SetHtml("results", html) & Call("initTrees").cmd & Call("updateResultsWidth").cmd
   }
-
-  private def renderConfidenceHeader = {
+  
+  private def sortableHeader(header: NodeSeq, ascendingSorter: LinkSorter, descendingSorter: LinkSorter) = {
     def sort() = {
-      if (LinkSorter() == ConfidenceSorterDescending) {
-        LinkSorter() = ConfidenceSorterAscending
-      } else {
-        LinkSorter() = ConfidenceSorterDescending
-      }
+      if (LinkSorter() == ascendingSorter)
+        LinkSorter() = descendingSorter
+      else
+        LinkSorter() = ascendingSorter
+
       updateLinksCmd
     }
 
     val icon = LinkSorter() match {
-      case ConfidenceSorterAscending => "./static/img/sort-ascending.png"
-      case ConfidenceSorterDescending => "./static/img/sort-descending.png"
+      case s if s == ascendingSorter => "./static/img/sort-ascending.png"
+      case s if s == descendingSorter => "./static/img/sort-descending.png"
       case _ => "./static/img/sort.png"
     }
 
-    SHtml.a(sort _, <span>Score<img src={icon}/></span>)
+    SHtml.a(sort _, <span>{header}<img src={icon}/></span>)
   }
 
   private def applyFilter(value: String) = {
@@ -199,18 +229,18 @@ trait LinksContent extends CometActor {
     case AggregatorConfidence(value, aggregation, children) => {
       <li>
         <span class="aggregation">Aggregation: {aggregation.aggregator.pluginId} ({aggregation.id})</span>{ renderConfidence(value) }
-          <ul>
-            { children.map(renderSimilarity) }
-          </ul>
+        <ul>
+          { children.map(renderSimilarity) }
+        </ul>
       </li>
     }
     case ComparisonConfidence(value, comparison, input1, input2) => {
       <li>
         <span class="comparison">Comparison: {comparison.metric.pluginId} ({comparison.id})</span>{ renderConfidence(value) }
-          <ul>
-            { renderInputValue(input1, "source") }
-            { renderInputValue(input2, "target") }
-          </ul>
+        <ul>
+          { renderValue(input1, "source") }
+          { renderValue(input2, "target") }
+        </ul>
       </li>
     }
     case SimpleConfidence(value) => {
@@ -218,15 +248,31 @@ trait LinksContent extends CometActor {
     }
   }
 
+  private def renderValue(value: Value, divClassPrefix : String): NodeSeq = value match {
+    case TransformedValue(transform, values, children) => {
+      <li>
+        <span class="input">
+          Transform: {transform.transformer.pluginId} ({transform.id})
+          { values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+        </span>
+        <ul>
+          { children.map(v => renderValue(v, divClassPrefix)) }
+        </ul>
+      </li>
+    }
+    case InputValue(input, values) => {
+      <li>
+        <span class="input">
+          Input: {input.path.serialize} ({input.id})
+          { values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }
+        </span>
+      </li>
+    }
+  }
+
   private def renderConfidence(value : Option[Double]) = value match {
     case Some(v) => <div class="confidencebar"><div class="confidence">{"%.1f".format((v) * 100)}%</div></div>
     case None => NodeSeq.Empty
-  }
-
-  private def renderInputValue(value : InputValue, divClassPrefix : String) = {
-    <li>
-      <span class="input">Input ({value.input.id})<span class={divClassPrefix+"-path"}>{value.input.path.serialize}</span>{value.values.map(v => <span class={divClassPrefix+"-value"}>{v}</span>) }</span>
-    </li>
   }
 
   protected def getId(link: Link, prefix: String = "") = {

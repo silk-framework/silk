@@ -12,20 +12,63 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning
+package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.util.logging.Level
 import scala.util.Random
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.learning._
+import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
+
+object CrossValidation extends EvaluationScript {
+
+  override protected def run() {
+    runExperiment()
+    println("Evaluation finished")
+  }
+
+  protected def runExperiment() {
+    val experiment = Experiment.default
+    val datasets = Dataset.fromWorkspace
+    
+    val values =
+      for(ds <- datasets) yield {
+        for(config <- experiment.configurations) yield {
+          execute(ds, config)
+        }
+      }
+
+    val result =
+      MultipleTables.build(
+        name = experiment.name,
+        metrics = experiment.metrics,
+        header = experiment.configurations.map(_.name),
+        rowLabels = datasets.map(_.name),
+        values = values
+      )
+
+    println(result.toLatex)
+    println(result.transpose.toLatex)
+  }
+  
+  private def execute(dataset: Dataset, config: LearningConfiguration) = {
+    log.info("Running: " + dataset.name)
+    val cache = dataset.task.cache
+    cache.waitUntilLoaded()
+    val task = new CrossValidation(cache.entities, config)
+    task()
+  }
+}
 
 /**
  * Performs multiple cross validation runs and outputs the statistics.
  */
-class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traversable[LinkageRule] = Traversable.empty) extends Task[Unit] {
+class CrossValidation(entities : ReferenceEntities, config: LearningConfiguration) extends Task[RunResult] {
+  require(entities.isDefined, "Reference Entities are required")
+  
   /** The number of cross validation runs. */
-  private val numRuns = 2
+  private val numRuns = 10
 
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
@@ -33,29 +76,31 @@ class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traver
   /** Don't log progress. */
   progressLogLevel = Level.FINE
 
-  private val config = LearningConfiguration.load()
-
   /**
-   *
    * Executes all cross validation runs.
    */
-  override def execute() {
+  override def execute() = {
     //Execute the cross validation runs
     val results = for(run <- 0 until numRuns; result <- crossValidation(run)) yield result
     //Make sure that all runs have the same number of results
-    val paddedResults = results.map(r => r.padTo(results.map(_.size).max, r.last))
-    //Aggregated the results of each iteration
+    val paddedResults = results.map(r => r.padTo(config.params.maxIterations + 1, r.last))
+
+    //Print aggregated results
     val aggregatedResults = for((iterationResults, i) <- paddedResults.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
 
-    println(AggregatedLearningResult.format(aggregatedResults, true, true).toLatex)
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = false).toLatex)
     println()
-    println(AggregatedLearningResult.format(aggregatedResults, false, true).toCsv)
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = false).toCsv)
+
+    RunResult(paddedResults.map(Run(_)))
   }
 
   /**
    * Executes one cross validation run.
    */
-  private def crossValidation(run: Int): Iterable[Seq[LearningResult]] = {
+  private def crossValidation(run: Int): Seq[Seq[LearningResult]] = {
+    logger.info("Cross validation run " + run)
+    
     val splits = splitReferenceEntities()
 
     for((split, index) <- splits.zipWithIndex) yield {
@@ -97,7 +142,7 @@ class CrossValidationTask(entities : ReferenceEntities, seedLinkageRules: Traver
     val splits =
       for((p, n) <- posSplits zip negSplits) yield {
         LearningInput(
-          seedLinkageRules = seedLinkageRules,
+          seedLinkageRules = Seq.empty,
           trainingEntities = ReferenceEntities.fromEntities(p.tail.flatten, n.tail.flatten),
           validationEntities = ReferenceEntities.fromEntities(p.head, n.head)
         )

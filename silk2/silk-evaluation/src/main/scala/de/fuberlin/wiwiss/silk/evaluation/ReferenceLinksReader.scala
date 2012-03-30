@@ -29,7 +29,7 @@ object ReferenceLinksReader {
     file.getName.split('.').last match {
       case "nt" => readNTriples(Source.fromFile(file))
       case "n3debug" => readN3Debug(Source.fromFile(file))
-      case "xml" => readReferenceLinks(file)
+      case "xml" | "rdf" => readReferenceLinks(file)
       case format => throw new IllegalArgumentException("Unsupported format: " + format)
     }
   }

@@ -40,17 +40,17 @@ class UniformSelector() extends LinkSelector {
     rankedLinks.seq.sortBy(-_.confidence.get).take(3)
   }
 
-  def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
+  private def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
     new Projection(rules)
   }
 
-  def ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
+  private def ranking(rules: Seq[LinkageRule], unlabeled: Traversable[ProjLink], positive: Traversable[ProjLink], negative: Traversable[ProjLink]): (ProjLink => Double) = {
     new Ranking(rules, unlabeled, positive, negative)
   }
 
   private class Projection(rules: Seq[LinkageRule]) extends (Link => ProjLink) {
     def apply(link: Link): ProjLink = {
-      ProjLink(link, rules.map(rule => rule(link.entities.get) * 0.5 + 0.5))
+      new ProjLink(link, rules.map(rule => rule(link.entities.get) * 0.5 + 0.5))
     }
   }
 
@@ -76,6 +76,8 @@ class UniformSelector() extends LinkSelector {
         (-p * log(p) - (1 - p) * log(1 - p)) / log(2)
     }
   }
+
+  private class ProjLink(val link: Link, val vector: Seq[Double])
 }
 
 

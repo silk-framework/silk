@@ -15,13 +15,19 @@
 package de.fuberlin.wiwiss.silk.entity
 
 import xml.Node
-import java.io.{DataInputStream, DataOutputStream}
+import java.io.{DataOutput, DataInput}
 
 /**
  * A single entity.
  */
 class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: EntityDescription) {
-  def evaluate(path: Path): Set[String] = evaluate(desc.pathIndex(path))
+  
+  def evaluate(path: Path): Set[String] = {
+    if(path.operators.isEmpty)
+      Set(uri)
+    else
+      evaluate(desc.pathIndex(path))
+  }
 
   def evaluate(pathIndex: Int): Set[String] = values(pathIndex)
 
@@ -41,7 +47,7 @@ class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: Ent
     </Entity>
   }
 
-  def serialize(stream: DataOutputStream) {
+  def serialize(stream: DataOutput) {
     stream.writeUTF(uri)
     for (valueSet <- values) {
       stream.writeInt(valueSet.size)
@@ -65,7 +71,7 @@ object Entity {
     )
   }
 
-  def deserialize(stream: DataInputStream, desc: EntityDescription) = {
+  def deserialize(stream: DataInput, desc: EntityDescription) = {
     //Read URI
     val uri = stream.readUTF()
 

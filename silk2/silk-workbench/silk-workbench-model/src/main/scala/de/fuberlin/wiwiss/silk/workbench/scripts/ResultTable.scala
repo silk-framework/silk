@@ -12,14 +12,22 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning.active.linkselector
+package de.fuberlin.wiwiss.silk.workbench.scripts
 
-import de.fuberlin.wiwiss.silk.entity.Link
+@deprecated("Use Table instead")
+case class ResultTable(header: Seq[String], values: Seq[Seq[String]]) {
 
-class ProjLink(val link: Link, val vector: Seq[Double])
+  def toCsv = {
+    header.mkString("", ",", "\n") + values.map(_.mkString("", ",", "\n")).mkString
+  }
 
-object ProjLink {
-  def apply(link: Link, vector: Seq[Double]) = new ProjLink(link, vector)
-
-  def unapply(l: ProjLink): Option[(Link, Seq[Double])] = Some(l.link, l.vector)
+  def toLatex = {
+    "\\begin{tabular}{| l | l | c | c | c | c |}\n" +
+    "\\hline\n" +
+    header.mkString("", " & ", "\\\\\n") +
+    "\\hline\n" +
+    values.map(_.mkString("", " & ", "\\\\\n")).mkString +
+    "\\hline\n" +
+    "\\end{tabular}\n"
+  }
 }

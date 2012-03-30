@@ -133,7 +133,9 @@ trait User extends Observable[User.Message] {
 }
 
 object User {
-  var userManager: () => User = () => throw new Exception("No user manager registered")
+  private lazy val defaultUser = new FileUser
+
+  var userManager: () => User = () => defaultUser
 
   /**
    * Retrieves the current user.

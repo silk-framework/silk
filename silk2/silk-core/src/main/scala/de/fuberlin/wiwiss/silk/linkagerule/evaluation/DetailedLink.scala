@@ -15,9 +15,9 @@
 package de.fuberlin.wiwiss.silk.linkagerule.evaluation
 
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
+import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput}
 
 class DetailedLink(source: String,
                    target: String,
@@ -37,8 +37,13 @@ object DetailedLink {
 
   case class AggregatorConfidence(value: Option[Double], aggregation: Aggregation, children: Seq[Confidence]) extends Confidence
 
-  case class ComparisonConfidence(value: Option[Double], comparison: Comparison, sourceInput: InputValue, targetInput: InputValue) extends Confidence
+  case class ComparisonConfidence(value: Option[Double], comparison: Comparison, sourceValue: Value, targetValue: Value) extends Confidence
 
-  case class InputValue(input: PathInput, values: Traversable[String])
-
+  sealed trait Value {
+    def values: Set[String]
+  }
+  
+  case class TransformedValue(transform: TransformInput, values: Set[String], children: Seq[Value]) extends Value
+  
+  case class InputValue(input: PathInput, values: Set[String]) extends Value
 }
