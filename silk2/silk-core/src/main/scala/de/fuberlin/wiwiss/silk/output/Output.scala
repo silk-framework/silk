@@ -64,10 +64,16 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
     logger.info("Wrote " + linkCount + " links")
   }
 
+  def writeAll(links: Traversable[Link], predicateUri: String) {
+    open()
+    for (link <- links) write(link, predicateUri)
+    close()
+  }
+
   //TODO write minConfidence, maxConfidence
   def toXML: Node = writer match {
     case LinkWriter(outputType, params) => {
-      <Output name={id} type={outputType}>
+      <Output id={id} type={outputType}>
         {params.map {
         case (name, value) => <Param name={name} value={value}/>
       }}
@@ -85,7 +91,7 @@ object Output {
 
   def fromXML(node: Node)(implicit globalThreshold: Option[Double] = None) = {
     Output(
-      id = Identifier((node \ "@name").headOption.map(_.text).getOrElse("id")),
+      id = Identifier((node \ "@id").headOption.map(_.text).getOrElse("id")),
       writer = LinkWriter(node \ "@type" text, readParams(node)),
       minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble).map(convertConfidence),
       maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble).map(convertConfidence)

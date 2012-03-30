@@ -24,6 +24,9 @@
         <lift:comet type="LearnProgress" name="LearnProgress" />
       </li>
       <li>
+        <lift:comet type="ActiveLearnProgress" name="ActiveLearnProgress" />
+      </li>
+      <li>
         <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
       </li>
       <li>
@@ -38,59 +41,59 @@
 
   <lift:bind-at name="content">
 
-    <div class="wrapper-header">
-      <span>
-        Learned Linkage Rule
-      </span>
-      <span style="float: right; margin-right: 7px">
-        <lift:comet type="RelearnButton" name="RelearnButton" />
-      </span>
-    </div>
+    <lift:LearnContent>
+      <choose:start>
+      </choose:start>
+      <choose:learn>
+        <div class="wrapper-header">
+          Learned Linkage Rule
+        </div>
 
-    <div class="wrapper">
-      <lift:comet type="LearnStatus" name="LearnStatus" />
-    </div>
+        <div class="wrapper">
+          <lift:comet type="LearnStatus" name="LearnStatus" />
+        </div>
 
-    <div class="wrapper-header">
-      Uncertain links
-    </div>
+        <div class="wrapper-header">
+          Uncertain links
+        </div>
 
-    <div class="wrapper">
-      <lift:comet type="SampleLinksContent" name="SampleLinksContent">
+        <div class="wrapper">
 
-        <entry:script/>
+          <lift:comet type="SampleLinksContent" name="SampleLinksContent">
 
-          <div id="tree-header">
-            <div class="left">
-              <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
-              <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+            <entry:script/>
+
+            <div id="tree-header">
+              <div class="left">
+                <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+                <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+              </div>
+              <div class="middle">
+                <div class="navigation"></div>
+              </div>
+              <div class="right">
+                <entry:filter/>
+              </div>
             </div>
-            <div class="middle">
+
+            <div style="clear: both"></div>
+
+            <p>
+              <entry:list/>
+            </p>
+
+            <div style="clear:both;"></div>
+
+            <div id="tree-footer">
               <div class="navigation"></div>
             </div>
-            <div class="right">
-              <entry:filter/>
-            </div>
-          </div>
 
-          <div style="clear: both"></div>
+            <div style="clear: both"></div>
 
-          <p>
-            <entry:list/>
-          </p>
-
-          <div style="clear:both;"></div>
-
-          <div id="tree-footer">
-            <div class="navigation"></div>
-          </div>
-
-          <div style="clear: both"></div>
-
-      </lift:comet>
-
-    </div>
-
+          </lift:comet>
+        </div>
+      </choose:learn>
+    </lift:LearnContent>
   </lift:bind-at>
 
   <lift:bind-at name="help">

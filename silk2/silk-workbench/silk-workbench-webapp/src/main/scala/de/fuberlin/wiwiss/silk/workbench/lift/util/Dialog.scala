@@ -21,6 +21,7 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.{OnLoad, Script}
 import java.util.UUID
 import net.liftweb.http.js.JsCmd
+import de.fuberlin.wiwiss.silk.workbench.lift.util.JS._
 
 /**
  * Basic dialog with a number of fields.
@@ -38,7 +39,7 @@ trait Dialog extends Form {
   /**
    * Command which opens this dialog.
    */
-  def openCmd = {
+  def openCmd = Try("Open Dialog") {
     //Update all fields and open the dialog
     updateCmd &
     JsRaw("$('#" + id + "').dialog('open');").cmd
@@ -53,13 +54,9 @@ trait Dialog extends Form {
    * Renders this dialog.
    */
   def render(xhtml : NodeSeq) : NodeSeq = {
-    def submit() = {
-      try {
-        val cmd = onSubmit()
-        closeCmd & cmd
-      } catch {
-        case ex : Exception => JsRaw("alert('" + ex.getMessage.encJs + "');").cmd
-      }
+    def submit() = Try("Submit Dialog") {
+      val cmd = onSubmit()
+      closeCmd & cmd
     }
 
     <div id={id} title={title}> {

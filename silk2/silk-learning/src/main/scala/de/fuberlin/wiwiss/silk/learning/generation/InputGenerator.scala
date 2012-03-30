@@ -20,18 +20,40 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.learning.individual.{PathInputNode, InputNode, TransformNode, FunctionNode}
 
+/**
+ * Generates random inputs.
+ */
 class InputGenerator(input: InputNode, useTransformations: Boolean) {
 
-  val transformationProbability = 0.5
+  /** The maximum number of transformations */
+  val maxTransformations = 2
 
-  val transformers = "lowerCase" :: "stripUriPrefix" :: "tokenize" :: Nil
+  /** The transformers to be used */
+  val transformers = IndexedSeq("lowerCase", "stripUriPrefix", "tokenize")
 
+  /**
+   * Generates a new random input.
+   */
   def apply(): InputNode = {
-    if(useTransformations && Random.nextDouble < transformationProbability) {
-      val transformer = transformers(Random.nextInt(transformers.size))
-      TransformNode(input.isSource, input :: Nil, FunctionNode(transformer, Nil, Transformer))
-    } else {
+    if(useTransformations)
+      transform(input, Random.nextInt(maxTransformations + 1))
+    else
       input
+  }
+
+  /**
+   * Prepends a number of transformations to an input.
+   *
+   * @param input The input node
+   * @param count The number of transformations to prepend
+   */
+  private def transform(input: InputNode, count: Int): InputNode = {
+    if(count == 0)
+      input
+    else {
+      val transformer = transformers(Random.nextInt(transformers.size))
+      val transformedInput = TransformNode(input.isSource, input :: Nil, FunctionNode(transformer, Nil, Transformer))
+      transform(transformedInput, count - 1)
     }
   }
 }

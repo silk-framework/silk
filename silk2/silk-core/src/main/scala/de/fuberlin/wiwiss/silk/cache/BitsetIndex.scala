@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.cache
 
-import java.io.{DataInputStream, DataOutputStream}
+import java.io.{DataOutput, DataInput}
 
 /**
  * Efficient index.
@@ -56,7 +56,7 @@ final class BitsetIndex private(private val index: Set[Int], private val bitset:
     found
   }
 
-  def serialize(stream: DataOutputStream) {
+  def serialize(stream: DataOutput) {
     stream.writeInt(index.size)
     index.foreach(stream.writeInt)
     bitset.foreach(stream.writeLong)
@@ -81,7 +81,7 @@ object BitsetIndex {
     new BitsetIndex(index, array)
   }
 
-  def deserialize(stream: DataInputStream) = {
+  def deserialize(stream: DataInput) = {
     val indexSize = stream.readInt()
     val index = Array.fill(indexSize)(stream.readInt).toSet
     val bitset = Array.fill(Size)(stream.readLong)

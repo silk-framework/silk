@@ -1,0 +1,4 @@
+<DataSource type="file" id="DBpedia">
+    <Param name="file" value="linkedmdb/source.nt"></Param>
+    <Param name="format" value="N-TRIPLE"></Param>
+</DataSource>

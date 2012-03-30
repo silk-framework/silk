@@ -1,0 +1,12 @@
+<Interlink id="movies">
+    <LinkType>&lt;http://www.w3.org/2002/07/owl#sameAs&gt;</LinkType>
+    <SourceDataset dataSource="DBpedia" var="a">
+        <RestrictTo>?a ?p ?v .</RestrictTo>
+    </SourceDataset>
+    <TargetDataset dataSource="linkedmdb" var="b">
+        <RestrictTo>?b ?p ?v .</RestrictTo>
+    </TargetDataset>
+    <LinkageRule></LinkageRule>
+    <Filter></Filter>
+    <Outputs></Outputs>
+</Interlink>

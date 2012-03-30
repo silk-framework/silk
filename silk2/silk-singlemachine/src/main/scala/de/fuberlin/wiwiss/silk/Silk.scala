@@ -35,7 +35,7 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.5.3")
+  println("Silk Link Discovery Framework - Version 2.5.4")
 
   //Register all available plugins
   Plugins.register()
@@ -95,7 +95,7 @@ object Silk {
   /**
    * Executes Silk using a specific configuration.
    *
-   * @param configFile The configuration.
+   * @param config The configuration.
    * @param linkSpecID The link specifications to be executed. If not given, all link specifications are executed.
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true

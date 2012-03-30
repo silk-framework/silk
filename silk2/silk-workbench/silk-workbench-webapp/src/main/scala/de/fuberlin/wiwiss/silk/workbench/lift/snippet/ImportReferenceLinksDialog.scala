@@ -23,7 +23,7 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmds.OnLoad
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, ReferenceLinksReader}
-import de.fuberlin.wiwiss.silk.config.DatasetSpecification
+import de.fuberlin.wiwiss.silk.config.Dataset
 import de.fuberlin.wiwiss.silk.entity.{Link, Path, EntityDescription}
 
 class ImportReferenceLinksDialog {
@@ -69,7 +69,7 @@ class ImportReferenceLinksDialog {
     updateReferenceLinks(ReferenceLinks(links.toSet))
   }
 
-  private def getEntities(dataset: DatasetSpecification, uris: Seq[String] = Seq.empty) = {
+  private def getEntities(dataset: Dataset, uris: Seq[String] = Seq.empty) = {
     val source = User().project.sourceModule.task(dataset.sourceId).source
     val entityDesc =
       EntityDescription(

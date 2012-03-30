@@ -37,16 +37,14 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
   def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
-    val variable = restrictions.toSparql.dropWhile(_ != '?').drop(1).takeWhile(_ != ' ')
-
     val sampleEntities = {
-      if (variable.isEmpty)
+      if (restrictions.isEmpty)
         getAllEntities(endpoint)
       else
-        getEntities(endpoint, restrictions, variable)
+        getEntities(endpoint, restrictions)
     }
 
-    getEntitiesPaths(endpoint, sampleEntities, variable, limit.getOrElse(100))
+    getEntitiesPaths(endpoint, sampleEntities, restrictions.variable, limit.getOrElse(100))
   }
 
   private def getAllEntities(endpoint: SparqlEndpoint): Traversable[String] = {
@@ -57,12 +55,12 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     results.map(_("s").value)
   }
 
-  private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, variable: String): Traversable[String] = {
-    val sparql = "SELECT ?" + variable + " WHERE { " + restrictions.toSparql + " }"
+  private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction): Traversable[String] = {
+    val sparql = "SELECT ?" + restrictions.variable + " WHERE { " + restrictions.toSparql + " }"
 
     val results = endpoint.query(sparql, maxEntities)
 
-    results.map(_(variable).value)
+    results.map(_(restrictions.variable).value)
   }
 
   private def getEntitiesPaths(endpoint: SparqlEndpoint, entities: Traversable[String], variable: String, limit: Int): Traversable[(Path, Double)] = {

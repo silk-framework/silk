@@ -22,7 +22,7 @@ import java.io.{File, BufferedWriter, Writer}
 /**
  * A file writer.
  */
-@Plugin(id = "file", label = "File", description = "Writes the links to a file. Links are written to {user.dir}/.silk/output/ by default.")
+@Plugin(id = "file", label = "File", description = "Writes the links to a file. Links are written to {user.dir}/.silk/output/ by default (i.e. if a relative path is provided)")
 case class FileWriter(file: String = "output.nt", format: String = "ntriples") extends LinkWriter {
   private val formatter = Formatter(format)
 

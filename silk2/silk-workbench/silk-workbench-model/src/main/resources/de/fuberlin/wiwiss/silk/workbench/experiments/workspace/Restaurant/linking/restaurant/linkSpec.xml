@@ -1,0 +1,12 @@
+<Interlink id="restaurant">
+  <LinkType>&lt;http://www.w3.org/2002/07/owl#sameAs&gt;</LinkType>
+  <SourceDataset dataSource="restaurant" var="a">
+    <RestrictTo> ?a ?p ?o . </RestrictTo>
+  </SourceDataset>
+  <TargetDataset dataSource="restaurant" var="b">
+    <RestrictTo> ?b ?p ?o . </RestrictTo>
+  </TargetDataset>
+  <LinkageRule> </LinkageRule>
+  <Filter></Filter>
+  <Outputs> </Outputs>
+</Interlink>

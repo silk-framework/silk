@@ -1,0 +1,4 @@
+<DataSource type="file" id="linkedmdb">
+    <Param name="file" value="linkedmdb/target.nt"></Param>
+    <Param name="format" value="N-TRIPLE"></Param>
+</DataSource>

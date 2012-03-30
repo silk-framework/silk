@@ -1,0 +1,5 @@
+<DataSource type="sparqlEndpoint" id="dbpedia">
+    <Param name="endpointURI" value="http://dbpedia.org/sparql"></Param>
+    <Param name="retryCount" value="100"></Param>
+    <Param name="retryPause" value="5000"></Param>
+</DataSource>

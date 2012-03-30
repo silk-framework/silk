@@ -34,7 +34,7 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   val restrictionConverter = new RestrictionConverter
 
   "RestrictionConverter" should "convert simple patterns" in {
-    val sparqlRestriction = SparqlRestriction.fromSparql("?a rdf:type dbpedia:Settlement")
+    val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a rdf:type dbpedia:Settlement")
 
     val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), Set("dbpedia:Settlement"))))
 
@@ -42,7 +42,7 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   }
 
   "RestrictionConverter" should "convert simple patterns with any variable name" in {
-    val sparqlRestriction = SparqlRestriction.fromSparql("?x rdf:type dbpedia:Settlement")
+    val sparqlRestriction = SparqlRestriction.fromSparql("x", "?x rdf:type dbpedia:Settlement")
 
     val restriction = Restriction(Some(Condition.resolve(Path.parse("?x/rdf:type"), Set("dbpedia:Settlement"))))
 
@@ -50,7 +50,7 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   }
 
   "RestrictionConverter" should "convert simple patterns with replacement" in {
-    val sparqlRestriction = SparqlRestriction.fromSparql("?a a dbpedia:Settlement")
+    val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a a dbpedia:Settlement")
 
     val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), Set("dbpedia:Settlement"))))
 
@@ -58,7 +58,7 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   }
 
   "RestrictionConverter" should "convert simple patterns with special object" in {
-    val sparqlRestriction = SparqlRestriction.fromSparql("?a rdf:type ?Settlement")
+    val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a rdf:type ?Settlement")
 
     val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), Set())))
 
@@ -66,7 +66,7 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
   }
 
   "RestrictionConverter" should "convert union patterns" in {
-    val sparqlRestriction = SparqlRestriction.fromSparql("""
+    val sparqlRestriction = SparqlRestriction.fromSparql("b", """
        {{
         { ?b rdf:type lgdo:City }}
        UNION
@@ -78,8 +78,8 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
 
     val restriction = Restriction(Some(Or(
       Condition.resolve(Path.parse("?b/rdf:type"), Set("lgdo:City")) ::
-        Condition.resolve(Path.parse("?b/rdf:type"), Set("lgdo:Town")) ::
-        Condition.resolve(Path.parse("?b/rdf:type"), Set("lgdo:Village")) :: Nil
+      Condition.resolve(Path.parse("?b/rdf:type"), Set("lgdo:Town")) ::
+      Condition.resolve(Path.parse("?b/rdf:type"), Set("lgdo:Village")) :: Nil
     )))
 
     restrictionConverter("b", sparqlRestriction) should equal(restriction)

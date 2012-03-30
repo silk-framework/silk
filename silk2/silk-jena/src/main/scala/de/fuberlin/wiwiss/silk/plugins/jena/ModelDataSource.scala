@@ -15,9 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.jena
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import java.io.FileInputStream
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaSparqlEndpoint
+import com.hp.hpl.jena.rdf.model.Model
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.util.sparql.{SparqlEndpoint, EntityRetriever, SparqlAggregatePathsCollector}
 
