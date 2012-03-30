@@ -17,6 +17,19 @@ package de.fuberlin.wiwiss.silk.learning.active.linkselector
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 
+/**
+ * Selects a link from the unlabeled pool for evaluation by the user.
+ * An implementation should select the most informative links e.g. the links for which the current linkage rules are most uncertain.
+ */
 trait LinkSelector {
+  /**
+   * Selects a link from the unlabeled pool for evaluation by the user.
+   *
+   * @param rules The current linkage rules which have been trained on the provided reference links
+   * @param unlabeledLinks The pool of unlabeled links from which a set of links should be selected
+   * @param referenceEntities The current reference links
+   *
+   * @return A sequence of links which is ordered by informativeness. The number of links which are returned depends on the implementation.
+   */
   def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link]
 }

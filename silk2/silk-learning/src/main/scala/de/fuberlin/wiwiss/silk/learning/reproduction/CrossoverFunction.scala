@@ -28,23 +28,28 @@ class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Co
    * The operators which will be employed for crossover.
    */
   val operators = {
-    var ops = List[CrossoverOperator]()
+    if(components.useSpecializedCrossover) {
+      var ops = List[CrossoverOperator]()
 
-    //We always learn thresholds and weights
-    ops ::= ThresholdCrossover()
-    ops ::= WeightCrossover()
-
-    if(components.transformations) {
-      ops ::= TransformationCrossover()
-    }
-
-    if(components.aggregations) {
+      //We always learn thresholds and weights
+      ops ::= ThresholdCrossover()
+      ops ::= WeightCrossover()
+      ops ::= RequiredCrossover()
+      //We always modify existing aggregations
       ops ::= AggregationOperatorsCrossover()
       ops ::= AggregationStrategyCrossover()
-      ops ::= OperatorCrossover()
-    }
 
-    ops
+      if(components.transformations)
+        ops ::= TransformationCrossover()
+
+      if(components.hierarchies)
+        ops ::= OperatorCrossover()
+
+      ops
+    }
+    else {
+      SubtreeCrossover() :: Nil
+    }
   }
 
   /**

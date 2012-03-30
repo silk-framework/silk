@@ -14,65 +14,86 @@
 
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import math.{pow, sqrt, log}
+import math.log
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
-import math.min
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 /**
  * Selects links based on the Jensen-Shannon divergence from the closest reference link.
  */
 case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extends LinkSelector {
-
+  /**
+   * Returns the links with the highest Jensen-Shannon divergence from any reference link.
+   */
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
-    val rankedLinks = unlabeledLinks.par.map(link => link.update(confidence = Some(rateLink(link, rules, referenceEntities))))
+    val posDist = referenceEntities.positive.values.map(referencePair => new ReferenceLinkDistance(referencePair, rules, true))
+    val negDist = referenceEntities.negative.values.map(referencePair => new ReferenceLinkDistance(referencePair, rules, false))
+    val dist = posDist ++ negDist
+
+    val rankedLinks = unlabeledLinks.par.map(rankLink(dist))
 
     rankedLinks.seq.sortBy(-_.confidence.get).take(3)
   }
-  
-  def rateLink(link: Link, rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): Double = {
-    val posDist = referenceEntities.positive.values.map(entityPair => distanceToReferenceLink(link, rules, entityPair, true)).min
-    val negDist = referenceEntities.negative.values.map(entityPair => distanceToReferenceLink(link, rules, entityPair, false)).min
-    
-    min(posDist, negDist)
+
+  /**
+   * Ranks a link by updating its confidence to the distance from the closes reference link.
+   */
+  def rankLink(dist: Traversable[ReferenceLinkDistance])(link: Link): Link = {
+    val minDist = dist.map(_(link)).min
+    link.update(confidence = Some(minDist))
   }
 
-  def distanceToReferenceLink(link: Link, rules: Seq[WeightedLinkageRule], entityPair: DPair[Entity], isPos: Boolean) =  {
-    val fulfilledRules = 
+  /**
+   * Computes the Jensen-Shannon divergence from a specific reference link.
+   */
+  private class ReferenceLinkDistance(entities: DPair[Entity], rules: Seq[LinkageRule], isPos: Boolean) {
+    /**
+     * Returns the Jensen-Shannon divergence from a reference link.
+     */
+    def apply(link: Link) = {
+      val qLink = q(link)
+      jensenShannonDivergence(p, qLink) + 0.5 * entropy(qLink)
+    }
+    
+    /** All linkage rules which fulfill this reference link */
+    private val fulfilledRules = {
       if (fulfilledOnly) {
-        if(isPos) rules.filter(rule => rule(entityPair) > 0.0) else rules.filter(rule => rule(entityPair) <= 0.0)
+        if(isPos) rules.filter(rule => rule(entities) > 0.0) else rules.filter(rule => rule(entities) <= 0.0)
       }
       else
         rules
-
-    val q = project(fulfilledRules, link.entities.get)
+    }
     
-    val p = project(fulfilledRules, entityPair)
-
-    jensenShannonDivergence(p, q) + 0.5 * entropy(q)
-  }
-
-  private def project(rules: Seq[WeightedLinkageRule], entityPair: DPair[Entity]) = {
-    rules.map(rule => probability(rule, entityPair)).sum / rules.size
-  }
-
-  private def probability(rule: WeightedLinkageRule, entityPair: DPair[Entity]) = {
-    rule(entityPair) * 0.5 + 0.5
-  }
+    private val p = project(fulfilledRules, entities)
+    
+    private def q(link: Link) = project(fulfilledRules, link.entities.get)
+    
+    private def project(rules: Seq[LinkageRule], entityPair: DPair[Entity]) = {
+      rules.map(rule => probability(rule, entityPair)).sum / rules.size
+    }
   
-  def test(a: Double, b: Double) = (a - b).abs + entropy((a + b) * 0.5)
+    private def probability(rule: LinkageRule, entityPair: DPair[Entity]) = {
+      rule(entityPair) * 0.5 + 0.5
+    }
 
-  private def jensenShannonDivergence(p1: Double, p2: Double) = {
-    entropy(0.5 * (p1 + p2)) - 0.5 * (entropy(p1) + entropy(p2))
-  }
+    /**
+     * Computes the Jensen-Shannon divergence between two binary variables.
+     */
+    private def jensenShannonDivergence(p1: Double, p2: Double) = {
+      entropy(0.5 * (p1 + p2)) - 0.5 * (entropy(p1) + entropy(p2))
+    }
 
-  private def entropy(p: Double) = {
-    if(p <= 0.0 || p >= 1.0)
-      0.0
-    else
-      (-p * log(p) - (1 - p) * log(1 - p)) / log(2)
+    /**
+     * Computes the binary entropy.
+     */
+    private def entropy(p: Double) = {
+      if(p <= 0.0 || p >= 1.0)
+        0.0
+      else
+        (-p * log(p) - (1 - p) * log(1 - p)) / log(2)
+    }
   }
 }
 

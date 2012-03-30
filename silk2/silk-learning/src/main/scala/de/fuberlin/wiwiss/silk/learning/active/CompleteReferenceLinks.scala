@@ -15,19 +15,42 @@
 package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, ReferenceLinks}
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
+/**
+ * Completes a set of reference links i.e. makes sure that it contains at least one positive and one negative link.
+ * If positive links and/or negative links are missing, links from the unlabeled pool are added to the reference links.
+ */
 object CompleteReferenceLinks {
+
+  /** Maximum number of unlabeled links to be evaluated for addition */
+  private val maxLinks = 50
+
+  /** Maximum number of rules of the population used to evaluate a link */
+  private val maxRules = 10
+
+  /**
+   * Completes a set of reference links.
+   */
   def apply(referenceEntities: ReferenceEntities, unlabeledLinks: Traversable[Link], population: Population) = {
-    implicit lazy val rules = population.individuals.map(_.node.build)
+    /** The unlabeled links where the confidence for each link is set to the average confidence amongst all rules */
+    lazy val linksWithConfidence = {
+      val rules = population.individuals.take(maxRules).map(_.node.build)
+
+      for(link <- unlabeledLinks.take(maxLinks)) yield {
+        val confidenceSum = rules.map(_(link.entities.get, -1.0)).sum
+        val confidence = confidenceSum / rules.size
+
+        link.update(confidence = Some(confidence))
+      }
+    } 
 
     val positive = {
       if(!referenceEntities.positive.isEmpty) {
         referenceEntities.positive
       } else {
-        val maxLink = unlabeledLinks.map(withAgreement).maxBy(_.confidence)
+        val maxLink = linksWithConfidence.maxBy(_.confidence)
         Map(maxLink -> maxLink.entities.get)
       }
     }
@@ -36,18 +59,11 @@ object CompleteReferenceLinks {
       if(!referenceEntities.negative.isEmpty) {
         referenceEntities.negative
       } else {
-        val minLink = unlabeledLinks.map(withAgreement).minBy(_.confidence)
+        val minLink = linksWithConfidence.minBy(_.confidence)
         Map(minLink -> minLink.entities.get)
       }
     }
 
     ReferenceEntities(positive, negative)
-  }
-
-  def withAgreement(link: Link)(implicit rules: Traversable[LinkageRule]) = {
-    val confidenceSum = rules.map(_.apply(link.entities.get)).sum
-    val confidence = confidenceSum / rules.size
-
-    link.update(confidence = Some(confidence))
   }
 }

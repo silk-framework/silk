@@ -34,7 +34,7 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
   val entityDesc =
     EntityDescription(
       variable = "a",
-      restrictions = SparqlRestriction.fromSparql("?a rdf:type dbpedia-owl:City"),
+      restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type dbpedia-owl:City"),
       paths = IndexedSeq(Path.parse("?a/rdfs:label"))
     )
 

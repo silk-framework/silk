@@ -31,7 +31,7 @@ import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
                              linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs"),
-                             datasets: DPair[DatasetSpecification] = DPair.fill(DatasetSpecification.empty),
+                             datasets: DPair[Dataset] = DPair.fill(Dataset.empty),
                              rule: LinkageRule = LinkageRule(),
                              filter: LinkFilter = LinkFilter(),
                              outputs: Traversable[Output] = Traversable.empty) {
@@ -84,7 +84,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
   }
 
   private def collectPathsFromInput(variable: String)(param: Input): Set[Path] = param match {
-    case p: PathInput if p.path.variable == variable => Set(p.path)
+    case p: PathInput if p.path.variable == variable && !p.path.operators.isEmpty => Set(p.path)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
     case _ => Set()
   }
@@ -119,26 +119,26 @@ object LinkSpecification {
 
     new LinkSpecification(
       id,
-      resolveQualifiedName((node \ "LinkType").text.trim, prefixes),
-      new DPair(DatasetSpecification.fromXML(node \ "SourceDataset" head),
-      DatasetSpecification.fromXML(node \ "TargetDataset" head)),
+      resolveQualifiedName("LinkType", (node \ "LinkType").text.trim, prefixes),
+      new DPair(Dataset.fromXML(node \ "SourceDataset" head),
+      Dataset.fromXML(node \ "TargetDataset" head)),
       LinkageRule.fromXML(linkageRuleNode.getOrElse(linkConditionNode.get)),
       filter,
       (node \ "Outputs" \ "Output").map(Output.fromXML)
     )
   }
 
-  private def resolveQualifiedName(name: String, prefixes: Map[String, String]) = {
-    if (name.startsWith("<") && name.endsWith(">")) {
-      name.substring(1, name.length - 1)
+  private def resolveQualifiedName(element: String, value: String, prefixes: Map[String, String]) = {
+    if (value.startsWith("<") && value.endsWith(">")) {
+      value.substring(1, value.length - 1)
     }
     else {
-      name.split(":", 2) match {
+      value.split(":", 2) match {
         case Array(prefix, suffix) => prefixes.get(prefix) match {
           case Some(resolvedPrefix) => resolvedPrefix + suffix
-          case None => throw new ValidationException("Unknown prefix: " + prefix)
+          case None => throw new ValidationException("Unknown prefix: '" + prefix + "'")
         }
-        case _ => throw new ValidationException("No prefix found in " + name)
+        case _ => throw new ValidationException("No prefix found in '" + value + "'", element)
       }
     }
   }

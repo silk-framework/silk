@@ -72,19 +72,19 @@ object DetailedEvaluator {
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): DetailedLink.ComparisonConfidence = {
-    val distance = comparison.apply(entities, threshold)
-
-    val sourceInput = findInput(comparison.inputs.source)
-    val targetInput = findInput(comparison.inputs.target)
-
-    val sourceValue = InputValue(sourceInput, comparison.inputs.source(entities))
-    val targetValue = InputValue(targetInput, comparison.inputs.target(entities))
-
-    ComparisonConfidence(distance, comparison, sourceValue, targetValue)
+    ComparisonConfidence(
+      value = comparison.apply(entities, threshold),
+      comparison = comparison,
+      sourceValue = evaluateInput(comparison.inputs.source, entities),
+      targetValue = evaluateInput(comparison.inputs.target, entities)
+    )
   }
 
-  private def findInput(input: Input): PathInput = input match {
-    case input: PathInput => input
-    case TransformInput(_, _, inputs) => findInput(inputs.head)
+  private def evaluateInput(input: Input, entities: DPair[Entity]): Value = input match {
+    case ti: TransformInput => {
+      val children = ti.inputs.map(i => evaluateInput(i, entities))
+      TransformedValue(ti, ti.transformer(children.map(_.values)), children)
+    }
+    case pi: PathInput => InputValue(pi, input(entities))
   }
 }

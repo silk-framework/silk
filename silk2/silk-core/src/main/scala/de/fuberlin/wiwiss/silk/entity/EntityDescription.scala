@@ -18,6 +18,8 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
+  require(paths.forall(!_.operators.isEmpty), "Entity description must not contain an empty path")
+
   /**
    * Retrieves the index of a given path.
    */
@@ -41,7 +43,7 @@ case class EntityDescription(variable: String, restrictions: SparqlRestriction, 
   def toXML = {
     <EntityDescription>
       <Variable>{variable}</Variable>
-      {restrictions.toXML}
+      <Restrictions>{restrictions.toSparql}</Restrictions>
       <Paths> {
         for (path <- paths) yield {
           <Path>{path.serialize(Prefixes.empty)}</Path>
@@ -54,9 +56,10 @@ case class EntityDescription(variable: String, restrictions: SparqlRestriction, 
 
 object EntityDescription {
   def fromXML(node: Node) = {
+    val variable = (node \ "Variable").text.trim
     new EntityDescription(
-      variable = (node \ "Variable").text.trim,
-      restrictions = SparqlRestriction.fromXML(node \ "Restrictions" head)(Prefixes.empty),
+      variable = variable,
+      restrictions = SparqlRestriction.fromSparql(variable, (node \ "Restrictions").text),
       paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq[Node]) yield Path.parse(pathNode.text.trim)
     )
   }

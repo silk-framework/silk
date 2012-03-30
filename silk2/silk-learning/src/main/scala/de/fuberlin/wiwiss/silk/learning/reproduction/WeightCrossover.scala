@@ -14,8 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
-import de.fuberlin.wiwiss.silk.learning.individual.ComparisonNode
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.learning.individual.{AggregationNode, OperatorNode, ComparisonNode}
 
 /**
  * A crossover operator which combines the weights of two comparisons.
@@ -23,5 +23,10 @@ import de.fuberlin.wiwiss.silk.util.DPair
 case class WeightCrossover() extends NodePairCrossoverOperator[ComparisonNode] {
   def crossover(nodes: DPair[ComparisonNode]) = {
     nodes.source.copy(weight = (nodes.source.weight + nodes.target.weight) / 2)
+  }
+
+  def crossover(nodes: DPair[OperatorNode]) = nodes.source match {
+    case c: ComparisonNode => c.copy(weight = (c.weight + nodes.target.weight) / 2)
+    case a: AggregationNode => a.copy(weight = (a.weight + nodes.target.weight) / 2)
   }
 }

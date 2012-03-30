@@ -65,11 +65,11 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
   }
 
   private def compareOperators(operator1: Node, operator2: OperatorNode): Boolean = (operator1, operator2) match {
-    case (AggregationNode(agg1, ops1), AggregationNode(agg2, ops2)) => {
+    case (AggregationNode(agg1, _, _, ops1), AggregationNode(agg2, _, _, ops2)) => {
       agg1 == agg2 &&
           ops1.forall(op1 => ops2.exists(op2 => compareOperators(op1, op2)))
     }
-    case (ComparisonNode(inputs1, limit1, weight1, metric1), ComparisonNode(inputs2, limit2, weight2, metric2)) => {
+    case (ComparisonNode(inputs1, limit1, weight1, _, metric1), ComparisonNode(inputs2, limit2, weight2, _, metric2)) => {
       metric1 == metric2 &&
           compareInputs(inputs1.source, inputs2.source) &&
           compareInputs(inputs1.target, inputs2.target)
@@ -136,9 +136,9 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
    * Removes all redundant operators of an aggregation node.
    */
   private def cleanAggregation(location: NodeTraverser)(implicit fitness: Double): NodeTraverser = location.node match {
-    case AggregationNode(_, (operator: AggregationNode) :: Nil) =>  cleanAggregation(location.moveDown.get)
-    case AggregationNode(_, operator :: Nil) => location.moveDown.get
-    case AggregationNode(_, operators) => removeRedundantOperators(location, Nil, operators)
+    case AggregationNode(_, _, _, (operator: AggregationNode) :: Nil) =>  cleanAggregation(location.moveDown.get)
+    case AggregationNode(_, _, _, operator :: Nil) => location.moveDown.get
+    case AggregationNode(_, _, _, operators) => removeRedundantOperators(location, Nil, operators)
     case _ => location
   }
 

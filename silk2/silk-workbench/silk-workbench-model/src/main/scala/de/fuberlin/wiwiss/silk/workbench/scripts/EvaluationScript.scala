@@ -12,21 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.learning
+package de.fuberlin.wiwiss.silk.workbench.scripts
 
-case class ResultTable(header: Seq[String], values: Seq[Seq[String]]) {
+import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import java.util.logging.Logger
 
-  def toCsv = {
-    header.mkString("", ",", "\n") + values.map(_.mkString("", ",", "\n")).mkString
-  }
+trait EvaluationScript extends App {
 
-  def toLatex = {
-    "\\begin{tabular}{| l | l | c | c | c | c |}\n" +
-    "\\hline\n" +
-    header.mkString("", " & ", "\\\\\n") +
-    "\\hline\n" +
-    values.map(_.mkString("", " & ", "\\\\\n")).mkString +
-    "\\hline\n" +
-    "\\end{tabular}\n"
-  }
+  protected val log = Logger.getLogger(getClass.getName)
+
+  Plugins.register()
+  JenaPlugins.register()
+  run()
+
+  protected def run()
 }

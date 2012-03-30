@@ -24,7 +24,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
 
   override def toString = indices.toString
 
-  def intersect(other: Index): Boolean = !(indices intersect other.indices).isEmpty
+  def intersect(other: Index): Boolean = indices.exists(other.indices)
 
   def isEmpty = indices.isEmpty
 

@@ -25,19 +25,24 @@
 
 <div id="boxcontainer">
 	<div id="downloadbox" class="box">
-	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.2.zip"><span>Download Silk<br/><small>v2.5.2, released 2011-11-17</small></span></a>
+	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.3.zip"><span>Download Silk<br/><small>v2.5.3, released 2012-03-06</small></span></a>
 	</div>
 </div>
 <H2 id=news>News</H2>
 <ul>
+  <li><strong>2012-03-06:</strong> Version 2.5.3 released including various improvements and bugfixes.</li>
+  <li><strong>2012-02-21:</strong> Webinar about Silk Workbench. The <a href="http://www.youtube.com/watch?v=CPl5eeyW-Xk">screencast</a> and the <a href="http://www.slideshare.net/lod2project/slides-11702787" >slides</a> are available online.</li>
   <li><strong>2011-11-17:</strong> Version 2.5.2 released adding active learning of linkage rules.</li>
+  <li><strong>2011-10-24:</strong> Presentation: Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleBizer-Silk-Learning-OM2011.pdf">Learning Linkage Rules using Genetic Programming</a>. 6th International Workshop on Ontology Matching. Bonn, Germany, October 2011.</li>
   <li><strong>2011-10-21:</strong> Version 2.5.1 released including various improvements to the Workbench.</li>
   <li><strong>2011-10-03:</strong> Version 2.5 released adding support for learning linkage rules.</li>
   <li><strong>2011-07-22:</strong> Version 2.4.2 released adding SPARQL/Update output, improved indexing and many improvements to the Silk Workbench.</li>
   <li><strong>2011-07-01:</strong> Version 2.4.1 released with an improved Silk Workbench, various new distance measures and per-comparison thresholds.</li>
+  <li><strong>2011-06-12:</strong> Presentation: Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf">Efficient Multidimensional Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
   <li><strong>2011-06-01:</strong> Version 2.4 released including the new Silk Workbench, a web application which guides the user through the process of interlinking different data sources.</li>
   <li><strong>2011-01-31:</strong> Version 2.3 released with improved performance employing parallel data loading and a new blocking method.</li>
   <li><strong>2010-12-20:</strong> Version 2.3 beta released offering an increased performance by using a new blocking method.</li>
+  <li><strong>2010-10-08:</strong> Presentation: Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
   <li><strong>2010-10-06:</strong> Version 2.2 released. This release includes Silk MapReduce which is based on Hadoop and enables Silk to scale out to very large datasets by distributing the link generation to multiple machines.</li>
   <li><strong>2010-09-15:</strong> Version 2.1 released. The main addition is Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</li>
   <li><strong>2010-07-02:</strong> Version 2.0 released. Reimplementation of the Silk framework in Scala providing improved scalability, optional blocking features and support of the OAEI Alignment format as additional output format. </li>
@@ -125,6 +130,11 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <th>Version</th>
         <th>Comment</th>
         <th>Release Date</th>
+      </tr>
+      <tr id="grey">
+        <td>2.5.3</td>
+        <td>Various improvements and bugfixes.</td>
+        <td>2012-03-06</td>
       </tr>
       <tr>
         <td>2.5.2</td>

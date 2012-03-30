@@ -177,16 +177,19 @@
 
       <Filter />
 
-      <Outputs>
-        <Output maxConfidence="0.2" type="file" >
-          <Param name="file" value="dbpedia_drugbank_drugs_verify_links.xml"/>
-          <Param name="format" value="alignment"/>
-        </Output>
-        <Output minConfidence="0.2" type="file">
-          <Param name="file" value="dbpedia_drugbank_drugs_accepted_links.xml"/>
-          <Param name="format" value="alignment"/>
-        </Output>
-      </Outputs>
     </Interlink>
+
   </Interlinks>
+
+  <Outputs>
+    <Output maxConfidence="0.2" type="file" >
+      <Param name="file" value="dbpedia_drugbank_drugs_verify_links.xml"/>
+      <Param name="format" value="alignment"/>
+    </Output>
+    <Output minConfidence="0.2" type="file">
+      <Param name="file" value="dbpedia_drugbank_drugs_accepted_links.xml"/>
+      <Param name="format" value="alignment"/>
+    </Output>
+  </Outputs>
+
 </Silk>

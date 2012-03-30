@@ -20,7 +20,8 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftweb.widgets.autocomplete.AutoComplete
-import de.fuberlin.wiwiss.silk.workbench.lift.util.PrefixRegistry
+import de.fuberlin.wiwiss.silk.workbench.util.PrefixRegistry
+import de.fuberlin.wiwiss.silk.workbench.util.PrefixRegistry
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
 

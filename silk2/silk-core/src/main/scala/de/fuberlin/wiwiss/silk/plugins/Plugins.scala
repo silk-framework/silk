@@ -102,7 +102,7 @@ object Plugins {
 
     LinkWriter.register(classOf[FileWriter])
     LinkWriter.register(classOf[SparqlWriter])
-    LinkWriter.register(classOf[MemoryWriter])
+    //LinkWriter.register(classOf[MemoryWriter])
 
     Formatter.register(classOf[NTriplesFormatter])
     Formatter.register(classOf[AlignmentFormatter])

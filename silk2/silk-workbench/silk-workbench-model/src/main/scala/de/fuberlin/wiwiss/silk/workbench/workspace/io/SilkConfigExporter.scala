@@ -30,7 +30,7 @@ object SilkConfigExporter {
       runtime = project.linkingModule.config.runtime,
       sources = linkSpec.datasets.map(ds => project.sourceModule.tasks.find(_.name == ds.sourceId).get.source),
       linkSpecs = linkSpec :: Nil,
-      outputs = Nil
+      outputs = project.outputModule.tasks.map(_.output)
     )
   }
 }

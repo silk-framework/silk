@@ -25,43 +25,45 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
  * @param variable Each data item will be bound to this variable.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSpecification(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
+case class Dataset(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
   require(!variable.isEmpty, "Variable must be non-empty")
 
   /**
-   * Serializes this Dataset Specification as XML.
+   * Serializes this dataset specification as XML.
    *
-   * @param If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
+   * @param asSource If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
   def toXML(asSource: Boolean) = {
     if (asSource) {
-      <SourceDataset dataSource={sourceId} var={variable}>
+      <SourceDataset dataSource={sourceId} var={restriction.variable}>
         <RestrictTo>
-          {restriction}
+          {restriction.toSparql}
         </RestrictTo>
       </SourceDataset>
     }
     else {
-      <TargetDataset dataSource={sourceId} var={variable}>
+      <TargetDataset dataSource={sourceId} var={restriction.variable}>
         <RestrictTo>
-          {restriction}
+          {restriction.toSparql}
         </RestrictTo>
       </TargetDataset>
     }
   }
 }
 
-object DatasetSpecification {
+object Dataset {
   /**
    * Creates a DatasetSpecification from XML.
    */
-  def fromXML(node: Node)(implicit prefixes: Prefixes): DatasetSpecification = {
-    new DatasetSpecification(
-      node \ "@dataSource" text,
-      node \ "@var" text,
-      SparqlRestriction.fromSparql((node \ "RestrictTo").text.trim)
+  def fromXML(node: Node)(implicit prefixes: Prefixes): Dataset = {
+    val variable = node \ "@var" text
+
+    Dataset(
+      sourceId = node \ "@dataSource" text,
+      variable = variable,
+      restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
     )
   }
 
-  def empty = DatasetSpecification(Identifier.random, "x", SparqlRestriction.empty)
+  def empty = Dataset(Identifier.random, "x", SparqlRestriction.empty)
 }
