@@ -82,6 +82,7 @@ object Plugins {
     DistanceMeasure.register(classOf[JaroDistanceMetric])
     DistanceMeasure.register(classOf[JaroWinklerDistance])
     DistanceMeasure.register(classOf[QGramsMetric])
+    DistanceMeasure.register(classOf[SubStringDistance])
     DistanceMeasure.register(classOf[EqualityMetric])
     DistanceMeasure.register(classOf[InequalityMetric])
     DistanceMeasure.register(classOf[LowerThanMetric])
