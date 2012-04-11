@@ -30,6 +30,9 @@ import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 import java.util.Properties
 import java.io.{FileNotFoundException, FileReader, File}
 import net.liftweb.http.{S, SHtml}
+import net.liftweb.http.provider.HTTPCookie
+import scala.util.control.Breaks._
+import util.matching.Regex
 
 /**
  * Workspace snippet.
@@ -195,7 +198,10 @@ object Workspace {
   private def createVoidVariables : JsCmd = {
     var enableVoidSourceButton: Boolean = false
     try {
-      val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+      var configPath = scala.util.Properties.propOrElse("SILK_WORKBENCH_CONFIG_PATH", "")
+      if (configPath.equals("") && !configPath.endsWith(File.separator)){
+        configPath += File.separator
+      }
       val configFile = new File(configPath + "config.properties");
 
      val properties = new Properties()
@@ -222,7 +228,10 @@ object Workspace {
   private def disableProjectEditing : JsCmd = {
     var disableProjectEditing: Boolean = false
     try {
-      val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+      var configPath = scala.util.Properties.propOrElse("SILK_WORKBENCH_CONFIG_PATH", "")
+      if (configPath.equals("") && !configPath.endsWith(File.separator)){
+        configPath += File.separator
+      }
       val configFile = new File(configPath + "config.properties");
 
       val properties = new Properties()
@@ -451,7 +460,10 @@ object Workspace {
     //LATC-start
 
     try {
-      val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+      var configPath = scala.util.Properties.propOrElse("SILK_WORKBENCH_CONFIG_PATH", "")
+      if (configPath.equals("") && !configPath.endsWith(File.separator)){
+        configPath += File.separator
+      }
       val configFile = new File(configPath + "config.properties");
 
       val properties = new Properties()
@@ -459,11 +471,24 @@ object Workspace {
 
       if ((properties.getProperty("enableOpenIdAuthentication") != null) && (properties.getProperty("enableOpenIdAuthentication") == "true")) {
         if (properties.getProperty("baseUrl") != null) {
-          val baseUrl = properties.getProperty("baseUrl")
-          val hostPartRegex = """.*//([^:/]*)""".r
-
+         val baseUrl = properties.getProperty("baseUrl")
+         val pattern = new Regex(""".*//([^:/]*)""", "host");
+         val result = pattern.findFirstMatchIn(baseUrl).get;
+         for (cookie: HTTPCookie <- S.receivedCookies){
+          if (cookie.name.startsWith("workbench-")){
+            if (cookie.name.endsWith(result.group("host").toString)){
+              if (!cookie.value.isEmpty ){
+                setUserName(cookie.value.openTheBox)
+              }
+            }
+          }
+         }
+          // below does not work do not know why maybe the regex was not taking the right thing
+          //val hostPartRegex = """.*//([^:/]*)""".r
+          /*
           baseUrl match {
             case hostPartRegex(c) => {
+              System.out.println("found cookie that math pattern: "+c)
               S.findCookie("workbench-" + c).flatMap {
                 cookie => {
                   cookie.value.map(setUserName)
@@ -472,12 +497,29 @@ object Workspace {
             }
             case _ =>
           }
+          */
         }
 
-        val projectLikeUserName = for (project <- User().workspace.projects) yield project.name.toString
-        if (projectLikeUserName == null) {
+        // this does not work as there are always projects that do not belong to this user
+        // so the projectLikeUserName will never be null here !!!
+        //val projectLikeUserName = for (project <- User().workspace.projects) yield project.name.toString
+        //if (projectLikeUserName == null) {
+        //  User().workspace.createProject(userName)
+        //}
+
+        var projectLikeUserNameExist = false;
+        breakable {
+          for (project <- User().workspace.projects){
+            if (userName.equals(project.name.toString)){
+              projectLikeUserNameExist=true;
+              break
+            }
+          }
+        }
+        if (projectLikeUserNameExist==false){
           User().workspace.createProject(userName)
         }
+
       }
     } catch {
       case _ : FileNotFoundException =>
