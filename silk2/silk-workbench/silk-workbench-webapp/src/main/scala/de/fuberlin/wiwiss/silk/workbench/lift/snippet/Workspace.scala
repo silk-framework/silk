@@ -23,13 +23,13 @@ import xml.NodeSeq
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
-import net.liftweb.http.SHtml
 import net.liftweb.json.Printer.pretty
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.output.LinkWriter
 import net.liftweb.json.JsonAST.{JObject, JArray, JValue}
 import java.util.Properties
 import java.io.{FileNotFoundException, FileReader, File}
+import net.liftweb.http.{S, SHtml}
 
 /**
  * Workspace snippet.
@@ -195,7 +195,8 @@ object Workspace {
   private def createVoidVariables : JsCmd = {
     var enableVoidSourceButton: Boolean = false
     try {
-     val configFile = new File("./config.properties");
+      val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+      val configFile = new File(configPath + "config.properties");
 
      val properties = new Properties()
      properties.load(new FileReader(configFile))
@@ -221,7 +222,8 @@ object Workspace {
   private def disableProjectEditing : JsCmd = {
     var disableProjectEditing: Boolean = false
     try {
-      val configFile = new File("./config.properties");
+      val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+      val configFile = new File(configPath + "config.properties");
 
       val properties = new Properties()
       properties.load(new FileReader(configFile))
@@ -435,6 +437,10 @@ object Workspace {
     JsCmds.Function(name, "projectName" :: "taskName" :: Nil, ajaxCall)
   }
 
+  private var userName:String = null
+  def setUserName(value: String) {
+    userName = value
+  }
   /**
    * Generates a JSON which contains the workspace contents.
    */
@@ -444,17 +450,29 @@ object Workspace {
 
     //LATC-start
 
-    var userName:String = null
-
     try {
-      val configFile = new File("./config.properties");
+      val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+      val configFile = new File(configPath + "config.properties");
 
       val properties = new Properties()
       properties.load(new FileReader(configFile))
 
       if ((properties.getProperty("enableOpenIdAuthentication") != null) && (properties.getProperty("enableOpenIdAuthentication") == "true")) {
-        //TODO interface connection: UserAuthentication getUsername(HttpServletRequest)
-        userName = "LATC"
+        if (properties.getProperty("baseUrl") != null) {
+          val baseUrl = properties.getProperty("baseUrl")
+          val hostPartRegex = """.*//([^:/]*)""".r
+
+          baseUrl match {
+            case hostPartRegex(c) => {
+              S.findCookie("workbench-" + c).flatMap {
+                cookie => {
+                  cookie.value.map(setUserName)
+                }
+              }
+            }
+            case _ =>
+          }
+        }
 
         val projectLikeUserName = for (project <- User().workspace.projects) yield project.name.toString
         if (projectLikeUserName == null) {

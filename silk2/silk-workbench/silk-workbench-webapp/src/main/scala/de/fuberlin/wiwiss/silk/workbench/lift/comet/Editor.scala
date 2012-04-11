@@ -55,7 +55,8 @@ class Editor extends CometActor {
   private var repositories:Map[String, Map[String, String]] = Map()
 
   try {
-    val configFile = new File("./config.properties");
+    val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+    val configFile = new File(configPath + "config.properties");
 
     val properties = new Properties()
     properties.load(new FileReader(configFile))
