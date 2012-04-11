@@ -23,7 +23,10 @@ class Branding {
   var workbenchName = "Silk Workbench"
 
   try {
-    val configPath = scala.util.Properties.envOrElse("SILK_WORKBENCH_CONFIG_PATH", "");
+    var configPath = scala.util.Properties.propOrElse("SILK_WORKBENCH_CONFIG_PATH", "")
+    if (configPath.equals("") && !configPath.endsWith(File.separator)){
+      configPath += File.separator
+    }
     val configFile = new File(configPath + "config.properties");
 
     val properties = new Properties()
