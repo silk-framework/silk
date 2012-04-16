@@ -97,9 +97,9 @@
         <version>8.1.1.v20120215</version>
         <configuration>
           <scanIntervalSeconds>10</scanIntervalSeconds>
-          <webApp>
+          <webAppConfig>
             <contextPath>/</contextPath>
-          </webApp>
+          </webAppConfig>
           <!-- webDefaultXml is not supported in the current version of the jetty-maven-plugin anymore. -->
           <!--<webDefaultXml>src/main/resources/webdefault.xml</webDefaultXml>-->
         </configuration>
