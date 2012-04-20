@@ -1,0 +1,4 @@
+<DataSource type="file" id="nyt">
+  <Param name="file" value="nyt/nyt_locations.rdf"></Param>
+  <Param name="format" value="RDF/XML"></Param>
+</DataSource>
