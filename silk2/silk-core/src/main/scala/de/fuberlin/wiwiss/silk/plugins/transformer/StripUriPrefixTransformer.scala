@@ -27,8 +27,10 @@ case class StripUriPrefixTransformer() extends SimpleTransformer {
   override def evaluate(value: String): String = {
     if(value.startsWith("http:")) {
       //Remove prefix
-      val uriPrefixEnd = max(value.lastIndexOf("/"), value.lastIndexOf("#"))
+      var uriPrefixEnd = max(value.lastIndexOf("/"), value.lastIndexOf("#"))
+      uriPrefixEnd = max(uriPrefixEnd, value.lastIndexOf(":"))
       val remainder = value.substring(uriPrefixEnd + 1)
+
       //Decode url
       val clean = remainder.replace('_', ' ')
       try {
