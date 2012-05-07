@@ -19,31 +19,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-	<build>
-		<plugins>
-			<plugin>
-      
-				<groupId>org.scala-tools</groupId>
-				<artifactId>maven-scala-plugin</artifactId>
-        <version>${scala.plugin.version}</version>
-        
-        <configuration>
-          <launchers>
-            <launcher>
-              <id>Evaluate</id>
-              <mainClass>de.fuberlin.wiwiss.silk.evaluation.Evaluation</mainClass>
-              <jvmArgs>
-                <jvmArg>-Xmx1024m</jvmArg>
-              </jvmArgs>
-            </launcher>
-          </launchers>
-        </configuration>
-        
-			</plugin>
-
-		</plugins>
-	</build>
-
   <dependencies>
 
     <dependency>
