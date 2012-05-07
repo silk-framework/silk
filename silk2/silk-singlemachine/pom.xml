@@ -21,25 +21,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.scala-tools</groupId>
-				<artifactId>maven-scala-plugin</artifactId>
-        <version>${scala.plugin.version}</version>
-        
-        <configuration>
-          <launchers>
-            <launcher>
-              <id>Run</id>
-              <mainClass>de.fuberlin.wiwiss.silk.Silk</mainClass>
-              <jvmArgs>
-                <jvmArg>-Xmx1024m</jvmArg>
-              </jvmArgs>
-            </launcher>
-          </launchers>
-        </configuration>
-        
-			</plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
