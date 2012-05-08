@@ -52,7 +52,7 @@ object CrossValidation extends EvaluationScript {
     println(result.transpose.toLatex)
   }
   
-  private def execute(dataset: Dataset, config: LearningConfiguration) = {
+  private def execute(dataset: Dataset, config: LearningConfiguration): RunResult = {
     log.info("Running: " + dataset.name)
     val cache = dataset.task.cache
     cache.waitUntilLoaded()
