@@ -1,68 +1,69 @@
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
-import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.util.task.Task
-import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Parameters
-import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
+import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningConfiguration}
+import de.fuberlin.wiwiss.silk.entity.Link
 
-object ActiveLearningEvaluation extends App {
+object ActiveLearningEvaluation extends EvaluationScript {
 
-  Plugins.register()
-  JenaPlugins.register()
+  override protected def run() {
+    val experiment = Experiment.default
+    val datasets = Dataset.fromWorkspace
 
-  val labels = "Mean iterations for 90%" :: "Mean iterations for 95%" :: "Mean iterations for 100%" :: Nil
-
-  val configurations =
-    Seq(
-      LearningConfiguration("test1", params = Parameters(seed = false)),
-      LearningConfiguration("test2", params = Parameters(seed = false))
-    )
-  
-  val datasets = Dataset.fromWorkspace
-
-  val values =
-    for(ds <- datasets) yield {
-      for(config <- configurations) yield {
-        new ActiveLearningEvaluator(config, ds).apply()
+    val values =
+      for(ds <- datasets) yield {
+        for(config <- experiment.configurations) yield {
+          execute(config, ds)
+        }
       }
-    }
 
-  val result =
-    MultipleTables(
-      for((label, index) <- labels.zipWithIndex) yield {
-        val rows = for(v <- values) yield v.map(_(index))
-        Table(label, datasets.map(_.name), configurations.map(_.name), rows)
-      }
-    )
+    val result =
+      MultipleTables.build(
+        name = experiment.name,
+        metrics = experiment.metrics,
+        header = experiment.configurations.map(_.name),
+        rowLabels = datasets.map(_.name),
+        values = values
+      )
 
-   println(result.toCsv)
+     println(result.toCsv)
+  }
 
+  private def execute(config: LearningConfiguration, dataset: Dataset): RunResult = {
+    log.info("Running: " + dataset.name)
+    val cache = dataset.task.cache
+    cache.waitUntilLoaded()
+    val task = new ActiveLearningEvaluator(config, dataset)
+    task()
+  }
 }
 
 class ActiveLearningEvaluator(config: LearningConfiguration,
-                              ds: Dataset) extends Task[Seq[Double]] {
+                              ds: Dataset) extends Task[RunResult] {
 
   val numRuns = 10
 
   protected override def execute() = {
-    //Execute runs
-    //val results = List.fill(numRuns)(run())
+    //Execute the active learning runs
+    val results = for(run <- 0 until numRuns) yield runActiveLearning(run)
 
-    //Random.nextDouble :: Random.nextDouble :: Random.nextDouble :: Nil
-    0.1 :: 0.2 :: 0.3 :: Nil
-      //values = RunResult.meanIterations(results, 0.9) ::
-      //         RunResult.meanIterations(results, 0.95) ::
-      //         RunResult.meanIterations(results, 0.999) :: Nil
-    
+    //Print aggregated results
+    val aggregatedResults = for((iterationResults, i) <- results.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
+
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = false).toLatex)
+    println()
+    println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = false).toCsv)
+
+    RunResult(results.map(Run(_)))
   }
 
-  private def run(): Run = {
+  private def runActiveLearning(run: Int): Seq[LearningResult] = {
+    logger.info("Active Learning run " + run)
+
     var referenceEntities = ReferenceEntities()
     val validationEntities = ds.task.cache.entities
 
@@ -72,9 +73,9 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     var population = Population.empty
 
     //Holds the validation result from each iteration
-    var scores = List[Double]()
+    var learningResults = List[LearningResult]()
 
-    for(i <- 0 to 1000) {
+    for(i <- 0 to 20) {
       val task =
         new ActiveLearningTask(
           config = config,
@@ -95,13 +96,22 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val rule = population.bestIndividual.node.build
       val trainScores = LinkageRuleEvaluator(rule, referenceEntities)
       val valScores = LinkageRuleEvaluator(rule, validationEntities)
+      val learningResult =
+        LearningResult(
+          iterations = i,
+          time = 0,
+          population = Population.empty,
+          trainingResult =  trainScores,
+          validationResult = valScores,
+          status = LearningResult.NotStarted
+        )
+
       println(i + " - " + trainScores)
       println(i + " - " + valScores)
-      scores ::= valScores.fMeasure
-      if(valScores.fMeasure > 0.999) {
-        //TODO
-        //return Run(scores.reverse)
-      }
+      learningResults ::= learningResult
+//      if(valScores.fMeasure > 0.999) {
+//        return learningResults.reverse
+//      }
 
       //Evaluate new link
       val link = task.links.head
@@ -115,7 +125,6 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       }
     }
 
-    //TODO Run(scores.reverse)
-    null
+    learningResults.reverse
   }
 }
