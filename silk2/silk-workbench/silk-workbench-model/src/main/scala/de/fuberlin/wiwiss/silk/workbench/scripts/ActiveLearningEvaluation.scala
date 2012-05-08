@@ -45,7 +45,9 @@ object ActiveLearningEvaluation extends EvaluationScript {
 class ActiveLearningEvaluator(config: LearningConfiguration,
                               ds: Dataset) extends Task[RunResult] {
 
-  val numRuns = 10
+  val numRuns = 2
+
+  val maxLinks = 30
 
   protected override def execute() = {
     //Execute the active learning runs
@@ -71,11 +73,12 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     val negativeValLinks = for((link, entityPair) <- validationEntities.negative) yield link.update(entities = Some(entityPair))
     var pool: Traversable[Link] = positiveValLinks ++ negativeValLinks
     var population = Population.empty
+    val startTime = System.currentTimeMillis()
 
     //Holds the validation result from each iteration
     var learningResults = List[LearningResult]()
 
-    for(i <- 0 to 20) {
+    for(i <- 0 to maxLinks) {
       val task =
         new ActiveLearningTask(
           config = config,
@@ -99,8 +102,8 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val learningResult =
         LearningResult(
           iterations = i,
-          time = 0,
-          population = Population.empty,
+          time = System.currentTimeMillis() - startTime,
+          population = population,
           trainingResult =  trainScores,
           validationResult = valScores,
           status = LearningResult.NotStarted

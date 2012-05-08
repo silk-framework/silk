@@ -34,7 +34,7 @@ object Experiment {
   val default =
     Experiment("Default",
       configurations = LearningConfiguration("Default") :: Nil,
-      metrics = FixedIterationsFMeasure(50) :: Nil
+      metrics = FixedIterationsFMeasure(3) :: Nil
     )
 
   /**
