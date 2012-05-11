@@ -134,14 +134,18 @@ class CompatiblePathsGenerator(components: Components) {
       pathPairs.par.filter(pathValuesMatch(posEntities, negEntities, _)).seq
     }
     
-    private def transformEntities(entities: DPair[Entity]) = {
+    @inline private def transformEntities(entities: DPair[Entity]) = {
       for(entity <- entities) yield {
         new Entity(
-          uri = entity.uri,
-          values = for(values <- entity.values) yield transformers.foldLeft(values)((v, trans) => trans(Seq(v))),
+          uri = transformValues(Set(entity.uri)).head,
+          values = for(values <- entity.values) yield transformValues(values),
           desc = entity.desc
         )
       }
+    }
+
+    @inline private def transformValues(values: Set[String]) = {
+      transformers.foldLeft(values)((v, trans) => trans(Seq(v)))
     }
 
     private def pathValuesMatch(posEntities: Traversable[DPair[Entity]], negEntities: Traversable[DPair[Entity]], pathPair: DPair[Path]): Boolean = {
