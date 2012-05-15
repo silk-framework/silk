@@ -41,29 +41,32 @@
 
       <div class="droppable_outer">
 
-        <div id="droppable"/>
-          <div style="width: 180px; float: left;">Link Limit:
-              <select id="linklimit" onchange="modifyLinkSpec()">
-                  <option>unlimited</option>
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3</option>
-                  <option>4</option>
-                  <option>5</option>
-                  <option>6</option>
-                  <option>7</option>
-                  <option>8</option>
-                  <option>9</option>
-                  <option>10</option>
-              </select>
-              <img src="static/img/help.png" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
-          </div>
-          <div style="width: 10px; float: left; visibility:hidden;">
-              <input type="text" id="linktype"/>
-          </div>
+        <div id="droppable"></div>
+
+        <div style="width: 180px; float: left;">
+          Link Limit:
+          <select id="linklimit" onchange="modifyLinkSpec()">
+            <option>unlimited</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+            <option>10</option>
+          </select>
+          <img src="static/img/help.png" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
         </div>
 
+        <div style="width: 10px; float: left; visibility:hidden;">
+          <input type="text" id="linktype"/>
+        </div>
       </div>
+
+    </div>
 
     </lift:comet>
   </lift:bind-at>
