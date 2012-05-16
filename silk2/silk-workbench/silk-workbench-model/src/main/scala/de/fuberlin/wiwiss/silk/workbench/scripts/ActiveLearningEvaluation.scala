@@ -47,7 +47,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
 
   val numRuns = 2
 
-  val maxLinks = 30
+  val maxLinks = 50
 
   protected override def execute() = {
     //Execute the active learning runs

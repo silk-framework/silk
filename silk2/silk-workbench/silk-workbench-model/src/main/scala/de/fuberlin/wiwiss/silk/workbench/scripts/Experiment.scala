@@ -14,10 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.workbench.scripts
 
-import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Components}
 import de.fuberlin.wiwiss.silk.learning.individual.fitness.{FMeasureFitness, MCCFitnessFunction}
 import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.{Size, FixedIterationsFMeasure}
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningConfiguration
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
+import de.fuberlin.wiwiss.silk.learning.active.linkselector.{JensenShannonDivergenceSelector, EntropySelector, RandomSelector}
 
 /**
  * An experiment consisting of a number of configurations which should be compared and a number of performance metrics.
@@ -34,7 +36,7 @@ object Experiment {
   val default =
     Experiment("Default",
       configurations = LearningConfiguration("Default") :: Nil,
-      metrics = FixedIterationsFMeasure(3) :: Nil
+      metrics = Nil
     )
 
   /**
@@ -98,5 +100,16 @@ object Experiment {
                        LearningConfiguration("Combined", params = Parameters(maxIterations = 10, cleanFrequency = 5),            fitnessFunction = MCCFitnessFunction(0.005)) :: Nil,
       metrics =
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Size(0) :: Size(10) :: Nil
+    )
+
+  /**
+   * Compares different query strategies.
+   */
+  val querystrategy =
+    Experiment("Query Strategy",
+      configurations = LearningConfiguration("Random", active = ActiveLearningConfiguration(selector = RandomSelector())) ::
+                       LearningConfiguration("Entropy", active = ActiveLearningConfiguration(selector = EntropySelector())) ::
+                       LearningConfiguration("Our Approach", active = ActiveLearningConfiguration(selector = JensenShannonDivergenceSelector())):: Nil,
+      metrics = FixedIterationsFMeasure(10) :: Nil
     )
 }
