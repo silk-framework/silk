@@ -34,7 +34,7 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
 
   override final def index(values: Set[String], limit: Double): Index = {
     if(values.isEmpty)
-      Index.empty
+      indexValue("", limit) //We index an empty value, so that the index is empty but has the right size
     else
       values.map(indexValue(_, limit)).reduce(_ merge _)
   }
