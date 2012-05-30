@@ -23,7 +23,7 @@ import java.util.logging.Logger
  * @param threshold Defines the minimum similarity of two data items which is required to generate a link between them.
  * @param limit Defines the number of links originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering.
  */
-case class LinkFilter(limit: Option[Int] = None, threshold: Option[Double] = None) {
+case class LinkFilter(limit: Option[Int] = None, threshold: Option[Double] = None, unambiguous: Option[Boolean] = None) {
   /**
    * Serializes this Link Filter as XML.
    */
@@ -44,11 +44,11 @@ object LinkFilter {
   def fromXML(node: Node): LinkFilter = {
     val limitStr = (node \ "@limit").text
     val threshold = (node \ "@threshold").headOption.map(_.text.toDouble)
+    val unambiguous = (node \ "@unambiguous").headOption.map(_.text.toBoolean)
 
-    if (threshold.isDefined) {
+    if (threshold.isDefined)
       logger.warning("The use of a global threshold is deprecated. Please use per-comparison thresholds.")
-    }
 
-    LinkFilter(if (limitStr.isEmpty) None else Some(limitStr.toInt), threshold)
+    LinkFilter(if (limitStr.isEmpty) None else Some(limitStr.toInt), threshold, unambiguous)
   }
 }
