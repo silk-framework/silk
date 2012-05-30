@@ -76,6 +76,8 @@ object Plugins {
     Transformer.register(classOf[Tokenizer])
     Transformer.register(classOf[ConcatMultipleValuesTransformer])
     Transformer.register(classOf[MergeTransformer])
+    Transformer.register(classOf[SpotlightTextVectorTransformer])
+    Transformer.register(classOf[CamelCaseTokenizer])
 
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])
@@ -94,6 +96,7 @@ object Plugins {
     DistanceMeasure.register(classOf[DiceCoefficient])
     DistanceMeasure.register(classOf[SoftJaccardDistance])
     DistanceMeasure.register(classOf[TokenwiseStringDistance])
+    DistanceMeasure.register(classOf[CosineDistanceMetric])
 
     Aggregator.register(classOf[AverageAggregator])
     Aggregator.register(classOf[MaximumAggregator])
