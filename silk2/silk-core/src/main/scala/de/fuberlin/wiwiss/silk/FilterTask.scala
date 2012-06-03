@@ -32,9 +32,13 @@ class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
         updateStatus("Filtering output")
 
         for ((sourceUri, groupedLinks) <- links.groupBy(_.source)) {
-          val bestLinks = groupedLinks.sortWith(_.confidence.getOrElse(-1.0) > _.confidence.getOrElse(-1.0)).take(limit)
-
-          linkBuffer.appendAll(bestLinks)
+          if(filter.unambiguous==Some(true)) {
+            if(groupedLinks.size==1)
+              linkBuffer.append(groupedLinks.head)
+          } else {
+            val bestLinks = groupedLinks.sortWith(_.confidence.getOrElse(-1.0) > _.confidence.getOrElse(-1.0)).take(limit)
+            linkBuffer.appendAll(bestLinks)
+          }
         }
 
         logger.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
