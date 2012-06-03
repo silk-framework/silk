@@ -100,7 +100,7 @@ class ActiveLearningTask(config: LearningConfiguration,
     }
   }
 
-  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double))= Timer("Selecting links") {
+  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double)) = Timer("Selecting links") {
     val randomizedPopulation = executeSubTask(new RandomizeTask(population, fitnessFunction, generator, config), 0.8, silent = true)
 
     val weightedRules = {

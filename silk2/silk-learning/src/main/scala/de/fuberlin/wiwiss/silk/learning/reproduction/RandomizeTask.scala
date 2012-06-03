@@ -16,7 +16,6 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.util.ParallelMapper
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
@@ -32,6 +31,6 @@ class RandomizeTask(population: Population,
   private val mutation = new MutationFunction(new CrossoverFunction(fitnessFunction, config.components), generator)
 
   override def execute(): Population = {
-    Population(new ParallelMapper(population.individuals).map(mutation))
+    Population(population.individuals.par.map(mutation).seq)
   }
 }

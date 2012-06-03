@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
  * Compares the performance of the different path collectors.
  */
 object SparqlPathsCollectorTest {
-  implicit val logger = Logger.getLogger(SparqlPathsCollectorTest.getClass.getName)
+  implicit val logger = Logger.getLogger(getClass.getName)
 
   private val tests = {
     Test(

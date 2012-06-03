@@ -38,6 +38,24 @@ object PerformanceMetric {
   }
 
   /**
+   * Computes the maximum validation F-measure after a fixed number of iterations.
+   */
+  case class MaxFMeasure(round: Int = 0) extends PerformanceMetric  {
+    val name = round match {
+      case 0 => "Initial F-measure"
+      case _ => "F-measure after " + round + " iterations"
+    }
+
+    def apply(result: RunResult) = {
+      VariableStatistic(result.runs.map(maxFMeasure))
+    }
+
+    private def maxFMeasure(run: RunResult.Run) = {
+      run.results.map(_.validationResult.fMeasure).max
+    }
+  }
+
+  /**
    * Computes the rule size after a fixed number of iterations.
    */
   case class Size(round: Int = 0) extends PerformanceMetric  {

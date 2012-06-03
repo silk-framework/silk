@@ -7,17 +7,19 @@ import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntiti
 import de.fuberlin.wiwiss.silk.workbench.scripts.RunResult.Run
 import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningConfiguration}
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.util.DPair
+import util.Random
 
 object ActiveLearningEvaluation extends EvaluationScript {
 
   override protected def run() {
-    val experiment = Experiment.default
+    val experiment = Experiment.querystrategy
     val datasets = Dataset.fromWorkspace
 
     val values =
-      for(ds <- datasets) yield {
+      for(dataset <- datasets) yield {
         for(config <- experiment.configurations) yield {
-          execute(config, ds)
+          execute(config, dataset)
         }
       }
 
@@ -30,11 +32,11 @@ object ActiveLearningEvaluation extends EvaluationScript {
         values = values
       )
 
+     println(result.toLatex)
      println(result.toCsv)
   }
 
   private def execute(config: LearningConfiguration, dataset: Dataset): RunResult = {
-    log.info("Running: " + dataset.name)
     val cache = dataset.task.cache
     cache.waitUntilLoaded()
     val task = new ActiveLearningEvaluator(config, dataset)
@@ -45,17 +47,22 @@ object ActiveLearningEvaluation extends EvaluationScript {
 class ActiveLearningEvaluator(config: LearningConfiguration,
                               ds: Dataset) extends Task[RunResult] {
 
-  val numRuns = 2
+  val numRuns = 10
 
-  val maxLinks = 50
+  val maxLinks = 10
+
+  val maxPosRefLinks = 100
+
+  val maxNegRefLinks = 3000
 
   protected override def execute() = {
     //Execute the active learning runs
-    val results = for(run <- 0 until numRuns) yield runActiveLearning(run)
+    val results = for(run <- 1 to numRuns) yield runActiveLearning(run)
 
     //Print aggregated results
     val aggregatedResults = for((iterationResults, i) <- results.transpose.zipWithIndex) yield AggregatedLearningResult(iterationResults, i)
 
+    println("Results for experiment " + config.name + " on data set " + ds.name)
     println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = true, includeComplexity = false).toLatex)
     println()
     println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = false).toCsv)
@@ -64,14 +71,17 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
   }
 
   private def runActiveLearning(run: Int): Seq[LearningResult] = {
-    logger.info("Active Learning run " + run)
+    logger.info("Experiment " + config.name + " on data set " + ds.name +  ": run " + run )
 
     var referenceEntities = ReferenceEntities()
     val validationEntities = ds.task.cache.entities
 
+    val sourceEntities =  validationEntities.positive.values.map(_.source)
+    val targetEntities =  validationEntities.positive.values.map(_.target)
     val positiveValLinks = for((link, entityPair) <- validationEntities.positive) yield link.update(entities = Some(entityPair))
-    val negativeValLinks = for((link, entityPair) <- validationEntities.negative) yield link.update(entities = Some(entityPair))
-    var pool: Traversable[Link] = positiveValLinks ++ negativeValLinks
+    val negativeValLinks = for(s <- sourceEntities; t <- targetEntities) yield new Link(s.uri, t.uri, None, Some(DPair(s, t)))
+
+    var pool: Traversable[Link] = positiveValLinks.take(maxPosRefLinks) ++ Random.shuffle(negativeValLinks).take(maxNegRefLinks)
     var population = Population.empty
     val startTime = System.currentTimeMillis()
 
