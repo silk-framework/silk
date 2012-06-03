@@ -14,8 +14,6 @@
 
 package de.fuberlin.wiwiss.silk.learning.generation
 
-import de.fuberlin.wiwiss.silk.util.ParallelMapper
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 import de.fuberlin.wiwiss.silk.util.task.Task
 import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, Individual, Population}
@@ -28,12 +26,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.{input, LinkageRule}
 class GeneratePopulationTask(seedLinkageRules: Traversable[LinkageRule], generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
 
   override def execute(): Population = {
-    val individuals = new ParallelMapper(0 until config.params.populationSize).map { i =>
-      updateStatus(i.toDouble / config.params.populationSize);
+    val individuals = for(i <- (0 until config.params.populationSize).par) yield {
+      updateStatus(i.toDouble / config.params.populationSize)
       generateIndividual()
     }
 
-    Population(individuals)
+    Population(individuals.seq)
   }
 
   private def generateIndividual(): Individual = {

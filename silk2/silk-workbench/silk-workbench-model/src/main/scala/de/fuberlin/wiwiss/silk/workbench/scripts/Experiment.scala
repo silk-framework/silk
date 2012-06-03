@@ -16,10 +16,10 @@ package de.fuberlin.wiwiss.silk.workbench.scripts
 
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.{Parameters, Components}
 import de.fuberlin.wiwiss.silk.learning.individual.fitness.{FMeasureFitness, MCCFitnessFunction}
-import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.{Size, FixedIterationsFMeasure}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.active.linkselector.{JensenShannonDivergenceSelector, EntropySelector, RandomSelector}
+import de.fuberlin.wiwiss.silk.workbench.scripts.PerformanceMetric.{MaxFMeasure, Size, FixedIterationsFMeasure}
 
 /**
  * An experiment consisting of a number of configurations which should be compared and a number of performance metrics.
@@ -110,6 +110,6 @@ object Experiment {
       configurations = LearningConfiguration("Random", active = ActiveLearningConfiguration(selector = RandomSelector())) ::
                        LearningConfiguration("Entropy", active = ActiveLearningConfiguration(selector = EntropySelector())) ::
                        LearningConfiguration("Our Approach", active = ActiveLearningConfiguration(selector = JensenShannonDivergenceSelector())):: Nil,
-      metrics = FixedIterationsFMeasure(10) :: Nil
+      metrics = MaxFMeasure(10) :: Nil
     )
 }
