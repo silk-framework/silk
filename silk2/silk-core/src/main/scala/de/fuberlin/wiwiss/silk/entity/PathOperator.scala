@@ -61,5 +61,5 @@ case class LanguageFilter(operator: String, language: String) extends PathOperat
  * @param value The comparison value.
  */
 case class PropertyFilter(property: String, operator: String, value: String) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "[" + property + " " + operator + " " + value + "]"
+  override def serialize(implicit prefixes: Prefixes) = "[" + (new Uri(property)).toTurtle + " " + operator + " " + value + "]"
 }

@@ -137,6 +137,7 @@
           <xs:complexType>
             <xs:attribute name="threshold" type="xs:decimal" use="optional" />
             <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
+            <xs:attribute name="unambiguous" type="xs:boolean" use="optional" default="false" />
           </xs:complexType>
         </xs:element>
 
