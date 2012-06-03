@@ -15,7 +15,6 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
-import de.fuberlin.wiwiss.silk.util.ParallelMapper
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
@@ -42,8 +41,8 @@ class ReproductionTask(population: Population,
     //Number of individuals to be generated
     val count = individuals.size - config.reproduction.elitismCount
 
-    val offspring = new ParallelMapper(0 until count).map {
-      i => updateStatus(i.toDouble / count); reproduce()
+    val offspring = for(i <- (0 until count).par) yield {
+      updateStatus(i.toDouble / count); reproduce()
     }
 
     Population(elite ++ offspring)

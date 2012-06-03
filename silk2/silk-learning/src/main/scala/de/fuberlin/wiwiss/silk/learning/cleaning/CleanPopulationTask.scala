@@ -14,7 +14,6 @@
 
 package de.fuberlin.wiwiss.silk.learning.cleaning
 
-import de.fuberlin.wiwiss.silk.util.ParallelMapper
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
 import de.fuberlin.wiwiss.silk.util.task.Task
 import de.fuberlin.wiwiss.silk.learning.individual._
@@ -27,13 +26,13 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
   private val fitnessEpsilon = 0.0001
 
   override def execute(): Population = {
-    val individuals = new ParallelMapper(population.individuals).map(cleanIndividual)
+    val individuals = population.individuals.par.map(cleanIndividual).seq
 
     val distinctIndividuals = removeDuplicates(individuals)
 
     //println("Removed: " + (individuals.size - distinctIndividuals.size))
 
-    val randomIndividuals = new ParallelMapper(0 until population.individuals.size - distinctIndividuals.size).map { i =>
+    val randomIndividuals = for(i <- (0 until population.individuals.size - distinctIndividuals.size).par) yield {
         val linkageRule = generator()
 
         Individual(linkageRule, fitnessFunction(linkageRule.build))
