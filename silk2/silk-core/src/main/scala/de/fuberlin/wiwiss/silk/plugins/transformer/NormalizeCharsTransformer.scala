@@ -12,11 +12,11 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
  * @author Florian Kleedorfer, Research Studios Austria
  */
 @Plugin(
-  id="normalizeChars",
-  label="normalizeChars",
-  description="Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss."
+  id = "normalizeChars",
+  label = "normalizeChars",
+  description = "Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss."
 )
-class NormalizeCharsTransformer extends SimpleTransformer{
+class NormalizeCharsTransformer extends SimpleTransformer {
 
   /*
  special regexp char ranges relevant for simplification -> see http://docstore.mik.ua/orelly/perl/prog3/ch05_04.htm
@@ -44,35 +44,33 @@ class NormalizeCharsTransformer extends SimpleTransformer{
     ("\u00FE", "th")).toMap // thorn þ
 
 
-    def evaluate(value: String) =
-    {
-      simplifyString(value)
-    }
+  def evaluate(value: String) = {
+    simplifyString(value)
+  }
 
-    private def simplifyString(str:String):String =
-    {
-      if (str == null) {
-        null;
-      } else {
-        stripNonDiacritics(stripDiacritics(str));
-      }
+  private def simplifyString(str: String): String = {
+    if (str == null) {
+      null;
+    } else {
+      stripNonDiacritics(stripDiacritics(str));
     }
+  }
 
-    private def stripNonDiacritics(orig:String):String = {
-      val ret = new StringBuffer();
-      for (i <- 0 until orig.length()) {
-        val source = orig.substring(i, i + 1);
-        val replace = NONDIACRITICS.get(source);
-        val toReplace = if (replace == null) String.valueOf(source) else replace;
-        ret.append(toReplace);
-      }
-      return ret.toString();
+  private def stripNonDiacritics(orig: String): String = {
+    val ret = new StringBuffer();
+    for (i <- 0 until orig.length()) {
+      val source = orig.substring(i, i + 1);
+      val replace = NONDIACRITICS.get(source);
+      val toReplace = if (replace == null) String.valueOf(source) else replace;
+      ret.append(toReplace);
     }
+    return ret.toString();
+  }
 
-    private def stripDiacritics(str:String):String = {
-      val normalized = Normalizer.normalize(str, Normalizer.Form.NFD);
-      DIACRITICS_AND_FRIENDS.matcher(normalized).replaceAll("");
-    }
-  
+  private def stripDiacritics(str: String): String = {
+    val normalized = Normalizer.normalize(str, Normalizer.Form.NFD);
+    DIACRITICS_AND_FRIENDS.matcher(normalized).replaceAll("");
+  }
+
 
 }
