@@ -20,16 +20,16 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin._
 class RelaxedEqualityMetric extends SimpleDistanceMeasure {
 
   val collator = {
-      //Collator is locale-specific, but finding the actual differences was aborted without success after some time
-      //If there are differences relevant to our purposes for a metric, it makes sense to make the locale a
-      //parameter, but right now, it's better not to confuse anyone without a good reason and just use "en_US".
-      //We're not using Locale.getDefault so as to yield reproducible results, just in case.
-      val locale = new Locale("en_US")
+    //Collator is locale-specific, but finding the actual differences was aborted without success after some time
+    //If there are differences relevant to our purposes for a metric, it makes sense to make the locale a
+    //parameter, but right now, it's better not to confuse anyone without a good reason and just use "en_US".
+    //We're not using Locale.getDefault so as to yield reproducible results, just in case.
+    val locale = new Locale("en_US")
 
-      val newCollator = Collator.getInstance(locale)
-      newCollator.setStrength(Collator.PRIMARY)
-      newCollator.setDecomposition(Collator.FULL_DECOMPOSITION)
-      newCollator
+    val newCollator = Collator.getInstance(locale)
+    newCollator.setStrength(Collator.PRIMARY)
+    newCollator.setDecomposition(Collator.FULL_DECOMPOSITION)
+    newCollator
   }
 
   /**
@@ -39,13 +39,11 @@ class RelaxedEqualityMetric extends SimpleDistanceMeasure {
    * @param limit
    * @return
    */
-  def evaluate(value1: String, value2: String, limit: Double) =
-  {
-    if (collator.equals(value1,value2)) 0.0 else 1.0
+  def evaluate(value1: String, value2: String, limit: Double) = {
+    if (collator.equals(value1, value2)) 0.0 else 1.0
   }
 
-  override def indexValue(value: String, limit: Double) = 
-  {
+  override def indexValue(value: String, limit: Double) = {
     Index.oneDim(Set(collator.getCollationKey(value).hashCode()))
   }
 }
