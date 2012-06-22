@@ -33,6 +33,8 @@ class RestrictionConverterTest extends FlatSpec with ShouldMatchers {
 
   val restrictionConverter = new RestrictionConverter
 
+  //TODO add empty pattern test
+
   "RestrictionConverter" should "convert simple patterns" in {
     val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a rdf:type dbpedia:Settlement")
 

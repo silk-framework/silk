@@ -17,9 +17,9 @@ package de.fuberlin.wiwiss.silk.plugins.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.net.URI
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.sparql.{SparqlSamplePathsCollector, SparqlAggregatePathsCollector, EntityRetriever, RemoteSparqlEndpoint}
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescription}
+import de.fuberlin.wiwiss.silk.util.sparql._
 
 /**
  * DataSource which retrieves all entities from a SPARQL endpoint
@@ -77,6 +77,10 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
         SparqlSamplePathsCollector(createEndpoint(), restrictions, limit)
       }
     }
+  }
+
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    SparqlTypesCollector(createEndpoint(), limit)
   }
 
   protected def createEndpoint() = {
