@@ -51,7 +51,7 @@ object PerformanceMetric {
     }
 
     private def maxFMeasure(run: RunResult.Run) = {
-      run.results.map(_.validationResult.fMeasure).max
+      run.results.take(round + 1).map(_.validationResult.fMeasure).max
     }
   }
 
