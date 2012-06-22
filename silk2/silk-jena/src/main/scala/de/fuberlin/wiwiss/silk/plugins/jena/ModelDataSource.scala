@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import com.hp.hpl.jena.rdf.model.Model
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector}
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlEndpoint, EntityRetriever, SparqlAggregatePathsCollector}
 
 /**
  * DataSource which retrieves all instances from an RDF file.
@@ -27,14 +27,26 @@ import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePath
  * - '''format''': The format of the RDF file. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3"
  */
 
-class ModelDataSource(model: Model) extends DataSource {
-  private lazy val endpoint = new JenaSparqlEndpoint(model)
+class ModelDataSource() extends DataSource {
+
+  private var endpoint: Option[SparqlEndpoint] = None
+
+  def setModel(model: Model) = {
+    endpoint = Some(new JenaSparqlEndpoint(model))
+  }
+
 
   override def retrieve(entityDesc: EntityDescription, instances: Seq[String]) = {
-    EntityRetriever(endpoint).retrieve(entityDesc, instances)
+    if (endpoint.isEmpty){
+      throw new IllegalStateException("Model has not yet been specified through setModel()")
+    }
+    EntityRetriever(endpoint.get).retrieve(entityDesc, instances)
   }
 
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
-    SparqlAggregatePathsCollector(endpoint, restrictions, limit)
+    if (endpoint.isEmpty){
+      throw new IllegalStateException("Model has not yet been specified through setModel()")
+    }
+    SparqlAggregatePathsCollector(endpoint.get, restrictions, limit)
   }
 }
