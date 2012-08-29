@@ -100,15 +100,15 @@ class ActiveLearningTask(config: LearningConfiguration,
     }
   }
 
-  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double))= Timer("Selecting links") {
+  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double)) = Timer("Selecting links") {
     val randomizedPopulation = executeSubTask(new RandomizeTask(population, fitnessFunction, generator, config), 0.8, silent = true)
 
     val weightedRules = {
-     val bestFitness = randomizedPopulation.bestIndividual.fitness
-     val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
-     for(individual <- topIndividuals) yield {
-       new WeightedLinkageRule(individual)
-     }
+      val bestFitness = randomizedPopulation.bestIndividual.fitness
+      val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
+      for(individual <- topIndividuals) yield {
+        new WeightedLinkageRule(individual)
+      }
     }
 
     val valLinks = config.active.selector(weightedRules, pool.toSeq, completeEntities)

@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.output.{LinkWriter}
 import java.io.{OutputStreamWriter, Writer}
 import java.util.logging.Logger
-import java.net.{URLEncoder, URL, HttpURLConnection}
+import java.net._
 import io.Source
 import de.fuberlin.wiwiss.silk.entity.Link
 
@@ -32,10 +32,21 @@ import de.fuberlin.wiwiss.silk.entity.Link
  */
 @Plugin(id = "sparul", label = "SPARQL/Update", description = "Writes the links to a store using SPARQL/Update.")
 case class SparqlWriter(uri: String,
+                        login: String = null, password: String = null,
                         parameter: String = "query",
                         graphUri: String = "") extends LinkWriter {
+
   /**Maximum number of statements per request. */
   private val StatementsPerRequest = 200;
+
+  private val loginComplete = {
+    if (login != null) {
+      require(password != null, "No password provided for login '" + login + "'. Please set the 'password' parameter.")
+      Some((login, password))
+    } else {
+      None
+    }
+  }
 
   private val log = Logger.getLogger(classOf[SparqlWriter].getName)
 
@@ -107,6 +118,13 @@ case class SparqlWriter(uri: String,
   private def openConnection() {
     //Preconditions
     require(connection == null, "Connectiom already openend")
+
+    //Set authentication
+    for ((user, password) <- loginComplete) {
+      Authenticator.setDefault(new Authenticator() {
+        override def getPasswordAuthentication = new PasswordAuthentication(user, password.toCharArray)
+      })
+    }
 
     //Open a new HTTP connection
     val url = new URL(uri)

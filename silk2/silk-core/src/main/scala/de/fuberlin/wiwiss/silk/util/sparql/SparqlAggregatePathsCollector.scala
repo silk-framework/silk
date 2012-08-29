@@ -28,7 +28,8 @@ import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, BackwardOperator, Path
  * - It returns a maximum of 100 forward paths and 10 backward paths
  */
 object SparqlAggregatePathsCollector extends SparqlPathsCollector {
-  private implicit val logger = Logger.getLogger(SparqlAggregatePathsCollector.getClass.getName)
+
+  private implicit val logger = Logger.getLogger(getClass.getName)
 
   /**
    * Retrieves a list of properties which are defined on most entities.

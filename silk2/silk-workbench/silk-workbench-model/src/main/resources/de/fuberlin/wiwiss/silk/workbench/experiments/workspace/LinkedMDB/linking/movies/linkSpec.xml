@@ -1,12 +1,29 @@
 <Interlink id="movies">
-    <LinkType>&lt;http://www.w3.org/2002/07/owl#sameAs&gt;</LinkType>
-    <SourceDataset dataSource="DBpedia" var="a">
-        <RestrictTo>?a ?p ?v .</RestrictTo>
-    </SourceDataset>
-    <TargetDataset dataSource="linkedmdb" var="b">
-        <RestrictTo>?b ?p ?v .</RestrictTo>
-    </TargetDataset>
-    <LinkageRule></LinkageRule>
-    <Filter></Filter>
-    <Outputs></Outputs>
+  <LinkType>&lt;http://www.w3.org/2002/07/owl#sameAs&gt;</LinkType>
+  <SourceDataset dataSource="DBpedia" var="a">
+    <RestrictTo> ?a ?p ?v . </RestrictTo>
+  </SourceDataset>
+  <TargetDataset dataSource="linkedmdb" var="b">
+    <RestrictTo> ?b ?p ?v . </RestrictTo>
+  </TargetDataset>
+  <LinkageRule>
+    <Aggregate weight="1" type="min" required="false" id="unnamed_7">
+      <Compare weight="1" threshold="0.0" required="false" metric="levenshteinDistance" id="unnamed_6">
+        <TransformInput function="lowerCase" id="unnamed_8">
+          <Input path="?a/&lt;http://xmlns.com/foaf/0.1/name&gt;" id="unnamed_1"></Input>
+        </TransformInput>
+        <TransformInput function="lowerCase" id="unnamed_9">
+          <Input path="?b/&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;" id="unnamed_2"></Input>
+        </TransformInput>
+        <Param name="minChar" value="0"></Param>
+        <Param name="maxChar" value="z"></Param>
+      </Compare>
+      <Compare weight="1" threshold="400.0" required="false" metric="date" id="unnamed_5">
+        <Input path="?a/&lt;http://dbpedia.org/ontology/releaseDate&gt;" id="unnamed_4"></Input>
+        <Input path="?b/&lt;http://data.linkedmdb.org/resource/movie/initial_release_date&gt;" id="unnamed_3"></Input>
+      </Compare>
+    </Aggregate>
+  </LinkageRule>
+  <Filter></Filter>
+  <Outputs> </Outputs>
 </Interlink>
