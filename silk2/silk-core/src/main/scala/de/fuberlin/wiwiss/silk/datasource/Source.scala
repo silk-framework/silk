@@ -49,6 +49,18 @@ case class Source(id: Identifier, dataSource: DataSource) {
     dataSource.retrievePaths(restriction, depth, limit)
   }
 
+  /**
+   * Retrieve the most frequent types in the source.
+   * Implementations are only required to work on a best effort basis i.e. it does not necessarily return any types.
+   * The default implementation returns an empty traversable.
+   *
+   * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
+   *
+   */
+  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+    ("test", 0.6) :: dataSource.retrieveTypes(limit).toList
+  }
+
   def toXML: Node = dataSource match {
     case DataSource(dataSourceType, params) => {
       <DataSource id={id} type={dataSourceType}>

@@ -58,9 +58,16 @@ object ReferenceLinksReader {
 
   private val NTriplesRegex = """<([^>]*)>\s*<([^>]*)>\s*<([^>]*)>\s*\.\s*""".r
 
-  def readNTriples(source: Source): ReferenceLinks = {
+  /**
+   * Reads reference links from an N-Triples source.
+   *
+   * @param source The N-Triples source
+   * @param positivePredicate The predicate URI of the positive reference links i.e. http://www.w3.org/2002/07/owl#sameAs
+   * @return The loaded reference links
+   */
+  def readNTriples(source: Source, positivePredicate: String = "http://www.w3.org/2002/07/owl#sameAs"): ReferenceLinks = {
     val positiveLinks =
-      for (NTriplesRegex(sourceUri, predicateUri, targetUri) <- source.getLines() if predicateUri == "http://www.w3.org/2002/07/owl#sameAs") yield {
+      for (NTriplesRegex(sourceUri, predicateUri, targetUri) <- source.getLines() if predicateUri == positivePredicate) yield {
         new Link(sourceUri, targetUri)
       }
 

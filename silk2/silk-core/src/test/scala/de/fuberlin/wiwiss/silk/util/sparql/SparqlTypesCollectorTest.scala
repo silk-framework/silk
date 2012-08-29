@@ -22,18 +22,16 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 /**
  * Compares the performance of the different path collectors.
  */
-object SparqlPathsCollectorTest {
+object SparqlTypesCollectorTest {
   implicit val logger = Logger.getLogger(getClass.getName)
 
   private val tests = {
     Test(
       name = "Sider",
-      uri = "http://www4.wiwiss.fu-berlin.de/sider/sparql",
-      restriction = "?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www4.wiwiss.fu-berlin.de/sider/resource/sider/drugs>"
+      uri = "http://www4.wiwiss.fu-berlin.de/sider/sparql"
     ) :: Test(
-      name = "DBpedia-Drugs",
-      uri = "http://dbpedia.org/sparql",
-      restriction = "?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Drug>"
+      name = "DBpedia",
+      uri = "http://dbpedia.org/sparql"
     ) :: Nil
   }
 
@@ -41,22 +39,17 @@ object SparqlPathsCollectorTest {
     for(test <- tests) test.execute()
   }
 
-  private case class Test(name: String, uri: String, restriction: String) {
+  private case class Test(name: String, uri: String) {
 
     def execute() {
-      logger.info("Executing " + name + " test")
+      logger.info("Executing on " + uri + " test")
 
       val endpoint = new RemoteSparqlEndpoint(uri = new URI(uri), retryCount = 100)
-      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
-      val limit = Some(50)
 
-      Timer("SparqlAggregatePathsCollector") {
-        SparqlAggregatePathsCollector(endpoint, sparqlRestriction, limit).toList
+      val types = Timer("SparqlAggregateTypesCollector") {
+        SparqlAggregateTypesCollector(endpoint, limit = None).toList
       }
-
-      Timer("SparqlSamplePathsCollector") {
-        SparqlSamplePathsCollector(endpoint, sparqlRestriction, limit).toList
-      }
+      logger.info("Found " + types.size + " types: " + types.toString)
     }
   }
 }

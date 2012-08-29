@@ -24,13 +24,13 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 case class EntropySelector() extends LinkSelector {
 
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
-    val valLinks = for(link <- unlabeledLinks) yield link.update(confidence = Some(entropy(rules, link)))
-    valLinks.sortBy(-_.confidence.get).take(3)
+    val maxLink = unlabeledLinks.par.maxBy(link => entropy(rules, link))
+    Seq(maxLink)
   }
 
   private def entropy(rules: Seq[WeightedLinkageRule], link: Link) = {
-    val fulfilledRules = rules.filter(rule => rule(link.entities.get) > 0.0)
-    val p = fulfilledRules.size.toDouble / rules.size
+    val fulfilledRules = rules.count(rule => rule(link.entities.get) > 0.0)
+    val p = fulfilledRules.toDouble / rules.size
 
     if(p == 0.0 || p == 1.0)
       0.0

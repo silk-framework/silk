@@ -22,7 +22,7 @@ import util.Random
  * Link Selector which selects a random link.
  * This can be used as a baseline against other selectors can be compared.
  */
-class RandomSelector extends LinkSelector {
+case class RandomSelector() extends LinkSelector {
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     Seq(unlabeledLinks(Random.nextInt(unlabeledLinks.size)))
   }
