@@ -27,7 +27,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.{Tokenizer, LowerCaseTransfor
  */
 class CompatiblePathsGenerator(components: Components) {
   
-  private val minFrequency = 0.1
+  private val minFrequency = 0.01
   
   def apply(entities: ReferenceEntities, seed: Boolean): Traversable[ComparisonGenerator] = {
     if(entities.positive.isEmpty) {
@@ -43,7 +43,7 @@ class CompatiblePathsGenerator(components: Components) {
         val pathPairs = PairGenerator(distinctPaths, entities)
 
         //pathPairs.foreach(p => printLink(p, instances))
-        pathPairs.foreach(println)
+        //pathPairs.foreach(println)
 
         pathPairs.flatMap(createGenerators)
       }
@@ -83,7 +83,7 @@ class CompatiblePathsGenerator(components: Components) {
     def apply(entities: ReferenceEntities) = {
       val pair = entities.positive.values.head
       val allPaths = pair.map(e => Path(e.desc.variable, Nil) +: e.desc.paths)
-      allPaths.map(_.filterNot(_.toString.contains("sameAs")))
+      allPaths.map(_.filterNot(_.toString.contains("sameAs"))).map(_.filterNot(_.toString.contains("abstract"))).map(_.filterNot(_.toString.contains("comment")))
     }
   }
 
@@ -151,13 +151,13 @@ class CompatiblePathsGenerator(components: Components) {
     private def pathValuesMatch(posEntities: Traversable[DPair[Entity]], negEntities: Traversable[DPair[Entity]], pathPair: DPair[Path]): Boolean = {
       val positive = posEntities.count(i => matches(i, pathPair)).toDouble / posEntities.size
 
-      if(!negEntities.isEmpty) {
-        val negative = negEntities.count(i => matches(i, pathPair)).toDouble / negEntities.size
-        positive > minFrequency && positive * 2.0 >= negative
-      }
-      else {
+//      if(!negEntities.isEmpty) {
+//        val negative = negEntities.count(i => matches(i, pathPair)).toDouble / negEntities.size
+//        positive > minFrequency && positive * 2.0 >= negative
+//      }
+//      else {
         positive > minFrequency
-      }
+//      }
     }
 
     private def matches(entityPair: DPair[Entity], pathPair: DPair[Path]): Boolean = {

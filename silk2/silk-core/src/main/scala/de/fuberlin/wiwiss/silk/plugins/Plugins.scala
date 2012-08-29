@@ -53,7 +53,7 @@ object Plugins {
    */
   private def registerDefaultPlugins() {
     DataSource.register(classOf[SparqlDataSource])
-    //DataSource.register(classOf[CacheDataSource])
+    DataSource.register(classOf[CacheDataSource])
 
     Transformer.register(classOf[ReplaceTransformer])
     Transformer.register(classOf[RegexReplaceTransformer])
@@ -76,7 +76,10 @@ object Plugins {
     Transformer.register(classOf[Tokenizer])
     Transformer.register(classOf[ConcatMultipleValuesTransformer])
     Transformer.register(classOf[MergeTransformer])
-
+    Transformer.register(classOf[SpotlightTextVectorTransformer])
+    Transformer.register(classOf[CamelCaseTokenizer])
+    Transformer.register(classOf[NormalizeCharsTransformer])
+    
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])
     DistanceMeasure.register(classOf[JaroDistanceMetric])
@@ -94,7 +97,9 @@ object Plugins {
     DistanceMeasure.register(classOf[DiceCoefficient])
     DistanceMeasure.register(classOf[SoftJaccardDistance])
     DistanceMeasure.register(classOf[TokenwiseStringDistance])
-
+    DistanceMeasure.register(classOf[RelaxedEqualityMetric])
+    DistanceMeasure.register(classOf[CosineDistanceMetric])
+    
     Aggregator.register(classOf[AverageAggregator])
     Aggregator.register(classOf[MaximumAggregator])
     Aggregator.register(classOf[MinimumAggregator])
