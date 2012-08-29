@@ -23,6 +23,7 @@ import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.LoadTask
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 
 /**
  * Populates the entity cache.
@@ -34,6 +35,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
   def apply()
   {
     Plugins.register()
+    JenaPlugins.register()
 
     val config = loadConfig(new Path(silkConfigPath), new Path(entityCachePath))
 
