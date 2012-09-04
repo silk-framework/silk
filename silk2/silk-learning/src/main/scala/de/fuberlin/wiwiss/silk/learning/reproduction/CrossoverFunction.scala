@@ -37,7 +37,9 @@ class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Co
       ops ::= RequiredCrossover()
       //We always modify existing aggregations
       ops ::= AggregationOperatorsCrossover()
-      ops ::= AggregationStrategyCrossover()
+      ops ::= AggregationFunctionCrossover()
+      //We always learn distance functions
+      ops ::= DistanceMeasureCrossover()
 
       if(components.transformations)
         ops ::= TransformationCrossover()
