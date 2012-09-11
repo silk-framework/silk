@@ -36,7 +36,7 @@ object CrossoverOperator extends PluginFactory[CrossoverOperator] {
   register(classOf[ThresholdCrossover])
   register(classOf[WeightCrossover])
   register(classOf[AggregationOperatorsCrossover])
-  register(classOf[AggregationStrategyCrossover])
+  register(classOf[AggregationFunctionCrossover])
   register(classOf[OperatorCrossover])
   register(classOf[TransformationCrossover])
 }
