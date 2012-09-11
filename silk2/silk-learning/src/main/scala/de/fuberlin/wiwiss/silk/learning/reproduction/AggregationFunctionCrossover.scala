@@ -12,12 +12,16 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.metric
+package de.fuberlin.wiwiss.silk.learning.reproduction
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.learning.individual.AggregationNode
 
-@Plugin(id = "inequality", label = "Inequality", description = "Return 1 if strings are equal, 0 otherwise.")
-case class InequalityMetric() extends SimpleDistanceMeasure {
-  override def evaluate(str1: String, str2: String, threshold: Double) = if (str1 == str2) 1.0 else 0.0
+/**
+ * A crossover operator which interchanges the aggregation strategies.
+ */
+case class AggregationFunctionCrossover() extends NodePairCrossoverOperator[AggregationNode] {
+  override protected def crossover(nodes: DPair[AggregationNode]) = {
+    nodes.source.copy(aggregation = nodes.target.aggregation)
+  }
 }

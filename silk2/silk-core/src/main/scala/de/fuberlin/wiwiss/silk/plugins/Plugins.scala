@@ -99,6 +99,8 @@ object Plugins {
     DistanceMeasure.register(classOf[TokenwiseStringDistance])
     DistanceMeasure.register(classOf[RelaxedEqualityMetric])
     DistanceMeasure.register(classOf[CosineDistanceMetric])
+    DistanceMeasure.register(classOf[KoreanPhonemeDistance])
+    DistanceMeasure.register(classOf[KoreanTranslitDistance])
     
     Aggregator.register(classOf[AverageAggregator])
     Aggregator.register(classOf[MaximumAggregator])
