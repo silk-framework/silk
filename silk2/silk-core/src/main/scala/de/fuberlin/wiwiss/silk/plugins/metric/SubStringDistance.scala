@@ -30,11 +30,12 @@ case class SubStringDistance() extends SimpleDistanceMeasure {
 }
 
 object SubStringDistance {
-  private def normalizeString(_str: String): String = {
+  def normalizeString(_str: String): String = {
     var str: String = _str
     str = normalizeString(str, '.')
     str = normalizeString(str, '_')
     str = normalizeString(str, ' ')
+    str = normalizeString(str, '-')
     return str
   }
 
