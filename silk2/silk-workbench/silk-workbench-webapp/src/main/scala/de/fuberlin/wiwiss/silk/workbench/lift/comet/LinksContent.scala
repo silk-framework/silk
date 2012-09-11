@@ -27,6 +27,7 @@ import de.fuberlin.wiwiss.silk.entity.{Link, Path, Entity}
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
+import java.net.URLDecoder
 
 /**
  * A widget which displays a list of links.
@@ -165,8 +166,8 @@ trait LinksContent extends CometActor {
     <div class="link" id={getId(link)} >
       <div class={if (counter%2==0) "link-header grey" else "link-header" } onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
         <div id={getId(link, "toggle")}><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
-        <div class="link-source"><a href={link.source} target="_blank">{prefixes.shorten(link.source)}</a></div>
-        <div class="link-target"><a href={link.target} target="_blank">{prefixes.shorten(link.target)}</a></div>
+        <div class="link-source"><a href={link.source} target="_blank">{prefixes.shorten(URLDecoder.decode(link.source, "UTF-8"))}</a></div>
+        <div class="link-target"><a href={link.target} target="_blank">{prefixes.shorten(URLDecoder.decode(link.target, "UTF-8"))}</a></div>
         <div class="link-confidence">{renderConfidence(link)}</div>
         { if(showStatus) <div class="link-status">{ renderStatus(link) }</div> else NodeSeq.Empty }
         { if(showButtons) <div class="link-buttons">{ renderButtons(link) }</div> else NodeSeq.Empty }

@@ -41,12 +41,12 @@ class AlignmentFormatter() extends XMLFormatter {
       <Cell>
           <entity1 rdf:resource={link.source}/>
           <entity2 rdf:resource={link.target}/>
-        <relation>
-          {if (predicateUri == "http://www.w3.org/2002/07/owl#sameAs") "=" else predicateUri}
-        </relation>
-        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">
-          {link.confidence.toString}
-        </measure>
+        <relation>{
+          if (predicateUri == "http://www.w3.org/2002/07/owl#sameAs") "=" else predicateUri
+        }</relation>
+        <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">{
+          link.confidence.getOrElse(0.0).toString
+        }</measure>
       </Cell>
     </map>
   }
