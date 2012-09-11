@@ -33,10 +33,10 @@ class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
 
         for ((sourceUri, groupedLinks) <- links.groupBy(_.source)) {
           if(filter.unambiguous==Some(true)) {
-            if(groupedLinks.size==1)
+            if(groupedLinks.distinct.size==1)
               linkBuffer.append(groupedLinks.head)
           } else {
-            val bestLinks = groupedLinks.sortWith(_.confidence.getOrElse(-1.0) > _.confidence.getOrElse(-1.0)).take(limit)
+            val bestLinks = groupedLinks.distinct.sortWith(_.confidence.getOrElse(-1.0) > _.confidence.getOrElse(-1.0)).take(limit)
             linkBuffer.appendAll(bestLinks)
           }
         }
