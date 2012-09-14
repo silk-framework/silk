@@ -14,7 +14,9 @@ import de.fuberlin.wiwiss.silk.entity.Index
  */
 
 @Plugin(id = "substring", label = "SubString", description = "Return 0 to 1 for strong similarity to weak similarity")
-case class SubStringDistance() extends SimpleDistanceMeasure {
+case class SubStringDistance(granularity: String = "3") extends SimpleDistanceMeasure {
+  private val n = granularity.toInt
+
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     val score = SubStringDistance.score(str1, str2)
     if(score < 0)
@@ -24,8 +26,8 @@ case class SubStringDistance() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, threshold: Double) = {
-    val threeGrams = SubStringDistance.getNgrams(str)
-    Index.oneDim(threeGrams.map(a => a.hashCode()).toSet)
+    val nGrams = SubStringDistance.getNgrams(str, n)
+    Index.oneDim(nGrams.map(a => a.hashCode()).toSet)
   }
 }
 
@@ -225,8 +227,11 @@ object SubStringDistance {
   }
 
   def getNgrams(str: String, n: Int = 3): Seq[String] = {
-    for(i <- 0 to str.length-n)
-      yield str.substring(i, i+n)
+    val normString = normalizeString(str).toLowerCase
+    if(normString.length <= n)
+      return Seq(normString)
+    for(i <- 0 to normString.length-n)
+      yield normString.substring(i, i+n)
   }
 
   def main(args: Array[String]) {
