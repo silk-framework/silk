@@ -26,12 +26,13 @@ class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
   taskName = "Filtering"
 
   override def execute(): Seq[Link] = {
+    val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
         val linkBuffer = new ArrayBuffer[Link]()
         updateStatus("Filtering output")
 
-        for ((sourceUri, groupedLinks) <- links.groupBy(_.source)) {
+        for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
           if(filter.unambiguous==Some(true)) {
             if(groupedLinks.distinct.size==1)
               linkBuffer.append(groupedLinks.head)
@@ -45,7 +46,7 @@ class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
 
         linkBuffer
       }
-      case None => links.distinct
+      case None => links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
     }
   }
 }

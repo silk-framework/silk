@@ -24,15 +24,16 @@ class SilkReduce extends Reducer[Text, EntityConfidence, Text, EntityConfidence]
   protected override def reduce(sourceUri : Text, entitiySimilarities : java.lang.Iterable[EntityConfidence],
                                 context : Reducer[Text, EntityConfidence, Text, EntityConfidence]#Context) {
     val config = SilkConfiguration.get(context.getConfiguration)
-
+    val threshold = config.linkSpec.filter.threshold.getOrElse(-1.0)
+    val resultsPerEntity = entitiySimilarities.toSeq.filter(_.similarity >= threshold).distinct
     config.linkSpec.filter.limit match {
       case Some(limit) => {
-        for(entitySimilarity <- entitiySimilarities.take(limit)) {
+        for(entitySimilarity <- resultsPerEntity.sortWith(_.similarity > _.similarity).take(limit)) {
           context.write(sourceUri, entitySimilarity)
         }
       }
       case None => {
-        for(entitySimilarity <- entitiySimilarities) {
+        for(entitySimilarity <- resultsPerEntity) {
           context.write(sourceUri, entitySimilarity)
         }
       }
