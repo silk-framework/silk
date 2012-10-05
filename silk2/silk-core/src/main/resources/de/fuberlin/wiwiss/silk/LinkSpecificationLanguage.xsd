@@ -59,6 +59,7 @@
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Aggregate" />
           <xs:element ref="Compare" />
+          <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
         </xs:choice>
       </xs:sequence>
       <xs:attribute name="id" type="xs:string" use="optional" />
