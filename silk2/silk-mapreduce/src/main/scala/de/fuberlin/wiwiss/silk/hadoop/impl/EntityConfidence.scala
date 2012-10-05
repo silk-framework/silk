@@ -34,4 +34,9 @@ class EntityConfidence(var similarity : Double, var targetUri : String) extends 
   }
 
   override def toString = targetUri + " (" + similarity + ")"
+
+  override def equals(that: Any): Boolean = that match {
+    case ec: EntityConfidence => (ec.similarity, ec.targetUri)==(similarity, targetUri)
+    case _ => false
+  }
 }
