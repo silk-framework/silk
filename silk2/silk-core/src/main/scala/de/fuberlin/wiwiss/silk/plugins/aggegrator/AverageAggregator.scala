@@ -51,7 +51,11 @@ case class AverageAggregator() extends Aggregator {
   /**
    * Combines two indexes into one.
    */
-  override def combineIndexes(index1: Index, index2: Index)= index1 conjunction index2
+  override def combineIndexes(index1: Index, index2: Index)= {
+    if(index1.isEmpty) index2
+    else if(index2.isEmpty) index1
+    else index1 conjunction index2
+  }
 
   override def computeThreshold(limit: Double, weight: Double): Double = {
     1.0 - ((1.0 - limit) / weight) + positiveWeight.toDouble / negativeWeight
