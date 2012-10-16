@@ -25,9 +25,12 @@ import de.fuberlin.wiwiss.silk.util.DPair
  * Base class of aggregations and comparisons.
  */
 trait SimilarityOperator extends Operator {
-  val required: Boolean
 
-  val weight: Int
+  def required: Boolean
+
+  def weight: Int
+
+  def indexing: Boolean
 
   /**
    * Computes the similarity between two entities.

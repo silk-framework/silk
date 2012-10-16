@@ -63,6 +63,7 @@ class AggregationTest extends FlatSpec with ShouldMatchers {
       val id: Identifier = null
       val weight: Int = w
       val required: Boolean = r
+      val indexing: Boolean = false
       def apply(entities: DPair[Entity], limit: Double): Option[Double] = value
       def index(entity: Entity, limit: Double): Index = null
       def toXML(implicit prefixes: Prefixes): Node = null
