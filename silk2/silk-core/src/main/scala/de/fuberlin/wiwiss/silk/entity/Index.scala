@@ -24,9 +24,11 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
 
   override def toString = indices.toString
 
-  def intersect(other: Index): Boolean = indices.exists(other.indices)
+  def size = indices.size
 
   def isEmpty = indices.isEmpty
+
+  def intersect(other: Index): Boolean = indices.exists(other.indices)
 
   def flatten: Set[Int] = {
     //Convert the index vectors to scalars in the range [0, Int.MaxValue]
