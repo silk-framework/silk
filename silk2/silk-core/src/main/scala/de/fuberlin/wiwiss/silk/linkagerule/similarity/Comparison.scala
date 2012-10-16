@@ -28,6 +28,7 @@ case class Comparison(id: Identifier = Operator.generateId,
                       required: Boolean = false,
                       weight: Int = 1,
                       threshold: Double = 0.0,
+                      indexing: Boolean = true,
                       metric: DistanceMeasure,
                       inputs: DPair[Input]) extends SimilarityOperator {
 
@@ -101,6 +102,7 @@ object Comparison {
       val requiredStr = node \ "@required" text
       val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
       val weightStr = node \ "@weight" text
+      val indexingStr = node \ "@indexing" text
       val metric = DistanceMeasure(node \ "@metric" text, Operator.readParams(node))
 
       Comparison(
@@ -108,6 +110,7 @@ object Comparison {
         required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
         threshold = threshold,
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
+        indexing = if (requiredStr.isEmpty) true else indexingStr.toBoolean,
         inputs = DPair(inputs(0), inputs(1)),
         metric = metric
       )

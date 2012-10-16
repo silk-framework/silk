@@ -33,6 +33,8 @@ case class Aggregation(id: Identifier = Operator.generateId,
   //TODO learning currently may produce empty aggreagations when cleaning
   //require(!operators.isEmpty, "!operators.isEmpty")
 
+  def indexing = operators.exists(_.indexing)
+
   /**
    * Computes the similarity between two entities.
    *
@@ -70,14 +72,14 @@ case class Aggregation(id: Identifier = Operator.generateId,
     val totalWeights = operators.map(_.weight).sum
 
     val indexSets = {
-      for (op <- operators) yield {
+      for (op <- operators if op.indexing) yield {
         val index = op.index(entity, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights))
 
-        if (op.required && index.isEmpty) return Index.empty;
+        if (op.required && index.isEmpty) return Index.empty
 
         index
       }
-    }
+    }.filter(_.isEmpty)
 
     if (indexSets.isEmpty)
       Index.empty
