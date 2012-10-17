@@ -79,7 +79,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
 
         index
       }
-    }.filter(_.isEmpty)
+    }.filterNot(_.isEmpty)
 
     if (indexSets.isEmpty)
       Index.empty
