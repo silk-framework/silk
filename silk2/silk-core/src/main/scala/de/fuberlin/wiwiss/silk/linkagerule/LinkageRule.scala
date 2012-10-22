@@ -38,9 +38,6 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
    *         +1.0 for definitive matches.
    */
   def apply(entities: DPair[Entity], limit: Double = 0.0): Double = {
-
-    println(DetailedEvaluator(this, entities, limit).get.toXML.toFormattedString)
-
     operator match {
       case Some(op) => op(entities, limit).getOrElse(-1.0)
       case None => -1.0
@@ -56,9 +53,6 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, limit: Double = 0.0): Index = {
-
-    println(DetailedIndexer(this, entity, limit).toXML.toFormattedString)
-
     operator match {
       case Some(op) => op.index(entity, limit)
       case None => Index.empty
