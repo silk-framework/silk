@@ -110,7 +110,7 @@ object Comparison {
         required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
         threshold = threshold,
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-        indexing = if (requiredStr.isEmpty) true else indexingStr.toBoolean,
+        indexing = if (indexingStr.isEmpty) true else indexingStr.toBoolean,
         inputs = DPair(inputs(0), inputs(1)),
         metric = metric
       )
