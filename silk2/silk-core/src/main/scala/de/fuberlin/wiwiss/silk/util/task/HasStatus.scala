@@ -38,7 +38,7 @@ trait HasStatus extends Observable[TaskStatus] {
   /**
    * Holds the current status.
    */
-  private var currentStatus: TaskStatus = TaskIdle()
+  @volatile private var currentStatus: TaskStatus = TaskIdle()
 
   /**
    * The current status of this task.
@@ -65,7 +65,7 @@ trait HasStatus extends Observable[TaskStatus] {
   /**
    * Updates the status message.
    *
-   * @param status The new status message
+   * @param message The new status message
    */
   protected def updateStatus(message: String) {
     updateStatus(TaskRunning(message, currentStatus.progress))
