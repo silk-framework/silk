@@ -13,7 +13,7 @@ import util.Random
 object ActiveLearningEvaluation extends EvaluationScript {
 
   override protected def run() {
-    val experiment = Experiment.querystrategy
+    val experiment = Experiment.default
     val datasets = Dataset.fromWorkspace
 
     val values =
@@ -47,9 +47,9 @@ object ActiveLearningEvaluation extends EvaluationScript {
 class ActiveLearningEvaluator(config: LearningConfiguration,
                               ds: Dataset) extends Task[RunResult] {
 
-  val numRuns = 10
+  val numRuns = 1
 
-  val maxLinks = 10
+  val maxLinks = 1
 
   val maxPosRefLinks = 100
 
@@ -81,7 +81,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     val positiveValLinks = for((link, entityPair) <- validationEntities.positive) yield link.update(entities = Some(entityPair))
     val negativeValLinks = for(s <- sourceEntities; t <- targetEntities) yield new Link(s.uri, t.uri, None, Some(DPair(s, t)))
 
-    var pool: Traversable[Link] = positiveValLinks.take(maxPosRefLinks) ++ Random.shuffle(negativeValLinks).take(maxNegRefLinks)
+    var pool: Traversable[Link] = Nil//positiveValLinks.take(maxPosRefLinks) ++ Random.shuffle(negativeValLinks).take(maxNegRefLinks)
     var population = Population.empty
     val startTime = System.currentTimeMillis()
 

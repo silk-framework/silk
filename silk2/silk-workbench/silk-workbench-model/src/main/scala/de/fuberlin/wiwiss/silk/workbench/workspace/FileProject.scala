@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workbench.workspace
 
-import modules.linking.{Cache, LinkingTask, LinkingConfig, LinkingModule}
+import modules.linking.{Caches, LinkingTask, LinkingConfig, LinkingModule}
 import modules.output.{OutputTask, OutputConfig, OutputModule}
 import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
@@ -171,21 +171,19 @@ class FileProject(file : File) extends Project {
         for(fileName <- file.list.toList) yield
         {
           val projectConfig = FileProject.this.config
-
           val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
-
           val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
+          val cache = new Caches()
 
           //Load the cache
-          val cache =
-            try {
-              Cache.fromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
-            } catch {
-              case ex : Exception => {
-                logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-                new Cache()
-              }
+          try {
+            cache.loadFromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+          } catch {
+            case ex : Exception => {
+              logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+              new Caches()
             }
+          }
 
           LinkingTask(FileProject.this, linkSpec, referenceLinks, cache)
         }
