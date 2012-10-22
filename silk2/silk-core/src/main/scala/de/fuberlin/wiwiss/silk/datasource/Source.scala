@@ -58,7 +58,7 @@ case class Source(id: Identifier, dataSource: DataSource) {
    *
    */
   def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    ("test", 0.6) :: dataSource.retrieveTypes(limit).toList
+    dataSource.retrieveTypes(limit)
   }
 
   def toXML: Node = dataSource match {
