@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.workbench.workspace.{ProjectConfig, Project}
 import de.fuberlin.wiwiss.silk.workbench.workspace.modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{LinkingTask, Cache}
+import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{LinkingTask, Caches}
 
 /**
  * Reads a project from a single XML file.
@@ -34,13 +34,11 @@ object ProjectImporter
 
     project.config = ProjectConfig(prefixes)
 
-    for(taskNode <- xml \ "SourceModule" \ "Tasks" \ "SourceTask")
-    {
+    for(taskNode <- xml \ "SourceModule" \ "Tasks" \ "SourceTask") {
       project.sourceModule.update(readSourceTask(taskNode))
     }
 
-    for(taskNode <- xml \ "LinkingModule" \ "Tasks" \ "LinkingTask")
-    {
+    for(taskNode <- xml \ "LinkingModule" \ "Tasks" \ "LinkingTask") {
       project.linkingModule.update(readLinkingTask(taskNode, project))
     }
   }
@@ -52,7 +50,8 @@ object ProjectImporter
   private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) = {
     val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(xml \ "Alignment" \ "_" head)
-    val cache = Cache.fromXML(xml \ "Cache" \ "_" head)
+    val cache = new Caches()
+    cache.loadFromXML(xml \ "Cache" \ "_" head)
 
     LinkingTask(project, linkSpec, referenceLinks, cache)
   }
