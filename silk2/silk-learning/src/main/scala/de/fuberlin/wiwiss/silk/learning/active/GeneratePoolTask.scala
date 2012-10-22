@@ -39,7 +39,7 @@ private class GeneratePoolTask(sources: Traversable[Source],
   override protected def execute(): Seq[Link] = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
                            linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
-    val op = new TestOperator()
+    val op = new SampleOperator()
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
     generateLinksTask =
@@ -63,7 +63,7 @@ private class GeneratePoolTask(sources: Traversable[Source],
     links ++ shuffledLinks
   }
 
-  private class TestOperator() extends SimilarityOperator {
+  private class SampleOperator() extends SimilarityOperator {
 
     val links = Array.fill(paths.source.size, paths.target.size)(Seq[Link]())
 
@@ -106,12 +106,12 @@ private class GeneratePoolTask(sources: Traversable[Source],
 
     val weight = 1
 
+    val indexing = true
+
+    private val inputs = (paths.source.toSet ++ paths.target.toSet).map(p => PathInput(path = p))
+
     def index(entity: Entity, limit: Double): Index = {
       val entities = DPair.fill(entity)
-
-      val allPaths = paths.source.toSet ++ paths.target.toSet
-
-      val inputs = allPaths.map(p => PathInput(path = p))
 
       val index = inputs.map(i => i(entities)).map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
 

@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.SHtml
 import net.liftweb.util.Helpers._
-import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Cache, LinkingTask}
+import de.fuberlin.wiwiss.silk.workbench.workspace.modules.linking.{Caches, LinkingTask}
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.config.{LinkFilter, Dataset, LinkSpecification}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
