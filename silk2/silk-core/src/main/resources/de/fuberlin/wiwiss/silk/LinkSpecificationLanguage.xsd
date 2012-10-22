@@ -50,6 +50,7 @@
       <xs:attribute name="threshold" type="xs:double" />
       <xs:attribute name="weight" type="xs:unsignedShort" />
       <xs:attribute name="required" type="xs:boolean" />
+      <xs:attribute name="indexing" type="xs:boolean" />
     </xs:complexType>
   </xs:element>
 
