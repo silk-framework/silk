@@ -20,17 +20,17 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workbench.workspace.Project
 
 /**
- * A linking task which interlinks two datasets.
+ * A linking task which interlinks two data sets.
  */
-class LinkingTask private(val linkSpec: LinkSpecification, val referenceLinks: ReferenceLinks, val cache: Cache) extends ModuleTask {
+class LinkingTask private(val linkSpec: LinkSpecification, val referenceLinks: ReferenceLinks, val cache: Caches) extends ModuleTask {
   val name = linkSpec.id
 
   def updateLinkSpec(linkSpec: LinkSpecification, project: Project) = {
-    LinkingTask(project, linkSpec, referenceLinks, cache.update())
+    LinkingTask(project, linkSpec, referenceLinks, cache)
   }
 
   def updateReferenceLinks(referenceLinks: ReferenceLinks, project: Project) = {
-    LinkingTask(project, linkSpec, referenceLinks, cache.update())
+    LinkingTask(project, linkSpec, referenceLinks, cache)
   }
 }
 
@@ -38,7 +38,7 @@ object LinkingTask {
   /**
    * Constructs a new linking task and starts loading the cache.
    */
-  def apply(project: Project, linkSpec: LinkSpecification, referenceLinks: ReferenceLinks = ReferenceLinks(), cache: Cache = new Cache()) = {
+  def apply(project: Project, linkSpec: LinkSpecification, referenceLinks: ReferenceLinks = ReferenceLinks(), cache: Caches = new Caches()) = {
     val task = new LinkingTask(linkSpec, referenceLinks, cache)
     task.cache.load(project, task)
     task
