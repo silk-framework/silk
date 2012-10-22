@@ -45,7 +45,7 @@ object LinkageRuleTree {
         </ul>
       </li>
     }
-    case Comparison(id, required, weight, threshold, metric, DPair(input1, input2)) => {
+    case Comparison(id, required, weight, threshold, indexing, metric, DPair(input1, input2)) => {
       <li>
         <span class="comparison">Comparison: {metric.pluginId} ({threshold.toString})</span>
         <ul>
