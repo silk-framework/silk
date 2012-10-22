@@ -73,7 +73,8 @@ case class Aggregation(id: Identifier = Operator.generateId,
 
     val indexSets = {
       for (op <- operators if op.indexing) yield {
-        val index = op.index(entity, aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights))
+        val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
+        val index = op.index(entity, opThreshold)
 
         if (op.required && index.isEmpty) return Index.empty
 
