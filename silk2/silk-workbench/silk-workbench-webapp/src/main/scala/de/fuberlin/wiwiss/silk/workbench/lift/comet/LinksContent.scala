@@ -185,7 +185,7 @@ trait LinksContent extends CometActor {
     case None => <div class="confidencebar">Pending...</div>
     case Some(sim) => {
       <div class="confidencebar">
-        <div class="confidence">{"%.1f".format(sim.value.getOrElse(-1.0) * 100)}%</div>
+        <div class="confidence">{"%.1f".format(sim.score.getOrElse(-1.0) * 100)}%</div>
       </div>
     }
   }

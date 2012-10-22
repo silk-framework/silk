@@ -42,8 +42,8 @@ class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers {
   }
 
   "LevenshteinDistance" should "index correctly" in {
-    (metric.indexValue("Sunday", 3) intersect metric.indexValue("Saturday", 3)) should equal(true)
-    (metric.indexValue("Sunday", 4) intersect metric.indexValue("Saturday", 4)) should equal(true)
+    (metric.indexValue("Sunday", 3) matches metric.indexValue("Saturday", 3)) should equal(true)
+    (metric.indexValue("Sunday", 4) matches metric.indexValue("Saturday", 4)) should equal(true)
   }
 
 //  "LevenshteinDistance" should "index '0' to the first block" in {
