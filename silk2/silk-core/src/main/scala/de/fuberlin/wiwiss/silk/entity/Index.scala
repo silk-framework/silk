@@ -17,21 +17,38 @@ package de.fuberlin.wiwiss.silk.entity
 import math.{min, max}
 
 class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[Int]) {
+
+  /** The number of index values in this index. */
+  def size = indices.size
+
+  /** The number of dimensions of this index. */
+  def dimensions = sizes.size
+
+  /** Tests whether this index is empty i.e. does not contain any index value. */
+  def isEmpty = indices.isEmpty
+
+  /**
+   * Returns a human-readable description of this index.
+   */
+  override def toString = indices.toString
+
+  /**
+   * Two indices match if they share at least one index value.
+   */
+  def matches(other: Index): Boolean = indices.exists(other.indices)
+
+  /**
+   * Tests if two indices are identical.
+   */
   override def equals(other: Any) = other match {
     case o: Index => indices == o.indices
     case _ => false
   }
 
-  override def toString = indices.toString
-
-  def size = indices.size
-
-  def isEmpty = indices.isEmpty
-
-  def intersect(other: Index): Boolean = indices.exists(other.indices)
-
+  /**
+   * Flattens the index vectors to scalars in the range [0, Int.MaxValue].
+   */
   def flatten: Set[Int] = {
-    //Convert the index vectors to scalars in the range [0, Int.MaxValue]
     //TODO allow negative values
     for (index <- indices) yield {
       val flatIndex = (index zip sizes).foldLeft(0) {
@@ -42,6 +59,10 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
     }
   }
 
+  /**
+   * Combines two indices disjunctively.
+   * i.e. index1 matches index3 || index2 matches index4 <=> (index1 disjunction index2) matches (index3 disjunction index4)
+   */
   def disjunction(other: Index) = {
     val newIndexSet1 = indices.map(_.padTo(max(sizes.size, other.sizes.size), 0))
     val newIndexSet2 = other.indices.map(_.zipAll(other.sizes, 0, 0).map {
@@ -54,6 +75,10 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
     new Index(combinedIndices, combinedSizes)
   }
 
+  /**
+   * Combines two indices conjunctively.
+   * i.e. index1 matches index3 && index2 matches index4 <=> (index1 conjunction index2) matches (index3 conjunction index4)
+   */
   def conjunction(other: Index) = {
     val indexes1 = if (indices.isEmpty) Set(Seq.fill(sizes.size)(0)) else indices
     val indexes2 = if (other.indices.isEmpty) Set(Seq.fill(other.sizes.size)(0)) else other.indices
@@ -64,6 +89,9 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
     new Index(combinedIndices, combinedSizes)
   }
 
+  /**
+   * Merges two indices of the same dimension.
+   */
   def merge(other: Index) = {
     require(sizes.size == other.sizes.size, "Indexes must have same number of dimensions")
 

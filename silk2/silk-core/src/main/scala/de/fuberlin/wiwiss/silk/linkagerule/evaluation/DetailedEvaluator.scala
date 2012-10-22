@@ -27,7 +27,7 @@ object DetailedEvaluator {
       case Some(op) => {
         val confidence = evaluateOperator(op, entities, limit)
 
-        if (confidence.value.getOrElse(-1.0) >= limit)
+        if (confidence.score.getOrElse(-1.0) >= limit)
           Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(confidence)))
         else
           None
@@ -55,13 +55,13 @@ object DetailedEvaluator {
       for (operator <- agg.operators) yield {
         val updatedThreshold = agg.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
         val value = evaluateOperator(operator, entities, updatedThreshold)
-        if (operator.required && value.value.isEmpty) isNone = true
+        if (operator.required && value.score.isEmpty) isNone = true
 
         value
       }
     }
 
-    val weightedValues = for((weight, Some(value)) <- agg.operators.map(_.weight) zip operatorValues.map(_.value)) yield (weight, value)
+    val weightedValues = for((weight, Some(value)) <- agg.operators.map(_.weight) zip operatorValues.map(_.score)) yield (weight, value)
 
     val aggregatedValue = agg.aggregator.evaluate(weightedValues)
 
@@ -73,7 +73,7 @@ object DetailedEvaluator {
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): DetailedLink.ComparisonConfidence = {
     ComparisonConfidence(
-      value = comparison.apply(entities, threshold),
+      score = comparison.apply(entities, threshold),
       comparison = comparison,
       sourceValue = evaluateInput(comparison.inputs.source, entities),
       targetValue = evaluateInput(comparison.inputs.target, entities)
