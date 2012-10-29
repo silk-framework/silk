@@ -65,12 +65,12 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
    */
   def disjunction(other: Index) = {
     val newIndexSet1 = indices.map(_.padTo(max(sizes.size, other.sizes.size), 0))
-    val newIndexSet2 = other.indices.map(_.zipAll(other.sizes, 0, 0).map {
-      case (indexValue, blockCount) => blockCount + indexValue
+    val newIndexSet2 = other.indices.map(_.zipAll(sizes, 0, 1).map {
+      case (indexValue, indexSize) => indexSize + indexValue
     })
 
     val combinedIndices = newIndexSet1 ++ newIndexSet2
-    val combinedSizes = other.sizes.zipAll(other.sizes, 0, 0).map { case (c1, c2) => c1 + c2 }
+    val combinedSizes = sizes.zipAll(other.sizes, 1, 1).map { case (c1, c2) => c1 + c2 }
 
     new Index(combinedIndices, combinedSizes)
   }
