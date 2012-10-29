@@ -27,10 +27,22 @@ case class LinkFilter(limit: Option[Int] = None, threshold: Option[Double] = Non
   /**
    * Serializes this Link Filter as XML.
    */
-  def toXML: Node = limit match {
-    case Some(l) => <Filter limit={l.toString}/>
-    case None => <Filter/>
+  def toXML: Node = {
+    val limitXML: Option[xml.Text] = limit match {
+      case None => None
+      case Some(l) => Some(xml.Text(l.toString))
+    }
+    val thresholdXML: Option[xml.Text] = threshold match {
+      case None => None
+      case Some(t) => Some(xml.Text(t.toString))
+    }
+    val unambiguousXML: Option[xml.Text] = unambiguous match {
+      case None => None
+      case Some(u) => Some(xml.Text(u.toString))
+    }
+    <Filter limit={limitXML} threshold={thresholdXML} unambiguous={unambiguousXML} />
   }
+
 }
 
 object LinkFilter {
