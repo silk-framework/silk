@@ -19,6 +19,7 @@ import java.util.logging.{Level, Logger}
 import io.Source
 import java.io.IOException
 import java.net._
+import javax.xml.bind.DatatypeConverter
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -138,19 +139,15 @@ class RemoteSparqlEndpoint(val uri: URI,
 private object RemoteSparqlEndpoint {
   /**
    * Opens a new HTTP connection to the endpoint.
-   * This method is synchronized to avoid race conditions as the Authentication is set globally in Java.
    */
-  private def openConnection(url: URL, login: Option[(String, String)]): HttpURLConnection = synchronized {
-    //Set authentication
-    for ((user, password) <- login) {
-      Authenticator.setDefault(new Authenticator() {
-        override def getPasswordAuthentication = new PasswordAuthentication(user, password.toCharArray)
-      })
-    }
-
+  private def openConnection(url: URL, login: Option[(String, String)]): HttpURLConnection = {
     //Open connection
     val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
     httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
+    //Set authentication
+    for ((user, password) <- login) {
+      httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
+    }
 
     httpConnection
   }
