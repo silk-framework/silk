@@ -24,7 +24,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
   /** The number of dimensions of this index. */
   def dimensions = sizes.size
 
-  /** Tests whether this index is empty i.e. does not contain any index value. */
+  /** Tests whether this index is empty, i.e., does not contain any index value. */
   def isEmpty = indices.isEmpty
 
   /**
@@ -33,7 +33,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
   override def toString = indices.toString
 
   /**
-   * Two indices match if they share at least one index value.
+   * True indices match if they share at least one index value.
    */
   def matches(other: Index): Boolean = indices.exists(other.indices)
 
