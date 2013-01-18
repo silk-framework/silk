@@ -33,6 +33,13 @@ case class EntityDescription(variable: String, restrictions: SparqlRestriction, 
     index
   }
 
+  /**
+   * Merges two entity descriptions.
+   * The variable as well as the restrictions of both entity descriptions must be the same.
+   *
+   * @param other The entity description that should be merged with this entity description
+   * @return The merged entity description
+   */
   def merge(other: EntityDescription) = {
     require(variable == other.variable)
     require(restrictions == other.restrictions)
