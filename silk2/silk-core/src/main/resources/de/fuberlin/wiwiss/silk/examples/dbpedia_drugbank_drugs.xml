@@ -7,7 +7,7 @@
     <Prefix id="dbpedia-owl" namespace="http://dbpedia.org/ontology/" />
     <Prefix id="dbpedia-prop" namespace="http://dbpedia.org/property/" />
     <Prefix id="dc" namespace="http://purl.org/dc/terms/" />
-    <Prefix id="drugbank" namespace="http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/" />
+    <Prefix id="drugbank" namespace="http://wifo5-03.informatik.uni-mannheim.de/drugbank/resource/drugbank/" />
   </Prefixes>
 
   <DataSources>
@@ -18,7 +18,7 @@
     </DataSource>
 
     <DataSource id="drugbank" type="sparqlEndpoint">
-      <Param name="endpointURI" value="http://www4.wiwiss.fu-berlin.de/drugbank/sparql" />
+      <Param name="endpointURI" value="http://wifo5-03.informatik.uni-mannheim.de/drugbank/sparql" />
     </DataSource>
   </DataSources>
 
