@@ -15,10 +15,6 @@
   <packaging>pom</packaging>
   <name>Silk Workbench</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <modules>
     <module>silk-workbench-model</module>
 	  <module>silk-workbench-webapp</module>  
