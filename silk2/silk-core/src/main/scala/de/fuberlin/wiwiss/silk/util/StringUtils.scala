@@ -23,7 +23,7 @@ object StringUtils {
     def unapply(x: String): Option[Int] = try {
       Some(x.toInt)
     } catch {
-      case _ => None
+      case _: NumberFormatException => None
     }
   }
 
@@ -33,7 +33,7 @@ object StringUtils {
     def unapply(x: String): Option[Double] = try {
       Some(x.toDouble)
     } catch {
-      case _ => None
+      case _: NumberFormatException => None
     }
   }
 
@@ -43,7 +43,7 @@ object StringUtils {
     def unapply(x: String): Option[Boolean] = try {
       Some(x.toBoolean)
     } catch {
-      case _ => None
+      case _: NumberFormatException => None
     }
   }
 }
