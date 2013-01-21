@@ -67,7 +67,7 @@ object EntityDescription {
     new EntityDescription(
       variable = variable,
       restrictions = SparqlRestriction.fromSparql(variable, (node \ "Restrictions").text),
-      paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq[Node]) yield Path.parse(pathNode.text.trim)
+      paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield Path.parse(pathNode.text.trim)
     )
   }
 }

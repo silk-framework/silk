@@ -12,19 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk
+package de.fuberlin.wiwiss.silk.execution
 
-import cache.{MemoryEntityCache, FileEntityCache}
-import entity.{Link, EntityDescription}
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
-import de.fuberlin.wiwiss.silk.output.{Output}
+import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.task.ValueTask
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.FileUtils._
+import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
+import de.fuberlin.wiwiss.silk.cache.{MemoryEntityCache, FileEntityCache}
 
 /**
  * Main task to generate links.
@@ -96,17 +96,20 @@ class GenerateLinksTask(sources: Traversable[Source],
   }
 
   private def createCaches() = {
+
+    def indexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule)
+
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + linkSpec.id)
 
       DPair(
-        source = new FileEntityCache(entityDescs.source, linkSpec.rule.index(_), cacheDir + "/source/", runtimeConfig),
-        target = new FileEntityCache(entityDescs.target, linkSpec.rule.index(_), cacheDir + "/target/", runtimeConfig)
+        source = new FileEntityCache(entityDescs.source, indexFunction, cacheDir + "/source/", runtimeConfig),
+        target = new FileEntityCache(entityDescs.target, indexFunction, cacheDir + "/target/", runtimeConfig)
       )
     } else {
       DPair(
-        source = new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_), runtimeConfig),
-        target = new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_), runtimeConfig)
+        source = new MemoryEntityCache(entityDescs.source, indexFunction, runtimeConfig),
+        target = new MemoryEntityCache(entityDescs.target, indexFunction, runtimeConfig)
       )
     }
   }

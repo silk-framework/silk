@@ -100,6 +100,6 @@ object LinkingConfig {
     implicit val globalThreshold = None
     val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
 
-    LinkingConfig(prefixes, RuntimeConfig(blocking), sources, linkSpecifications, outputs)
+    LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs)
   }
 }
