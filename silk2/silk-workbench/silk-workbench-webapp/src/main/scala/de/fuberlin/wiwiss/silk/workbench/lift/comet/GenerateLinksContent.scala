@@ -21,8 +21,8 @@ import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect
 import net.liftweb.http.js.JsCmds._
 import de.fuberlin.wiwiss.silk.workbench.workspace.{CurrentTaskStatusListener, User}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.{CurrentGenerateLinksTask, EvalLink}
-import de.fuberlin.wiwiss.silk.GenerateLinksTask
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
+import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
 
 class GenerateLinksContent extends LinksContent with RateLinkButtons {
 

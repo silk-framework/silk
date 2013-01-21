@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, SelectField, Dialog}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
 
 object GenerateLinksDialog extends Dialog {
 
