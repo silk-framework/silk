@@ -29,12 +29,12 @@ class CamelCaseTokenizer extends Transformer {
     var lastWasLowerCase = false
     var sb = new StringBuffer
     for(c <- value) {
-      if(c.isUpperCase && lastWasLowerCase) {
+      if(c.isUpper && lastWasLowerCase) {
         tokens += sb.toString
         sb = new StringBuffer
       }
       sb.append(c)
-      lastWasLowerCase = c.isLowerCase
+      lastWasLowerCase = c.isLower
     }
     if(sb.length>0)
       tokens += sb.toString

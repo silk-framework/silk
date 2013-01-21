@@ -145,7 +145,7 @@ object PluginDescription {
       val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
 
       for (i <- Array.range(1, count + 1)) yield {
-        methods.get("init$default$" + i).map(_.invoke(module))
+        methods.get("$lessinit$greater$default$" + i).map(_.invoke(module))
       }
     }
     catch {
