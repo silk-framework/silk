@@ -15,12 +15,12 @@
 package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.{MatchTask, LoadTask}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
 import de.fuberlin.wiwiss.silk.cache.MemoryEntityCache
+import de.fuberlin.wiwiss.silk.execution.{MatchTask, LoadTask}
 
 /**
  * Holds the dataset of a link specification.

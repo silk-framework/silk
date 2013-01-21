@@ -14,9 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.config
 
+import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
+
 /**
  * The runtime configuration.
  *
+ * @param executionMethod The method used to execute the linkage rule.
  * @param blocking The blocking parameters.
  * @param useFileCache If true, the entities are cached on the file system. If false, an in-memory cache is used.
  * @param reloadCache Specifies if the entity cache is to be reloaded before executing the matching.
@@ -25,12 +28,14 @@ package de.fuberlin.wiwiss.silk.config
  * @param generateLinksWithEntities Generate links with the entities they connect.
  * @param homeDir The directory used by Silk to store persistent information such as caches.
  */
-case class RuntimeConfig(blocking: Blocking = Blocking(),
+case class RuntimeConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
+                         blocking: Blocking = Blocking(),
                          useFileCache: Boolean = true,
                          reloadCache: Boolean = true,
                          partitionSize: Int = 10000,
                          numThreads: Int = Runtime.getRuntime.availableProcessors(),
                          generateLinksWithEntities: Boolean = false,
                          homeDir: String = System.getProperty("user.home") + "/.silk/") {
+
   require(partitionSize > 1, "partitionSize must be greater than 0 (partitionSize=" + partitionSize + ")")
 }

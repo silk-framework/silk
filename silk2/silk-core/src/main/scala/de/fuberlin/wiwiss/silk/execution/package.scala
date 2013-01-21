@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workbench.evaluation
+package de.fuberlin.wiwiss.silk
 
-import de.fuberlin.wiwiss.silk.workbench.workspace.TaskData
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-
-object CurrentGenerateLinksTask extends TaskData[GenerateLinksTask](GenerateLinksTask.empty)
+/**
+ * Contains classes for execution linkage tasks.
+ */
+package object execution
