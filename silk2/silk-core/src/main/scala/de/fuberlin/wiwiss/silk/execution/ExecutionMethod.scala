@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.entity.{Path, Link, Index, Entity}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.cache.Partition
 import de.fuberlin.wiwiss.silk.util.DPair
+import methods.MultiBlock
 import scala.math.{min, max, abs}
 
 /**
@@ -45,65 +46,7 @@ trait ExecutionMethod {
 
 object ExecutionMethod {
   /** Returns the default execution method. */
-  def apply(): ExecutionMethod = new MultiBlockExecutionMethod()
-}
-
-/**
- * Full execution method.
- */
-class FullExecutionMethod extends ExecutionMethod {
-  def indexEntity(entity: Entity, rule: LinkageRule): Index = Index.default
-}
-
-/**
- * MultiBlock execution method.
- */
-class MultiBlockExecutionMethod extends ExecutionMethod {
-  def indexEntity(entity: Entity, rule: LinkageRule): Index = rule.index(entity, 0.0)
-}
-
-/**
- * Traditional blocking.
- *
- * @param blockingKey The blocking key, e.g., rdfs:label
- */
-class BlockingExecutionMethod(blockingKey: Path) extends ExecutionMethod {
-
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-    val values = entity.evaluate(blockingKey)
-    Index.oneDim(values.map(_.hashCode))
-  }
-
-}
-
-/**
- * Multi-pass blocking.
- *
- * @param blockingKeys The blocking keys.
- */
-class MultiPassBlockingExecutionMethod(blockingKeys: Set[Path]) extends ExecutionMethod {
-
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-    val values = blockingKeys.flatMap(key => entity.evaluate(key))
-    Index.oneDim(values.map(_.hashCode))
-  }
-
-}
-
-/**
- * Blocking using a composite key built from two single keys.
- */
-class CompositeBlockingExecutionMethod(blockingKey1: Path, blockingKey2: Path) extends ExecutionMethod {
-
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-    Index.oneDim(
-      for(v1 <- entity.evaluate(blockingKey1);
-          v2 <- entity.evaluate(blockingKey2)) yield {
-        (v1 + v2).hashCode
-      }
-    )
-  }
-
+  def apply(): ExecutionMethod = new methods.MultiBlock()
 }
 
 //TODO sorted blocks and sortedneighbourhood
