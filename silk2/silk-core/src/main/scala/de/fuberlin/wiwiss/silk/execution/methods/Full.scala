@@ -7,6 +7,6 @@ import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 /**
   * Full execution method.
   */
-class Full extends ExecutionMethod {
-   def indexEntity(entity: Entity, rule: LinkageRule): Index = Index.default
+case class Full() extends ExecutionMethod {
+   override def indexEntity(entity: Entity, rule: LinkageRule): Index = Index.default
  }
