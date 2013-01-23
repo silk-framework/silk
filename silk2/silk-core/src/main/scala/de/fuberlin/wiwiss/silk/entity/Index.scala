@@ -114,6 +114,12 @@ object Index {
 
   def default = new Index(Set(Seq(0)), Seq(1))
 
+  def blocks(blocks: Set[Int]) = {
+    new Index(
+      indices = blocks.map(block => if(block == Int.MinValue) Seq(0) else if(block == Int.MaxValue) Seq(Int.MaxValue - 1) else Seq(block.abs)),
+      sizes = Seq(Int.MaxValue))
+  }
+
   def multiDim(indices: Set[Seq[Int]], dimCount: Int) = {
     new Index(
       indices = indices.map(indexVector => indexVector.map(value => (value % maxBlockCount).abs)),

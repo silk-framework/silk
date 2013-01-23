@@ -7,13 +7,15 @@ import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 /**
   * Traditional blocking.
   *
-  * @param blockingKey The blocking key, e.g., rdfs:label
+  * @param sourceKey The source blocking key, e.g., rdfs:label
+  * @param targetKey The target blocking key, e.g., rdfs:label
   */
-class Blocking(blockingKey: Path) extends ExecutionMethod {
+case class Blocking(sourceKey: Path, targetKey: Path) extends ExecutionMethod {
 
    override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-     val values = entity.evaluate(blockingKey)
-     Index.oneDim(values.map(_.hashCode))
+     val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
+     val values = entity.evaluate(key)
+     Index.blocks(values.map(_.hashCode))
    }
 
  }
