@@ -208,10 +208,14 @@ class MatchTask(linkageRule: LinkageRule,
         //Compare each pair of entities
         for(entityPair <- entityPairs) {
           val attachedEntities = if(runtimeConfig.generateLinksWithEntities) Some(entityPair) else None
-          val confidence = linkageRule(entityPair, 0.0)
 
-          if (confidence >= 0.0) {
-            links ::= new Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
+          if(!runtimeConfig.indexingOnly) {
+            val confidence = linkageRule(entityPair, 0.0)
+            if (confidence >= 0.0) {
+              links ::= new Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
+            }
+          } else {
+            links ::= new Link(entityPair.source.uri, entityPair.target.uri, None, attachedEntities)
           }
         }
       }

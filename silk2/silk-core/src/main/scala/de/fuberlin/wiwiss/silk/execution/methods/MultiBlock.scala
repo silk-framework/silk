@@ -7,6 +7,6 @@ import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 /**
   * MultiBlock execution method.
   */
-class MultiBlock extends ExecutionMethod {
-   def indexEntity(entity: Entity, rule: LinkageRule): Index = rule.index(entity, 0.0)
- }
+case class MultiBlock() extends ExecutionMethod {
+   override def indexEntity(entity: Entity, rule: LinkageRule): Index = rule.index(entity, 0.0)
+}

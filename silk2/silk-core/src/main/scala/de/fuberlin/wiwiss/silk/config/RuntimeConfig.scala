@@ -30,6 +30,7 @@ import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
  */
 case class RuntimeConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
                          blocking: Blocking = Blocking(),
+                         indexingOnly: Boolean = false,
                          useFileCache: Boolean = true,
                          reloadCache: Boolean = true,
                          partitionSize: Int = 10000,
