@@ -20,30 +20,51 @@ object StringUtils {
   object IntLiteral {
     def apply(x: Int) = x.toString
 
-    def unapply(x: String): Option[Int] = try {
-      Some(x.toInt)
-    } catch {
-      case _: NumberFormatException => None
+    def unapply(x: String): Option[Int] = {
+      if(x == null) {
+        None
+      }
+      else {
+        try {
+          Some(x.toInt)
+        } catch {
+          case _: NumberFormatException => None
+        }
+      }
     }
   }
 
   object DoubleLiteral {
     def apply(x: Double) = x.toString
 
-    def unapply(x: String): Option[Double] = try {
-      Some(x.toDouble)
-    } catch {
-      case _: NumberFormatException => None
+    def unapply(x: String): Option[Double] = {
+      if(x == null) {
+        None
+      }
+      else {
+        try {
+          Some(x.toDouble)
+        } catch {
+          case _: NumberFormatException => None
+        }
+      }
     }
   }
 
   object BooleanLiteral {
     def apply(x: Boolean) = x.toString
 
-    def unapply(x: String): Option[Boolean] = try {
-      Some(x.toBoolean)
-    } catch {
-      case _: NumberFormatException => None
+    def unapply(x: String): Option[Boolean] = {
+      if(x == null) {
+        None
+      }
+      else {
+        try {
+          Some(x.toBoolean)
+        } catch {
+          case _: NumberFormatException => None
+        }
+      }
     }
   }
 }
