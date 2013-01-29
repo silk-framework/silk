@@ -77,7 +77,11 @@ class GenerateLinksTask(sources: Traversable[Source],
       matchTask = new MatchTask(linkSpec.rule, caches, runtimeConfig)
 
       //Load entities
-      if (runtimeConfig.reloadCache) loadTask.runInBackground()
+      if (runtimeConfig.reloadCache) {
+        loadTask.statusLogLevel = statusLogLevel
+        loadTask.progressLogLevel = progressLogLevel
+        loadTask.runInBackground()
+      }
 
       //Execute matching
       val links = executeSubValueTask(matchTask, 0.95)
