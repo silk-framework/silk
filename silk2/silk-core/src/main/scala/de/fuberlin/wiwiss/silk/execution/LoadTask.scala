@@ -84,7 +84,7 @@ class LoadTask(sources: DPair[Source],
 
     override def run() {
       try {
-        logger.info("Loading entities of dataset " + source.dataSource.toString)
+        updateStatus("Loading entities of dataset " + source.dataSource.toString)
 
         entityCache.clear()
         entityCache.write(source.retrieve(entityCache.entityDesc))

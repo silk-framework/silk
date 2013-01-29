@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.cache
 
 import de.fuberlin.wiwiss.silk.util.FileUtils._
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 import java.io._
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
@@ -29,6 +29,8 @@ class FileEntityCache(val entityDesc: EntityDescription,
                       runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
 
   private val logger = Logger.getLogger(getClass.getName)
+
+  private val logLevel = Level.FINE
 
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
@@ -53,7 +55,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
-      logger.info("Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
+      logger.log(logLevel, "Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
     } finally {
       writing = false
     }
@@ -183,7 +185,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
         stream.close()
       }
 
-      logger.info("Written partition " + (partitionCount - 1) + " of block " + block)
+      logger.log(logLevel, "Written partition " + (partitionCount - 1) + " of block " + block)
     }
   }
 

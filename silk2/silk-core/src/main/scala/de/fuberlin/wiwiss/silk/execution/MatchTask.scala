@@ -96,9 +96,9 @@ class MatchTask(linkageRule: LinkageRule,
     //Log result
     val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
     if (cancelled)
-      logger.info("Matching cancelled after " + time)
+      logger.log(statusLogLevel, "Matching cancelled after " + time)
     else
-      logger.info("Executed matching in " + time)
+      logger.log(statusLogLevel, "Executed matching in " + time)
 
     linkBuffer
   }
