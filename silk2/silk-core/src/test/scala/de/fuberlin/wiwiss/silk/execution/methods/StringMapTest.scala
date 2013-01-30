@@ -25,8 +25,8 @@ import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
 class StringMapTest extends FlatSpec with ShouldMatchers {
 
   /** Load the source files used by the original authors from http://flamingo.ics.uci.edu/releases/4.1/ */
-  val source1 = loadSource("source1.txt")
-  val source2 = loadSource("source2.txt")
+  val source1 = loadSource("names/source1.txt")
+  val source2 = loadSource("names/source2.txt")
 
   /** We are using the levensthein distance metric. */
   val distanceMetric = LevenshteinDistance()
