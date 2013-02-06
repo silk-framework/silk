@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workbench.lift.bootstrap.liftweb
+package bootstrap.liftweb
 
 import de.fuberlin.wiwiss.silk.workbench.workspace.User
 import de.fuberlin.wiwiss.silk.workbench.workspace.io.ProjectExporter._
