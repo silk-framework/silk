@@ -64,7 +64,7 @@ case class IntField(label: String, description: String, min: Int, max: Int, init
 
   override def value = v
 
-  override def render = SHtml.number(v, v = _, min, max, "id" -> id, "title" -> description, "style" -> "margin-left:0")
+  override def render = SHtml.number(v, (num: Int) => { v = num }, min, max, "id" -> id, "title" -> description, "style" -> "margin-left:0")
 
   override def updateValueCmd = {
     v = initialValue()
