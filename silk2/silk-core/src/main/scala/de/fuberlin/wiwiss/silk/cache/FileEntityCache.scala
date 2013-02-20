@@ -30,7 +30,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  private val logLevel = Level.FINE
+  private val logLevel = Level.INFO
 
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 

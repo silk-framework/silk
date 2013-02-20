@@ -33,7 +33,7 @@
             <Input path="?a/p:label" />
             <Input path="?b/p:label" />
           </Compare>
-          <Compare metric="wgs84" threshold="30" required="true">
+          <Compare metric="wgs84" threshold="30">
             <Input path="?a/p:coordinates" />
             <Input path="?b/p:coordinates" />
             <Param name="unit" value="km"/>
@@ -45,4 +45,10 @@
 
     </Interlink>
   </Interlinks>
+
+  <Output type="file" >
+    <Param name="file" value="links.nt"/>
+    <Param name="format" value="ntriples"/>
+  </Output>
+
 </Silk>
