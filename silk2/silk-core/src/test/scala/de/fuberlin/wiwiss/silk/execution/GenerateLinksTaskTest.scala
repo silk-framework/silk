@@ -101,6 +101,7 @@ object GenerateLinksTaskTest {
       new GenerateLinksTask(
         sources = config.sources,
         linkSpec = config.linkSpecs.head,
+        outputs = config.outputs,
         runtimeConfig = runtimeConfig
       )
 
