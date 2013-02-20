@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.plugins.metric.LevenshteinDistance
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.execution.methods.StringMap.Mapper
 
-class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2) extends ExecutionMethod {
+case class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2) extends ExecutionMethod {
 
   /**
    * Generates an index for a single entity.
@@ -33,7 +33,7 @@ class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2) extend
     )
 
     // Compute the threshold in the mapped space that corresponds to the specified distance threshold
-    val mappedThreshold = sm.computeThreshold(sourceValues, 0.1, targetValues, 0.1, distThreshold)
+    val mappedThreshold = sm.computeThreshold(sourceValues, 0.5, targetValues, 0.5, distThreshold)
 
     // Return all pairs which are closer than the mapped threshold
     for(i <- 0 until sourceValues.size;

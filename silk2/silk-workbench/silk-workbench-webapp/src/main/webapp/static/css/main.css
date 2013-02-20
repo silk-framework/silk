@@ -63,7 +63,7 @@ button
 	background: url('../img/navigation.png') repeat-x;
 }
 
-.tab
+div[id="tabbar"] span div
 {
 	float: left;
 	margin-left: 5px;
@@ -78,18 +78,18 @@ button
 	border-right: solid 1px #505050;
 }
 
-.tab a
+div[id="tabbar"] span div a
 {
 	text-decoration: none;
 	color: #ffffff;
 }
 
-.tab:hover, .tab.selected
+div[id="tabbar"] span div:hover, .tab.selected
 {
 	background-color: #ffffff;
 }
 
-.tab:hover a, .tab.selected a
+div[id="tabbar"] span div:hover a, .tab.selected a
 {
 	color: #000000;
 }

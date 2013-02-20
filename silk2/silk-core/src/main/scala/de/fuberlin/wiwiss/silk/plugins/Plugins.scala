@@ -53,6 +53,7 @@ object Plugins {
    */
   private def registerDefaultPlugins() {
     DataSource.register(classOf[SparqlDataSource])
+    DataSource.register(classOf[CsvDataSource])
     DataSource.register(classOf[CacheDataSource])
 
     Transformer.register(classOf[ReplaceTransformer])

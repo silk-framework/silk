@@ -178,9 +178,9 @@ class Editor extends CometActor {
     } else {
       val r = LinkageRuleEvaluator(linkingTask.linkSpec.rule, linkingTask.cache.entities)
 
-      ("Precision = %.2f".format(r.precision)) ::
-      ("Recall = %.2f".format(r.recall)) ::
-      ("F-measure = %.2f".format(r.fMeasure)) :: Nil
+      ("Precision = %.1f%%".format(r.precision * 100.0)) ::
+      ("Recall = %.1f%%".format(r.recall * 100.0)) ::
+      ("F-measure = %.1f%%".format(r.fMeasure * 100.0)) :: Nil
     }
   }
 
