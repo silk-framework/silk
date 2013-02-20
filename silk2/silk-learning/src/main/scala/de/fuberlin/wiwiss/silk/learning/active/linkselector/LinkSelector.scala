@@ -21,6 +21,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
  * Selects a link from the unlabeled pool for evaluation by the user.
  * An implementation should select the most informative links e.g. the links for which the current linkage rules are most uncertain.
  */
+//TODO rename to query strategy?
 trait LinkSelector {
   /**
    * Selects a link from the unlabeled pool for evaluation by the user.

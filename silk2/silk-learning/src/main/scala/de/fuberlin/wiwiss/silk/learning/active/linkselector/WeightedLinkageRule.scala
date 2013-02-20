@@ -14,11 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
-import de.fuberlin.wiwiss.silk.learning.individual.Individual
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import math.max
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
 
-class WeightedLinkageRule(individual: Individual) extends LinkageRule(individual.node.build.operator) {
-  /** The weight of this linkage rule. Never smaller than 0.0001 */
-  val weight = max(0.0001, individual.fitness)
-}
+class WeightedLinkageRule(operator: Option[SimilarityOperator], val weight: Double) extends LinkageRule(operator)
