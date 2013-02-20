@@ -27,6 +27,7 @@ import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, Reproductio
 import linkselector.WeightedLinkageRule
 import de.fuberlin.wiwiss.silk.config.{Dataset, LinkSpecification}
 import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
+import math.max
 
 //TODO support canceling
 class ActiveLearningTask(config: LearningConfiguration,
@@ -107,7 +108,7 @@ class ActiveLearningTask(config: LearningConfiguration,
       val bestFitness = randomizedPopulation.bestIndividual.fitness
       val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
       for(individual <- topIndividuals) yield {
-        new WeightedLinkageRule(individual)
+        new WeightedLinkageRule(individual.node.build.operator, max(0.0001, individual.fitness))
       }
     }
 
