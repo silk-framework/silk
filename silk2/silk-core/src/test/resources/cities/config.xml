@@ -46,9 +46,11 @@
     </Interlink>
   </Interlinks>
 
-  <Output type="file" >
-    <Param name="file" value="links.nt"/>
-    <Param name="format" value="ntriples"/>
-  </Output>
+  <Outputs>
+    <Output type="file" >
+      <Param name="file" value="links.nt"/>
+      <Param name="format" value="ntriples"/>
+    </Output>
+  </Outputs>
 
 </Silk>
