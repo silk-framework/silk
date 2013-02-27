@@ -45,32 +45,32 @@ object GenerateLinksTaskTest {
     Test("MultiBlock", MultiBlock()) :: Nil
 
   def main(args: Array[String]) {
-    val fullLinks = run(RuntimeConfig(executionMethod = Full()))
+    val fullLinks = run(RuntimeConfig(executionMethod = MultiBlock()))
 
-    val testResults =
-      for (test <- tests) yield {
-        println("Running " + test.name + " test...")
-
-        val startTime = System.currentTimeMillis
-        val indexingLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true))
-        val missedLinks = fullLinks -- indexingLinks
-        val redundantLinks = indexingLinks -- fullLinks
-
-        println("Full Links: " + fullLinks.size)
-        println("Indexed Links: " + indexingLinks.size)
-        println("Missed Links: " + missedLinks.size)
-        println("Redundant Links: " + redundantLinks.size)
-
-        Result(
-          name = test.name,
-          completeness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
-          runtime = System.currentTimeMillis - startTime
-        )
-
-        //println("Pairs Completeness: " + )
-      }
-
-    testResults.foreach(println)
+//    val testResults =
+//      for (test <- tests) yield {
+//        println("Running " + test.name + " test...")
+//
+//        val startTime = System.currentTimeMillis
+//        val indexingLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true))
+//        val missedLinks = fullLinks -- indexingLinks
+//        val redundantLinks = indexingLinks -- fullLinks
+//
+//        println("Full Links: " + fullLinks.size)
+//        println("Indexed Links: " + indexingLinks.size)
+//        println("Missed Links: " + missedLinks.size)
+//        println("Redundant Links: " + redundantLinks.size)
+//
+//        Result(
+//          name = test.name,
+//          completeness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
+//          runtime = System.currentTimeMillis - startTime
+//        )
+//
+//        //println("Pairs Completeness: " + )
+//      }
+//
+//    testResults.foreach(println)
 
     //TODO for StringMap: add the number of comparisons needed for computing the threshold
   }

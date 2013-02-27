@@ -100,8 +100,7 @@ class GenerateLinksTask(sources: Traversable[Source],
   }
 
   private def createCaches() = {
-
-    def indexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule)
+    val indexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule)
 
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + linkSpec.id)
