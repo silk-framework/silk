@@ -14,87 +14,63 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.plugins.datasource.CsvDataSource
-import de.fuberlin.wiwiss.silk.config.{LinkingConfig, RuntimeConfig, Dataset, LinkSpecification}
-import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
-import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.entity.{Path, Link, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.Comparison
-import de.fuberlin.wiwiss.silk.plugins.metric.LevenshteinDistance
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
-import methods.{StringMap, Blocking, MultiBlock, Full}
-import java.util.logging.Level
+import de.fuberlin.wiwiss.silk.config.{LinkingConfig, RuntimeConfig}
+import de.fuberlin.wiwiss.silk.entity.{Path, Link}
+import methods.{Blocking, StringMap, MultiBlock}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
+import io.Source
+import java.util.logging.Level
 
 object GenerateLinksTaskTest {
 
   Plugins.register()
 
-//  private val sourceInput = "names/source1.txt"
-//  private val targetInput = "names/source2.txt"
-  private val sourceInput = "cities/dbpedia.csv"
-  private val targetInput = "cities/linkedgeodata.csv"
+  /** Directory of the data set */
+  //private val dataset = "names"
+  private val dataset = "cities"
 
-  private val sourcePath = Path.parse("?a/<label>")
-  private val targetPath = Path.parse("?b/<label>")
+  private val sourcePath = Path.parse("?a/<name>")
+  private val targetPath = Path.parse("?b/<name>")
 
   private val tests =
     //Test("Blocking", Blocking(sourcePath, targetPath)) ::
     //Test("StringMap", StringMap(sourcePath, targetPath)) ::
-    Test("MultiBlock", MultiBlock()) :: Nil
+    Test("MultiBlock", MultiBlock()) ::
+    Nil
 
   def main(args: Array[String]) {
-    val fullLinks = run(RuntimeConfig(executionMethod = MultiBlock()))
+    val fullLinks = Set[Link]() //ReferenceLinksReader.readNTriples(Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(dataset + "/links.nt"))).positive
 
-//    val testResults =
-//      for (test <- tests) yield {
-//        println("Running " + test.name + " test...")
-//
-//        val startTime = System.currentTimeMillis
-//        val indexingLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true))
-//        val missedLinks = fullLinks -- indexingLinks
-//        val redundantLinks = indexingLinks -- fullLinks
-//
+    val results =
+      for (test <- tests) yield {
+        println("Running " + test.name + " test...")
+
+        val startTime = System.currentTimeMillis
+        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, logLevel = Level.FINE))
+        val correctLinks = foundLinks intersect fullLinks
+        val missedLinks = fullLinks -- foundLinks
+
 //        println("Full Links: " + fullLinks.size)
-//        println("Indexed Links: " + indexingLinks.size)
+//        println("Found Links: " + foundLinks.size)
 //        println("Missed Links: " + missedLinks.size)
-//        println("Redundant Links: " + redundantLinks.size)
-//
-//        Result(
-//          name = test.name,
-//          completeness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
-//          runtime = System.currentTimeMillis - startTime
-//        )
-//
-//        //println("Pairs Completeness: " + )
-//      }
-//
-//    testResults.foreach(println)
 
+        Thread.sleep(5000)
+
+        Result(
+          name = test.name,
+          pairsCompleteness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
+          pairsQuality = correctLinks.size.toDouble / foundLinks.size,
+          runtime = System.currentTimeMillis - startTime
+        )
+      }
+
+    results.foreach(println)
     //TODO for StringMap: add the number of comparisons needed for computing the threshold
   }
 
   private def run(runtimeConfig: RuntimeConfig): Set[Link] = {
-//    // Sources to match
-//    val cl = getClass.getClassLoader
-//    val source1 = Source(Identifier.random, CsvDataSource(cl.getResource(sourceInput).toString, "uri,label,coordinates"))
-//    val source2 = Source(Identifier.random, CsvDataSource(cl.getResource(targetInput).toString, "uri,label,coordinates"))
-//
-//    val sourceDataset = Dataset(source1.id, "a", SparqlRestriction.fromSparql("a", ""))
-//    val targetDataset = Dataset(source2.id, "b", SparqlRestriction.fromSparql("b", ""))
-//
-//    // Linkage Rule
-//    val linkageRule =
-//      LinkageRule(
-//        Comparison(
-//          metric = LevenshteinDistance(),
-//          threshold = 0.0,
-//          inputs = DPair(PathInput(path = sourcePath), PathInput(path = targetPath))
-//      )
-//    )
-
-    val config = LinkingConfig.load(getClass.getClassLoader.getResourceAsStream("cities/config.xml"))
+    val config = LinkingConfig.load(getClass.getClassLoader.getResourceAsStream(dataset + "/config.xml"))
 
     // Execute Matching
     val task =
@@ -105,14 +81,14 @@ object GenerateLinksTaskTest {
         runtimeConfig = runtimeConfig
       )
 
-    //task.progressLogLevel = Level.FINEST
-    //task.statusLogLevel = Level.FINEST
-
     val links = task()
     links.toSet
   }
 
   private case class Test(name: String, executionMethod: ExecutionMethod)
 
-  private case class Result(name: String, completeness: Double, runtime: Double)
+private case class Result(name: String, pairsCompleteness: Double, pairsQuality: Double, runtime: Double) {
+  override def toString =
+    s"$name: Pairs Completeness = $pairsCompleteness Pairs Quality = $pairsQuality Runtime = $runtime"
+}
 }
