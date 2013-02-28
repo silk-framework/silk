@@ -34,6 +34,9 @@ class GenerateLinksTask(sources: Traversable[Source],
                         outputs: Traversable[Output] = Traversable.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
+  statusLogLevel = runtimeConfig.logLevel
+  progressLogLevel = runtimeConfig.logLevel
+
   /** The task used for loading the entities into the cache */
   @volatile private var loadTask: LoadTask = null
 
