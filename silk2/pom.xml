@@ -65,7 +65,6 @@
 
   <modules>
     <module>silk-core</module>
-    <module>silk-evaluation</module>
     <module>silk-learning</module>
     <module>silk-jena</module>
     <module>silk-singlemachine</module>
