@@ -30,8 +30,6 @@ class FileEntityCache(val entityDesc: EntityDescription,
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  private val logLevel = Level.INFO
-
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
   @volatile private var writing = false
@@ -55,7 +53,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
-      logger.log(logLevel, "Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
+      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
     } finally {
       writing = false
     }
@@ -185,7 +183,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
         stream.close()
       }
 
-      logger.log(logLevel, "Written partition " + (partitionCount - 1) + " of block " + block)
+      logger.log(runtimeConfig.logLevel, "Written partition " + (partitionCount - 1) + " of block " + block)
     }
   }
 

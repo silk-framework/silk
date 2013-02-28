@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
+import java.util.logging.Level
 
 /**
  * The runtime configuration.
@@ -36,7 +37,8 @@ case class RuntimeConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
                          partitionSize: Int = 10000,
                          numThreads: Int = Runtime.getRuntime.availableProcessors(),
                          generateLinksWithEntities: Boolean = false,
-                         homeDir: String = System.getProperty("user.home") + "/.silk/") {
+                         homeDir: String = System.getProperty("user.home") + "/.silk/",
+                         logLevel: Level = Level.INFO) {
 
   require(partitionSize > 1, "partitionSize must be greater than 0 (partitionSize=" + partitionSize + ")")
 }
