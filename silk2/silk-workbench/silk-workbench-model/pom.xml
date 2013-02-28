@@ -31,12 +31,6 @@
 
     <dependency>
       <groupId>de.fuberlin.wiwiss.silk</groupId>
-      <artifactId>silk-evaluation</artifactId>
-      <version>2.5.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>de.fuberlin.wiwiss.silk</groupId>
       <artifactId>silk-learning</artifactId>
       <version>2.5.4</version>
     </dependency>
