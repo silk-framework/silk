@@ -7,11 +7,11 @@
 
   <DataSources>
     <DataSource id="source1" type="csv">
-      <Param name="url" value="classpath:names/source1.csv"/>
+      <Param name="url" value="classpath:names/source1.txt"/>
       <Param name="properties" value="name"/>
     </DataSource>
     <DataSource id="source2" type="csv">
-      <Param name="url" value="classpath:names/source1.csv"/>
+      <Param name="url" value="classpath:names/source2.txt"/>
       <Param name="properties" value="name"/>
     </DataSource>
   </DataSources>
@@ -38,4 +38,5 @@
 
     </Interlink>
   </Interlinks>
+
 </Silk>
