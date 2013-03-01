@@ -35,11 +35,15 @@ case class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2) e
     // Compute the threshold in the mapped space that corresponds to the specified distance threshold
     val mappedThreshold = sm.computeThreshold(sourceValues, 0.5, targetValues, 0.5, distThreshold)
 
-    // Return all pairs which are closer than the mapped threshold
-    for(i <- 0 until sourceValues.size;
-        j <- 0 until targetValues.size
-        if sm.mappedDistance(sm.coordinates(i), sm.coordinates(sourceValues.size + j)) < mappedThreshold) yield {
-      DPair(sourcePartition.entities(i), targetPartition.entities(j))
+    // Return a traversable of all pairs which are closer than the mapped threshold
+    new Traversable[DPair[Entity]] {
+      def foreach[U](f: DPair[Entity] => U) {
+        for(i <- 0 until sourceValues.size;
+            j <- 0 until targetValues.size
+            if sm.mappedDistance(sm.coordinates(i), sm.coordinates(sourceValues.size + j)) < mappedThreshold) yield {
+          f(DPair(sourcePartition.entities(i), targetPartition.entities(j)))
+        }
+      }
     }
   }
 }
