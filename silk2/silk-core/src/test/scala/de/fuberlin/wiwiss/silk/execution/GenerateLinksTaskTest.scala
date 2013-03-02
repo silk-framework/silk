@@ -46,7 +46,7 @@ object GenerateLinksTaskTest {
         println("Running " + test.name + " test...")
 
         val startTime = System.currentTimeMillis
-        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = false, logLevel = Level.INFO))
+        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, logLevel = Level.INFO))
         val correctLinks = foundLinks intersect fullLinks
         val missedLinks = fullLinks -- foundLinks
 
