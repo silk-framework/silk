@@ -39,7 +39,7 @@ object GenerateLinksTaskTest {
     Nil
 
   def main(args: Array[String]) {
-    val fullLinks = Set[Link]() //dataset.loadLinks
+    val fullLinks = dataset.loadLinks
 
     val results =
       for (test <- tests) yield {
