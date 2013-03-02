@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Silk>
+  <Prefixes>
+    <Prefix id="p" namespace="" />
+    <Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#" />
+  </Prefixes>
+
+  <DataSources>
+    <DataSource id="dbpedia" type="csv">
+      <Param name="url" value="classpath:cities/dbpedia.csv"/>
+      <Param name="properties" value="uri,label,coordinates"/>
+    </DataSource>
+    <DataSource id="lgdb" type="csv">
+      <Param name="url" value="classpath:cities/linkedgeodata.csv"/>
+      <Param name="properties" value="uri,label,coordinates"/>
+    </DataSource>
+  </DataSources>
+
+  <Interlinks>
+    <Interlink id="cities">
+      <LinkType>owl:sameAs</LinkType>
+
+      <SourceDataset dataSource="dbpedia" var="a">
+        <RestrictTo></RestrictTo>
+      </SourceDataset>
+      <TargetDataset dataSource="lgdb" var="b">
+        <RestrictTo></RestrictTo>
+      </TargetDataset>
+
+      <LinkageRule>
+        <Compare metric="levenshteinDistance" threshold="1">
+          <Input path="?a/p:label" />
+          <Input path="?b/p:label" />
+        </Compare>
+      </LinkageRule>
+
+      <Filter />
+
+    </Interlink>
+  </Interlinks>
+
+  <Outputs>
+    <Output type="file" >
+      <Param name="file" value="linksOnlyLabel.nt"/>
+      <Param name="format" value="ntriples"/>
+    </Output>
+  </Outputs>
+
+</Silk>
