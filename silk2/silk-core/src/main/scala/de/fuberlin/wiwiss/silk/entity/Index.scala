@@ -108,8 +108,6 @@ object Index {
 
   private val maxBlockCount = 10000
 
-  private val overlap = 0.5
-
   def empty = new Index(Set.empty, Seq(1))
 
   def default = new Index(Set(Seq(0)), Seq(1))
@@ -133,8 +131,13 @@ object Index {
 
   def oneDim(indices: Set[Int], size: Int) = new Index(indices.map(Seq(_)), Seq(size))
 
-  def continuous(value: Double, minValue: Double, maxValue: Double, limit: Double): Index = {
+  @inline
+  def continuous(value: Double, minValue: Double, maxValue: Double, limit: Double, overlap: Double = 0.5): Index = {
     val blockCount = min(maxBlockCount, ((maxValue - minValue) / limit * overlap).toInt)
+    continuous(value, minValue, maxValue, blockCount, overlap)
+  }
+
+  def continuous(value: Double, minValue: Double, maxValue: Double, blockCount: Int, overlap: Double): Index = {
     val block = (value - minValue) * blockCount
     val blockIndex = block.toInt
 

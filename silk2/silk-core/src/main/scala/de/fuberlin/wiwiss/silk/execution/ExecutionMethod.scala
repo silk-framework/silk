@@ -48,33 +48,3 @@ object ExecutionMethod {
   /** Returns the default execution method. */
   def apply(): ExecutionMethod = new methods.MultiBlock()
 }
-
-//TODO sorted blocks and sortedneighbourhood
-
-//class SortedNeighbourhoodExecutionMethod(blockingKey: Path) extends ExecutionMethod {
-//
-//  private val minChar = '0'
-//  private val maxChar = 'z'
-//  private val indexSize = 5 //Maximum number of chars that will be indexed
-//
-//  override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-//    val values = entity.evaluate(blockingKey)
-//    Index.oneDim(
-//      indices = values.map(indexValue),
-//      size = BigInt(maxChar - minChar + 1).pow(indexSize).toInt
-//    )
-//  }
-//
-//  override def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean) = {
-//    sourcePartition.entities
-//  }
-//
-//  private def indexValue(value: String): Int = {
-//    def combine(index: Int, char: Char) = {
-//      val croppedChar = min(max(char, minChar), maxChar)
-//      index * (maxChar - minChar + 1) + croppedChar - minChar
-//    }
-//
-//    value.foldLeft(0)(combine)
-//  }
-//}
