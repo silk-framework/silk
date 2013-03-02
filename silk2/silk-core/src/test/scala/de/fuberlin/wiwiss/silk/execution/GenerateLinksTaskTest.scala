@@ -16,25 +16,34 @@ package de.fuberlin.wiwiss.silk.execution
 
 import de.fuberlin.wiwiss.silk.config.{LinkingConfig, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.entity.{Path, Link}
-import methods.{Blocking, StringMap, MultiBlock}
+import methods._
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import io.Source
 import java.util.logging.Level
+import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import methods.Blocking
+import methods.MultiBlock
+import methods.SortedBlocks
 
+/**
+ * This test evaluates the GenerateLinksTask with different execution methods.
+ */
 object GenerateLinksTaskTest {
 
   Plugins.register()
 
   /** Directory of the data set */
-  private val dataset = Dataset("Cities by label", "cities/configOnlyLabel.xml", "cities/linksOnlyLabel.nt")
+  private val dataset = Dataset("Names", "names/config.xml", "names/links.nt")
 
-  private val sourcePath = Path.parse("?a/<label>")
-  private val targetPath = Path.parse("?b/<label>")
+  private val sourceKey = Path.parse("?a/<label>")
+  private val targetKey = Path.parse("?b/<label>")
 
   private val tests =
-    //Test("Blocking", Blocking(sourcePath, targetPath)) ::
-    //Test("StringMap", StringMap(sourcePath, targetPath, 1)) ::
+    Config("Full", Full()) ::
+    Config("Blocking", Blocking(sourceKey, targetKey)) ::
+    Config("SortedBlocks", SortedBlocks(sourceKey, targetKey)) ::
+    Config("StringMap", StringMap(sourceKey, targetKey, 2)) ::
     Config("MultiBlock", MultiBlock()) ::
     Nil
 
@@ -46,7 +55,7 @@ object GenerateLinksTaskTest {
         println("Running " + test.name + " test...")
 
         val startTime = System.currentTimeMillis
-        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, logLevel = Level.INFO))
+        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, logLevel = Level.FINE))
         val correctLinks = foundLinks intersect fullLinks
         val missedLinks = fullLinks -- foundLinks
 

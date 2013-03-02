@@ -8,11 +8,11 @@
   <DataSources>
     <DataSource id="source1" type="csv">
       <Param name="url" value="classpath:names/source1.txt"/>
-      <Param name="properties" value="name"/>
+      <Param name="properties" value="label"/>
     </DataSource>
     <DataSource id="source2" type="csv">
       <Param name="url" value="classpath:names/source2.txt"/>
-      <Param name="properties" value="name"/>
+      <Param name="properties" value="label"/>
     </DataSource>
   </DataSources>
 
@@ -29,8 +29,8 @@
 
       <LinkageRule>
         <Compare metric="levenshteinDistance" threshold="2">
-          <Input path="?a/p:name" />
-          <Input path="?b/p:name" />
+          <Input path="?a/p:label" />
+          <Input path="?b/p:label" />
         </Compare>
       </LinkageRule>
 
