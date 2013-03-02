@@ -27,35 +27,32 @@ object GenerateLinksTaskTest {
   Plugins.register()
 
   /** Directory of the data set */
-  //private val dataset = "names"
-  private val dataset = "cities"
+  private val dataset = Dataset("Cities by label", "cities/configOnlyLabel.xml", "cities/linksOnlyLabel.nt")
 
-  private val sourcePath = Path.parse("?a/<name>")
-  private val targetPath = Path.parse("?b/<name>")
+  private val sourcePath = Path.parse("?a/<label>")
+  private val targetPath = Path.parse("?b/<label>")
 
   private val tests =
     //Test("Blocking", Blocking(sourcePath, targetPath)) ::
-    //Test("StringMap", StringMap(sourcePath, targetPath)) ::
-    Test("MultiBlock", MultiBlock()) ::
+    //Test("StringMap", StringMap(sourcePath, targetPath, 1)) ::
+    Config("MultiBlock", MultiBlock()) ::
     Nil
 
   def main(args: Array[String]) {
-    val fullLinks = Set[Link]() //ReferenceLinksReader.readNTriples(Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(dataset + "/links.nt"))).positive
+    val fullLinks = Set[Link]() //dataset.loadLinks
 
     val results =
       for (test <- tests) yield {
         println("Running " + test.name + " test...")
 
         val startTime = System.currentTimeMillis
-        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, logLevel = Level.FINE))
+        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = false, logLevel = Level.INFO))
         val correctLinks = foundLinks intersect fullLinks
         val missedLinks = fullLinks -- foundLinks
 
 //        println("Full Links: " + fullLinks.size)
 //        println("Found Links: " + foundLinks.size)
 //        println("Missed Links: " + missedLinks.size)
-
-        Thread.sleep(5000)
 
         Result(
           name = test.name,
@@ -70,7 +67,7 @@ object GenerateLinksTaskTest {
   }
 
   private def run(runtimeConfig: RuntimeConfig): Set[Link] = {
-    val config = LinkingConfig.load(getClass.getClassLoader.getResourceAsStream(dataset + "/config.xml"))
+    val config = dataset.loadConfig
 
     // Execute Matching
     val task =
@@ -85,10 +82,43 @@ object GenerateLinksTaskTest {
     links.toSet
   }
 
-  private case class Test(name: String, executionMethod: ExecutionMethod)
+  /**
+   * Specifies an evaluation data set.
+   *
+   * @param name The name of the data set
+   * @param configFile The path of the linking config file.
+   * @param referenceLinks The path of the reference links.
+   */
+  private case class Dataset(name: String, configFile: String, referenceLinks: String) {
+    def loadConfig: LinkingConfig = {
+      val stream = getClass.getClassLoader.getResourceAsStream(configFile)
+      LinkingConfig.load(stream)
+    }
 
-private case class Result(name: String, pairsCompleteness: Double, pairsQuality: Double, runtime: Double) {
-  override def toString =
-    s"$name: Pairs Completeness = $pairsCompleteness Pairs Quality = $pairsQuality Runtime = $runtime"
-}
+    def loadLinks: Set[Link] = {
+      val stream = getClass.getClassLoader.getResourceAsStream(referenceLinks)
+      ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)).positive
+    }
+  }
+
+  /**
+   * Specifies a configuration that is evaluated.
+   *
+   * @param name The name of this configuration
+   * @param executionMethod The execution method used in this configuration
+   */
+  private case class Config(name: String, executionMethod: ExecutionMethod)
+
+  /**
+   * The result of executing a configuration.
+   *
+   * @param name The name of the executed configuration
+   * @param pairsCompleteness The pairs completeness
+   * @param pairsQuality The pairs quality
+   * @param runtime The runtime in ms
+   */
+  private case class Result(name: String, pairsCompleteness: Double, pairsQuality: Double, runtime: Double) {
+    override def toString =
+      s"$name: Pairs Completeness = $pairsCompleteness Pairs Quality = $pairsQuality Runtime = $runtime"
+  }
 }
