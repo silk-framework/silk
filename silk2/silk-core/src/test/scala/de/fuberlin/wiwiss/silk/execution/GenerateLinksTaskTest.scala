@@ -43,7 +43,8 @@ object GenerateLinksTaskTest {
     Config("Full", Full()) ::
     Config("Blocking", Blocking(sourceKey, targetKey)) ::
     Config("SortedBlocks", SortedBlocks(sourceKey, targetKey)) ::
-    Config("StringMap", StringMap(sourceKey, targetKey, 2)) ::
+    Config("StringMap", StringMap(sourceKey, targetKey, distThreshold = 2)) ::
+    Config("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
     Config("MultiBlock", MultiBlock()) ::
     Nil
 
@@ -51,11 +52,12 @@ object GenerateLinksTaskTest {
     val fullLinks = dataset.loadLinks
 
     val results =
-      for (test <- tests) yield {
+      for (test <- tests.flatMap(test => test :: test :: test :: Nil)) yield {
+        Thread.sleep(3000)
         println("Running " + test.name + " test...")
 
         val startTime = System.currentTimeMillis
-        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, logLevel = Level.FINE))
+        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, useFileCache = true, logLevel = Level.FINE))
         val correctLinks = foundLinks intersect fullLinks
         val missedLinks = fullLinks -- foundLinks
 
