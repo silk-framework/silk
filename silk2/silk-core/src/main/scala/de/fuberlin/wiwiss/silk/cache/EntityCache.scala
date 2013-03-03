@@ -64,6 +64,9 @@ trait EntityCache {
    */
   def clear()
 
+  /**
+   * Closes this cache and writes all unwritten entities.
+   */
   def close()
 
   /**
