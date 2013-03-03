@@ -51,7 +51,7 @@ class MemoryEntityCache(val entityDesc: EntityDescription,
       }
 
       val time = ((System.currentTimeMillis - startTime) / 1000.0)
-      logger.info("Finished writing " + entityCounter + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
+      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCounter + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
     }
     finally {
       writing = false
@@ -65,6 +65,7 @@ class MemoryEntityCache(val entityDesc: EntityDescription,
    */
   private def add(entity: Entity) {
     if (!allEntities.contains(entity.uri)) {
+
       val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
       for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
@@ -96,7 +97,7 @@ class MemoryEntityCache(val entityDesc: EntityDescription,
   /**
    * The number of partitions in a specific block.
    */
-  override def partitionCount(block: Int) = blocks(block).size
+  override def partitionCount(block: Int) = blocks(block).partitionCount
 
   private class Block(block: Int) {
     private val entities = ArrayBuffer(ArrayBuffer[Entity]())
@@ -112,11 +113,11 @@ class MemoryEntityCache(val entityDesc: EntityDescription,
       else {
         entities.append(ArrayBuffer(entity))
         indices.append(ArrayBuffer(index))
-        logger.info("Written partition " + (entities.size - 2) + " of block " + block)
+        logger.log(runtimeConfig.logLevel, "Written partition " + (entities.size - 2) + " of block " + block)
       }
     }
 
-    def size = entities.size
+    def partitionCount = if(entities.head.isEmpty) 0 else entities.size
   }
 
 }
