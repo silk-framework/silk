@@ -38,6 +38,7 @@ import transformer.Tokenizer
 import transformer.UpperCaseTransformer
 import writer._
 import distance._
+import asian._
 import characterbased._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
