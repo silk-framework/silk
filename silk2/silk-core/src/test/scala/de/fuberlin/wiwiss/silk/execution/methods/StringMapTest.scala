@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
-import de.fuberlin.wiwiss.silk.plugins.metric.characterbased.LevenshteinDistance
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
 
 @RunWith(classOf[JUnitRunner])
 class StringMapTest extends FlatSpec with ShouldMatchers {

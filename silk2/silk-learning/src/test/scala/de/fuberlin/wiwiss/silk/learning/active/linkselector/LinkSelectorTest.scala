@@ -23,8 +23,8 @@ import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
 import scala.Some
-import de.fuberlin.wiwiss.silk.plugins.metric.equality.EqualityMetric
-import de.fuberlin.wiwiss.silk.plugins.metric.equality.EqualityMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 
 object LinkSelectorTest extends App {
   val selector1: LinkSelector = JensenShannonDivergenceSelector(fulfilledOnly = true)
