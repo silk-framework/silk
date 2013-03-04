@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.distance
+package de.fuberlin.wiwiss.silk.plugins.distance.asian
 
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.math.{min, max, abs, floor}
