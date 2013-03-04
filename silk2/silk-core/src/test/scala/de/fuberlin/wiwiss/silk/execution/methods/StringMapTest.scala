@@ -14,12 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.execution.methods
 
-import de.fuberlin.wiwiss.silk.plugins.metric.LevenshteinDistance
 import io.Source
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
+import de.fuberlin.wiwiss.silk.plugins.metric.characterbased.LevenshteinDistance
 
 @RunWith(classOf[JUnitRunner])
 class StringMapTest extends FlatSpec with ShouldMatchers {

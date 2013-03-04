@@ -5,9 +5,9 @@ import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 import de.fuberlin.wiwiss.silk.cache.Partition
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Index, Path, Entity}
-import de.fuberlin.wiwiss.silk.plugins.metric.LevenshteinDistance
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.execution.methods.StringMap.Mapper
+import de.fuberlin.wiwiss.silk.plugins.metric.characterbased.LevenshteinDistance
 
 case class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2) extends ExecutionMethod {
 
