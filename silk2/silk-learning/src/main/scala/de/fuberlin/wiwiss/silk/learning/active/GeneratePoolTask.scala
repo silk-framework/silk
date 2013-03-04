@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.entity.{Path, Index, Entity, Link}
 import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.plugins.metric.equality.EqualityMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 
 private class GeneratePoolTask(sources: Traversable[Source],
                                linkSpec: LinkSpecification,
