@@ -6,7 +6,7 @@ import java.net.{URLEncoder, HttpURLConnection, URL}
 import xml.Elem
 import collection.mutable.{ArrayBuffer, HashSet, Set => MSet}
 import java.lang.ConditionalSpecialCasing
-import de.fuberlin.wiwiss.silk.plugins.metric.tokenbased.CosineDistanceMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.CosineDistanceMetric
 
 /**
  * Created by IntelliJ IDEA.

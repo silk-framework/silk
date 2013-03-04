@@ -37,7 +37,7 @@ import transformer.StripUriPrefixTransformer
 import transformer.Tokenizer
 import transformer.UpperCaseTransformer
 import writer._
-import metric._
+import distance._
 import characterbased._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
@@ -131,7 +131,8 @@ object Plugins {
     DistanceMeasure.register(classOf[CosineDistanceMetric])
     DistanceMeasure.register(classOf[KoreanPhonemeDistance])
     DistanceMeasure.register(classOf[KoreanTranslitDistance])
-    
+    DistanceMeasure.register(classOf[CJKReadingDistance])
+
     Aggregator.register(classOf[AverageAggregator])
     Aggregator.register(classOf[MaximumAggregator])
     Aggregator.register(classOf[MinimumAggregator])
