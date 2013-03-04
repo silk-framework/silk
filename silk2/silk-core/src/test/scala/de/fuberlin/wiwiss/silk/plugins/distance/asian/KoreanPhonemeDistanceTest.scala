@@ -18,7 +18,6 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import de.fuberlin.wiwiss.silk.plugins.distance.KoreanPhonemeDistance
 
 @RunWith(classOf[JUnitRunner])
 class KoreanPhonemeDistanceTest extends FlatSpec with ShouldMatchers {
