@@ -14,18 +14,47 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
-import datasource._
+import datasource.CacheDataSource
+import datasource.CsvDataSource
+import datasource.SparqlDataSource
 import transformer._
 import aggegrator._
+import transformer.AlphaReduceTransformer
+import transformer.CapitalizeTransformer
+import transformer.ConcatMultipleValuesTransformer
+import transformer.ConcatTransformer
+import transformer.ConvertCharsetTransformer
+import transformer.LogarithmTransformer
+import transformer.LowerCaseTransformer
+import transformer.MergeTransformer
+import transformer.NumReduceTransformer
+import transformer.RemoveBlanksTransformer
+import transformer.RemoveEmptyValues
+import transformer.RemoveValues
+import transformer.StemmerTransformer
+import transformer.StripPrefixTransformer
+import transformer.StripUriPrefixTransformer
+import transformer.Tokenizer
+import transformer.UpperCaseTransformer
 import writer._
 import metric._
+import characterbased._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
+import equality._
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.Timer
 import java.util.logging.Logger
+import numeric.{NumMetric, GeographicDistanceMetric, DateTimeMetric, DateMetric}
+import tokenbased._
+import tokenbased.DiceCoefficient
+import tokenbased.JaccardDistance
+import tokenbased.SoftJaccardDistance
+import tokenbased.TokenwiseStringDistance
+import writer.FileWriter
+import writer.SparqlWriter
 
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.

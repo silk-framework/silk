@@ -16,15 +16,15 @@ package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison}
-import de.fuberlin.wiwiss.silk.plugins.metric.EqualityMetric
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
-import de.fuberlin.wiwiss.silk.plugins.metric.EqualityMetric
 import scala.Some
+import de.fuberlin.wiwiss.silk.plugins.metric.equality.EqualityMetric
+import de.fuberlin.wiwiss.silk.plugins.metric.equality.EqualityMetric
 
 object LinkSelectorTest extends App {
   val selector1: LinkSelector = JensenShannonDivergenceSelector(fulfilledOnly = true)
