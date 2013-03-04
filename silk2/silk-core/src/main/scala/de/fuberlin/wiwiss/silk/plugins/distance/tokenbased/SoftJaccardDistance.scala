@@ -17,7 +17,6 @@ package de.fuberlin.wiwiss.silk.plugins.distance.tokenbased
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
-import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
 
 @Plugin(id = "softjaccard",
         label = "Soft Jaccard",
