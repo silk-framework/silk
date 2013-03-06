@@ -20,11 +20,12 @@ import methods._
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import io.Source
-import java.util.logging.Level
+import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import methods.Blocking
 import methods.MultiBlock
 import methods.SortedBlocks
+import java.util.Locale
 
 /**
  * This test evaluates the GenerateLinksTask with different execution methods.
@@ -32,6 +33,9 @@ import methods.SortedBlocks
 object GenerateLinksTaskTest {
 
   Plugins.register()
+  Locale.setDefault(Locale.ENGLISH)
+
+  private val log = Logger.getLogger(getClass.getName)
 
   /** Directory of the data set */
   private val dataset = Dataset("Names", "names/config.xml", "names/links.nt")
@@ -40,57 +44,20 @@ object GenerateLinksTaskTest {
   private val targetKey = Path.parse("?b/<label>")
 
   private val tests =
-    Config("Full", Full()) ::
-    Config("Blocking", Blocking(sourceKey, targetKey)) ::
-    Config("SortedBlocks", SortedBlocks(sourceKey, targetKey)) ::
-    Config("StringMap", StringMap(sourceKey, targetKey, distThreshold = 2)) ::
-    Config("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
-    Config("MultiBlock", MultiBlock()) ::
+    Test("Full", Full()) ::
+    Test("Blocking", Blocking(sourceKey, targetKey)) ::
+    Test("SortedBlocks", SortedBlocks(sourceKey, targetKey)) ::
+    Test("StringMap", StringMap(sourceKey, targetKey, distThreshold = 2)) ::
+    Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
+    Test("MultiBlock", MultiBlock()) ::
     Nil
 
   def main(args: Array[String]) {
-    val fullLinks = dataset.loadLinks
+    val results = for(test <- tests) yield test.run
 
-    val results =
-      for (test <- tests.flatMap(test => test :: test :: test :: Nil)) yield {
-        Thread.sleep(3000)
-        println("Running " + test.name + " test...")
-
-        val startTime = System.currentTimeMillis
-        val foundLinks = run(RuntimeConfig(executionMethod = test.executionMethod, indexingOnly = true, useFileCache = true, logLevel = Level.FINE))
-        val correctLinks = foundLinks intersect fullLinks
-        val missedLinks = fullLinks -- foundLinks
-
-//        println("Full Links: " + fullLinks.size)
-//        println("Found Links: " + foundLinks.size)
-//        println("Missed Links: " + missedLinks.size)
-
-        Result(
-          name = test.name,
-          pairsCompleteness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
-          pairsQuality = correctLinks.size.toDouble / foundLinks.size,
-          runtime = System.currentTimeMillis - startTime
-        )
-      }
-
-    results.foreach(println)
-    //TODO for StringMap: add the number of comparisons needed for computing the threshold
-  }
-
-  private def run(runtimeConfig: RuntimeConfig): Set[Link] = {
-    val config = dataset.loadConfig
-
-    // Execute Matching
-    val task =
-      new GenerateLinksTask(
-        sources = config.sources,
-        linkSpec = config.linkSpecs.head,
-        outputs = config.outputs,
-        runtimeConfig = runtimeConfig
-      )
-
-    val links = task()
-    links.toSet
+    println("Results:")
+    println(Result.latexHeader)
+    results.map(_.toLatex).foreach(println)
   }
 
   /**
@@ -98,38 +65,119 @@ object GenerateLinksTaskTest {
    *
    * @param name The name of the data set
    * @param configFile The path of the linking config file.
-   * @param referenceLinks The path of the reference links.
+   * @param referenceLinksFile The path of the reference links.
    */
-  private case class Dataset(name: String, configFile: String, referenceLinks: String) {
-    def loadConfig: LinkingConfig = {
+  private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
+    lazy val config: LinkingConfig = {
       val stream = getClass.getClassLoader.getResourceAsStream(configFile)
       LinkingConfig.load(stream)
     }
 
-    def loadLinks: Set[Link] = {
-      val stream = getClass.getClassLoader.getResourceAsStream(referenceLinks)
+    lazy val referenceLinks: Set[Link] = {
+      val stream = getClass.getClassLoader.getResourceAsStream(referenceLinksFile)
       ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)).positive
     }
   }
 
   /**
-   * Specifies a configuration that is evaluated.
+   * Specifies a test.
    *
    * @param name The name of this configuration
-   * @param executionMethod The execution method used in this configuration
+   * @param executionMethod The execution method to be evaluated
    */
-  private case class Config(name: String, executionMethod: ExecutionMethod)
+  private case class Test(name: String, executionMethod: ExecutionMethod) {
+
+    /** Runs this test and returns the evaluation result */
+    def run: Result = {
+      log.info("Running " + name + " test...")
+
+      val fullLinks = dataset.referenceLinks
+      val foundLinks = runIndexing()
+      val correctLinks = foundLinks intersect fullLinks
+      val missedLinks = fullLinks -- foundLinks
+
+      // Run the test three times
+      val runtimes = for(i <- 0 until 3) yield runComplete()
+
+      Result(
+        name = name,
+        comparisonPairs = foundLinks.size,
+        pairsCompleteness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
+        pairsQuality = correctLinks.size.toDouble / foundLinks.size,
+        runtime = runtimes.min
+      )
+    }
+
+    /** Runs only the indexing and returns the links found by the index. */
+    private def runIndexing() = {
+      val links = run(RuntimeConfig(
+        executionMethod = executionMethod,
+        indexingOnly = true,
+        useFileCache = false,
+        logLevel = Level.FINE
+      ))
+
+      log.info("Found " + links.size + " links in index.")
+      links
+    }
+
+    /** Runs the complete matching task and returns the runtime */
+    private def runComplete() = {
+      val startTime = System.currentTimeMillis
+
+      run(RuntimeConfig(
+        executionMethod = executionMethod,
+        indexingOnly = false,
+        useFileCache = false,
+        logLevel = Level.FINE
+      ))
+
+      val elapsedTime = (System.currentTimeMillis - startTime).toDouble / 1000.0
+      log.info("Executed in " + elapsedTime + "s.")
+      elapsedTime
+    }
+
+    private def run(runtimeConfig: RuntimeConfig): Set[Link] = {
+      val config = dataset.config
+
+      // Execute Matching
+      val task =
+        new GenerateLinksTask(
+          sources = config.sources,
+          linkSpec = config.linkSpecs.head,
+          outputs = config.outputs,
+          runtimeConfig = runtimeConfig
+        )
+
+      val links = task()
+      links.toSet
+    }
+  }
 
   /**
-   * The result of executing a configuration.
+   * The result of executing a test.
    *
-   * @param name The name of the executed configuration
+   * @param name The name of the executed test
    * @param pairsCompleteness The pairs completeness
    * @param pairsQuality The pairs quality
-   * @param runtime The runtime in ms
+   * @param runtime The runtime in s
    */
-  private case class Result(name: String, pairsCompleteness: Double, pairsQuality: Double, runtime: Double) {
+  private case class Result(name: String, comparisonPairs: Long, pairsCompleteness: Double, pairsQuality: Double, runtime: Double) {
     override def toString =
-      s"$name: Pairs Completeness = $pairsCompleteness Pairs Quality = $pairsQuality Runtime = $runtime"
+      s"$name: Comparison Pairs = $comparisonPairsF  Pairs Completeness = $pairsCompletenessF Pairs Quality = $pairsQualityF Runtime = $runtimeF"
+
+    def toLatex = s"$name & $comparisonPairsF & $pairsCompletenessF & $pairsQualityF & $runtimeF \\\\"
+
+    def comparisonPairsF = f"$comparisonPairs%,d"
+
+    def pairsCompletenessF = f"${pairsCompleteness * 100.0}%.2f%"
+
+    def pairsQualityF = f"${pairsQuality * 100.0}%.2f%"
+
+    def runtimeF = f"$runtime%.1fs"
+  }
+
+  private object Result {
+    def latexHeader = "Name & Comparison Pairs & Pairs Completeness & Pairs Quality & Runtime \\\\"
   }
 }
