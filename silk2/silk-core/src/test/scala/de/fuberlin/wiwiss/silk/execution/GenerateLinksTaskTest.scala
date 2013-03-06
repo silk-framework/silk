@@ -47,7 +47,8 @@ object GenerateLinksTaskTest {
     Test("Full", Full()) ::
     Test("Blocking", Blocking(sourceKey, targetKey)) ::
     Test("SortedBlocks", SortedBlocks(sourceKey, targetKey)) ::
-    Test("StringMap", StringMap(sourceKey, targetKey, distThreshold = 2)) ::
+    Test("StringMap (0.1)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.1)) ::
+    Test("StringMap (0.5)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.5)) ::
     Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
     Test("MultiBlock", MultiBlock()) ::
     Nil
