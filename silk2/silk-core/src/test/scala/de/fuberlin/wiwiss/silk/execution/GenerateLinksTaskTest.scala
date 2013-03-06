@@ -167,7 +167,7 @@ object GenerateLinksTaskTest {
     override def toString =
       s"$name: Comparison Pairs = $comparisonPairsF  Pairs Completeness = $pairsCompletenessF Pairs Quality = $pairsQualityF Runtime = $runtimeF"
 
-    def toLatex = s"$name & $comparisonPairsF & $pairsCompletenessF & $pairsQualityF & $runtimeF \\\\"
+    def toLatex = s"$name & $comparisonPairsF & $pairsCompletenessF & $pairsQualityF & $runtimeF \\\\".replace("%", "\\%")
 
     def comparisonPairsF = f"$comparisonPairs%,d"
 
