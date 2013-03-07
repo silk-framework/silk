@@ -26,6 +26,7 @@ import methods.Blocking
 import methods.MultiBlock
 import methods.SortedBlocks
 import java.util.Locale
+import de.fuberlin.wiwiss.silk.plugins.transformer.phonetic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
 
 /**
  * This test evaluates the GenerateLinksTask with different execution methods.
@@ -45,8 +46,10 @@ object GenerateLinksTaskTest {
 
   private val tests =
     Test("Full", Full()) ::
-    Test("Blocking", Blocking(sourceKey, targetKey)) ::
-    Test("SortedBlocks", SortedBlocks(sourceKey, targetKey)) ::
+    Test("Blocking (Soundex)", Blocking(sourceKey, targetKey, q = 100, transformers = SoundexTransformer(false) :: Nil)) ::
+    Test("Blocking (NYSIIS)", Blocking(sourceKey, targetKey, q = 100, transformers = NysiisTransformer(false) :: Nil)) ::
+    Test("Blocking (Metaphone)", Blocking(sourceKey, targetKey, q = 100, transformers = MetaphoneTransformer() :: Nil)) ::
+    Test("Sorted Blocks", SortedBlocks(sourceKey, targetKey)) ::
     Test("StringMap (0.1)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.1)) ::
     Test("StringMap (0.5)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.5)) ::
     Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
