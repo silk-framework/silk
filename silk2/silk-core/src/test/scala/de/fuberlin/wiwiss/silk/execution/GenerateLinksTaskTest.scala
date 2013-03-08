@@ -49,7 +49,8 @@ object GenerateLinksTaskTest {
     Test("Blocking (Soundex)", Blocking(sourceKey, targetKey, q = 100, transformers = SoundexTransformer(false) :: Nil)) ::
     Test("Blocking (NYSIIS)", Blocking(sourceKey, targetKey, q = 100, transformers = NysiisTransformer(false) :: Nil)) ::
     Test("Blocking (Metaphone)", Blocking(sourceKey, targetKey, q = 100, transformers = MetaphoneTransformer() :: Nil)) ::
-    Test("Sorted Blocks", SortedBlocks(sourceKey, targetKey)) ::
+    Test("Sorted Blocks (10%)", SortedBlocks(sourceKey, targetKey, overlap = 0.1)) ::
+    Test("Sorted Blocks (50%)", SortedBlocks(sourceKey, targetKey, overlap = 0.5)) ::
     Test("StringMap (0.1)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.1)) ::
     Test("StringMap (0.5)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.5)) ::
     Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
