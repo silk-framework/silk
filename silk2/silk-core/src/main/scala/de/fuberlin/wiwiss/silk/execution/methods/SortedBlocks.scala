@@ -5,11 +5,13 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 import scala.math.{min,max,pow}
 
-case class SortedBlocks(sourceKey: Path, targetKey: Path) extends ExecutionMethod {
+case class SortedBlocks(sourceKey: Path, targetKey: Path, overlap: Double = 0.5) extends ExecutionMethod {
 
   private val minChar = 'a'
   private val maxChar = 'z'
   private val numChars = 3 //Maximum number of chars that will be indexed
+
+  private val blockCount = pow((maxChar - minChar + 1), 2).toInt
 
   override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
     val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
@@ -33,8 +35,8 @@ case class SortedBlocks(sourceKey: Path, targetKey: Path) extends ExecutionMetho
       value = index,
       minValue = 0.0,
       maxValue = 1.0,
-      blockCount = pow((maxChar - minChar + 1), 1).toInt,
-      overlap = 0.5
+      blockCount = blockCount,
+      overlap = overlap
     )
   }
 }
