@@ -38,7 +38,7 @@ class StringMapTest extends FlatSpec with ShouldMatchers {
     dimensionality = 20
   )
 
-  "de.fuberlin.wiwiss.silk.execution.methods.StringMap" should "generate the same coordinates as the original implementation" in {
+  "StringMap" should "generate the same coordinates as the original implementation" in {
     sm.coordinates(0) should be(approximatelyEqualTo(origCoord0))
     sm.coordinates(1) should be(approximatelyEqualTo(origCoord1))
     sm.coordinates(2) should be(approximatelyEqualTo(origCoord2))
@@ -52,7 +52,7 @@ class StringMapTest extends FlatSpec with ShouldMatchers {
     sm.coordinates(2000) should be(approximatelyEqualTo(origCoord2000))
   }
 
-  "de.fuberlin.wiwiss.silk.execution.methods.StringMap" should "achieve the same recall as the original implementation" in {
+  "StringMap" should "achieve the same recall as the original implementation" in {
     computeRecall should be >= (0.9798)
   }
 

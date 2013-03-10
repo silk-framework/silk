@@ -53,7 +53,9 @@ object GenerateLinksTaskTest {
     Test("Sorted Blocks (50%)", SortedBlocks(sourceKey, targetKey, overlap = 0.5)) ::
     Test("StringMap (0.1)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.1)) ::
     Test("StringMap (0.5)", StringMap(sourceKey, targetKey, distThreshold = 2, thresholdPercentage = 0.5)) ::
-    Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2)) ::
+    Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2, t = 0.7)) ::
+    Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2, t = 0.8)) ::
+    Test("Q-Grams", QGrams(sourceKey, targetKey, q = 2, t = 0.9)) ::
     Test("MultiBlock", MultiBlock()) ::
     Nil
 
@@ -183,6 +185,6 @@ object GenerateLinksTaskTest {
   }
 
   private object Result {
-    def latexHeader = "Name & Comparison Pairs & Pairs Completeness & Pairs Quality & Runtime \\\\"
+    def latexHeader = "Method & Comparison Pairs & Pairs Completeness & Pairs Quality & Runtime \\\\"
   }
 }

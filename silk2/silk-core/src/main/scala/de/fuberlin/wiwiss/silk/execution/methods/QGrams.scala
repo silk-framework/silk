@@ -8,38 +8,46 @@ import scala.BigInt
 import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 
 /**
- * Q-Grams indexing.
+ * Q-Grams indexing as described in:
+ *
+ * Christen, Peter. "Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution,
+ * and Duplicate Detection." (2012).
  *
  * @param sourceKey The source blocking key, e.g., rdfs:label
  * @param targetKey The target blocking key, e.g., rdfs:label
  * @param q The size of the q-grams that are indexed, e.g. if q = 2, bigrams will be indexed.
- * @param k The maximum number of q-grams that are indexed for each string.
+ * @param t The minimum threshold that defines the minimum length of the generated q-gram sub-lists.
  */
-case class QGrams(sourceKey: Path, targetKey: Path, q: Int, k: Int = 10) extends ExecutionMethod {
-  private val minChar = '0'
-  private val maxChar = 'z'
+case class QGrams(sourceKey: Path, targetKey: Path, q: Int = 2, t: Double = 0.8) extends ExecutionMethod {
+  require(q > 0, "q > 0")
+  require(0.0 <= t && t < 1.0, "0 <= t < 1")
 
   override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
     val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
     val values = entity.evaluate(key)
 
-    //Collect all q-grams from all values
-    val qGrams = values.map(_.qGrams(q).take(k)).fold(Stream[String]())(_ ++ _)
-    //Index all q-grams
-    val qGramsIndices = qGrams.map(indexQGram).toSet
-    //Generate the overall index
-    Index.oneDim(qGramsIndices, BigInt(maxChar - minChar + 1).pow(q).toInt)
+    Index.blocks(values.flatMap(indexValue))
   }
 
-  /**
-   * Generates an index for a single q-gram
-   */
-  private def indexQGram(qGram: String): Int = {
-    def combine(index: Int, char: Char) = {
-      val croppedChar = min(max(char, minChar), maxChar)
-      index * (maxChar - minChar + 1) + croppedChar - minChar
-    }
+  @inline
+  def indexValue(str: String): Set[Int] = {
+    generateSubLists(str).map(_.mkString.hashCode)
+  }
 
-    qGram.foldLeft(0)(combine)
+  @inline
+  def generateSubLists(str: String): Set[Seq[String]] = {
+    val qGrams = str.toLowerCase.sliding(q).toSeq
+    val minLength = max(1, (qGrams.size * t).toInt)
+
+    generateSubListsRecursive(qGrams, minLength)
+  }
+
+  private def generateSubListsRecursive(list: Seq[String], minLength: Int): Set[Seq[String]] = {
+    if(list.size > minLength) {
+      val subLists = for(i <- 0 until list.size) yield list.patch(i, Seq.empty, 1)
+      Set(list) ++ subLists.flatMap(l => generateSubListsRecursive(l, minLength))
+    } else {
+      Set(list)
+    }
   }
 }
