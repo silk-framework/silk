@@ -39,11 +39,4 @@
     </Interlink>
   </Interlinks>
 
-  <Outputs>
-    <Output type="file" >
-      <Param name="file" value="linksOnlyLabel.nt"/>
-      <Param name="format" value="ntriples"/>
-    </Output>
-  </Outputs>
-
 </Silk>
