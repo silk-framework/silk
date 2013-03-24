@@ -110,7 +110,7 @@ trait LinksContent extends CometActor {
               if(showButtons)
                 <div class="link-buttons"> {
                   sortableHeader(
-                    header = <span>Correct?</span>,
+                    header = <span>Correct</span>,
                     ascendingSorter = CorrectnessSorterAscending,
                     descendingSorter = CorrectnessSorterDescending
                   )
