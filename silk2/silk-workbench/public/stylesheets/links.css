@@ -1,0 +1,212 @@
+#results .link {
+  clear: both;
+}
+
+.link-header {
+  border-top: 1px solid #DBDBDB;
+  height: 26px;
+  line-height: 18px;
+}
+
+.link-header div {
+  float: left;
+}
+
+.link-source, .link-target {
+  border-right: 1px solid #DBDBDB;
+  padding: 4px 0;
+  width: 420px;
+  margin-right: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.link-source a, .link-target a {
+  margin-right: 12px;
+}
+
+.link-details {
+  display: none;
+  background: none repeat scroll 0 0 #f2f2f4;
+  border-top: 2px solid #d4d4d5;
+  border-bottom: 2px solid #d4d4d5;
+  font-size: 12px;
+}
+
+.link-confidence {
+  border-right: 1px solid #DBDBDB;
+  width: 90px;
+  height: 22px;
+  padding-top: 4px;
+}
+
+.confidencebar {
+  width: 75px;
+  height: 15px;
+  margin-right: 20px;
+  float: left;
+}
+
+.confidence {
+  position: absolute;
+  font-size: 11px;
+  margin-left: 17px;
+  line-height: 14px;
+}
+
+.confidence-red {
+  background: #f14e4e;
+}
+
+.confidence-green {
+  background: #87dd87;
+}
+
+.grey {
+  background: #F8F8F8;
+}
+
+.link-status {
+  border-right: 1px solid #DBDBDB;
+  width: 60px;
+  margin-left: 10px;
+  padding: 4px 0;
+}
+
+.link-buttons {
+  margin-left: 10px;
+  margin-top: 4px;
+}
+
+.link-over {
+  background: #f0f0df !important;
+}
+
+.heading {
+  padding-left: 19px;
+}
+
+.heading div {
+  font-weight: bold;
+  line-height: 18px;
+}
+
+.plus {
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('treeview/images/plus.gif');
+}
+
+.minus {
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('treeview/images/minus.gif');
+}
+
+#tree-header, #tree-footer {
+  width: 1125px;
+}
+
+#tree-header div {
+  float: left;
+}
+
+#tree-header .left {
+  width: 200px;
+}
+
+#tree-header .middle {
+  width: 400px;
+}
+
+#tree-header .right {
+  width: 200px;
+}
+
+#tree-header .toggle-all {
+  border: 1px solid #cdcccc;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  padding: 0.2em 0.4em;
+  margin-right: 6px;
+}
+
+.ui-icon {
+  margin-right: 3px;
+  margin-top: 4px;
+}
+
+.aggregation, .comparison, .transformation, .input {
+  float: left;
+  margin-right: 6px;
+  margin-bottom: 5px;
+}
+
+.lastCollapsable-hitarea {
+  background-position: 60% 41% !important;
+}
+
+.input {
+  line-height: 22px;
+}
+
+.source-path,
+.target-path,
+.source-value,
+.target-value  {
+  padding: 1px 3px;
+  margin-left: 3px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.target-path {
+  color: #4f2b2b;
+  border: 1px solid #c7a1a1;
+  background-color: #ffe8e8;
+}
+
+.target-value {
+  color: #4f2b2b;
+  border: 1px solid #c7a1a1;
+  background-color: #ffe8e8;
+}
+
+.source-path {
+  color: #502c4f;
+  border: 1px solid #c6a0c4;
+  background-color: #f2d7ff;
+}
+
+.source-value {
+  color: #502c4f;
+  border: 1px solid #c6a0c4;
+  background-color: #f2d7ff;
+}
+
+.treeview li {
+  padding: 1px 0px 1px 16px !important;
+}
+
+.treeview ul {
+  background: none !important;
+}
+
+.treeview {
+  padding: 1px 2px 16px 4px !important;
+}
+
+.treeview li.lastCollapsable {
+  background-position: 0 -113px !important;
+}
+
+#results .ui-corner-all {
+  border-radius: 0;
+}
+
+#results .ui-corner-left {
+  border-radius: 0;
+}

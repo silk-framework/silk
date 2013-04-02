@@ -71,7 +71,6 @@
     <module>silk-mapreduce</module>
     <module>silk-server</module>
 	  <module>silk-workspace</module>
-    <module>silk-workbench-outdated</module>
   </modules>
 
   <build>

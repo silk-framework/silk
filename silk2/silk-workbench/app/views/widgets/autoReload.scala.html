@@ -1,0 +1,17 @@
+@(contentPath: String, streamPath: String)
+
+@id() = @{
+"autoreload-" + streamPath.filter(_ != '/')
+}
+
+<script type="text/javascript">
+  function reload() {
+    $.get('@contentPath', function(data) {
+      $('#@id()').html(data);
+    }).fail(function(request) { alert(request.responseText);  })
+  }
+  reload();
+</script>
+
+<div id="@id()"></div>
+<iframe src="@streamPath" frameborder="0" height="0" width="100%"></iframe>

@@ -1,0 +1,25 @@
+@(project: Option[String], task: Option[String], selectedTab: Int)
+
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+<div id="tabbar">
+  <div id="title">Silk Workbench</div>
+  <span>
+    <div class="tab"><a href="/">Workspace</a></div>
+    @for(p <- project; t <- task) {
+      <div class="tab"><a href="/@p/@t/editor">Editor</a></div>
+      <div class="tab"><a href="/@p/@t/generateLinks">Generate Links</a></div>
+      <div class="tab"><a href="/@p/@t/learnStart">Learn</a></div>
+      <div class="tab"><a href="/@p/@t/referenceLinks">Reference Links</a></div>
+      <div class="tab"><a href="/@p/@t/status">Status</a></div>
+      <div class="tab"><a id="about">About</a></div>
+    }
+  </span>
+</div>
+
+<script type="text/javascript">
+  $(function() {
+    // Mark selected tab
+    $('.tab').each(function(i, val) { if(i == '@selectedTab') { $(val).addClass('selected') } });
+  });
+</script>

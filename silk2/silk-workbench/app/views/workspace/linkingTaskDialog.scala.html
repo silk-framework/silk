@@ -1,0 +1,95 @@
+@(project: String, task: String)
+
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@sources = @{ User().workspace.project(project).sourceModule.tasks.toSeq }
+
+@linkingTask = @{ User().workspace.project(project).linkingModule.tasks.find(_.name == task) }
+
+@datasets = @{ linkingTask.map(_.linkSpec.datasets) }
+
+@widgets.dialog() {
+  <table border="0">
+    @if(!linkingTask.isDefined) {
+      <tr>
+        <td>Name</td>
+        <td><input name="name" title="Name" size="60"
+                   value="@task"/></td>
+      </tr>
+    }
+    <tr>
+      <td>Source</td>
+      <td>
+        <select name="source" title="Source dataset">
+          @for(source <- sources) {
+            @if(datasets.isDefined && source.name == datasets.get.source.sourceId.toString) {
+              <option value="@source.name" selected="selected">@source.name</option>
+            } else {
+              <option value="@source.name">@source.name</option>
+            }
+          }
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Source restriction</td>
+      <td><input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="60"
+                 value="@datasets.map(_.source.restriction.toSparql).getOrElse("?a rdf:type myprefix:myclass")"/></td>
+    </tr>
+    <tr>
+      <td>Target</td>
+      <td>
+        <select name="target" title="Target dataset">
+          @for(source <- sources) {
+            @if(datasets.isDefined && source.name == datasets.get.target.sourceId.toString) {
+              <option value="@source.name" selected="selected">@source.name</option>
+            } else {
+              <option value="@source.name">@source.name</option>
+            }
+          }
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Target restriction</td>
+      <td><input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="60"
+                 value="@datasets.map(_.target.restriction.toSparql).getOrElse("?b rdf:type myprefix:myclass")"/></td>
+    </tr>
+    <tr>
+      <td>Link type</td>
+      <td><input name="linktype" title="Type of the generated link" size="60"
+                 value="@linkingTask.map(_.linkSpec.linkType.toString).getOrElse("http://www.w3.org/2002/07/owl#sameAs")"/></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+
+  <script>//<![CDATA[
+    function submit() {
+      var values = {
+        name: $("select[name='name']").val(),
+        source: $("select[name='source']").val(),
+        sourcerestriction: $("input[name='sourcerestriction']").val(),
+        target: $("select[name='target']").val(),
+        targetrestriction: $("input[name='targetrestriction']").val(),
+        linktype: $("input[name='linktype']").val()
+      };
+
+      $.ajax({
+        type: 'PUT',
+        url: '/api/@project/linking/@task',
+        data: values,
+        success: function(data) {
+          $('.dialog').dialog('close');
+          updateWorkspace();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  //]]>
+  </script>
+}

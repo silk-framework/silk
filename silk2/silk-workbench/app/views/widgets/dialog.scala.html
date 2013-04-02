@@ -1,0 +1,21 @@
+@(width: Int = 700)(content: Html)
+
+<div class="dialog">
+  @content
+</div>
+
+<script>
+  $(function() {
+    $("button[type!='radio'], input:submit, input:checkbox, a.button").button();
+
+    $('.dialog').dialog({
+      autoOpen: true,
+      width: @width,
+      modal: true,
+      close: function(event, ui){
+        $(this).dialog("destroy");
+      	$(this).remove();
+      }
+    });
+  });
+</script>
