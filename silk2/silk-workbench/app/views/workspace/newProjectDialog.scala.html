@@ -1,0 +1,34 @@
+@()
+
+@widgets.dialog(width = 500) {
+  <table border="0">
+    <tr>
+      <td>Name</td>
+      <td><input name="name" title="Project Name" size="60" value="unnamed"/></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+
+  <script>//<![CDATA[
+    function submit() {
+      var name = $("input[name='name']").val();
+
+      $.ajax({
+        type: 'PUT',
+        url: '/api/workspace/' + name,
+        data: "",
+        success: function(data) {
+          $('.dialog').dialog('close');
+          updateWorkspace();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  //]]>
+  </script>
+}

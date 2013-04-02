@@ -1,0 +1,45 @@
+@(project: String, task: String)
+
+@widgets.dialog(width = 500) {
+  <table border="0">
+    <tr>
+      <td>File</td>
+      <td>
+        <form enctype="multipart/form-data">
+          <input name="file" type="file" size="10"/>
+        </form>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+
+  <script>
+    function submit() {
+      var file = $("input[name='file']").val();
+      var formData = new FormData($('form')[0]);
+
+      $.ajax({
+        type: 'PUT',
+        url: '/api/workspace/@project/linking/@task/referenceLinks',
+        xhr: function() {
+          myXhr = $.ajaxSettings.xhr();
+          return myXhr;
+        },
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function(data) {
+          $('.dialog').dialog('close');
+          reload();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  </script>
+}

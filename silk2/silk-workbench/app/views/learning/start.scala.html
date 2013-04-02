@@ -1,0 +1,58 @@
+@(project: String, task: String, referenceLinks: de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks)
+
+@header = {
+  <script type="text/javascript">
+    var taskUrl = '../../api/tasks/@project/@task';
+
+    function startLearning() {
+      $.ajax({
+        type: 'PUT',
+        url: taskUrl + '/learningTask',
+        data: '',
+        success: function(response) {
+          window.location = "learn"
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+    
+    function startActiveLearning() {
+      $.ajax({
+        type: 'PUT',
+        url: taskUrl + '/activeLearningTask',
+        data: '',
+        success: function(response) {
+          window.location = "activeLearn"
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  </script>
+}
+
+@toolbar = {
+}
+
+@content = {
+  @if(referenceLinks.isDefined) {
+    <span>
+      There are already @referenceLinks.positive.size positive and @referenceLinks.positive.size negative reference links.
+      Start learning a linkage rules from existing reference links: 
+      <button onClick="startLearning()">Start</button>
+      <br/>
+      Start with existing reference links but find new reference links:
+      <button onClick="startActiveLearning()">Start</button>
+    </span>
+  } else {
+    <span>
+      Start active learning: 
+      <button onClick="startActiveLearning()">Start</button>
+    </span>
+  }
+}
+
+@main(Some(project), Some(task), selectedTab = 3)(header)(toolbar)(content)

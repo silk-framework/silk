@@ -1,0 +1,4 @@
+<DataSource type="file" id="restaurant">
+  <Param name="file" value="restaurant/restaurant.nt"></Param>
+  <Param name="format" value="N-TRIPLE"></Param>
+</DataSource>

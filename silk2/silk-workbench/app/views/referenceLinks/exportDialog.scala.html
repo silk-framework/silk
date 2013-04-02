@@ -1,0 +1,81 @@
+@(project: String, task: String)
+
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@outputs = @{ User().workspace.project(project).outputModule.tasks }
+
+@widgets.dialog(600) {
+  <table>
+    <tr>
+      <td>
+        Positive Links
+      </td>
+      <td>
+        <select name="positiveOutput" title="The output where the positive reference links are written">
+          <option value="none">No Output</option>
+          @for(output <- outputs) {
+            <option value="@output.name">@output.name</option>
+          }
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Property
+      </td>
+      <td>
+        <input name="positiveProperty" value="http://www.w3.org/2002/07/owl#sameAs" size="60" type="text" title="The property used for the positive reference links" />
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Negative Links
+      </td>
+      <td>
+        <select name="negativeOutput" title="The output where the negative reference links are written">
+          <option value="none">No Output</option>
+          @for(output <- outputs) {
+            <option value="@output.name">@output.name</option>
+          }
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Property
+      </td>
+      <td>
+        <input name="negativeProperty" value="http://www.w3.org/2002/07/owl#differentFrom" size="60" type="text" title="The property used for the negative reference links" />
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <button onclick="submitDialog()" style="float:right;">Export</button>
+      </td>
+    </tr>
+  </table>
+
+  <script type="text/javascript">
+    function submitDialog() {
+      var values = {
+        positiveOutput: $("select[name='positiveOutput']").filter(function() { return $(this).val() != 'none'}).val(),
+        positiveProperty: $("input[name='positiveProperty']").val(),
+        negativeOutput: $("select[name='negativeOutput']").filter(function() { return $(this).val() != 'none'}).val(),
+        negativeProperty: $("input[name='negativeProperty']").val()
+      };
+
+      $.ajax({
+        type: 'PUT',
+        url: '../../api/tasks/@project/@task/writeReferenceLinks',
+        data: values,
+        success: function(response) {
+          $('.dialog').dialog('close');
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  </script>
+}

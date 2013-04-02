@@ -1,0 +1,17 @@
+Silk Workbench
+----------------------------
+
+Silk Workbench is a web application which guides the user through the process of creating linkage rules for interlinking two data sources. More information about the Silk Workbench can be found on http://silk.wbsg.de.
+
+Requirements:
+
+- JDK 6 or later
+- Apache Maven
+- Play Framework (http://www.playframework.com)
+
+Running the Silk Workbench:
+- navigate to the top directory
+- execute 'mvn install'
+- navigate to this directory
+- execute 'mvn play2:run'
+- Navigate in your browser to http://localhost:9000

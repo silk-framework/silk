@@ -1,0 +1,4 @@
+<DataSource type="file" id="sider">
+  <Param name="file" value="sider.nt"></Param>
+  <Param name="format" value="N-TRIPLE"></Param>
+</DataSource>

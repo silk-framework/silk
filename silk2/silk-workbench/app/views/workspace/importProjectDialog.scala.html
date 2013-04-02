@@ -1,0 +1,52 @@
+@()
+
+@widgets.dialog(width = 500) {
+  <table border="0">
+    <tr>
+      <td>Name</td>
+      <td><input name="name" title="Project Name" size="60" value="unnamed"/></td>
+    </tr>
+    <tr>
+      <td>File</td>
+      <td>
+        <form enctype="multipart/form-data">
+          <input name="file" type="file" size="10"/>
+        </form>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+
+
+  <script>//<![CDATA[
+    function submit() {
+      var name = $("select[name='name']").val();
+      var file = $("input[name='file']").val();
+      var formData = new FormData($('form')[0]);
+
+      $.ajax({
+        type: 'POST',
+        url: '/api/workspace/' + name + '/import',
+        xhr: function() {  // custom xhr
+            myXhr = $.ajaxSettings.xhr();
+            return myXhr;
+        },
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function(data) {
+          $('.dialog').dialog('close');
+          updateWorkspace();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  //]]>
+  </script>
+}

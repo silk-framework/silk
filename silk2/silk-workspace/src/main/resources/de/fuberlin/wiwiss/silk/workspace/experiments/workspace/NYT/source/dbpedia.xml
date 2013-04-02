@@ -1,0 +1,4 @@
+<DataSource type="file" id="dbpedia">
+  <Param name="file" value="nyt/dbpedia_locations.nt"></Param>
+  <Param name="format" value="N-TRIPLE"></Param>
+</DataSource>
