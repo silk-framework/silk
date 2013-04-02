@@ -1,0 +1,66 @@
+<lift:surround with="default">
+
+  <lift:bind-at name="definitions">
+    <link rel="stylesheet" href="static/jquery-ui/css/treeview/jquery.treeview.css" type="text/css" />
+    <link rel="stylesheet" href="static/css/workspace.css" type="text/css" />
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js" />
+    <script type="text/javascript" src="static/js/workspace.js" />
+  </lift:bind-at>
+
+  <lift:bind-at name="toolbar">
+  </lift:bind-at>
+
+  <lift:bind-at name="content">
+    <lift:workspace.content>
+      <entry:injectedJavascript/>
+      <div id="createProjectDialog" title="New project">
+        <lift:createProjectDialog>
+          <table border="0">
+            <tr>
+              <td>Name</td>
+              <td><entry:name/></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td align="right"><entry:submit/></td>
+            </tr>
+          </table>
+        </lift:createProjectDialog>
+      </div>
+      <div id="importProjectDialog" title="Import project">
+        <lift:importProjectDialog form="POST" multipart="true">
+          <entry:name/>
+          <br/>
+          <entry:file/>
+          <br/>
+          <entry:submit/>
+        </lift:importProjectDialog>
+      </div>
+      <div id="editPrefixesDialog" title="Edit Prefixes">
+        <lift:editPrefixesDialog>
+          <entry:prefixTable />
+          <entry:submit />
+        </lift:editPrefixesDialog>
+      </div>
+      <div id="addLinkSpecificationDialog" title="Add Link Specification">
+        <lift:addLinkSpecificationDialog form="POST" multipart="true">
+          <entry:file/>
+          <br/>
+          <entry:submit/>
+        </lift:addLinkSpecificationDialog>
+      </div>
+      <lift:sourceTaskDialog/>
+      <lift:voidSourceTaskDialog/>
+      <lift:linkingTaskDialog />
+      <lift:outputDialog/>
+      <div id="loading-dialog" >
+        <div id="loading-progressbar" ></div>
+      </div>
+    </lift:workspace.content>
+  </lift:bind-at>
+
+  <lift:bind-at name="help">
+    <lift:comet type="WorkspaceHelp" name="WorkspaceHelp" />
+  </lift:bind-at>
+
+</lift:surround>

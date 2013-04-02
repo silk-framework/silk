@@ -70,7 +70,8 @@
     <module>silk-singlemachine</module>
     <module>silk-mapreduce</module>
     <module>silk-server</module>
-    <module>silk-workbench</module>
+	  <module>silk-workspace</module>
+    <module>silk-workbench-outdated</module>
   </modules>
 
   <build>
@@ -80,6 +81,14 @@
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
         <version>3.1.2</version>
+	    <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <args>
             <arg>-optimise</arg>
