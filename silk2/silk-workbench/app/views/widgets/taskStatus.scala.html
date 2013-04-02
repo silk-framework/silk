@@ -1,0 +1,32 @@
+@(streamPath: String)
+
+@id() = @{
+  "progressbar-" + streamPath.filter(_ != '/')
+}
+
+<script type="text/javascript">
+  function updateStatus(status) {
+    if(status.failed) {
+      $('#@id()').attr('title', status.message);
+      $("#@id()-bar").progressbar({
+        value: 0
+      });
+      $("#@id()-text").html("Failed");
+
+    } else {
+      $('#@id()').attr('title', status.message);
+      $("#@id()-bar").progressbar({
+        value: parseFloat(status.progress)
+      });
+      $("#@id()-text").html(status.message);
+    }
+  }
+</script>
+
+<div id="@id()">
+  <div id="@id()-bar"></div>
+  <div id="@id()-text" class="progresstext"></div>
+</div>
+
+<div ></div>
+<iframe src="@streamPath" frameborder="0" height="0" width="100%"></iframe>

@@ -1,0 +1,29 @@
+@(project: String, output: String)
+
+@import de.fuberlin.wiwiss.silk.output.LinkWriter
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@widgets.pluginDialog(name = output,
+                      plugins = LinkWriter.availablePlugins,
+                      currentObj = User().workspace.project(project).outputModule.tasks.find(_.name == output).map(_.output.writer)) {
+
+  <script>//<![CDATA[
+    function submit(pluginId, name, parameters) {
+      // Build data source xml
+      var xml = '<Output id=\'' + name + '\' type=\'' + pluginId + '\'>';
+      for(var i in parameters) {
+        xml += '<Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+      }
+      xml += '</Output>';
+
+      // Delete the old output in case its name changed
+      if(name != '@output') {
+        deleteTask('/api/@project/output/@output');
+      }
+
+      // Submit output
+      putTask('/api/@project/output/' + name, xml);
+    }
+  //]]>
+  </script>
+}

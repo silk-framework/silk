@@ -1,0 +1,29 @@
+@(project: String, source: String)
+
+@import de.fuberlin.wiwiss.silk.datasource.DataSource
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@widgets.pluginDialog(name = source,
+                      plugins = DataSource.availablePlugins,
+                      currentObj = User().workspace.project(project).sourceModule.tasks.find(_.name == source).map(_.source.dataSource)) {
+
+  <script>//<![CDATA[
+    function submit(pluginId, name, parameters) {
+      // Build data source xml
+      var xml = '<DataSource id=\'' + name + '\' type=\'' + pluginId + '\'>';
+      for(var i in parameters) {
+        xml += '<Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+      }
+      xml += '</DataSource>';
+
+      // Delete the old source in case its name changed
+      if(name != '@source') {
+        deleteTask('/api/@project/source/@source');
+      }
+
+      // Submit data source
+      putTask('/api/@project/source/' + name, xml);
+    }
+  //]]>
+  </script>
+}

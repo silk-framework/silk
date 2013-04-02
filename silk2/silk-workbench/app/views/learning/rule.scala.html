@@ -1,0 +1,16 @@
+@(population: de.fuberlin.wiwiss.silk.learning.individual.Population, 
+  referenceLinks: de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks)
+
+<script type="text/javascript">
+  initTrees();
+</script>
+
+@if(population.isEmpty) {
+  No linkage rule learned yet.
+} else {
+  <div>
+    Fitness: @{"%.1f".format((population.bestIndividual.fitness) * 100)} (based on @referenceLinks.positive.size positive and @referenceLinks.negative.size negative reference links)
+    <br/>
+    @ruleTree(population.bestIndividual.node.build)
+  </div>
+}

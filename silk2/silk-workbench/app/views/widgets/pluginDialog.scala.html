@@ -1,0 +1,71 @@
+@(name: String,
+  plugins: Seq[de.fuberlin.wiwiss.silk.util.plugin.PluginDescription[_]],
+  currentObj: Option[de.fuberlin.wiwiss.silk.util.plugin.AnyPlugin])(contents: Html)
+
+@import de.fuberlin.wiwiss.silk.util.plugin.PluginDescription
+@import de.fuberlin.wiwiss.silk.util.plugin.Parameter
+
+@dialog(500) {
+  <div id="tabs">
+    <ul>
+      @for(plugin <- plugins) {
+        <li><a href='#@plugin.id'>@plugin.label</a></li>
+      }
+    </ul>
+    @for(plugin <- plugins) {
+      @createTab(plugin)
+    }
+  </div>
+  <script>
+    $(function() {
+      $('#tabs').tabs({ @for(obj <- currentObj) { selected: @(plugins.indexWhere(_.id == obj.pluginId)) } });
+    });
+  </script>
+  @contents
+}
+
+@createTab(plugin: PluginDescription[_]) = {
+  <div id='@plugin.id'>
+    @plugin.description
+    <br/>
+    <table>
+      <tr>
+        <td>name</td>
+        <td><input type="text" name='@(plugin.id)_name' value='@name'/></td>
+      </tr>
+      @for(param <- plugin.parameters) {
+        @createField(plugin.id, param)
+      }
+    </table>
+    <button onclick='@(plugin.id)_submit()'>Ok</button>
+  </div>
+
+  <script>//<![CDATA[
+    function @(plugin.id)_submit() {
+      // Retrieve the name of the plugin
+      var name = $('input[name=\'@(plugin.id)_name\']').val();
+      // Retrieve all plugin parameters
+      var parameters = [
+        @for(param <- plugin.parameters) {
+          { name: '@param.name',
+            value: $('input[name=\'@(plugin.id)_@(param.name)\']').val() },
+        }
+      ];
+      // Submit dialog
+      submit('@plugin.id', name, parameters);
+    }
+  //]]>
+  </script>
+}
+
+@createField(pluginId: String, param: Parameter) = {
+  <tr>
+    <td>@param.name</td>
+    <td><input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/></td>
+  </tr>
+}
+
+@value(pluginId: String, param: Parameter) = {@(currentObj match {
+  case Some(obj) if obj.pluginId == pluginId => Option(param(obj)).getOrElse("").toString
+  case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
+})}

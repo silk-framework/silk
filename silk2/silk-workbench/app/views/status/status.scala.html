@@ -1,0 +1,19 @@
+@(project: String, task: String)
+
+@header = {
+}
+
+@toolbar = {
+}
+
+@content = {
+  <div class="wrapper-header">
+    Cache Status
+  </div>
+
+  <div class="wrapper">
+    @widgets.taskStatus("status/cacheStream")
+  </div>
+}
+
+@main(Some(project), Some(task), selectedTab = 5)(header)(toolbar)(content)
