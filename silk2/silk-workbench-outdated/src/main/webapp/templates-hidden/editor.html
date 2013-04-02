@@ -1,0 +1,86 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <title><div lift="Branding.render" /></title>
+
+    <link rel="stylesheet" href="static/css/main.css" type="text/css" />
+
+    <link type="text/css" href="static/css/editor-reset.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/editor.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="static/jquery-ui/css/smoothness/jquery-ui-1.8.14.custom.css" type="text/css" media="screen, projection"/>
+
+    <script type="text/javascript" src="static/jquery-ui/js/jquery-1.6.2.min.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery-ui-1.8.14.custom.min.js"></script>
+
+    <script type="text/javascript" src="static/js/excanvas.js"></script>
+
+    <script type="text/javascript" src="static/js/jquery.jsPlumb-1.2.4-all.js"></script>
+    <script type="text/javascript" src="static/js/jquery.blockUI.js"></script>
+
+    <script type="text/javascript" src="static/js/editor.js"></script>
+
+    <!--
+    <link type="text/css" href="static/css/jquery.jscrollpane.css" rel="stylesheet" media="all" />
+    -->
+
+    <!-- the mousewheel plugin -->
+    <script type="text/javascript" src="static/js/jquery.mousewheel.js"></script>
+
+    <script type="text/javascript" src="static/js/about.js" />
+
+    <!-- the jScrollPane script -->
+    <!--
+    <script type="text/javascript" src="static/js/jquery.jscrollpane.js"></script>
+
+    <script type="text/javascript" id="sourcecode">
+			$(function()
+			{
+				$('.droppable').jScrollPane();
+			});
+	</script>
+    -->
+    <script type="text/javascript">
+	    $(function() {
+	    	$("button[type!='radio'], input:submit, a#button").button();
+	    });
+    </script>
+  </head>
+  <body onresize="updateWindowSize();" onunload="jsPlumb.unload();">
+  <script type="text/javascript" src="static/js/wz_tooltip.js"></script>
+    <lift:msgs/>
+    <div id="tabbar">
+      <div id="title"><div lift="Branding.render" /></div >
+      <lift:Menu.builder
+          outer_tag="span"
+          inner_tag="div"
+          li:class="tab"
+          li_item:class="tab selected"/>
+        <span><div class="tab"> <a id="about">About</a></div></span>
+    </div>
+    <div id="toolbar">
+      <lift:bind name="toolbar" />
+    </div>
+    <div id="content">
+      <lift:bind name="content" />
+    </div>
+
+   <script type="text/javascript">
+       $("#droppable, .draggables").block({
+            message: null,
+            fadeOut: 0,
+            fadeIn: 0,
+            overlayCSS:  {
+                backgroundColor: '#000',
+                opacity: 0
+            }
+       });
+   </script>
+
+  </body>
+</html>

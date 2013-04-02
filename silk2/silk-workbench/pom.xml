@@ -11,13 +11,19 @@
     <version>2.5.4</version>
   </parent>
 
-  <artifactId>silk-workbench</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>workbench</artifactId>
+  <packaging>play2</packaging>
   <name>Silk Workbench</name>
 
-  <modules>
-    <module>silk-workbench-model</module>
-	  <module>silk-workbench-webapp</module>  
-  </modules>
+  <build>
+    <plugins>
+     <plugin>
+        <groupId>org.nanoko.playframework</groupId>
+        <artifactId>play2-maven-plugin</artifactId>
+        <version>1.2.2</version>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

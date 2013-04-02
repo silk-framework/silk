@@ -1,0 +1,103 @@
+<lift:surround with="default">
+
+  <lift:bind-at name="definitions">
+
+    <link type="text/css" href="static/css/table.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/links.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/linkageRuleTree.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/pagination.css" rel="stylesheet" />
+    <link type="text/css" href="static/jquery-ui/css/treeview/jquery.treeview.css" rel="stylesheet" />
+
+    <script type="text/javascript" src="static/js/jquery.pagination.js"></script>
+    <script type="text/javascript" src="static/jquery-ui/js/jquery.treeview.js"></script>
+
+    <script type="text/javascript" src="static/js/links.js"></script>
+
+  </lift:bind-at>
+
+  <lift:bind-at name="toolbar">
+    <ul>
+      <li>
+        <lift:comet type="LearnControl" name="LearnControl" />
+      </li>
+      <li>
+        <lift:comet type="LearnProgress" name="LearnProgress" />
+      </li>
+      <li>
+        <lift:comet type="ActiveLearnProgress" name="ActiveLearnProgress" />
+      </li>
+      <li>
+        <lift:comet type="CacheLoadingProgress" name="CacheLoadingProgress" />
+      </li>
+      <li>
+        <lift:learnConfigButton />
+      </li>
+      <li>
+        <lift:learnResetButton />
+      </li>
+    </ul>
+    <lift:learnConfigDialog/>
+  </lift:bind-at>
+
+  <lift:bind-at name="content">
+
+    <lift:LearnContent>
+      <choose:start>
+      </choose:start>
+      <choose:learn>
+        <div class="wrapper-header">
+          Learned Linkage Rule
+        </div>
+
+        <div class="wrapper">
+          <lift:comet type="LearnStatus" name="LearnStatus" />
+        </div>
+
+        <div class="wrapper-header">
+          Uncertain links
+        </div>
+
+        <div class="wrapper">
+
+          <lift:comet type="SampleLinksContent" name="SampleLinksContent">
+
+            <entry:script/>
+
+            <div id="tree-header">
+              <div class="left">
+                <div class="toggle-all"><div class="plus"></div><a href="#" onclick="expand_all();">Expand All</a></div>
+                <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
+              </div>
+              <div class="middle">
+                <div class="navigation"></div>
+              </div>
+              <div class="right">
+                <entry:filter/>
+              </div>
+            </div>
+
+            <div style="clear: both"></div>
+
+            <p>
+              <entry:list/>
+            </p>
+
+            <div style="clear:both;"></div>
+
+            <div id="tree-footer">
+              <div class="navigation"></div>
+            </div>
+
+            <div style="clear: both"></div>
+
+          </lift:comet>
+        </div>
+      </choose:learn>
+    </lift:LearnContent>
+  </lift:bind-at>
+
+  <lift:bind-at name="help">
+    <lift:comet type="LearnHelp" name="LearnHelp" />
+  </lift:bind-at>
+
+</lift:surround>
