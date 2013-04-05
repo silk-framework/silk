@@ -51,7 +51,7 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
   }
 
   private def propFilter = literal ~ compOperator ~ literal ^^ {
-    case prop ~ op ~ value => PropertyFilter(Uri.parse(prop, prefixes).uri, op, value)
+    case prop ~ op ~ value => PropertyFilter(Uri.parse(prop, prefixes), op, value)
   }
 
   private def literal = """<[^>]+>|[^\\/\[\] ]+""".r

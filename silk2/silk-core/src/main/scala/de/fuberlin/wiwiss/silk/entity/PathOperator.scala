@@ -47,7 +47,7 @@ case class BackwardOperator(property: Uri) extends PathOperator {
  * Reduces the currently selected set of resources to the ones with a specific language.
  *
  * @param operator Comparison operator. May be one of >, <, >=, <=, =, !=.
- * @param value The language.
+ * @param language The language.
  */
 case class LanguageFilter(operator: String, language: String) extends PathOperator {
   override def serialize(implicit prefixes: Prefixes) = "[@lang " + operator + " " + language + "]"
@@ -60,6 +60,6 @@ case class LanguageFilter(operator: String, language: String) extends PathOperat
  * @param operator Comparison operator. May be one of >, <, >=, <=, =, !=.
  * @param value The comparison value.
  */
-case class PropertyFilter(property: String, operator: String, value: String) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "[" + (new Uri(property)).toTurtle + " " + operator + " " + value + "]"
+case class PropertyFilter(property: Uri, operator: String, value: String) extends PathOperator {
+  override def serialize(implicit prefixes: Prefixes) = "[" + property.toTurtle + " " + operator + " " + value + "]"
 }

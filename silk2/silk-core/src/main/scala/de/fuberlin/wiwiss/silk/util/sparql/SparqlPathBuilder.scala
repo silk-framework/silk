@@ -53,7 +53,7 @@ object SparqlPathBuilder {
       case ForwardOperator(property) => subject + " " + property.toTurtle + " " + vars.newTempVar + " .\n"
       case BackwardOperator(property) => vars.newTempVar + " " + property.toTurtle + " " + subject + " .\n"
       case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " " + lang + ") . \n"
-      case PropertyFilter(property, op, value) => subject + " " + property + " " + vars.newFilterVar + " .\n" +
+      case PropertyFilter(property, op, value) => subject + " " + property.toTurtle + " " + vars.newFilterVar + " .\n" +
         "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
     }
 
