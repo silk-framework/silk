@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.input.Input
-import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
+import de.fuberlin.wiwiss.silk.testutil.approximatelyEqualTo
 
 @RunWith(classOf[JUnitRunner])
 class ComparisonTest extends FlatSpec with ShouldMatchers {
