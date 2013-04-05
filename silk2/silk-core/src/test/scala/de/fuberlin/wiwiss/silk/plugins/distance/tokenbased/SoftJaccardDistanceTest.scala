@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
+import de.fuberlin.wiwiss.silk.testutil.approximatelyEqualTo
 
 @RunWith(classOf[JUnitRunner])
 class SoftJaccardDistanceTest extends FlatSpec with ShouldMatchers {

@@ -14,12 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.plugins.distance.tokenbased
 
-import de.fuberlin.wiwiss.silk.plugins.util.approximatelyEqualTo
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import de.fuberlin.wiwiss.silk.testutil.approximatelyEqualTo
 
 @RunWith(classOf[JUnitRunner])
 class DiceCoefficientTest extends FlatSpec with ShouldMatchers {
