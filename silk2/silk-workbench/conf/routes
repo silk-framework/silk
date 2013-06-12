@@ -41,8 +41,10 @@ GET     /:project/:task/learn/population                 controllers.tabs.Learni
 GET     /:project/:task/learn/populationView/:page       controllers.tabs.Learning.populationView(project: String, task: String, page: Int)
 
 # Status
-GET     /:project/:task/status                            controllers.tabs.Status.status(project: String, task: String)
-GET     /:project/:task/status/cacheStream                controllers.tabs.Status.cacheStream(project: String, task: String)
+GET     /:project/:task/status                               controllers.tabs.Status.status(project: String, task: String)
+GET     /:project/:task/status/cacheStream                   controllers.tabs.Status.cacheStream(project: String, task: String)
+GET     /:project/:task/status/pathCacheStream               controllers.tabs.Status.pathCacheStream(project: String, task: String)
+GET     /:project/:task/status/referenceEntitiesCacheStream  controllers.tabs.Status.referenceEntitiesCacheStream(project: String, task: String)
 
 ############################################################################################################################################
 # Api

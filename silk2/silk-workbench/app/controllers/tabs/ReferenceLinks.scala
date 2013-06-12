@@ -3,9 +3,9 @@ package controllers.tabs
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
+import models.EvalLink
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
+import models.EvalLink._
 import de.fuberlin.wiwiss.silk.workspace.User
 import models.LinkSorter
 

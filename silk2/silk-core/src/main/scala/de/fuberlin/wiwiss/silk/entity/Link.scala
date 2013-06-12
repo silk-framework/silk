@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.entity
 
 import de.fuberlin.wiwiss.silk.util.DPair
+import scala.xml.Node
 
 /**
  * Represents a link between two entities.
@@ -53,4 +54,37 @@ class Link(source: String,
             target: String = target,
             confidence: Option[Double] = confidence,
             entities: Option[DPair[Entity]] = entities) = new Link(source, target, confidence, entities)
+
+  def toXML = {
+    <LinkCandidate>
+      <Source>{source}</Source>
+      <Target>{target}</Target>
+      { for(c <- confidence) yield <Confidence>{c}</Confidence> }
+      { for(e <- entities) yield {
+          <Entities>
+            <Source>{e.source.toXML}</Source>
+            <Target>{e.target.toXML}</Target>
+          </Entities>
+        }
+      }
+    </LinkCandidate>
+  }
+}
+
+object Link {
+  def fromXML(node: Node, entityDescription: Option[EntityDescription]) = {
+    new Link(
+      source = (node \ "Source").text,
+      target = (node \ "Target").text,
+      confidence = for(confidenceNode <- (node \ "Confidence").headOption) yield confidenceNode.text.toDouble,
+      entities = {
+        for(desc <- entityDescription; entitiesNode <- (node \ "Entities").headOption) yield {
+          DPair(
+            source = Entity.fromXML(entitiesNode \ "Source" head, desc),
+            target = Entity.fromXML(entitiesNode \ "Target" head, desc)
+          )
+        }
+      }
+    )
+  }
 }
