@@ -3,7 +3,7 @@ package controllers.tabs
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workbench.util.PrefixRegistry
+import de.fuberlin.wiwiss.silk.workspace.util.PrefixRegistry
 
 object Workspace extends Controller {
 

@@ -106,7 +106,7 @@ class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, Str
     val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].erasure.getName, classes).map(_.name)
 
     //Load all found classes
-    val classLoader = URLClassLoader.newInstance(jarFiles.map(file => new URL("jar:file:" + file.getName + "!/")))
+    val classLoader = URLClassLoader.newInstance(jarFiles.map(file => new URL("jar:file:" + file.getAbsolutePath + "!/")), getClass.getClassLoader)
     val pluginClasses = pluginClassNames.map(classLoader.loadClass)
 
     //Register all plugins

@@ -8,9 +8,10 @@ import play.api.libs.json._
 object Widgets {
   val log = java.util.logging.Logger.getLogger(getClass.getName)
 
-  def taskStatus(stream: Enumerator[TaskStatus]) = {
+  def taskStatus(stream: Enumerator[TaskStatus], id: String = "") = {
     def serializeStatus(status: TaskStatus): JsValue = {
       JsObject(
+        ("id" -> JsString(id)) ::
         ("progress" -> JsNumber(status.progress * 100.0)) ::
         ("message" -> JsString(status.toString)) ::
         ("failed" -> JsBoolean(status.failed)) :: Nil

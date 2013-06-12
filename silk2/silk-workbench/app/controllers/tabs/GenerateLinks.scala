@@ -2,11 +2,10 @@ package controllers.tabs
 
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.util.{Stream, Widgets}
 import play.api.mvc.{Controller, Action}
-import models.{LinkSorter, CurrentGenerateLinksTask}
+import models.{LinkSorter, CurrentGenerateLinksTask,EvalLink}
+import models.EvalLink.{Unknown, Incorrect, Generated, Correct}
 
 object GenerateLinks extends Controller {
 
