@@ -17,6 +17,24 @@ object Status extends Controller {
 
     val stream = Stream.taskStatus(task.cache)
 
-    Ok.stream(Widgets.taskStatus(stream))
+    Ok.stream(Widgets.taskStatus(stream, "cache"))
+  }
+
+  def pathCacheStream(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.linkingModule.task(taskName)
+
+    val stream = Stream.taskStatus(task.cache.pathCache)
+
+    Ok.stream(Widgets.taskStatus(stream, "pathCache"))
+  }
+
+  def referenceEntitiesCacheStream(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.linkingModule.task(taskName)
+
+    val stream = Stream.taskStatus(task.cache.referenceEntitiesCache)
+
+    Ok.stream(Widgets.taskStatus(stream, "referenceEntitiesCache"))
   }
 }

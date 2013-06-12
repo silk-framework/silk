@@ -1,7 +1,6 @@
 package models
 
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Correct}
+import EvalLink.{Unknown, Incorrect, Correct}
 
 object LinkSorter {
   private val sorters = {
