@@ -136,6 +136,7 @@ button
 
 .progresstext
 {
+  height: 0px;
   color: gray;
   font-weight: bold;
   position: relative;
@@ -174,7 +175,7 @@ div.actions .ui-button-text {
 
 #content {
   float: left;
-  min-width: 700px;
+  min-width: 300px;
   padding: 10px 10px;
 }
 
@@ -213,6 +214,5 @@ div#newproject {
     border: 1px solid #DBDBDB;
     background: #ffffff;
     padding: 10px;
-    padding-bottom: 6px;
     margin-bottom: 20px;
 }

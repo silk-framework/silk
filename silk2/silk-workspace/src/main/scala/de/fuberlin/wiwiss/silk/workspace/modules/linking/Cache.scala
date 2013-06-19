@@ -13,7 +13,7 @@ abstract class Cache[T <: AnyRef](initialValue: T) extends HasStatus {
   /** The current value of this thread. */
   private var currentValue = initialValue
 
-  /** The thread used to load the current value. May be none if no thread has been created yet. */
+  /** The thread used to load the current value. May be None if no thread has been created yet. */
   @volatile private var loadingThread: Option[Thread] = None
 
   /** Retrieves the current value of this cache */
@@ -68,7 +68,7 @@ abstract class Cache[T <: AnyRef](initialValue: T) extends HasStatus {
   /** Overridden in sub classes to do the actual loading of the cache value. */
   protected def update(project: Project, task: LinkingTask)
 
-  /** The thread which is used to load the cache value. */
+  /** The thread that is used to load the cache value. */
   private class LoadingThread(project: Project, task: LinkingTask) extends Thread {
     override def run() {
       val startTime = System.currentTimeMillis

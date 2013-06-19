@@ -1,6 +1,5 @@
 package models
 
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink.{SimpleConfidence, ComparisonConfidence, AggregatorConfidence, Confidence}
 
 object LinkFilter {
