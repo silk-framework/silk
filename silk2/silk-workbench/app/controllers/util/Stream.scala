@@ -13,7 +13,6 @@ object Stream {
 
     lazy val listener = new CurrentTaskStatusListener(taskHolder) {
       def onUpdate(status: TaskStatus) {
-        println("Pushing: " + status)
         events.push(status)
       }
     }

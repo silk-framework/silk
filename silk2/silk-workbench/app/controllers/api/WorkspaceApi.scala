@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.execution.OutputTask
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.workbench.Constants
+import de.fuberlin.wiwiss.silk.workspace.Constants
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask

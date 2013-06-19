@@ -8,11 +8,11 @@ object ApplicationBuild extends Build {
     val appVersion      = "2.5.4"
 
     val appDependencies = Seq(
-      "de.fuberlin.wiwiss.silk" % "silk-workbench-model" % "2.5.4"
+      "de.fuberlin.wiwiss.silk" % "silk-workspace" % "2.5.4"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(
-      resolvers += ("Local Maven Repository" at "file:/"+Path.userHome+"/.m2/repository")
+      resolvers += ("Local Maven Repository" at "file:"+Path.userHome+"/.m2/repository")
     )
 
 }

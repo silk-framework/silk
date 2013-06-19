@@ -19,6 +19,9 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.util.task._
 
+/**
+ * Holds all caches.
+ */
 class Caches() extends HasStatus {
 
   /** The paths cache. */
@@ -26,6 +29,9 @@ class Caches() extends HasStatus {
 
   /** The reference entities cache. */
   val referenceEntitiesCache = new ReferenceEntitiesCache(pathCache)
+
+  /** Unlabeled Pool Cache. */
+  //val poolCache =
 
   /** All caches. */
   val caches: Seq[Cache[_]] = pathCache :: referenceEntitiesCache :: Nil

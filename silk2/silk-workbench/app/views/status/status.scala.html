@@ -8,11 +8,27 @@
 
 @content = {
   <div class="wrapper-header">
-    Cache Status
+    Overall Cache
   </div>
 
   <div class="wrapper">
-    @widgets.taskStatus("status/cacheStream")
+    @widgets.taskStatus("status/cacheStream", "cache")
+  </div>
+
+  <div class="wrapper-header">
+    Path Cache
+  </div>
+
+  <div class="wrapper">
+    @widgets.taskStatus("status/pathCacheStream", "pathCache")
+  </div>
+
+  <div class="wrapper-header">
+    Reference Links Cache
+  </div>
+
+  <div class="wrapper">
+    @widgets.taskStatus("status/referenceEntitiesCacheStream", "referenceEntitiesCache")
   </div>
 }
 
