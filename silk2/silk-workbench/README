@@ -13,5 +13,5 @@ Running the Silk Workbench:
 - navigate to the top directory
 - execute 'mvn install'
 - navigate to this directory
-- execute 'mvn play2:run'
+- execute 'play run'
 - Navigate in your browser to http://localhost:9000

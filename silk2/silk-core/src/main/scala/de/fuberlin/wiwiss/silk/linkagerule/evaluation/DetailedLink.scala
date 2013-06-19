@@ -27,7 +27,7 @@ class DetailedLink(source: String,
 
   def this(link: Link) = this(link.source, link.target, link.entities, link.confidence.map(c => DetailedLink.SimpleConfidence(Some(c))))
 
-  def toXML =
+  override def toXML =
     <DetailedLink source={source} target={target}>
       { details.map(_.toXML).toList }
     </DetailedLink>

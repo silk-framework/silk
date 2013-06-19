@@ -4,8 +4,8 @@ import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink
-import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Unknown, Incorrect, Generated, Correct}
+import models.EvalLink
+import models.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.util.{Stream, Widgets}
 import models._
 import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
