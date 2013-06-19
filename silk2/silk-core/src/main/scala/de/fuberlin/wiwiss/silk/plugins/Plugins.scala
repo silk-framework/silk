@@ -104,6 +104,7 @@ object Plugins {
     Transformer.register(classOf[ConvertCharsetTransformer])
     Transformer.register(classOf[RemoveValues])
     Transformer.register(classOf[RemoveEmptyValues])
+    Transformer.register(classOf[RemoveParentheses])
     Transformer.register(classOf[Tokenizer])
     Transformer.register(classOf[ConcatMultipleValuesTransformer])
     Transformer.register(classOf[MergeTransformer])
