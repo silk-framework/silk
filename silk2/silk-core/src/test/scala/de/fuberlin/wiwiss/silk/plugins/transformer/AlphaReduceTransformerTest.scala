@@ -26,11 +26,11 @@ class AlphaReduceTransformerTest extends FlatSpec with ShouldMatchers {
 
   val transformer = new AlphaReduceTransformer()
 
-  "AlphaReduceTransformer" should "return 'abc'" in {
+  "AlphaReduceTransformer" should "remove numbers" in {
     transformer.evaluate("a1b0c") should equal("abc")
   }
 
-  "AlphaReduceTransformer" should "return 'def'" in {
-    transformer.evaluate("-def-") should equal("def")
+  "AlphaReduceTransformer" should "remove punctuation" in {
+    transformer.evaluate("-.def ,-") should equal("def")
   }
 }
