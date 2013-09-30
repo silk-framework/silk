@@ -4,6 +4,7 @@ import play.api.libs.iteratee.Enumerator
 import de.fuberlin.wiwiss.silk.util.task.TaskStatus
 import play.api.libs.Comet
 import play.api.libs.json._
+import play.api.libs.concurrent.Execution.Implicits._
 
 object Widgets {
   val log = java.util.logging.Logger.getLogger(getClass.getName)
