@@ -5,7 +5,7 @@
 
   <properties>
     <silk.version>2.5.4</silk.version>
-    <scala.version>2.10.0</scala.version>
+    <scala.version>2.10.2</scala.version>
     <scalatest.version>1.9.1</scalatest.version>
     <skipTests>true</skipTests>
   </properties>
@@ -70,8 +70,8 @@
     <module>silk-singlemachine</module>
     <module>silk-mapreduce</module>
     <module>silk-server</module>
-	  <module>silk-workspace</module>
-    <!--<module>silk-workbench</module>-->
+    <module>silk-workspace</module>
+    <module>silk-workbench</module>
   </modules>
 
   <build>

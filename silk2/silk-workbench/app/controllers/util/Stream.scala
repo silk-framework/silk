@@ -4,87 +4,62 @@ import java.util.IdentityHashMap
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import de.fuberlin.wiwiss.silk.util.task.{ValueTask, HasStatus, TaskStatus}
 import models._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Stream {
   private val listeners = new IdentityHashMap[Listener[_], Unit]()
 
-  def currentTaskStatus[T <: HasStatus](taskHolder: TaskData[T]) = {
-    lazy val events = Enumerator.imperative[TaskStatus](onStart, onComplete)
+  def currentTaskStatus[T <: HasStatus](taskHolder: TaskData[T]): Enumerator[TaskStatus] = {
+    val (enumerator, channel) = Concurrent.broadcast[TaskStatus]
 
     lazy val listener = new CurrentTaskStatusListener(taskHolder) {
       def onUpdate(status: TaskStatus) {
-        events.push(status)
+        channel.push(status)
       }
     }
 
-    def onStart() {
-      listeners.put(listener, Unit)
-    }
-
-    def onComplete() {
-      listeners.remove(listener)
-    }
-
-    events
+    listeners.put(listener, Unit)
+    enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 
-  def currentTaskValue[T](taskHolder: TaskData[_ <: ValueTask[T]]) = {
-    lazy val events = Enumerator.imperative[T](onStart, onComplete)
+  def currentTaskValue[T](taskHolder: TaskData[_ <: ValueTask[T]]): Enumerator[T] = {
+    val (enumerator, channel) = Concurrent.broadcast[T]
 
     lazy val listener = new CurrentTaskValueListener(taskHolder) {
       def onUpdate(value: T) {
-        events.push(value)
+        channel.push(value)
       }
     }
 
-    def onStart() {
-      listeners.put(listener, Unit)
-    }
-
-    def onComplete() {
-      listeners.remove(listener)
-    }
-
-    events
+    listeners.put(listener, Unit)
+    enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 
   def taskStatus(task: HasStatus) = {
-    lazy val events = Enumerator.imperative[TaskStatus](onStart, onComplete)
+    val (enumerator, channel) = Concurrent.broadcast[TaskStatus]
 
     lazy val listener = new TaskStatusListener(task) {
       def onUpdate(status: TaskStatus) {
-        events.push(status)
+        channel.push(status)
       }
     }
 
-    def onStart() {
-      listeners.put(listener, Unit)
-    }
+    listeners.put(listener, Unit)
+    val closingEnumerator = enumerator.onDoneEnumerating(() => listeners.remove(listener))
 
-    def onComplete() {
-      listeners.remove(listener)
-    }
-
-    Enumerator(task.status) andThen events
+    Enumerator(task.status) andThen closingEnumerator
   }
 
-  def taskData[T](userData: TaskData[T]) = {
-    lazy val events = Enumerator.imperative[T](onStart, onComplete)
+  def taskData[T](userData: TaskData[T]): Enumerator[T] = {
+    val (enumerator, channel) = Concurrent.broadcast[T]
 
     lazy val listener = new TaskDataListener(userData) {
       def onUpdate(value: T) {
-        events.push(value)
+        channel.push(value)
       }
     }
 
-    def onStart() {
-      listeners.put(listener, Unit)
-    }
-
-    def onComplete() {
-      listeners.remove(listener)
-    }
-
-    events
+    listeners.put(listener, Unit)
+    enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 }

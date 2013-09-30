@@ -18,10 +18,10 @@
   <build>
     <plugins>
      <plugin>
-        <groupId>org.nanoko.playframework</groupId>
-        <artifactId>play2-maven-plugin</artifactId>
-        <version>1.2.2</version>
-        <extensions>true</extensions>
+       <groupId>org.nanoko.playframework</groupId>
+       <artifactId>play2-maven-plugin</artifactId>
+       <version>1.2.3</version>
+       <extensions>true</extensions>
       </plugin>
     </plugins>
   </build>
