@@ -111,7 +111,9 @@ object Plugins {
     Transformer.register(classOf[SpotlightTextVectorTransformer])
     Transformer.register(classOf[CamelCaseTokenizer])
     Transformer.register(classOf[NormalizeCharsTransformer])
-    
+    Transformer.register(classOf[FilterByLength])
+    Transformer.register(classOf[FilterByRegex])
+
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])
     DistanceMeasure.register(classOf[JaroDistanceMetric])
