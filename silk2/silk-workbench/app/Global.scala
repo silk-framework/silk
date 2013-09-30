@@ -6,11 +6,10 @@ import de.fuberlin.wiwiss.silk.workspace.FileUser
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import scala.concurrent.Future
 
 object Global extends GlobalSettings {
 
-  
-  
   val user = new FileUser
 
   User.userManager = () => user
@@ -19,7 +18,7 @@ object Global extends GlobalSettings {
   JenaPlugins.register()
   
   override def onError(request: RequestHeader, ex: Throwable) = {
-    InternalServerError(ex.getMessage)
+    Future.successful(InternalServerError(ex.getMessage))
   }
 
 }
