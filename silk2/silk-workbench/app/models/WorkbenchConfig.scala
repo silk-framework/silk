@@ -8,7 +8,7 @@ import scala.xml.{Elem, XML}
  *
  * @param title
  */
-case class WorkbenchConfig(title: String = "Silk Workbench", logo: String = "") {
+case class WorkbenchConfig(title: String = "Silk Workbench", logo: String = "/logo.png") {
 }
 
 object WorkbenchConfig {
