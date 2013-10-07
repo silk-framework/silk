@@ -1,5 +1,6 @@
 <WorkbenchConfig>
   <Branding>
-    <Title>Silk WorkbenchXXX</Title>
+    <Title>Silk Workbench</Title>
+    <Logo>public/img/logo.png</Logo>
   </Branding>
 </WorkbenchConfig>
