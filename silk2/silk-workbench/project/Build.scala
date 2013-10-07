@@ -4,7 +4,7 @@ import play.Project._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "SilkWorkbench"
+    val appName         = "Silk-Workbench"
     val appVersion      = "2.5.4"
 
     val appDependencies = Seq(
