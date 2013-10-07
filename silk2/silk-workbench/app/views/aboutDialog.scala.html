@@ -1,8 +1,10 @@
 @()
 
+@import models.WorkbenchConfig.{get => config}
+
 @widgets.dialog(width = 500) {
   <div id="about_dialog" style="background:url('/logo.png') no-repeat right top">
-    <p>Silk Workbench, version 2.5.4</p>
+    <p>@config.title, version 2.5.4</p>
     <p>© 2009-2013</p>
     <p style="font-weight: bold;">Website</p>
     <p style="margin-top:5px;"><a target="_blank" href="http://silk.wbsg.de">http://silk.wbsg.de</a></p>
