@@ -8,7 +8,7 @@ import scala.xml.{Elem, XML}
  *
  * @param title
  */
-case class WorkbenchConfig(title: String = "Silk Workbench") {
+case class WorkbenchConfig(title: String = "Silk Workbench", logo: String = "") {
 }
 
 object WorkbenchConfig {
@@ -29,7 +29,8 @@ object WorkbenchConfig {
    */
   private def fromXml(xml: Elem) = {
     new WorkbenchConfig(
-      title = (xml \ "Branding" \ "Title").text
+      title = (xml \ "Branding" \ "Title").text,
+      logo  = (xml \ "Branding" \ "Logo").text
     )
   }
 }
