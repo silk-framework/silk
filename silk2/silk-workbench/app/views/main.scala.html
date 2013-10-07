@@ -1,10 +1,12 @@
 @(project: Option[String], task: Option[String], selectedTab: Int)(header: Html)(toolbar: Html)(content: Html)
 
+@import models.WorkbenchConfig.{get => config}
+
 <!DOCTYPE html>
 
 <html>
   <head>
-    <title>Silk Workbench</title>
+    <title>@config.title</title>
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")" />
     
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")" />

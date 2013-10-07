@@ -1,9 +1,9 @@
 @(project: Option[String], task: Option[String], selectedTab: Int)
 
-@import de.fuberlin.wiwiss.silk.workspace.User
+@import models.WorkbenchConfig.{get => config}
 
 <div id="tabbar">
-  <div id="title">Silk Workbench</div>
+  <div id="title">@config.title</div>
   <span>
     <div class="tab"><a href="/">Workspace</a></div>
     @for(p <- project; t <- task) {
