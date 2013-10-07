@@ -176,6 +176,7 @@ div.actions .ui-button-text {
 #content {
   float: left;
   min-width: 300px;
+  width: 100%;
   padding: 10px 10px;
 }
 
