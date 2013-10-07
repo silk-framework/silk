@@ -10,6 +10,8 @@ import scala.concurrent.Future
 
 object Global extends GlobalSettings {
 
+  println(new java.io.File(".").getAbsolutePath)
+
   val user = new FileUser
 
   User.userManager = () => user

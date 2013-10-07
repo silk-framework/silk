@@ -177,9 +177,9 @@ object GenerateLinksTaskTest {
 
     def comparisonPairsF = f"$comparisonPairs%,d"
 
-    def pairsCompletenessF = f"${pairsCompleteness * 100.0}%.2f%"
+    def pairsCompletenessF = f"${pairsCompleteness * 100.0}%.2f%%"
 
-    def pairsQualityF = f"${pairsQuality * 100.0}%.2f%"
+    def pairsQualityF = f"${pairsQuality * 100.0}%.2f%%"
 
     def runtimeF = f"$runtime%.1fs"
   }
