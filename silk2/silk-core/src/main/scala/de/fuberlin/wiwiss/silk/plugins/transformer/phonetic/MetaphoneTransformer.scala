@@ -7,9 +7,7 @@ import com.rockymadden.stringmetric.phonetic.MetaphoneAlgorithm
 @Plugin(id = "metaphone", label = "Metaphone", description = "Metaphone phonetic encoding. Provided by the StringMetric library: http://rockymadden.com/stringmetric/")
 case class MetaphoneTransformer() extends SimpleTransformer {
 
-  private val metaphone =  new MetaphoneAlgorithm()
-
   override def evaluate(value: String) = {
-    metaphone.compute(value).getOrElse("")
+    MetaphoneAlgorithm.compute(value).getOrElse("")
   }
 }
