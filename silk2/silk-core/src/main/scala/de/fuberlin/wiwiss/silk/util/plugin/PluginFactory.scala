@@ -73,7 +73,7 @@ class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, Str
     val classFinder = ClassFinder()
     val classes = classFinder.getClasses()
 
-    val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].erasure.getName, classes).map(_.name)
+    val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].runtimeClass.getName, classes).map(_.name)
     val pluginClasses = pluginClassNames.map(Class.forName)
 
     for(pluginClass <- pluginClasses)
@@ -91,19 +91,19 @@ class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, Str
 
     //Create a classinfo of the plugin interface
     val pluginClassInfo = new ClassInfo {
-      def name: String = manifest[T].erasure.getName
+      val name: String = manifest[T].runtimeClass.getName
       def signature: String = null
       def methods: Set[MethodInfo] = null
       def location: File = null
       def superClassName: String = null
-      def modifiers: Set[Modifier.Modifier] = Set(Modifier.Interface)
+      val modifiers: Set[Modifier.Modifier] = Set(Modifier.Interface)
       def fields: Set[FieldInfo] = null
       def interfaces: List[String] = null
     }
 
     ///Find the names of all classes which implement the plugin interface
     val classes = ClassFinder(jarFiles).getClasses ++ Iterator(pluginClassInfo)
-    val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].erasure.getName, classes).map(_.name)
+    val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].runtimeClass.getName, classes).map(_.name)
 
     //Load all found classes
     val classLoader = URLClassLoader.newInstance(jarFiles.map(file => new URL("jar:file:" + file.getAbsolutePath + "!/")), getClass.getClassLoader)
