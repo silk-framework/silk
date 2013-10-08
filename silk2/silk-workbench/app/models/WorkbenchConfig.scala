@@ -6,7 +6,8 @@ import scala.xml.{Elem, XML}
 /**
  * Workbench configuration.
  *
- * @param title
+ * @param title The application title
+ * @param logo The application logo
  */
 case class WorkbenchConfig(title: String = "Silk Workbench", logo: String = "/logo.png") {
 }
