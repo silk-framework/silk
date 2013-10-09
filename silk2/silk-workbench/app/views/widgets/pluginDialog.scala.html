@@ -6,7 +6,7 @@
 @import de.fuberlin.wiwiss.silk.util.plugin.Parameter
 
 @dialog(500) {
-  <div id="tabs">
+  <div id="plugintabs">
     <ul>
       @for(plugin <- plugins) {
         <li><a href='#@plugin.id'>@plugin.label</a></li>
@@ -18,7 +18,7 @@
   </div>
   <script>
     $(function() {
-      $('#tabs').tabs({ @for(obj <- currentObj) { selected: @(plugins.indexWhere(_.id == obj.pluginId)) } });
+      $('#plugintabs').tabs({ @for(obj <- currentObj) { active: @(plugins.indexWhere(_.id == obj.pluginId)) } });
     });
   </script>
   @contents
