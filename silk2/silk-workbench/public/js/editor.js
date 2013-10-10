@@ -266,7 +266,7 @@ function validateLinkSpec() {
           updateStatus(response.error, response.warning, response.info);
         },
         error: function(req) {
-          console.log('ERROR: ' + req.responseText);
+          console.log('Error putting linkage rule: ' + req.responseText);
           var response = jQuery.parseJSON(req.responseText);
           updateStatus(response.error, response.warning, response.info);
         }
@@ -974,7 +974,7 @@ function createNewElement(xmlDoc, elementId)
         if (pathInput !== undefined) {
           xml.setAttribute("path", pathInput);
         } else {
-          xml.setAttribute("path", decodeHtml(path));
+          xml.setAttribute("path", encodeHtml(path));
         }
 	} else if (elType == "TransformInput") {
 		xml.setAttribute("function", elName);
@@ -1098,8 +1098,8 @@ function serializeLinkSpec() {
   var outputs = xmlDocument.createElement("Outputs");
   xml.appendChild(outputs);
 
-  var xmlString = getHTML(xml, true);
-  xmlString = xmlString.replace('xmlns="http://www.w3.org/1999/xhtml"', "");
+  var xmlString = (new XMLSerializer()).serializeToString(xml);
+  xmlString = xmlString.replace(/&amp;/g, "&");
   return xmlString;
 }
 
