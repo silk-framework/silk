@@ -35,7 +35,7 @@ class RemoteSparqlEndpoint(val uri: URI,
                            login: Option[(String, String)] = None,
                            val pageSize: Int = 1000, val pauseTime: Int = 0,
                            val retryCount: Int = 3, val initialRetryPause: Int = 1000,
-                           val additionalParameters: String = "") extends SparqlEndpoint {
+                           val queryParameters: String = "") extends SparqlEndpoint {
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
   private var lastQueryTime = 0L
@@ -88,7 +88,7 @@ class RemoteSparqlEndpoint(val uri: URI,
       //Execute query
       if (logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri + "\n" + query)
 
-      val url = new URL(uri + "?query=" + URLEncoder.encode(query, "UTF-8") + additionalParameters)
+      val url = new URL(uri + "?query=" + URLEncoder.encode(query, "UTF-8") + queryParameters)
 
       var result: Elem = null
       var retries = 0
