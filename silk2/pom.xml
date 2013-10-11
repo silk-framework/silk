@@ -4,10 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <properties>
-    <silk.version>2.5.4</silk.version>
+    <silk.version>2.5.4-SNAPSHOT</silk.version>
     <scala.version>2.10.2</scala.version>
-    <scalatest.version>1.9.1</scalatest.version>
+    <scalatest.version>1.9.2</scalatest.version>
     <skipTests>true</skipTests>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <modelVersion>4.0.0</modelVersion>
@@ -15,7 +16,7 @@
   <artifactId>silk</artifactId>
   <packaging>pom</packaging>
   <name>Silk</name>
-  <version>2.5.4</version>
+  <version>2.5.4-SNAPSHOT</version>
   <description>The Silk framework is a tool for discovering relationships between data items within different Linked Data sources. Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web.</description>
   <url>http://www4.wiwiss.fu-berlin.de/bizer/silk/</url>
   <licenses>
@@ -75,12 +76,15 @@
   </modules>
 
   <build>
+    <sourceDirectory>src/main/scala</sourceDirectory>
+    <testSourceDirectory>src/test/scala</testSourceDirectory>
+
     <plugins>
 
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.1.6</version>
 	    <executions>
           <execution>
             <goals>
