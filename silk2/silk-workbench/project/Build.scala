@@ -5,10 +5,10 @@ import play.Project._
 object ApplicationBuild extends Build {
 
     val appName         = "Silk-Workbench"
-    val appVersion      = "2.5.4"
+    val appVersion      = "2.5.4-SNAPSHOT"
 
     val appDependencies = Seq(
-      "de.fuberlin.wiwiss.silk" % "silk-workspace" % "2.5.4"
+      "de.fuberlin.wiwiss.silk" % "silk-workspace" % "2.5.4-SNAPSHOT"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(

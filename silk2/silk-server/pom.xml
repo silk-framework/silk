@@ -8,12 +8,12 @@
   <parent>
     <groupId>de.fuberlin.wiwiss.silk</groupId>
     <artifactId>silk</artifactId>
-    <version>2.5.4</version>
+    <version>2.5.4-SNAPSHOT</version>
   </parent>
   
   <groupId>de.fuberlin.wiwiss.silk</groupId>
   <artifactId>silk-server</artifactId>
-  <version>2.5.4</version>
+  <version>2.5.4-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Silk Server</name>
 
@@ -69,40 +69,42 @@
           </connectors>
         </configuration>
       </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>make-a-jar</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>jar</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-install-plugin</artifactId>
-            <executions>
-                <execution>
-                    <phase>install</phase>
-                    <goals>
-                        <goal>install-file</goal>
-                    </goals>
-                    <configuration>
-                        <packaging>jar</packaging>
-                        <artifactId>${project.artifactId}</artifactId>
-                        <groupId>${project.groupId}</groupId>
-                        <version>${project.version}</version>
-                        <file>
-                            ${project.build.directory}/${project.artifactId}-${project.version}.jar
-                        </file>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>make-a-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5</version>
+        <executions>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>install-file</goal>
+            </goals>
+            <configuration>
+              <packaging>jar</packaging>
+              <artifactId>${project.artifactId}</artifactId>
+              <groupId>${project.groupId}</groupId>
+              <version>${project.version}</version>
+              <file>
+                ${project.build.directory}/${project.artifactId}-${project.version}.jar
+              </file>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   
