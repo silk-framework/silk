@@ -43,6 +43,7 @@ GET           /:project/:task/learn/populationView/:page                        
 # Status
 GET           /:project/:task/status                                                                controllers.tabs.Status.status(project: String, task: String)
 GET           /:project/:task/status/cacheStream                                                    controllers.tabs.Status.cacheStream(project: String, task: String)
+GET           /:project/:task/status/typesCacheStream                                                controllers.tabs.Status.typesCacheStream(project: String, task: String)
 GET           /:project/:task/status/pathCacheStream                                                controllers.tabs.Status.pathCacheStream(project: String, task: String)
 GET           /:project/:task/status/referenceEntitiesCacheStream                                   controllers.tabs.Status.referenceEntitiesCacheStream(project: String, task: String)
 

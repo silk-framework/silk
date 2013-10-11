@@ -24,6 +24,9 @@ import de.fuberlin.wiwiss.silk.util.task._
  */
 class Caches() extends HasStatus {
 
+  /** The types cache. */
+  val typesCache = new TypesCache()
+
   /** The paths cache. */
   val pathCache = new PathsCache()
 
@@ -34,11 +37,15 @@ class Caches() extends HasStatus {
   //val poolCache =
 
   /** All caches. */
-  val caches: Seq[Cache[_]] = pathCache :: referenceEntitiesCache :: Nil
+  val caches: Seq[Cache[_]] = typesCache :: pathCache :: referenceEntitiesCache :: Nil
 
   //Update overall status whenever the status of a cache changes.
+  typesCache.onUpdate(StatusListener)
   pathCache.onUpdate(StatusListener)
   referenceEntitiesCache.onUpdate(StatusListener)
+
+  /** The cached types. */
+  def types = typesCache.value
 
   /** The cached entity descriptions containing the most frequent paths. */
   def entityDescs = pathCache.value
@@ -50,6 +57,9 @@ class Caches() extends HasStatus {
    * Reloads the cache.
    */
   def reload(project : Project, task: LinkingTask) {
+    typesCache.clear()
+    typesCache.load(project, task)
+
     pathCache.clear()
     pathCache.load(project, task)
 
@@ -61,6 +71,7 @@ class Caches() extends HasStatus {
    * Loads the cache.
    */
   def load(project : Project, task: LinkingTask) {
+    typesCache.load(project, task)
     pathCache.load(project, task)
     referenceEntitiesCache.load(project, task)
   }
@@ -69,6 +80,7 @@ class Caches() extends HasStatus {
    * Blocks until all caches have been loaded
    */
   def waitUntilLoaded() {
+    typesCache.waitUntilLoaded()
     pathCache.waitUntilLoaded()
     referenceEntitiesCache.waitUntilLoaded()
   }
@@ -78,6 +90,7 @@ class Caches() extends HasStatus {
    */
   def toXML(implicit prefixes: Prefixes): Node = {
     <Cache>
+      {typesCache.toXML}
       {pathCache.toXML}
       {referenceEntitiesCache.toXML}
     </Cache>
@@ -87,6 +100,7 @@ class Caches() extends HasStatus {
    * Loads the values of the caches from XML.
    */
   def loadFromXML(node: Node) {
+    typesCache.loadFromXML(node)
     pathCache.loadFromXML(node)
     referenceEntitiesCache.loadFromXML(node)
   }

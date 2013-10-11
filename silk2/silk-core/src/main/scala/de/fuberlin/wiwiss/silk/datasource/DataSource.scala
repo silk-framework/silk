@@ -54,7 +54,7 @@ trait DataSource extends AnyPlugin {
    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
    *
    */
-  def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
     Traversable.empty
   }
 }
