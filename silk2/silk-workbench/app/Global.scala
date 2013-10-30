@@ -1,7 +1,7 @@
-import play.api.GlobalSettings
+import play.api.{Application, GlobalSettings}
 import play.api.mvc.RequestHeader
 import play.api.mvc.Results._
-import java.util.logging.ConsoleHandler
+import java.util.logging.{SimpleFormatter, FileHandler}
 import de.fuberlin.wiwiss.silk.workspace.FileUser
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.plugins.Plugins
@@ -10,12 +10,20 @@ import scala.concurrent.Future
 
 object Global extends GlobalSettings {
 
-  val user = new FileUser
+  override def beforeStart(app: Application) {
+    // Configure logging
+    val fileHandler = new FileHandler(app.getFile("/logs/engine.log").getAbsolutePath)
+    fileHandler.setFormatter(new SimpleFormatter())
+    java.util.logging.Logger.getLogger("de.fuberlin.wiwiss.silk").addHandler(fileHandler)
 
-  User.userManager = () => user
+    //Initialize user manager
+    val user = new FileUser
+    User.userManager = () => user
 
-  Plugins.register()
-  JenaPlugins.register()
+    //Load plugins
+    Plugins.register()
+    JenaPlugins.register()
+  }
   
   override def onError(request: RequestHeader, ex: Throwable) = {
     Future.successful(InternalServerError(ex.getMessage))
