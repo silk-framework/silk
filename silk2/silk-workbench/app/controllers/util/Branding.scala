@@ -8,7 +8,7 @@ object Branding extends Controller {
 
   def logo = Action {
     val imgStream = new BufferedInputStream(new FileInputStream(WorkbenchConfig.get.logo))
-    val bytes = scala.Stream.continually(imgStream.read).takeWhile(-1 !=).map(_.toByte).toArray
+    val bytes = scala.Stream.continually(imgStream.read).takeWhile(_ != -1).map(_.toByte).toArray
     Ok(bytes).as("image/png")
   }
 

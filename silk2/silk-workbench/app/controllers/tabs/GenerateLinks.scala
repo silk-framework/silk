@@ -42,12 +42,12 @@ object GenerateLinks extends Controller {
 
   def linksStream(projectName: String, taskName: String) = Action {
     val stream = Stream.currentTaskValue(CurrentGenerateLinksTask)
-    Ok.stream(Widgets.autoReload("updateLinks", stream))
+    Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(project: String, task: String) = Action {
     val stream = Stream.currentTaskStatus(CurrentGenerateLinksTask)
-    Ok.stream(Widgets.taskStatus(stream))
+    Ok.chunked(Widgets.taskStatus(stream))
   }
 
 }
