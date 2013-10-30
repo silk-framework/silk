@@ -39,7 +39,7 @@ object Learning extends Controller {
 
   def ruleStream(projectName: String, taskName: String) = Action {
     val stream = Stream.taskData(CurrentPopulation)
-    Ok.stream(Widgets.autoReload("reload", stream))
+    Ok.chunked(Widgets.autoReload("reload", stream))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
@@ -64,14 +64,14 @@ object Learning extends Controller {
 
   def linksStream(projectName: String, taskName: String) = Action {
     val stream = Stream.taskData(CurrentValidationLinks)
-    Ok.stream(Widgets.autoReload("updateLinks", stream))
+    Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(project: String, task: String) = Action {
     val stream1 = Stream.currentTaskStatus(CurrentLearningTask)
     val stream2 = Stream.currentTaskStatus(CurrentActiveLearningTask)
 
-    Ok.stream(Widgets.taskStatus(stream1 interleave stream2))
+    Ok.chunked(Widgets.taskStatus(stream1 interleave stream2))
   }
 
   def population(projectName: String, taskName: String) = Action {
