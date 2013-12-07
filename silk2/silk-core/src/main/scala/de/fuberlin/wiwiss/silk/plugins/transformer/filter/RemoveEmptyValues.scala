@@ -12,12 +12,17 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.filter
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
-@Plugin(id = "removeEmptyValues", label = "Remove empty values", description = "Removes empty values.")
+@Plugin(
+  id = "removeEmptyValues",
+  categories = Array("filter"),
+  label = "Remove empty values",
+  description = "Removes empty values."
+)
 case class RemoveEmptyValues() extends Transformer {
   override def apply(values: Seq[Set[String]]) = {
     values.head.filter(!_.isEmpty)

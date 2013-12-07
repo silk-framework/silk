@@ -23,7 +23,12 @@ import Array._
 import scala.collection.mutable.HashMap
 import scala.collection.JavaConversions._
 
-@Plugin(id = "korean PhonemeDistance", label = "Korean phoneme distance", description = "Korean phoneme distance.")
+@Plugin(
+  id = "koreanPhonemeDistance",
+  categories = Array("Asian"),
+  label = "Korean phoneme distance",
+  description = "Korean phoneme distance."
+)
 case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
 	private val q = 1
 

@@ -16,7 +16,12 @@ import de.fuberlin.wiwiss.silk.entity.Index
 /**
  * Expects two vectors encoded as strings in this form: "term1 norm-score;term2 norm-score2..."
  */
-@Plugin(id = "cosine", label = "Cosine", description = "Cosine Distance Measure.")
+@Plugin(
+  id = "cosine",
+  categories = Array("Tokenbased"),
+  label = "Cosine",
+  description = "Cosine Distance Measure."
+)
 class CosineDistanceMetric(k: Int = 3) extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     val items1 = str1.split(";")

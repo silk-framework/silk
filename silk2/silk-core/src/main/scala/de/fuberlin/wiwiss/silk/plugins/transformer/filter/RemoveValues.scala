@@ -12,9 +12,21 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.filter
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
-@Plugin(id = "numReduce", label = "Numeric reduce", description = "Strip all non-numeric characters from a string.")
-case class NumReduceTransformer() extends RegexReplaceTransformer("[^0-9]+", "")
+@Plugin(
+  id = "removeValues",
+  categories = Array("filter"),
+  label = "Remove values",
+  description = "Removes values."
+)
+case class RemoveValues(blacklist: String) extends Transformer {
+  val filterValues = blacklist.split(",").map(_.trim.toLowerCase).toSet
+
+  override def apply(values: Seq[Set[String]]) = {
+    values.head.map(_.toLowerCase).filterNot(filterValues.contains)
+  }
+}

@@ -24,13 +24,9 @@ import transformer.CapitalizeTransformer
 import transformer.ConcatMultipleValuesTransformer
 import transformer.ConcatTransformer
 import transformer.ConvertCharsetTransformer
-import transformer.LogarithmTransformer
 import transformer.LowerCaseTransformer
 import transformer.MergeTransformer
-import transformer.NumReduceTransformer
 import transformer.RemoveBlanksTransformer
-import transformer.RemoveEmptyValues
-import transformer.RemoveValues
 import transformer.StemmerTransformer
 import transformer.StripPrefixTransformer
 import transformer.StripUriPrefixTransformer
@@ -56,6 +52,8 @@ import tokenbased.SoftJaccardDistance
 import tokenbased.TokenwiseStringDistance
 import writer.FileWriter
 import writer.SparqlWriter
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{LogarithmTransformer, NumReduceTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{RemoveEmptyValues, RemoveValues, FilterByRegex, FilterByLength}
 
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.

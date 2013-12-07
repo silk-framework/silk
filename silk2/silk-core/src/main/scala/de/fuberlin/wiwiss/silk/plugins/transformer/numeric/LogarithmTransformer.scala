@@ -12,16 +12,23 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.numeric
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.util.StringUtils._
+import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 
-@Plugin(id = "removeValues", label = "Remove values", description = "Removes values.")
-case class RemoveValues(blacklist: String) extends Transformer {
-  val filterValues = blacklist.split(",").map(_.trim.toLowerCase).toSet
-
-  override def apply(values: Seq[Set[String]]) = {
-    values.head.map(_.toLowerCase).filterNot(filterValues.contains)
+@Plugin(
+  id = "logarithm",
+  categories = Array("numeric"),
+  label = "Logarithm",
+  description = "Transforms all numbers by applying the logarithm function. Non-numeric values are left unchanged."
+)
+case class LogarithmTransformer(base: Int = 10) extends SimpleTransformer {
+  override def evaluate(value: String) = {
+    value match {
+      case DoubleLiteral(d) => (math.log(d) / math.log(base)).toString
+      case str => str
+    }
   }
 }
