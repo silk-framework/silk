@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer; 
+package de.fuberlin.wiwiss.silk.plugins.transformer.conversion
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer;
 import java.text.SimpleDateFormat;
@@ -22,14 +22,24 @@ import java.util.GregorianCalendar;
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import scala.math.BigInt;
 
-@Plugin(id = "timeToDate", label = "TimestampToDate", description = "convert Unix timestamp to xsd:date")
+/**
+ * Convert Unix timestamp to xsd:date.
+ *
+ * @author Julien Plu
+ */
+@Plugin(
+  id = "timeToDate",
+  categories = Array("conversion"),
+  label = "TimestampToDate",
+  description = "convert Unix timestamp to xsd:date"
+)
 class TimestampToDateTransformer extends SimpleTransformer {
   override def evaluate(value: String) = {
-    val cal = new GregorianCalendar();
-    cal.setTimeInMillis((BigInt.apply(value) * 1000).longValue());
-    val format = new SimpleDateFormat("yyyy-MM-dd");
-    val date = format.format(cal.getTime());
+    val cal = new GregorianCalendar()
+    cal.setTimeInMillis((BigInt.apply(value) * 1000).longValue())
+    val format = new SimpleDateFormat("yyyy-MM-dd")
+    val date = format.format(cal.getTime)
     
-    date.toString();
+    date.toString
   }
 }

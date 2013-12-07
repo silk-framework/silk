@@ -12,14 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.substring
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "stripPostfix", label = "Strip postfix", description = "Strips a postfix of a string.")
-class StripPostfixTransformer(postfix: String) extends SimpleTransformer {
+@Plugin(
+  id = "stripPrefix",
+  categories = Array("substring"),
+  label = "Strip prefix",
+  description = "Strips a prefix of a string."
+)
+case class StripPrefixTransformer(prefix: String) extends SimpleTransformer {
   override def evaluate(value: String): String = {
-    value.stripSuffix(postfix)
+    value.stripPrefix(prefix)
   }
 }

@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.substring
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
@@ -20,7 +20,12 @@ import math.max
 import java.net.URLDecoder
 import java.util.logging.{Level, Logger}
 
-@Plugin(id = "stripUriPrefix", label = "Strip URI prefix", description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'")
+@Plugin(
+  id = "stripUriPrefix",
+  categories = Array("substring"),
+  label = "Strip URI prefix",
+  description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'"
+)
 case class StripUriPrefixTransformer() extends SimpleTransformer {
   private val log = Logger.getLogger(classOf[StripUriPrefixTransformer].getName)
 

@@ -19,6 +19,7 @@ import org.scalatest.FlatSpec
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
 
 @RunWith(classOf[JUnitRunner])
 class StripPrefixTransformerTest extends FlatSpec with ShouldMatchers {
