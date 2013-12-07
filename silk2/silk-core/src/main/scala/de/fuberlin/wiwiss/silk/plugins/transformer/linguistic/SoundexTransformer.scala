@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.transformer.phonetic
+package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
@@ -6,7 +6,7 @@ import com.rockymadden.stringmetric.phonetic.{RefinedSoundexAlgorithm, SoundexAl
 
 @Plugin(
   id = "soundex",
-  categories = Array("Phonetic"),
+  categories = Array("Linguistic"),
   label = "Soundex",
   description = "Soundex algorithm. Provided by the StringMetric library: http://rockymadden.com/stringmetric/"
 )

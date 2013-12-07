@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.combine
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
@@ -9,9 +9,14 @@ import java.util.regex.Pattern
  * @author Florian Kleedorfer
  *
  */
-@Plugin(id = "concatMultiValues", label = "ConcatenateMultipleValues", description = "Concatenates multiple values " +
+@Plugin(
+  id = "concatMultiValues",
+  categories = Array("Combine"),
+  label = "ConcatenateMultipleValues",
+  description = "Concatenates multiple values " +
   "received " +
-  "for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values.")
+  "for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values."
+)
 case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:Boolean = false) extends Transformer {
   override def apply(values: Seq[Set[String]]): Set[String] = {
     (for (strings <- values; if ! strings.isEmpty) yield

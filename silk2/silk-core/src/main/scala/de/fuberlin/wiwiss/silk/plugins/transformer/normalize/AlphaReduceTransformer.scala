@@ -12,14 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
 
-@Plugin(id = "merge", label = "Merge", description = "Merges the values of all inputs.")
-case class MergeTransformer() extends Transformer {
-  override def apply(values: Seq[Set[String]]): Set[String] = {
-    values.reduce(_ union _)
-  }
-}
+@Plugin(
+  id = "alphaReduce",
+  categories = Array("Normalize"),
+  label = "Alpha reduce",
+  description = "Strips all non-alphabetic characters from a string."
+)
+case class AlphaReduceTransformer() extends RegexReplaceTransformer("[^\\pL]+", "")

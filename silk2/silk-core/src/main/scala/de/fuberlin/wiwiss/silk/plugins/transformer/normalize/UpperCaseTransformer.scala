@@ -12,9 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
+import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "alphaReduce", label = "Alpha reduce", description = "Strips all non-alphabetic characters from a string.")
-case class AlphaReduceTransformer() extends RegexReplaceTransformer("[^\\pL]+", "")
+@Plugin(
+  id = "upperCase",
+  categories = Array("Normalize"),
+  label = "Upper case",
+  description = "Converts a string to upper case."
+)
+case class UpperCaseTransformer() extends SimpleTransformer {
+  override def evaluate(value: String) = {
+    value.toUpperCase
+  }
+}

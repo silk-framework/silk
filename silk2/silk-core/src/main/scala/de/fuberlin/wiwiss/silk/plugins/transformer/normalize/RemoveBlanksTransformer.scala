@@ -12,9 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.ReplaceTransformer
 
-@Plugin(id = "removeSpecialChars", label = "Remove special chars", description = "Remove special characters (including punctuation) from a string.")
-class RemoveSpecialCharsTransformer() extends RegexReplaceTransformer("[^\\d\\pL\\w]+", "")
+@Plugin(
+  id = "removeBlanks",
+  categories = Array("Normalize"),
+  label = "Remove blanks",
+  description = "Remove whitespace from a string."
+)
+case class RemoveBlanksTransformer() extends ReplaceTransformer(" ", "")

@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.execution.methods
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, Path}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
-import de.fuberlin.wiwiss.silk.plugins.transformer.phonetic.SoundexTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.SoundexTransformer
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 
 /**

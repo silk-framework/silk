@@ -12,12 +12,17 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "stem", label = "Stem", description = "Stems a string using the Porter Stemmer.")
+@Plugin(
+  id = "stem",
+  categories = Array("Linguistic"),
+  label = "Stem",
+  description = "Stems a string using the Porter Stemmer."
+)
 case class StemmerTransformer() extends SimpleTransformer {
   override def evaluate(value: String) = {
     val stemmer = new PorterStemmer

@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.NormalizeCharsTransformer
 
 @RunWith(classOf[JUnitRunner])
 class NormalizeCharsTransformerTest extends FlatSpec with ShouldMatchers {

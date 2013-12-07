@@ -19,6 +19,7 @@ import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.StemmerTransformer
 
 @RunWith(classOf[JUnitRunner])
 class StemmerTransformerTest extends FlatSpec with ShouldMatchers {
