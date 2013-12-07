@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 
 @Plugin(
   id = "logarithm",
-  categories = Array("numeric"),
+  categories = Array("Numeric"),
   label = "Logarithm",
   description = "Transforms all numbers by applying the logarithm function. Non-numeric values are left unchanged."
 )

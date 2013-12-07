@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
  */
 @Plugin(
   id = "filterByRegex",
-  categories = Array("filter"),
+  categories = Array("Filter"),
   label = "filter by regex",
   description = "Removes all strings that do NOT match a regex. If 'negate' is true, only strings will be removed that match the regex."
 )

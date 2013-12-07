@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(
   id = "stripPrefix",
-  categories = Array("substring"),
+  categories = Array("Substring"),
   label = "Strip prefix",
   description = "Strips a prefix of a string."
 )

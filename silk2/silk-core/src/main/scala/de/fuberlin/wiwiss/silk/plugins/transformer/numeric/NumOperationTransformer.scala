@@ -26,13 +26,13 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
  */
 @Plugin(
   id = "numOperation",
-  categories = Array("numeric"),
+  categories = Array("Numeric"),
   label = "Numeric Operation",
   description =
-    """ Applies a numeric operation.
-        Accepts two paramters:
-        operator: One of '+', '-', '*', '/'
-        operand: The operand. """
+    """ | Applies a numeric operation.
+        | Accepts two paramters:
+        |   operator: One of '+', '-', '*', '/'
+        |   operand: The operand. """
 )
 class NumOperationTransformer(operator: String, operand: Double) extends SimpleTransformer {
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")

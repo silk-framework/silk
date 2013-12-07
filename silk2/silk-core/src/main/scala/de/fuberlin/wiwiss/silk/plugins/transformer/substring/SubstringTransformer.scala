@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
  */
 @Plugin(
   id = "untilCharacter",
-  categories = Array("substring"),
+  categories = Array("Substring"),
   label = "Until Character",
   description = "Give a substring until the character given"
 )

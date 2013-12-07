@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
 @Plugin(
   id = "removeEmptyValues",
-  categories = Array("filter"),
+  categories = Array("Filter"),
   label = "Remove empty values",
   description = "Removes empty values."
 )
