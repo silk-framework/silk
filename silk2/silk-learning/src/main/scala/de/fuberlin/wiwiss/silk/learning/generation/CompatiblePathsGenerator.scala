@@ -20,7 +20,8 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
-import de.fuberlin.wiwiss.silk.plugins.transformer.{Tokenizer, LowerCaseTransformer, StripUriPrefixTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.{Tokenizer, LowerCaseTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
 
 /**
  * Analyses the reference entities and generates pairs of paths.

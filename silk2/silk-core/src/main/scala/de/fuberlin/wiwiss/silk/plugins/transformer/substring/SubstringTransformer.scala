@@ -12,17 +12,24 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.substring
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "numbers", label = "Numbers", description = "add or substracted a number to another one")
-class NumbersTransformer(substractedValue: String, sign: String) extends SimpleTransformer {
+/**
+ * Give a substring until the character given.
+ *
+ * @author Julien Plu
+ */
+@Plugin(
+  id = "untilCharacter",
+  categories = Array("substring"),
+  label = "Until Character",
+  description = "Give a substring until the character given"
+)
+class SubstringTransformer(untilCharacter: String) extends SimpleTransformer {
   override def evaluate(value: String) = {
-    sign match {
-      case "+" => (value.toInt + substractedValue.toInt).toString
-      case "-" => (value.toInt - substractedValue.toInt).toString
-    }
+    value.split(untilCharacter)(0)
   }
 }
