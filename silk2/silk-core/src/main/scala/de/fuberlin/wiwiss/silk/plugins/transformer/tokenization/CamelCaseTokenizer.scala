@@ -12,13 +12,18 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.tokenization
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import scala.collection.mutable.HashSet
 
-@Plugin(id = "camelcasetokenizer", label = "Camel Case Tokenizer", description = "Tokenizes a camel case string. That is it splits strings between a lower case characted and an upper case character.")
+@Plugin(
+  id = "camelcasetokenizer",
+  categories = Array("Tokenization"),
+  label = "Camel Case Tokenizer",
+  description = "Tokenizes a camel case string. That is it splits strings between a lower case characted and an upper case character."
+)
 class CamelCaseTokenizer extends Transformer {
   override def apply(values: Seq[Set[String]]): Set[String] = {
     values.reduce(_ ++ _).flatMap(splitOnCamelCase)

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.transformer.phonetic
+package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
@@ -6,7 +6,7 @@ import com.rockymadden.stringmetric.phonetic.MetaphoneAlgorithm
 
 @Plugin(
   id = "metaphone",
-  categories = Array("Phonetic"),
+  categories = Array("Linguistic"),
   label = "Metaphone",
   description = "Metaphone phonetic encoding. Provided by the StringMetric library: http://rockymadden.com/stringmetric/"
 )

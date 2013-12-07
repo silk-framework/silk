@@ -12,12 +12,17 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.combine
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "concat", label = "Concatenate", description = "Concatenates strings from two inputs.")
+@Plugin(
+  id = "concat",
+  categories = Array("Combine"),
+  label = "Concatenate",
+  description = "Concatenates strings from two inputs."
+)
 case class ConcatTransformer(glue: String = "") extends Transformer {
   override def apply(values: Seq[Set[String]]): Set[String] = {
     for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
