@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.replace
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
@@ -20,6 +20,7 @@ import util.matching.Regex
 
 @Plugin(
   id = "regexReplace",
+  categories = Array("Replace"),
   label = "Regex replace",
   description = "Replace all occurrences of a regex \"regex\" with \"replace\" in a string.")
 class RegexReplaceTransformer(regex: String, replace: String) extends SimpleTransformer {
