@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace.scripts
+package de.fuberlin.wiwiss.silk.util
 
 case class Table(name: String, header: Seq[String], rows: Seq[String], values: Seq[Seq[Any]]) {
 
@@ -29,6 +29,20 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
       csv.append(label + "," + row.mkString(",") + "\n")
 
     csv.toString
+  }
+
+  /**
+   * Formats this table as textile.
+   */
+  def toTextile = {
+    val sb = new StringBuilder()
+
+    sb.append("|_. Function and parameters |_. Name |_. Description |\n")
+    for((label, row) <- rows zip values) {
+      sb.append("| " + label + " | " + row.mkString(" | ") + " |\n")
+    }
+
+    sb.toString
   }
 
   /**

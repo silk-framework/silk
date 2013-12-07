@@ -18,9 +18,12 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
 
-@Plugin(id = "softjaccard",
-        label = "Soft Jaccard",
-        description = "Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of 'maxDistance' are considered equivalent.")
+@Plugin(
+  id = "softjaccard",
+  categories = Array("Tokenbased"),
+  label = "Soft Jaccard",
+  description = "Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of 'maxDistance' are considered equivalent."
+)
 case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
 
   private val levenshtein = LevenshteinDistance()

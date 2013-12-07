@@ -27,7 +27,12 @@ import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
  * Parameters:
  * - '''q''' (optional): The size of the sliding window. Default: 2
  */
-@Plugin(id = "qGrams", label = "qGrams", description = "String similarity based on q-grams (by default q=2).")
+@Plugin(
+  id = "qGrams",
+  categories = Array("Characterbased"),
+  label = "qGrams",
+  description = "String similarity based on q-grams (by default q=2)."
+)
 case class QGramsMetric(q: Int = 2, minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
   private val jaccardCoefficient = JaccardDistance()
 

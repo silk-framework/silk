@@ -12,18 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.numeric
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.StringUtils._
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.RegexReplaceTransformer
 
-@Plugin(id = "logarithm", label = "Logarithm", description = "Transforms all numbers by applying the logarithm function. Non-numeric values are left unchanged.")
-case class LogarithmTransformer(base: Int = 10) extends SimpleTransformer {
-  override def evaluate(value: String) = {
-    value match {
-      case DoubleLiteral(d) => (math.log(d) / math.log(base)).toString
-      case str => str
-    }
-  }
-}
+@Plugin(
+  id = "numReduce",
+  categories = Array("numeric"),
+  label = "Numeric reduce",
+  description = "Strip all non-numeric characters from a string."
+)
+case class NumReduceTransformer() extends RegexReplaceTransformer("[^0-9]+", "")

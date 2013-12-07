@@ -1,5 +1,8 @@
 @(project: String, task: String)
 
+@import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
@@ -61,7 +64,74 @@
     <div id="operators">
       <script type="text/javascript">
         getOperators();
+
+        // Hide all operators except the recommended ones
+        $(function() {
+          @for(category <- Transformer.pluginsByCategory.keys if category != "Recommended") {
+            $('#transform_category_@category').hide();
+          }
+          @for(category <- DistanceMeasure.pluginsByCategory.keys if category != "Recommended") {
+            $('#comparator_category_@category').hide();
+          }
+        });
       </script>
+
+      @* Transformation Box *@
+      <div class="boxheaders" style="color: #0cc481;">
+        Transformations
+        <select name="category" style="font-size:0.9em;">
+          @for(category <- Transformer.pluginsByCategory.keys) {
+            <option value="@category"
+                    onclick="$('div[id^=transform_category]').hide(); $('#transform_category_@category').show()"
+                    @if(category == "Recommended"){ selected="selected" } >
+              @category
+            </option>
+          }
+        </select>
+      </div>
+
+      <div id="transformationbox" class="scrollboxes" style="height: 67.9px;">
+        @for((category, plugins) <- Transformer.pluginsByCategory) {
+          <div id="transform_category_@category">
+            @for(plugin <- plugins.sortBy(_.label)) {
+              <div id="transformation_@plugin.id" class="draggable comparators ui-draggable" title="@plugin.description">
+                <span></span>
+                <small>@plugin.label</small>
+                <p>@plugin.label</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @* Comparator Box *@
+      <div class="boxheaders" style="color: #e59829;">
+        Comparators
+        <select name="category" style="font-size:0.9em;">
+          @for(category <- DistanceMeasure.pluginsByCategory.keys) {
+            <option value="@category"
+                    onclick="$('div[id^=comparator_category]').hide(); $('#comparator_category_@category').show()"
+                    @if(category == "Recommended"){ selected="selected" }>
+              @category
+            </option>
+          }
+        </select>
+      </div>
+
+      <div id="comparatorbox" class="scrollboxes" style="height: 67.9px;">
+        @for((category, plugins) <- DistanceMeasure.pluginsByCategory) {
+          <div id="comparator_category_@category">
+            @for(plugin <- plugins.sortBy(_.label)) {
+              <div id="comparator_@plugin.id" class="draggable comparators ui-draggable" title="@plugin.description">
+                <span></span>
+                <small>@plugin.label</small>
+                <p>@plugin.label</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
     </div>
   </div>
 

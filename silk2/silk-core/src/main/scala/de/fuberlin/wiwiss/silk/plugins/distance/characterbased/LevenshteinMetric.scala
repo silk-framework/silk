@@ -18,7 +18,11 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import scala.math.max
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "levenshtein", label = "Normalized Levenshtein distance", description = "Normalized Levenshtein distance.")
+@Plugin(
+  id = "levenshtein",
+  categories = Array("Characterbased"),
+  label = "Normalized Levenshtein distance",
+  description = "Normalized Levenshtein distance.")
 case class LevenshteinMetric(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   private val levenshtein = new LevenshteinDistance(minChar, maxChar)

@@ -22,6 +22,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(
   id = "date",
+  categories = Array("Numeric"),
   label = "Date",
   description = "The distance in days between two dates ('YYYY-MM-DD' format).")
 case class DateMetric() extends SimpleDistanceMeasure {

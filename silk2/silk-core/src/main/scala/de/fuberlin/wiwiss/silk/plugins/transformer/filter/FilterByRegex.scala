@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.filter
 
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
@@ -8,6 +8,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
  */
 @Plugin(
   id = "filterByRegex",
+  categories = Array("filter"),
   label = "filter by regex",
   description = "Removes all strings that do NOT match a regex. If 'negate' is true, only strings will be removed that match the regex."
 )

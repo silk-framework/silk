@@ -18,6 +18,7 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumReduceTransformer
 
 @RunWith(classOf[JUnitRunner])
 class NumReduceTransformerTest extends FlatSpec with ShouldMatchers {

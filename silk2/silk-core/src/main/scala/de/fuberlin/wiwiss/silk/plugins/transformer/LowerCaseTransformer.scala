@@ -17,7 +17,12 @@ package de.fuberlin.wiwiss.silk.plugins.transformer
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
-@Plugin(id = "lowerCase", label = "Lower case", description = "Converts a string to lower case.")
+@Plugin(
+  id = "lowerCase",
+  categories = Array("Uncategorized", "Recommended"),
+  label = "Lower case",
+  description = "Converts a string to lower case."
+)
 case class LowerCaseTransformer() extends SimpleTransformer {
   override def evaluate(value: String) = {
     value.toLowerCase

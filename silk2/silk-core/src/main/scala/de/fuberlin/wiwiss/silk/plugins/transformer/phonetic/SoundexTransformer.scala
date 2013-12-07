@@ -4,7 +4,12 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import com.rockymadden.stringmetric.phonetic.{RefinedSoundexAlgorithm, SoundexAlgorithm}
 
-@Plugin(id = "soundex", label = "Soundex", description = "Soundex algorithm. Provided by the StringMetric library: http://rockymadden.com/stringmetric/")
+@Plugin(
+  id = "soundex",
+  categories = Array("Phonetic"),
+  label = "Soundex",
+  description = "Soundex algorithm. Provided by the StringMetric library: http://rockymadden.com/stringmetric/"
+)
 case class SoundexTransformer(refined: Boolean = true) extends SimpleTransformer {
 
   override def evaluate(value: String) = {
