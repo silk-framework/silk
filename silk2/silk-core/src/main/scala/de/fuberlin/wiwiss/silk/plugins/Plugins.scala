@@ -32,6 +32,9 @@ import transformer.StripPrefixTransformer
 import transformer.StripUriPrefixTransformer
 import transformer.Tokenizer
 import transformer.UpperCaseTransformer
+import transformer.TimestampToDateTransformer
+import transformer.NumbersTransformer
+import transformer.SubstringTransformer
 import writer._
 import distance._
 import asian._
@@ -111,6 +114,9 @@ object Plugins {
     Transformer.register(classOf[NormalizeCharsTransformer])
     Transformer.register(classOf[FilterByLength])
     Transformer.register(classOf[FilterByRegex])
+    Transformer.register(classOf[TimestampToDateTransformer])
+    Transformer.register(classOf[NumbersTransformer])
+    Transformer.register(classOf[SubstringTransformer])
 
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])
