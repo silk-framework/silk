@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(
   id = "jaccard",
-  categories = Array("Tokenbased"),
+  categories = Array("Tokenbased", "Recommended"),
   label = "Jaccard",
   description = "Jaccard similarity coefficient."
 )

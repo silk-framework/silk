@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.{Transformer, SimpleTransformer
  */
 @Plugin(
   id = "filterByLength",
-  categories = Array("filter"),
+  categories = Array("Filter"),
   label = "filter by length",
   description = "Removes all strings that are shorter than 'min' characters and longer than 'max' characters."
 )

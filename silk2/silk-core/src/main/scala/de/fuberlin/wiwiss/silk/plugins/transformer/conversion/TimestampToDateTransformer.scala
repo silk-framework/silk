@@ -29,7 +29,7 @@ import scala.math.BigInt;
  */
 @Plugin(
   id = "timeToDate",
-  categories = Array("conversion"),
+  categories = Array("Conversion"),
   label = "TimestampToDate",
   description = "convert Unix timestamp to xsd:date"
 )

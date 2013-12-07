@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.RegexReplaceTransformer
 
 @Plugin(
   id = "numReduce",
-  categories = Array("numeric"),
+  categories = Array("Numeric"),
   label = "Numeric reduce",
   description = "Strip all non-numeric characters from a string."
 )

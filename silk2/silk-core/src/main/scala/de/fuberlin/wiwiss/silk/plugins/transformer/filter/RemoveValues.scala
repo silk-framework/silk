@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
 @Plugin(
   id = "removeValues",
-  categories = Array("filter"),
+  categories = Array("Filter"),
   label = "Remove values",
   description = "Removes values."
 )
