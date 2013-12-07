@@ -42,7 +42,6 @@ import equality._
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.Timer
 import java.util.logging.Logger
-import numeric.{NumMetric, GeographicDistanceMetric, DateTimeMetric, DateMetric}
 import tokenbased._
 import tokenbased.DiceCoefficient
 import tokenbased.JaccardDistance
@@ -54,6 +53,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{NumOperationTransfor
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{RemoveEmptyValues, RemoveValues, FilterByRegex, FilterByLength}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.TimestampToDateTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring.{StripPostfixTransformer, StripPrefixTransformer, StripUriPrefixTransformer, SubstringTransformer}
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric.{GeographicDistanceMetric, DateMetric, DateTimeMetric, NumMetric}
 
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.
