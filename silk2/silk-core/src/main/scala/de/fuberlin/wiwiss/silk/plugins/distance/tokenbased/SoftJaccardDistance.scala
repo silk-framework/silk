@@ -41,9 +41,14 @@ case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
   }
 
   override def index(values: Set[String], limit: Double) = {
-    //The number of values we need to index
-    val indexSize = math.round(values.size * limit + 0.5).toInt
-
-    values.take(indexSize).map(levenshtein.indexValue(_, limit)).reduce(_ merge _)
+    if(values.isEmpty) {
+      //We index an empty value, so that the index is empty but has the right size
+      levenshtein.indexValue("", limit)
+    } else {
+      //Determine the number of values we need to index
+      val indexSize = math.round(values.size * limit + 0.5).toInt
+      //Index each value separately and merge all indices
+      values.take(indexSize).map(levenshtein.indexValue(_, limit)).reduce(_ merge _)
+    }
   }
 }
