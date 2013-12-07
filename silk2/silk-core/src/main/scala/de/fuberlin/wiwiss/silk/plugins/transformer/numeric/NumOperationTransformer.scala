@@ -30,10 +30,9 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
   label = "Numeric Operation",
   description =
     """ Applies a numeric operation.
-      | Accepts two paramters:
-      | operator: One of '+', '-', '*', '/'
-      | operand: The operand.
-    """.stripMargin
+        Accepts two paramters:
+        operator: One of '+', '-', '*', '/'
+        operand: The operand. """
 )
 class NumOperationTransformer(operator: String, operand: Double) extends SimpleTransformer {
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
