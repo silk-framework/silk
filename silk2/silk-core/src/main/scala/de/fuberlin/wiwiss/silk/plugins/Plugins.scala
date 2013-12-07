@@ -28,13 +28,8 @@ import transformer.LowerCaseTransformer
 import transformer.MergeTransformer
 import transformer.RemoveBlanksTransformer
 import transformer.StemmerTransformer
-import transformer.StripPrefixTransformer
-import transformer.StripUriPrefixTransformer
 import transformer.Tokenizer
 import transformer.UpperCaseTransformer
-import transformer.TimestampToDateTransformer
-import transformer.NumbersTransformer
-import transformer.SubstringTransformer
 import writer._
 import distance._
 import asian._
@@ -55,8 +50,10 @@ import tokenbased.SoftJaccardDistance
 import tokenbased.TokenwiseStringDistance
 import writer.FileWriter
 import writer.SparqlWriter
-import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{LogarithmTransformer, NumReduceTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{NumbersTransformer, LogarithmTransformer, NumReduceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{RemoveEmptyValues, RemoveValues, FilterByRegex, FilterByLength}
+import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.TimestampToDateTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.{StripPostfixTransformer, StripPrefixTransformer, StripUriPrefixTransformer, SubstringTransformer}
 
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.
