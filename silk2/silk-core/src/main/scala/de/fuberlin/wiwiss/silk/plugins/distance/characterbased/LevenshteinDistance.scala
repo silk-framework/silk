@@ -20,7 +20,12 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.entity.Index
 
-@Plugin(id = "levenshteinDistance", label = "Levenshtein distance", description = "Levenshtein distance.")
+@Plugin(
+  id = "levenshteinDistance",
+  categories = Array("Characterbased", "Recommended"),
+  label = "Levenshtein distance",
+  description = "Levenshtein distance."
+)
 case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   /**The size of the q-Grams to be indexed */

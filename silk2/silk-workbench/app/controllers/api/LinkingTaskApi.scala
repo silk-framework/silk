@@ -243,6 +243,7 @@ object LinkingTaskApi extends Controller {
   private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.util.plugin.PluginFactory[T]) = {
     for(plugin <- factory.availablePlugins.toSeq.sortBy(_.label)) yield {
       JsObject(("id", JsString(plugin.id)) ::
+               ("categories", JsArray(plugin.categories.toSeq.map(JsString(_)))) ::
                ("label", JsString(plugin.label)) ::
                ("description", JsString(plugin.description)) ::
                ("parameters", JsArray(generateFactoryParameters(plugin.parameters).toList)) :: Nil)

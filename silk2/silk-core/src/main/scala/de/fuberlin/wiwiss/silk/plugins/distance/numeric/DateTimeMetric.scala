@@ -21,6 +21,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 
 @Plugin(
   id = "dateTime",
+  categories = Array("Numeric"),
   label = "DateTime",
   description = "Distance between two date time values (xsd:dateTime format) in seconds.")
 case class DateTimeMetric() extends SimpleDistanceMeasure {

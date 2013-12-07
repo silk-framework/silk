@@ -1717,31 +1717,32 @@ function getOperators()
       {
         var list_item_id = 0;
 
-        var box = $(document.createElement('div'));
-        box.attr("style", "color: #0cc481;");
-        box.addClass("boxheaders");
-        box.html("Transformations").appendTo("#operators");
-        box.appendTo("#operators");
+        // Removed old code. HTML will now be generated in the template engine.
+        //var box = $(document.createElement('div'));
+        //box.attr("style", "color: #0cc481;");
+        //box.addClass("boxheaders");
+        //box.html("Transformations").appendTo("#operators");
+        //box.appendTo("#operators");
 
-        var box = $(document.createElement('div'));
-        box.attr("id", "transformationbox");
-        box.addClass("scrollboxes");
-        box.appendTo("#operators");
+        //var box = $(document.createElement('div'));
+        //box.attr("id", "transformationbox");
+        //box.addClass("scrollboxes");
+        //box.appendTo("#operators");
 
-        var sourcepaths = data.transformations;
-        $.each(sourcepaths, function (i, item)
+        $.each(data.transformations, function (i, item)
         {
           transformations[item.id] = new Object();
           transformations[item.id]["name"] = item.label;
           transformations[item.id]["description"] = item.description;
           transformations[item.id]["parameters"] = item.parameters;
 
-          var box = $(document.createElement('div'));
-          box.addClass('draggable tranformations');
-          box.attr("id", "transformation" + list_item_id);
-          box.attr("title", item.description);
-          box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
-          box.draggable(
+          //var box = $(document.createElement('div'));
+          //box.addClass('draggable tranformations');
+          //box.attr("id", "transformation" + list_item_id);
+          //box.attr("title", item.description);
+          //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
+
+          $("#transformation" + list_item_id).draggable(
           {
             helper: function ()
             {
@@ -1805,37 +1806,39 @@ function getOperators()
               return box1;
             }
           });
-          box.appendTo("#transformationbox");
+          //box.appendTo("#transformationbox");
 
           list_item_id = list_item_id + 1;
         });
 
         var list_item_id = 0;
 
-        var box = $(document.createElement('div'));
-        box.attr("style", "color: #e59829;");
-        box.addClass("boxheaders");
-        box.html("Comparators").appendTo("#operators");
-        box.appendTo("#operators");
+        // Removed old code. HTML will now be generated in the template engine.
+        //var box = $(document.createElement('div'));
+        //box.attr("style", "color: #e59829;");
+        //box.addClass("boxheaders");
+        //box.html("Comparators").appendTo("#operators");
+        //box.appendTo("#operators");
 
-        var box = $(document.createElement('div'));
-        box.attr("id", "comparatorbox");
-        box.addClass("scrollboxes");
-        box.appendTo("#operators");
+        //var box = $('#comparatorbox'));
+        //box.attr("id", "comparatorbox");
+        //box.addClass("scrollboxes");
+        //box.appendTo("#operators");
 
-        var sourcepaths = data.comparators;
-        $.each(sourcepaths, function (i, item)
+        $.each(data.comparators, function (i, item)
         {
           comparators[item.id] = new Object();
           comparators[item.id]["name"] = item.label;
           comparators[item.id]["description"] = item.description;
           comparators[item.id]["parameters"] = item.parameters;
-          var box = $(document.createElement('div'));
-          box.addClass('draggable comparators');
-          box.attr("id", "comparator" + list_item_id);
-          box.attr("title", item.description);
-          box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
-          box.draggable(
+
+          //var box = $(document.createElement('div'));
+          //box.addClass('draggable comparators');
+          //box.attr("id", "comparator" + list_item_id);
+          //box.attr("title", item.description);
+          //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
+
+          $("#comparator_" + item.id).draggable(
           {
             helper: function ()
             {
@@ -1931,7 +1934,7 @@ function getOperators()
               return box1;
             }
           });
-          box.appendTo("#comparatorbox");
+          //box.appendTo("#comparatorbox");
           list_item_id = list_item_id + 1;
         });
 

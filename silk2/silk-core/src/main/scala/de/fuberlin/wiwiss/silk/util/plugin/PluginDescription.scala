@@ -21,7 +21,7 @@ import java.lang.reflect.{InvocationTargetException, Constructor}
 /**
  * Describes a plugin.
  */
-class PluginDescription[+T <: AnyPlugin](val id: String, val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
   /**
    * Creates a new instance of this plugin.
    */
@@ -91,6 +91,7 @@ object PluginDescription {
     new PluginDescription(
       id = annotation.id,
       label = annotation.label,
+      categories = annotation.categories.toSet,
       description = annotation.description,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
@@ -101,6 +102,7 @@ object PluginDescription {
     new PluginDescription(
       id = pluginClass.getSimpleName,
       label =  pluginClass.getSimpleName,
+      categories = Set("Uncategorized"),
       description = "",
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
