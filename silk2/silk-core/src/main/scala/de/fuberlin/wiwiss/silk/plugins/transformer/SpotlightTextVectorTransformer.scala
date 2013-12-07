@@ -16,7 +16,11 @@ import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.CosineDistanceMetric
  * To change this template use File | Settings | File Templates.
  */
 
-@Plugin(id = "spotlight", label = "Spotlight", description = "Concatenates all values to a string and gets a weighted entity vector from the Spotlight service.")
+@Plugin(
+  id = "spotlight",
+  label = "Spotlight",
+  description = "Concatenates all values to a string and gets a weighted entity vector from the Spotlight service."
+)
 class SpotlightTextVectorTransformer extends Transformer {
   def apply(values: Seq[Set[String]]): Set[String] = {
     val stringSet = values.reduce(_ union _)

@@ -92,7 +92,7 @@ object PluginDescription {
       id = annotation.id,
       label = annotation.label,
       categories = annotation.categories.toSet,
-      description = annotation.description,
+      description = annotation.description.stripMargin,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )

@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(
   id = "stripPostfix",
-  categories = Array("substring"),
+  categories = Array("Substring"),
   label = "Strip postfix",
   description = "Strips a postfix of a string."
 )

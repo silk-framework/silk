@@ -17,7 +17,11 @@ package de.fuberlin.wiwiss.silk.plugins.transformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
-@Plugin(id = "tokenize", label = "Tokenize", description = "Tokenizes all input values.")
+@Plugin(
+  id = "tokenize",
+  categories = Array("Recommended"),
+  label = "Tokenize",
+  description = "Tokenizes all input values.")
 case class Tokenizer(regex: String = "\\s") extends Transformer {
 
   private[this] val compiledRegex = regex.r

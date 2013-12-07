@@ -12,13 +12,18 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.conversion
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import java.nio.charset.Charset
 
-@Plugin(id = "convertCharset", label = "Convert Charset", description = "Convert the string from \"sourceCharset\" to \"targetCharset\".")
+@Plugin(
+  id = "convertCharset",
+  categories = Array("Conversion"),
+  label = "Convert Charset",
+  description = "Convert the string from \"sourceCharset\" to \"targetCharset\"."
+)
 case class ConvertCharsetTransformer(sourceCharset: String = "ISO-8859-1", targetCharset: String = "UTF-8") extends SimpleTransformer {
   require(Charset.isSupported(sourceCharset), "sourceCharset " + sourceCharset + " is unsupported")
   require(Charset.isSupported(targetCharset), "targetCharset " + targetCharset + " is unsupported")

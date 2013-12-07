@@ -23,7 +23,6 @@ import transformer.AlphaReduceTransformer
 import transformer.CapitalizeTransformer
 import transformer.ConcatMultipleValuesTransformer
 import transformer.ConcatTransformer
-import transformer.ConvertCharsetTransformer
 import transformer.LowerCaseTransformer
 import transformer.MergeTransformer
 import transformer.RemoveBlanksTransformer
@@ -51,7 +50,7 @@ import writer.FileWriter
 import writer.SparqlWriter
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{NumOperationTransformer, LogarithmTransformer, NumReduceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{RemoveEmptyValues, RemoveValues, FilterByRegex, FilterByLength}
-import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.TimestampToDateTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.{ConvertCharsetTransformer, TimestampToDateTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring.{StripPostfixTransformer, StripPrefixTransformer, StripUriPrefixTransformer, SubstringTransformer}
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.{GeographicDistanceMetric, DateMetric, DateTimeMetric, NumMetric}
 
