@@ -12,13 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
+import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 @Plugin(
-  id = "removeBlanks",
-  label = "Remove blanks",
-  description = "Remove whitespace from a string."
+  id = "lowerCase",
+  categories = Array("Normalize", "Recommended"),
+  label = "Lower case",
+  description = "Converts a string to lower case."
 )
-case class RemoveBlanksTransformer() extends ReplaceTransformer(" ", "")
+case class LowerCaseTransformer() extends SimpleTransformer {
+  override def evaluate(value: String) = {
+    value.toLowerCase
+  }
+}

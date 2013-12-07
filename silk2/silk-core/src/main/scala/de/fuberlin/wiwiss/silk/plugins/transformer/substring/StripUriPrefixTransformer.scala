@@ -22,7 +22,7 @@ import java.util.logging.{Level, Logger}
 
 @Plugin(
   id = "stripUriPrefix",
-  categories = Array("Substring"),
+  categories = Array("Substring", "Normalize"),
   label = "Strip URI prefix",
   description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'"
 )

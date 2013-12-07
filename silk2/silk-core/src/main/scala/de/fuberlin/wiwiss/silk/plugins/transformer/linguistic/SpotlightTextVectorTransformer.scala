@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
@@ -18,6 +18,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.CosineDistanceMetric
 
 @Plugin(
   id = "spotlight",
+  categories = Array("Linguistic"),
   label = "Spotlight",
   description = "Concatenates all values to a string and gets a weighted entity vector from the Spotlight service."
 )

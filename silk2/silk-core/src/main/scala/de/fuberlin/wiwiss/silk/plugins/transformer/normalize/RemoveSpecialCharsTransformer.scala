@@ -12,19 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
 
 @Plugin(
-  id = "lowerCase",
-  categories = Array("Uncategorized", "Recommended"),
-  label = "Lower case",
-  description = "Converts a string to lower case."
+  id = "removeSpecialChars",
+  categories = Array("Normalize"),
+  label = "Remove special chars",
+  description = "Remove special characters (including punctuation) from a string."
 )
-case class LowerCaseTransformer() extends SimpleTransformer {
-  override def evaluate(value: String) = {
-    value.toLowerCase
-  }
-}
+class RemoveSpecialCharsTransformer() extends RegexReplaceTransformer("[^\\d\\pL\\w]+", "")

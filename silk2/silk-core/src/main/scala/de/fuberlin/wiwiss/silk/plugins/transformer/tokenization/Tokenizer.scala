@@ -12,14 +12,21 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.tokenization
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
-@Plugin(id = "upperCase", label = "Upper case", description = "Converts a string to upper case.")
-case class UpperCaseTransformer() extends SimpleTransformer {
-  override def evaluate(value: String) = {
-    value.toUpperCase
+@Plugin(
+  id = "tokenize",
+  categories = Array("Tokenization", "Recommended"),
+  label = "Tokenize",
+  description = "Tokenizes all input values.")
+case class Tokenizer(regex: String = "\\s") extends Transformer {
+
+  private[this] val compiledRegex = regex.r
+  
+  override def apply(values: Seq[Set[String]]): Set[String] = {
+    values.reduce(_ ++ _).flatMap(compiledRegex.split)
   }
 }
