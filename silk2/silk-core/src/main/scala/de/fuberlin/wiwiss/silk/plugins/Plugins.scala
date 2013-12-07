@@ -50,7 +50,7 @@ import tokenbased.SoftJaccardDistance
 import tokenbased.TokenwiseStringDistance
 import writer.FileWriter
 import writer.SparqlWriter
-import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{NumbersTransformer, LogarithmTransformer, NumReduceTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{NumOperationTransformer, LogarithmTransformer, NumReduceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{RemoveEmptyValues, RemoveValues, FilterByRegex, FilterByLength}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.TimestampToDateTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring.{StripPostfixTransformer, StripPrefixTransformer, StripUriPrefixTransformer, SubstringTransformer}
@@ -112,7 +112,7 @@ object Plugins {
     Transformer.register(classOf[FilterByLength])
     Transformer.register(classOf[FilterByRegex])
     Transformer.register(classOf[TimestampToDateTransformer])
-    Transformer.register(classOf[NumbersTransformer])
+    Transformer.register(classOf[NumOperationTransformer])
     Transformer.register(classOf[SubstringTransformer])
 
     DistanceMeasure.register(classOf[LevenshteinMetric])
