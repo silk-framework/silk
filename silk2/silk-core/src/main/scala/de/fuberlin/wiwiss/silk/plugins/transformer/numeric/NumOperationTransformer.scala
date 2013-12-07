@@ -35,7 +35,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
       | operand: The operand.
     """.stripMargin
 )
-class NumbersTransformer(operator: String, operand: Double) extends SimpleTransformer {
+class NumOperationTransformer(operator: String, operand: Double) extends SimpleTransformer {
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   override def evaluate(value: String) = {
