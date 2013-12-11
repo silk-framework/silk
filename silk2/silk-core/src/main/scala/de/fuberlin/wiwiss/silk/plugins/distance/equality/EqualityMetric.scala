@@ -18,7 +18,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
 
-@Plugin(id = "equality", label = "Equality", description = "Return 0 if strings are equal, 1 otherwise.")
+@Plugin(
+  id = "equality",
+  categories = Array("Equality", "Recommended"),
+  label = "Equality",
+  description = "Return 0 if strings are equal, 1 otherwise."
+)
 case class EqualityMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double) = if (str1 == str2) 0.0 else 1.0

@@ -24,6 +24,8 @@ import java.lang.annotation.Target;
 public @interface Plugin {
     String id();
 
+    String[] categories() default { "Uncategorized" };
+
     String label();
 
     String description() default "No description";

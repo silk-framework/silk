@@ -79,7 +79,12 @@ import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.{JaroWinklerDista
  *
  * @author Florian Kleedorfer, Research Studios Austria
  */
-@Plugin(id = "tokenwiseDistance", label = "Token-wise Distance", description = "Token-wise string distance using the specified metric")
+@Plugin(
+  id = "tokenwiseDistance",
+  categories = Array("Tokenbased"),
+  label = "Token-wise Distance",
+  description = "Token-wise string distance using the specified metric"
+)
 case class TokenwiseStringDistance(
         ignoreCase: Boolean = true,
         metricName: String = "levenshtein",

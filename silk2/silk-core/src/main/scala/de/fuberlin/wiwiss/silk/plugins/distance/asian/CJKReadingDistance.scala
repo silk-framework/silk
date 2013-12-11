@@ -26,7 +26,12 @@ import java.util.Collections
 import java.util.HashMap
 import java.util.Arrays
 
-@Plugin(id = "CJK Reading Distance", label = "CJK Reading Distance", description = "CJK Reading Distance.")
+@Plugin(
+  id = "cjkReadingDistance",
+  categories = Array("Asian"),
+  label = "CJK Reading Distance",
+  description = "CJK Reading Distance."
+)
 case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
   private val q = 1
  

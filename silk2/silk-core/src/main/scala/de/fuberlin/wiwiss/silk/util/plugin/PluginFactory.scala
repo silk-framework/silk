@@ -58,6 +58,16 @@ class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, Str
   def availablePlugins: Seq[PluginDescription[T]] = plugins.values.toSeq
 
   /**
+   * A map from each category to all corresponding plugins
+   */
+  def pluginsByCategory: Map[String, Seq[PluginDescription[T]]] = {
+    // Build a list of tuples of the form (category, plugin)
+    val categoriesAndPlugins = for(plugin <- availablePlugins; category <- plugin.categories) yield (category, plugin)
+    // Build a map from each category to all corresponding plugins
+    categoriesAndPlugins.groupBy(_._1).mapValues(_.map(_._2))
+  }
+
+  /**
    * Registers a single plugin.
    */
   def register(implementationClass: Class[_ <: T]) {
