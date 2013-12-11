@@ -16,7 +16,11 @@ import de.fuberlin.wiwiss.silk.util.plugin.Plugin._
  *
  * @author Florian Kleedorfer, Research Studios Austria
  */
-@Plugin(id = "relaxedEquality", label = "RelaxedEquality", description = "Return 1 if strings are equal, 0 otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal.")
+@Plugin(
+  id = "relaxedEquality",
+  categories = Array("Equality"),
+  label = "RelaxedEquality",
+  description = "Return 1 if strings are equal, 0 otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal.")
 class RelaxedEqualityMetric extends SimpleDistanceMeasure {
 
   val collator = {

@@ -21,7 +21,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import Array._
 import scala.util.control._
 
-@Plugin(id = "korean TranslitDistance", label = "Korean translit distance", description = "Transliterated Korean distance.")
+@Plugin(
+  id = "korean TranslitDistance",
+  categories = Array("Asian"),
+  label = "Korean translit distance",
+  description = "Transliterated Korean distance."
+)
 case class KoreanTranslitDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   private val q = 1

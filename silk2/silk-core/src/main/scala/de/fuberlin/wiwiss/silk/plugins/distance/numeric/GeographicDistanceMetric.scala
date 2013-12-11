@@ -30,6 +30,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
  */
 @Plugin(
   id = "wgs84",
+  categories = Array("Numeric"),
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
 case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasure {
