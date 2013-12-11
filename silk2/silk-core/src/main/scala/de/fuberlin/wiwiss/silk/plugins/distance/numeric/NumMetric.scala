@@ -23,6 +23,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
 
 @Plugin(
   id = "num",
+  categories = Array("Numeric"),
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers."
 )

@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.util.{DPair, Timer}
+import de.fuberlin.wiwiss.silk.util.{Table, DPair, Timer}
 import java.io.FileWriter
 import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
 

@@ -1,5 +1,7 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
+import de.fuberlin.wiwiss.silk.util.Table
+
 case class MultipleTables(tables: Seq[Table]) {
   
   def transpose = MultipleTables(tables.map(_.transpose))

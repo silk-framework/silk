@@ -13,7 +13,12 @@ import de.fuberlin.wiwiss.silk.entity.Index
  * To change this template use File | Settings | File Templates.
  */
 
-@Plugin(id = "substring", label = "SubString", description = "Return 0 to 1 for strong similarity to weak similarity")
+@Plugin(
+  id = "substring",
+  categories = Array("Characterbased"),
+  label = "SubString",
+  description = "Return 0 to 1 for strong similarity to weak similarity"
+)
 case class SubStringDistance(granularity: String = "3") extends SimpleDistanceMeasure {
   private val n = granularity.toInt
 
