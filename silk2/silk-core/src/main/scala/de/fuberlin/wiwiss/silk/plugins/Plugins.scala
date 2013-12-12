@@ -41,14 +41,13 @@ import writer.SparqlWriter
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.{NumOperationTransformer, LogarithmTransformer, NumReduceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{RemoveEmptyValues, RemoveValues, FilterByRegex, FilterByLength}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.{ConvertCharsetTransformer, TimestampToDateTransformer}
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.{StripPostfixTransformer, StripPrefixTransformer, StripUriPrefixTransformer, SubstringTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.{GeographicDistanceMetric, DateMetric, DateTimeMetric, NumMetric}
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic._
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize._
 import de.fuberlin.wiwiss.silk.plugins.writer.FileWriter
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransformer
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
@@ -84,14 +83,12 @@ import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine._
 import de.fuberlin.wiwiss.silk.plugins.writer.FileWriter
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransformer
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
@@ -129,13 +126,11 @@ import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
 import de.fuberlin.wiwiss.silk.plugins.writer.FileWriter
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransformer
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
@@ -176,14 +171,12 @@ import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
 import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{ReplaceTransformer, RegexReplaceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.writer.FileWriter
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransformer
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
@@ -223,6 +216,58 @@ import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistan
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.InequalityMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
+import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
+import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
+import de.fuberlin.wiwiss.silk.plugins.writer.FileWriter
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinMetric
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
+import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransformer
+import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
+import de.fuberlin.wiwiss.silk.plugins.aggegrator.AverageAggregator
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric.GeographicDistanceMetric
+import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatMultipleValuesTransformer
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.QGramsMetric
+import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByLength
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.NysiisTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.LowerCaseTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
+import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.DiceCoefficient
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter.RemoveValues
+import de.fuberlin.wiwiss.silk.plugins.transformer.combine.MergeTransformer
+import de.fuberlin.wiwiss.silk.plugins.datasource.SparqlDataSource
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.JaroWinklerDistance
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric.NumMetric
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.LogarithmTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.StemmerTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.MetaphoneTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.UpperCaseTransformer
+import de.fuberlin.wiwiss.silk.plugins.distance.asian.CJKReadingDistance
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByRegex
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.CapitalizeTransformer
+import de.fuberlin.wiwiss.silk.plugins.writer.SparqlWriter
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateTimeMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.JaroDistanceMetric
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveParentheses
+import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.AlphaReduceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter.RemoveEmptyValues
+import de.fuberlin.wiwiss.silk.plugins.aggegrator.GeometricMeanAggregator
+import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
+import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.Tokenizer
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.UntilCharacterTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumReduceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPostfixTransformer
+import de.fuberlin.wiwiss.silk.plugins.datasource.CsvDataSource
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
+import de.fuberlin.wiwiss.silk.plugins.distance.equality.InequalityMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
+import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.SoundexTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
@@ -288,6 +333,7 @@ object Plugins {
     Transformer.register(classOf[FilterByRegex])
     Transformer.register(classOf[TimestampToDateTransformer])
     Transformer.register(classOf[NumOperationTransformer])
+    Transformer.register(classOf[UntilCharacterTransformer])
     Transformer.register(classOf[SubstringTransformer])
     Transformer.register(classOf[SoundexTransformer])
     Transformer.register(classOf[NysiisTransformer])
