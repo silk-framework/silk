@@ -17,14 +17,19 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.substring
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
+/**
+ * Give a substring until the character given.
+ *
+ * @author Julien Plu
+ */
 @Plugin(
-  id = "stripPostfix",
+  id = "untilCharacter",
   categories = Array("Substring"),
-  label = "Strip postfix",
-  description = "Strips a postfix of a string."
+  label = "Until Character",
+  description = "Give a substring until the character given"
 )
-case class StripPostfixTransformer(postfix: String) extends SimpleTransformer {
-  override def evaluate(value: String): String = {
-    value.stripSuffix(postfix)
+case class UntilCharacterTransformer(untilCharacter: String) extends SimpleTransformer {
+  override def evaluate(value: String) = {
+    value.split(untilCharacter)(0)
   }
 }
