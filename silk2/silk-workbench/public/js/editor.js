@@ -913,7 +913,7 @@ function updateWindowSize() {
   var window_height =  $(window).height();
   if (window_width>1100) {
     $(".wrapperEditor").width(window_width-10);
-    $("#droppable").width(window_width-280);
+    $("#droppable").width(window_width-290);
   }
   if (window_height > 600) {
     $(".droppable_outer, #droppable").height(window_height-165);
