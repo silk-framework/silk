@@ -361,3 +361,10 @@ a.more {
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
+
+#score-widget {
+  float: right;
+  margin-right: 20px;
+  color: rgb(113, 113, 113);
+  line-height: 40px;
+}
