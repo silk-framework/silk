@@ -14,6 +14,7 @@ GET           /api/:project/output/:output/dialog                               
 
 # Editor
 GET           /:project/:task/editor                                                                controllers.tabs.Editor.editor(project: String, task: String)
+GET           /:project/:task/editor/score                                                          controllers.tabs.Editor.score(project: String, task: String)
 
 # Generate Links
 GET           /:project/:task/generateLinks                                                         controllers.tabs.GenerateLinks.generateLinks(project: String, task: String)

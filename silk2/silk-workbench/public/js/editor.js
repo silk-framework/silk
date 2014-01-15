@@ -264,6 +264,7 @@ function validateLinkSpec() {
         dataType: "json",
         success: function(response) {
           updateStatus(response.error, response.warning, response.info);
+          updateScore();
         },
         error: function(req) {
           console.log('Error putting linkage rule: ' + req.responseText);
@@ -911,7 +912,7 @@ function load(xml)
 function updateWindowSize() {
   var window_width =  $(window).width();
   var window_height =  $(window).height();
-  if (window_width>1100) {
+  if (window_width > 1100) {
     $(".wrapperEditor").width(window_width-10);
     $("#droppable").width(window_width-290);
   }
@@ -2083,6 +2084,19 @@ function reloadCache() {
     type: "PUT",
     url: '../../api/tasks/' + projectName + '/' + taskName + '/reloadCache',
     dataType: "xml",
-    success: load
+    success: function() { updateScore() }
   });
+}
+
+function updateScore() {
+  $.ajax({
+    type: 'get',
+    url: "editor/score",
+    complete: function(response, status) {
+      $("#score-widget").html(response.responseText);
+      if(status == "error") {
+        setTimeout('updateScore()', 2000);
+      }
+    }
+  })
 }
