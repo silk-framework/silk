@@ -82,26 +82,11 @@ object LinkingTaskApi extends Controller {
             project.linkingModule.update(updatedTask)
           }
 
-          val status =
-            if(task.cache.status.isRunning) {
-              ("Cache loading") :: Nil
-            } else if(task.cache.status.failed) {
-              ("Cache loading failed") :: Nil
-            } else if (task.cache.entities.positive.isEmpty || task.cache.entities.negative.isEmpty) {
-              ("No reference links") :: Nil
-            } else {
-              val r = LinkageRuleEvaluator(task.linkSpec.rule, task.cache.entities)
-
-              ("Precision = %.2f".format(r.precision)) ::
-              ("Recall = %.2f".format(r.recall)) ::
-              ("F-measure = %.2f".format(r.fMeasure)) :: Nil
-            }
-
-          Ok(statusJson(infos = status))
+          Ok(statusJson(warnings = warnings.map(_.getMessage)))
         } catch {
           case ex: ValidationException => {
             log.log(Level.INFO, "Invalid linkage rule")
-            BadRequest(statusJson(ex.errors))
+            BadRequest(statusJson(errors = ex.errors))
           }
           case ex: Exception => {
             log.log(Level.INFO, "Failed to save linkage rule", ex)
@@ -114,7 +99,7 @@ object LinkingTaskApi extends Controller {
   }}
 
   private def statusJson(errors: Seq[ValidationError] = Nil, warnings: Seq[String] = Nil, infos: Seq[String] = Nil) = {
-    /**Generates a JavaScript expression from an error */
+    /**Generates a Json expression from an error */
     def errorToJsExp(error: ValidationError) = JsObject(("message", JsString(error.toString)) :: ("id", JsString(error.id.map(_.toString).getOrElse(""))) :: Nil)
 
     JsObject(
