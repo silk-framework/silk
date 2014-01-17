@@ -1,4 +1,4 @@
-@(project: Option[String], task: Option[String], selectedTab: Int)(header: Html)(toolbar: Html)(content: Html)
+@(project: Option[String], task: Option[String], tab: String)(header: Html)(toolbar: Html)(content: Html)
 
 @import models.WorkbenchConfig.{get => config}
 
@@ -19,15 +19,13 @@
     @header
   </head>
   <body>
-    @tabbar(project, task, selectedTab)
+    @tabbar(project, task, tab)
     <div id="toolbar">
       @toolbar
     </div>
-    <!-- div style="float: left; width: 90%" -->
-      <div id="content">
-        @content
-      </div>
-    <!-- /div -->
+    <div id="content">
+      @content
+    </div>
     <div id="dialogContainer"></div>
  </body>
 </html>
