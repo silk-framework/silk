@@ -16,21 +16,24 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import java.io.StringReader
+import java.io.{ByteArrayInputStream, StringReader}
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription, Entity}
 import de.fuberlin.wiwiss.silk.util.sparql.SparqlAggregatePathsCollector
+import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
+import com.hp.hpl.jena.query.DatasetFactory
 
 /**
  * A DataSource where all entities are given directly in the configuration.
  *
  * Parameters:
- * - '''input''': The input data
- * - '''format''': The format of the input data. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3"
+ * - '''file''': The RDF file
+ * - '''format''': The format of the RDF file. Allowed values: "RDF/XML", "N-Triples", "Turtle"
  */
 @Plugin(id = "rdf", label = "RDF", description = "A DataSource where all entities are given directly in the configuration.")
 case class RdfDataSource(input: String, format: String) extends DataSource {
+
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(input), null, format)
 

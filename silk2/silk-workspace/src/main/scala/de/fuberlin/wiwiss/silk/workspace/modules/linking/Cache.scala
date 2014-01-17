@@ -45,6 +45,9 @@ abstract class Cache[T <: AnyRef](initialValue: T) extends HasStatus {
       thread.join()
     }
 
+    //Set the task status
+    updateStatus(TaskStarted("Loading cache"))
+
     //Create new loading thread
     loadingThread = Some(new LoadingThread(project, task))
 
@@ -72,7 +75,6 @@ abstract class Cache[T <: AnyRef](initialValue: T) extends HasStatus {
   private class LoadingThread(project: Project, task: LinkingTask) extends Thread {
     override def run() {
       val startTime = System.currentTimeMillis
-      updateStatus(TaskStarted("Loading cache"))
       try {
         update(project, task)
         updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))

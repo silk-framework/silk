@@ -19,6 +19,8 @@ import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import org.apache.jena.riot.RDFDataMgr
+import com.hp.hpl.jena.query.DatasetFactory
 
 @Plugin(id = "linkedData", label = "Linked Data", description = "TODO")
 case class LinkedDataSource() extends DataSource {
