@@ -28,7 +28,7 @@ import java.util.logging.Logger
 import tokenbased._
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumOperationTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.TimestampToDateTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.{StripPostfixTransformer, SubstringTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.CamelCaseTokenizer
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic._
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize._
@@ -44,7 +44,9 @@ import de.fuberlin.wiwiss.silk.plugins.distance.numeric.GeographicDistanceMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatMultipleValuesTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.QGramsMetric
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.SubstringTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByLength
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.NysiisTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.LowerCaseTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.DiceCoefficient
@@ -55,6 +57,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.JaroWinklerDistan
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.NumMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.LogarithmTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.StemmerTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.MetaphoneTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.UpperCaseTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.CJKReadingDistance
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByRegex
@@ -70,11 +73,13 @@ import de.fuberlin.wiwiss.silk.plugins.aggegrator.GeometricMeanAggregator
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.Tokenizer
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumReduceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPostfixTransformer
 import de.fuberlin.wiwiss.silk.plugins.datasource.CsvDataSource
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.InequalityMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
+import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.SoundexTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
