@@ -116,11 +116,22 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) {
     }
 
     override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes) {
+      // Add all errors for this element before advancing
       for(idAttribute <- Option(attributes.getValue("id"))) {
-        val id = Identifier(idAttribute)
+        // Try to get identifier of this element
+        val id =
+          try {
+            Some(Identifier(idAttribute))
+          } catch {
+            case ex: Exception => {
+              println(_localName + ": " + ex.getMessage)
+              validationErrors ::= ValidationError(ex.getMessage, None, Some(_localName))
+              None
+            }
+          }
 
         for(error <- currentErrors) {
-          validationErrors ::= ValidationError(error, Some(id), Some(_localName))
+          validationErrors ::= ValidationError(error, id, Some(_localName))
         }
 
         currentErrors = Nil
