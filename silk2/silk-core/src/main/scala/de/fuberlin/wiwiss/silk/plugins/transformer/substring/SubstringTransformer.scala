@@ -1,3 +1,4 @@
+
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +19,23 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 
 /**
- * Give a substring until the character given.
+ * Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive).
  *
- * @author Julien Plu
+ * @author Robert Isele
  */
 @Plugin(
-  id = "untilCharacter",
+  id = "substring",
   categories = Array("Substring"),
-  label = "Until Character",
-  description = "Give a substring until the character given"
+  label = "Substring",
+  description =
+    "Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive)." +
+    "If 'endIndex' is 0 (default), it is ignored and the entire string beginning with 'beginIndex' is returned."
 )
-class SubstringTransformer(untilCharacter: String) extends SimpleTransformer {
+case class SubstringTransformer(beginIndex: Int = 0, endIndex: Int = 0) extends SimpleTransformer {
   override def evaluate(value: String) = {
-    value.split(untilCharacter)(0)
+    if(endIndex == 0)
+      value.substring(beginIndex)
+    else
+      value.substring(beginIndex, endIndex)
   }
 }
