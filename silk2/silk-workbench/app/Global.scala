@@ -14,7 +14,7 @@ object Global extends GlobalSettings {
     // Configure logging
     val fileHandler = new FileHandler(app.getFile("/logs/engine.log").getAbsolutePath)
     fileHandler.setFormatter(new SimpleFormatter())
-    java.util.logging.Logger.getLogger("de.fuberlin.wiwiss.silk").addHandler(fileHandler)
+    java.util.logging.Logger.getLogger("").addHandler(fileHandler)
 
     //Initialize user manager
     val user = new FileUser
