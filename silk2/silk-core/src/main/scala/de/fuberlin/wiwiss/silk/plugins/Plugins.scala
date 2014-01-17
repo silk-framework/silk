@@ -140,6 +140,7 @@ object Plugins {
     Transformer.register(classOf[FilterByRegex])
     Transformer.register(classOf[TimestampToDateTransformer])
     Transformer.register(classOf[NumOperationTransformer])
+    Transformer.register(classOf[UntilCharacterTransformer])
     Transformer.register(classOf[SubstringTransformer])
     Transformer.register(classOf[SoundexTransformer])
     Transformer.register(classOf[NysiisTransformer])

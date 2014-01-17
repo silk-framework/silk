@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 
 import scala.collection.JavaConversions._
 import com.hp.hpl.jena.rdf.model.Model
-import com.hp.hpl.jena.query.{QuerySolution, ResultSet, QueryExecutionFactory}
+import com.hp.hpl.jena.query.{Dataset, QuerySolution, ResultSet, QueryExecutionFactory}
 import de.fuberlin.wiwiss.silk.util.sparql.{SparqlEndpoint, Node}
 
 /**
