@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, DPair}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import evaluation.{DetailedEvaluator, DetailedIndexer}
 import math.abs
@@ -77,6 +77,10 @@ object LinkageRule {
    * Creates a new linkage rule with one root operator.
    */
   def apply(operator: SimilarityOperator): LinkageRule = LinkageRule(Some(operator))
+
+  def load(implicit prefixes: Prefixes) = {
+    new ValidatingXMLReader(node => fromXML(node)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
+  }
 
   /**
    * Reads a linkage rule from xml.
