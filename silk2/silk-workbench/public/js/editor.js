@@ -1710,7 +1710,7 @@ function getOperators()
     url: apiUrl + '/operators',
     contentType: "application/json; charset=utf-8",
     dataType: "json",
-    timeout: 2000,
+    timeout: 60000,
     success: function (data, textStatus, XMLHttpRequest)
     {
       // alert("success: " + data + " " + textStatus + " " + XMLHttpRequest.status);
