@@ -109,6 +109,14 @@ object LinkingTaskApi extends Controller {
     )
   }
 
+  def getReferenceLinks(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.linkingModule.task(taskName)
+    val referenceLinksXml = task.referenceLinks.toXML
+
+    Ok(referenceLinksXml)
+  }
+
   def putReferenceLinks(projectName: String, taskName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)

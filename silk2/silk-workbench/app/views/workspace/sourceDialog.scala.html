@@ -18,11 +18,11 @@
 
       // Delete the old source in case its name changed
       if(name != '@source') {
-        deleteTask('/api/@project/source/@source');
+        deleteTask('/api/workspace/@project/source/@source');
       }
 
       // Submit data source
-      putTask('/api/@project/source/' + name, xml);
+      putTask('/api/workspace/@project/source/' + name, xml);
     }
   //]]>
   </script>

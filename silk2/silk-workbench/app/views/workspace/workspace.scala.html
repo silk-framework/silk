@@ -35,23 +35,23 @@
     }
 
     function editPrefixes(project) {
-      showDialog('api/' + project + '/prefixes/dialog');
+      showDialog('api/workspace/' + project + '/prefixes/dialog');
     }
 
     function editSource(project, source) {
-      showDialog('api/' + project + '/source/' + source + '/dialog');
+      showDialog('api/workspace/' + project + '/source/' + source + '/dialog');
     }
 
     function removeSource(project, source) {
-      deleteTask('/api/' + project + '/source/' + source);
+      deleteTask('/api/workspace/' + project + '/source/' + source);
     }
 
     function editLinkingTask(project, task) {
-      showDialog('api/' + project + '/linking/' + task + '/dialog');
+      showDialog('api/workspace/' + project + '/linking/' + task + '/dialog');
     }
 
     function removeLinkingTask(project, task) {
-      deleteTask('api/' + project + '/linking/' + task);
+      deleteTask('api/workspace/' + project + '/linking/' + task);
     }
 
     function openLinkingTask(project, task) {
@@ -59,11 +59,11 @@
     }
 
     function editOutput(project, output) {
-      showDialog('api/' + project + '/output/' + output + '/dialog');
+      showDialog('api/workspace/' + project + '/output/' + output + '/dialog');
     }
 
     function removeOutput(project, output) {
-      deleteTask('api/' + project + '/output/' + output);
+      deleteTask('api/workspace/' + project + '/output/' + output);
     }
 
     function putTask(path, xml) {
