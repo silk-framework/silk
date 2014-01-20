@@ -8,9 +8,9 @@ GET           /workspace/dialogs/newproject                                     
 GET           /workspace/dialogs/importproject                                                      controllers.tabs.Workspace.importProjectDialog()
 GET           /workspace/dialogs/importlinkspec/:project                                            controllers.tabs.Workspace.importLinkSpecDialog(project: String)
 GET           /api/:project/prefixes/dialog                                                         controllers.tabs.Workspace.prefixDialog(project: String)
-GET           /api/:project/source/:source/dialog                                                   controllers.tabs.Workspace.sourceDialog(project: String, source: String)
-GET           /api/:project/linking/:task/dialog                                                    controllers.tabs.Workspace.linkingTaskDialog(project: String, task: String)
-GET           /api/:project/output/:output/dialog                                                   controllers.tabs.Workspace.outputDialog(project: String, output: String)
+GET           /api/workspace/:project/source/:source/dialog                                         controllers.tabs.Workspace.sourceDialog(project: String, source: String)
+GET           /api/workspace/:project/linking/:task/dialog                                          controllers.tabs.Workspace.linkingTaskDialog(project: String, task: String)
+GET           /api/workspace/:project/output/:output/dialog                                         controllers.tabs.Workspace.outputDialog(project: String, output: String)
 
 # Editor
 GET           /:project/:task/editor                                                                controllers.tabs.Editor.editor(project: String, task: String)
@@ -67,19 +67,21 @@ GET           /api/workspace/:project/export                                    
 POST          /api/workspace/:project/importLinkSpec                                                controllers.api.WorkspaceApi.importLinkSpec(project: String)
 
 # Prefixes
-PUT           /api/:project/prefixes                                                                controllers.api.WorkspaceApi.updatePrefixes(project: String)
+PUT           /api/workspace/:project/prefixes                                                      controllers.api.WorkspaceApi.updatePrefixes(project: String)
 
 # Sources
-PUT           /api/:project/source/:source                                                          controllers.api.WorkspaceApi.putSource(project: String, source: String)
-DELETE        /api/:project/source/:source                                                          controllers.api.WorkspaceApi.deleteSource(project: String, source: String)
+GET           /api/workspace/:project/source/:source                                                controllers.api.WorkspaceApi.getSource(project: String, source: String)
+PUT           /api/workspace/:project/source/:source                                                controllers.api.WorkspaceApi.putSource(project: String, source: String)
+DELETE        /api/workspace/:project/source/:source                                                controllers.api.WorkspaceApi.deleteSource(project: String, source: String)
 
 # Linking Tasks
-PUT           /api/:project/linking/:task                                                           controllers.api.WorkspaceApi.putLinkingTask(project: String, task: String)
-DELETE        /api/:project/linking/:task                                                           controllers.api.WorkspaceApi.deleteLinkingTask(project: String, task: String)
+PUT           /api/workspace/:project/linking/:task                                                 controllers.api.WorkspaceApi.putLinkingTask(project: String, task: String)
+DELETE        /api/workspace/:project/linking/:task                                                 controllers.api.WorkspaceApi.deleteLinkingTask(project: String, task: String)
 GET           /api/workspace/:project/linking/:task/rule                                            controllers.api.LinkingTaskApi.getRule(project: String, task: String)
 PUT           /api/workspace/:project/linking/:task/rule                                            controllers.api.LinkingTaskApi.putRule(project: String, task: String)
 GET           /api/workspace/:project/linking/:task/linkSpec                                        controllers.api.LinkingTaskApi.getLinkSpec(project: String, task: String)
 PUT           /api/workspace/:project/linking/:task/linkSpec                                        controllers.api.LinkingTaskApi.putLinkSpec(project: String, task: String)
+GET           /api/workspace/:project/linking/:task/referenceLinks                                  controllers.api.LinkingTaskApi.getReferenceLinks(project: String, task: String)
 PUT           /api/workspace/:project/linking/:task/referenceLinks                                  controllers.api.LinkingTaskApi.putReferenceLinks(project: String, task: String)
 PUT           /api/workspace/:project/linking/:task/referenceLinks/:linkType/:source/:target        controllers.api.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
 DELETE        /api/workspace/:project/linking/:task/referenceLinks/:source/:target                  controllers.api.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
@@ -89,8 +91,9 @@ GET           /api/workspace/:project/linking/:task/paths                       
 GET           /api/workspace/:project/linking/:task/operators                                       controllers.api.LinkingTaskApi.operators(project: String, task: String)
 
 # Outputs
-PUT           /api/:project/output/:output                                                          controllers.api.WorkspaceApi.putOutput(project: String, output: String)
-DELETE        /api/:project/output/:output                                                          controllers.api.WorkspaceApi.deleteOutput(project: String, output: String)
+GET           /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.getOutput(project: String, output: String)
+PUT           /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.putOutput(project: String, output: String)
+DELETE        /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.deleteOutput(project: String, output: String)
 
 # Control
 PUT           /api/tasks/:project/:task/reloadCache                                                 controllers.api.ControlApi.reloadCache(project: String, task: String)

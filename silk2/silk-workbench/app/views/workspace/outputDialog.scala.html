@@ -18,11 +18,11 @@
 
       // Delete the old output in case its name changed
       if(name != '@output') {
-        deleteTask('/api/@project/output/@output');
+        deleteTask('/api/workspace/@project/output/@output');
       }
 
       // Submit output
-      putTask('/api/@project/output/' + name, xml);
+      putTask('/api/workspace/@project/output/' + name, xml);
     }
   //]]>
   </script>

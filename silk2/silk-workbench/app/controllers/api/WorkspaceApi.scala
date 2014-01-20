@@ -137,6 +137,14 @@ object WorkspaceApi extends Controller {
     Ok
   }}
 
+  def getSource(projectName: String, sourceName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.sourceModule.task(sourceName)
+    val sourceXml = task.source.toXML
+
+    Ok(sourceXml)
+  }
+
   def putSource(project: String, source: String) = Action { implicit request => {
     request.body.asXml match {
       case Some(xml) => {
@@ -195,6 +203,14 @@ object WorkspaceApi extends Controller {
   def deleteLinkingTask(project: String, task: String) = Action {
     User().workspace.project(project).linkingModule.remove(task)
     Ok
+  }
+
+  def getOutput(projectName: String, outputName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.outputModule.task(outputName)
+    val outputXml = task.output.toXML
+
+    Ok(outputXml)
   }
 
   def putOutput(project: String, output: String) = Action { implicit request => {
