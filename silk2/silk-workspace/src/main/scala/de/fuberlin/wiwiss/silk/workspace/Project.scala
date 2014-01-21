@@ -19,8 +19,7 @@ import modules.output.OutputModule
 import modules.source.SourceModule
 import de.fuberlin.wiwiss.silk.util.Identifier
 
-trait Project
-{
+trait Project {
   /**
    * The name of this project
    */

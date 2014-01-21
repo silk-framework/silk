@@ -19,6 +19,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workspace.util._
 import de.fuberlin.wiwiss.silk.util.Identifier
+import java.io.{InputStream, OutputStream}
 
 class LDEWorkspace (workspaceUri : URI) extends Workspace    {
 
@@ -79,6 +80,9 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
   // util
   def clean (uri : String) =  {   uri.split("/").last  }
 
+  def exportProject(name: Identifier, outputStream: OutputStream) = ???
+
+  def importProject(name: Identifier, inputStream: InputStream) = ???
 
 }
 
