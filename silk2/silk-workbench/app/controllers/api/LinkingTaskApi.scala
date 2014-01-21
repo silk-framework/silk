@@ -202,7 +202,7 @@ object LinkingTaskApi extends Controller {
                                           ("restrictions", JsString(restrictions.target.toString)) ::
                                           ("variable", JsString(datasets.target.variable)) :: Nil))
 
-    var errorMsg : Option[String] = task.cache.status match {
+    var errorMsg : Option[String] = task.cache.pathCache.status match {
       case TaskFinished(_, _, _, Some(ex)) => Some(ex.getMessage)
       case _ => None
     }

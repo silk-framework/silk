@@ -14,21 +14,22 @@
 
 package de.fuberlin.wiwiss.silk.workspace
 
-import java.io.File
+import java.io._
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.util.Identifier
+import java.util.zip.{ZipInputStream, ZipEntry, ZipOutputStream}
+import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 
-class FileWorkspace(file : File) extends Workspace
-{
+class FileWorkspace(file : File) extends Workspace {
+
   private val logger = Logger.getLogger(classOf[FileWorkspace].getName)
 
   file.mkdir()
 
-  private var projectList : List[Project] =
-  {
-    for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield
-    {
+  private var projectList : List[Project] = {
+    for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield {
       logger.info("Loading project: " + projectDir)
       new FileProject(projectDir)
     }
@@ -36,20 +37,74 @@ class FileWorkspace(file : File) extends Workspace
 
   override def projects : List[Project] = projectList
 
-  override def createProject(name : Identifier) =
-  {
+  override def createProject(name : Identifier) = {
     require(!projectList.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
-    val projectDir = (file + ("/" + name))
+    val projectDir = file + ("/" + name)
     projectDir.mkdir()
     val newProject = new FileProject(projectDir)
     projectList ::= newProject
     newProject
   }
 
-  override def removeProject(name : Identifier) =
-  {
+  override def removeProject(name : Identifier) = {
     (file + ("/" + name)).deleteRecursive()
     projectList = projectList.filterNot(_.name == name)
+  }
+
+  override def exportProject(name: Identifier, outputStream: OutputStream) {
+    // Open ZIP
+    val zip = new ZipOutputStream(outputStream)
+    val projectDir = file + ("/" + name)
+    require(projectDir.exists, s"Project $name does not exist.")
+
+    // Recursively lists all files in the given directory
+    def listFiles(file: File): List[File] = {
+      if(file.isFile) file :: Nil
+      else file.listFiles.toList.flatMap(listFiles)
+    }
+
+    // Go through all files and create a ZIP entry for each
+    for(file <- listFiles(projectDir)) {
+      val relativePath = projectDir.toPath.relativize(file.toPath).toString
+      zip.putNextEntry(new ZipEntry(relativePath))
+      val in = new BufferedInputStream(new FileInputStream(file))
+      var b = in.read()
+      while (b > -1) {
+        zip.write(b)
+        b = in.read()
+      }
+      in.close()
+      zip.closeEntry()
+    }
+
+    // Close ZIP
+    zip.close()
+  }
+
+  override def importProject(name: Identifier, inputStream: InputStream) {
+    // Open ZIP
+    val zip = new ZipInputStream(inputStream)
+    val projectDir = file + ("/" + name)
+    require(!projectDir.exists, s"Project $name already exists.")
+
+    // Read all ZIP entries
+    var entry = zip.getNextEntry
+    while(entry != null) {
+      val file = projectDir + ("/" + entry.getName)
+      file.getParentFile.mkdirs()
+      val out = new BufferedOutputStream(new FileOutputStream(file))
+      var b = zip.read()
+      while (b > -1) {
+        out.write(b)
+        b = zip.read()
+      }
+      out.close()
+      zip.closeEntry()
+      entry = zip.getNextEntry
+    }
+
+    // Close ZIP
+    zip.close()
   }
 }
