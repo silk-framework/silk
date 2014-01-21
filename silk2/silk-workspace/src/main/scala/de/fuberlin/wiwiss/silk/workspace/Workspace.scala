@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.workspace
 
 import de.fuberlin.wiwiss.silk.util.Identifier
-
+import java.io.{InputStream, OutputStream}
 
 trait Workspace {
   /**
@@ -32,7 +32,23 @@ trait Workspace {
     projects.find(_.name == name).getOrElse(throw new NoSuchElementException("Project '" + name + "' not found"))
   }
 
+  /**
+   * Creates a new project in this workspace.
+   */
   def createProject(name: Identifier): Project
 
+  /**
+   * Removes a project from this workspace.
+   */
   def removeProject(name: Identifier)
+
+  /**
+   * Exports a project to an output stream.
+   */
+  def exportProject(name: Identifier, outputStream: OutputStream)
+
+  /**
+   * Imports a project from an input stream.
+   */
+  def importProject(name: Identifier, inputStream: InputStream)
 }
