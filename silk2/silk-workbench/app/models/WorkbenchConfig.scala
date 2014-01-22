@@ -44,7 +44,7 @@ object WorkbenchConfig {
   /**
    * Loads a file from the conf directory.
    */
-  private def loadFile(file: String) = {
+  def loadFile(file: String) = {
     //Depending on the distribution method, the configuration directory may be located at different paths
     val paths = "conf/" + file :: "conf/_/" + file ::
       "../conf/" + file :: "../conf/_/" + file :: Nil

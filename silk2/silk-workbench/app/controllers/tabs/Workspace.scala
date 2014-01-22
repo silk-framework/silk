@@ -4,6 +4,8 @@ import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.util.PrefixRegistry
+import models.WorkbenchConfig
+import java.io.FileInputStream
 
 object Workspace extends Controller {
 
@@ -39,5 +41,14 @@ object Workspace extends Controller {
 
   def outputDialog(project: String, output: String) = Action {
     Ok(views.html.workspace.outputDialog(project, output))
+  }
+
+  def importExample(project: String) = Action {
+    val exampleFile = WorkbenchConfig.loadFile("example.zip")
+    val inputStream = new FileInputStream(exampleFile)
+    User().workspace.importProject(project, inputStream)
+    inputStream.close()
+
+    Ok
   }
 }
