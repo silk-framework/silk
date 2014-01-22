@@ -5,7 +5,8 @@
 <div id="tabbar">
   <div id="title">@config.title</div>
   <span>
-    <div class="tab @if(tab == "workspace") {selected}"><a href="/">Workspace</a></div>
+    <div class="tab @if(tab == "start") {selected}"><a href="/">Start</a></div>
+    <div class="tab @if(tab == "workspace") {selected}"><a href="/workspace">Workspace</a></div>
     @for(p <- project; t <- task) {
       @if(config.tabs.editor)         { <div class="tab @if(tab == "editor") {selected}"        ><a href="/@p/@t/editor">Editor</a></div> }
       @if(config.tabs.generateLinks)  { <div class="tab @if(tab == "generateLinks") {selected}" ><a href="/@p/@t/generateLinks">Generate Links</a></div> }
