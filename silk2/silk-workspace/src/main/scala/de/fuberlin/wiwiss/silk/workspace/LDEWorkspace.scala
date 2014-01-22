@@ -84,5 +84,7 @@ class LDEWorkspace (workspaceUri : URI) extends Workspace    {
 
   def importProject(name: Identifier, inputStream: InputStream) = ???
 
+  def reload() = ???
+
 }
 
