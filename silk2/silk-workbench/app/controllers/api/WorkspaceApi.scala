@@ -20,6 +20,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigImporter, ProjectImporter, ProjectExporter}
 import de.fuberlin.wiwiss.silk.config._
 import java.io.{FileInputStream, ByteArrayOutputStream}
+import models.WorkbenchConfig
 
 object WorkspaceApi extends Controller {
   
