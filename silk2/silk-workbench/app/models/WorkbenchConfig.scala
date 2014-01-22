@@ -11,9 +11,13 @@ import models.WorkbenchConfig.Tabs
  *
  * @param title The application title.
  * @param logo The application logo. Must point to a file in the conf directory.
+ * @param welcome Welcome message. Must point to a file in the conf directory.
  * @param tabs The shown tabs.
  */
-case class WorkbenchConfig(title: String = "Silk Workbench", logo: File = new File("logo.png"), tabs: Tabs = Tabs()) {
+case class WorkbenchConfig(title: String = "Silk Workbench",
+                           logo: File = new File("logo.png"),
+                           welcome: File = new File("welcome.html"),
+                           tabs: Tabs = Tabs()) {
 }
 
 object WorkbenchConfig {
@@ -25,7 +29,8 @@ object WorkbenchConfig {
 
     WorkbenchConfig(
       title = config.getString("workbench.title").getOrElse("Silk Workbench"),
-      logo = loadLogo(config.getString("workbench.logo").getOrElse("logo.png")),
+      logo = loadFile(config.getString("workbench.logo").getOrElse("logo.png")),
+      welcome = loadFile(config.getString("workbench.welcome").getOrElse("welcome.html")),
       tabs = Tabs(
                config.getBoolean("workbench.tabs.editor").getOrElse(true),
                config.getBoolean("workbench.tabs.generateLinks").getOrElse(true),
@@ -37,9 +42,9 @@ object WorkbenchConfig {
   }
 
   /**
-   * Loads the Workbench logo.
+   * Loads a file from the conf directory.
    */
-  private def loadLogo(file: String) = {
+  private def loadFile(file: String) = {
     //Depending on the distribution method, the configuration directory may be located at different paths
     val paths = "conf/" + file :: "conf/_/" + file ::
       "../conf/" + file :: "../conf/_/" + file :: Nil
@@ -49,7 +54,7 @@ object WorkbenchConfig {
     files.find(_.exists) match {
       case Some(f) => f
       case None =>
-        throw new FileNotFoundException("Logo file not found. Tried paths: " + files.map(_.getAbsolutePath).mkString(", "))
+        throw new FileNotFoundException(file + " not found. Tried paths: " + files.map(_.getAbsolutePath).mkString(", "))
     }
   }
 
