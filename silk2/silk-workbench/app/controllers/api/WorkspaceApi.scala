@@ -19,6 +19,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigImporter, ProjectImporter, ProjectExporter}
 import de.fuberlin.wiwiss.silk.config._
+import java.io.{FileInputStream, ByteArrayOutputStream}
 
 object WorkspaceApi extends Controller {
   
@@ -108,14 +109,22 @@ object WorkspaceApi extends Controller {
   def importProject(project: String) = Action { implicit request => {
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      ProjectImporter(User().workspace.createProject(project), scala.xml.XML.loadFile(file.ref.file))
+      // Read the project from the received file
+      val inputStream = new FileInputStream(file.ref.file)
+      User().workspace.importProject(project, inputStream)
+      inputStream.close()
     }
     Ok
   }}
 
   def exportProject(project: String) = Action {
-    val xml = ProjectExporter(User().workspace.project(project))
-    Ok(xml).withHeaders("Content-Disposition" -> "attachment")
+    // Export the project into a byte array
+    val outputStream = new ByteArrayOutputStream()
+    User().workspace.exportProject(project, outputStream)
+    val bytes = outputStream.toByteArray
+    outputStream.close()
+
+    Ok(bytes).as("application/zip").withHeaders("Content-Disposition" -> "attachment; filename=project.zip")
   }
 
   def importLinkSpec(projectName: String) = Action { implicit request => {

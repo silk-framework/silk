@@ -28,12 +28,7 @@ class FileWorkspace(file : File) extends Workspace {
 
   file.mkdir()
 
-  private var projectList : List[Project] = {
-    for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield {
-      logger.info("Loading project: " + projectDir)
-      new FileProject(projectDir)
-    }
-  }
+  private var projectList = loadProjects()
 
   override def projects : List[Project] = projectList
 
@@ -104,7 +99,19 @@ class FileWorkspace(file : File) extends Workspace {
       entry = zip.getNextEntry
     }
 
-    // Close ZIP
+    // Close ZIP and reload
     zip.close()
+    reload()
+  }
+
+  override def reload() {
+    projectList = loadProjects()
+  }
+
+  private def loadProjects(): List[Project] = {
+    for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield {
+      logger.info("Loading project: " + projectDir)
+      new FileProject(projectDir)
+    }
   }
 }

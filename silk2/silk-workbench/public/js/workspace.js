@@ -12,6 +12,8 @@
  * limitations under the License.
  */
 
+enableVoidSourceButton = false;
+
 var ws = {};
 ws.activeProjectId ="";
 ws.activeTaskId = "";
@@ -369,4 +371,86 @@ function callAction(action,proj,res){
         case 'removeOutput' : removeOutput(proj,res); break;
         default : alert("Error: Action \'"+action+"\' not defined!");
         }
+}
+
+function newProject() {
+  showDialog('workspace/dialogs/newproject');
+}
+
+function importProject() {
+  showDialog('workspace/dialogs/importproject');
+}
+
+function importLinkSpec(project) {
+  showDialog('workspace/dialogs/importlinkspec/' + project);
+}
+
+function exportProject(project) {
+  window.location = 'api/workspace/' + project + '/export'
+}
+
+function deleteProject(project) {
+  deleteTask('api/workspace/' + project);
+}
+
+function editPrefixes(project) {
+  showDialog('api/workspace/' + project + '/prefixes/dialog');
+}
+
+function editSource(project, source) {
+  showDialog('api/workspace/' + project + '/source/' + source + '/dialog');
+}
+
+function removeSource(project, source) {
+  deleteTask('/api/workspace/' + project + '/source/' + source);
+}
+
+function editLinkingTask(project, task) {
+  showDialog('api/workspace/' + project + '/linking/' + task + '/dialog');
+}
+
+function removeLinkingTask(project, task) {
+  deleteTask('api/workspace/' + project + '/linking/' + task);
+}
+
+function openLinkingTask(project, task) {
+  window.location = '/' + project + '/' + task + '/editor'
+}
+
+function editOutput(project, output) {
+  showDialog('api/workspace/' + project + '/output/' + output + '/dialog');
+}
+
+function removeOutput(project, output) {
+  deleteTask('api/workspace/' + project + '/output/' + output);
+}
+
+function putTask(path, xml) {
+  $.ajax({
+    type: 'PUT',
+    url: path,
+    contentType: 'text/xml',
+    processData: false,
+    data: xml,
+    success: function(data) {
+      $('.dialog').dialog('close');
+      updateWorkspace();
+    },
+    error: function(request) {
+      alert(request.responseText);
+    }
+  });
+}
+
+function deleteTask(path) {
+  $.ajax({
+    type: 'DELETE',
+    url: path,
+    success: function(data) {
+      updateWorkspace();
+    },
+    error: function(request) {
+      alert(request.responseText);
+    }
+  });
 }

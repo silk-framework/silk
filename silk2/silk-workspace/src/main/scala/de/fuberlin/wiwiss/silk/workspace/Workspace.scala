@@ -51,4 +51,9 @@ trait Workspace {
    * Imports a project from an input stream.
    */
   def importProject(name: Identifier, inputStream: InputStream)
+
+  /**
+   * Reloads the workspace.
+   */
+  def reload()
 }
