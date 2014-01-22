@@ -1,0 +1,16 @@
+@(welcome: Html)
+
+@header = {
+  <link rel="stylesheet" href="@routes.Assets.at("stylesheets/start.css")" type="text/css" />
+}
+
+@toolbar = {
+}
+
+@content = {
+  <div id="welcome">
+    @welcome
+  </div>
+}
+
+@main(None, None, "start")(header)(toolbar)(content)
