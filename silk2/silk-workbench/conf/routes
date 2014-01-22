@@ -14,6 +14,7 @@ GET           /api/:project/prefixes/dialog                                     
 GET           /api/workspace/:project/source/:source/dialog                                         controllers.tabs.Workspace.sourceDialog(project: String, source: String)
 GET           /api/workspace/:project/linking/:task/dialog                                          controllers.tabs.Workspace.linkingTaskDialog(project: String, task: String)
 GET           /api/workspace/:project/output/:output/dialog                                         controllers.tabs.Workspace.outputDialog(project: String, output: String)
+POST          /workspace/:project/importExample                                                     controllers.tabs.Workspace.importExample(project: String)
 
 # Editor
 GET           /:project/:task/editor                                                                controllers.tabs.Editor.editor(project: String, task: String)
