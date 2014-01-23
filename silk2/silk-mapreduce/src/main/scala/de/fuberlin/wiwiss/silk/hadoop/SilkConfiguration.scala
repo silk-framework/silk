@@ -20,6 +20,8 @@ import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.datasource.{EmptyResourceLoader, FileResourceLoader}
+import java.io.File
 
 object SilkConfiguration {
   val InputParam = "silk.inputpath"
@@ -47,7 +49,8 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
   lazy val config = {
     Plugins.register()
     JenaPlugins.register()
-    LinkingConfig.load(cacheFS.open(entityCachePath.suffix("/config.xml")))
+    val resourceLoader = new EmptyResourceLoader()
+    LinkingConfig.load(resourceLoader)(cacheFS.open(entityCachePath.suffix("/config.xml")))
   }
 
   lazy val linkSpec = {

@@ -15,10 +15,10 @@
 package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.cache.MemoryEntityCache
 import de.fuberlin.wiwiss.silk.execution.{MatchTask, LoadTask}
 
@@ -26,9 +26,9 @@ import de.fuberlin.wiwiss.silk.execution.{MatchTask, LoadTask}
  * Holds the dataset of a link specification.
  */
 class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean,
-              matchOnlyInProvidedGraph: Boolean)
-                {
-  private val sources = linkSpec.datasets.map(_.sourceId).map(config.source(_))
+              matchOnlyInProvidedGraph: Boolean) {
+
+  private val sources = linkSpec.datasets.map(_.sourceId).map(config.source)
 
   private val entityDescs = linkSpec.entityDescriptions
 
@@ -40,7 +40,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
   /**
    * Matches a set of entities with all entities in this dataset.
    */
-  def apply(source: DataSource): MatchResult = {
+  def apply(source: Source): MatchResult = {
     val matchResult = generateLinks(source)
 
     MatchResult(
@@ -53,10 +53,8 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
   /**
    * Generates all links where the provided entities are the link source.
    */
-  private def generateLinks(source: DataSource) = {
+  private def generateLinks(source: Source) = {
     val entityCache = new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_))
-
-
 
     val targetInstanceCache = if (matchOnlyInProvidedGraph){
       new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_))

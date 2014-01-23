@@ -23,6 +23,7 @@ import plugins.jena.JenaPlugins
 import util.StringUtils._
 import util.CollectLogs
 import java.util.logging.{Level, Logger}
+import de.fuberlin.wiwiss.silk.datasource.FileResourceLoader
 
 /**
  * Executes the complete Silk workflow.
@@ -52,10 +53,9 @@ object Silk {
    */
   def execute() {
     System.getProperty("logQueries") match {
-      case BooleanLiteral(b) if b => {
+      case BooleanLiteral(b) if b =>
         Logger.getLogger("de.fuberlin.wiwiss.silk.util.sparql").setLevel(Level.FINE)
         Logger.getLogger("").getHandlers.foreach(_.setLevel(Level.FINE))
-      }
       case _ =>
     }
 
@@ -90,7 +90,8 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    executeConfig(LinkingConfig.load(configFile), linkSpecID, numThreads, reload)
+    val resourceLoader = new FileResourceLoader(configFile.getParentFile)
+    executeConfig(LinkingConfig.load(resourceLoader)(configFile), linkSpecID, numThreads, reload)
   }
 
   /**

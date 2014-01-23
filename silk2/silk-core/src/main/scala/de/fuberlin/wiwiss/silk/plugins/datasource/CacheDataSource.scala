@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.datasource
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
 case class CacheDataSource(dir: String) extends DataSource {
   private val file = new File(dir)
 
-  def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty, resourceLoader: ResourceLoader): Traversable[Entity] = {
     val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
 
     entityCache.readAll

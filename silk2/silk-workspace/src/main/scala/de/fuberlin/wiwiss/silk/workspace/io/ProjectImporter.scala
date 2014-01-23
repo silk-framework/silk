@@ -44,7 +44,7 @@ object ProjectImporter
   }
 
   private def readSourceTask(xml : Node) = {
-    SourceTask(Source.fromXML(xml \ "_" head))
+    SourceTask(Source.fromXML(xml \ "_" head, null))
   }
 
   private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) = {

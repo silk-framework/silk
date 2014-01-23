@@ -20,7 +20,7 @@ import modules.output.{MemoryOutputModule, OutputConfig, OutputTask, OutputModul
 import java.util.logging.Logger
 import xml.XML
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.datasource.{Source, DataSource}
+import de.fuberlin.wiwiss.silk.datasource.{EmptyResourceLoader, ResourceLoader, Source, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workspace.util._
 import de.fuberlin.wiwiss.silk.config.Prefixes
@@ -32,6 +32,8 @@ import collection.mutable.SynchronizedQueue
 class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sparulEndpoint : RemoteSparulEndpoint) extends Project
 {
   private val logger = Logger.getLogger(classOf[LDEProject].getName)
+
+  private val resourceLoader = new EmptyResourceLoader
 
    // The name of this project
   override val name = new Identifier(projectName)
@@ -106,7 +108,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
                         "datasourceUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
                         "excludedDatasourceUri" -> targetDatasourceUri,
                         "id" -> "Wiki")
-      datasources ::= SourceTask(Source("TARGET",DataSource("LDEsparqlEndpoint",params)))
+      datasources ::= SourceTask(Source("TARGET",DataSource("LDEsparqlEndpoint",params), resourceLoader))
 
       datasources
     }
@@ -141,12 +143,12 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
            val params = Map( "endpointURI" -> endpointUri,
                              "id" -> id,
                             "datasourceUri" -> dataSourceUri)
-           SourceTask(Source("SOURCE",DataSource("LDEsparqlEndpoint",params)))
+           SourceTask(Source("SOURCE", DataSource("LDEsparqlEndpoint",params), resourceLoader))
         }
         else {
            // Datasource definition not found
            // TODO - throw Exception 'Error in retrieving the datasource' ?
-           SourceTask(Source("DataSource_Not_Found",DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
+           SourceTask(Source("DataSource_Not_Found", DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> "")), resourceLoader))
         }
     }
   }

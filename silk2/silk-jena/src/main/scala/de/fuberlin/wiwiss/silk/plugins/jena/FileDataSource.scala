@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.jena
 
 import org.apache.jena.riot.{RDFLanguages, RDFDataMgr}
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector}
@@ -45,26 +45,31 @@ case class FileDataSource(file: String, format: String, graph: String = "") exte
   require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
 
   // Load dataset
-  private lazy val endpoint = load()
+  private var endpoint: JenaSparqlEndpoint = null
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String], resourceLoader: ResourceLoader) = {
+    load()
     EntityRetriever(endpoint).retrieve(entityDesc, entities)
   }
 
-  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
+    load()
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
 
   /**
    * Loads the dataset and creates an endpoint.
+   * Does nothing if the data set has already been loaded.
    */
-  private def load() = {
-    val dataset = RDFDataMgr.loadDataset(filePath, lang)
+  private def load() = synchronized {
+    if(endpoint == null) {
+      val dataset = RDFDataMgr.loadDataset(filePath, lang)
 
-    val model =
-      if(!graph.trim.isEmpty) dataset.getNamedModel(graph)
-      else dataset.getDefaultModel
+      val model =
+        if(!graph.trim.isEmpty) dataset.getNamedModel(graph)
+        else dataset.getDefaultModel
 
-    new JenaSparqlEndpoint(model)
+      endpoint = new JenaSparqlEndpoint(model)
+    }
   }
 }

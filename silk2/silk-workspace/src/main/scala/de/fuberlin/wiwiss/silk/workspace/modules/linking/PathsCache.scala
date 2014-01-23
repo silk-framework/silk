@@ -22,12 +22,13 @@ class PathsCache() extends Cache[DPair[EntityDescription]](null) {
 
     //Check if the restriction has been changed
     val update =
-      (value == null ||
-       currentEntityDescs.source.restrictions != value.source.restrictions &&
-       currentEntityDescs.target.restrictions != value.target.restrictions)
+      value == null ||
+      currentEntityDescs.source.restrictions != value.source.restrictions &&
+      currentEntityDescs.target.restrictions != value.target.restrictions
 
     if (value == null || update) {
-      val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
+      // Retrieve the data sources
+      val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
 
       //Retrieve most frequent paths
       val paths = for ((source, dataset) <- sources zip task.linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
