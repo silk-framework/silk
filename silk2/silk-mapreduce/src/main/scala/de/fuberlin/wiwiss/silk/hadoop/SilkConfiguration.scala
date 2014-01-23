@@ -17,11 +17,9 @@ package de.fuberlin.wiwiss.silk.hadoop
 import impl.HadoopEntityCache
 import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
-import de.fuberlin.wiwiss.silk.datasource.{EmptyResourceLoader, FileResourceLoader}
-import java.io.File
+import de.fuberlin.wiwiss.silk.datasource.EmptyResourceLoader
 
 object SilkConfiguration {
   val InputParam = "silk.inputpath"

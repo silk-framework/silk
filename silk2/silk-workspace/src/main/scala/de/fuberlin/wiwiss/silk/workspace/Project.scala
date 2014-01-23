@@ -18,6 +18,7 @@ import modules.linking.LinkingModule
 import modules.output.OutputModule
 import modules.source.SourceModule
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.datasource.ResourceLoader
 
 trait Project {
   /**
@@ -49,4 +50,9 @@ trait Project {
    * The output module which encapsulates all outputs.
    */
   def outputModule : OutputModule
+
+  /**
+   * For loading resources.
+   */
+  def resourceLoader: ResourceLoader
 }
