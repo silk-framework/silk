@@ -86,7 +86,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTrans
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
-
+import de.fuberlin.wiwiss.silk.plugins.distance.spatial.SpatialDistanceMetric
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.
  */
@@ -173,7 +173,9 @@ object Plugins {
     DistanceMeasure.register(classOf[KoreanPhonemeDistance])
     DistanceMeasure.register(classOf[KoreanTranslitDistance])
     DistanceMeasure.register(classOf[CJKReadingDistance])
+    DistanceMeasure.register(classOf[SpatialDistanceMetric])
 
+    
     Aggregator.register(classOf[AverageAggregator])
     Aggregator.register(classOf[MaximumAggregator])
     Aggregator.register(classOf[MinimumAggregator])
