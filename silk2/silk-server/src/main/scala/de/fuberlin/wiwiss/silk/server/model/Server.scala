@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.server.model
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{FileResourceLoader, DataSource, Source}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
@@ -57,12 +57,12 @@ object Server {
    * Processes a source of new entities.
    * Returns the matching results as N-Triples.
    */
-  def process(source : DataSource) : String = {
+  def process(source : Source) : String = {
     require(server != null, "Server must be initialized")
     server.process(source)
   }
 
-  def processAndReturnLinks(instanceSource : DataSource) : Traversable[MatchResult] =
+  def processAndReturnLinks(instanceSource : Source) : Traversable[MatchResult] =
   {
     require(server != null, "Server must be initialized")
     server.processAndReturnLinks(instanceSource)
@@ -86,9 +86,10 @@ private class Server {
    * Each link specification in the configuration is represented by one dataset.
    */
   val datasets : Traversable[Dataset] = {
+    val resourceLoader = new FileResourceLoader(serverConfig.configDir)
     //Iterate through all configuration files and create a dataset for each link spec
     for( file <- serverConfig.configDir.listFiles if file.getName.endsWith("xml");
-         config = LinkingConfig.load(file);
+         config = LinkingConfig.load(resourceLoader)(file);
          linkSpec <- config.linkSpecs) yield {
       new Dataset(name = file.getName.takeWhile(_ != '.'),
                   config = config,
@@ -104,7 +105,7 @@ private class Server {
 
   private val unknownEntitiyUri = silkUriPrefix + "UnknownEntity"
 
-  def processAndReturnLinks(source : DataSource) : Traversable[MatchResult] =
+  def processAndReturnLinks(source : Source) : Traversable[MatchResult] =
   {
     Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
     val results = datasets.map(m => m(source))
@@ -112,7 +113,7 @@ private class Server {
     results
  }
 
-  def process(source : DataSource) : String =
+  def process(source : Source) : String =
   {
     //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
     val matchResults = datasets.map(m => m(source))

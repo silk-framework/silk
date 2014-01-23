@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescriptio
 /**
  * A source of entities.
  */
-case class Source(id: Identifier, dataSource: DataSource) {
+case class Source(id: Identifier, dataSource: DataSource, resourceLoader: ResourceLoader) {
   /**
    * Retrieves entities from this source which satisfy a specific entity description.
    *
@@ -31,7 +31,7 @@ case class Source(id: Identifier, dataSource: DataSource) {
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty) = {
-    dataSource.retrieve(entityDesc, entities)
+    dataSource.retrieve(entityDesc, entities, resourceLoader)
   }
 
   /**
@@ -46,7 +46,7 @@ case class Source(id: Identifier, dataSource: DataSource) {
    * @return A Traversable of the found paths and their frequency.
    */
   def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None) = {
-    dataSource.retrievePaths(restriction, depth, limit)
+    dataSource.retrievePaths(restriction, depth, limit, resourceLoader)
   }
 
   /**
@@ -58,7 +58,7 @@ case class Source(id: Identifier, dataSource: DataSource) {
    *
    */
   def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    dataSource.retrieveTypes(limit)
+    dataSource.retrieveTypes(limit, resourceLoader)
   }
 
   def toXML: Node = dataSource match {
@@ -75,12 +75,16 @@ case class Source(id: Identifier, dataSource: DataSource) {
 object Source {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
-  def load = {
-    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
+  def load(resourceLoader: ResourceLoader) = {
+    new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
   }
 
-  def fromXML(node: Node): Source = {
-    new Source(node \ "@id" text, DataSource(node \ "@type" text, readParams(node)))
+  def fromXML(node: Node, resourceLoader: ResourceLoader): Source = {
+    new Source(
+      id = node \ "@id" text,
+      dataSource = DataSource(node \ "@type" text, readParams(node)),
+      resourceLoader = resourceLoader
+    )
   }
 
   private def readParams(element: Node): Map[String, String] = {

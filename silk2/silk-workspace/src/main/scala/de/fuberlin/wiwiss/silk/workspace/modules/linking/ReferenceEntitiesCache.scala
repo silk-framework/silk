@@ -4,8 +4,8 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.datasource.DataSource
 import xml.{NodeSeq, NodeBuffer, Node}
+import de.fuberlin.wiwiss.silk.datasource.Source
 
 class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[ReferenceEntities](ReferenceEntities.empty) {
 
@@ -94,7 +94,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[ReferenceEnti
 
   private class EntityLoader(project: Project, task: LinkingTask, entityDescs: DPair[EntityDescription]) {
 
-    private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
+    private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
 
     def load() {
       updateStatus("Loading entities", 0.0)
@@ -159,7 +159,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[ReferenceEnti
      * Updates an entity so that it conforms to a new entity description.
      * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource) = {
+    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: Source) = {
       if (entity.desc.paths == entityDesc.paths) {
         //The given entity already contains all paths in the correct order.
         entity
