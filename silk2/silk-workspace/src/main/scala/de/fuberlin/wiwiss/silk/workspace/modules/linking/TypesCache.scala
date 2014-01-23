@@ -12,7 +12,7 @@ class TypesCache() extends Cache[DPair[Set[String]]](DPair.fill(Set[String]())) 
   /** Load the cache value. */
   override protected def update(project: Project, task: LinkingTask) {
     if(value.isEmpty) {
-      val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source.dataSource)
+      val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
       val types = for (source <- sources) yield source.retrieveTypes().map(_._1).toSet
       value = types
     }

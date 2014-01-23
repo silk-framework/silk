@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import java.io.{ByteArrayInputStream, StringReader}
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
@@ -39,11 +39,11 @@ case class RdfDataSource(input: String, format: String) extends DataSource {
 
   private lazy val endpoint = new JenaSparqlEndpoint(model)
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String], resourceLoader: ResourceLoader): Traversable[Entity] = {
     EntityRetriever(endpoint).retrieve(entityDesc, entities)
   }
 
-  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
 }

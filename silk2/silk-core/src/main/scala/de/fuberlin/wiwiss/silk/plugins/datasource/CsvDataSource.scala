@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.datasource
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
 import de.fuberlin.wiwiss.silk.entity._
 import io.Source
 import java.io.File
@@ -14,13 +14,13 @@ case class CsvDataSource(url: String, properties: String, separator: Char = ',',
 
   private val propertyList: Seq[String] = properties.split(separator)
 
-  override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
     for(property <- propertyList) yield {
       (Path.parse("?" + restriction.variable + "/<" + prefix + property + ">"), 1.0)
     }
   }
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty, resourceLoader: ResourceLoader): Traversable[Entity] = {
     // Retrieve the indices of the request paths
     val indices =
       for(path <- entityDesc.paths) yield {

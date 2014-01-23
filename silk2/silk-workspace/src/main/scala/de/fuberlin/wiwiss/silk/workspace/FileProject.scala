@@ -20,7 +20,7 @@ import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.datasource.{FileResourceLoader, Source}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -33,11 +33,12 @@ import de.fuberlin.wiwiss.silk.output.Output
  * Implementation of a project which is stored on the local file system.
  */
 class FileProject(file : File) extends Project {
+
   private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
-  private var cachedConfig : Option[ProjectConfig] = None
+  private val resourceLoader = new FileResourceLoader(file)
 
-  private var changed = false
+  private var cachedConfig : Option[ProjectConfig] = None
 
   /**
    * The name of this project
@@ -101,7 +102,7 @@ class FileProject(file : File) extends Project {
     @volatile
     private var cachedTasks : Map[Identifier, SourceTask] = {
       for(fileName <- file.list.toList) yield {
-        SourceTask(Source.load(file + ("/" + fileName)))
+        SourceTask(Source.load(resourceLoader)(file + ("/" + fileName)))
       }
     }.map(task => (task.name, task)).toMap
 
@@ -179,10 +180,9 @@ class FileProject(file : File) extends Project {
           try {
             cache.loadFromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
           } catch {
-            case ex : Exception => {
+            case ex : Exception =>
               logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
               new Caches()
-            }
           }
 
           LinkingTask(FileProject.this, linkSpec, referenceLinks, cache)

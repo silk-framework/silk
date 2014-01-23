@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
 import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import org.apache.jena.riot.RDFDataMgr
@@ -24,7 +24,7 @@ import com.hp.hpl.jena.query.DatasetFactory
 
 @Plugin(id = "linkedData", label = "Linked Data", description = "TODO")
 case class LinkedDataSource() extends DataSource {
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String], resourceLoader: ResourceLoader): Traversable[Entity] = {
     require(!entities.isEmpty, "Retrieving all entities not supported")
 
     val model = ModelFactory.createDefaultModel
