@@ -29,7 +29,7 @@ import com.hp.hpl.jena.query.{DatasetFactory, QueryExecutionFactory}
   description =
     """ DataSource which retrieves all entities from an RDF file.
       | Parameters:
-      |  file: File name inside {user.dir}/.silk/datasets/ or absolute path.
+      |  file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
       |  format: Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle"
       |  graph: The graph name to be read. If not provided, the default graph will be used.
       |         Must be provided if the format is N-Quads.
