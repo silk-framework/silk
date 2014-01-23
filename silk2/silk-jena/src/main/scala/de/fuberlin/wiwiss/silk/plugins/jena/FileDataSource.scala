@@ -19,9 +19,9 @@ import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
 import de.fuberlin.wiwiss.silk.util.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector}
-import java.io.{OutputStreamWriter, File}
+import java.io.{FileInputStream, OutputStreamWriter, File}
 import org.apache.log4j.{Logger, PatternLayout, ConsoleAppender}
-import com.hp.hpl.jena.query.QueryExecutionFactory
+import com.hp.hpl.jena.query.{DatasetFactory, QueryExecutionFactory}
 
 @Plugin(
   id = "file",
@@ -37,9 +37,6 @@ import com.hp.hpl.jena.query.QueryExecutionFactory
 )
 case class FileDataSource(file: String, format: String, graph: String = "") extends DataSource {
 
-  // Locate the file
-  private val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.home") + "/.silk/datasets/" + file
-
   // Try to parse the format
   private val lang = RDFLanguages.nameToLang(format)
   require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
@@ -48,12 +45,12 @@ case class FileDataSource(file: String, format: String, graph: String = "") exte
   private var endpoint: JenaSparqlEndpoint = null
 
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String], resourceLoader: ResourceLoader) = {
-    load()
+    load(resourceLoader)
     EntityRetriever(endpoint).retrieve(entityDesc, entities)
   }
 
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
-    load()
+    load(resourceLoader)
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
 
@@ -61,10 +58,24 @@ case class FileDataSource(file: String, format: String, graph: String = "") exte
    * Loads the dataset and creates an endpoint.
    * Does nothing if the data set has already been loaded.
    */
-  private def load() = synchronized {
+  private def load(resourceLoader: ResourceLoader) = synchronized {
     if(endpoint == null) {
-      val dataset = RDFDataMgr.loadDataset(filePath, lang)
+      // We still need to support the old method of putting files in a dataset directory in the user home
+      val oldFileLocation =
+        if(new File(file).isAbsolute) new File(file)
+        else new File(System.getProperty("user.home") + "/.silk/datasets/" + file)
 
+      val inputStream = {
+        if(oldFileLocation.exists()) new FileInputStream(oldFileLocation)
+        else resourceLoader.load(file)
+      }
+
+      // Load data set
+      val dataset = DatasetFactory.createMem()
+      RDFDataMgr.read(dataset, inputStream, lang)
+      inputStream.close()
+
+      // Retrieve model
       val model =
         if(!graph.trim.isEmpty) dataset.getNamedModel(graph)
         else dataset.getDefaultModel

@@ -3,11 +3,10 @@ package controllers.api
 import play.api.mvc.Action
 import play.api.libs.json.{JsString, JsObject, JsArray, JsValue}
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{FileResourceLoader, EmptyResourceLoader, DataSource, Source}
 import de.fuberlin.wiwiss.silk.output.LinkWriter
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.execution.OutputTask
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
@@ -133,7 +132,7 @@ object WorkspaceApi extends Controller {
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      val config = LinkingConfig.fromXML(scala.xml.XML.loadFile(file.ref.file))
+      val config = LinkingConfig.fromXML(scala.xml.XML.loadFile(file.ref.file), new EmptyResourceLoader())
       SilkConfigImporter(config, project)
     }
     Ok
@@ -155,17 +154,17 @@ object WorkspaceApi extends Controller {
     Ok(sourceXml)
   }
 
-  def putSource(project: String, source: String) = Action { implicit request => {
+  def putSource(projectName: String, sourceName: String) = Action { implicit request => {
+    val project = User().workspace.project(projectName)
     request.body.asXml match {
-      case Some(xml) => {
+      case Some(xml) =>
         try {
-          val sourceTask = SourceTask(Source.fromXML(xml.head))
-          User().workspace.project(project).sourceModule.update(sourceTask)
+          val sourceTask = SourceTask(Source.fromXML(xml.head, project.resourceLoader))
+          project.sourceModule.update(sourceTask)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
         }
-      }
       case None => BadRequest("Expecting text/xml request body")
     }
   }}

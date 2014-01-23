@@ -33,7 +33,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 {
   private val logger = Logger.getLogger(classOf[LDEProject].getName)
 
-  private val resourceLoader = new EmptyResourceLoader
+  override val resourceLoader = new EmptyResourceLoader
 
    // The name of this project
   override val name = new Identifier(projectName)
