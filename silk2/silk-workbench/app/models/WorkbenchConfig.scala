@@ -48,8 +48,7 @@ object WorkbenchConfig {
    */
   def loadFile(file: String) = {
     //Depending on the distribution method, the configuration directory may be located at different paths
-    val paths = "conf/" + file :: "conf/_/" + file ::
-      "../conf/" + file :: "../conf/_/" + file :: Nil
+    val paths = "conf/" + file :: "../conf/" + file :: Nil
 
     //Trying all paths and using the first one that works
     val files = paths.map(Play.getFile)
