@@ -36,7 +36,7 @@ class FileProject(file : File) extends Project {
 
   private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
-  private val resourceLoader = new FileResourceLoader(file)
+  override val resourceLoader = new FileResourceLoader(file + "/resources")
 
   private var cachedConfig : Option[ProjectConfig] = None
 
@@ -101,7 +101,8 @@ class FileProject(file : File) extends Project {
 
     @volatile
     private var cachedTasks : Map[Identifier, SourceTask] = {
-      for(fileName <- file.list.toList) yield {
+      val sourceFiles = file.list.toList.filter(_.endsWith(".xml"))
+      for(fileName <- sourceFiles) yield {
         SourceTask(Source.load(resourceLoader)(file + ("/" + fileName)))
       }
     }.map(task => (task.name, task)).toMap

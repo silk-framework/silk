@@ -32,9 +32,9 @@ class XMLProject(linkSpec : Node) extends Project
 {
   private val logger = Logger.getLogger(classOf[XMLProject].getName)
 
-  private val resourceLoader = new EmptyResourceLoader
-
   private var doc = linkSpec
+
+  override val resourceLoader = new EmptyResourceLoader
 
   def getLinkSpec = doc
 
