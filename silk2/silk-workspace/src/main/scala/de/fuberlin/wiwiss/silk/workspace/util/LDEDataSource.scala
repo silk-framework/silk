@@ -15,14 +15,13 @@
 package de.fuberlin.wiwiss.silk.workspace.util
 
 import de.fuberlin.wiwiss.silk.plugins.datasource.SparqlDataSource
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path}
-import de.fuberlin.wiwiss.silk.datasource.ResourceLoader
 
 @Plugin(id = "LDEsparqlEndpoint", label = "LDE SPARQL Endpoint", description = "DataSource in the LDE context")
 class LDEDataSource(endpointURI : String) extends SparqlDataSource(endpointURI){
 
-  override def retrievePaths(restrictions : SparqlRestriction, depth : Int, limit : Option[Int], resourceLoader: ResourceLoader) : Traversable[(Path, Double)] =
+  override def retrievePaths(restrictions : SparqlRestriction, depth : Int, limit : Option[Int]) : Traversable[(Path, Double)] =
   {
     LDEPathsCollector(createEndpoint(), restrictions, limit)
   }

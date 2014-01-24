@@ -19,6 +19,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A TransformInput applies a transformation to input values.
@@ -47,13 +48,14 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
 }
 
 object TransformInput {
-  def fromXML(node: Node)(implicit prefixes: Prefixes) = {
+
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     val id = Operator.readId(node)
-    val inputs = Input.fromXML(node.child)
+    val inputs = Input.fromXML(node.child, resourceLoader)
     if(inputs.isEmpty) throw new ValidationException("No input defined", id, "Transformation")
 
     try {
-      val transformer = Transformer(node \ "@function" text, Operator.readParams(node))
+      val transformer = Transformer(node \ "@function" text, Operator.readParams(node), resourceLoader)
       TransformInput(id, transformer, inputs)
     } catch {
       case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")

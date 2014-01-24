@@ -19,6 +19,7 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * An aggregation combines multiple similarity values into a single value.
@@ -98,17 +99,18 @@ case class Aggregation(id: Identifier = Operator.generateId,
 }
 
 object Aggregation {
-  def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Aggregation = {
-    val requiredStr = node \ "@required" text
-    val weightStr = node \ "@weight" text
 
-    val aggregator = Aggregator(node \ "@type" text, Operator.readParams(node))
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Aggregation = {
+    val requiredStr = (node \ "@required").text
+    val weightStr = (node \ "@weight").text
+
+    val aggregator = Aggregator(node \ "@type" text, Operator.readParams(node), resourceLoader)
 
     Aggregation(
       id = Operator.readId(node),
       required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
       weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-      operators = SimilarityOperator.fromXML(node.child),
+      operators = SimilarityOperator.fromXML(node.child, resourceLoader),
       aggregator = aggregator
     )
   }

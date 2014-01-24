@@ -24,8 +24,8 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import de.fuberlin.wiwiss.silk.execution.LoadTask
-import de.fuberlin.wiwiss.silk.datasource.FileResourceLoader
 import java.io.File
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 /**
  * Populates the entity cache.

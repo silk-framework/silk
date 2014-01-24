@@ -14,9 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.datasource
 
-import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
+import de.fuberlin.wiwiss.silk.datasource.{DataSource}
 import java.net.URI
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.sparql._
@@ -59,7 +59,7 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
 
   private val logger = Logger.getLogger(SparqlDataSource.getClass.getName)
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String], resourceLoader: ResourceLoader) = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
     val entityRetriever =
       if(parallel)
         new ParallelEntityRetriever(createEndpoint(), pageSize, graphUri)
@@ -69,7 +69,7 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
     entityRetriever.retrieve(entityDesc, entityUris union entities)
   }
 
-  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
+  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     //Create an endpoint which fails after 3 retries
     val failFastEndpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, 3, 1000, queryParameters)
 
@@ -84,7 +84,7 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
     }
   }
 
-  override def retrieveTypes(limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     SparqlTypesCollector(createEndpoint(), limit)
   }
 

@@ -22,11 +22,12 @@ import java.lang.reflect.{InvocationTargetException, Constructor}
  * Describes a plugin.
  */
 class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+
   /**
    * Creates a new instance of this plugin.
    */
-  def apply(parameterValues: Map[String, String]): T = {
-    val parsedParameters = parseParameters(parameterValues)
+  def apply(parameterValues: Map[String, String], resourceLoader: ResourceLoader): T = {
+    val parsedParameters = parseParameters(parameterValues, resourceLoader)
 
     try {
       val obj = constructor.newInstance(parsedParameters: _*)
@@ -40,10 +41,10 @@ class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[Str
     }
   }
 
-  private def parseParameters(parameterValues: Map[String, String]): Seq[AnyRef] = {
+  private def parseParameters(parameterValues: Map[String, String], resourceLoader: ResourceLoader): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.get(parameter.name) match {
-        case Some(v) => {
+        case Some(v) =>
           try {
             parameter.dataType match {
               case Parameter.Type.String => v
@@ -51,18 +52,16 @@ class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[Str
               case Parameter.Type.Int => Int.box(v.toInt)
               case Parameter.Type.Double => Double.box(v.toDouble)
               case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
+              case Parameter.Type.Resource => resourceLoader.get(v)
             }
           }
           catch {
             case ex: NumberFormatException => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be of type " + parameter.dataType, ex)
           }
-        }
-        case None if parameter.defaultValue.isDefined => {
+        case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
-        }
-        case None => {
+        case None =>
           throw new ValidationException("Parameter '" + parameter.name + "' is required for " + label)
-        }
       }
     }
   }
@@ -133,6 +132,7 @@ object PluginDescription {
         case "int" => Parameter.Type.Int
         case "double" => Parameter.Type.Double
         case "boolean" => Parameter.Type.Boolean
+        case "de.fuberlin.wiwiss.silk.util.plugin.Resource" => Parameter.Type.Resource
         case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
       }
 

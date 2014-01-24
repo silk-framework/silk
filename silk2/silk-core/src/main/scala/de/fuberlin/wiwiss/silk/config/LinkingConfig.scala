@@ -15,9 +15,10 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, Source}
+import de.fuberlin.wiwiss.silk.datasource.{Source}
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A Silk linking configuration.
@@ -95,10 +96,10 @@ object LinkingConfig {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)
       case None => Blocking()
     }
-    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p))
+    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, resourceLoader))
 
     implicit val globalThreshold = None
-    val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
+    val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
 
     LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs)
   }

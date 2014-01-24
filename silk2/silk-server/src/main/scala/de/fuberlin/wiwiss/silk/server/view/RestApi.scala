@@ -18,7 +18,8 @@ import net.liftweb.http._
 import net.liftweb.common.{Empty, Full}
 import de.fuberlin.wiwiss.silk.plugins.jena.RdfDataSource
 import de.fuberlin.wiwiss.silk.server.model.Server
-import de.fuberlin.wiwiss.silk.datasource.{EmptyResourceLoader, Source}
+import de.fuberlin.wiwiss.silk.datasource.{Source}
+import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
 
 object RestApi {
   def dispatch : LiftRules.DispatchPF = {
@@ -29,7 +30,7 @@ object RestApi {
   private def generateLinks(req : Req) = {
     val input = new String(getLoad(req), "UTF-8")
     val format = req.param("format").getOrElse("RDF/XML")
-    val source = new Source("Input", new RdfDataSource(input, format), new EmptyResourceLoader())
+    val source = new Source("Input", new RdfDataSource(input, format))
 
     val response = Server.process(source)
 

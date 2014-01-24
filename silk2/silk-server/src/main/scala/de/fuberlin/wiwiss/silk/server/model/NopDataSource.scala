@@ -15,8 +15,8 @@
 
 package de.fuberlin.wiwiss.silk.server.model
 
-import de.fuberlin.wiwiss.silk.datasource.{ResourceLoader, DataSource}
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.datasource.{DataSource}
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, Entity, EntityDescription}
 
 /**
@@ -42,11 +42,11 @@ import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, Entity, EntityDe
 @Plugin(id = "nop", label = "inactive datasource", description = "DataSource which doesn't retrieve any entities at all")
 class NopDataSource extends DataSource {
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String], resourceLoader: ResourceLoader) = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
     Traversable.empty[Entity]
   }
 
-  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int], resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
+  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     Traversable.empty[(Path, Double)]
   }
 

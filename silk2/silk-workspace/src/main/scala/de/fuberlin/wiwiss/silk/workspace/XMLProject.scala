@@ -17,13 +17,14 @@ package de.fuberlin.wiwiss.silk.workspace
 import modules.linking.{LinkingTask, LinkingConfig, LinkingModule}
 import modules.output.MemoryOutputModule
 import modules.source.{SourceConfig, SourceTask, SourceModule}
-import de.fuberlin.wiwiss.silk.datasource.{EmptyResourceLoader, ResourceLoader, Source}
+import de.fuberlin.wiwiss.silk.datasource.{Source}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Node, Elem}
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
 
 /**
  * Implementation of a project which maps an XML Silk Link Specification document.
@@ -127,7 +128,7 @@ class XMLProject(linkSpec : Node) extends Project
       implicit val prefixes = XMLProject.this.config.prefixes
 
      for(lt <- doc \ "Interlinks" \ "Interlink" ) yield {
-        val linkT = LinkSpecification.fromXML(lt)
+        val linkT = LinkSpecification.fromXML(lt, resourceLoader)
         val linkingTask = LinkingTask(XMLProject.this, linkT)
         linkingTask
       }

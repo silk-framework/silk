@@ -22,6 +22,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * Represents a Silk Link Specification.
@@ -95,14 +96,14 @@ object LinkSpecification {
 
   private val logger = Logger.getLogger(LinkSpecification.getClass.getName)
 
-  def load(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
+  def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
+    new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
   }
 
   /**
    * Reads a Link Specification from XML.
    */
-  def fromXML(node: Node)(implicit prefixes: Prefixes): LinkSpecification = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): LinkSpecification = {
     //Read id
     val id = (node \ "@id").text
 
@@ -122,9 +123,9 @@ object LinkSpecification {
       resolveQualifiedName("LinkType", (node \ "LinkType").text.trim, prefixes),
       new DPair(Dataset.fromXML(node \ "SourceDataset" head),
       Dataset.fromXML(node \ "TargetDataset" head)),
-      LinkageRule.fromXML(linkageRuleNode.getOrElse(linkConditionNode.get)),
+      LinkageRule.fromXML(linkageRuleNode.getOrElse(linkConditionNode.get), resourceLoader),
       filter,
-      (node \ "Outputs" \ "Output").map(Output.fromXML)
+      (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
     )
   }
 
