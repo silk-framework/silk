@@ -23,7 +23,7 @@ import plugins.jena.JenaPlugins
 import util.StringUtils._
 import util.CollectLogs
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.datasource.FileResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 /**
  * Executes the complete Silk workflow.

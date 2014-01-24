@@ -27,7 +27,7 @@ import methods.MultiBlock
 import methods.SortedBlocks
 import java.util.Locale
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
-import de.fuberlin.wiwiss.silk.datasource.ClasspathResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.ClasspathResourceLoader
 
 /**
  * This test evaluates the GenerateLinksTask with different execution methods.
@@ -79,11 +79,12 @@ object GenerateLinksTaskTest {
    */
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
-      LinkingConfig.load(resourceLoader)(resourceLoader.load(configFile))
+      val stream = resourceLoader.get(configFile).load
+      LinkingConfig.load(resourceLoader)(stream)
     }
 
     lazy val referenceLinks: Set[Link] = {
-      val stream = resourceLoader.load(referenceLinksFile)
+      val stream = resourceLoader.get(referenceLinksFile).load
       ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)).positive
     }
   }

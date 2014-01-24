@@ -22,17 +22,18 @@ import collection.immutable.ListMap
 /**
  * An abstract Factory.
  */
-class PluginFactory[T <: AnyPlugin : Manifest] extends ((String, Map[String, String]) => T) {
+class PluginFactory[T <: AnyPlugin : Manifest] {
+
   /** Map of all plugins by their id. This is a list map as it preserves the iteration order of the entries. */
   private var plugins = ListMap[String, PluginDescription[T]]()
 
   /**
    * Creates a new instance of a specific plugin.
    */
-  override def apply(id: String, params: Map[String, String] = Map.empty): T = {
+  def apply(id: String, params: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = new EmptyResourceLoader): T = {
     val plugin = {
       plugins.get(id) match {
-        case Some(s) => s(params)
+        case Some(s) => s(params, resourceLoader)
         case None => throw new NoSuchElementException("No plugin called '" + id + "' found.")
       }
     }

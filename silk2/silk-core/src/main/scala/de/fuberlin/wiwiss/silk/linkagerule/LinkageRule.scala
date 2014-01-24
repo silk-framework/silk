@@ -22,6 +22,7 @@ import similarity.SimilarityOperator
 import xml.Node
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A Linkage Rule specifies the conditions which must hold true so that a link is generated between two entities.
@@ -78,14 +79,14 @@ object LinkageRule {
    */
   def apply(operator: SimilarityOperator): LinkageRule = LinkageRule(Some(operator))
 
-  def load(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
+  def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
+    new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
   }
 
   /**
    * Reads a linkage rule from xml.
    */
-  def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
-    LinkageRule(SimilarityOperator.fromXML(node.child).headOption)
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
+    LinkageRule(SimilarityOperator.fromXML(node.child, resourceLoader).headOption)
   }
 }

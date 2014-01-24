@@ -14,13 +14,14 @@
 
 package de.fuberlin.wiwiss.silk.server.model
 
-import de.fuberlin.wiwiss.silk.datasource.{FileResourceLoader, DataSource, Source}
+import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
 import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.Link
 import java.util.logging.{Level, Logger}
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 /**
  * The Silk Server.

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.datasource
+package de.fuberlin.wiwiss.silk.util.plugin
 
 class ResourceNotFoundException(msg: String) extends Exception(msg) {
 

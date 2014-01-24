@@ -18,8 +18,8 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.datasource.FileResourceLoader
 import java.io.File
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 
@@ -33,7 +33,7 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 
   val resourceLoader = new FileResourceLoader(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource/").getFile))
 
-  val source = new FileDataSource(fileName, "N-TRIPLE")
+  val source = new FileDataSource(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDesc =
     EntityDescription(
@@ -43,14 +43,14 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
     )
 
   "FileDataSource" should "return all cities" in {
-    source.retrieve(entityDesc, Nil, resourceLoader).size should equal (3)
+    source.retrieve(entityDesc, Nil).size should equal (3)
   }
 
   "FileDataSource" should "return entities by uri" in {
-    source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: Nil, resourceLoader).size should equal (1)
+    source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
   }
 
   "FileDataSource" should "not return entities by uri which do not match the restriction" in {
-    source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: "http://dbpedia.org/resource/Albert_Einstein" :: Nil, resourceLoader).size should equal (1)
+    source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: "http://dbpedia.org/resource/Albert_Einstein" :: Nil).size should equal (1)
   }
 }

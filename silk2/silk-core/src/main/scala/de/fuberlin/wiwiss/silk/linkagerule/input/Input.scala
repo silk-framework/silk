@@ -19,9 +19,10 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
- * An input.
+ * An input that retrieves a set of values.
  */
 trait Input extends Operator {
   /**
@@ -36,10 +37,11 @@ trait Input extends Operator {
 }
 
 object Input {
-  def fromXML(nodes: Seq[Node])(implicit prefixes: Prefixes): Seq[Input] = {
+
+  def fromXML(nodes: Seq[Node], resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Seq[Input] = {
     nodes.collect {
       case node @ <Input/> => PathInput.fromXML(node)
-      case node @ <TransformInput>{_*}</TransformInput> => TransformInput.fromXML(node)
+      case node @ <TransformInput>{_*}</TransformInput> => TransformInput.fromXML(node, resourceLoader)
     }
   }
 }

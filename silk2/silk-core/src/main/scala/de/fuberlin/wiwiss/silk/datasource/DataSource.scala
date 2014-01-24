@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, Entity, EntityDescription}
 
 /**
@@ -29,7 +29,7 @@ trait DataSource extends AnyPlugin {
    *
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
-  def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty, resourceLoader: ResourceLoader): Traversable[Entity]
+  def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -42,7 +42,7 @@ trait DataSource extends AnyPlugin {
    *
    * @return A Traversable of the found paths and their frequency.
    */
-  def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None, resourceLoader: ResourceLoader): Traversable[(Path, Double)] = {
+  def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
     Traversable.empty
   }
 
@@ -54,7 +54,7 @@ trait DataSource extends AnyPlugin {
    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
    *
    */
-  def retrieveTypes(limit: Option[Int] = None, resourceLoader: ResourceLoader): Traversable[(String, Double)] = {
+  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
     Traversable.empty
   }
 }

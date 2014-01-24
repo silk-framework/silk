@@ -20,7 +20,7 @@ import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
-import de.fuberlin.wiwiss.silk.datasource.{FileResourceLoader, Source}
+import de.fuberlin.wiwiss.silk.datasource.{Source}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -28,6 +28,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -173,7 +174,7 @@ class FileProject(file : File) extends Project {
         for(fileName <- file.list.toList) yield
         {
           val projectConfig = FileProject.this.config
-          val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+          val linkSpec = LinkSpecification.load(resourceLoader)(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
           val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
           val cache = new Caches()
 
@@ -248,7 +249,7 @@ class FileProject(file : File) extends Project {
 
     override def tasks = synchronized {
       for(fileName <- file.list.toList) yield {
-        val output = Output.load(file + ("/" + fileName))
+        val output = Output.load(resourceLoader)(file + ("/" + fileName))
 
         OutputTask(output)
       }

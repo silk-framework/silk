@@ -19,6 +19,7 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * An operator which computes the similarity between two entities.
@@ -60,10 +61,11 @@ trait SimilarityOperator extends Operator {
 }
 
 object SimilarityOperator {
-  def fromXML(nodes: Seq[Node])(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Seq[SimilarityOperator] = {
+
+  def fromXML(nodes: Seq[Node], resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Seq[SimilarityOperator] = {
     nodes.collect {
-      case node@ <Aggregate>{_*}</Aggregate> => Aggregation.fromXML(node)
-      case node@ <Compare>{_*}</Compare> => Comparison.fromXML(node)
+      case node@ <Aggregate>{_*}</Aggregate> => Aggregation.fromXML(node, resourceLoader)
+      case node@ <Compare>{_*}</Compare> => Comparison.fromXML(node, resourceLoader)
     }
   }
 }
