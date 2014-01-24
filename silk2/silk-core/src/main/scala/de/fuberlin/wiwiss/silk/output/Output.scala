@@ -18,6 +18,7 @@ import java.util.logging.Logger
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * Represents an abstraction over an output of links.
@@ -85,15 +86,15 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
 object Output {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
-  def load = {
-    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
+  def load(resourceLoader: ResourceLoader) = {
+    new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
   }
 
-  def fromXML(node: Node)(implicit globalThreshold: Option[Double] = None) = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit globalThreshold: Option[Double] = None) = {
     //The 'name' attribute is deprecated and replaced by the 'id' attribute, but we still support both
     Output(
       id = Identifier((node \ "@id" ++ node \ "@name").headOption.map(_.text).getOrElse("id")),
-      writer = LinkWriter(node \ "@type" text, readParams(node)),
+      writer = LinkWriter(node \ "@type" text, readParams(node), resourceLoader),
       minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble).map(convertConfidence),
       maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble).map(convertConfidence)
     )

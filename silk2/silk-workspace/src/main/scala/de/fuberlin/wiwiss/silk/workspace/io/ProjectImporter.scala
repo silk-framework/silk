@@ -22,6 +22,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.workspace.{ProjectConfig, Project}
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTask, Caches}
+import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
 
 /**
  * Reads a project from a single XML file.
@@ -44,11 +45,11 @@ object ProjectImporter
   }
 
   private def readSourceTask(xml : Node) = {
-    SourceTask(Source.fromXML(xml \ "_" head))
+    SourceTask(Source.fromXML(xml \ "_" head, null))
   }
 
   private def readLinkingTask(xml : Node, project: Project)(implicit prefixes : Prefixes) = {
-    val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head)
+    val linkSpec = LinkSpecification.fromXML(xml \ "LinkSpecification" \ "_" head, new EmptyResourceLoader)
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(xml \ "Alignment" \ "_" head)
     val cache = new Caches()
     cache.loadFromXML(xml \ "Cache" \ "_" head)

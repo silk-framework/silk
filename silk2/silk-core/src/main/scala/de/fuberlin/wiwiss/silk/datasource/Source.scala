@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.datasource
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A source of entities.
@@ -62,25 +63,27 @@ case class Source(id: Identifier, dataSource: DataSource) {
   }
 
   def toXML: Node = dataSource match {
-    case DataSource(dataSourceType, params) => {
+    case DataSource(dataSourceType, params) =>
       <DataSource id={id} type={dataSourceType}>
         {params.map {
         case (name, value) => <Param name={name} value={value}/>
       }}
       </DataSource>
-    }
   }
 }
 
 object Source {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
-  def load = {
-    new ValidatingXMLReader(node => fromXML(node), schemaLocation)
+  def load(resourceLoader: ResourceLoader) = {
+    new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
   }
 
-  def fromXML(node: Node): Source = {
-    new Source(node \ "@id" text, DataSource(node \ "@type" text, readParams(node)))
+  def fromXML(node: Node, resourceLoader: ResourceLoader): Source = {
+    new Source(
+      id = node \ "@id" text,
+      dataSource = DataSource(node \ "@type" text, readParams(node), resourceLoader)
+    )
   }
 
   private def readParams(element: Node): Map[String, String] = {

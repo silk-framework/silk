@@ -14,10 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{DataSource}
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import java.io.{ByteArrayInputStream, StringReader}
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
 import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription, Entity}
 import de.fuberlin.wiwiss.silk.util.sparql.SparqlAggregatePathsCollector

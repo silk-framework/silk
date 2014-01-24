@@ -86,15 +86,17 @@ class FileWorkspace(file : File) extends Workspace {
     // Read all ZIP entries
     var entry = zip.getNextEntry
     while(entry != null) {
-      val file = projectDir + ("/" + entry.getName)
-      file.getParentFile.mkdirs()
-      val out = new BufferedOutputStream(new FileOutputStream(file))
-      var b = zip.read()
-      while (b > -1) {
-        out.write(b)
-        b = zip.read()
+      if(!entry.isDirectory) {
+        val file = projectDir + ("/" + entry.getName)
+        file.getParentFile.mkdirs()
+        val out = new BufferedOutputStream(new FileOutputStream(file))
+        var b = zip.read()
+        while (b > -1) {
+          out.write(b)
+          b = zip.read()
+        }
+        out.close()
       }
-      out.close()
       zip.closeEntry()
       entry = zip.getNextEntry
     }

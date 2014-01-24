@@ -20,7 +20,7 @@ import modules.source.{SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.datasource.{Source}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -28,16 +28,18 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 /**
  * Implementation of a project which is stored on the local file system.
  */
 class FileProject(file : File) extends Project {
+
   private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
-  private var cachedConfig : Option[ProjectConfig] = None
+  override val resourceLoader = new FileResourceLoader(file + "/resources")
 
-  private var changed = false
+  private var cachedConfig : Option[ProjectConfig] = None
 
   /**
    * The name of this project
@@ -100,8 +102,9 @@ class FileProject(file : File) extends Project {
 
     @volatile
     private var cachedTasks : Map[Identifier, SourceTask] = {
-      for(fileName <- file.list.toList) yield {
-        SourceTask(Source.load(file + ("/" + fileName)))
+      val sourceFiles = file.list.toList.filter(_.endsWith(".xml"))
+      for(fileName <- sourceFiles) yield {
+        SourceTask(Source.load(resourceLoader)(file + ("/" + fileName)))
       }
     }.map(task => (task.name, task)).toMap
 
@@ -171,7 +174,7 @@ class FileProject(file : File) extends Project {
         for(fileName <- file.list.toList) yield
         {
           val projectConfig = FileProject.this.config
-          val linkSpec = LinkSpecification.load(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+          val linkSpec = LinkSpecification.load(resourceLoader)(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
           val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
           val cache = new Caches()
 
@@ -179,10 +182,9 @@ class FileProject(file : File) extends Project {
           try {
             cache.loadFromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
           } catch {
-            case ex : Exception => {
+            case ex : Exception =>
               logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
               new Caches()
-            }
           }
 
           LinkingTask(FileProject.this, linkSpec, referenceLinks, cache)
@@ -247,7 +249,7 @@ class FileProject(file : File) extends Project {
 
     override def tasks = synchronized {
       for(fileName <- file.list.toList) yield {
-        val output = Output.load(file + ("/" + fileName))
+        val output = Output.load(resourceLoader)(file + ("/" + fileName))
 
         OutputTask(output)
       }

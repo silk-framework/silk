@@ -3,14 +3,13 @@ package de.fuberlin.wiwiss.silk.plugins.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import io.Source
-import java.io.File
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.plugin.{Resource, Plugin}
 
 @Plugin(
   id = "csv",
   label = "CSV Source",
   description = "DataSource which retrieves all entities from a csv file.")
-case class CsvDataSource(url: String, properties: String, separator: Char = ',', prefix: String = "") extends DataSource {
+case class CsvDataSource(file: Resource, properties: String, separator: Char = ',', prefix: String = "") extends DataSource {
 
   private val propertyList: Seq[String] = properties.split(separator)
 
@@ -32,7 +31,8 @@ case class CsvDataSource(url: String, properties: String, separator: Char = ',',
     // Return new Traversable that generates an entity for each line
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
-        val source = openSource()
+        val inputStream = file.load
+        val source = Source.fromInputStream(inputStream)
         try {
           // Iterate through all lines of the source file.
           for ((line, number) <- source.getLines.zipWithIndex) {
@@ -50,19 +50,9 @@ case class CsvDataSource(url: String, properties: String, separator: Char = ',',
           }
         } finally {
           source.close()
+          inputStream.close()
         }
       }
     }
-  }
-
-  /**
-   * Creates scala.io.Source for the given URL.
-   * Supports the classpath: protocol, which is not supported by default in scala.io.Source.
-   */
-  private def openSource(): Source = {
-    if(url.startsWith("classpath:"))
-      Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(url.stripPrefix("classpath:")))
-    else
-      Source.fromURL(url)
   }
 }

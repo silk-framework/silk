@@ -14,9 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.datasource
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.datasource.{DataSource}
 import java.io.File
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.cache.FileEntityCache
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}

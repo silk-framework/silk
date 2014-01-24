@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.datasource
 
-import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, Entity, EntityDescription}
 
 /**

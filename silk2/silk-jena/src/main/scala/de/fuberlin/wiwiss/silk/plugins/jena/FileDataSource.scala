@@ -16,12 +16,10 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 
 import org.apache.jena.riot.{RDFLanguages, RDFDataMgr}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.plugin.{Resource, ResourceLoader, Plugin}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector}
-import java.io.{OutputStreamWriter, File}
-import org.apache.log4j.{Logger, PatternLayout, ConsoleAppender}
-import com.hp.hpl.jena.query.QueryExecutionFactory
+import com.hp.hpl.jena.query.DatasetFactory
 
 @Plugin(
   id = "file",
@@ -29,42 +27,49 @@ import com.hp.hpl.jena.query.QueryExecutionFactory
   description =
     """ DataSource which retrieves all entities from an RDF file.
       | Parameters:
-      |  file: File name inside {user.dir}/.silk/datasets/ or absolute path.
+      |  file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
       |  format: Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle"
       |  graph: The graph name to be read. If not provided, the default graph will be used.
       |         Must be provided if the format is N-Quads.
     """
 )
-case class FileDataSource(file: String, format: String, graph: String = "") extends DataSource {
-
-  // Locate the file
-  private val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.home") + "/.silk/datasets/" + file
+case class FileDataSource(file: Resource, format: String, graph: String = "") extends DataSource {
 
   // Try to parse the format
   private val lang = RDFLanguages.nameToLang(format)
   require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
 
   // Load dataset
-  private lazy val endpoint = load()
+  private var endpoint: JenaSparqlEndpoint = null
 
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
+    load()
     EntityRetriever(endpoint).retrieve(entityDesc, entities)
   }
 
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+    load()
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
 
   /**
    * Loads the dataset and creates an endpoint.
+   * Does nothing if the data set has already been loaded.
    */
-  private def load() = {
-    val dataset = RDFDataMgr.loadDataset(filePath, lang)
+  private def load() = synchronized {
+    if(endpoint == null) {
+      // Load data set
+      val dataset = DatasetFactory.createMem()
+      val inputStream = file.load
+      RDFDataMgr.read(dataset, inputStream, lang)
+      inputStream.close()
 
-    val model =
-      if(!graph.trim.isEmpty) dataset.getNamedModel(graph)
-      else dataset.getDefaultModel
+      // Retrieve model
+      val model =
+        if(!graph.trim.isEmpty) dataset.getNamedModel(graph)
+        else dataset.getDefaultModel
 
-    new JenaSparqlEndpoint(model)
+      endpoint = new JenaSparqlEndpoint(model)
+    }
   }
 }

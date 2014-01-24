@@ -25,6 +25,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workspace.util._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import collection.mutable.SynchronizedQueue
+import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -32,6 +33,8 @@ import collection.mutable.SynchronizedQueue
 class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sparulEndpoint : RemoteSparulEndpoint) extends Project
 {
   private val logger = Logger.getLogger(classOf[LDEProject].getName)
+
+  override val resourceLoader = new EmptyResourceLoader
 
    // The name of this project
   override val name = new Identifier(projectName)
@@ -141,12 +144,12 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
            val params = Map( "endpointURI" -> endpointUri,
                              "id" -> id,
                             "datasourceUri" -> dataSourceUri)
-           SourceTask(Source("SOURCE",DataSource("LDEsparqlEndpoint",params)))
+           SourceTask(Source("SOURCE", DataSource("LDEsparqlEndpoint",params)))
         }
         else {
            // Datasource definition not found
            // TODO - throw Exception 'Error in retrieving the datasource' ?
-           SourceTask(Source("DataSource_Not_Found",DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
+           SourceTask(Source("DataSource_Not_Found", DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
         }
     }
   }

@@ -17,6 +17,7 @@ import models.WorkbenchConfig.Tabs
 case class WorkbenchConfig(title: String = "Silk Workbench",
                            logo: File = new File("logo.png"),
                            welcome: File = new File("welcome.html"),
+                           about: File = new File("about.html"),
                            tabs: Tabs = Tabs()) {
 }
 
@@ -31,6 +32,7 @@ object WorkbenchConfig {
       title = config.getString("workbench.title").getOrElse("Silk Workbench"),
       logo = loadFile(config.getString("workbench.logo").getOrElse("logo.png")),
       welcome = loadFile(config.getString("workbench.welcome").getOrElse("welcome.html")),
+      about = loadFile(config.getString("workbench.about").getOrElse("about.html")),
       tabs = Tabs(
                config.getBoolean("workbench.tabs.editor").getOrElse(true),
                config.getBoolean("workbench.tabs.generateLinks").getOrElse(true),
@@ -44,10 +46,9 @@ object WorkbenchConfig {
   /**
    * Loads a file from the conf directory.
    */
-  private def loadFile(file: String) = {
+  def loadFile(file: String) = {
     //Depending on the distribution method, the configuration directory may be located at different paths
-    val paths = "conf/" + file :: "conf/_/" + file ::
-      "../conf/" + file :: "../conf/_/" + file :: Nil
+    val paths = "conf/" + file :: "../conf/" + file :: Nil
 
     //Trying all paths and using the first one that works
     val files = paths.map(Play.getFile)

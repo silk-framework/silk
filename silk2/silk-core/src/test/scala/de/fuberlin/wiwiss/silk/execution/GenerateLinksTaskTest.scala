@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.config.{LinkingConfig, RuntimeConfig}
+import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.{Path, Link}
 import methods._
 import de.fuberlin.wiwiss.silk.plugins.Plugins
@@ -27,6 +27,7 @@ import methods.MultiBlock
 import methods.SortedBlocks
 import java.util.Locale
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
+import de.fuberlin.wiwiss.silk.util.plugin.ClasspathResourceLoader
 
 /**
  * This test evaluates the GenerateLinksTask with different execution methods.
@@ -38,16 +39,18 @@ object GenerateLinksTaskTest {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  private val resourceLoader = new ClasspathResourceLoader("names")
+
   /** Directory of the data set */
-  private val dataset = Dataset("Names", "names/config.xml", "names/links.nt")
+  private val dataset = Dataset("Names", "config.xml", "links.nt")
 
   private val sourceKey = Path.parse("?a/<label>")
   private val targetKey = Path.parse("?b/<label>")
 
   private val tests =
     Test("Full", Full()) ::
-    Test("Blocking (Soundex)", Blocking(sourceKey, targetKey, q = 100, transformers = SoundexTransformer(false) :: Nil)) ::
-    Test("Blocking (NYSIIS)", Blocking(sourceKey, targetKey, q = 100, transformers = NysiisTransformer(false) :: Nil)) ::
+    Test("Blocking (Soundex)", Blocking(sourceKey, targetKey, q = 100, transformers = SoundexTransformer(refined = false) :: Nil)) ::
+    Test("Blocking (NYSIIS)", Blocking(sourceKey, targetKey, q = 100, transformers = NysiisTransformer(refined = false) :: Nil)) ::
     Test("Blocking (Metaphone)", Blocking(sourceKey, targetKey, q = 100, transformers = MetaphoneTransformer() :: Nil)) ::
     Test("Sorted Blocks (10%)", SortedBlocks(sourceKey, targetKey, overlap = 0.1)) ::
     Test("Sorted Blocks (50%)", SortedBlocks(sourceKey, targetKey, overlap = 0.5)) ::
@@ -76,12 +79,12 @@ object GenerateLinksTaskTest {
    */
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
-      val stream = getClass.getClassLoader.getResourceAsStream(configFile)
-      LinkingConfig.load(stream)
+      val stream = resourceLoader.get(configFile).load
+      LinkingConfig.load(resourceLoader)(stream)
     }
 
     lazy val referenceLinks: Set[Link] = {
-      val stream = getClass.getClassLoader.getResourceAsStream(referenceLinksFile)
+      val stream = resourceLoader.get(referenceLinksFile).load
       ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)).positive
     }
   }
@@ -109,7 +112,7 @@ object GenerateLinksTaskTest {
       Result(
         name = name,
         comparisonPairs = foundLinks.size,
-        pairsCompleteness = (1.0 - missedLinks.size.toDouble / fullLinks.size),
+        pairsCompleteness = 1.0 - missedLinks.size.toDouble / fullLinks.size,
         pairsQuality = correctLinks.size.toDouble / foundLinks.size,
         runtime = runtimes.min
       )

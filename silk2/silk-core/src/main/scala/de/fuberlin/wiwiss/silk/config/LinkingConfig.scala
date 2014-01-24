@@ -15,9 +15,10 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.datasource.{Source}
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A Silk linking configuration.
@@ -84,21 +85,21 @@ object LinkingConfig {
 
   def empty = LinkingConfig(Prefixes.empty, RuntimeConfig(), Nil, Nil, Nil)
 
-  def load = {
-    new ValidatingXMLReader(fromXML, schemaLocation)
+  def load(resourceLoader: ResourceLoader) = {
+    new ValidatingXMLReader(fromXML(_, resourceLoader), schemaLocation)
   }
 
-  def fromXML(node: Node) = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader) = {
     implicit val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
-    val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML)
+    val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML(_, resourceLoader))
     val blocking = (node \ "Blocking").headOption match {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)
       case None => Blocking()
     }
-    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p))
+    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, resourceLoader))
 
     implicit val globalThreshold = None
-    val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML)
+    val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
 
     LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs)
   }

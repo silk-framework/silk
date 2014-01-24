@@ -18,6 +18,8 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import java.io.File
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
 
 class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 
@@ -27,9 +29,11 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
     "dbpedia-owl" -> "http://dbpedia.org/ontology/"
   )
 
-  val file = getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource/test.nt").getFile
+  val fileName = "test.nt"
 
-  val source = new FileDataSource(file, "N-TRIPLE")
+  val resourceLoader = new FileResourceLoader(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource/").getFile))
+
+  val source = new FileDataSource(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDesc =
     EntityDescription(
@@ -39,7 +43,7 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
     )
 
   "FileDataSource" should "return all cities" in {
-    source.retrieve(entityDesc).size should equal (3)
+    source.retrieve(entityDesc, Nil).size should equal (3)
   }
 
   "FileDataSource" should "return entities by uri" in {
