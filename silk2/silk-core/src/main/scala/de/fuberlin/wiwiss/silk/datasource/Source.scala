@@ -17,11 +17,12 @@ package de.fuberlin.wiwiss.silk.datasource
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A source of entities.
  */
-case class Source(id: Identifier, dataSource: DataSource, resourceLoader: ResourceLoader) {
+case class Source(id: Identifier, dataSource: DataSource) {
   /**
    * Retrieves entities from this source which satisfy a specific entity description.
    *
@@ -31,7 +32,7 @@ case class Source(id: Identifier, dataSource: DataSource, resourceLoader: Resour
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty) = {
-    dataSource.retrieve(entityDesc, entities, resourceLoader)
+    dataSource.retrieve(entityDesc, entities)
   }
 
   /**
@@ -46,7 +47,7 @@ case class Source(id: Identifier, dataSource: DataSource, resourceLoader: Resour
    * @return A Traversable of the found paths and their frequency.
    */
   def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None) = {
-    dataSource.retrievePaths(restriction, depth, limit, resourceLoader)
+    dataSource.retrievePaths(restriction, depth, limit)
   }
 
   /**
@@ -58,17 +59,16 @@ case class Source(id: Identifier, dataSource: DataSource, resourceLoader: Resour
    *
    */
   def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    dataSource.retrieveTypes(limit, resourceLoader)
+    dataSource.retrieveTypes(limit)
   }
 
   def toXML: Node = dataSource match {
-    case DataSource(dataSourceType, params) => {
+    case DataSource(dataSourceType, params) =>
       <DataSource id={id} type={dataSourceType}>
         {params.map {
         case (name, value) => <Param name={name} value={value}/>
       }}
       </DataSource>
-    }
   }
 }
 
@@ -82,8 +82,7 @@ object Source {
   def fromXML(node: Node, resourceLoader: ResourceLoader): Source = {
     new Source(
       id = node \ "@id" text,
-      dataSource = DataSource(node \ "@type" text, readParams(node)),
-      resourceLoader = resourceLoader
+      dataSource = DataSource(node \ "@type" text, readParams(node), resourceLoader)
     )
   }
 

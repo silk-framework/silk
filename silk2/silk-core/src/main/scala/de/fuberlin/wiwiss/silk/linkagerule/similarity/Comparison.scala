@@ -20,6 +20,7 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
+import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
 
 /**
  * A comparison computes the similarity of two inputs.
@@ -93,17 +94,18 @@ case class Comparison(id: Identifier = Operator.generateId,
 }
 
 object Comparison {
-  def fromXML(node: Node)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
+
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
     val id = Operator.readId(node)
-    val inputs = Input.fromXML(node.child)
-    if(inputs.size != 2) throw new ValidationException("A comparison must have exactly 2 inputs ", id, "Comparison")
+    val inputs = Input.fromXML(node.child, resourceLoader)
+    if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
 
     try {
-      val requiredStr = node \ "@required" text
+      val requiredStr = (node \ "@required").text
       val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
-      val weightStr = node \ "@weight" text
-      val indexingStr = node \ "@indexing" text
-      val metric = DistanceMeasure(node \ "@metric" text, Operator.readParams(node))
+      val weightStr = (node \ "@weight").text
+      val indexingStr = (node \ "@indexing").text
+      val metric = DistanceMeasure(node \ "@metric" text, Operator.readParams(node), resourceLoader)
 
       Comparison(
         id = id,

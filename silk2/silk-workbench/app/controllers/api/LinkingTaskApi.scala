@@ -40,18 +40,16 @@ object LinkingTaskApi extends Controller {
     implicit val globalThreshold = None
 
     request.body.asXml match {
-      case Some(xml) => {
-        val rule = LinkageRule.fromXML(xml.head)
+      case Some(xml) =>
+        val rule = LinkageRule.fromXML(xml.head, project.resourceLoader)
 
         //Update linking task
         val updatedTask = task.updateLinkSpec(task.linkSpec.copy(rule = rule), project)
         project.linkingModule.update(updatedTask)
 
         Ok
-      }
-      case None => {
+      case None =>
         BadRequest("Expecting text/xml request body")
-      }
     }
   }}
 
@@ -75,7 +73,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while saving link spec
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
             //Load link specification
-            val newLinkSpec = LinkSpecification.load(prefixes)(xml.head)
+            val newLinkSpec = LinkSpecification.load(project.resourceLoader)(prefixes)(xml.head)
 
             //Update linking task
             val updatedTask = task.updateLinkSpec(newLinkSpec, project)

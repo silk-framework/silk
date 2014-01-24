@@ -3,7 +3,7 @@ package controllers.api
 import play.api.mvc.Action
 import play.api.libs.json.{JsString, JsObject, JsArray, JsValue}
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.datasource.{FileResourceLoader, EmptyResourceLoader, DataSource, Source}
+import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 import de.fuberlin.wiwiss.silk.output.LinkWriter
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
@@ -20,6 +20,7 @@ import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigImporter, ProjectImporter
 import de.fuberlin.wiwiss.silk.config._
 import java.io.{FileInputStream, ByteArrayOutputStream}
 import models.WorkbenchConfig
+import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
 
 object WorkspaceApi extends Controller {
   
@@ -222,12 +223,13 @@ object WorkspaceApi extends Controller {
     Ok(outputXml)
   }
 
-  def putOutput(project: String, output: String) = Action { implicit request => {
+  def putOutput(projectName: String, output: String) = Action { implicit request => {
+    val project = User().workspace.project(projectName)
     request.body.asXml match {
       case Some(xml) => {
         try {
-          val outputTask = OutputTask(Output.fromXML(xml.head))
-          User().workspace.project(project).outputModule.update(outputTask)
+          val outputTask = OutputTask(Output.fromXML(xml.head, project.resourceLoader))
+          project.outputModule.update(outputTask)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
