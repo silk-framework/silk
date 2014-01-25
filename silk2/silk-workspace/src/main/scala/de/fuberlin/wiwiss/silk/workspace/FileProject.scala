@@ -28,7 +28,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -37,7 +37,7 @@ class FileProject(file : File) extends Project {
 
   private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
-  override val resourceLoader = new FileResourceLoader(file + "/resources")
+  override val resourceManager = new FileResourceManager(file + "/resources")
 
   private var cachedConfig : Option[ProjectConfig] = None
 
@@ -104,7 +104,7 @@ class FileProject(file : File) extends Project {
     private var cachedTasks : Map[Identifier, SourceTask] = {
       val sourceFiles = file.list.toList.filter(_.endsWith(".xml"))
       for(fileName <- sourceFiles) yield {
-        SourceTask(Source.load(resourceLoader)(file + ("/" + fileName)))
+        SourceTask(Source.load(resourceManager)(file + ("/" + fileName)))
       }
     }.map(task => (task.name, task)).toMap
 
@@ -174,7 +174,7 @@ class FileProject(file : File) extends Project {
         for(fileName <- file.list.toList) yield
         {
           val projectConfig = FileProject.this.config
-          val linkSpec = LinkSpecification.load(resourceLoader)(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+          val linkSpec = LinkSpecification.load(resourceManager)(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
           val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
           val cache = new Caches()
 
@@ -249,7 +249,7 @@ class FileProject(file : File) extends Project {
 
     override def tasks = synchronized {
       for(fileName <- file.list.toList) yield {
-        val output = Output.load(resourceLoader)(file + ("/" + fileName))
+        val output = Output.load(resourceManager)(file + ("/" + fileName))
 
         OutputTask(output)
       }

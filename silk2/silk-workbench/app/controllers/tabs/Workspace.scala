@@ -31,6 +31,12 @@ object Workspace extends Controller {
     Ok(views.html.workspace.prefixDialog(project, prefixes, PrefixRegistry.all))
   }
 
+  def resourcesDialog(project: String) = Action {
+    val resourceManager = User().workspace.project(project).resourceManager
+
+    Ok(views.html.workspace.resourcesDialog(project, resourceManager))
+  }
+
   def sourceDialog(project: String, source: String) = Action {
     Ok(views.html.workspace.sourceDialog(project, source))
   }

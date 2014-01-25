@@ -7,6 +7,10 @@ import java.io.{FileInputStream, BufferedInputStream}
  */
 class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
 
+  override def list = {
+    throw new UnsupportedOperationException("ClasspathResourceLoader does not support listing resources")
+  }
+
   /**
    * Retrieves a resource by name.
    *

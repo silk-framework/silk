@@ -1,11 +1,22 @@
 package de.fuberlin.wiwiss.silk.util.plugin
 
-import java.io.{File, FileInputStream, BufferedInputStream}
+import java.io._
 
 /**
- * A resource loader that loads files from a base directory.
+ * A resource manager that loads files from a base directory.
  */
-class FileResourceLoader(baseDir: File) extends ResourceLoader {
+class FileResourceManager(baseDir: File) extends ResourceManager {
+
+  /**
+   * Lists all files in the resources directory.
+   */
+  override def list = {
+    val files = baseDir.list
+    if(files != null)
+      files.toList
+    else
+      Nil
+  }
 
   /**
    * Retrieves a file by name.
@@ -35,6 +46,25 @@ class FileResourceLoader(baseDir: File) extends ResourceLoader {
 
     new FileResource(name, file)
   }
+
+  override def put(name: String, inputStream: InputStream) {
+    val outputStream = new BufferedOutputStream(new FileOutputStream(baseDir + "/" + name))
+
+    var b = inputStream.read()
+    while(b != -1) {
+      outputStream.write(b)
+      b = inputStream.read()
+    }
+
+    inputStream.close()
+    outputStream.close()
+  }
+
+  override def delete(name: String) {
+    if(!new File(baseDir + "/" + name).delete())
+      throw new IOException(s"Could not delete resource $name from directory '@baseDir'")
+  }
+
 }
 
 private class FileResource(val name: String, file: File) extends Resource {

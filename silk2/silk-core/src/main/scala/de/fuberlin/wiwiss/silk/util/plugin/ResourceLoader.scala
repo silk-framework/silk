@@ -1,12 +1,11 @@
 package de.fuberlin.wiwiss.silk.util.plugin
 
-import java.io.InputStream
-import java.util.NoSuchElementException
-
 /**
  * Loads external resources that are required by a data set, such as files.
  */
 trait ResourceLoader {
+
+  def list: List[String]
 
   /**
    * Retrieves a name resource.

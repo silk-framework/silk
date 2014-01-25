@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workspace.util._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import collection.mutable.SynchronizedQueue
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceManager
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.
@@ -34,7 +34,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
 {
   private val logger = Logger.getLogger(classOf[LDEProject].getName)
 
-  override val resourceLoader = new EmptyResourceLoader
+  override val resourceManager = new EmptyResourceManager
 
    // The name of this project
   override val name = new Identifier(projectName)
