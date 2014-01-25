@@ -19,7 +19,7 @@ import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.io.File
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
 
 class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 
@@ -31,7 +31,7 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 
   val fileName = "test.nt"
 
-  val resourceLoader = new FileResourceLoader(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource/").getFile))
+  val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource/").getFile))
 
   val source = new FileDataSource(resourceLoader.get(fileName), "N-TRIPLE")
 
