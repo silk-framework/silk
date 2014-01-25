@@ -23,7 +23,7 @@ import plugins.jena.JenaPlugins
 import util.StringUtils._
 import util.CollectLogs
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
 
 /**
  * Executes the complete Silk workflow.
@@ -90,7 +90,7 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    val resourceLoader = new FileResourceLoader(configFile.getParentFile)
+    val resourceLoader = new FileResourceManager(configFile.getParentFile)
     executeConfig(LinkingConfig.load(resourceLoader)(configFile), linkSpecID, numThreads, reload)
   }
 

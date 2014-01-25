@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import de.fuberlin.wiwiss.silk.execution.LoadTask
 import java.io.File
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
+import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
 
 /**
  * Populates the entity cache.
@@ -80,7 +80,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
 
     //Load the configuration
     val stream = configFS.open(filePath)
-    val resourceLoader = new FileResourceLoader(new File(filePath.getParent.toUri))
+    val resourceLoader = new FileResourceManager(new File(filePath.getParent.toUri))
     try
     {
       LinkingConfig.load(resourceLoader)(stream)

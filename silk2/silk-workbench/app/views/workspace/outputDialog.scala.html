@@ -5,7 +5,8 @@
 
 @widgets.pluginDialog(name = output,
                       plugins = LinkWriter.availablePlugins,
-                      currentObj = User().workspace.project(project).outputModule.tasks.find(_.name == output).map(_.output.writer)) {
+                      currentObj = User().workspace.project(project).outputModule.tasks.find(_.name == output).map(_.output.writer),
+                      resources = User().workspace.project(project).resourceManager.list) {
 
   <script>//<![CDATA[
     function submit(pluginId, name, parameters) {

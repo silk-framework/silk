@@ -30,7 +30,7 @@ class PluginFactory[T <: AnyPlugin : Manifest] {
   /**
    * Creates a new instance of a specific plugin.
    */
-  def apply(id: String, params: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = new EmptyResourceLoader): T = {
+  def apply(id: String, params: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = new EmptyResourceManager): T = {
     val plugin = {
       plugins.get(id) match {
         case Some(s) => s(params, resourceLoader)

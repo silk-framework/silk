@@ -253,6 +253,7 @@ function loadWorkspace(obj){
                     $(proj_actions).addClass('actions');
                     $(proj_span).append(proj_actions);
                 addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
+                addAction('edit_resources', 'Resources','Manage Resources',"editResources('"+project.name+"')",proj_actions,project.name,true);
                 addAction('ds_add', 'Source','Add data source',"editSource('"+project.name+"', 'unnamed')",proj_actions,project.name,true);
                 if (enableVoidSourceButton===true) {
                   addAction('ds_add', 'Source from VoID','Add data source from VoID',"createVoidSourceTask('"+project.name+"')",proj_actions,project.name,true);
@@ -347,6 +348,7 @@ function getIcon(type){
     {
         case 'add' : icon = "new-project-icon";  break;
         case 'edit_prefixes' : icon = "edit-prefixes-icon";  break;
+        case 'edit_resources' : icon = "edit-icon";  break;
         case 'ds_add' : icon = "add-icon";  break;
         case 'ds_edit' : icon = "edit-icon";  break;
         case 'link_add' : icon = "add-icon";  break;
@@ -394,11 +396,15 @@ function deleteProject(project) {
 }
 
 function editPrefixes(project) {
-  showDialog('api/workspace/' + project + '/prefixes/dialog');
+  showDialog('workspace/' + project + '/prefixes/dialog');
+}
+
+function editResources(project) {
+  showDialog('workspace/' + project + '/resources/dialog');
 }
 
 function editSource(project, source) {
-  showDialog('api/workspace/' + project + '/source/' + source + '/dialog');
+  showDialog('workspace/' + project + '/source/' + source + '/dialog');
 }
 
 function removeSource(project, source) {
@@ -406,7 +412,7 @@ function removeSource(project, source) {
 }
 
 function editLinkingTask(project, task) {
-  showDialog('api/workspace/' + project + '/linking/' + task + '/dialog');
+  showDialog('workspace/' + project + '/linking/' + task + '/dialog');
 }
 
 function removeLinkingTask(project, task) {
@@ -418,7 +424,7 @@ function openLinkingTask(project, task) {
 }
 
 function editOutput(project, output) {
-  showDialog('api/workspace/' + project + '/output/' + output + '/dialog');
+  showDialog('workspace/' + project + '/output/' + output + '/dialog');
 }
 
 function removeOutput(project, output) {
