@@ -19,10 +19,15 @@
 var helpWidth = 170;
 var contentWidth;
 var contentWidthCallback = function() { };
+// The currently open dialog
+var dialog;
+// The path of the current dialog, e.g., /workspace/mydialog
+var dialogPath;
 
 $(function() {
   $("button[type!='radio'], input:submit, input:checkbox, a.button").button();
 
+  // Initialize window
   var id;
   $(window).resize(function() {
     clearTimeout(id);
@@ -31,12 +36,39 @@ $(function() {
   });
   contentWidth = $(window).width() - 190;
   contentWidthCallback();
+
+  // Initialize dialog
+  dialog = $('.dialog').dialog({
+    autoOpen: false,
+    modal: true,
+  });
 });
 
+/**
+ * Opens a dialog.
+ */
 function showDialog(path) {
+  dialogPath = path;
   $.get(path, function(data) {
-    $('#dialogContainer').html(data);
+    dialog.html(data);
+  }).success(function() { dialog.dialog('open'); } )
+    .fail(function(request) { alert(request.responseText);  })
+}
+
+/**
+ * Reloads the current dialog.
+ */
+function reloadDialog() {
+  $.get(dialogPath, function(data) {
+    dialog.html(data);
   }).fail(function(request) { alert(request.responseText);  })
+}
+
+/**
+ * Closes current dialog.
+ */
+function closeDialog() {
+  dialog.dialog('close');
 }
 
 /**

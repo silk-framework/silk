@@ -77,6 +77,7 @@ class FileWorkspace(file : File) extends Workspace {
     zip.close()
   }
 
+  //TODO if an import fails, delete all already created files!
   override def importProject(name: Identifier, inputStream: InputStream) {
     // Open ZIP
     val zip = new ZipInputStream(inputStream)

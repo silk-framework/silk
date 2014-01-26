@@ -158,10 +158,11 @@ object WorkspaceApi extends Controller {
   def putResource(projectName: String, resourceName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
 
-    request.body.asRaw match {
-      case Some(buffer) =>
+    request.body.asMultipartFormData match {
+      case Some(formData) if !formData.files.isEmpty =>
         try {
-          val inputStream = new ByteArrayInputStream(buffer.asBytes().get)
+          val file = formData.files.head.ref.file
+          val inputStream = new FileInputStream(file)
           project.resourceManager.put(resourceName, inputStream)
           inputStream.close()
           Ok

@@ -1,6 +1,6 @@
 @()
 
-@widgets.dialog(width = 400) {
+@widgets.dialog(title = "New Project", width = 400) {
   <table border="0">
     <tr>
       <td>Name</td>
@@ -21,7 +21,7 @@
         url: '/api/workspace/' + name,
         data: "",
         success: function(data) {
-          $('.dialog').dialog('close');
+          closeDialog();
           updateWorkspace();
         },
         error: function(request) {
