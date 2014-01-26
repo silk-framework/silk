@@ -1,13 +1,40 @@
 @(project: String, resourceLoader: de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader)
 
-@widgets.dialog(500) {
-  @for((resource, index) <- resourceLoader.list zipWithIndex) {
-    <div id="resource@index" class="resource">
-      @resource
-      <img class="delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@routes.Assets.at("img/workspace/cross.png")" />
-      <img class="export" title="Download" onclick="getResource('@resource')" src="@routes.Assets.at("img/workspace/document-export.png")" />
-    </div>
-  }
+@widgets.dialog(title = "Manage Resources", width = 500) {
+  <fieldset>
+    <legend>Available resources:</legend>
+    @for((resource, index) <- resourceLoader.list zipWithIndex) {
+      <div id="resource@index" class="resource">
+        @resource
+        <img class="button-delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@routes.Assets.at("img/workspace/cross.png")" />
+        <img class="button-export" title="Download" onclick="getResource('@resource')" src="@routes.Assets.at("img/workspace/document-export.png")" />
+      </div>
+    }
+  </fieldset>
+
+  <fieldset>
+    <legend>Upload resource:</legend>
+    <table border="0">
+      <tr>
+        <td>Name</td>
+        <td><input name="resource-name" title="New Resource Name" size="25" value="unnamed"/></td>
+      </tr>
+      <tr>
+        <td>File</td>
+        <td>
+          <form name="uploadForm" enctype="multipart/form-data">
+            <input name="resource-file" type="file" size="10"/>
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td align="right"><button onclick="uploadResource()">Upload</button></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <button id="button-close" onclick="closeDialog()" >Close</button>
 
   <div id="delete-dialog" >
     <p>
@@ -33,15 +60,20 @@
       background-color: #d0d0d0;
     }
 
-    .export {
+    .button-export {
       float: right;
       cursor: pointer;
       margin-right: 5px;
     }
 
-    .delete {
+    .button-delete {
       float: right;
       cursor: pointer;
+    }
+
+    #button-close {
+      float: right;
+      margin: 10px;
     }
   </style>
 
@@ -82,6 +114,32 @@
         url: '/api/workspace/@project/resources/' + name,
         success: function(data) {
           $('#resource' + index).remove();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+
+    // Uploads a resource
+    function uploadResource() {
+      var name = $("input[name='resource-name']").val();
+      var file = $("input[name='resource-file']").val();
+      var formData = new FormData($("form[name='uploadForm']")[0]);
+
+      $.ajax({
+        type: 'PUT',
+        url: '/api/workspace/@project/resources/' + name,
+        xhr: function() {
+          myXhr = $.ajaxSettings.xhr();
+          return myXhr;
+        },
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function() {
+          reloadDialog();
         },
         error: function(request) {
           alert(request.responseText);
