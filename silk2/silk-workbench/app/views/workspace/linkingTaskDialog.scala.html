@@ -8,7 +8,7 @@
 
 @datasets = @{ linkingTask.map(_.linkSpec.datasets) }
 
-@widgets.dialog() {
+@widgets.dialog(title = "Linking Task") {
   <table border="0">
     @if(!linkingTask.isDefined) {
       <tr>

@@ -4,7 +4,7 @@
 
 @outputs = @{ User().workspace.project(project).outputModule.tasks }
 
-@widgets.dialog(600) {
+@widgets.dialog(title = "Export Reference Links", width = 600) {
   <table>
     <tr>
       <td>
