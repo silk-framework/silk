@@ -28,7 +28,7 @@
         </td>
       </tr>
       <tr>
-        <td></td>
+        <td><img id="icon-pending" title="Pending Upload" src="@routes.Assets.at("img/pending.gif")" /></td>
         <td align="right"><button onclick="uploadResource()">Upload</button></td>
       </tr>
     </table>
@@ -78,8 +78,12 @@
   </style>
 
   <script type="text/javascript">
-    // Initialize delete dialog
+    // Initialization
     $(function() {
+      // Hide pending icon
+      $('#icon-pending').hide();
+
+      // Initialize the delete dialog
       $("#delete-dialog").dialog({
         autoOpen: false,
         modal: true,
@@ -95,7 +99,7 @@
       });
     });
 
-    // Opens delete dialog
+    // Opens the delete dialog
     function deleteResourceDialog(index, name) {
       $('#delete-dialog').data('resourceName', name);
       $('#delete-dialog').data('resourceIndex', index);
@@ -127,6 +131,7 @@
       var file = $("input[name='resource-file']").val();
       var formData = new FormData($("form[name='uploadForm']")[0]);
 
+      $('#icon-pending').show();
       $.ajax({
         type: 'PUT',
         url: '/api/workspace/@project/resources/' + name,
@@ -139,9 +144,11 @@
         contentType: false,
         processData: false,
         success: function() {
+          $('#icon-pending').hide();
           reloadDialog();
         },
         error: function(request) {
+          $('#icon-pending').hide();
           alert(request.responseText);
         }
       });
