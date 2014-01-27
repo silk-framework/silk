@@ -109,7 +109,7 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
                         "datasourceUri" -> "http://www.example.org/smw-lde/smwDatasources/Wiki",
                         "excludedDatasourceUri" -> targetDatasourceUri,
                         "id" -> "Wiki")
-      datasources ::= SourceTask(Source("TARGET",DataSource("LDEsparqlEndpoint",params)))
+      datasources ::= SourceTask(LDEProject.this, Source("TARGET",DataSource("LDEsparqlEndpoint",params)))
 
       datasources
     }
@@ -144,12 +144,12 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
            val params = Map( "endpointURI" -> endpointUri,
                              "id" -> id,
                             "datasourceUri" -> dataSourceUri)
-           SourceTask(Source("SOURCE", DataSource("LDEsparqlEndpoint",params)))
+           SourceTask(LDEProject.this, Source("SOURCE", DataSource("LDEsparqlEndpoint",params)))
         }
         else {
            // Datasource definition not found
            // TODO - throw Exception 'Error in retrieving the datasource' ?
-           SourceTask(Source("DataSource_Not_Found", DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
+           SourceTask(LDEProject.this, Source("DataSource_Not_Found", DataSource("LDEsparqlEndpoint",Map( "endpointURI" -> ""))))
         }
     }
   }

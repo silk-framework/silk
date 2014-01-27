@@ -90,7 +90,7 @@ class XMLProject(linkSpec : Node) extends Project
       for (ds <- doc \\ "DataSource")   yield
       {
         val source = Source.fromXML(ds, resourceManager)
-        SourceTask(source)
+        SourceTask(XMLProject.this, source)
       }
     }
 

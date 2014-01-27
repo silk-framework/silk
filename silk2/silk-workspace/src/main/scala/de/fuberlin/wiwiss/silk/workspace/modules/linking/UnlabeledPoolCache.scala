@@ -4,8 +4,9 @@ import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link}
 import de.fuberlin.wiwiss.silk.workspace.Project
 import scala.xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 
-class UnlabeledPoolCache extends Cache[Seq[Link]](Seq.empty) {
+class UnlabeledPoolCache extends Cache[LinkingTask, Seq[Link]](Seq.empty) {
 
   /**
    * Loads the unlabeled pool.
