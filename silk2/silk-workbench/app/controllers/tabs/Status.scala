@@ -20,13 +20,28 @@ object Status extends Controller {
     Ok.chunked(Widgets.taskStatus(stream, "cache"))
   }
   
-  def typesCacheStream(projectName: String, taskName: String) = Action {
+  def sourceTypesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val linkingTask = project.linkingModule.task(taskName)
 
-    val stream = Stream.taskStatus(task.cache.typesCache)
+    val sourceTaskName = linkingTask.linkSpec.datasets.source.sourceId
+    val sourceTask = project.sourceModule.task(sourceTaskName)
 
-    Ok.chunked(Widgets.taskStatus(stream, "typesCache"))
+    val stream = Stream.taskStatus(sourceTask.cache)
+
+    Ok.chunked(Widgets.taskStatus(stream, "sourceTypesCache"))
+  }
+
+  def targetTypesCacheStream(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val linkingTask = project.linkingModule.task(taskName)
+
+    val sourceTaskName = linkingTask.linkSpec.datasets.target.sourceId
+    val sourceTask = project.sourceModule.task(sourceTaskName)
+
+    val stream = Stream.taskStatus(sourceTask.cache)
+
+    Ok.chunked(Widgets.taskStatus(stream, "targetTypesCache"))
   }
 
   def pathCacheStream(projectName: String, taskName: String) = Action {

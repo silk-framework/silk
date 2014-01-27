@@ -16,11 +16,27 @@ package de.fuberlin.wiwiss.silk.workspace.modules.source
 
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 
 /**
  * A data source.
  */
-case class SourceTask(source : Source) extends ModuleTask
-{
+class SourceTask private(val source : Source, val cache: TypesCache) extends ModuleTask {
+
   val name = source.id
 }
+
+object SourceTask {
+  /**
+   * Constructs a new source task and starts loading the cache.
+   */
+  def apply(project: Project, source: Source, cache: TypesCache = new TypesCache()) = {
+    val task = new SourceTask(source, cache)
+    task.cache.load(project, task)
+    task
+  }
+}
+

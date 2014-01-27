@@ -6,8 +6,9 @@ import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
 import xml.{NodeSeq, NodeBuffer, Node}
 import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 
-class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[ReferenceEntities](ReferenceEntities.empty) {
+class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, ReferenceEntities](ReferenceEntities.empty) {
 
   /** Alias for value to make code more readable */
   private def entities = value
@@ -15,7 +16,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[ReferenceEnti
   /** Alias for value to make code more readable */
   private def entities_=(v: ReferenceEntities) { value = v}
 
-  def update(project: Project, task: LinkingTask) {
+  override def update(project: Project, task: LinkingTask) {
     updateStatus("Waiting for paths cache", 0.0)
     pathsCache.waitUntilLoaded()
 

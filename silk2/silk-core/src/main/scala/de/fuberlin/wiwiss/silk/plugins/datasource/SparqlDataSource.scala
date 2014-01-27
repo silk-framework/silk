@@ -76,11 +76,9 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
     try {
       SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)
     } catch {
-      case ex: Exception => {
+      case ex: Exception =>
         logger.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
-
         SparqlSamplePathsCollector(createEndpoint(), restrictions, limit)
-      }
     }
   }
 
