@@ -193,7 +193,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = SourceTask(Source.fromXML(xml.head, project.resourceManager))
+          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resourceManager))
           project.sourceModule.update(sourceTask)
           Ok
         } catch {

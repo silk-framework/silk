@@ -29,7 +29,7 @@ object SilkConfigImporter {
 
     //Add all sources
     for(source <- config.sources) {
-      project.sourceModule.update(SourceTask(source))
+      project.sourceModule.update(SourceTask(project, source))
     }
 
     //Add all linking tasks

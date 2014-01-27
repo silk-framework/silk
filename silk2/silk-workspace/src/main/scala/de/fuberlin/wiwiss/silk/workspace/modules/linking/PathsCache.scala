@@ -5,11 +5,12 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.workspace.Project
 import xml.{Node, NodeSeq, NodeBuffer}
+import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 
 /**
  * Holds the most frequent paths.
  */
-class PathsCache() extends Cache[DPair[EntityDescription]](null) {
+class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
 
   /**
    * Loads the most frequent property paths.
