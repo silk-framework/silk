@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, DynamicButton, TaskContr
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.GenerateLinksDialog
 import de.fuberlin.wiwiss.silk.workspace.{CurrentTaskStatusListener, User, TaskData}
 import de.fuberlin.wiwiss.silk.workbench.evaluation.CurrentGenerateLinksTask
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStarted, TaskStatus}
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.http.js.JsCmds.Alert
 

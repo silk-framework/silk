@@ -12,11 +12,12 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.plugin
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import de.fuberlin.wiwiss.silk.util.ValidationException
 import java.lang.reflect.{InvocationTargetException, Constructor}
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * Describes a plugin.
@@ -132,7 +133,7 @@ object PluginDescription {
         case "int" => Parameter.Type.Int
         case "double" => Parameter.Type.Double
         case "boolean" => Parameter.Type.Boolean
-        case "de.fuberlin.wiwiss.silk.util.plugin.Resource" => Parameter.Type.Resource
+        case "de.fuberlin.wiwiss.silk.runtime.resource.Resource" => Parameter.Type.Resource
         case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
       }
 

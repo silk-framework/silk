@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.task
+package de.fuberlin.wiwiss.silk.runtime.task
 
-import de.fuberlin.wiwiss.silk.util.task.ValueTask.ValueHolder
+import de.fuberlin.wiwiss.silk.runtime.task.ValueTask.ValueHolder
 import de.fuberlin.wiwiss.silk.util.Observable
 
 /**

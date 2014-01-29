@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.task
+package de.fuberlin.wiwiss.silk.runtime.task
 
 import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.util.Observable

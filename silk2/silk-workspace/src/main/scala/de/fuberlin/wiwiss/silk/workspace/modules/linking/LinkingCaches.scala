@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 import xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.util.task._
+import de.fuberlin.wiwiss.silk.runtime.task._
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 
 /**

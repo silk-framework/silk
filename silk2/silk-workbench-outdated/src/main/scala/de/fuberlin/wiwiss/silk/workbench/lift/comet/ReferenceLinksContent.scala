@@ -21,7 +21,7 @@ import net.liftweb.http.SHtml
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds.JsHideId
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink._
-import de.fuberlin.wiwiss.silk.util.task._
+import de.fuberlin.wiwiss.silk.runtime.task._
 import de.fuberlin.wiwiss.silk.workbench.lift.util.JS
 import de.fuberlin.wiwiss.silk.entity.Link
 

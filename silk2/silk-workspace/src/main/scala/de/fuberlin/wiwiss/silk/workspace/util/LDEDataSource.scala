@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.workspace.util
 
 import de.fuberlin.wiwiss.silk.plugins.datasource.SparqlDataSource
-import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path}
 
 @Plugin(id = "LDEsparqlEndpoint", label = "LDE SPARQL Endpoint", description = "DataSource in the LDE context")

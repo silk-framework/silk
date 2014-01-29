@@ -18,7 +18,7 @@ import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.cache.EntityCache
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, Future, Task}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, Future, Task}
 
 /**
  * Loads the entity cache

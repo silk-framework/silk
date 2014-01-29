@@ -18,7 +18,7 @@ import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.util.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import java.io.File

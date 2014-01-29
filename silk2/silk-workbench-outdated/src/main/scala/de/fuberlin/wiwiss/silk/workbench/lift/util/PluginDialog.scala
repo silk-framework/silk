@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, Parameter, PluginDescription}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, Parameter, PluginDescription}
 import de.fuberlin.wiwiss.silk.workbench.lift.snippet.Workspace
 import net.liftweb.http.SHtml
 import net.liftweb.http.js.JE.JsRaw

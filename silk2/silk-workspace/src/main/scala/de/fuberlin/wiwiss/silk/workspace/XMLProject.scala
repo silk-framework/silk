@@ -24,7 +24,7 @@ import java.util.logging.Logger
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Node, Elem}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 
 /**
  * Implementation of a project which maps an XML Silk Link Specification document.

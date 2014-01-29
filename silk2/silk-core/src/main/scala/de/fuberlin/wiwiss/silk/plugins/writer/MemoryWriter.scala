@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.writer
 
 import de.fuberlin.wiwiss.silk.output.LinkWriter
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Link
 
 @Plugin(id = "memory", label = "Memory")

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.resource
 
 import java.io.InputStream
 

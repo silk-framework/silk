@@ -12,12 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.plugin
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
 import org.clapper.classutil._
 import collection.immutable.ListMap
+import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 
 /**
  * An abstract Factory.

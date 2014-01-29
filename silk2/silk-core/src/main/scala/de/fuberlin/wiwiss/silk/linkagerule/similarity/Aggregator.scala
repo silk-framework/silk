@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
-import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.Index
 
 trait Aggregator extends AnyPlugin {

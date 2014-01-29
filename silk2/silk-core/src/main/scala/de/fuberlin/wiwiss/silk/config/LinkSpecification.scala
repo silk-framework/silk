@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
-import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * Represents a Silk Link Specification.

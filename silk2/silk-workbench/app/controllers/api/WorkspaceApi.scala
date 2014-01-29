@@ -17,8 +17,8 @@ import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import de.fuberlin.wiwiss.silk.config._
-import java.io.{ByteArrayInputStream, FileInputStream, ByteArrayOutputStream}
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceManager
+import java.io.{FileInputStream, ByteArrayOutputStream}
+import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 import play.api.libs.iteratee.Enumerator
 import scala.concurrent.ExecutionContext.Implicits.global
 

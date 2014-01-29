@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workbench.lift.util
 
-import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, TaskFinished, TaskStarted, Task}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskStatus, TaskFinished, TaskStarted, Task}
 
 class TaskControl(task: Task[_], cancelable: Boolean = false) extends DynamicButton {
 

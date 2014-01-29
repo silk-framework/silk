@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import java.net.{URLEncoder, HttpURLConnection, URL}
 import xml.Elem
 import collection.mutable.{ArrayBuffer, HashSet, Set => MSet}

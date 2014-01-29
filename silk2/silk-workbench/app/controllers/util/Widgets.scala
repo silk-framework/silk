@@ -1,7 +1,7 @@
 package controllers.util
 
 import play.api.libs.iteratee.Enumerator
-import de.fuberlin.wiwiss.silk.util.task.TaskStatus
+import de.fuberlin.wiwiss.silk.runtime.task.TaskStatus
 import play.api.libs.Comet
 import play.api.libs.json._
 import play.api.libs.concurrent.Execution.Implicits._

@@ -18,7 +18,7 @@ import modules.linking.LinkingModule
 import modules.output.OutputModule
 import modules.source.SourceModule
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.util.plugin.{ResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 
 trait Project {
   /**
