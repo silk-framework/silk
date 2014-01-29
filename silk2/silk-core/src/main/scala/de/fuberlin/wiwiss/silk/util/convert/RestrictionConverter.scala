@@ -14,7 +14,6 @@
 
 package de.fuberlin.wiwiss.silk.util.convert
 
-
 import util.parsing.combinator.RegexParsers
 import de.fuberlin.wiwiss.silk.util.ValidationException
 import de.fuberlin.wiwiss.silk.entity.Path
@@ -46,10 +45,8 @@ class RestrictionConverter(implicit prefixes: Prefixes) extends RegexParsers {
   }
 
   def unionPatterns: Parser[Operator] = rep1(unionPattern <~ opt("UNION" <~ anyWhitespace) <~ opt(".")) ^^ {
-    r => r match {
-      case operator :: Nil => operator
-      case operators => Or(operators)
-    }
+    case operator :: Nil => operator
+    case operators => Or(operators)
   }
 
   def unionPattern = (anyWhitespace ~> opt(repsep(fowbrace, anyWhitespace)) ~> anyWhitespace) ~> triplePatterns <~ (anyWhitespace <~ opt(repsep(revbrace, anyWhitespace)) <~ anyWhitespace) ^^ {
@@ -67,10 +64,8 @@ class RestrictionConverter(implicit prefixes: Prefixes) extends RegexParsers {
 
 
   def triplePatterns: Parser[Operator] = rep1(triplePattern <~ anyWhitespace <~ opt(".")) ^^ {
-    r => r match {
-      case condition :: Nil => condition
-      case conditions => And(conditions)
-    }
+    case condition :: Nil => condition
+    case conditions => And(conditions)
   }
 
   def triplePattern = subj ~ predicate ~ objectt ^^ {
