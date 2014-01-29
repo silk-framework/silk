@@ -58,8 +58,7 @@ object Workspace extends Controller {
   }
 
   def importExample(project: String) = Action {
-    val exampleFile = WorkbenchConfig.loadFile("example.zip")
-    val inputStream = new FileInputStream(exampleFile)
+    val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").load
     User().workspace.importProject(project, inputStream)
     inputStream.close()
 

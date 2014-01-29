@@ -1,9 +1,9 @@
 package models
 
-import java.io.{FileNotFoundException, File}
-import scala.xml.{Elem, XML}
+import java.io.File
 import play.api.Play
 import play.api.Play.current
+import de.fuberlin.wiwiss.silk.runtime.resource._
 import models.WorkbenchConfig.Tabs
 
 /**
@@ -15,9 +15,9 @@ import models.WorkbenchConfig.Tabs
  * @param tabs The shown tabs.
  */
 case class WorkbenchConfig(title: String = "Silk Workbench",
-                           logo: File = new File("logo.png"),
-                           welcome: File = new File("welcome.html"),
-                           about: File = new File("about.html"),
+                           logo: Resource,
+                           welcome: Resource,
+                           about: Resource,
                            tabs: Tabs = Tabs()) {
 }
 
@@ -27,12 +27,13 @@ object WorkbenchConfig {
    */
   lazy val get = {
     val config = Play.configuration
+    val resourceLoader = getResourceLoader
 
     WorkbenchConfig(
       title = config.getString("workbench.title").getOrElse("Silk Workbench"),
-      logo = loadFile(config.getString("workbench.logo").getOrElse("logo.png")),
-      welcome = loadFile(config.getString("workbench.welcome").getOrElse("welcome.html")),
-      about = loadFile(config.getString("workbench.about").getOrElse("about.html")),
+      logo = resourceLoader.get(config.getString("workbench.logo").getOrElse("logo.png")),
+      welcome = resourceLoader.get(config.getString("workbench.welcome").getOrElse("welcome.html")),
+      about = resourceLoader.get(config.getString("workbench.about").getOrElse("about.html")),
       tabs = Tabs(
                config.getBoolean("workbench.tabs.editor").getOrElse(true),
                config.getBoolean("workbench.tabs.generateLinks").getOrElse(true),
@@ -43,20 +44,17 @@ object WorkbenchConfig {
     )
   }
 
-  /**
-   * Loads a file from the conf directory.
-   */
-  def loadFile(file: String) = {
-    //Depending on the distribution method, the configuration directory may be located at different paths
-    val paths = "conf/" + file :: "../conf/" + file :: Nil
-
-    //Trying all paths and using the first one that works
-    val files = paths.map(Play.getFile)
-    files.find(_.exists) match {
-      case Some(f) => f
-      case None =>
-        throw new FileNotFoundException(file + " not found. Tried paths: " + files.map(_.getAbsolutePath).mkString(", "))
-    }
+  def getResourceLoader: ResourceLoader = {
+    //Depending on the distribution method, the configuration resources may be located at different locations.
+    //We identify the configuration location by searching for the application configuration.
+    if(new File("conf/application.conf").exists())
+      new FileResourceManager(new File("conf/"))
+    else if(new File("../conf/application.conf").exists())
+      new FileResourceManager(new File("../conf/"))
+    else if(getClass.getClassLoader.getResourceAsStream("application.conf") != null)
+      new ClasspathResourceLoader("")
+    else
+      throw new ResourceNotFoundException("Could not locate configuration.")
   }
 
   /**
