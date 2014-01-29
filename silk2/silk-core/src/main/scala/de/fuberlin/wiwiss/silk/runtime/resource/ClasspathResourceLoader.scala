@@ -19,7 +19,7 @@ class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
    * @throws ResourceNotFoundException If no resource with the given name has been found.
    */
   override def get(name: String): Resource = {
-    val path = basePath.stripSuffix("/") + "/" + name
+    val path = basePath + name
     if(getClass.getClassLoader.getResource(path) == null)
       throw new ResourceNotFoundException(s"Resource $name not found in classpath $basePath")
     new ClasspathResource(name, path)
