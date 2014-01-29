@@ -19,7 +19,7 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.conversion
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import scala.math.BigInt;
 
 /**

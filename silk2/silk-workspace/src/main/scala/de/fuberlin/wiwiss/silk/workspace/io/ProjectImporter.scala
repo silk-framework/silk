@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.workspace.{ProjectConfig, Project}
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTask, LinkingCaches}
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 
 /**
  * Reads a project from a single XML file.

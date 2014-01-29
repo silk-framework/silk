@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
-import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, PluginFactory}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, PluginFactory}
 import de.fuberlin.wiwiss.silk.entity.Index
 
 trait DistanceMeasure extends AnyPlugin {

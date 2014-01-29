@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.Link
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 
 /**
  * The Silk Server.

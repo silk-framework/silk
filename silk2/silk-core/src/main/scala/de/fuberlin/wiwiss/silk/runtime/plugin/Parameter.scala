@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.plugin
 
 case class Parameter(name: String, dataType: Parameter.Type, description: String = "No description", defaultValue: Option[AnyRef] = None) {
 

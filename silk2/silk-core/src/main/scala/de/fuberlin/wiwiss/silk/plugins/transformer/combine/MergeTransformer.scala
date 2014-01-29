@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.combine
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 @Plugin(
   id = "merge",

@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.util.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
 import de.fuberlin.wiwiss.silk.util.RandomUtils._
 import util.Random

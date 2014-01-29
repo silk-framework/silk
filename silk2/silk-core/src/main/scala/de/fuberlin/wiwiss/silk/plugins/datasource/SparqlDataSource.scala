@@ -14,9 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.datasource
 
-import de.fuberlin.wiwiss.silk.datasource.{DataSource}
+import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.net.URI
-import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.sparql._

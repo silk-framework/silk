@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.numeric
 
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
 
 @Plugin(

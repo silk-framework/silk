@@ -19,9 +19,8 @@ import generation.{LinkageRuleGenerator, GeneratePopulationTask}
 import individual.Population
 import java.util.logging.Level
 import reproduction.ReproductionTask
-import de.fuberlin.wiwiss.silk.util.task.{Task, ValueTask}
+import de.fuberlin.wiwiss.silk.runtime.task.{Task, ValueTask}
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
 /**
  * Learns a linkage rule from reference links.

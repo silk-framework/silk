@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.datasource.{Source}
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
-import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * A Silk linking configuration.

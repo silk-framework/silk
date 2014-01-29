@@ -19,13 +19,13 @@ import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.util.plugin.{Parameter, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, AnyPlugin}
 import de.fuberlin.wiwiss.silk.workspace.io.{ProjectExporter, SilkConfigExporter}
 import net.liftweb.common.Full
 import de.fuberlin.wiwiss.silk.workspace.User
 import net.liftweb.json.JsonAST._
 import net.liftweb.http._
-import de.fuberlin.wiwiss.silk.util.task.TaskFinished
+import de.fuberlin.wiwiss.silk.runtime.task.TaskFinished
 
 /**
  * The Silk Workbench REST API.
@@ -104,7 +104,7 @@ object Api {
     Full(JsonResponse(json))
   }
 
-  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.util.plugin.PluginFactory[T]) = {
+  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.runtime.plugin.PluginFactory[T]) = {
     for(plugin <- factory.availablePlugins.toSeq.sortBy(_.label)) yield {
       JObject(JField("id", JString(plugin.id)) ::
               JField("label", JString(plugin.label)) ::

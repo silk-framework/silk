@@ -1,0 +1,28 @@
+@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+  linkingTask: de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask,
+  sourceTask: de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask)
+
+@widgets.dialog(title = "Source Restriction") {
+
+  @for((uri, frequency) <- sourceTask.cache.value) {
+    <div class="type">@uri</div>
+  }
+
+  <style type="text/css">
+    .type {
+      float: left;
+      height: 20px;
+      margin: 10px;
+      padding: 5px;
+      background-color: #eeeeee;
+      border-width: 1px;
+      border-style: solid;
+      border-color: #a0a0a0;
+    }
+
+    .type:hover {
+      background-color: #d0d0d0;
+    }
+  </style>
+
+}

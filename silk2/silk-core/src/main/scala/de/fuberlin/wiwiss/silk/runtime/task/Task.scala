@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.task
+package de.fuberlin.wiwiss.silk.runtime.task
 
-import de.fuberlin.wiwiss.silk.util.task.Task._
+import de.fuberlin.wiwiss.silk.runtime.task.Task._
 import java.util.logging.Level
 import java.util.concurrent.{TimeUnit, ThreadPoolExecutor, Callable, Executors}
 import de.fuberlin.wiwiss.silk.util.StringUtils._

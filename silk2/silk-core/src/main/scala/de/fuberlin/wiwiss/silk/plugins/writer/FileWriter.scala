@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.writer
 
 import de.fuberlin.wiwiss.silk.output.{Formatter, LinkWriter}
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Link
 import java.io.{File, BufferedWriter, Writer}
 

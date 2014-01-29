@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import collection.mutable.WeakHashMap
 import de.fuberlin.wiwiss.silk.util.Observable
-import de.fuberlin.wiwiss.silk.util.task.{TaskStatus, HasStatus, ValueTask}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskStatus, HasStatus, ValueTask}
 import java.util.concurrent.{TimeUnit, Executors}
 import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.workspace.User.CurrentTaskChanged

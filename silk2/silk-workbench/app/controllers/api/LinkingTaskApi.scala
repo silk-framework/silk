@@ -5,10 +5,10 @@ import play.api.libs.json.{JsString, JsObject, JsArray, JsNumber, JsBoolean}
 import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.entity.Path
-import de.fuberlin.wiwiss.silk.util.task.TaskFinished
+import de.fuberlin.wiwiss.silk.runtime.task.TaskFinished
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.util.plugin.{Parameter, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, AnyPlugin}
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
@@ -229,7 +229,7 @@ object LinkingTaskApi extends Controller {
     json
   }
 
-  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.util.plugin.PluginFactory[T]) = {
+  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.runtime.plugin.PluginFactory[T]) = {
     for(plugin <- factory.availablePlugins.toSeq.sortBy(_.label)) yield {
       JsObject(("id", JsString(plugin.id)) ::
                ("categories", JsArray(plugin.categories.toSeq.map(JsString(_)))) ::

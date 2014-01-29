@@ -2,7 +2,7 @@ package controllers.util
 
 import java.util.IdentityHashMap
 import play.api.libs.iteratee.{Concurrent, Enumerator}
-import de.fuberlin.wiwiss.silk.util.task.{ValueTask, HasStatus, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{ValueTask, HasStatus, TaskStatus}
 import models._
 import scala.concurrent.ExecutionContext.Implicits.global
 

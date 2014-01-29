@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.util.task.Task
+import de.fuberlin.wiwiss.silk.runtime.task.Task
 import collection.mutable.{ArrayBuffer, Buffer}
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.config.LinkFilter

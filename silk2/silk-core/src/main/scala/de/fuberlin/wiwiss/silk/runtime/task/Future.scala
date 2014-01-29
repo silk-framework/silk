@@ -12,18 +12,29 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.task
 
 /**
- * Plugin interface.
+ * Represents the result of an asynchronous computation.
  */
-trait AnyPlugin {
-  private[plugin] var id = ""
-  private[plugin] var parameters = Map[String, String]()
+trait Future[+T] extends (() => T) {
+  /**
+   * Blocks until the computation to complete, and then retrieves its result.
+   */
+  override def apply(): T
 
-  def pluginId = id
+  /**
+   * Returns true if the result is available.
+   */
+  def isSet: Boolean
+}
 
-  override def toString = {
-    getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
+object Future {
+  implicit def fromJavaFuture[T](future: java.util.concurrent.Future[T]) = {
+    new Future[T] {
+      def apply() = future.get
+
+      def isSet = future.isDone
+    }
   }
 }

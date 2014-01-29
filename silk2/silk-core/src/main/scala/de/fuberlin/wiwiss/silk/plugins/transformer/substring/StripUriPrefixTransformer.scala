@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.substring
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import math.max
 import java.net.URLDecoder
 import java.util.logging.{Level, Logger}

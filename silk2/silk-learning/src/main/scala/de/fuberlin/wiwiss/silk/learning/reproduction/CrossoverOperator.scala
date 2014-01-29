@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, PluginFactory}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, PluginFactory}
 import de.fuberlin.wiwiss.silk.learning.individual.LinkageRuleNode
 
 //TODO implement operators: toggle required, change plugin

@@ -8,7 +8,7 @@ import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import java.util.logging.ConsoleHandler
 import models._
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
 import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningInput, LearningTask}
 
 object ControlApi extends Controller {
