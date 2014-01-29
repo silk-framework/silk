@@ -36,7 +36,7 @@
       <td>
         <input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="50"
                value="@datasets.map(_.source.restriction.toSparql).getOrElse("?a rdf:type myprefix:myclass")"/>
-        @* <img title="Edit" style="cursor: pointer" onclick="editRestriction()" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" /> *@
+        <img title="Edit" style="cursor: pointer" onclick="editRestriction()" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
       </td>
     </tr>
     <tr>
@@ -78,7 +78,7 @@
     restrictionDialog = $('#restrictionDialog');
     $.get('/workspace/@project/linking/@task/' + source + '/dialog', function(data) {
       restrictionDialog.html(data);
-    }).success(function() { restrictionDialog.dialog(); } )
+    }).success(function() { restrictionDialog.dialog({ title: 'Source Restriction', width: 600 }); } )
   }
 
   function submit() {
