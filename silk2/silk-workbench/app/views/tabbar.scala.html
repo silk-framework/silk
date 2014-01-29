@@ -2,7 +2,7 @@
 
 @import models.WorkbenchConfig.{get => config}
 
-@baseUrl = @{ play.Play.application.configuration.getString("application.baseUrl") }
+@baseUrl = @{ play.Play.application.configuration.getString("application.context") }
 
 <div id="tabbar">
   <div id="title">@config.title</div>
@@ -16,6 +16,6 @@
       @if(config.tabs.referenceLinks) { <div class="tab @if(tab == "referenceLinks") {selected}"><a href="@baseUrl/@p/@t/referenceLinks">Reference Links</a></div> }
       @if(config.tabs.status)         { <div class="tab @if(tab == "status") {selected}"        ><a href="@baseUrl/@p/@t/status">Status</a></div> }
     }
-    <div class="tab"><a onclick="showDialog('/aboutDialog')">About</a></div>
+    <div class="tab"><a onclick="showDialog('@baseUrl/aboutDialog')">About</a></div>
   </span>
 </div>
