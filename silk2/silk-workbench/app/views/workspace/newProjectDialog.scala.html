@@ -18,7 +18,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '/api/workspace/' + name,
+        url: '@config.baseUrl/api/workspace/' + name,
         data: "",
         success: function(data) {
           closeDialog();

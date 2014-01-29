@@ -108,14 +108,14 @@
 
     // Downloads a resource
     function getResource(name) {
-      window.location = '/api/workspace/@project/resources/' + name
+      window.location = '@config.baseUrl/api/workspace/@project/resources/' + name
     }
 
     // Deletes a resource
     function deleteResource(index, name) {
       $.ajax({
         type: 'DELETE',
-        url: '/api/workspace/@project/resources/' + name,
+        url: '@config.baseUrl/api/workspace/@project/resources/' + name,
         success: function(data) {
           $('#resource' + index).remove();
         },
@@ -134,7 +134,7 @@
       $('#icon-pending').show();
       $.ajax({
         type: 'PUT',
-        url: '/api/workspace/@project/resources/' + name,
+        url: '@config.baseUrl/api/workspace/@project/resources/' + name,
         xhr: function() {
           myXhr = $.ajaxSettings.xhr();
           return myXhr;
