@@ -43,7 +43,7 @@
 
       $.ajax({
        type: 'PUT',
-       url: '/api/workspace/@project/prefixes',
+       url: '@config.baseUrl/api/workspace/@project/prefixes',
        data: data,
        success: function(data) {
           $('.dialog').dialog('close');

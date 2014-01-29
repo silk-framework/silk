@@ -2,13 +2,21 @@
   linkingTask: de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask,
   sourceTask: de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask)
 
-@widgets.dialog(title = "Source Restriction") {
-
-  @for((uri, frequency) <- sourceTask.cache.value) {
-    <div class="type">@uri</div>
-  }
+   @* TODO shorten URIs with prefixes *@
+  <div id="typelist">
+    @for((uri, frequency) <- sourceTask.cache.value) {
+      <div class="type">@if(uri.size < 40) {@uri} else {...@uri.takeRight(37)}</div>
+    }
+  </div>
 
   <style type="text/css">
+    #typelist {
+      width: 500px;
+      height: 300px;
+      border: 1px solid black;
+      overflow-y: scroll;
+    }
+
     .type {
       float: left;
       height: 20px;
@@ -22,7 +30,6 @@
 
     .type:hover {
       background-color: #d0d0d0;
+      cursor: pointer;
     }
   </style>
-
-}
