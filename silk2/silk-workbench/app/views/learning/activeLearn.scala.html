@@ -12,8 +12,8 @@
   <script src="@routes.Assets.at("js/links.js")" type="text/javascript"></script>
 
   <script type="text/javascript">
-    var apiUrl = '../../api/workspace/@project/linking/@task/referenceLinks';
-    var taskUrl = '../../api/tasks/@project/@task';
+    var apiUrl = '@config.baseUrl/api/workspace/@project/linking/@task/referenceLinks';
+    var taskUrl = '@config.baseUrl/api/tasks/@project/@task';
 
     initLinks('learn', 'links');
   </script>

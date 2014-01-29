@@ -31,7 +31,7 @@ function submit() {
 
   $.ajax({
     type: 'PUT',
-    url: '../../api/tasks/@project/@task/generateLinks',
+    url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
     data: values,
     success: function(response) {
       $('.dialog').dialog('close');

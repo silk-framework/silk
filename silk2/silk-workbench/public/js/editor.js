@@ -2082,7 +2082,7 @@ function reloadPropertyPaths() {
 function reloadCache() {
   $.ajax({
     type: "PUT",
-    url: '../../api/tasks/' + projectName + '/' + taskName + '/reloadCache',
+    url: apiUrl + '/tasks/' + projectName + '/' + taskName + '/reloadCache',
     dataType: "xml",
     success: function() { updateScore() }
   });

@@ -188,7 +188,7 @@ function addOutput(jsonOutput,projectNode,projectName)
 }
 
 function updateWorkspace(){
-  $.get('api/workspace', function(data) {
+  $.get(baseUrl + '/api/workspace', function(data) {
     loadWorkspace(data);
   }).fail(function(request) { alert(request.responseText);  })
 }
@@ -376,59 +376,59 @@ function callAction(action,proj,res){
 }
 
 function newProject() {
-  showDialog('workspace/dialogs/newproject');
+  showDialog(baseUrl + '/workspace/dialogs/newproject');
 }
 
 function importProject() {
-  showDialog('workspace/dialogs/importproject');
+  showDialog(baseUrl + '/workspace/dialogs/importproject');
 }
 
 function importLinkSpec(project) {
-  showDialog('workspace/dialogs/importlinkspec/' + project);
+  showDialog(baseUrl + '/workspace/dialogs/importlinkspec/' + project);
 }
 
 function exportProject(project) {
-  window.location = 'api/workspace/' + project + '/export'
+  window.location = baseUrl + '/api/workspace/' + project + '/export'
 }
 
 function deleteProject(project) {
-  deleteTask('api/workspace/' + project);
+  deleteTask(baseUrl + '/api/workspace/' + project);
 }
 
 function editPrefixes(project) {
-  showDialog('workspace/' + project + '/prefixes/dialog');
+  showDialog(baseUrl + '/workspace/' + project + '/prefixes/dialog');
 }
 
 function editResources(project) {
-  showDialog('workspace/' + project + '/resources/dialog');
+  showDialog(baseUrl + '/workspace/' + project + '/resources/dialog');
 }
 
 function editSource(project, source) {
-  showDialog('workspace/' + project + '/source/' + source + '/dialog');
+  showDialog(baseUrl + '/workspace/' + project + '/source/' + source + '/dialog');
 }
 
 function removeSource(project, source) {
-  deleteTask('/api/workspace/' + project + '/source/' + source);
+  deleteTask(baseUrl + '/api/workspace/' + project + '/source/' + source);
 }
 
 function editLinkingTask(project, task) {
-  showDialog('workspace/' + project + '/linking/' + task + '/dialog');
+  showDialog(baseUrl + '/workspace/' + project + '/linking/' + task + '/dialog');
 }
 
 function removeLinkingTask(project, task) {
-  deleteTask('api/workspace/' + project + '/linking/' + task);
+  deleteTask(baseUrl + '/api/workspace/' + project + '/linking/' + task);
 }
 
 function openLinkingTask(project, task) {
-  window.location = '/' + project + '/' + task + '/editor'
+  window.location = baseUrl + '/' + project + '/' + task + '/editor'
 }
 
 function editOutput(project, output) {
-  showDialog('workspace/' + project + '/output/' + output + '/dialog');
+  showDialog(baseUrl + '/workspace/' + project + '/output/' + output + '/dialog');
 }
 
 function removeOutput(project, output) {
-  deleteTask('api/workspace/' + project + '/output/' + output);
+  deleteTask(baseUrl + '/api/workspace/' + project + '/output/' + output);
 }
 
 function putTask(path, xml) {

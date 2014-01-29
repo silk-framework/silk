@@ -22,15 +22,15 @@
     Your current workspace contains @projects.size project(s).
   </p>
 
-  <button onclick="window.location = '/workspace'">Open Workspace</button>
+  <button onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
   @if(!projects.exists(_.name == exampleName)) {
     <button onclick="loadExample()">Load Example</button>
   }
 
   <script type="text/javascript">
     function loadExample() {
-      $.post('/workspace/@exampleName/importExample')
-      .success(function(request) { window.location = '/workspace' })
+      $.post('@config.baseUrl/workspace/@exampleName/importExample')
+      .success(function(request) { window.location = '@config.baseUrl/workspace' })
       .fail(function(request) { alert(request.responseText); })
     }
   </script>
