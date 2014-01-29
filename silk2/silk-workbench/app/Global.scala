@@ -6,6 +6,7 @@ import de.fuberlin.wiwiss.silk.workspace.FileUser
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import play.api.Play
 import scala.concurrent.Future
 
 object Global extends GlobalSettings {
@@ -28,5 +29,13 @@ object Global extends GlobalSettings {
   override def onError(request: RequestHeader, ex: Throwable) = {
     Future.successful(InternalServerError(ex.getMessage))
   }
+}
 
+/**
+ * Provides the global configuration.
+ */
+package object config {
+
+  /* The baseUrl where the application is deployed */
+  lazy val baseUrl = Play.configuration.getString("application.context").getOrElse("").stripSuffix("/")
 }
