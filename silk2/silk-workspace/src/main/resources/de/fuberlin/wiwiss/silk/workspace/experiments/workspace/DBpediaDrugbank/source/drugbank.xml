@@ -1,4 +1,0 @@
-<DataSource type="file" id="drugbank">
-  <Param name="file" value="drugbank.nt"></Param>
-  <Param name="format" value="N-TRIPLE"></Param>
-</DataSource>
