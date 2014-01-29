@@ -1,7 +1,5 @@
 package de.fuberlin.wiwiss.silk.runtime.resource
 
-import java.io.{FileInputStream, BufferedInputStream}
-
 /**
  * A resource loader that loads resources from the classpath.
  */
