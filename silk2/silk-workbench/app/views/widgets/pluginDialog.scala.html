@@ -1,10 +1,10 @@
 @(name: String,
-  plugins: Seq[de.fuberlin.wiwiss.silk.util.plugin.PluginDescription[_]],
-  currentObj: Option[de.fuberlin.wiwiss.silk.util.plugin.AnyPlugin],
+  plugins: Seq[de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription[_]],
+  currentObj: Option[de.fuberlin.wiwiss.silk.runtime.plugin.AnyPlugin],
   resources: List[String])(contents: Html)
 
-@import de.fuberlin.wiwiss.silk.util.plugin.PluginDescription
-@import de.fuberlin.wiwiss.silk.util.plugin.Parameter
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
+@import de.fuberlin.wiwiss.silk.runtime.plugin.Parameter
 
 @dialog(title = "Edit Properties", width = 500) {
   <div id="plugintabs">

@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
-import de.fuberlin.wiwiss.silk.util.task._
+import de.fuberlin.wiwiss.silk.runtime.task._
 import net.liftweb.http.SHtml
 import xml.NodeSeq
 import de.fuberlin.wiwiss.silk.workbench.evaluation.EvalLink.{Correct, Incorrect, Unknown, Generated}

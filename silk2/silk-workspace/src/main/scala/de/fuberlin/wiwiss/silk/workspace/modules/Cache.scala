@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStarted, HasStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStarted, HasStatus}
 import java.util.logging.Level
 import xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask

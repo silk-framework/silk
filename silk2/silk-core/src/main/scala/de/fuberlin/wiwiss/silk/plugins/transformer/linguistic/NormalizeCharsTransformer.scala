@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import java.text.Normalizer
 import java.util.regex.Pattern
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 /**
  * Normalizes strings by removing diacritics, converting ß to ss, etc.

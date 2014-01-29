@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.util.plugin.{Parameter, PluginDescription}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, PluginDescription}
 import de.fuberlin.wiwiss.silk.util.Table
 
 /**

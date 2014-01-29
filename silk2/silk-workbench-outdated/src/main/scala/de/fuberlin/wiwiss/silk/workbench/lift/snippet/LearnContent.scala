@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask}
 import de.fuberlin.wiwiss.silk.workbench.learning._
 import de.fuberlin.wiwiss.silk.workspace.{CurrentTaskStatusListener, User}
-import de.fuberlin.wiwiss.silk.util.task.{TaskRunning, TaskStarted, TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskRunning, TaskStarted, TaskFinished, TaskStatus}
 
 class LearnContent {
   def render(xhtml: NodeSeq): NodeSeq = {

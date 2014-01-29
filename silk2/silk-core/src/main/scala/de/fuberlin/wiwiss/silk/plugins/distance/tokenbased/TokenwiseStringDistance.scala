@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.distance.tokenbased
 
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import java.util.regex.Pattern
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.entity.Index

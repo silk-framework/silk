@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.source.{TypesCache, SourceConfi
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
-import de.fuberlin.wiwiss.silk.datasource.{Source}
+import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -28,8 +28,8 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModuleTask, ModuleConfig}
+import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
+import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 
 /**
  * Implementation of a project which is stored on the local file system.

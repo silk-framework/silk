@@ -12,11 +12,21 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.plugin;
 
-/**
- * Thrown if a plugin is invalid.
- */
-class InvalidPluginException(e: String, cause: Throwable) extends Exception(e) {
-  def this(e: String) = this (e, null)
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Plugin {
+    String id();
+
+    String[] categories() default { "Uncategorized" };
+
+    String label();
+
+    String description() default "No description";
 }

@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
-import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * An input that retrieves a set of values.

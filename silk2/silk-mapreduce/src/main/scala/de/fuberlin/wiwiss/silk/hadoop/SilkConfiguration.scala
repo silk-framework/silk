@@ -19,7 +19,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 
 object SilkConfiguration {
   val InputParam = "silk.inputpath"

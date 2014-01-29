@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.util.Uri
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.util.task.Task
+import de.fuberlin.wiwiss.silk.runtime.task.Task
 
 /**
  * Writes the links to the output.

@@ -20,7 +20,7 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
-import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * A comparison computes the similarity of two inputs.

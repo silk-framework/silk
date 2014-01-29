@@ -19,7 +19,7 @@ import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.io.File
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 
 class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 

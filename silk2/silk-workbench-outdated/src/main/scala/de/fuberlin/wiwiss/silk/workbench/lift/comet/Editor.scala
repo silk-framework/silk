@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import net.liftweb.http.js.JE._
 import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import net.liftweb.http.{CometActor, SHtml}
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigExporter
 import java.io.StringReader
 import java.util.Properties

@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.sparql.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.workspace.util._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import collection.mutable.SynchronizedQueue
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 
 /**
  * Implementation of a project which is stored on the MediaWiki LDE TripleStore - OntoBroker.

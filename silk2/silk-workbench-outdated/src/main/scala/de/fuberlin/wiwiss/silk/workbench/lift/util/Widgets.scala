@@ -20,7 +20,7 @@ import net.liftweb.http.js.JsCmds.{SetHtml, Script, OnLoad}
 import JS.PeriodicUpdate
 import net.liftweb.http.js.JE.JsRaw
 import xml.{NodeBuffer, Text}
-import de.fuberlin.wiwiss.silk.util.task.{HasStatus, Task}
+import de.fuberlin.wiwiss.silk.runtime.task.{HasStatus, Task}
 
 object Widgets {
   @deprecated("Use TaskControl instead")

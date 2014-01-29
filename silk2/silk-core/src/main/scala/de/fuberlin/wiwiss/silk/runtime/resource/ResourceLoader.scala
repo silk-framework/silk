@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.util.plugin
+package de.fuberlin.wiwiss.silk.runtime.resource
 
 /**
  * Loads external resources that are required by a data set, such as files.

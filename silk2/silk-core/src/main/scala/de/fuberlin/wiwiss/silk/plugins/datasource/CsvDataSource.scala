@@ -3,7 +3,8 @@ package de.fuberlin.wiwiss.silk.plugins.datasource
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import io.Source
-import de.fuberlin.wiwiss.silk.util.plugin.{Resource, Plugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 @Plugin(
   id = "csv",

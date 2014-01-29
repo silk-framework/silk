@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.replace
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import util.matching.Regex
 
 @Plugin(
