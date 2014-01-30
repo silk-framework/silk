@@ -10,11 +10,10 @@
 
 @widgets.dialog(title = "Linking Task") {
   <table border="0">
-    @if(!linkingTask.isDefined) {
+    @if(task.isEmpty) {
       <tr>
         <td>Name</td>
-        <td><input name="name" title="Name" size="60"
-                   value="@task"/></td>
+        <td><input name="name" title="Name" size="60"/></td>
       </tr>
     }
     <tr>
@@ -35,8 +34,8 @@
       <td>Source restriction</td>
       <td>
         <input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="50"
-               value="@datasets.map(_.source.restriction.toSparql).getOrElse("?a rdf:type myprefix:myclass")"/>
-        <img title="Edit" style="cursor: pointer" onclick="editRestriction()" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
+               value="@datasets.map(_.source.restriction).getOrElse("")"/>
+        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
       </td>
     </tr>
     <tr>
@@ -55,8 +54,11 @@
     </tr>
     <tr>
       <td>Target restriction</td>
-      <td><input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="50"
-                 value="@datasets.map(_.target.restriction.toSparql).getOrElse("?b rdf:type myprefix:myclass")"/></td>
+      <td>
+        <input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="50"
+               value="@datasets.map(_.target.restriction).getOrElse("")"/>
+        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
+      </td>
     </tr>
     <tr>
       <td>Link type</td>
@@ -73,17 +75,35 @@
 <div id="restrictionDialog"></div>
 
 <script type="text/javascript">
-  function editRestriction() {
-    var source = $("select[name='source']").val();
+  // The currently edited datasource. Either 'source' or 'target'.
+  var sourceOrTarget;
+  // The name of the currently edited datasource.
+  var sourceName;
+  // The currently edited sparql restriction.
+  var sparqlRestriction;
+
+  function openRestrictionDialog(openSourceOrTarget) {
+    // Set variables
+    sourceOrTarget = openSourceOrTarget;
+    sourceName = $("select[name='" + sourceOrTarget + "']").val()
+    sparqlRestriction = $("input[name='" + sourceOrTarget + "restriction']").val();
+
+    // Retrieve and open dialog
     restrictionDialog = $('#restrictionDialog');
-    $.get('/workspace/@project/linking/@task/' + source + '/dialog', function(data) {
+    $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName, function(data) {
       restrictionDialog.html(data);
-    }).success(function() { restrictionDialog.dialog({ title: 'Source Restriction', width: 600 }); } )
+    }).success(function() { restrictionDialog.dialog({ title: 'Restriction', width: 600 }); } )
+  }
+
+  function closeRestrictionDialog(newRestriction) {
+    $("input[name='" + sourceOrTarget + "restriction']").val(newRestriction);
+    $('#restrictionDialog').dialog('close');
+    $('#restrictionDialog').empty();
   }
 
   function submit() {
     var values = {
-      name: $("select[name='name']").val(),
+      name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
       source: $("select[name='source']").val(),
       sourcerestriction: $("input[name='sourcerestriction']").val(),
       target: $("select[name='target']").val(),
@@ -91,9 +111,14 @@
       linktype: $("input[name='linktype']").val()
     };
 
+    if(values.name.length === 0) {
+      alert("Task name is empty.");
+      return;
+    }
+
     $.ajax({
       type: 'PUT',
-      url: '/api/workspace/@project/linking/@task',
+      url: '@config.baseUrl/api/workspace/@project/linking/' + values.name,
       data: values,
       success: function(data) {
         $('.dialog').dialog('close');

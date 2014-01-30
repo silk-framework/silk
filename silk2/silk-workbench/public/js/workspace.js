@@ -254,12 +254,12 @@ function loadWorkspace(obj){
                     $(proj_span).append(proj_actions);
                 addAction('edit_prefixes', 'Prefixes','Edit Prefixes',"editPrefixes('"+project.name+"')",proj_actions,project.name,true);
                 addAction('edit_resources', 'Resources','Manage Resources',"editResources('"+project.name+"')",proj_actions,project.name,true);
-                addAction('ds_add', 'Source','Add data source',"editSource('"+project.name+"', 'unnamed')",proj_actions,project.name,true);
+                addAction('ds_add', 'Source','Add data source',"newSource('"+project.name+"')",proj_actions,project.name,true);
                 if (enableVoidSourceButton===true) {
                   addAction('ds_add', 'Source from VoID','Add data source from VoID',"createVoidSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 }
-                addAction('link_add', 'Task','Add linking task',"editLinkingTask('"+project.name+"', 'unnamed')",proj_actions,project.name,true);
-                addAction('output_add', 'Output','Add output',"editOutput('"+project.name+"', 'unnamed')",proj_actions,project.name,true);
+                addAction('link_add', 'Task','Add linking task',"newLinkingTask('"+project.name+"')",proj_actions,project.name,true);
+                addAction('output_add', 'Output','Add output',"newOutput('"+project.name+"')",proj_actions,project.name,true);
                 addAction('add_linkspec', 'Link Spec', 'Add link specification', "importLinkSpec('"+project.name+"')",proj_actions,project.name,true);
                 addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
                 addAction('delete', 'Remove','Remove project',"confirmDelete('deleteProject','"+project.name+"','')",proj_actions,'',true);
@@ -396,23 +396,31 @@ function deleteProject(project) {
 }
 
 function editPrefixes(project) {
-  showDialog(baseUrl + '/workspace/' + project + '/prefixes/dialog');
+  showDialog(baseUrl + '/workspace/dialogs/prefixes/' + project);
 }
 
 function editResources(project) {
-  showDialog(baseUrl + '/workspace/' + project + '/resources/dialog');
+  showDialog(baseUrl + '/workspace/dialogs/resources/' + project);
+}
+
+function newSource(project) {
+  showDialog(baseUrl + '/workspace/dialogs/newSource/' + project);
 }
 
 function editSource(project, source) {
-  showDialog(baseUrl + '/workspace/' + project + '/source/' + source + '/dialog');
+  showDialog(baseUrl + '/workspace/dialogs/editSource/' + project + '/' + source);
 }
 
 function removeSource(project, source) {
   deleteTask(baseUrl + '/api/workspace/' + project + '/source/' + source);
 }
 
+function newLinkingTask(project) {
+  showDialog(baseUrl + '/workspace/dialogs/newLinkingTask/' + project);
+}
+
 function editLinkingTask(project, task) {
-  showDialog(baseUrl + '/workspace/' + project + '/linking/' + task + '/dialog');
+  showDialog(baseUrl + '/workspace/dialogs/editLinkingTask/' + project + '/' + task);
 }
 
 function removeLinkingTask(project, task) {
@@ -423,8 +431,12 @@ function openLinkingTask(project, task) {
   window.location = baseUrl + '/' + project + '/' + task + '/editor'
 }
 
+function newOutput(project) {
+  showDialog(baseUrl + '/workspace/dialogs/newOutput/' + project);
+}
+
 function editOutput(project, output) {
-  showDialog(baseUrl + '/workspace/' + project + '/output/' + output + '/dialog');
+  showDialog(baseUrl + '/workspace/dialogs/editOutput/' + project + '/' + output);
 }
 
 function removeOutput(project, output) {

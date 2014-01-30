@@ -45,6 +45,11 @@
     function @(plugin.id)_submit() {
       // Retrieve the name of the plugin
       var name = $('[name=\'@(plugin.id)_name\']').val();
+      if(name.length === 0) {
+        alert("Name is empty.");
+        return;
+      }
+
       // Retrieve all plugin parameters
       var parameters = [
         @for(param <- plugin.parameters) {
@@ -52,6 +57,7 @@
             value: $('[name=\'@(plugin.id)_@(param.name)\']').val() },
         }
       ];
+
       // Submit dialog
       submit('@plugin.id', name, parameters);
     }
