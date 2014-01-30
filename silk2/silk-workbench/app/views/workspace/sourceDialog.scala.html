@@ -8,7 +8,7 @@
                       currentObj = User().workspace.project(project).sourceModule.tasks.find(_.name == source).map(_.source.dataSource),
                       resources = User().workspace.project(project).resourceManager.list) {
 
-  <script>//<![CDATA[
+  <script type="text/javascript">
     function submit(pluginId, name, parameters) {
       // Build data source xml
       var xml = '<DataSource id=\'' + name + '\' type=\'' + pluginId + '\'>';
@@ -18,13 +18,14 @@
       xml += '</DataSource>';
 
       // Delete the old source in case its name changed
-      if(name != '@source') {
-        deleteTask('@config.baseUrl/api/workspace/@project/source/@source');
+      if(!@source.isEmpty) {
+        if(name != '@source') {
+          deleteTask('@config.baseUrl/api/workspace/@project/source/@source');
+        }
       }
 
       // Submit data source
       putTask('@config.baseUrl/api/workspace/@project/source/' + name, xml);
     }
-  //]]>
   </script>
 }
