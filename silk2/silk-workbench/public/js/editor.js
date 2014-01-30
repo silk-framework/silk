@@ -1743,7 +1743,7 @@ function getOperators()
           //box.attr("title", item.description);
           //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
 
-          $("#transformation_" + item.id).draggable(
+          $("#transformation_" + item.category + "_" + item.id).draggable(
           {
             helper: function ()
             {
@@ -1839,7 +1839,7 @@ function getOperators()
           //box.attr("title", item.description);
           //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
 
-          $("#comparator_" + item.id).draggable(
+          $("#comparator_" + item.category + "_" + item.id).draggable(
           {
             helper: function ()
             {
