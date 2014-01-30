@@ -88,17 +88,16 @@
     sourceName = $("select[name='" + sourceOrTarget + "']").val()
     sparqlRestriction = $("input[name='" + sourceOrTarget + "restriction']").val();
 
-    // Retrieve and open dialog
-    restrictionDialog = $('#restrictionDialog');
     $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName, function(data) {
-      restrictionDialog.html(data);
-    }).success(function() { restrictionDialog.dialog({ title: 'Restriction', width: 600 }); } )
+      $('#restrictionDialog').html(data);
+    }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )
   }
 
   function closeRestrictionDialog(newRestriction) {
     $("input[name='" + sourceOrTarget + "restriction']").val(newRestriction);
     $('#restrictionDialog').dialog('close');
     $('#restrictionDialog').empty();
+    $('#restrictionDialog').dialog('destroy');
   }
 
   function submit() {
@@ -121,7 +120,7 @@
       url: '@config.baseUrl/api/workspace/@project/linking/' + values.name,
       data: values,
       success: function(data) {
-        $('.dialog').dialog('close');
+        closeDialog();
         updateWorkspace();
       },
       error: function(request) {
