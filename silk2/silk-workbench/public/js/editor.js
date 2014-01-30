@@ -1743,7 +1743,7 @@ function getOperators()
           //box.attr("title", item.description);
           //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
 
-          $("#transformation" + list_item_id).draggable(
+          $("#transformation_" + item.id).draggable(
           {
             helper: function ()
             {
@@ -2091,7 +2091,7 @@ function reloadCache() {
 function updateScore() {
   $.ajax({
     type: 'get',
-    url: "editor/score",
+    url: baseURl + "/editor/score",
     complete: function(response, status) {
       $("#score-widget").html(response.responseText);
       if(status == "error") {
