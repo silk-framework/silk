@@ -45,12 +45,11 @@ object Workspace extends Controller {
     Ok(views.html.workspace.linkingTaskDialog(project, task))
   }
 
-  def restrictionDialog(projectName: String, linkingTaskName: String, sourceTaskName: String) = Action {
+  def restrictionDialog(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val linkingTask = project.linkingModule.task(linkingTaskName)
-    val sourceTask = project.sourceModule.task(sourceTaskName)
+    val pathCache = project.sourceModule.task(sourceName).cache
 
-    Ok(views.html.workspace.restrictionDialog(project, linkingTask, sourceTask))
+    Ok(views.html.workspace.restrictionDialog(project, pathCache))
   }
 
   def outputDialog(project: String, output: String) = Action {
