@@ -98,7 +98,7 @@
         @for((category, plugins) <- Transformer.pluginsByCategory) {
           <div id="transform_category_@category">
             @for(plugin <- plugins.sortBy(_.label)) {
-              <div id="transformation_@plugin.id" class="draggable comparators ui-draggable" title="@plugin.description">
+              <div id="transformation_@{category}_@plugin.id" class="draggable comparators ui-draggable" title="@plugin.description">
                 <span></span>
                 <small>@plugin.label</small>
                 <p>@plugin.label</p>
@@ -126,7 +126,7 @@
         @for((category, plugins) <- DistanceMeasure.pluginsByCategory) {
           <div id="comparator_category_@category">
             @for(plugin <- plugins.sortBy(_.label)) {
-              <div id="comparator_@plugin.id" class="draggable comparators ui-draggable" title="@plugin.description">
+              <div id="comparator_@{category}_@plugin.id" class="draggable comparators ui-draggable" title="@plugin.description">
                 <span></span>
                 <small>@plugin.label</small>
                 <p>@plugin.label</p>
