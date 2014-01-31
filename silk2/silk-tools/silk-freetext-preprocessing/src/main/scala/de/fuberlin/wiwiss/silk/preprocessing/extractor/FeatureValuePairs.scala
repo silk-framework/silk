@@ -53,15 +53,6 @@ class FeatureValuePairs(override val id:String,
   }
 
 
-  def applyTransformation(values:List[String]) = {
-    def applyTransformationAcc(transformers:List[Transformer], values:List[String]):Traversable[String] = transformers match {
-      case transformer::Nil => transformer.apply(values)
-      case transformer::rest => applyTransformationAcc(rest, transformer.apply(values))
-    }
-
-    applyTransformationAcc(transformers, values)
-  }
-
   def apply(dataset:Dataset, findNewProperty: String=>String):Traversable[Entity]= {
 
     val filteredEntities = dataset.filter(propertyToExtractFrom)

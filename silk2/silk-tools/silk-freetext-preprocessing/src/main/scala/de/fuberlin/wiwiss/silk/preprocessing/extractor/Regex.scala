@@ -33,7 +33,7 @@ case class Regex(override  val id: String,
 
     for(entity <- filteredEntities) yield {
       val extractedProperties = for(property <- entity.properties) yield{
-        val values = compiledRegex.findAllIn(property.value)
+        val values = compiledRegex.findAllIn(applyTransformation(List(property.value)).mkString(" "))
         val value = if(values.hasNext) values.next() else ""
         new Property(newProperty, value)
       }

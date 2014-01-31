@@ -53,15 +53,6 @@ class BagOfWords(override val id:String,
       bool
     }
 
-    def applyTransformation(values:List[String]) = {
-      def applyTransformationAcc(transformers:List[Transformer], values:List[String]):Traversable[String] = transformers match {
-        case Nil => Traversable.empty[String]
-        case transformer::Nil => transformer.apply(values)
-        case transformer::rest => applyTransformationAcc(rest, transformer.apply(values))
-      }
-
-      applyTransformationAcc(transformers, values)
-    }
 
     override def apply(dataset:Dataset, findNewProperty: String =>String):Traversable[Entity]= {
 
