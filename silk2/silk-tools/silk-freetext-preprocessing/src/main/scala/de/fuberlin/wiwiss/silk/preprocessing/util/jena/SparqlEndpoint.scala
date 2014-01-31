@@ -29,24 +29,13 @@ class SparqlEndpoint(model:Model) {
   private def mapResults(resultSet: ResultSet) = {
     val results =
       for (result <- resultSet) yield {
-        toBinding(result)
+        (for (varName <- result.varNames.toList;
+             value <- Option(result.get(varName))) yield (varName, toSilkNode(value))).toMap
       }
 
     results.toList
   }
 
-  /**
-   * Converts a Jena ARQ QuerySolution to a entity binding
-   */
-  private def toBinding(querySolution: QuerySolution) = {
-    val values =
-      for (varName <- querySolution.varNames.toList;
-           value <- Option(querySolution.get(varName))) yield {
-        (varName, toSilkNode(value))
-      }
-
-    values.toMap
-  }
 
   /**
    *  Converts a Jena RDFNode to a Silk Node.

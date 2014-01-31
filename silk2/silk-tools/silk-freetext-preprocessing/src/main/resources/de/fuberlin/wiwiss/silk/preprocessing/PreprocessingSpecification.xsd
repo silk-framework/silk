@@ -74,10 +74,9 @@
     <xs:element name="Extractor">
         <xs:complexType>
             <xs:sequence>
-
+                <xs:element ref="Param" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="PropertyForTraining" minOccurs="0" maxOccurs="1" />
-                <xs:element ref="PropertyToExtractFrom" minOccurs="1" maxOccurs="1" />
-                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="PropertyToExtractFrom" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required" />
             <xs:attribute name="method" type="xs:string" use="required" />
@@ -101,7 +100,7 @@
                 <xs:element name="ExtractionJob">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element ref="Extractor" minOccurs="0" maxOccurs="unbounded" />
+                            <xs:element ref="Extractor" minOccurs="1" maxOccurs="unbounded" />
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>

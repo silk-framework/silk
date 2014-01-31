@@ -18,14 +18,18 @@ import de.fuberlin.wiwiss.silk.preprocessing.execution.ExecuteTask
 object Sftp {
 
 
-
+  /**
+   * Main method to allow Free Text Preprocessor to be started from the command line.
+   */
   def main(args: Array[String]) {
 
-      val file = new File("/Users/Petar/Documents/IdeaProjects/my-silk-fork/silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/products.xml")
-      val config = Config.load(file)
+    val configFile = System.getProperty("configFile") match {
+      case fileName: String => new File(fileName)
+      case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
+    }
 
-      new ExecuteTask().execute(config)
-
+    val config = Config.load(configFile)
+    new ExecuteTask().execute(config)
   }
 
 
