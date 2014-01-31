@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.preprocessing.transformer
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 21/01/14
- * Time: 14:05
- * To change this template use File | Settings | File Templates.
+ * Ngrams
+ * Creates ngrams between two bounds
+ *
+ * @param lower The lower bound
+ * @param upper The upper bound
  */
 class Ngrams(lower: Int, upper: Int) extends Transformer{
 

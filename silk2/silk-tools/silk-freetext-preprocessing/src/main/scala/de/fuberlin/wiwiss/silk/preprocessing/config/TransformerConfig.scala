@@ -3,7 +3,12 @@ package de.fuberlin.wiwiss.silk.preprocessing.config
 import scala.xml.Node
 
 /**
- * Created by Petar on 30/01/14.
+ * A Free text preprocessing configuration.
+ * Specifies an output source.
+ *
+ * @param method The transform method
+ * @param params A map of parameters needed for the transformer
+ * @param transform An optional nested transform specification
  */
 case class TransformerConfig(method: String,
                              params: Map[String,String],

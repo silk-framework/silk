@@ -3,7 +3,12 @@ package de.fuberlin.wiwiss.silk.preprocessing.config
 import scala.xml.Node
 
 /**
- * Created by Petar on 30/01/14.
+ * A Free text preprocessing configuration.
+ * Specifies an output source.
+ *
+ * @param id The output id
+ * @param file The file path
+ * @param format The format of the file
  */
 case class OutputConfig(id: String,
                         file: String,
