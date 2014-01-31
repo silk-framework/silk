@@ -7,7 +7,7 @@
 <http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Brand> "Apple" .
 <http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Model> "iPhone 4" .
 <http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Storage> "16GB" .
-<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Display> "4-inch" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Display> "3.5-inch" .
 <http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Lens> "5MP" .
 <http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Processor> "800MHz" .
 <http://amazon.com/resource/Nokia_Lumia_800> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
@@ -54,4 +54,4 @@
 <http://amazon.com/resource/Seagate_FreeAgent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
 <http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Brand> "Seagate" .
 <http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Model> "Seagate FreeAgent" .
-<http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Storage> "1GB" .
+<http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Storage> "1TB" .
