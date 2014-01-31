@@ -6,11 +6,8 @@ import de.fuberlin.wiwiss.silk.preprocessing.transformer.Transformer
 import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 21/01/14
- * Time: 14:05
- * To change this template use File | Settings | File Templates.
+ * A Regex extractor.
+ *
  */
 case class Regex(override  val id: String,
                  override val propertyToExtractFrom: String,

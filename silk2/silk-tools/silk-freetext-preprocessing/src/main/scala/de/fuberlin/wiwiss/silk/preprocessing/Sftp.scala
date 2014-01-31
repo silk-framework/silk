@@ -9,11 +9,7 @@ import de.fuberlin.wiwiss.silk.preprocessing.execution.ExecuteTask
 
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 25/12/13
- * Time: 15:14
- * To change this template use File | Settings | File Templates.
+ * Executes the complete Free Text Preprocessor workflow.
  */
 object Sftp {
 
@@ -23,12 +19,16 @@ object Sftp {
    */
   def main(args: Array[String]) {
 
+    //Get the config file
     val configFile = System.getProperty("configFile") match {
       case fileName: String => new File(fileName)
       case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
     }
 
+    //Load the configuration
     val config = Config.load(configFile)
+
+    //Execute the workflow
     new ExecuteTask().execute(config)
   }
 

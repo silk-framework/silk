@@ -5,7 +5,10 @@ import scala.xml.Node
 import de.fuberlin.wiwiss.silk.preprocessing.util.jena.JenaSource
 
 /**
- * Created by Petar on 27/01/14.
+ * Represents a dataset of entities
+ *
+ * @param id The dataset id (same with the source)
+ * @param entities The data
  */
 class Dataset(id: String, entities:Traversable[Entity]){
 

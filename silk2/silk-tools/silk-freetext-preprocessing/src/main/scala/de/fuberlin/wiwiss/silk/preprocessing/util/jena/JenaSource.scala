@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.preprocessing.util.sparql.SimpleRetriever
 
 
 /**
- * Created by Petar on 27/01/14.
+ * A Appache Jena Source
  */
 case class JenaSource(file: String, format: String, graph: String = "") {
   // Locate the file

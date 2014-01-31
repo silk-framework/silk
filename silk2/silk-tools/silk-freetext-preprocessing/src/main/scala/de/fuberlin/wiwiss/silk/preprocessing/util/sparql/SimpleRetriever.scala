@@ -5,11 +5,7 @@ import de.fuberlin.wiwiss.silk.preprocessing.entity.{Property, Entity}
 import de.fuberlin.wiwiss.silk.util.sparql.{Node, Resource, BlankNode, Literal}
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 24/01/14
- * Time: 11:38
- * To change this template use File | Settings | File Templates.
+ * EntityRetriever which executes a single SPARQL query to retrieve entities and/or properties.
  */
 case class SimpleRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None) {
 
@@ -77,7 +73,7 @@ case class SimpleRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graph
   }
 
   /**
-   * Wraps a Traversable of SPARQL results and retrieves entities from them.
+   * Wraps a Traversable of SPARQL results and retrieves (property,value) pairs.
    */
   private class PropertyTraversable(sparqlResults: Traversable[Map[String, Node]],  variables: (String,String)) extends Traversable[Property] {
     override def foreach[U](f: Property => U) {

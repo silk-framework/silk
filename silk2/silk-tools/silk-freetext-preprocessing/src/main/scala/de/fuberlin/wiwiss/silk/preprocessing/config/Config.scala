@@ -9,11 +9,13 @@ import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
 import de.fuberlin.wiwiss.silk.preprocessing.extractor.Extractor
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 22/01/14
- * Time: 17:01
- * To change this template use File | Settings | File Templates.
+ * A Free text preprocessing configuration.
+ * Specifies the whole workflow of the free text preprocessing.
+ *
+ * @param trainigDatasetSource The training data source
+ * @param datasetSource The free text data source
+ * @param extractorConfigs The Silk link specifications
+ * @param outputSource The output source
  */
 case class Config(trainigDatasetSource : InputConfig,
                   datasetSource: InputConfig,

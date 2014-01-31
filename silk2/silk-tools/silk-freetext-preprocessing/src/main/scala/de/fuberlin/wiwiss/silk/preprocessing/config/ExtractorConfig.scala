@@ -5,7 +5,14 @@ import de.fuberlin.wiwiss.silk.preprocessing.transformer.Transformer
 import de.fuberlin.wiwiss.silk.preprocessing.extractor.{Dictionary, Regex, FeatureValuePairs, BagOfWords}
 
 /**
- * Created by Petar on 30/01/14.
+ * Represents a Extractor Configuration from XML.
+ * Specifies a single extractor.
+ *
+ * @param id The extractor id
+ * @param method The extraction method
+ * @param property The property path to extract from
+ * @param transformers Transformations specification to be done on the free text
+ * @param param A additional parameter depending on the extractor
  */
 case class ExtractorConfig(id: String,
                            method: String,
@@ -19,7 +26,7 @@ case class ExtractorConfig(id: String,
 object ExtractorConfig{
 
   /**
-   * Reads a Extractor from XML.
+   * Reads a Extractor Configuration from XML.
    */
   def fromXML(node:Node):ExtractorConfig = {
     //Read id
