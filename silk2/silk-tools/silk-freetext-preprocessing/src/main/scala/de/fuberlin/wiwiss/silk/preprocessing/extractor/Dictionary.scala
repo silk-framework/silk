@@ -24,6 +24,8 @@ case class Dictionary(override  val id: String,
 
   override def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity] = {
 
+
+    //TODO: FIX!!!
     val filteredEntities = dataset.filter(propertyToExtractFrom)
 
     val newProperty = findNewProperty(solvePath(id))
