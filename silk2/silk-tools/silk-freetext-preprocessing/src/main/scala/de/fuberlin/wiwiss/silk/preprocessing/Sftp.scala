@@ -20,10 +20,12 @@ object Sftp {
   def main(args: Array[String]) {
 
     //Get the config file
-    val configFile = System.getProperty("configFile") match {
+    /*val configFile = System.getProperty("configFile") match {
       case fileName: String => new File(fileName)
       case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
-    }
+    }*/
+
+    val configFile =new File("silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/products.xml")
 
     //Load the configuration
     val config = Config.load(configFile)
