@@ -20,21 +20,21 @@ case class Dictionary(override  val id: String,
 
   val values = Source.fromFile(param).getLines.mkString("\n")
 
-  val propertyForTraining = solvePath(id)
 
   def solvePath(s: String) = {
     "(?<=[A-Z])(?=[A-Z][a-z])".r.findAllIn(s).subgroups(0)
   }
 
-  def apply(dataset:Dataset):Traversable[Entity] = {
+  override def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity] = {
 
     val filteredEntities = dataset.filter(propertyToExtractFrom)
 
+    val newProperty = findNewProperty(solvePath(id))
 
     for(entity <- filteredEntities) yield {
       val extractedProperties = for(property <- entity.properties) yield{
 
-        new Property(propertyForTraining, values)
+        new Property(newProperty, values)
       }
       new Entity(entity.uri, extractedProperties)
     }

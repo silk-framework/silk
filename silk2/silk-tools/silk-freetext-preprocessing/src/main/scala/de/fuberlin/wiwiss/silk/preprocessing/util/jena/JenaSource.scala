@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.preprocessing.util.sparql.SimpleRetriever
  */
 case class JenaSource(file: String, format: String, graph: String = "") {
   // Locate the file
-  private val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.home") + "/.silk/datasets/" + file
+  private val filePath = if(new File(file).isAbsolute) file else System.getProperty("user.dir") + "/" + file
 
   // Try to parse the format
   private val lang = RDFLanguages.nameToLang(format)

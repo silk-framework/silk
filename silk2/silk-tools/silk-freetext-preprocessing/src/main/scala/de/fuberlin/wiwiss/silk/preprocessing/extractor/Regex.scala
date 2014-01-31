@@ -20,21 +20,22 @@ case class Regex(override  val id: String,
 
 
 
-  val propertyForTraining = solvePath(id)
-
   def solvePath(s: String) = {
-    "(?<=[A-Z])(?=[A-Z][a-z])".r.findAllIn(s).subgroups(0)
+    val regex = "(.*)Extractor".r.findAllIn(s)
+    if(regex.hasNext) regex.subgroups(0) else ""
   }
 
-  def apply(dataset:Dataset):Traversable[Entity]= {
+  override def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity]= {
 
     val filteredEntities = dataset.filter(propertyToExtractFrom)
 
+    val newProperty = findNewProperty(solvePath(id))
 
     for(entity <- filteredEntities) yield {
       val extractedProperties = for(property <- entity.properties) yield{
-        val values = compiledRegex.findAllIn(property.value).subgroups.mkString(" ")
-        new Property(propertyForTraining, values)
+        val values = compiledRegex.findAllIn(property.value)
+        val value = if(values.hasNext) values.next() else ""
+        new Property(newProperty, value)
       }
       new Entity(entity.uri, extractedProperties)
     }
