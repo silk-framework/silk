@@ -2,9 +2,8 @@ package controllers.util
 
 import play.api.mvc.{Action, Controller}
 import models.WorkbenchConfig
-import java.io.{BufferedInputStream, FileInputStream}
 import play.api.templates.Html
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 object Branding extends Controller {
 
@@ -15,7 +14,7 @@ object Branding extends Controller {
   }
 
   def aboutDialog = Action {
-    val aboutHtml = Html(Source.fromInputStream(WorkbenchConfig.get.about.load).getLines.mkString("\n"))
+    val aboutHtml = Html(Source.fromInputStream(WorkbenchConfig.get.about.load)(Codec.UTF8).getLines.mkString("\n"))
 
     Ok(views.html.aboutDialog(aboutHtml))
   }
