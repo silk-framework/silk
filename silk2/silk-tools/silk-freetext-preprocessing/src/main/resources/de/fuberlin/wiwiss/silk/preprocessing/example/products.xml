@@ -48,11 +48,7 @@
         </Extractor>
         <Extractor id="ProcessorExtractor" method="RegexMatch">
             <Param name="pattern" value="\d*\.?\d+\s?GHz" />
-            <PropertyToExtractFrom name="description">
-                <Transform method="tokenize">
-                    <Param name="delimiter" value="\s" />
-                </Transform>
-            </PropertyToExtractFrom>
+            <PropertyToExtractFrom name="description" />
         </Extractor>
     </ExtractionJob>
 	<Outputs>

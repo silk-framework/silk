@@ -13,10 +13,23 @@ import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
  * To change this template use File | Settings | File Templates.
  */
 trait Extractor{
-    val id:String
-    val propertyToExtractFrom: String
-    val transformers:List[Transformer]
-    def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity]
+
+  val id:String
+  val propertyToExtractFrom: String
+  val transformers:List[Transformer]
+
+  def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity]
+
+  def applyTransformation(values:List[String]) = {
+    def applyTransformationAcc(transformers:List[Transformer], values:List[String]):Traversable[String] = transformers match {
+      case Nil => values
+      case transformer::Nil => transformer.apply(values)
+      case transformer::rest => applyTransformationAcc(rest, transformer.apply(values))
+    }
+
+    applyTransformationAcc(transformers, values)
+  }
+
 }
 
 abstract class AutoExtractor extends Extractor{
