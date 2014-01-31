@@ -1,0 +1,57 @@
+<http://amazon.com/resource/Apple_iPod_nano> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Apple_iPod_nano> <http://schema.org/Product/Brand> "Apple" .
+<http://amazon.com/resource/Apple_iPod_nano> <http://schema.org/Product/Model> "iPod nano" .
+<http://amazon.com/resource/Apple_iPod_nano> <http://schema.org/Product/Storage> "8GB" .
+<http://amazon.com/resource/Apple_iPod_nano> <http://schema.org/Product/Display> "1.5-inch" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Brand> "Apple" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Model> "iPhone 4" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Storage> "16GB" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Display> "4-inch" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Lens> "5MP" .
+<http://amazon.com/resource/Apple_iPhone_4> <http://schema.org/Product/Processor> "800MHz" .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://schema.org/Product/Brand> "Nokia" .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://schema.org/Product/Model> "Lumia 800" .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://schema.org/Product/Storage> "16GB" .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://schema.org/Product/Display> "3.7-inch" .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://schema.org/Product/Lens> "8MP" .
+<http://amazon.com/resource/Nokia_Lumia_800> <http://schema.org/Product/Processor> "1.4GHz" .
+<http://amazon.com/resource/Motorola_XOOM> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Motorola_XOOM> <http://schema.org/Product/Brand> "Motorola" .
+<http://amazon.com/resource/Motorola_XOOM> <http://schema.org/Product/Model> "Motorola XOOM" .
+<http://amazon.com/resource/Motorola_XOOM> <http://schema.org/Product/Storage> "32GB" .
+<http://amazon.com/resource/Motorola_XOOM> <http://schema.org/Product/Display> "10.1-inch" .
+<http://amazon.com/resource/Motorola_XOOM> <http://schema.org/Product/Lens> "5MP" .
+<http://amazon.com/resource/Motorola_XOOM> <http://schema.org/Product/Processor> "1GHz" .
+<http://amazon.com/resource/Apple_iPad_2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Apple_iPad_2> <http://schema.org/Product/Brand> "Apple" .
+<http://amazon.com/resource/Apple_iPad_2> <http://schema.org/Product/Model> "iPad 2" .
+<http://amazon.com/resource/Apple_iPad_2> <http://schema.org/Product/Storage> "16GB" .
+<http://amazon.com/resource/Apple_iPad_2> <http://schema.org/Product/Display> "9.7-inch" .
+<http://amazon.com/resource/Apple_iPad_2> <http://schema.org/Product/Lens> "0.7MP" .
+<http://amazon.com/resource/Apple_iPad_2> <http://schema.org/Product/Processor> "1GHz" .
+<http://amazon.com/resource/ASUS_Eee_PC> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/ASUS_Eee_PC> <http://schema.org/Product/Brand> "Asus" .
+<http://amazon.com/resource/ASUS_Eee_PC> <http://schema.org/Product/Model> "Eee PC 10001PX" .
+<http://amazon.com/resource/ASUS_Eee_PC> <http://schema.org/Product/Storage> "250GB" .
+<http://amazon.com/resource/ASUS_Eee_PC> <http://schema.org/Product/Display> "10.1-inch" .
+<http://amazon.com/resource/ASUS_Eee_PC> <http://schema.org/Product/Processor> "1.6GHz" .
+<http://amazon.com/resource/Apple_MacBook_pro> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Apple_MacBook_pro> <http://schema.org/Product/Brand> "Apple" .
+<http://amazon.com/resource/Apple_MacBook_pro> <http://schema.org/Product/Model> "MacBook Pro" .
+<http://amazon.com/resource/Apple_MacBook_pro> <http://schema.org/Product/Storage> "500GB" .
+<http://amazon.com/resource/Apple_MacBook_pro> <http://schema.org/Product/Display> "15-inch" .
+<http://amazon.com/resource/Apple_MacBook_pro> <http://schema.org/Product/Processor> "2.3GHz" .
+<http://amazon.com/resource/Panasonic_Viera> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Panasonic_Viera> <http://schema.org/Product/Brand> "Panasonic" .
+<http://amazon.com/resource/Panasonic_Viera> <http://schema.org/Product/Model> "VIERA TC-P42G25" .
+<http://amazon.com/resource/Panasonic_Viera> <http://schema.org/Product/Display> "42-inch" .
+<http://amazon.com/resource/Sony_Bravia> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Sony_Bravia> <http://schema.org/Product/Brand> "Sony" .
+<http://amazon.com/resource/Sony_Bravia> <http://schema.org/Product/Model> "Bravia KDL46EX645" .
+<http://amazon.com/resource/Sony_Bravia> <http://schema.org/Product/Display> "46-inch" .
+<http://amazon.com/resource/Seagate_FreeAgent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Product> .
+<http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Brand> "Seagate" .
+<http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Model> "Seagate FreeAgent" .
+<http://amazon.com/resource/Seagate_FreeAgent> <http://schema.org/Product/Storage> "1GB" .
