@@ -1,11 +1,11 @@
 <SilkFreeTextPreprocessor>
 	<Inputs>
 		<TrainingDataset id="amazon">
-			<Param name="file" value="/Users/Petar/Documents/IdeaProjects/my-silk-fork/silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/amazon.nt" />
+			<Param name="file" value="silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/amazon.nt" />
 			<Param name="format" value="N-Triple" />
 		</TrainingDataset>
 		<Dataset id="wdc">
-			<Param name="file" value="/Users/Petar/Documents/IdeaProjects/my-silk-fork/silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/wdc.nt" />
+			<Param name="file" value="silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/wdc.nt" />
 			<Param name="format" value="N-Triple" />
 		</Dataset>
 	</Inputs>
@@ -30,7 +30,35 @@
                 </Transform>
             </PropertyToExtractFrom>
         </Extractor>
+        <Extractor id="StorageExtractor" method="BagOfWords">
+            <PropertyForTraining name="Storage" />
+            <PropertyToExtractFrom name="description">
+                <Transform method="tokenize">
+                    <Param name="delimiter" value="\s" />
+                </Transform>
+            </PropertyToExtractFrom>
+        </Extractor>
+        <Extractor id="DisplayExtractor" method="BagOfWords">
+            <PropertyForTraining name="Display" />
+            <PropertyToExtractFrom name="description">
+                <Transform method="tokenize">
+                    <Param name="delimiter" value="\s" />
+                </Transform>
+            </PropertyToExtractFrom>
+        </Extractor>
+        <Extractor id="ProcessorExtractor" method="RegexMatch">
+            <Param name="pattern" value="\d*\.?\d+\s?GHz" />
+            <PropertyToExtractFrom name="description">
+                <Transform method="tokenize">
+                    <Param name="delimiter" value="\s" />
+                </Transform>
+            </PropertyToExtractFrom>
+        </Extractor>
     </ExtractionJob>
 	<Outputs>
+        <Output id="structuredWDC">
+            <Param name="file" value="silk2/silk-tools/silk-freetext-preprocessing/src/main/resources/de/fuberlin/wiwiss/silk/preprocessing/example/struct_wdc.nt" />
+            <Param name="format" value="N-Trriple" />
+        </Output>
 	</Outputs>
 </SilkFreeTextPreprocessor>	

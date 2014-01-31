@@ -9,11 +9,6 @@ case class OutputConfig(id: String,
                         file: String,
                         format: String) {
 
-    def outputId = id
-
-    def outputFile = file
-
-    def outputFormat = format
 }
 
 

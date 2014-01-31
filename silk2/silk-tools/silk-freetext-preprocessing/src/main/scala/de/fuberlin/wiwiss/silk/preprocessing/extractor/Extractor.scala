@@ -16,7 +16,7 @@ trait Extractor{
     val id:String
     val propertyToExtractFrom: String
     val transformers:List[Transformer]
-    def apply(dataset:Dataset):Traversable[Entity]
+    def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity]
 }
 
 abstract class AutoExtractor extends Extractor{

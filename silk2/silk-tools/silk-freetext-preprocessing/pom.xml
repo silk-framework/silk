@@ -11,6 +11,26 @@
   <packaging>jar</packaging>
   <version>0.1.1-SNAPSHOT</version>
 
+  <build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.4</version>
+            <configuration>
+                <descriptorRefs>
+                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                </descriptorRefs>
+                <archive>
+                    <manifest>
+                        <mainClass>de.fuberlin.wiwiss.silk.preprocessing.Sftp</mainClass>
+                    </manifest>
+                </archive>
+            </configuration>
+        </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
       <dependency>
           <groupId>de.fuberlin.wiwiss.silk</groupId>
@@ -22,32 +42,12 @@
           <groupId>org.apache.jena</groupId>
           <artifactId>jena-core</artifactId>
           <version>2.11.0</version>
-          <!-- exclusions>
-            <exclusion>
-              <groupId>org.slf4j</groupId>
-              <artifactId>slf4j-log4j12</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>log4j</groupId>
-              <artifactId>log4j</artifactId>
-            </exclusion>
-          </exclusions -->
       </dependency>
 
       <dependency>
           <groupId>org.apache.jena</groupId>
           <artifactId>jena-arq</artifactId>
           <version>2.11.0</version>
-          <!-- exclusions>
-            <exclusion>
-              <groupId>org.slf4j</groupId>
-              <artifactId>slf4j-log4j12</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>log4j</groupId>
-              <artifactId>log4j</artifactId>
-            </exclusion>
-          </exclusions -->
       </dependency>
 
       <dependency>

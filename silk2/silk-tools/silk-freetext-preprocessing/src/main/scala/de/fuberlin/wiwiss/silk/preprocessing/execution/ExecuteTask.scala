@@ -1,17 +1,15 @@
 package de.fuberlin.wiwiss.silk.preprocessing.execution
 
-import java.io.File
+
 import de.fuberlin.wiwiss.silk.preprocessing.config.{ExtractorConfig, TransformerConfig, Config}
 import de.fuberlin.wiwiss.silk.preprocessing.extractor._
 import de.fuberlin.wiwiss.silk.preprocessing.transformer.{Tokenizer, Ngrams, Transformer}
 import de.fuberlin.wiwiss.silk.preprocessing.entity.Entity
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.preprocessing.util.jena.JenaSource
 import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
 import scala.Some
-import de.fuberlin.wiwiss.silk.preprocessing.entity.Entity
 import de.fuberlin.wiwiss.silk.preprocessing.util.jena.JenaSource
-import de.fuberlin.wiwiss.silk.preprocessing.transformer.Tokenizer
+import de.fuberlin.wiwiss.silk.preprocessing.output.OutputWriter
 
 /**
  * Execute task
@@ -38,6 +36,7 @@ class ExecuteTask {
     val trainigDatasetSource = config.trainigDatasetSource
     val freetextDatasetSource = config.datasetSource
     val extractorConfigs = config.extractorConfigs
+    val outputSource = config.outputSource.get
 
     //Loading the training dataset
     logger.log(statusLogLevel, "Loading the " + trainigDatasetSource.id + "(training) dataset...")
@@ -69,7 +68,7 @@ class ExecuteTask {
       if(extractor.isInstanceOf[BagOfWords] || extractor.isInstanceOf[FeatureValuePairs]){
         extractor.asInstanceOf[AutoExtractor].train(trainingDataset)
       }
-      val entities = extractor.apply(freetextDataset)
+      val entities = extractor.apply(freetextDataset, trainingDataset.findPath)
       logger.log(statusLogLevel, "Completed " + counter + "/" + extractors.size + " extractors")
       counter += 1
       entities
@@ -81,9 +80,11 @@ class ExecuteTask {
     val outputEntities = extractedEntities.reduce(_ ++ _).groupBy(entity => entity.uri).map(pair => merge(pair))
 
 
-    for(entity <- outputEntities){
-      println(entity.toString)
-    }
+    //Writing to file
+    logger.log(statusLogLevel, "Writing to file...")
+    val output = new OutputWriter(outputSource.id, outputSource.file, outputSource.format)
+    output.write(outputEntities)
+    logger.log(statusLogLevel, "Finished!")
 
   }
 

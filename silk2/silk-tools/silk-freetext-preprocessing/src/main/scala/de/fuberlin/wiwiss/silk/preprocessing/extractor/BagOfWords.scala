@@ -63,14 +63,16 @@ class BagOfWords(override val id:String,
       applyTransformationAcc(transformers, values)
     }
 
-    def apply(dataset:Dataset):Traversable[Entity]= {
+    override def apply(dataset:Dataset, findNewProperty: String =>String):Traversable[Entity]= {
 
       val filteredEntities = dataset.filter(propertyToExtractFrom)
+
+      val newProperty = findNewProperty(propertyForTraining)
 
       for(entity <- filteredEntities) yield {
         val extractedProperties = for(property <- entity.properties) yield{
           val values = applyTransformation(List(property.value)).filter(value => checkModel(value)).toList.distinct
-          new Property(propertyForTraining, values.headOption.getOrElse(""))
+          new Property(newProperty, values.headOption.getOrElse(""))
         }
         new Entity(entity.uri, extractedProperties)
       }
