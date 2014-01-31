@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="Dataset">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="TrainingDataset">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Param">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required" />
+            <xs:attribute name="value" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="PropertyForTraining">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="PropertyToExtractFrom">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Transform" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Transform">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Param" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element ref="Transform" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" use="optional" />
+            <xs:attribute name="method" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+
+
+    <xs:element name="Outputs">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Output" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Output">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Extractor">
+        <xs:complexType>
+            <xs:sequence>
+
+                <xs:element ref="PropertyForTraining" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="PropertyToExtractFrom" minOccurs="1" maxOccurs="1" />
+                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" use="required" />
+            <xs:attribute name="method" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="SilkFreeTextPreprocessor">
+        <xs:complexType>
+            <xs:sequence>
+
+
+                <xs:element name="Inputs">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="TrainingDataset" minOccurs="1" maxOccurs="1"/>
+                            <xs:element ref="Dataset" minOccurs="1" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="ExtractionJob">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="Extractor" minOccurs="0" maxOccurs="unbounded" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element ref="Outputs" />
+
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
