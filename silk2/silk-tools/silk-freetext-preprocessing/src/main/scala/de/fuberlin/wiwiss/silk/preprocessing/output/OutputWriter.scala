@@ -5,9 +5,13 @@ import de.fuberlin.wiwiss.silk.preprocessing.entity.{Entity,Property}
 import scalax.io._
 
 /**
- * Created by Petar on 31/01/14.
+ * Output writer
+ * Writes triples to a file
+ *
+ * @param id The output id
+ * @param file The path to the file
+ * @param format The format of the data
  */
-
 case class OutputWriter(id:String,
                         file:String,
                         format:String) {

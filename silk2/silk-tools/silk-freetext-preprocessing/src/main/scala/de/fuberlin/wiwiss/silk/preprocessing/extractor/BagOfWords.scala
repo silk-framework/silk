@@ -6,11 +6,8 @@ import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
 import scala.collection.mutable.{ArrayBuffer,HashMap}
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 25/12/13
- * Time: 15:18
- * To change this template use File | Settings | File Templates.
+ * A BagOfWords extractor.
+ *
  */
 class BagOfWords(override val id:String,
                  override val propertyToExtractFrom:String,

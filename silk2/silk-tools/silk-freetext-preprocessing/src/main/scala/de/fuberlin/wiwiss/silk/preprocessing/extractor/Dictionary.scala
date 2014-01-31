@@ -6,11 +6,8 @@ import scala.io.Source
 import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
 
 /**
- * Created with IntelliJ IDEA.
- * User: Petar
- * Date: 21/01/14
- * Time: 14:05
- * To change this template use File | Settings | File Templates.
+ * A Dictionary extractor.
+ *
  */
 case class Dictionary(override  val id: String,
                       override val propertyToExtractFrom: String,
