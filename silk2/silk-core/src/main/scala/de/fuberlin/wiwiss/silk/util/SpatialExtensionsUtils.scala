@@ -37,8 +37,9 @@ object SpatialExtensionsUtils {
 	
 	def convertToDefaultSRID(literal : String){
 	  
-	  var index = Parser.separeteGeomeryFromSRID(literal)
-	  index
+	  var (geometry, fromSRID) = Parser.separeteGeomeryFromSRID(literal)
+	  println(geometry, fromSRID)
+	  
 	}  
 
 	
@@ -59,18 +60,49 @@ object SpatialExtensionsUtils {
 	  	/**
 	  	 * Reader for WKT
 	  	 */
-		val wktr = new WKTReader
+		private val wktr = new WKTReader
 
 	  	/**
 	  	 * Reader for GML
 	  	 */
-		val gmlr = new GMLReader
+		private val gmlr = new GMLReader
   
-		def separeteGeomeryFromSRID(literal : String){
-		var index = literal.lastIndexOf(Constants.STRDF_SRID_DELIM)
-	
-		index
-		  
+		def separeteGeomeryFromSRID(literal : String) : (String, Int) = {
+			val trimmedLiteral=literal.trim
+			
+			var geometry : String = ""
+			var srid : Int = -1
+			
+			// TODO: error handling
+			
+			if(trimmedLiteral.length() != 0)
+			{
+				val index = trimmedLiteral.lastIndexOf(Constants.STRDF_SRID_DELIM)
+			
+				if(index > 0) {	// strdf:WKT with SRID
+					geometry = trimmedLiteral.substring(0, index)		
+					srid = augmentString(trimmedLiteral.substring((trimmedLiteral.lastIndexOf("/")+1))).toInt
+				}
+				else{
+					if (trimmedLiteral.startsWith("<")){ // starts with a URI => assume EPSG URI, geo:wktLiteral
+						val index = trimmedLiteral.indexOf(">")
+						if (index > 0) {
+							geometry = trimmedLiteral.substring(index+1).trim
+							srid = augmentString(trimmedLiteral.substring(trimmedLiteral.indexOf("/")+1, index-1)).toInt
+						}
+					}
+					else{ // cannot guess, only WKT representation was given => assume strdf:WKT
+						geometry = trimmedLiteral
+						srid = Constants.DEFAULT_SRID
+					}
+				}
+			}
+			else{ // empty geometry => assume strdf:WKT
+				geometry = Constants.EMPTY_GEOM
+				srid  = Constants.DEFAULT_SRID
+			}
+
+			(geometry, srid)
 		}		
 	}
 	
@@ -130,13 +162,13 @@ object SpatialExtensionsUtils {
 		val WGS84_LON_LAT_SRID = 3857
 
 		/**
-		 * EPSG SRID prefix.
+		 * Default SRID
 		 */
-		val EPSG_SRID_PREFIX = "http://www.opengis.net/def/crs/EPSG/0/"
-
+		val DEFAULT_SRID 	= WGS84_LAT_LON_SRID;
+		
 		/**
 		 * stRDF SRID delimiter.
 		 */		  
-		val STRDF_SRID_DELIM 	= ";"	
+		val STRDF_SRID_DELIM 	= ";"  
 	}	
 }
