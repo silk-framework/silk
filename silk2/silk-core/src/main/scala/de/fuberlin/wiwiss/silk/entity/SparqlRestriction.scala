@@ -24,6 +24,8 @@ class SparqlRestriction private(val variable: String, restrictionsFull: String, 
 
   def toSparql = restrictionsFull
 
+  def toSparqlQualified = restrictionsQualified
+
   def isEmpty = restrictionsFull.isEmpty
 
   override def toString = restrictionsQualified

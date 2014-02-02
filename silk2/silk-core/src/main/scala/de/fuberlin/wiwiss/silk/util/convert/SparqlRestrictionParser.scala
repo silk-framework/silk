@@ -27,9 +27,9 @@ import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Or, Condition, And}
 /**
  * Converts a SPARQL restriction to a Silk restriction.
  */
-class RestrictionConverter(implicit prefixes: Prefixes) extends RegexParsers {
+class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers {
 
-  def apply(subjectVar: String, sparqlRestriction: SparqlRestriction): Restriction = {
+  def apply(sparqlRestriction: SparqlRestriction): Restriction = {
     parseAll(parser, new CharSequenceReader(sparqlRestriction.toString)) match {
       case Success(parsedPath, _) => parsedPath
       case error: NoSuccess => throw new ValidationException(error.toString)
@@ -37,8 +37,6 @@ class RestrictionConverter(implicit prefixes: Prefixes) extends RegexParsers {
   }
 
   override val skipWhitespace = false
-
-  //  def parser: Parser[Restriction] = triplePatterns ^^ { r => Restriction(Some(r)) }
 
   def parser: Parser[Restriction] = unionPatterns ^^ {
     r => Restriction(Some(r))
@@ -69,7 +67,7 @@ class RestrictionConverter(implicit prefixes: Prefixes) extends RegexParsers {
   }
 
   def triplePattern = subj ~ predicate ~ objectt ^^ {
-    case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + p.head), o)
+    case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + p), o)
   }
 
   def subj = "?" ~> wordCharFilter ^^ {
@@ -79,17 +77,17 @@ class RestrictionConverter(implicit prefixes: Prefixes) extends RegexParsers {
   def predicate = predicateObjectFilter | rdfTypeReplacement
 
   def predicateObjectFilter = " " ~> wordCharFilter ~ ":" ~ wordCharFilter ^^ {
-    case prefix ~ ":" ~ name => Set(prefix + ":" + name)
+    case prefix ~ ":" ~ name => prefix + ":" + name
   }
 
   def rdfTypeReplacement = " a" ^^ {
-    rdftype => Set("rdf:type")
+    rdftype => "rdf:type"
   }
 
   def objectt = specialObj | predicateObjectFilter
 
   def specialObj = " " ~> "?" ~ wordCharFilter ^^ {
-    case "?" ~ name => Set[String]()
+    case "?" ~ name => ""
   }
 
   def wordCharFilter = """[a-zA-Z_]\w*""".r
