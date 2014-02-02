@@ -18,17 +18,23 @@ import scala.collection.JavaConversions._
 import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.query.{Dataset, QuerySolution, ResultSet, QueryExecutionFactory}
 import de.fuberlin.wiwiss.silk.util.sparql.{SparqlEndpoint, Node}
+import java.util.logging.{Logger, Level}
 
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.
  */
 private class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
+
+  private val logger = Logger.getLogger(classOf[JenaSparqlEndpoint].getName)
+
   /**
    * Executes a SPARQL SELECT query.
    */
   override def query(sparql: String, limit: Int): Traversable[Map[String, Node]] = {
+    // Log query
+    if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
+    // Execute query
     val qe = QueryExecutionFactory.create(sparql + " LIMIT " + limit, model)
-
     try {
       toSilkResults(qe.execSelect())
     }
