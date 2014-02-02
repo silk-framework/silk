@@ -16,7 +16,7 @@ GET           /workspace/dialogs/newSource/:project                             
 GET           /workspace/dialogs/editSource/:project/:source                                        controllers.tabs.Workspace.sourceDialog(project: String, source: String)
 GET           /workspace/dialogs/newLinkingTask/:project                                            controllers.tabs.Workspace.linkingTaskDialog(project: String, task = "")
 GET           /workspace/dialogs/editLinkingTask/:project/:task                                     controllers.tabs.Workspace.linkingTaskDialog(project: String, task: String)
-GET           /workspace/dialogs/editRestriction/:project/:source                                   controllers.tabs.Workspace.restrictionDialog(project: String, source: String)
+GET           /workspace/dialogs/editRestriction/:project/:source                                   controllers.tabs.Workspace.restrictionDialog(project: String, source: String, sourceOrTarget: String, restriction: String)
 GET           /workspace/dialogs/newOutput/:project                                                 controllers.tabs.Workspace.outputDialog(project: String, output = "")
 GET           /workspace/dialogs/editOutput/:project/:output                                        controllers.tabs.Workspace.outputDialog(project: String, output: String)
 POST          /workspace/:project/importExample                                                     controllers.tabs.Workspace.importExample(project: String)
