@@ -60,38 +60,42 @@ class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers 
   // curly brace reward
   def revbrace = """\}+""".r
 
-
   def triplePatterns: Parser[Operator] = rep1(triplePattern <~ anyWhitespace <~ opt(".")) ^^ {
     case condition :: Nil => condition
     case conditions => And(conditions)
   }
 
-  def triplePattern = subj ~ predicate ~ objectt ^^ {
+  def triplePattern = subject ~ predicate ~ objectt ^^ {
     case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + p), o)
   }
 
-  def subj = "?" ~> wordCharFilter ^^ {
+  def subject = "?" ~> idChars ^^ {
     v => v
   }
 
-  def predicate = predicateObjectFilter | rdfTypeReplacement
+  def predicate = " " ~> (prefixName | uri | rdfTypeReplacement)
 
-  def predicateObjectFilter = " " ~> wordCharFilter ~ ":" ~ wordCharFilter ^^ {
+  def objectt = " " ~> (variable | prefixName | uri)
+
+  def variable = "?" ~> idChars ^^ {
+    case name => ""
+  }
+
+  def uri = "<" ~> uriChars <~ ">" ^^ {
+    case uri => "<" + uri + ">"
+  }
+
+  def prefixName = idChars ~ ":" ~ idChars ^^ {
     case prefix ~ ":" ~ name => prefix + ":" + name
   }
 
-  def rdfTypeReplacement = " a" ^^ {
-    rdftype => "rdf:type"
+  def rdfTypeReplacement = "a" ^^ {
+    _ => "rdf:type"
   }
 
-  def objectt = specialObj | predicateObjectFilter
+  val idChars = """[a-zA-Z_]\w*""".r
 
-  def specialObj = " " ~> "?" ~ wordCharFilter ^^ {
-    case "?" ~ name => ""
-  }
-
-  def wordCharFilter = """[a-zA-Z_]\w*""".r
-
+  val uriChars = """[^>]+""".r
 }
 
 

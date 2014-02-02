@@ -45,7 +45,10 @@ object Restriction {
 
   object Condition {
     def resolve(path: Path, value: String)(implicit prefixes: Prefixes) = {
-      Condition(path, prefixes.resolve(value))
+      if(value.startsWith("<"))
+        Condition(path, value)
+      else
+        Condition(path, prefixes.resolve(value))
     }
   }
 

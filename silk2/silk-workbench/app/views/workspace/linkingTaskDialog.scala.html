@@ -88,9 +88,11 @@
     sourceName = $("select[name='" + sourceOrTarget + "']").val()
     sparqlRestriction = $("input[name='" + sourceOrTarget + "restriction']").val();
 
-    $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName, function(data) {
-      $('#restrictionDialog').html(data);
-    }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )
+    $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName,
+          { sourceOrTarget: sourceOrTarget, restriction: sparqlRestriction },
+          function(data) {
+            $('#restrictionDialog').html(data);
+          }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )
   }
 
   function closeRestrictionDialog(newRestriction) {

@@ -1,4 +1,5 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project,
+  restriction: String,
   cache: de.fuberlin.wiwiss.silk.workspace.modules.source.TypesCache)
 
 @import de.fuberlin.wiwiss.silk.workspace.Constants
@@ -39,6 +40,7 @@
   </div>
 
   <textarea name="sparql_restriction" cols="50" rows="10">
+    @restriction
   </textarea>
 
   <button onclick="commitSparqlRestriction()" style="float:right">Ok</button>
@@ -81,7 +83,6 @@
   $(function() {
     $("#tabs").tabs();
     $("button").button();
-    $("textarea[name='sparql_restriction']").val(sparqlRestriction);
   });
 
   function commitSimpleRestriction() {
