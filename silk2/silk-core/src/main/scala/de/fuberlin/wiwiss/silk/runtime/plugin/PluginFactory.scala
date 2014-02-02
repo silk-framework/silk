@@ -19,11 +19,14 @@ import java.net.{URL, URLClassLoader}
 import org.clapper.classutil._
 import collection.immutable.ListMap
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import java.util.logging.Logger
 
 /**
  * An abstract Factory.
  */
 class PluginFactory[T <: AnyPlugin : Manifest] {
+
+  private val log = Logger.getLogger(getClass.getName)
 
   /** Map of all plugins by their id. This is a list map as it preserves the iteration order of the entries. */
   private var plugins = ListMap[String, PluginDescription[T]]()
