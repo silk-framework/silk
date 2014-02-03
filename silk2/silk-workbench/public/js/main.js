@@ -25,7 +25,7 @@ var dialog;
 var dialogPath;
 
 $(function() {
-  $("button[type!='radio'], input:submit, input:checkbox, a.button").button();
+  $("button[type!='radio'], input:submit, a.button").button();
 
   // Initialize window
   var id;
