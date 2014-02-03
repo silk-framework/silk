@@ -426,16 +426,18 @@ function getDeleteIcon(elementId) {
   img.attr("src", "../../assets/img/delete.png");
   img.attr("align", "right");
   img.attr("style", "cursor:pointer;");
-  //We need to set a time-out here as a element should not remove its own parent in its event handler
   img.attr("onclick", "setTimeout(\"removeElement('" + elementId + "');\", 100);");
   return img;
 }
 
 function removeElement(elementId) {
-  jsPlumb.removeAllEndpoints(elementId);
-  $('#' + elementId).remove();
-  UnTip();
-  modifyLinkSpec();
+  //We need to set a time-out here as a element should not remove its own parent in its event handler
+  setTimeout(function() {
+    jsPlumb.removeAllEndpoints(elementId);
+    $('#' + elementId).remove();
+    UnTip();
+    modifyLinkSpec();
+  }, 100);
 }
 
 function parseXML(xml, level, level_y, last_element, max_level, lastElementId)
@@ -1737,76 +1739,77 @@ function getOperators()
           transformations[item.id]["description"] = item.description;
           transformations[item.id]["parameters"] = item.parameters;
 
+          // Removed old code. HTML will now be generated in the template engine.
           //var box = $(document.createElement('div'));
           //box.addClass('draggable tranformations');
           //box.attr("id", "transformation" + list_item_id);
           //box.attr("title", item.description);
           //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
 
-          $("#transformation_" + item.category + "_" + item.id).draggable(
-          {
-            helper: function ()
-            {
-              var box1 = $(document.createElement('div'));
-              box1.addClass('dragDiv transformDiv');
-              var boxid = generateNewElementId();
-              box1.attr("id", boxid);
-
-              var box2 = $(document.createElement('small'));
-              box2.addClass('name');
-              var mytext = document.createTextNode(item.id);
-              box2.append(mytext);
-              box1.append(box2);
-              var box2 = $(document.createElement('small'));
-              box2.addClass('type');
-              var mytext = document.createTextNode("TransformInput");
-              box2.append(mytext);
-              box1.append(box2);
-
-              var box2 = $(document.createElement('h5'));
-              box2.addClass('handler');
-
-              var span = $(document.createElement('div'));
-              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-              span.attr("title", item.label + " (Transformation)");
-              var mytext = document.createTextNode(item.label + " (Transformation)");
-              span.append(mytext);
-              box2.append(span);
-
-              box2.append(getDeleteIcon(boxid));
-
-              box1.append(box2);
-
-              var box2 = $(document.createElement('div'));
-              box2.addClass('content');
-
-              $.each(item.parameters, function (j, parameter)
-              {
-                if (j > 0)
-                {
-                  var box4 = $(document.createElement('br'));
-                  box2.append(box4);
-                }
-
-                var mytext = document.createTextNode(parameter.name + ": ");
-                box2.append(mytext);
-
-                var box5 = $(document.createElement('input'));
-                box5.attr("name", parameter.name);
-                box5.attr("type", "text");
-                box5.attr("size", "10");
-                if (parameter.optional) {
-                  box5.attr("value", parameter.defaultValue);
-                }
-                box2.append(box5);
-              });
-
-              box2.append(getHelpIcon(item.description, item.parameters.length));
-
-              box1.append(box2);
-              return box1;
-            }
-          });
+//          $("#transformation_" + item.category + "_" + item.id).draggable(
+//          {
+//            helper: function ()
+//            {
+//              var box1 = $(document.createElement('div'));
+//              box1.addClass('dragDiv transformDiv');
+//              var boxid = generateNewElementId();
+//              box1.attr("id", boxid);
+//
+//              var box2 = $(document.createElement('small'));
+//              box2.addClass('name');
+//              var mytext = document.createTextNode(item.id);
+//              box2.append(mytext);
+//              box1.append(box2);
+//              var box2 = $(document.createElement('small'));
+//              box2.addClass('type');
+//              var mytext = document.createTextNode("TransformInput");
+//              box2.append(mytext);
+//              box1.append(box2);
+//
+//              var box2 = $(document.createElement('h5'));
+//              box2.addClass('handler');
+//
+//              var span = $(document.createElement('div'));
+//              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+//              span.attr("title", item.label + " (Transformation)");
+//              var mytext = document.createTextNode(item.label + " (Transformation)");
+//              span.append(mytext);
+//              box2.append(span);
+//
+//              box2.append(getDeleteIcon(boxid));
+//
+//              box1.append(box2);
+//
+//              var box2 = $(document.createElement('div'));
+//              box2.addClass('content');
+//
+//              $.each(item.parameters, function (j, parameter)
+//              {
+//                if (j > 0)
+//                {
+//                  var box4 = $(document.createElement('br'));
+//                  box2.append(box4);
+//                }
+//
+//                var mytext = document.createTextNode(parameter.name + ": ");
+//                box2.append(mytext);
+//
+//                var box5 = $(document.createElement('input'));
+//                box5.attr("name", parameter.name);
+//                box5.attr("type", "text");
+//                box5.attr("size", "10");
+//                if (parameter.optional) {
+//                  box5.attr("value", parameter.defaultValue);
+//                }
+//                box2.append(box5);
+//              });
+//
+//              box2.append(getHelpIcon(item.description, item.parameters.length));
+//
+//              box1.append(box2);
+//              return box1;
+//            }
+//          });
           //box.appendTo("#transformationbox");
 
           list_item_id = list_item_id + 1;
@@ -1839,118 +1842,118 @@ function getOperators()
           //box.attr("title", item.description);
           //box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
 
-          $("#comparator_" + item.category + "_" + item.id).draggable(
-          {
-            helper: function ()
-            {
-              var box1 = $(document.createElement('div'));
-              box1.addClass('dragDiv compareDiv');
-              var boxid = generateNewElementId();
-              box1.attr("id", boxid);
-
-              var box2 = $(document.createElement('small'));
-              box2.addClass('name');
-              var mytext = document.createTextNode(item.id);
-              box2.append(mytext);
-              box1.append(box2);
-              var box2 = $(document.createElement('small'));
-              box2.addClass('type');
-              var mytext = document.createTextNode("Compare");
-              box2.append(mytext);
-              box1.append(box2);
-
-              var box2 = $(document.createElement('h5'));
-              box2.addClass('handler');
-
-              var span = $(document.createElement('div'));
-              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-              span.attr("title", item.label + " (Comparator)");
-              var mytext = document.createTextNode(item.label + " (Comparator)");
-              span.append(mytext);
-              box2.append(span);
-
-              box2.append(getDeleteIcon(boxid));
-
-              box1.append(box2);
-
-              var box2 = $(document.createElement('div'));
-              box2.addClass('content');
-
-              var mytext = document.createTextNode("required: ");
-              box2.append(mytext);
-
-              var box3 = $(document.createElement('input'));
-              box3.attr("type", "checkbox");
-              box3.attr("name", "required");
-              box2.append(box3);
-
-              var box4 = $(document.createElement('br'));
-              box2.append(box4);
-
-              var mytext = document.createTextNode("threshold: ");
-              box2.append(mytext);
-
-              var box5 = $(document.createElement('input'));
-              box5.attr("name", "threshold");
-              box5.attr("type", "text");
-              box5.attr("size", "2");
-              box5.attr("value", "0.0");
-              box2.append(box5);
-
-              var box4 = $(document.createElement('br'));
-              box2.append(box4);
-
-              var mytext = document.createTextNode("weight: ");
-              box2.append(mytext);
-
-              var box5 = $(document.createElement('input'));
-              box5.attr("name", "weight");
-              box5.attr("type", "text");
-              box5.attr("size", "2");
-              box5.attr("value", "1");
-              box2.append(box5);
-
-              $.each(item.parameters, function (j, parameter)
-              {
-			          var box4 = $(document.createElement('br'));
-                box2.append(box4);
-
-                var mytext = document.createTextNode(parameter.name + ": ");
-                box2.append(mytext);
-
-                var box5 = $(document.createElement('input'));
-                box5.attr("name", parameter.name);
-                box5.attr("type", "text");
-                box5.attr("size", "10");
-                if (parameter.optional) {
-                  box5.attr("value", parameter.defaultValue);
-                }
-                box2.append(box5);
-              });
-
-              box2.append(getHelpIcon(item.description));
-
-              box1.append(box2);
-
-              return box1;
-            }
-          });
+//          $("#comparator_" + item.category + "_" + item.id).draggable(
+//          {
+//            helper: function ()
+//            {
+//              var box1 = $(document.createElement('div'));
+//              box1.addClass('dragDiv compareDiv');
+//              var boxid = generateNewElementId();
+//              box1.attr("id", boxid);
+//
+//              var box2 = $(document.createElement('small'));
+//              box2.addClass('name');
+//              var mytext = document.createTextNode(item.id);
+//              box2.append(mytext);
+//              box1.append(box2);
+//              var box2 = $(document.createElement('small'));
+//              box2.addClass('type');
+//              var mytext = document.createTextNode("Compare");
+//              box2.append(mytext);
+//              box1.append(box2);
+//
+//              var box2 = $(document.createElement('h5'));
+//              box2.addClass('handler');
+//
+//              var span = $(document.createElement('div'));
+//              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+//              span.attr("title", item.label + " (Comparator)");
+//              var mytext = document.createTextNode(item.label + " (Comparator)");
+//              span.append(mytext);
+//              box2.append(span);
+//
+//              box2.append(getDeleteIcon(boxid));
+//
+//              box1.append(box2);
+//
+//              var box2 = $(document.createElement('div'));
+//              box2.addClass('content');
+//
+//              var mytext = document.createTextNode("required: ");
+//              box2.append(mytext);
+//
+//              var box3 = $(document.createElement('input'));
+//              box3.attr("type", "checkbox");
+//              box3.attr("name", "required");
+//              box2.append(box3);
+//
+//              var box4 = $(document.createElement('br'));
+//              box2.append(box4);
+//
+//              var mytext = document.createTextNode("threshold: ");
+//              box2.append(mytext);
+//
+//              var box5 = $(document.createElement('input'));
+//              box5.attr("name", "threshold");
+//              box5.attr("type", "text");
+//              box5.attr("size", "2");
+//              box5.attr("value", "0.0");
+//              box2.append(box5);
+//
+//              var box4 = $(document.createElement('br'));
+//              box2.append(box4);
+//
+//              var mytext = document.createTextNode("weight: ");
+//              box2.append(mytext);
+//
+//              var box5 = $(document.createElement('input'));
+//              box5.attr("name", "weight");
+//              box5.attr("type", "text");
+//              box5.attr("size", "2");
+//              box5.attr("value", "1");
+//              box2.append(box5);
+//
+//              $.each(item.parameters, function (j, parameter)
+//              {
+//			          var box4 = $(document.createElement('br'));
+//                box2.append(box4);
+//
+//                var mytext = document.createTextNode(parameter.name + ": ");
+//                box2.append(mytext);
+//
+//                var box5 = $(document.createElement('input'));
+//                box5.attr("name", parameter.name);
+//                box5.attr("type", "text");
+//                box5.attr("size", "10");
+//                if (parameter.optional) {
+//                  box5.attr("value", parameter.defaultValue);
+//                }
+//                box2.append(box5);
+//              });
+//
+//              box2.append(getHelpIcon(item.description));
+//
+//              box1.append(box2);
+//
+//              return box1;
+//            }
+//          });
           //box.appendTo("#comparatorbox");
           list_item_id = list_item_id + 1;
         });
 
         var list_item_id = 0;
 
-        var box = $(document.createElement('div'));
-        box.attr("style", "color: #1484d4;");
-        box.addClass("boxheaders");
-        box.html("Aggregators").appendTo("#operators");
-        box.appendTo("#operators");
-
-        var box = $(document.createElement('div'));
-        box.attr("id", "aggregatorbox");
-        box.addClass("scrollboxes");
-        box.appendTo("#operators");
+//        var box = $(document.createElement('div'));
+//        box.attr("style", "color: #1484d4;");
+//        box.addClass("boxheaders");
+//        box.html("Aggregators").appendTo("#operators");
+//        box.appendTo("#operators");
+//
+//        var box = $(document.createElement('div'));
+//        box.attr("id", "aggregatorbox");
+//        box.addClass("scrollboxes");
+//        box.appendTo("#operators");
 
         var sourcepaths = data.aggregators;
         $.each(sourcepaths, function (i, item)
@@ -1960,97 +1963,97 @@ function getOperators()
           aggregators[item.id]["description"] = item.description;
           aggregators[item.id]["parameters"] = item.parameters;
 
-          var box = $(document.createElement('div'));
-          box.addClass('draggable aggregators');
-          box.attr("title", item.description);
-          box.attr("id", "aggregator" + list_item_id);
-          box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
-
-          box.draggable(
-          {
-            helper: function ()
-            {
-              var box1 = $(document.createElement('div'));
-              box1.addClass('dragDiv aggregateDiv');
-              var boxid = generateNewElementId();
-              box1.attr("id", boxid);
-
-              var box2 = $(document.createElement('small'));
-              box2.addClass('name');
-              var mytext = document.createTextNode(item.id);
-              box2.append(mytext);
-              box1.append(box2);
-              var box2 = $(document.createElement('small'));
-              box2.addClass('type');
-              var mytext = document.createTextNode("Aggregate");
-              box2.append(mytext);
-              box1.append(box2);
-
-              var box2 = $(document.createElement('h5'));
-              box2.addClass('handler');
-
-              var span = $(document.createElement('div'));
-              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
-              span.attr("title", item.label + " (Aggregator)");
-              var mytext = document.createTextNode(item.label + " (Aggregator)");
-              span.append(mytext);
-              box2.append(span);
-
-              box2.append(getDeleteIcon(boxid));
-
-              box1.append(box2);
-
-              var box2 = $(document.createElement('div'));
-              box2.addClass('content');
-
-              var mytext = document.createTextNode("required: ");
-              box2.append(mytext);
-
-              var box3 = $(document.createElement('input'));
-              box3.attr("name", "required");
-              box3.attr("type", "checkbox");
-              box2.append(box3);
-
-              var box4 = $(document.createElement('br'));
-              box2.append(box4);
-
-              var mytext = document.createTextNode("weight: ");
-              box2.append(mytext);
-
-              var box5 = $(document.createElement('input'));
-              box5.attr("type", "text");
-              box5.attr("size", "2");
-              box5.attr("name", "weight");
-              box5.attr("value", "1");
-              box2.append(box5);
-
-              $.each(item.parameters, function (j, parameter)
-              {
-                var box4 = $(document.createElement('br'));
-                box2.append(box4);
-
-                var mytext = document.createTextNode(parameter.name + ": ");
-                box2.append(mytext);
-
-                var box5 = $(document.createElement('input'));
-                box5.attr("name", parameter.name);
-                box5.attr("type", "text");
-                box5.attr("size", "10");
-                if (parameter.optional) {
-                  box5.attr("value", parameter.defaultValue);
-                }
-                box2.append(box5);
-              });
-
-              box2.append(getHelpIcon(item.description));
-
-              box1.append(box2);
-			  
-              return box1;
-            }
-
-          });
-          box.appendTo("#aggregatorbox");
+//          var box = $(document.createElement('div'));
+//          box.addClass('draggable aggregators');
+//          box.attr("title", item.description);
+//          box.attr("id", "aggregator" + list_item_id);
+//          box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
+//
+//          box.draggable(
+//          {
+//            helper: function ()
+//            {
+//              var box1 = $(document.createElement('div'));
+//              box1.addClass('dragDiv aggregateDiv');
+//              var boxid = generateNewElementId();
+//              box1.attr("id", boxid);
+//
+//              var box2 = $(document.createElement('small'));
+//              box2.addClass('name');
+//              var mytext = document.createTextNode(item.id);
+//              box2.append(mytext);
+//              box1.append(box2);
+//              var box2 = $(document.createElement('small'));
+//              box2.addClass('type');
+//              var mytext = document.createTextNode("Aggregate");
+//              box2.append(mytext);
+//              box1.append(box2);
+//
+//              var box2 = $(document.createElement('h5'));
+//              box2.addClass('handler');
+//
+//              var span = $(document.createElement('div'));
+//              span.attr("style", "width: 170px; white-space:nowrap; overflow:hidden; float: left;");
+//              span.attr("title", item.label + " (Aggregator)");
+//              var mytext = document.createTextNode(item.label + " (Aggregator)");
+//              span.append(mytext);
+//              box2.append(span);
+//
+//              box2.append(getDeleteIcon(boxid));
+//
+//              box1.append(box2);
+//
+//              var box2 = $(document.createElement('div'));
+//              box2.addClass('content');
+//
+//              var mytext = document.createTextNode("required: ");
+//              box2.append(mytext);
+//
+//              var box3 = $(document.createElement('input'));
+//              box3.attr("name", "required");
+//              box3.attr("type", "checkbox");
+//              box2.append(box3);
+//
+//              var box4 = $(document.createElement('br'));
+//              box2.append(box4);
+//
+//              var mytext = document.createTextNode("weight: ");
+//              box2.append(mytext);
+//
+//              var box5 = $(document.createElement('input'));
+//              box5.attr("type", "text");
+//              box5.attr("size", "2");
+//              box5.attr("name", "weight");
+//              box5.attr("value", "1");
+//              box2.append(box5);
+//
+//              $.each(item.parameters, function (j, parameter)
+//              {
+//                var box4 = $(document.createElement('br'));
+//                box2.append(box4);
+//
+//                var mytext = document.createTextNode(parameter.name + ": ");
+//                box2.append(mytext);
+//
+//                var box5 = $(document.createElement('input'));
+//                box5.attr("name", parameter.name);
+//                box5.attr("type", "text");
+//                box5.attr("size", "10");
+//                if (parameter.optional) {
+//                  box5.attr("value", parameter.defaultValue);
+//                }
+//                box2.append(box5);
+//              });
+//
+//              box2.append(getHelpIcon(item.description));
+//
+//              box1.append(box2);
+//
+//              return box1;
+//            }
+//
+//          });
+//          box.appendTo("#aggregatorbox");
 		  
           list_item_id = list_item_id + 1;
         });
@@ -2091,7 +2094,7 @@ function reloadCache() {
 function updateScore() {
   $.ajax({
     type: 'get',
-    url: baseURl + "/editor/score",
+    url: baseUrl + '/' + projectName + '/' + taskName + "/editor/score",
     complete: function(response, status) {
       $("#score-widget").html(response.responseText);
       if(status == "error") {
