@@ -21,7 +21,7 @@
 @renderOperator(op: Operator) = { @op match {
   case Aggregation(id, required, weight, aggregator, operators) => {
     <li>
-      <span class="aggregation">Aggregation: @aggregator.pluginId</span>
+      <span class="aggregation">Aggregation: @aggregator.plugin.id</span>
       <ul>
         @operators.map(renderOperator)
       </ul>
@@ -29,7 +29,7 @@
   }
   case Comparison(id, required, weight, threshold, indexing, metric, DPair(input1, input2)) => {
     <li>
-      <span class="comparison">Comparison: @metric.pluginId (@threshold.toString)</span>
+      <span class="comparison">Comparison: @metric.plugin.id (@threshold.toString)</span>
       <ul>
         @renderOperator(input1)
         @renderOperator(input2)
@@ -38,7 +38,7 @@
   }
   case TransformInput(id, transformer, inputs) => {
     <li>
-      <span class="transformation">Transformation: @transformer.pluginId</span>
+      <span class="transformation">Transformation: @transformer.plugin.id</span>
       <ul>
         @inputs.map(renderOperator)
       </ul>

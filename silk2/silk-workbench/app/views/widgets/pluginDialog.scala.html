@@ -19,7 +19,7 @@
   </div>
   <script>
     $(function() {
-      $('#plugintabs').tabs({ @for(obj <- currentObj) { active: @(plugins.indexWhere(_.id == obj.pluginId)) } });
+      $('#plugintabs').tabs({ @for(obj <- currentObj) { active: @(plugins.indexWhere(_.id == obj.plugin.id)) } });
     });
   </script>
   @contents
@@ -105,7 +105,7 @@
  *@
 @value(pluginId: String, param: Parameter) = @{
   currentObj match {
-    case Some(obj) if obj.pluginId == pluginId => Option(param(obj)).getOrElse("").toString
+    case Some(obj) if obj.plugin.id == pluginId => Option(param(obj)).getOrElse("").toString
     case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
   }
 }

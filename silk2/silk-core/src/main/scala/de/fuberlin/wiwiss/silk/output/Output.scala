@@ -73,8 +73,8 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
 
   //TODO write minConfidence, maxConfidence
   def toXML: Node = writer match {
-    case LinkWriter(outputType, params) => {
-      <Output id={id} type={outputType}>
+    case LinkWriter(plugin, params) => {
+      <Output id={id} type={plugin.id}>
         {params.map {
         case (name, value) => <Param name={name} value={value}/>
       }}
