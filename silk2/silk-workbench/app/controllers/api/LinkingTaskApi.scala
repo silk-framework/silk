@@ -5,16 +5,14 @@ import play.api.libs.json.{JsString, JsObject, JsArray, JsNumber, JsBoolean}
 import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.entity.Path
-import de.fuberlin.wiwiss.silk.util.task.TaskFinished
+import de.fuberlin.wiwiss.silk.runtime.task.TaskFinished
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.util.plugin.{Parameter, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, AnyPlugin}
 import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator._
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.config.{LinkingConfig, LinkSpecification, Prefixes}
-import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter._
-import de.fuberlin.wiwiss.silk.evaluation.{ReferenceLinks, LinkageRuleEvaluator}
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
 import java.util.logging.{Logger, Level}
@@ -41,7 +39,7 @@ object LinkingTaskApi extends Controller {
 
     request.body.asXml match {
       case Some(xml) =>
-        val rule = LinkageRule.fromXML(xml.head, project.resourceLoader)
+        val rule = LinkageRule.fromXML(xml.head, project.resourceManager)
 
         //Update linking task
         val updatedTask = task.updateLinkSpec(task.linkSpec.copy(rule = rule), project)
@@ -73,7 +71,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while saving link spec
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
             //Load link specification
-            val newLinkSpec = LinkSpecification.load(project.resourceLoader)(prefixes)(xml.head)
+            val newLinkSpec = LinkSpecification.load(project.resourceManager)(prefixes)(xml.head)
 
             //Update linking task
             val updatedTask = task.updateLinkSpec(newLinkSpec, project)
@@ -231,10 +229,11 @@ object LinkingTaskApi extends Controller {
     json
   }
 
-  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.util.plugin.PluginFactory[T]) = {
-    for(plugin <- factory.availablePlugins.toSeq.sortBy(_.label)) yield {
+  private def generateFactoryOperators[T <: AnyPlugin](factory : de.fuberlin.wiwiss.silk.runtime.plugin.PluginFactory[T]) = {
+    for((category, plugins) <- factory.pluginsByCategory;
+         plugin <- plugins) yield {
       JsObject(("id", JsString(plugin.id)) ::
-               ("categories", JsArray(plugin.categories.toSeq.map(JsString(_)))) ::
+               ("category", JsString(category)) ::
                ("label", JsString(plugin.label)) ::
                ("description", JsString(plugin.description)) ::
                ("parameters", JsArray(generateFactoryParameters(plugin.parameters).toList)) :: Nil)

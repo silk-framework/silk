@@ -79,7 +79,7 @@
       if(confirm("This will overwrite the current linkage rule! ")) {
         $.ajax({
           type: 'PUT',
-          url: '/api/workspace/@project/linking/@task/rule',
+          url: '@config.baseUrl/api/workspace/@project/linking/@task/rule',
           data: '@Html(StringEscapeUtils.escapeEcmaScript(individual.node.build.toXML.toString))',
           contentType: 'text/xml',
           processData: false,

@@ -1,0 +1,91 @@
+@()
+
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+
+<script type="text/javascript">
+  // Initialization
+  $(function() {
+    // Hide all operators except the recommended ones
+    @for(category <- DistanceMeasure.pluginsByCategory.keys if category != "Recommended") {
+      $('#comparator_category_@category').hide();
+    }
+
+    // Make operators draggable
+    $('.comparators').draggable({
+      helper: function() {
+        var box = $(this).children('.compareDiv').clone(false);
+        box.attr("id", generateNewElementId());
+        box.show();
+        return box;
+      }
+    });
+  })
+</script>
+
+<div class="boxheaders" style="color: #e59829;">
+  Comparators
+  <select name="category" style="font-size:0.9em;">
+    @for(category <- DistanceMeasure.pluginsByCategory.keys) {
+      <option value="@category"
+              onclick="$('div[id^=comparator_category]').hide(); $('#comparator_category_@category').show()"
+              @if(category == "Recommended"){ selected="selected" }>
+        @category
+      </option>
+    }
+  </select>
+</div>
+
+<div id="comparatorbox" class="scrollboxes" style="height: 67.9px;">
+  @for((category, plugins) <- DistanceMeasure.pluginsByCategory) {
+    <div id="comparator_category_@category">
+      @for(plugin <- plugins.sortBy(_.label)) {
+        @comparatorBox(plugin, category)
+      }
+    </div>
+  }
+</div>
+
+@**
+* A single operator.
+*@
+@comparatorBox(plugin: PluginDescription[DistanceMeasure], category: String) = {
+  <div id="comparator_@{category}_@plugin.id" class="draggable comparators" title="@plugin.description">
+    <span></span>
+    <small>@plugin.label</small>
+    <p>@plugin.label</p>
+    @comparatorExpanded(plugin)
+  </div>
+}
+
+@**
+ * The expanded box after the operator has been dragged into the editor.
+ *@
+@comparatorExpanded(plugin: PluginDescription[DistanceMeasure]) = {
+  <div class="dragDiv compareDiv" style="display: none;">
+    <small class="name">@plugin.id</small>
+    <small class="type">Compare</small>
+    <h5 class="handler">
+      <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
+        @plugin.label (Comparator)
+      </div>
+      <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+    </h5>
+    <div class="content">
+      required:
+      <input type="checkbox" name="required"/>
+      <br/>
+      threshold:
+      <input type="text" name="threshold" size="2" value="0.0"/>
+      <br/>
+      weight:
+      <input type="text" name="weight" size="2" value="1"/>
+      @for(param <- plugin.parameters) {
+        <br/>
+        @param.name:
+        <input type="text" name="@param.name" size="10" @for(v <- param.defaultValue) {value="@v"} />
+      }
+      <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-top: 6px; cursor:help;" title=""/>
+    </div>
+  </div>
+}

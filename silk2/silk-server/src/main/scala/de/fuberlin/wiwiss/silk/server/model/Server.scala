@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.Link
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 
 /**
  * The Silk Server.
@@ -87,7 +87,7 @@ private class Server {
    * Each link specification in the configuration is represented by one dataset.
    */
   val datasets : Traversable[Dataset] = {
-    val resourceLoader = new FileResourceLoader(serverConfig.configDir)
+    val resourceLoader = new FileResourceManager(serverConfig.configDir)
     //Iterate through all configuration files and create a dataset for each link spec
     for( file <- serverConfig.configDir.listFiles if file.getName.endsWith("xml");
          config = LinkingConfig.load(resourceLoader)(file);

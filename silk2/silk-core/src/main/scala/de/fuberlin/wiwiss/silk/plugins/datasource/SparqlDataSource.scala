@@ -14,9 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.datasource
 
-import de.fuberlin.wiwiss.silk.datasource.{DataSource}
+import de.fuberlin.wiwiss.silk.datasource.DataSource
 import java.net.URI
-import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, EntityDescription}
 import de.fuberlin.wiwiss.silk.util.sparql._
@@ -76,11 +76,9 @@ case class SparqlDataSource(endpointURI: String, login: String = null, password:
     try {
       SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)
     } catch {
-      case ex: Exception => {
+      case ex: Exception =>
         logger.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
-
         SparqlSamplePathsCollector(createEndpoint(), restrictions, limit)
-      }
     }
   }
 

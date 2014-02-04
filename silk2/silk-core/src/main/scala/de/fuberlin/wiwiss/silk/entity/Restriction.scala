@@ -33,21 +33,22 @@ object Restriction {
   }
 
   /**
-   * A condition which evaluates to true if the provided path contains at least one of the given values.
+   * A condition which evaluates to true if the provided path contains the given value.
    */
-  case class Condition(path: Path, values: Set[String]) extends Operator {
+  case class Condition(path: Path, value: String) extends Operator {
     def toXml = {
       <Condition path={path.toString}>
-        {values.map(v => <Value>
-        {v}
-      </Value>)}
+       { value }
       </Condition>
     }
   }
 
   object Condition {
-    def resolve(path: Path, values: Set[String])(implicit prefixes: Prefixes) = {
-      Condition(path, values.map(prefixes.resolve))
+    def resolve(path: Path, value: String)(implicit prefixes: Prefixes) = {
+      if(value.startsWith("<"))
+        Condition(path, value)
+      else
+        Condition(path, prefixes.resolve(value))
     }
   }
 

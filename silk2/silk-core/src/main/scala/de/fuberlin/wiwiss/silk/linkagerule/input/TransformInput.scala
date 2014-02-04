@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
-import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * A TransformInput applies a transformation to input values.

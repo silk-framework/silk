@@ -1,11 +1,12 @@
 @(name: String,
-  plugins: Seq[de.fuberlin.wiwiss.silk.util.plugin.PluginDescription[_]],
-  currentObj: Option[de.fuberlin.wiwiss.silk.util.plugin.AnyPlugin])(contents: Html)
+  plugins: Seq[de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription[_]],
+  currentObj: Option[de.fuberlin.wiwiss.silk.runtime.plugin.AnyPlugin],
+  resources: List[String])(contents: Html)
 
-@import de.fuberlin.wiwiss.silk.util.plugin.PluginDescription
-@import de.fuberlin.wiwiss.silk.util.plugin.Parameter
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
+@import de.fuberlin.wiwiss.silk.runtime.plugin.Parameter
 
-@dialog(500) {
+@dialog(title = "Edit Properties", width = 500) {
   <div id="plugintabs">
     <ul>
       @for(plugin <- plugins) {
@@ -40,32 +41,71 @@
     <button onclick='@(plugin.id)_submit()'>Ok</button>
   </div>
 
-  <script>//<![CDATA[
+  <script type="text/javascript">
     function @(plugin.id)_submit() {
       // Retrieve the name of the plugin
-      var name = $('input[name=\'@(plugin.id)_name\']').val();
+      var name = $('[name=\'@(plugin.id)_name\']').val();
+      if(name.length === 0) {
+        alert("Name is empty.");
+        return;
+      }
+
       // Retrieve all plugin parameters
       var parameters = [
         @for(param <- plugin.parameters) {
           { name: '@param.name',
-            value: $('input[name=\'@(plugin.id)_@(param.name)\']').val() },
+            value: $('[name=\'@(plugin.id)_@(param.name)\']').val() },
         }
       ];
+
       // Submit dialog
       submit('@plugin.id', name, parameters);
     }
-  //]]>
   </script>
 }
 
-@createField(pluginId: String, param: Parameter) = {
+@**
+ * Creates a new field for a plugin paramter
+ *@
+@createField(pluginId: String, param: Parameter) = @{
+  param.dataType match {
+    case Parameter.Type.Resource => createResourceField(pluginId, param)
+    case _ => createTextField(pluginId, param)
+  }
+}
+
+@createTextField(pluginId: String, param: Parameter) = {
   <tr>
     <td>@param.name</td>
     <td><input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/></td>
   </tr>
 }
 
-@value(pluginId: String, param: Parameter) = {@(currentObj match {
-  case Some(obj) if obj.pluginId == pluginId => Option(param(obj)).getOrElse("").toString
-  case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
-})}
+@createResourceField(pluginId: String, param: Parameter) = {
+  <tr>
+    <td>@param.name</td>
+    <td>
+      @if(resources.isEmpty) {
+        <div style="text-align:center">
+          No resources found!
+        </div>
+      } else {
+        <select name='@(pluginId)_@(param.name)' title='@param.description'>
+          @for(resource <- resources) {
+            <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
+          }
+        </select>
+      }
+    </td>
+  </tr>
+}
+
+@**
+ * Retrieves the value of a specific paramter
+ *@
+@value(pluginId: String, param: Parameter) = @{
+  currentObj match {
+    case Some(obj) if obj.pluginId == pluginId => Option(param(obj)).getOrElse("").toString
+    case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
+  }
+}

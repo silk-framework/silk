@@ -4,7 +4,7 @@
 
 @outputs = @{ User().workspace.project(project).outputModule.tasks }
 
-@widgets.dialog(600) {
+@widgets.dialog(title = "Export Reference Links", width = 600) {
   <table>
     <tr>
       <td>
@@ -67,7 +67,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '../../api/tasks/@project/@task/writeReferenceLinks',
+        url: '@config.baseUrl/api/tasks/@project/@task/writeReferenceLinks',
         data: values,
         success: function(response) {
           $('.dialog').dialog('close');

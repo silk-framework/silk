@@ -1,6 +1,6 @@
 @(project: String)
 
-@widgets.dialog(width = 500) {
+@widgets.dialog(title = "Import Link Specification", width = 500) {
 <table border="0">
   <tr>
     <td>File</td>
@@ -25,7 +25,7 @@ function submit() {
 
   $.ajax({
     type: 'POST',
-    url: '/api/workspace/@project/importLinkSpec',
+    url: '@config.baseUrl/api/workspace/@project/importLinkSpec',
     xhr: function() {
       myXhr = $.ajaxSettings.xhr();
       return myXhr;

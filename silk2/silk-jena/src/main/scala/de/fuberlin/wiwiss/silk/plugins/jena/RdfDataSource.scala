@@ -14,15 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import de.fuberlin.wiwiss.silk.datasource.{DataSource}
+import de.fuberlin.wiwiss.silk.datasource.DataSource
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import java.io.{ByteArrayInputStream, StringReader}
-import de.fuberlin.wiwiss.silk.util.plugin.{ResourceLoader, Plugin}
-import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
+import java.io.StringReader
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlTypesCollector, EntityRetriever, SparqlAggregatePathsCollector}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription, Entity}
-import de.fuberlin.wiwiss.silk.util.sparql.SparqlAggregatePathsCollector
-import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
-import com.hp.hpl.jena.query.DatasetFactory
 
 /**
  * A DataSource where all entities are given directly in the configuration.
@@ -46,4 +43,9 @@ case class RdfDataSource(input: String, format: String) extends DataSource {
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
   }
+
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    SparqlTypesCollector(endpoint, limit)
+  }
+
 }

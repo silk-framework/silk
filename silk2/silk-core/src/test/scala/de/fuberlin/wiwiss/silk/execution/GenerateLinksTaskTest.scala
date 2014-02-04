@@ -27,7 +27,7 @@ import methods.MultiBlock
 import methods.SortedBlocks
 import java.util.Locale
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
-import de.fuberlin.wiwiss.silk.util.plugin.ClasspathResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ClasspathResourceLoader
 
 /**
  * This test evaluates the GenerateLinksTask with different execution methods.

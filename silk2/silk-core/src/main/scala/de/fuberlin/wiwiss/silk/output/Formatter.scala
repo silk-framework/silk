@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.output
 
-import de.fuberlin.wiwiss.silk.util.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.Link
 
 /**

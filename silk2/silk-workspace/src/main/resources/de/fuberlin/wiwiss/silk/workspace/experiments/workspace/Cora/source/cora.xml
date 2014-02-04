@@ -1,4 +1,0 @@
-<DataSource type="file" id="cora">
-  <Param name="file" value="cora/cora-all-id.nt"></Param>
-  <Param name="format" value="N-TRIPLE"></Param>
-</DataSource>

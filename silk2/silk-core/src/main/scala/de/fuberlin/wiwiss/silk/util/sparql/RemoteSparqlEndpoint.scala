@@ -36,6 +36,7 @@ class RemoteSparqlEndpoint(val uri: URI,
                            val pageSize: Int = 1000, val pauseTime: Int = 0,
                            val retryCount: Int = 3, val initialRetryPause: Int = 1000,
                            val queryParameters: String = "") extends SparqlEndpoint {
+
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
   private var lastQueryTime = 0L

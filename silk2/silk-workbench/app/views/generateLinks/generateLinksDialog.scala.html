@@ -2,7 +2,7 @@
 
 @import de.fuberlin.wiwiss.silk.workspace.User
 
-@widgets.dialog(width = 500) {
+@widgets.dialog(title = "Generate Links", width = 500) {
 <table border="0">
   <tr>
     <td>Select outputs<br/></td>
@@ -31,7 +31,7 @@ function submit() {
 
   $.ajax({
     type: 'PUT',
-    url: '../../api/tasks/@project/@task/generateLinks',
+    url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
     data: values,
     success: function(response) {
       $('.dialog').dialog('close');

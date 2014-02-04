@@ -8,7 +8,7 @@ import models.EvalLink
 import models.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.util.{Stream, Widgets}
 import models._
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
 
 object Learning extends Controller {
 

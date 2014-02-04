@@ -14,13 +14,13 @@
 
 package de.fuberlin.wiwiss.silk.workspace
 
-import modules.linking.{Caches, LinkingTask, LinkingConfig, LinkingModule}
+import modules.linking.{LinkingCaches, LinkingTask, LinkingConfig, LinkingModule}
 import modules.output.{OutputTask, OutputConfig, OutputModule}
-import modules.source.{SourceConfig, SourceTask, SourceModule}
+import de.fuberlin.wiwiss.silk.workspace.modules.source.{TypesCache, SourceConfig, SourceTask, SourceModule}
 import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
-import de.fuberlin.wiwiss.silk.datasource.{Source}
+import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -28,7 +28,8 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.util.plugin.FileResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
+import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -37,7 +38,7 @@ class FileProject(file : File) extends Project {
 
   private implicit val logger = Logger.getLogger(classOf[FileProject].getName)
 
-  override val resourceLoader = new FileResourceLoader(file + "/resources")
+  override val resourceManager = new FileResourceManager(file + "/resources")
 
   private var cachedConfig : Option[ProjectConfig] = None
 
@@ -101,29 +102,58 @@ class FileProject(file : File) extends Project {
     file.mkdirs()
 
     @volatile
-    private var cachedTasks : Map[Identifier, SourceTask] = {
-      val sourceFiles = file.list.toList.filter(_.endsWith(".xml"))
-      for(fileName <- sourceFiles) yield {
-        SourceTask(Source.load(resourceLoader)(file + ("/" + fileName)))
-      }
-    }.map(task => (task.name, task)).toMap
+    private var cachedTasks : Map[Identifier, SourceTask] = null
 
     override def config = SourceConfig()
 
     override def config_=(c : SourceConfig) {}
 
-    override def tasks = cachedTasks.values
+    override def tasks = {
+      loadSources()
+      cachedTasks.values
+    }
 
     override def update(task : SourceTask) {
+      loadSources()
       task.source.toXML.write(file + ("/" + task.name + ".xml"))
+      task.cache.toXML.write(file + ("/" + task.name + "_cache.xml"))
       cachedTasks += (task.name -> task)
-      logger.info("Updated source '" + task.name + "' in project '" + name + "'")
+      logger.info(s"Updated source '${task.name}' in project '$name'")
     }
 
     override def remove(taskId : Identifier) {
-      (file + ("/" + taskId + ".xml")).deleteRecursive()
+      loadSources()
+      (file + ("/" + taskId + ".xml")).delete()
+      (file + ("/" + taskId + "_cache.xml")).delete()
       cachedTasks -= taskId
-      logger.info("Removed source '" + taskId + "' from project '" + name + "'")
+      logger.info(s"Removed source '$taskId' from project '$name'")
+    }
+
+    private def loadSources() {
+      if(cachedTasks == null) {
+        cachedTasks = {
+          val files = file.list.toList
+          val sourceFiles = files.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
+          for(fileName <- sourceFiles) yield loadSource(fileName)
+        }.map(task => (task.name, task)).toMap
+      }
+    }
+
+    private def loadSource(fileName: String) = {
+      // Load the source
+      val source = Source.load(resourceManager)(file + ("/" + fileName))
+
+      // Load the cache
+      val cache = new TypesCache()
+      try {
+        cache.loadFromXML(XML.loadFile(file + ("/" + source.id + "_cache.xml")))
+      } catch {
+        case ex : Exception =>
+          logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+          new LinkingCaches()
+      }
+
+      SourceTask(FileProject.this, source, cache)
     }
   }
 
@@ -174,9 +204,9 @@ class FileProject(file : File) extends Project {
         for(fileName <- file.list.toList) yield
         {
           val projectConfig = FileProject.this.config
-          val linkSpec = LinkSpecification.load(resourceLoader)(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
+          val linkSpec = LinkSpecification.load(resourceManager)(projectConfig.prefixes)(file + ("/" + fileName + "/linkSpec.xml"))
           val referenceLinks = ReferenceLinksReader.readReferenceLinks(file + ("/" + fileName + "/alignment.xml"))
-          val cache = new Caches()
+          val cache = new LinkingCaches()
 
           //Load the cache
           try {
@@ -184,7 +214,7 @@ class FileProject(file : File) extends Project {
           } catch {
             case ex : Exception =>
               logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-              new Caches()
+              new LinkingCaches()
           }
 
           LinkingTask(FileProject.this, linkSpec, referenceLinks, cache)
@@ -197,8 +227,7 @@ class FileProject(file : File) extends Project {
       val tasksToWrite = updatedTasks.values.toList
       updatedTasks --= tasksToWrite.map(_.name)
 
-      for(task <- tasksToWrite) Timer("Writing task " + task.name + " to disk")
-      {
+      for(task <- tasksToWrite) Timer("Writing task " + task.name + " to disk") {
         val taskDir = file + ("/" + task.name)
         taskDir.mkdir()
 
@@ -249,7 +278,7 @@ class FileProject(file : File) extends Project {
 
     override def tasks = synchronized {
       for(fileName <- file.list.toList) yield {
-        val output = Output.load(resourceLoader)(file + ("/" + fileName))
+        val output = Output.load(resourceManager)(file + ("/" + fileName))
 
         OutputTask(output)
       }

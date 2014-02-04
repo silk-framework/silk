@@ -7,7 +7,6 @@ import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 import de.fuberlin.wiwiss.silk.output.LinkWriter
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.execution.OutputTask
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.output.Output
@@ -16,11 +15,12 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
-import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigImporter, ProjectImporter, ProjectExporter}
+import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import de.fuberlin.wiwiss.silk.config._
 import java.io.{FileInputStream, ByteArrayOutputStream}
-import models.WorkbenchConfig
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
+import play.api.libs.iteratee.Enumerator
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object WorkspaceApi extends Controller {
   
@@ -133,7 +133,7 @@ object WorkspaceApi extends Controller {
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      val config = LinkingConfig.fromXML(scala.xml.XML.loadFile(file.ref.file), new EmptyResourceLoader())
+      val config = LinkingConfig.fromXML(scala.xml.XML.loadFile(file.ref.file), new EmptyResourceManager())
       SilkConfigImporter(config, project)
     }
     Ok
@@ -146,6 +146,39 @@ object WorkspaceApi extends Controller {
 
     Ok
   }}
+
+  def getResource(projectName: String, resourceName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val resource = project.resourceManager.get(resourceName)
+    val enumerator = Enumerator.fromStream(resource.load)
+
+    Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
+  }
+
+  def putResource(projectName: String, resourceName: String) = Action { implicit request => {
+    val project = User().workspace.project(projectName)
+
+    request.body.asMultipartFormData match {
+      case Some(formData) if !formData.files.isEmpty =>
+        try {
+          val file = formData.files.head.ref.file
+          val inputStream = new FileInputStream(file)
+          project.resourceManager.put(resourceName, inputStream)
+          inputStream.close()
+          Ok
+        } catch {
+          case ex: Exception => BadRequest(ex.getMessage)
+        }
+      case None => BadRequest("No resource provided.")
+    }
+  }}
+
+  def deleteResource(projectName: String, resourceName: String) = Action {
+    val project = User().workspace.project(projectName)
+    project.resourceManager.delete(resourceName)
+
+    Ok
+  }
 
   def getSource(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -160,7 +193,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = SourceTask(Source.fromXML(xml.head, project.resourceLoader))
+          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resourceManager))
           project.sourceModule.update(sourceTask)
           Ok
         } catch {
@@ -228,7 +261,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) => {
         try {
-          val outputTask = OutputTask(Output.fromXML(xml.head, project.resourceLoader))
+          val outputTask = OutputTask(Output.fromXML(xml.head, project.resourceManager))
           project.outputModule.update(outputTask)
           Ok
         } catch {

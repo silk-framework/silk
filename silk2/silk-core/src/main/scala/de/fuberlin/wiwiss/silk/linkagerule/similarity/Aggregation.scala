@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
-import de.fuberlin.wiwiss.silk.util.plugin.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * An aggregation combines multiple similarity values into a single value.

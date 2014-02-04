@@ -5,9 +5,10 @@
 
 @widgets.pluginDialog(name = output,
                       plugins = LinkWriter.availablePlugins,
-                      currentObj = User().workspace.project(project).outputModule.tasks.find(_.name == output).map(_.output.writer)) {
+                      currentObj = User().workspace.project(project).outputModule.tasks.find(_.name == output).map(_.output.writer),
+                      resources = User().workspace.project(project).resourceManager.list) {
 
-  <script>//<![CDATA[
+  <script type="text/javascript">
     function submit(pluginId, name, parameters) {
       // Build data source xml
       var xml = '<Output id=\'' + name + '\' type=\'' + pluginId + '\'>';
@@ -17,13 +18,14 @@
       xml += '</Output>';
 
       // Delete the old output in case its name changed
-      if(name != '@output') {
-        deleteTask('/api/workspace/@project/output/@output');
+      if(!@output.isEmpty) {
+        if(name != '@output') {
+          deleteTask('@config.baseUrl/api/workspace/@project/output/@output');
+        }
       }
 
       // Submit output
-      putTask('/api/workspace/@project/output/' + name, xml);
+      putTask('@config.baseUrl/api/workspace/@project/output/' + name, xml);
     }
-  //]]>
   </script>
 }

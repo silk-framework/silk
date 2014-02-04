@@ -1,9 +1,9 @@
 package models
 
-import de.fuberlin.wiwiss.silk.util.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
 import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.util.task.HasStatus
-import de.fuberlin.wiwiss.silk.util.task.TaskStatus
+import de.fuberlin.wiwiss.silk.runtime.task.HasStatus
+import de.fuberlin.wiwiss.silk.runtime.task.TaskStatus
 
 abstract class TaskStatusListener(task: HasStatus) extends Listener[TaskStatus] {
   task.onUpdate(Listener)

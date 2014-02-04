@@ -18,8 +18,7 @@ import net.liftweb.http._
 import net.liftweb.common.{Empty, Full}
 import de.fuberlin.wiwiss.silk.plugins.jena.RdfDataSource
 import de.fuberlin.wiwiss.silk.server.model.Server
-import de.fuberlin.wiwiss.silk.datasource.{Source}
-import de.fuberlin.wiwiss.silk.util.plugin.EmptyResourceLoader
+import de.fuberlin.wiwiss.silk.datasource.Source
 
 object RestApi {
   def dispatch : LiftRules.DispatchPF = {

@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.util
 
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds._
-import de.fuberlin.wiwiss.silk.util.plugin.{AnyPlugin, Parameter, PluginDescription}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, Parameter, PluginDescription}
 import java.util.UUID
 
 /**

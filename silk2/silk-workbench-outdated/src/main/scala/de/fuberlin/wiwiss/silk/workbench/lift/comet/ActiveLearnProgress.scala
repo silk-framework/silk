@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import de.fuberlin.wiwiss.silk.workspace.CurrentTaskStatusListener
-import de.fuberlin.wiwiss.silk.util.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
 import de.fuberlin.wiwiss.silk.workbench.learning.{CurrentValidationLinks, CurrentPopulation, CurrentPool, CurrentActiveLearningTask}
 import de.fuberlin.wiwiss.silk.workbench.lift.util.{JS, ProgressWidget}
 

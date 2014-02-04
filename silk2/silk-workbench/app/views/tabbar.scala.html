@@ -1,19 +1,17 @@
 @(project: Option[String], task: Option[String], tab: String)
 
-@import models.WorkbenchConfig.{get => config}
-
 <div id="tabbar">
-  <div id="title">@config.title</div>
+  <div id="title">@config.workbench.title</div>
   <span>
-    <div class="tab @if(tab == "start") {selected}"><a href="/">Start</a></div>
-    <div class="tab @if(tab == "workspace") {selected}"><a href="/workspace">Workspace</a></div>
+    <div class="tab @if(tab == "start") {selected}"><a href="@config.baseUrl/">Start</a></div>
+    <div class="tab @if(tab == "workspace") {selected}"><a href="@config.baseUrl/workspace">Workspace</a></div>
     @for(p <- project; t <- task) {
-      @if(config.tabs.editor)         { <div class="tab @if(tab == "editor") {selected}"        ><a href="/@p/@t/editor">Editor</a></div> }
-      @if(config.tabs.generateLinks)  { <div class="tab @if(tab == "generateLinks") {selected}" ><a href="/@p/@t/generateLinks">Generate Links</a></div> }
-      @if(config.tabs.learn)          { <div class="tab @if(tab == "learn") {selected}"         ><a href="/@p/@t/learnStart">Learn</a></div> }
-      @if(config.tabs.referenceLinks) { <div class="tab @if(tab == "referenceLinks") {selected}"><a href="/@p/@t/referenceLinks">Reference Links</a></div> }
-      @if(config.tabs.status)         { <div class="tab @if(tab == "status") {selected}"        ><a href="/@p/@t/status">Status</a></div> }
+      @if(config.workbench.tabs.editor)         { <div class="tab @if(tab == "editor") {selected}"        ><a href="@config.baseUrl/@p/@t/editor">Editor</a></div> }
+      @if(config.workbench.tabs.generateLinks)  { <div class="tab @if(tab == "generateLinks") {selected}" ><a href="@config.baseUrl/@p/@t/generateLinks">Generate Links</a></div> }
+      @if(config.workbench.tabs.learn)          { <div class="tab @if(tab == "learn") {selected}"         ><a href="@config.baseUrl/@p/@t/learnStart">Learn</a></div> }
+      @if(config.workbench.tabs.referenceLinks) { <div class="tab @if(tab == "referenceLinks") {selected}"><a href="@config.baseUrl/@p/@t/referenceLinks">Reference Links</a></div> }
+      @if(config.workbench.tabs.status)         { <div class="tab @if(tab == "status") {selected}"        ><a href="@config.baseUrl/@p/@t/status">Status</a></div> }
     }
-    <div class="tab"><a onclick="showDialog('/aboutDialog')">About</a></div>
+    <div class="tab"><a onclick="showDialog('@config.baseUrl/aboutDialog')">About</a></div>
   </span>
 </div>

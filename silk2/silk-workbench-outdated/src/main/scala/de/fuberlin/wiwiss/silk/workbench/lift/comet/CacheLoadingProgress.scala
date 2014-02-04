@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.workbench.lift.util.ProgressWidget
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.util.Observable
-import de.fuberlin.wiwiss.silk.util.task.{Task, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.task.{Task, TaskStatus}
 import de.fuberlin.wiwiss.silk.workspace.User.{Message, CurrentTaskChanged}
 
 /**

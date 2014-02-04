@@ -2,7 +2,7 @@
   prefixes: de.fuberlin.wiwiss.silk.config.Prefixes,
   knownPrefixes: de.fuberlin.wiwiss.silk.config.Prefixes)
 
-@widgets.dialog() {
+@widgets.dialog(title = "Edit Prefixes") {
   <table id=prefixTable>
     @for(prefix <- prefixes) {
       <tr>
@@ -43,7 +43,7 @@
 
       $.ajax({
        type: 'PUT',
-       url: '/api/workspace/@project/prefixes',
+       url: '@config.baseUrl/api/workspace/@project/prefixes',
        data: data,
        success: function(data) {
           $('.dialog').dialog('close');

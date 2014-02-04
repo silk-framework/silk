@@ -16,10 +16,11 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 
 import org.apache.jena.riot.{RDFLanguages, RDFDataMgr}
 import de.fuberlin.wiwiss.silk.datasource.DataSource
-import de.fuberlin.wiwiss.silk.util.plugin.{Resource, ResourceLoader, Plugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector}
+import de.fuberlin.wiwiss.silk.util.sparql.{SparqlTypesCollector, EntityRetriever, SparqlAggregatePathsCollector}
 import com.hp.hpl.jena.query.DatasetFactory
+import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 @Plugin(
   id = "file",
@@ -50,6 +51,11 @@ case class FileDataSource(file: Resource, format: String, graph: String = "") ex
   override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     load()
     SparqlAggregatePathsCollector(endpoint, restrictions, limit)
+  }
+
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    load()
+    SparqlTypesCollector(endpoint, limit)
   }
 
   /**

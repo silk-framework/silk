@@ -1,0 +1,113 @@
+@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+  restriction: String,
+  cache: de.fuberlin.wiwiss.silk.workspace.modules.source.TypesCache)
+
+@import de.fuberlin.wiwiss.silk.workspace.Constants
+
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Simple</a></li>
+    <li><a href="#tabs-2">Advanced</a></li>
+  </ul>
+  <div id="tabs-1">
+    @simpleEditor()
+  </div>
+  <div id="tabs-2">
+    @sparqlEditor()
+  </div>
+</div>
+
+@simpleEditor() = {
+
+   <div class="description">
+     Select all types that should be covered by this linking task.
+   </div>
+
+   <div id="typelist">
+     @for((uri, frequency) <- cache.value;
+          name = project.config.prefixes.shorten(uri)) {
+       <div class="type" title="@name" onclick="$(this).toggleClass('selected')">@if(name.size < 40) {@name} else {...@name.takeRight(37)}</div>
+     }
+   </div>
+
+   <button onclick="commitSimpleRestriction()" style="float:right">Ok</button>
+}
+
+@sparqlEditor() = {
+
+  <div class="description">
+    Provide a SPARQL restriction that selects the entities that should be covered by this linking task.
+  </div>
+
+  <textarea name="sparql_restriction" cols="50" rows="10">
+    @restriction
+  </textarea>
+
+  <button onclick="commitSparqlRestriction()" style="float:right">Ok</button>
+}
+
+<style type="text/css">
+  .description {
+    padding-bottom: 10px;
+  }
+
+  #typelist {
+    width: 500px;
+    height: 300px;
+    border: 1px solid black;
+    overflow-y: scroll;
+  }
+
+  .type {
+    float: left;
+    height: 20px;
+    margin: 10px;
+    padding: 5px;
+    background-color: #eeeeee;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #a0a0a0;
+  }
+
+  .type:hover {
+    background-color: #d0d0d0;
+    cursor: pointer;
+  }
+
+  .selected {
+    background-color: #a0eea0;
+  }
+</style>
+
+<script type="text/javascript">
+  $(function() {
+    $("#tabs").tabs();
+    $("button").button();
+  });
+
+  function commitSimpleRestriction() {
+    var sparql =
+      $(".type.selected").map(function() {
+        // Retrieve type name
+        var name = $(this).attr("title");
+        // Enclose full URIs with brackets
+        if(name.contains("/"))
+          name = "<" + name + ">";
+        // Determine variable
+        var variable;
+        if(sourceOrTarget == "source")
+          variable = '@Constants.SourceVariable';
+        else
+          variable = '@Constants.TargetVariable';
+        // Return SPARQL pattern
+        return "{ ?" + variable + " a " + name + " }";
+      }).toArray().join("\n UNION \n");
+
+    closeRestrictionDialog(sparql);
+  }
+
+  function commitSparqlRestriction() {
+    var sparql = $("textarea[name='sparql_restriction']").val();
+    closeRestrictionDialog(sparql);
+  }
+</script>
