@@ -48,8 +48,8 @@ class PluginFactory[T <: AnyPlugin : Manifest] {
   /**
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
-  def unapply(t: T): Option[(String, Map[String, String])] = {
-    Some(t.id, t.parameters)
+  def unapply(t: T): Option[(PluginDescription[_], Map[String, String])] = {
+    Some((t.plugin, t.parameters))
   }
 
   /**

@@ -1,5 +1,7 @@
 @(project: String, task: String)
 
+@import de.fuberlin.wiwiss.silk.workspace.User
+
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
@@ -78,7 +80,9 @@
 
     <div class="droppable_outer">
 
-      <div id="droppable"></div>
+      <div id="droppable">
+        @*rule(User().workspace.project(project).linkingModule.task(task).linkSpec.rule)*@
+      </div>
 
       <div style="width: 180px; float: left;">
         Link Limit:
