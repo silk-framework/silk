@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.spatial
 
-import de.fuberlin.wiwiss.silk.util.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import scala.reflect.io._
@@ -32,9 +32,7 @@ import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
   description = "Trasforms a geometry to the default Coordinate Reference System(CRS). Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
 case class CRSTransformer() extends SimpleTransformer {
   override def evaluate(value: String) = {
-
-    var index = SpatialExtensionsUtils.convertToDefaultSRID(value)
-    println("index", index)
+    SpatialExtensionsUtils.convertToDefaultSRID(value)
     value
   }
 }
