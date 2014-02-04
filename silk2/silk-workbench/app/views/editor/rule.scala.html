@@ -1,0 +1,40 @@
+@(rule: de.fuberlin.wiwiss.silk.linkagerule.LinkageRule)
+
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregation
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
+
+@for(op <- rule.operator) {
+  @operator(op)
+}
+
+@operator(operator: SimilarityOperator) = @{ operator match {
+  case ag: Aggregation => aggregation(ag)
+  case _ =>
+}}
+
+@aggregation(aggregation: Aggregation) = {
+  <div class="dragDiv aggregateDiv" style="">
+    <small class="name">@aggregation.id</small>
+    <small class="type">Aggregate</small>
+    <h5 class="handler">
+      <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
+        @aggregation.aggregator.plugin.label (Aggregator)
+      </div>
+      <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+    </h5>
+    <div class="content">
+      required:
+      <input type="checkbox" name="required"/>
+      <br/>
+      weight:
+      <input type="text" name="weight" size="2" value="1"/>
+      @for((name, value) <- aggregation.aggregator.parameters) {
+        <br/>
+        @name:
+        <input type="text" name="@name" size="10" value="@value" />
+      }
+      <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-top: 6px; cursor:help;" title=""/>
+    </div>
+  </div>
+}

@@ -90,8 +90,8 @@ case class Aggregation(id: Identifier = Operator.generateId,
   }
 
   override def toXML(implicit prefixes: Prefixes) = aggregator match {
-    case Aggregator(func, params) => {
-      <Aggregate id={id} required={required.toString} weight={weight.toString} type={func}>
+    case Aggregator(plugin, params) => {
+      <Aggregate id={id} required={required.toString} weight={weight.toString} type={plugin.id}>
         {operators.map(_.toXML)}
       </Aggregate>
     }

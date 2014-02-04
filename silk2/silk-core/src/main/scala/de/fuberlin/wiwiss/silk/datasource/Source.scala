@@ -63,8 +63,8 @@ case class Source(id: Identifier, dataSource: DataSource) {
   }
 
   def toXML: Node = dataSource match {
-    case DataSource(dataSourceType, params) =>
-      <DataSource id={id} type={dataSourceType}>
+    case DataSource(plugin, params) =>
+      <DataSource id={id} type={plugin.id}>
         {params.map {
         case (name, value) => <Param name={name} value={value}/>
       }}
