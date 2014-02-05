@@ -14,6 +14,13 @@ import scala.concurrent.Future
 object Global extends GlobalSettings {
 
   override def beforeStart(app: Application) {
+    
+    // ensure user.home is set to $ELDS_HOME, if present
+    val elds_home = System.getenv("ELDS_HOME")
+    if (elds_home != null) {
+      System.setProperty("user.home", elds_home)
+    }
+  
     // Configure logging
     val fileHandler = new FileHandler(app.getFile("/logs/engine.log").getAbsolutePath)
     fileHandler.setFormatter(new SimpleFormatter())
