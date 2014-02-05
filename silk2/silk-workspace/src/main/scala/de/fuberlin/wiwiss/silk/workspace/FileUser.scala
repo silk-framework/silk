@@ -24,7 +24,7 @@ class FileUser extends User {
 object FileUser {
   private lazy val workspaceDir = new File(System.getProperty("user.home") + "/.silk/workspace/")
 
-  val workspace = {
+  lazy val workspace = {
     try {
       if(!workspaceDir.exists && !workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
 
