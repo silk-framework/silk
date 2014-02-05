@@ -33,8 +33,8 @@ class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[Str
     try {
       val obj = constructor.newInstance(parsedParameters: _*)
 
-      obj.id = id
-      obj.parameters = parameterValues
+      obj.pluginDescription = this
+      obj.pluginParameters = parameterValues
 
       obj
     } catch {

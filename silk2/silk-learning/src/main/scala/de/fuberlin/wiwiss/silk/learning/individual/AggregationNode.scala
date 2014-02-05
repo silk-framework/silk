@@ -36,7 +36,7 @@ case class AggregationNode(aggregation: String, weight: Int, required: Boolean, 
 object AggregationNode {
   def load(aggregation: Aggregation) = {
     val aggregatorId = aggregation.aggregator match {
-      case Aggregator(id, _) => id
+      case Aggregator(plugin, _) => plugin.id
     }
 
     val operatorNodes = aggregation.operators.map(OperatorNode.load).toList

@@ -24,7 +24,7 @@ case class FunctionNode[T <: AnyPlugin](id: String, parameters: List[ParameterNo
 
 object FunctionNode {
   def load[T <: AnyPlugin](plugin: T, factory: PluginFactory[T]) = factory.unapply(plugin) match {
-    case Some((id, parameters)) => FunctionNode(id, parameters.map {
+    case Some((pluginDesc, parameters)) => FunctionNode(pluginDesc.id, parameters.map {
       case (key, value) => ParameterNode(key, value)
     }.toList, factory)
     case None => throw new IllegalArgumentException()
