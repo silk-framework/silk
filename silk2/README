@@ -1,5 +1,14 @@
-Silk Link Discovery Framework
---------------------------------
+# Silk Link Discovery Framework
 
 The Silk Link Discovery Framework is a tool for discovering relationships between data items
 within different Linked Data sources. More information about Silk can be found on http://silk.wbsg.de.
+
+## Requirements
+
+- JDK 7 or later
+- Play Framework (http://www.playframework.com)
+
+## Running the Silk Workbench
+
+- Execute: play "project workbench" "run"
+- In your browser, navigate to 'http://localhost:9000'
