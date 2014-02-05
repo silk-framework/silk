@@ -14,11 +14,14 @@
 
 package de.fuberlin.wiwiss.silk.util
 
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{ Geometry, GeometryFactory, PrecisionModel }
 import com.vividsolutions.jts.io.ParseException
 import com.vividsolutions.jts.io.WKTReader
 import com.vividsolutions.jts.io.gml2.GMLReader
 import java.util.logging.{ Level, Logger }
+import java.io.StringReader
+import javax.xml.bind.JAXBContext
+import java.io.Reader
 
 /**
  * Useful utils for the spatial extensions of Silk.
@@ -33,10 +36,7 @@ object SpatialExtensionsUtils {
   def convertToDefaultSRID(literal: String) {
 
     var (geometry, fromSRID) = Parser.separateGeometryFromSRID(literal)
-    if (fromSRID != Constants.DEFAULT_SRID) {
-      println("Convert from " + fromSRID)
-    }
-
+    Parser.getGeometryFromString(geometry, fromSRID)
   }
 
   /**
@@ -44,45 +44,91 @@ object SpatialExtensionsUtils {
    */
   private object Parser {
 
-    /**
-     * Reader for WKT
-     */
-    private val wktr = new WKTReader
+    def getGeometryFromString(geometry: String, srid: Int): Option[Geometry] = {
+
+      srid match {
+        case Constants.DEFAULT_SRID =>
+          println("default")
+          null.asInstanceOf[Option[Geometry]]
+        case -1 =>
+          println("gml")
+          GMLReader(geometry)
+        case _ =>
+          println("wkt")
+          WKTReader(geometry)
+      }
+    }
 
     /**
-     * Reader for GML
-     */
-    private val gmlr = new GMLReader
-
-    /**
-     * This function parses a geometry literal according to the specifications of stRDF/stSPARQL and GeoSPARQL.
+     * This function reads a WKT Geometry.
      *
-     * If the literal is an strdf:WKT, strdf:GML, geo:wktLiteral or geo:gmlLiteral literal concatenated with the SRID URI it returns the tuple (geometry, srid).
-     * If the literal is a plain WKT or GML Literal it returns the tuple (geometry, @link Constants.DEFAULT_SRID).
-     * In any other case it returns (literal, @link Constants.DEFAULT_SRID).
+     * @param geometry : String
+     * @return Option[Geometry]
+     */
+    def WKTReader(geometry: String) = {
+
+      val wktr = new WKTReader
+      Option(wktr.read(geometry))
+    }
+
+    /**
+     * This function reads a GML Geometry.
+     *
+     * @param geometry : String
+     * @return Option[Geometry]
+     */
+    def GMLReader(geometry: String) = {
+
+      val gmlr = new GMLReader
+      Option(gmlr.read(geometry, new GeometryFactory(new PrecisionModel)))
+//        val reader : Reader = new StringReader(geometry)
+//		
+//        val context = JAXBContext.newInstance("org.jvnet.ogc.gml.v_3_1_1.jts")
+//        val unmarshaller = context.createUnmarshaller()
+//        val geometry =  unmarshaller.unmarshal(reader)
+     
+      
+    }
+
+    /**
+     * This function parses a geometry literal (WKT or GML) according to the specifications of stRDF/stSPARQL and GeoSPARQL.
+     *
+     * ==WKT==
+     * If the literal is an strdf:WKT or geo:wktLiteral literal concatenated with the SRID URI it returns the tuple (geometry, SRID).
+     * If the literal is a plain WKT literal it returns the tuple (geometry, {@link Constants.DEFAULT_SRID}).
+     *
+     * ==GML==
+     * If the literal is a GML literal it returns the tuple (geometry, -1).
+     * This happens because SRID is an attribute in the GML literal and it is parsed from the {@link GMLReader}.
+     *
+     * In any other case it returns (literal, {@link Constants.DEFAULT_SRID}).
      *
      * @param literal
      * @return (geometry, srid)
      */
     def separateGeometryFromSRID(literal: String): (String, Int) = {
       val trimmedLiteral = literal.trim
-      var geometry: String = ""
-      var srid: Int = -1
+      var geometry = null.asInstanceOf[String]
+      var srid = null.asInstanceOf[Int]
 
       try {
         if (trimmedLiteral.length() != 0) {
           val index = trimmedLiteral.lastIndexOf(Constants.STRDF_SRID_DELIM)
           if (index > 0) {
-            // strdf:WKT or strdf:GML with SRID (assumes EPSG URI for SRID)
+            // strdf:WKT with SRID (assumes EPSG URI for SRID)
             geometry = trimmedLiteral.substring(0, index)
             srid = augmentString(trimmedLiteral.substring((trimmedLiteral.lastIndexOf('/') + 1))).toInt
           } else {
             if (trimmedLiteral.startsWith("<http://")) {
-              // starts with a URI => geo:wktLiteral or geo:gmlLiteral (assumes EPSG URI for SRID)
+              // starts with a URI => geo:wktLiteral (assumes EPSG URI for SRID)
               val index = trimmedLiteral.indexOf('>')
               val URI = trimmedLiteral.substring(0, index)
               geometry = trimmedLiteral.substring(index + 1).trim
               srid = augmentString(URI.substring(URI.lastIndexOf('/') + 1)).toInt
+            } else if (trimmedLiteral.startsWith("<") && trimmedLiteral.contains("gml")) {
+              // gml literal
+              geometry = trimmedLiteral
+              srid = -1
             } else {
               // cannot guess the datatype, only plain literal was given
               geometry = trimmedLiteral
