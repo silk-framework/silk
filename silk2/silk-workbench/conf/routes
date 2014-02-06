@@ -23,6 +23,7 @@ POST          /workspace/:project/importExample                                 
 
 # Editor
 GET           /:project/:task/editor                                                                controllers.tabs.Editor.editor(project: String, task: String)
+GET           /:project/:task/editor/paths                                                          controllers.tabs.Editor.paths(project: String, task: String)
 GET           /:project/:task/editor/score                                                          controllers.tabs.Editor.score(project: String, task: String)
 
 # Generate Links

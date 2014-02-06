@@ -63,6 +63,7 @@
  *@
 @transformationExpanded(plugin: PluginDescription[Transformer]) = {
   <div class="dragDiv transformDiv" style="display: none;">
+    <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-right: 6px; cursor:help;" title="@plugin.description"/>
     <small class="name">@plugin.id</small>
     <small class="type">TransformInput</small>
     <h5 class="handler">
@@ -77,7 +78,6 @@
         @param.name:
         <input type="text" name="@param.name" size="10" @for(v <- param.defaultValue) {value="@v"} ></input>
       }
-      <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-top: 6px; cursor:help;" title=""></img>
     </div>
   </div>
 }
