@@ -1,33 +1,16 @@
 /**
  * Serializes the current linkage rule in the editor as XML.
  */
-function serializeLinkSpec() {
+function serializeLinkageRule() {
   // Retrieve all connections
   var connections = jsPlumb.getConnections({scope: ['value', 'similarity']}, true);
-
-  // Collect connections sources and target
-  var sources = [];
-  var targets = [];
-  for (var i = 0; i < connections.length; i++) {
-    var source = connections[i].sourceId;
-    var target = connections[i].targetId;
-    sources[target] = source;
-    targets[source] = target;
-  }
-
-  // Find root operator
-  var root = null;
-  for (var key in sources) {
-    if (!targets[key]) {
-      root = key;
-    }
-  }
+  // Find the root of the linkage rule
+  var root = findRootOperator(connections);
 
   var xmlDoc = document.implementation.createDocument('', 'root', null);
-
   var xml = xmlDoc.createElement("LinkageRule");
   if ((root != null) && (connections != "")) {
-    xml.appendChild(parseOperator(xmlDoc, root));
+    xml.appendChild(parseOperator(xmlDoc, root, connections));
   }
 
   // TODO add to linkage rule
@@ -45,7 +28,7 @@ function serializeLinkSpec() {
 /**
  * Parses a single operator and returns the resulting XML.
  */
-function parseOperator(xmlDoc, elementId) {
+function parseOperator(xmlDoc, elementId, connections) {
   var elementIdName = "#"+elementId;
   var elName = ($(elementIdName).children(".name").text());
   var elType = ($(elementIdName).children(".type").text());
@@ -75,12 +58,11 @@ function parseOperator(xmlDoc, elementId) {
   xml.setAttribute("id", id);
 
   // Parse children
-  var connections = jsPlumb.getConnections({scope: ['value', 'similarity']}, true);
   for (var i = 0; i < connections.length; i++) {
     var source = connections[i].sourceId;
     var target = connections[i].targetId;
     if (target == elementId) {
-      xml.appendChild(parseOperator(xmlDoc, source));
+      xml.appendChild(parseOperator(xmlDoc, source, connections));
     }
   }
 
@@ -120,4 +102,26 @@ function parseOperator(xmlDoc, elementId) {
   }
 
   return xml;
+}
+
+function findRootOperator(connections) {
+  // Collect connection sources and targets
+  var sources = [];
+  var targets = [];
+  for (var i = 0; i < connections.length; i++) {
+    var source = connections[i].sourceId;
+    var target = connections[i].targetId;
+    sources[target] = source;
+    targets[source] = target;
+  }
+
+  // Find root operator
+  var root = null;
+  for (var key in sources) {
+    if (!targets[key]) {
+      root = key;
+    }
+  }
+
+  return root;
 }
