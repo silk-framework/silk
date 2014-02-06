@@ -1,3 +1,8 @@
+name := "Silk"
+
+version := "2.6.0-SNAPSHOT"
+
+play.Project.playScalaSettings
 
 lazy val core = project in file("silk-core")
 
@@ -9,4 +14,8 @@ lazy val learning = project in file("silk-learning") dependsOn core
 
 lazy val workspace = project in file("silk-workspace") dependsOn core dependsOn jena dependsOn learning
 
-lazy val workbench = project in file("silk-workbench") dependsOn workspace
+lazy val workbench = project in file("silk-workbench") dependsOn workspace aggregate workspace
+
+lazy val root = project.in(file("."))
+                       .aggregate(workbench)
+                       .dependsOn(workbench)
