@@ -371,7 +371,7 @@ function validateLinkSpec() {
       url: apiUrl + '/rule',
       contentType: 'text/xml',
       processData: false,
-      data: serializeLinkSpec(),
+      data: serializeLinkageRule(),
       dataType: "json",
       success: function(response) {
         updateStatus(response.error, response.warning, response.info);
