@@ -70,6 +70,15 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="LinkageRule">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="1">
+        <xs:element ref="Aggregate" />
+        <xs:element ref="Compare" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
   <xs:element name="Outputs">
     <xs:complexType>
       <xs:sequence>
@@ -127,14 +136,7 @@
           </xs:complexType>
         </xs:element>
 
-        <xs:element name="LinkageRule" minOccurs="0">
-          <xs:complexType>
-            <xs:choice minOccurs="0" maxOccurs="1">
-              <xs:element ref="Aggregate" />
-              <xs:element ref="Compare" />
-            </xs:choice>
-          </xs:complexType>
-        </xs:element>
+        <xs:element ref="LinkageRule" minOccurs="0" />
 
         <xs:element name="Filter">
           <xs:complexType>

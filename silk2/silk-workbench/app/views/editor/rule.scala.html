@@ -1,40 +1,197 @@
-@(rule: de.fuberlin.wiwiss.silk.linkagerule.LinkageRule)
+@(rule: de.fuberlin.wiwiss.silk.linkagerule.LinkageRule,
+  prefixes: de.fuberlin.wiwiss.silk.config.Prefixes)
 
-@import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
+@import de.fuberlin.wiwiss.silk.workspace.Constants
+
+@import de.fuberlin.wiwiss.silk.linkagerule.Operator
+@import de.fuberlin.wiwiss.silk.linkagerule.input.TransformInput
+@import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregation
-@import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.Comparison
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
 
 @for(op <- rule.operator) {
-  @operator(op)
+  @drawLevel(Seq(op), (countLevels(op) - 1) * 250, maxWidth(op) * 150)
+  @* TODO> suspend drawing in jsPlumb while drawing *@
+  @connectOperators(op)
 }
 
-@operator(operator: SimilarityOperator) = @{ operator match {
-  case ag: Aggregation => aggregation(ag)
-  case _ =>
-}}
+@drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
+  @if(!ops.isEmpty) {
+    @for((op, index) <- ops.zipWithIndex) {
+      @drawOperator(op, x, height * (index + 1) / (ops.size + 1))
+    }
+    @drawLevel(ops.flatMap(getChildren), x - 250, height)
+  }
+}
 
-@aggregation(aggregation: Aggregation) = {
-  <div class="dragDiv aggregateDiv" style="">
-    <small class="name">@aggregation.id</small>
-    <small class="type">Aggregate</small>
+@countLevels(op: Operator) = @{
+  def count(op: Operator): Int = {
+    val children = getChildren(op)
+    if(children.isEmpty)
+      1
+    else
+      1 + children.map(count).max
+  }
+  count(op)
+}
+
+@maxWidth(op: Operator) = @{
+  def findMax(ops: Seq[Operator]): Int = {
+    val children = ops.flatMap(getChildren)
+    if(children.isEmpty)
+      ops.size
+    else
+      Seq(ops.size, findMax(children)).max
+  }
+  findMax(Seq(op))
+}
+
+@getChildren(op: Operator) = @{
+  op match {
+    case agg: Aggregation => agg.operators
+    case cmp: Comparison => cmp.inputs.toSeq
+    case transform: TransformInput => transform.inputs
+    case path: PathInput => Seq.empty
+  }
+}
+
+@drawOperator(op: Operator, x: Int, y: Int) = {
+  @op match {
+    case Aggregation(id, required, weight, aggregator, operators) => {
+      @operator("Aggregate", id, aggregator.plugin, aggregator.parameters, x, y) {
+        required:
+        <input type="checkbox" name="required" value="@required"/>
+        <br/>
+        weight:
+        <input type="text" name="weight" size="2" value="@weight"/>
+        <br/>
+      }
+    }
+    case Comparison(id, required, weight, threshold, indexing, metric, inputs) => {
+      @operator("Compare", id, metric.plugin, metric.parameters, x, y) {
+        required:
+        <input type="checkbox" name="required" value="@required"/>
+        <br/>
+        threshold:
+        <input type="text" name="threshold" size="2" value="@threshold"/>
+        <br/>
+        weight:
+        <input type="text" name="weight" size="2" value="@weight"/>
+        <br/>
+      }
+    }
+    case TransformInput(id, transformer, inputs) => {
+      @operator("Transform", id, transformer.plugin, transformer.parameters, x, y) { }
+    }
+    case PathInput(id, path) => {
+      @operator(
+        opType = if(path.variable == Constants.SourceVariable) "Source" else "Target",
+        id = id,
+        plugin = new PluginDescription(id, Set.empty, "Path", "Path", Seq.empty, null),
+        parameters = Map.empty,
+        x = x,
+        y = y) {
+        <input type="text" name="path" size="28" value="@path.serialize(prefixes)"/>
+      }
+    }
+  }
+}
+
+@operator(opType: String, id: String, plugin: PluginDescription[_], parameters: Map[String, String], x: Int, y: Int)(additionalContent: Html) = {
+  <div id="@id" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute">
+    <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-right: 6px; cursor:help;" title="@plugin.description"/>
+    <div class="label">@id</div>
+    <small class="name">@plugin.id</small>
+    <small class="type">@opType</small>
     <h5 class="handler">
       <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
-        @aggregation.aggregator.plugin.label (Aggregator)
+        @plugin.label (@opType)
       </div>
       <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
     </h5>
     <div class="content">
-      required:
-      <input type="checkbox" name="required"/>
-      <br/>
-      weight:
-      <input type="text" name="weight" size="2" value="1"/>
-      @for((name, value) <- aggregation.aggregator.parameters) {
-        <br/>
+      @additionalContent
+      @for(((name, value), index) <- parameters.zipWithIndex) {
+        @if(index != 0) {<br/>}
         @name:
         <input type="text" name="@name" size="10" value="@value" />
       }
-      <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-top: 6px; cursor:help;" title=""/>
     </div>
   </div>
+}
+
+@connectOperators(op: Operator) = {
+  <script type="text/javascript">
+    // Initialization
+    $(function() {
+      var dropArea = $('#droppable');
+      jsPlumb.draggable(dropArea.find('.dragDiv')); //TODO move
+
+      @connectOperator(op)
+
+    });
+  </script>
+}
+
+@connectOperator(op: Operator) = {
+  @op match {
+    case Aggregation(id, required, weight, aggregator, operators) => {
+      @* Handle children *@
+      @for(op <- operators) {
+        @connectOperator(op)
+      }
+
+      @* Create endpoints *@
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointSimilarityTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointSimilaritySource);
+
+      @* Connect children *@
+      @for(op <- operators) {
+        jsPlumb.connect({
+        source: endpoint_@{op.id}_source,
+        target: endpoint_@{id}_target
+        });
+      }
+    }
+    case Comparison(id, required, weight, threshold, indexing, metric, inputs) => {
+      @* Handle children *@
+      @connectOperator(inputs.source)
+      @connectOperator(inputs.target)
+
+      @* Create endpoints *@
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointValueTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointSimilaritySource);
+
+      @* Connect children *@
+      jsPlumb.connect({
+      source: endpoint_@{inputs.source.id}_source,
+      target: endpoint_@{id}_target
+      });
+      jsPlumb.connect({
+      source: endpoint_@{inputs.target.id}_source,
+      target: endpoint_@{id}_target
+      });
+    }
+    case TransformInput(id, transformer, inputs) => {
+      @* Handle children *@
+      @for(input <- inputs) {
+        @connectOperator(input)
+      }
+
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointValueTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointValueSource);
+
+      @* Connect children *@
+      @for(input <- inputs) {
+        jsPlumb.connect({
+        source: endpoint_@{input.id}_source,
+        target: endpoint_@{id}_target
+        });
+      }
+    }
+    case PathInput(id, path) => {
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointValueSource);
+    }
+  }
 }

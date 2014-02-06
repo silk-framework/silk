@@ -124,19 +124,21 @@ body{
 	margin-bottom:0px;
 }
 
-.sourcePath {
+.sourceDiv {
 	background-color:#f2d7ff;
 	border:1px solid #C354BF;
 }
 
-.targetPath {
+.targetDiv {
 	background-color: #ffd7d7;
 	border:1px solid #c35454;
 }
 
 .transformDiv  {
 	background-color: #d6fff0;
-	border:1px solid #0cc481;
+  border:1px solid #0cc481;
+  /*background-color: #d8d8d8;*/
+	/*border:1px solid #a8a8a8;*/
 }
 
 .compareDiv  {
@@ -149,12 +151,12 @@ body{
 	border:1px solid #1484d4;
 }
 
-.sourcePath h5 {
+.sourceDiv h5 {
 	background-color:#C354BF;
     height: 15px;
 }
 
-.targetPath h5 {
+.targetDiv h5 {
 	background-color: #c35454;
     height: 15px;
 }

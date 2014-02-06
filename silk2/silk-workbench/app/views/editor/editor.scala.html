@@ -7,8 +7,9 @@
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@routes.Assets.at("js/excanvas.js")"></script>
-  <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.2.4.js")"></script>
-  <script type="text/javascript" src="@routes.Assets.at("js/editor.js")" ></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
     var projectName = '@project';
@@ -65,14 +66,9 @@
     </div>
 
     <div id="operators">
-      <script type="text/javascript">
-        getOperators();
-      </script>
-
       @transformations()
       @comparators()
       @aggregators()
-
     </div>
   </div>
 
@@ -81,7 +77,10 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @*rule(User().workspace.project(project).linkingModule.task(task).linkSpec.rule)*@
+        @rule(
+          rule = User().workspace.project(project).linkingModule.task(task).linkSpec.rule,
+          prefixes = User().workspace.project(project).config.prefixes
+        )
       </div>
 
       <div style="width: 180px; float: left;">
