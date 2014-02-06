@@ -49,12 +49,14 @@ object WorkbenchConfig {
     //We identify the configuration location by searching for the application configuration.
     if(new File("conf/application.conf").exists())
       new FileResourceManager(new File("conf/"))
+    else if(new File("silk-workbench/conf/application.conf").exists())
+      new FileResourceManager(new File("silk-workbench/conf/"))
     else if(new File("../conf/application.conf").exists())
       new FileResourceManager(new File("../conf/"))
     else if(getClass.getClassLoader.getResourceAsStream("application.conf") != null)
       new ClasspathResourceLoader("")
     else
-      throw new ResourceNotFoundException("Could not locate configuration.")
+      throw new ResourceNotFoundException("Could not locate configuration. Current directory is: " + new File(".").getAbsolutePath)
   }
 
   /**
