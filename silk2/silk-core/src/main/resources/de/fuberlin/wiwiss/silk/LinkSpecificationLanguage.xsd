@@ -79,6 +79,15 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="TransformRule">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="1">
+        <xs:element ref="Input" />
+        <xs:element ref="TransformInput" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
   <xs:element name="Outputs">
     <xs:complexType>
       <xs:sequence>

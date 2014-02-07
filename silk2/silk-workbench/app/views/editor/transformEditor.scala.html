@@ -14,8 +14,8 @@
   <script type="text/javascript">
     var projectName = '@project';
     var taskName = '@task';
-    var editorUrl = baseUrl + '/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/api/workspace/@project/linking/@task';
+    var editorUrl = baseUrl + '/' + projectName + '/transform/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/api/workspace/@project/transform/@task';
   </script>
 }
 
@@ -56,7 +56,7 @@
   <div class="draggables">
     <div style="width:200px;">
       <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
-      <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>
+      @*<div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>*@
     </div>
     <div style="clear: both"></div>
     <div id="paths">
@@ -68,8 +68,6 @@
 
     <div id="operators">
       @transformations()
-      @comparators()
-      @aggregators()
     </div>
   </div>
 
@@ -78,7 +76,7 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- User().workspace.project(project).linkingModule.task(task).linkSpec.rule.operator) {
+        @for(op <- User().workspace.project(project).transformModule.task(task).rule.operator) {
           @rule(
             rule = op,
             prefixes = User().workspace.project(project).config.prefixes
@@ -86,31 +84,9 @@
         }
       </div>
 
-      <div style="width: 180px; float: left;">
-        Link Limit:
-        <select id="linklimit" onchange="modifyLinkSpec()">
-          <option>unlimited</option>
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
-          <option>6</option>
-          <option>7</option>
-          <option>8</option>
-          <option>9</option>
-          <option>10</option>
-        </select>
-        <img src="@routes.Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
-      </div>
-
-      <div style="width: 10px; float: left; visibility:hidden;">
-        <input type="text" id="linktype"/>
-      </div>
-
     </div>
 
   </div>
 }
 
-@main(Some(project), Some(task), "editor")(header)(toolbar)(content)
+@main(Some(project), Some(task), "transformEditor")(header)(toolbar)(content)

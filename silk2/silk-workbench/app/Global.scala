@@ -2,7 +2,7 @@ import models.WorkbenchConfig
 import play.api.{Application, GlobalSettings}
 import play.api.mvc.RequestHeader
 import play.api.mvc.Results._
-import java.util.logging.{SimpleFormatter, FileHandler}
+import java.util.logging.{ConsoleHandler, SimpleFormatter, FileHandler}
 import de.fuberlin.wiwiss.silk.workspace.FileUser
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.plugins.Plugins
@@ -25,6 +25,9 @@ object Global extends GlobalSettings {
     val fileHandler = new FileHandler(app.getFile("/logs/engine.log").getAbsolutePath)
     fileHandler.setFormatter(new SimpleFormatter())
     java.util.logging.Logger.getLogger("").addHandler(fileHandler)
+
+    val consoleHandler = new ConsoleHandler()
+    java.util.logging.Logger.getLogger("").addHandler(consoleHandler)
 
     //Initialize user manager
     val user = new FileUser

@@ -50,6 +50,8 @@ class LDEProject(projectName : String, sparqlEndpoint : RemoteSparqlEndpoint, sp
    // The linking module which encapsulates all linking tasks.
   override val linkingModule = new LDELinkingModule()
 
+  override val transformModule = throw new UnsupportedOperationException("Transformations are not supported by this project")
+
   override val outputModule = new MemoryOutputModule()
 
   // Reads the project configuration.

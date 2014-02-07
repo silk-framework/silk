@@ -56,10 +56,11 @@
 }
 
 .filetree li { padding: 3px 0 2px 16px; }
-.filetree span.folder, .filetree span.file, .filetree span.source, .filetree span.output, .filetree span.link { padding: 1px 0 1px 16px; display: block; min-height:16px;}
+.filetree span.folder, .filetree span.file, .filetree span.source, .filetree span.output, .filetree span.transform, .filetree span.link { padding: 1px 0 1px 16px; display: block; min-height:16px;}
 .filetree span.folder { background: url(images/folder.png) 0 0 no-repeat; }
 .filetree span.source { background: url(images/source-net.png) 0 0 no-repeat; }
 .filetree span.output { background: url(images/output.png) 0 0 no-repeat; }
+.filetree span.transform { background: url(images/link-arrow.png) 0 0 no-repeat; }
 .filetree span.link { background: url(images/link-arrow.png) 0 0 no-repeat; }
 .filetree li.expandable span.folder { background: url(images/folder-closed.png) 0 0 no-repeat; }
 .filetree span.file { background: url(images/file-tag.png) 0 0 no-repeat; }
