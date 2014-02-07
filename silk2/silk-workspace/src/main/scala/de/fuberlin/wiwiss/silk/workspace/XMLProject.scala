@@ -75,6 +75,8 @@ class XMLProject(linkSpec : Node) extends Project
    // The linking module which encapsulates all linking tasks.
   override val linkingModule = new XMLLinkingModule()
 
+  override val transformModule = throw new UnsupportedOperationException("Transformations are not supported by this project")
+
   override val outputModule = new MemoryOutputModule()
   
   /** ----------------------------------------------------------

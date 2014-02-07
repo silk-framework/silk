@@ -41,7 +41,7 @@ object LinkingTaskApi extends Controller {
       case Some(xml) =>
         try {
           //Collect warnings while parsing linkage rule
-          val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
+          val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load linkage rule
             val updatedRule = LinkageRule.load(project.resourceManager)(prefixes)(xml.head)
             //Update linking task

@@ -24,19 +24,20 @@
     <span id='@{pathType.toLowerCase}_id'></span>
   </div>
 
-  <div class="more">
+  @*<div class="more">
     <span class='restriction'>
       <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;'>Restriction: </span>
       <span id='@{pathType.toLowerCase}_restriction'></span>
     </span>
     <div style='clear: both;'></div>
-  </div>
+  </div>*@
 
   <div id="@{pathType.toLowerCase}paths" class="scrollboxes">
-    <div id="@{pathType.toLowerCase}eC" class="draggable paths">
+    <div id="@{pathType.toLowerCase}C" class="draggable paths">
       <span></span>
       <small></small>
       <p>(custom path)</p>
+      @pathExpanded("", pathType)
     </div>
 
     @loadingMsg

@@ -21,7 +21,7 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 
 /**
- * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transformation to them.
+ * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.
  */
 case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
   @volatile private var cachedPathIndex = -1

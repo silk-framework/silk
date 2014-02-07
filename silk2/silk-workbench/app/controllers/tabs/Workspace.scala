@@ -45,6 +45,10 @@ object Workspace extends Controller {
     Ok(views.html.workspace.sourceDialog(project, source))
   }
 
+  def transformationTaskDialog(project: String, task: String) = Action {
+    Ok(views.html.workspace.transformationTaskDialog(project, task))
+  }
+
   def linkingTaskDialog(project: String, task: String) = Action {
     Ok(views.html.workspace.linkingTaskDialog(project, task))
   }
