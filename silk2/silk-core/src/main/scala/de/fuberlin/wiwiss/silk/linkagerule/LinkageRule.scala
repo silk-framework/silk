@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
- * A Linkage Rule specifies the conditions which must hold true so that a link is generated between two entities.
+ * A linkage rule specifies the conditions which must hold true so that a link is generated between two entities.
  */
 case class LinkageRule(operator: Option[SimilarityOperator] = None) {
   /**
@@ -61,7 +61,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
   }
 
   /**
-   * Serializes this Link Condition as XML.
+   * Serializes this linkage rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
     <LinkageRule>

@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workspace.Project
 
 /**
- * A linking task which interlinks two data sets.
+ * A linking task, which interlinks two data sets.
  */
 class LinkingTask private(val linkSpec: LinkSpecification, val referenceLinks: ReferenceLinks, val cache: LinkingCaches) extends ModuleTask {
   val name = linkSpec.id

@@ -21,15 +21,15 @@ import xml.XML
 import java.io.File
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.config.{Dataset, LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.FileUtils._
-import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.util.{Timer, Identifier}
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.{PathsCache, TransformConfig, TransformTask, TransformModule}
+import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 
 /**
  * Implementation of a project which is stored on the local file system.
@@ -81,22 +81,27 @@ class FileProject(file : File) extends Project {
   }
 
   /**
-   * The source module which encapsulates all data sources.
+   * The source module, which encapsulates all data sources.
    */
   override val sourceModule = new FileSourceModule(file + "/source")
 
   /**
-   * The linking module which encapsulates all linking tasks.
+   * The linking module, which encapsulates all linking tasks.
    */
   override val linkingModule = new FileLinkingModule(file + "/linking")
 
   /**
-   * The output module which encapsulates all output tasks.
+   * The transform module, which encapsulates all linking tasks.
+   */
+  override val transformModule = new FileTransformModule(file + "/transform")
+
+  /**
+   * The output module, which encapsulates all output tasks.
    */
   override val outputModule = new FileOutputModule(file + "/output")
 
   /**
-   * The source module which encapsulates all data sources.
+   * The source module, which encapsulates all data sources.
    */
   class FileSourceModule(file : File) extends SourceModule {
     file.mkdirs()
@@ -265,9 +270,118 @@ class FileProject(file : File) extends Project {
       }
     }
   }
+
+  /**
+   * The transform module, which encapsulates all transform tasks.
+   */
+  class FileTransformModule(file : File) extends TransformModule {
+    @volatile
+    private var cachedTasks : Map[Identifier, TransformTask] = load()
+
+    @volatile
+    private var updatedTasks = Map[Identifier, TransformTask]()
+
+    @volatile
+    private var lastUpdateTime = 0L
+
+    WriteThread.start()
+
+    override def config = TransformConfig()
+
+    override def config_=(c : TransformConfig) {}
+
+    override def tasks = {
+      cachedTasks.values
+    }
+
+    override def update(task : TransformTask) {
+      cachedTasks += (task.name -> task)
+      updatedTasks += (task.name -> task)
+      lastUpdateTime = System.currentTimeMillis
+
+      logger.info("Updated transform task '" + task.name + "' in project '" + name + "'")
+    }
+
+    override def remove(taskId : Identifier) {
+      (file + ("/" + taskId)).deleteRecursive()
+
+      cachedTasks -= taskId
+      updatedTasks -= taskId
+
+      logger.info("Removed transform task '" + taskId + "' from project '" + name + "'")
+    }
+
+    private def load() : Map[Identifier, TransformTask] = {
+      file.mkdir()
+
+      val tasks =
+        for(fileName <- file.list.toList) yield {
+          val projectConfig = FileProject.this.config
+          implicit val prefixes = projectConfig.prefixes
+          val dataset = Dataset.fromXML(XML.loadFile(file + ("/" + fileName + "/dataset.xml")))
+          val rule = TransformRule.load(resourceManager)(projectConfig.prefixes)(file + ("/" + fileName + "/rule.xml"))
+          val cache = new PathsCache()
+
+          //Load the cache
+          try {
+            cache.loadFromXML(XML.loadFile(file + ("/" + fileName + "/cache.xml")))
+          } catch {
+            case ex : Exception =>
+              logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+              new LinkingCaches()
+          }
+
+          TransformTask(FileProject.this, fileName, dataset, rule, cache)
+        }
+
+      tasks.map(task => (task.name, task)).toMap
+    }
+
+    def write() {
+      val tasksToWrite = updatedTasks.values.toList
+      updatedTasks --= tasksToWrite.map(_.name)
+
+      for(task <- tasksToWrite) Timer("Writing task " + task.name + " to disk") {
+        val taskDir = file + ("/" + task.name)
+        taskDir.mkdir()
+
+        //Don't use any prefixes
+        implicit val prefixes = Prefixes.empty
+
+        task.dataset.toXML(true).write(taskDir+ "/dataset.xml")
+        task.rule.toXML.write(taskDir+ "/rule.xml")
+        task.cache.toXML.write(taskDir +  "/cache.xml")
+      }
+    }
+
+    object WriteThread extends Thread {
+      private val interval = 5000L
+
+      override def run() {
+        while(true) {
+          val time = System.currentTimeMillis - lastUpdateTime
+
+          if(updatedTasks.isEmpty) {
+            Thread.sleep(interval)
+          }
+          else if(time >= interval) {
+            try {
+              transformModule.write()
+            }
+            catch {
+              case ex : Exception => logger.log(Level.WARNING, "Error writing transform tasks", ex)
+            }
+          }
+          else {
+            Thread.sleep(interval - time)
+          }
+        }
+      }
+    }
+  }
   
    /**
-   * The linking module which encapsulates all linking tasks.
+   * The output module.
    */
   class FileOutputModule(file : File) extends OutputModule {
     file.mkdirs()

@@ -1725,7 +1725,7 @@ function getOperators()
 
           var box = $(document.createElement('div'));
           box.addClass('draggable tranformations');
-          box.attr("id", "transformation" + list_item_id);
+          box.attr("id", "transform" + list_item_id);
           box.attr("title", item.description);
           box.html("<span></span><small>" + item.label + "</small><p>" + item.label + "</p>");
           box.draggable(

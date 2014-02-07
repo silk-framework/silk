@@ -993,7 +993,7 @@ if (!document.createElement('canvas').getContext) {
     var width = max.x - min.x;
     var height = max.y - min.y;
     if (fillStyle instanceof CanvasGradient_) {
-      // TODO: Gradients transformed with the transformation matrix.
+      // TODO: Gradients transformed with the transform matrix.
       var angle = 0;
       var focus = {x: 0, y: 0};
 
@@ -1135,7 +1135,7 @@ if (!document.createElement('canvas').getContext) {
     if (updateLineScale) {
       // Get the line scale.
       // Determinant of this.m_ means how much the area is enlarged by the
-      // transformation. So its square root can be used as a scale factor
+      // transform. So its square root can be used as a scale factor
       // for width.
       var det = m[0][0] * m[1][1] - m[0][1] * m[1][0];
       ctx.lineScale_ = sqrt(abs(det));

@@ -17,4 +17,5 @@ package de.fuberlin.wiwiss.silk
 /**
  * Provides classes to represent linkage rules.
  */
+// TODO this package should be renamed from 'linkagerule' to just 'rule'
 package object linkagerule

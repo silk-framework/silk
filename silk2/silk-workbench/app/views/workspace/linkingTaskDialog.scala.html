@@ -21,7 +21,7 @@
       <td>
         <select name="source" title="Source dataset">
           @for(source <- sources) {
-            @if(datasets.isDefined && source.name == datasets.get.source.sourceId.toString) {
+            @if(datasets.isDefined && source.name == datasets.get.source.sourceId) {
               <option value="@source.name" selected="selected">@source.name</option>
             } else {
               <option value="@source.name">@source.name</option>

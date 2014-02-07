@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 
+enableTransformTasks = false;
 enableVoidSourceButton = false;
 
 var ws = {};
@@ -125,6 +126,34 @@ function addDataSource(jsonDataSource,projectNode,projectName)
       var param = jsonDataSource.params[p];
       addLeaf(param.value,ds_li, param.key + ': ');
     }
+}
+
+function addTransformTask(jsonTransformTask,projectNode,projectName)
+{
+  var lt_ul = document.createElement("ul");
+  $(projectNode).append(lt_ul);
+  var lt_li = document.createElement("li");
+  $(lt_li).attr("id",'transformtask_'+projectName+'_'+jsonTransformTask.name)
+      .addClass('closed');
+  $(lt_ul).append(lt_li);
+  var lt_span = document.createElement("span");
+  $(lt_span).addClass('transform');
+  $(lt_li).append(lt_span);
+
+  var lt_label = document.createElement("span");
+  $(lt_label).addClass('label')
+      .text(jsonTransformTask.name);
+  $(lt_span).append(lt_label);
+
+  var lt_actions = document.createElement("div");
+  $(lt_actions).addClass('actions');
+  $(lt_span).append(lt_actions);
+  addAction('link_edit', 'Metadata', "Edit metadata","editTransformTask('"+projectName+"','"+ jsonTransformTask.name+"')",lt_actions,projectName,true);
+  addAction('link_spec', 'Open', "Edit transform task","openTransformTask('"+projectName+"','"+ jsonTransformTask.name+"')",lt_actions,projectName,true);
+  addAction('delete', 'Remove',"Remove task","confirmDelete('removeTransformTask','"+projectName+"','"+ jsonTransformTask.name+"')",lt_actions,projectName,true);
+
+  addLeaf(jsonTransformTask.source,lt_li, 'source: ');
+  addLeaf(jsonTransformTask.dataset,lt_li, 'dataset: ');
 }
 
 function addLinkingTask(jsonLinkingTask,projectNode,projectName)
@@ -258,7 +287,10 @@ function loadWorkspace(obj){
                 if (enableVoidSourceButton===true) {
                   addAction('ds_add', 'Source from VoID','Add data source from VoID',"createVoidSourceTask('"+project.name+"')",proj_actions,project.name,true);
                 }
-                addAction('link_add', 'Task','Add linking task',"newLinkingTask('"+project.name+"')",proj_actions,project.name,true);
+                if (enableTransformTasks===true) {
+                  addAction('link_add', 'Transform','Add transformation task',"newTransformTask('"+project.name+"')",proj_actions,project.name,true);
+                }
+                addAction('link_add', 'Linking','Add linking task',"newLinkingTask('"+project.name+"')",proj_actions,project.name,true);
                 addAction('output_add', 'Output','Add output',"newOutput('"+project.name+"')",proj_actions,project.name,true);
                 addAction('add_linkspec', 'Link Spec', 'Add link specification', "importLinkSpec('"+project.name+"')",proj_actions,project.name,true);
                 addAction('export', 'Export','Export Project '+project.name,"exportProject('"+project.name+"')",proj_actions,project.name,true);
@@ -269,6 +301,12 @@ function loadWorkspace(obj){
             for (var d in obj.workspace.project[p].dataSource)
             {
                 addDataSource(project.dataSource[d],proj,project.name);
+            }
+
+            // display transformTask
+            for (var l in obj.workspace.project[p].transformTask)
+            {
+              addTransformTask(project.transformTask[l],proj,project.name);
             }
 
             // display linkingTask
@@ -295,6 +333,8 @@ function loadWorkspace(obj){
              var idPrefix;
              if(obj.workspace.activeTaskType === "LinkingTask") {
                idPrefix = 'linkingtask_';
+             } else if(obj.workspace.activeTaskType === "TransformTask") {
+               idPrefix = 'transformtask_';
              } else if(obj.workspace.activeTaskType === "DataSource") {
                idPrefix = 'datasource_';
              } else {
@@ -369,6 +409,7 @@ function callAction(action,proj,res){
         {
         case 'deleteProject' :  deleteProject(proj);  break;
         case 'removeSource' :  removeSource(proj,res);  break;
+        case 'removeTransformTask' : removeTransformTask(proj,res); break;
         case 'removeLinkingTask' : removeLinkingTask(proj,res); break;
         case 'removeOutput' : removeOutput(proj,res); break;
         default : alert("Error: Action \'"+action+"\' not defined!");
@@ -413,6 +454,22 @@ function editSource(project, source) {
 
 function removeSource(project, source) {
   deleteTask(baseUrl + '/api/workspace/' + project + '/source/' + source);
+}
+
+function newTransformTask(project) {
+  showDialog(baseUrl + '/workspace/dialogs/newTransformTask/' + project);
+}
+
+function editTransformTask(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/editTransformTask/' + project + '/' + task);
+}
+
+function removeTransformTask(project, task) {
+  deleteTask(baseUrl + '/api/workspace/' + project + '/transform/' + task);
+}
+
+function openTransformTask(project, task) {
+  window.location = baseUrl + '/' + project + '/transform/' + task + '/editor'
 }
 
 function newLinkingTask(project) {

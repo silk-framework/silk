@@ -38,7 +38,7 @@
   }
   case TransformInput(id, transformer, inputs) => {
     <li>
-      <span class="transformation">Transformation: @transformer.plugin.id</span>
+      <span class="transform">Transformation: @transformer.plugin.id</span>
       <ul>
         @inputs.map(renderOperator)
       </ul>

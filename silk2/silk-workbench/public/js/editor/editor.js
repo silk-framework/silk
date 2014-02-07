@@ -378,7 +378,7 @@ function validateLinkSpec() {
         updateScore();
       },
       error: function(req) {
-        console.log('Error putting linkage rule: ' + req.responseText);
+        console.log('Error committing rule: ' + req.responseText);
         var response = jQuery.parseJSON(req.responseText);
         updateStatus(response.error, response.warning, response.info);
       }
@@ -517,8 +517,9 @@ function updateWindowSize() {
     $("#droppable").width(window_width-290);
   }
   if (window_height > 600) {
-    $(".droppable_outer, #droppable").height(window_height-165);
-    $(".scrollboxes").height((window_height/5)-63.5);
+    $(".droppable_outer, #droppable").height(window_height - 165);
+    var scrollboxes = $(".scrollboxes");
+    scrollboxes.height((window_height - 165)/scrollboxes.length - 25);
   }
 }
 
@@ -677,7 +678,7 @@ function encodeHtml(value) {
 function getPropertyPaths() {
   $.ajax({
     type: 'get',
-    url: baseUrl + '/' + projectName + '/' + taskName + "/editor/paths",
+    url: editorUrl + '/paths',
     complete: function(response, status) {
       $("#paths").html(response.responseText);
       if(status == "error") {
@@ -709,7 +710,7 @@ function reloadCache() {
 function updateScore() {
   $.ajax({
     type: 'get',
-    url: baseUrl + '/' + projectName + '/' + taskName + "/editor/score",
+    url: editorUrl + "/score",
     complete: function(response, status) {
       $("#score-widget").html(response.responseText);
       if(status == "error") {

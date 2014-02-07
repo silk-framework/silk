@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
- * A TransformInput applies a transformation to input values.
+ * A TransformInput applies a transform to input values.
  */
 case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: Seq[Input]) extends Input {
   require(inputs.size > 0, "Number of inputs must be > 0.")

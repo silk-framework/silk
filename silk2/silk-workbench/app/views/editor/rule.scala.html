@@ -1,4 +1,4 @@
-@(rule: de.fuberlin.wiwiss.silk.linkagerule.LinkageRule,
+@(rule: de.fuberlin.wiwiss.silk.linkagerule.Operator,
   prefixes: de.fuberlin.wiwiss.silk.config.Prefixes)
 
 @import de.fuberlin.wiwiss.silk.workspace.Constants
@@ -10,11 +10,9 @@
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.Comparison
 @import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
 
-@for(op <- rule.operator) {
-  @drawLevel(Seq(op), (countLevels(op) - 1) * 250, maxWidth(op) * 150)
-  @* TODO> suspend drawing in jsPlumb while drawing *@
-  @connectOperators(op)
-}
+@drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 150)
+@* TODO> suspend drawing in jsPlumb while drawing *@
+@connectOperators(rule)
 
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
   @if(!ops.isEmpty) {

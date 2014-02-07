@@ -36,6 +36,15 @@
 .filetree span.source {
   background: url("../img/workspace/server.png") no-repeat !important;
 }
+
+.filetree span.transform {
+  background: url("../img/workspace/arrow-skip.png") no-repeat !important;
+}
+
+.filetree span.link {
+  background: url("../img/workspace/arrow-join.png") no-repeat !important;
+}
+
 .filetree span.output {
   background: url("../img/workspace/server--arrow.png") no-repeat !important;
 }

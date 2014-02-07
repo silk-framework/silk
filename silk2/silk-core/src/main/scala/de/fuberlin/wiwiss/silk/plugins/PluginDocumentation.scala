@@ -14,7 +14,7 @@ object PluginDocumentation extends App {
 
   println("h1. Transformations")
   println()
-  println("Silk provides the following transformation and normalization functions:")
+  println("Silk provides the following transform and normalization functions:")
   println()
   println(formatPlugins(Transformer.availablePlugins.sortBy(_.id)).toTextile)
 
