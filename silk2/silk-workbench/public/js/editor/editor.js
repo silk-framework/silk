@@ -136,7 +136,10 @@ $(function ()
         $.ui.ddmanager.current.cancelHelperRemoval = true;
         ui.helper.appendTo(this);
 
-        $('#' + boxid + " > img").after('<div class="label">' + boxid + '</div>');
+        // Set operator name to current id
+        $('#' + boxid + " > .content > .label").text(boxid);
+
+        // Make operator draggable
         jsPlumb.draggable($('#' + boxid));
 
         if (draggedId.search(/aggregator/) != -1) {
@@ -270,8 +273,8 @@ function generateNewElementId() {
 }
 
 function getCurrentElementName(elId) {
-  var elName = $("#" + elId + " > .label").text();
-  if (!elName) elName = $("#" + elId + " > div.label-active > input.label-change").val();
+  var elName = $("#" + elId + " .content > .label").text();
+  if (!elName) elName = $("#" + elId + " .content > .label-active > input.label-change").val();
   return elName;
 }
 

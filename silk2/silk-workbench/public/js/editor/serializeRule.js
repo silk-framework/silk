@@ -53,8 +53,8 @@ function parseOperator(xmlDoc, elementId, connections) {
   }
 
   // Parse id
-  var id = $(elementIdName + " > .label").text();
-  if (!id) pluginId = $(id + " > div.label-active > input.label-change").val();
+  var id = $(elementIdName + " > .content > .label").text();
+  if (!id) id = $(elementIdName + " > .content > .label-active > input.label-change").val();
   xml.setAttribute("id", id);
 
   // Parse children
