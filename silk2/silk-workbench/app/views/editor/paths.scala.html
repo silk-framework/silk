@@ -54,16 +54,19 @@
 
 @pathExpanded(path: String, pathType: String) = {
   <div class="dragDiv @{pathType.toLowerCase}Div" style="display: none;">
-    <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-right: 6px; cursor:help;" title="Entity Path"/>
     <small class="name">Path</small>
     <small class="type">@pathType</small>
     <h5 class="handler">
-      <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
+      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
         Path (@pathType)
       </div>
       <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      <img align="right" src="@routes.Assets.at("img/undecided.png")" style="cursor:help;" title="Entity Path"/>
     </h5>
     <div class="content">
+      name:
+      <span class="label"></span>
+      <br/>
       <input type="text" name="path" size="28" value="@path"/>
     </div>
   </div>

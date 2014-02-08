@@ -98,17 +98,19 @@
 
 @operator(opType: String, id: String, plugin: PluginDescription[_], parameters: Map[String, String], x: Int, y: Int)(additionalContent: Html) = {
   <div id="@id" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute">
-    <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-right: 6px; cursor:help;" title="@plugin.description"/>
-    <div class="label">@id</div>
     <small class="name">@plugin.id</small>
     <small class="type">@opType</small>
     <h5 class="handler">
-      <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
+      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
         @plugin.label (@opType)
       </div>
       <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      <img align="right" src="@routes.Assets.at("img/undecided.png")" style="cursor:help;" title="@plugin.description"/>
     </h5>
     <div class="content">
+      name:
+      <span class="label">@id</span>
+      <br/>
       @additionalContent
       @for(((name, value), index) <- parameters.zipWithIndex) {
         @if(index != 0) {<br/>}

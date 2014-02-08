@@ -63,16 +63,19 @@
  *@
 @comparatorExpanded(plugin: PluginDescription[DistanceMeasure]) = {
   <div class="dragDiv compareDiv" style="display: none;">
-    <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-right: 6px; cursor:help;" title="@plugin.description"/>
     <small class="name">@plugin.id</small>
     <small class="type">Compare</small>
     <h5 class="handler">
-      <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
+      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
         @plugin.label (Compare)
       </div>
       <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      <img align="right" src="@routes.Assets.at("img/undecided.png")" style="cursor:help;" title="@plugin.description"/>
     </h5>
     <div class="content">
+      name:
+      <span class="label"></span>
+      <br/>
       required:
       <input type="checkbox" name="required"/>
       <br/>
