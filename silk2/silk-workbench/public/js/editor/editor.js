@@ -469,8 +469,8 @@ function printErrorMessages(array) {
 
 function highlightElement(elId, message) {
   var elementToHighlight;
-  $("div.label:contains('" + elId + "')").each(function() {
-    if (elId.length == $(this).text().length) elementToHighlight = $(this).parent();
+  $(".label:contains('" + elId + "')").each(function() {
+    if (elId.length == $(this).text().length) elementToHighlight = $(this).parent().parent();
   });
   if (!elementToHighlight) elementToHighlight = $("#" + elId);
   elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + encodeHtml(message) + '")').attr("onmouseout", "UnTip()");

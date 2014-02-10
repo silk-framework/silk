@@ -102,9 +102,9 @@ body{
   background-color: #ffffff;
   border-radius: 5px;
   box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.5);
-  -webkit-transition: 0.25s ease-in;
-  -moz-transition: 0.25s ease-in;
-  transition: 0.25s ease-in;
+  -webkit-transition: background-color 0.25s ease-in;
+  -moz-transition: background-color 0.25s ease-in;
+  transition: background-color 0.25s ease-in;
 }
 
 .dragDiv h5 {
