@@ -7,9 +7,11 @@ import de.fuberlin.wiwiss.silk.workspace.util.PrefixRegistry
 import models.WorkbenchConfig
 import java.io.FileInputStream
 import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionParser
-import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.{Restriction, ForwardOperator, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Or, Condition}
-import de.fuberlin.wiwiss.silk.util.Uri
+import de.fuberlin.wiwiss.silk.util.{ValidationException, Uri}
+import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
+import play.Logger
 
 object Workspace extends Controller {
 
@@ -63,11 +65,18 @@ object Workspace extends Controller {
       case "target" => Constants.TargetVariable
     }
 
-    // Parse the SPARQL restriction
+    // Try to parse the SPARQL restriction
     val restrictionParser = new SparqlRestrictionParser()
-    val restrictionTree = restrictionParser(SparqlRestriction.fromSparql(variable, restriction))
+    val restrictionTree =
+      try {
+        restrictionParser(SparqlRestriction.fromSparql(variable, restriction))
+      } catch {
+        case ex: ValidationException =>
+          Logger.info(s"Could not parse SPARQL restriction '$restriction'.")
+          Restriction.empty
+      }
 
-    // Collect all type statements
+    // Collect all type statements from the restriction
     def collectTypes(op: Operator): Set[String] = op match {
       case Condition(path, value) => path.operators match {
         case ForwardOperator(uri) :: Nil if uri.uri == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" => Set(value)
@@ -78,13 +87,10 @@ object Workspace extends Controller {
     }
     val types = restrictionTree.operator match {
       case Some(op) => collectTypes(op)
-      case None => Nil
+      case None => Set.empty[String]
     }
 
-    // TODO forward types to template and highlight them
-    println("Types " + types)
-
-    Ok(views.html.workspace.restrictionDialog(project, restriction, pathCache))
+    Ok(views.html.workspace.restrictionDialog(project, restriction, types, pathCache))
   }
 
   def outputDialog(project: String, output: String) = Action {

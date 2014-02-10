@@ -1,5 +1,6 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project,
   restriction: String,
+  types: Set[String],
   cache: de.fuberlin.wiwiss.silk.workspace.modules.source.TypesCache)
 
 @import de.fuberlin.wiwiss.silk.workspace.Constants
@@ -26,7 +27,11 @@
    <div id="typelist">
      @for((uri, frequency) <- cache.value;
           name = project.config.prefixes.shorten(uri)) {
-       <div class="type" title="@name" onclick="$(this).toggleClass('selected')">@if(name.size < 40) {@name} else {...@name.takeRight(37)}</div>
+       <div class="type @if(types.contains(uri)) {selected}"
+            title="@name"
+            onclick="$(this).toggleClass('selected')">
+         @if(name.size < 40) {@name} else {...@name.takeRight(37)}
+       </div>
      }
    </div>
 
