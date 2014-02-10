@@ -96,33 +96,35 @@ class PluginFactory[T <: AnyPlugin : Manifest] {
   }
 
   /**
-   * Registers all plugins which from a directory of jar files.
+   * Registers all plugins from a directory of jar files.
    */
   def registerJars(jarDir: File) {
-    //Collect all jar file in the directory
-    val jarFiles = Option(jarDir.listFiles())
-                   .getOrElse(throw new Exception("Directory " + jarDir + " does not exist"))
-                   .filter(_.getName.endsWith(".jar"))
+    val pluginInterface = manifest[T].runtimeClass
 
-    //Create a classinfo of the plugin interface
-    val pluginClassInfo = new ClassInfo {
-      val name: String = manifest[T].runtimeClass.getName
-      def signature: String = null
-      def methods: Set[MethodInfo] = null
-      def location: File = null
-      def superClassName: String = null
-      val modifiers: Set[Modifier.Modifier] = Set(Modifier.Interface)
-      def fields: Set[FieldInfo] = null
-      def interfaces: List[String] = null
+    /** Test whether a specific class implements the plugin interface */
+    def isPlugin(classInfo: ClassInfo) = {
+      if(classInfo.implements(pluginInterface.getName) || classInfo.superClassName == pluginInterface.getName)
+        true
+      else {
+        val superClass = getClass.getClassLoader.loadClass(classInfo.superClassName)
+        val allSuperClasses = Stream.iterate[Class[_]](superClass)(_.getSuperclass)
+                                    .takeWhile(_.getName != "java.lang.Object")
+        allSuperClasses.exists(pluginInterface.isAssignableFrom)
+      }
     }
 
-    ///Find the names of all classes which implement the plugin interface
-    val classes = ClassFinder(jarFiles).getClasses ++ Iterator(pluginClassInfo)
-    val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].runtimeClass.getName, classes).map(_.name)
+    //Collect all jar file in the directory
+    val jarFiles = Option(jarDir.listFiles())
+        .getOrElse(throw new Exception("Directory " + jarDir + " does not exist"))
+        .filter(_.getName.endsWith(".jar"))
+
+    // Find the names of all classes that implement the plugin interface
+    val jarClasses = ClassFinder(jarFiles).getClasses.toSeq
+    val pluginClassNames = jarClasses.filter(isPlugin).map(_.name)
 
     //Load all found classes
-    val classLoader = URLClassLoader.newInstance(jarFiles.map(file => new URL("jar:file:" + file.getAbsolutePath + "!/")), getClass.getClassLoader)
-    val pluginClasses = pluginClassNames.map(classLoader.loadClass)
+    val jarClassLoader = URLClassLoader.newInstance(jarFiles.map(file => new URL("jar:file:" + file.getAbsolutePath + "!/")), getClass.getClassLoader)
+    val pluginClasses = pluginClassNames.map(jarClassLoader.loadClass)
 
     //Register all plugins
     for(pluginClass <- pluginClasses)
