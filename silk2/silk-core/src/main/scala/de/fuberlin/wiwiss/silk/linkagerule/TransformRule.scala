@@ -1,16 +1,16 @@
 package de.fuberlin.wiwiss.silk.linkagerule
 
 import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, DPair}
-import de.fuberlin.wiwiss.silk.entity.Entity
+import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription, Entity}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.linkagerule.input.Input
+import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
 
 /**
  * A transform rule.
  */
-case class TransformRule(operator: Option[Input] = None) {
+case class TransformRule(operator: Option[Input] = None, targetProperty: String = "http://silk.wbsg.de/transformed") {
   /**
    * Generates the transformed values.
    *
@@ -22,6 +22,21 @@ case class TransformRule(operator: Option[Input] = None) {
     operator match {
       case Some(op) => op(DPair.fill(entity))
       case None => Set.empty
+    }
+  }
+
+  /**
+   * Collects all paths in this rule.
+   */
+  def paths: Set[Path] = {
+    def collectPaths(param: Input): Set[Path] = param match {
+      case p: PathInput => Set(p.path)
+      case p: TransformInput => p.inputs.flatMap(collectPaths).toSet
+    }
+
+    operator match {
+      case Some(op) => collectPaths(op)
+      case None => Set[Path]()
     }
   }
 
@@ -42,7 +57,7 @@ object TransformRule {
   /**
    * Creates a new transform rule with one root operator.
    */
-  def apply(operator: Input): TransformRule = TransformRule(Some(operator))
+  def apply(operator: Input, targetProperty: String): TransformRule = TransformRule(Some(operator), targetProperty)
 
   def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")

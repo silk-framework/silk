@@ -16,7 +16,7 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
   override def update(project: Project, task: TransformTask) {
     updateStatus("Retrieving frequent paths", 0.0)
 
-    //Create an entity description from the link specification
+    //Create an entity description from the transformation task
     val currentEntityDesc = task.entityDescription
 
     //Check if the restriction has been changed
