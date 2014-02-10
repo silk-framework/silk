@@ -21,24 +21,13 @@ class TransformTask private(val name: Identifier, val dataset: Dataset, val rule
     TransformTask(project, name, dataset, rule, cache)
   }
 
-  def entityDescription: EntityDescription = {
-    val paths = rule.operator match {
-      case Some(op) => collectPaths(dataset.variable)(op)
-      case None => Set[Path]()
-    }
-
+  def entityDescription = {
     new EntityDescription(
       variable = dataset.variable,
       restrictions = dataset.restriction,
-      paths = paths.toIndexedSeq
+      paths = rule.paths.toIndexedSeq
     )
   }
-
-  private def collectPaths(variable: String)(param: Input): Set[Path] = param match {
-    case p: PathInput => Set(p.path)
-    case p: TransformInput => p.inputs.flatMap(collectPaths(variable)).toSet
-  }
-
 }
 
 object TransformTask {
