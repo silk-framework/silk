@@ -18,7 +18,7 @@ import xml.Node
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.util._
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.{LinkFilter, LinkageRule}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
@@ -26,26 +26,21 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * Represents a Silk Link Specification.
- *
- * @param id The id which identifies this link specification. By default a new random identifier is generated.
- * @param linkType The type of link to be generated. Defaults to owl:sameAs.
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
-                             linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs"),
                              datasets: DPair[Dataset] = DPair.fill(Dataset.empty),
                              rule: LinkageRule = LinkageRule(),
-                             filter: LinkFilter = LinkFilter(),
                              outputs: Traversable[Output] = Traversable.empty) {
   /**
    * Serializes this Link Specification as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty): Node = {
     <Interlink id={id}>
-      <LinkType>{linkType.toTurtle}</LinkType>
+      <LinkType>{rule.linkType.toTurtle}</LinkType>
       {datasets.source.toXML(true)}
       {datasets.target.toXML(false)}
       {rule.toXML}
-      {filter.toXML}
+      {rule.filter.toXML}
       <Outputs>
       {outputs.map(_.toXML)}
       </Outputs>
@@ -112,20 +107,23 @@ object LinkSpecification {
     val linkageRuleNode = (node \ "LinkageRule").headOption
 
     if(linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
-    if(linkConditionNode.isDefined) logger.warning("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
+    if(linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
     //Read filter
     val filter = LinkFilter.fromXML(node \ "Filter" head)
     implicit val globalThreshold = filter.threshold
 
     new LinkSpecification(
-      id,
-      resolveQualifiedName("LinkType", (node \ "LinkType").text.trim, prefixes),
-      new DPair(Dataset.fromXML(node \ "SourceDataset" head),
-      Dataset.fromXML(node \ "TargetDataset" head)),
-      LinkageRule.fromXML(linkageRuleNode.getOrElse(linkConditionNode.get), resourceLoader),
-      filter,
-      (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
+      id = id,
+      datasets = new DPair(Dataset.fromXML(node \ "SourceDataset" head),
+                           Dataset.fromXML(node \ "TargetDataset" head)),
+      rule =
+        LinkageRule.fromXML(
+          node = linkageRuleNode.getOrElse(linkConditionNode.get),
+          filter = filter,
+          linkType = resolveQualifiedName("LinkType", (node \ "LinkType").text.trim, prefixes),
+          resourceLoader = resourceLoader),
+      outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
     )
   }
 
