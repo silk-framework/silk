@@ -1,4 +1,5 @@
-@(project: String, task: String)
+@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+    task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
 
 @import de.fuberlin.wiwiss.silk.workspace.User
 
@@ -12,10 +13,11 @@
   <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
-    var projectName = '@project';
-    var taskName = '@task';
+    var projectName = '@project.name';
+    var taskName = '@task.name';
     var editorUrl = baseUrl + '/' + projectName + '/transform/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/api/workspace/@project/transform/@task';
+    var apiUrl = '@config.baseUrl/api/workspace/@project.name/transform/@task.name';
+    var serializationFunction = serializeTransformRule;
   </script>
 }
 
@@ -76,12 +78,18 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- User().workspace.project(project).transformModule.task(task).rule.operator) {
+        @for(op <- task.rule.operator) {
           @rule(
             rule = op,
-            prefixes = User().workspace.project(project).config.prefixes
+            prefixes = project.config.prefixes
           )
         }
+      </div>
+
+      <div style="float: left;">
+        Target Property:
+        <input type="text" size="40" id="targetproperty" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.rule.targetProperty)" />
+        <img src="@routes.Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
       </div>
 
     </div>
@@ -89,4 +97,4 @@
   </div>
 }
 
-@main(Some(project), Some(task), "transformEditor")(header)(toolbar)(content)
+@main(Some(project.name), Some(task.name), "transformEditor")(header)(toolbar)(content)
