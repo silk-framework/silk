@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.config
+package de.fuberlin.wiwiss.silk.linkagerule
 
 import xml.Node
 import java.util.logging.Logger

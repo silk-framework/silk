@@ -61,11 +61,6 @@
       </td>
     </tr>
     <tr>
-      <td>Link type</td>
-      <td><input name="linktype" title="Type of the generated link" size="50"
-                 value="@linkingTask.map(_.linkSpec.linkType.toString).getOrElse("http://www.w3.org/2002/07/owl#sameAs")"/></td>
-    </tr>
-    <tr>
       <td></td>
       <td align="right"><button onclick='submit()'>Ok</button></td>
     </tr>
@@ -108,8 +103,7 @@
       source: $("select[name='source']").val(),
       sourcerestriction: $("input[name='sourcerestriction']").val(),
       target: $("select[name='target']").val(),
-      targetrestriction: $("input[name='targetrestriction']").val(),
-      linktype: $("input[name='linktype']").val()
+      targetrestriction: $("input[name='targetrestriction']").val()
     };
 
     if(values.name.length === 0) {

@@ -9,7 +9,7 @@ function serializeLinkageRule() {
 
   var xmlDoc = document.implementation.createDocument('', 'root', null);
   var xml = xmlDoc.createElement("LinkageRule");
-  if ((root != null) && (connections != "")) {
+  if (root != null) {
     xml.appendChild(parseOperator(xmlDoc, root, connections));
   }
 
@@ -105,6 +105,12 @@ function parseOperator(xmlDoc, elementId, connections) {
 }
 
 function findRootOperator(connections) {
+  // If there is only one element, it is the root
+  var elements = $("#droppable").find("> div.dragDiv");
+  if (elements.length === 1) {
+    return elements.attr('id');
+  }
+
   // Collect connection sources and targets
   var sources = [];
   var targets = [];

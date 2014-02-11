@@ -12,8 +12,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.workspace.Constants
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+import de.fuberlin.wiwiss.silk.linkagerule.{LinkFilter, LinkageRule, TransformRule}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
@@ -51,8 +50,7 @@ object WorkspaceApi extends Controller {
             "source" -> JsString(task.linkSpec.datasets.source.sourceId.toString),
             "target" -> JsString(task.linkSpec.datasets.target.sourceId.toString),
             "sourceDataset" -> JsString(task.linkSpec.datasets.source.restriction.toString),
-            "targetDataset" -> JsString(task.linkSpec.datasets.target.restriction.toString),
-            "linkType" -> JsString(task.linkSpec.linkType.toTurtle)
+            "targetDataset" -> JsString(task.linkSpec.datasets.target.restriction.toString)
           ))
         }
       )
@@ -262,7 +260,7 @@ object WorkspaceApi extends Controller {
     proj.linkingModule.tasks.find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
-        val updatedLinkSpec = oldTask.linkSpec.copy(datasets = datasets, linkType = values("linktype"))
+        val updatedLinkSpec = oldTask.linkSpec.copy(datasets = datasets)
         val updatedLinkingTask = oldTask.updateLinkSpec(updatedLinkSpec, proj)
         proj.linkingModule.update(updatedLinkingTask)
       }
@@ -271,10 +269,8 @@ object WorkspaceApi extends Controller {
         val linkSpec =
           LinkSpecification(
             id = task,
-            linkType = values("linktype"),
             datasets = datasets,
             rule = LinkageRule(None),
-            filter = LinkFilter(),
             outputs = Nil
           )
 

@@ -27,16 +27,6 @@ var sources = new Array();
 var targets = new Array();
 var boxes = new Array();
 
-var interlinkId = "";
-
-var sourceDataSet = "";
-var targetDataSet = "";
-var sourceDataSetVar = "";
-var targetDataSetVar = "";
-var sourceDataSetRestriction = "";
-var targetDataSetRestriction = "";
-
-var customPropertyPathsCreated = false;
 var cycleFound = false;
 
 var modificationTimer;
@@ -289,13 +279,14 @@ function validateLinkSpec() {
   reverting = false;
 
   // if only one element exists
-  if ($("#droppable > div.dragDiv").length === 1) {
-    var elId = $("#droppable > div.dragDiv").attr('id');
-    errorObj = new Object();
-    errorObj.id = elId;
-    errorObj.message = "Error: Unconnected element '" + getCurrentElementName(elId) + "'.";
-    errors.push(errorObj);
-  }
+  // Is allowed in transformation rule editor
+//  if ($("#droppable > div.dragDiv").length === 1) {
+//    var elId = $("#droppable > div.dragDiv").attr('id');
+//    errorObj = new Object();
+//    errorObj.id = elId;
+//    errorObj.message = "Error: Unconnected element '" + getCurrentElementName(elId) + "'.";
+//    errors.push(errorObj);
+//  }
 
   $("#droppable > div.dragDiv").each(function() {
     totalNumberElements++;
