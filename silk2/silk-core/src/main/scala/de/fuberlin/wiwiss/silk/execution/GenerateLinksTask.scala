@@ -90,11 +90,11 @@ class GenerateLinksTask(sources: Traversable[Source],
       val links = executeSubValueTask(matchTask, 0.95)
 
       //Filter links
-      val filterTask = new FilterTask(links, linkSpec.filter)
+      val filterTask = new FilterTask(links, linkSpec.rule.filter)
       value.update(executeSubTask(filterTask))
 
       //Output links
-      val outputTask = new OutputTask(value.get, linkSpec.linkType, outputs)
+      val outputTask = new OutputTask(value.get, linkSpec.rule.linkType, outputs)
       executeSubTask(outputTask)
     }
 
