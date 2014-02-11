@@ -31,10 +31,8 @@ object TransformTaskApi extends Controller {
         try {
           //Collect warnings while parsing transformation rule
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
-            // Currently the editor always uses the Tag <LinkageRule> so we need to replace it
-            val ruleXml = <TransformRule>{xml.head.child}</TransformRule>
             //Load transformation rule
-            val updatedRule = TransformRule.load(project.resourceManager)(prefixes)(ruleXml)
+            val updatedRule = TransformRule.load(project.resourceManager)(prefixes)(xml.head)
             //Update linking task
             val updatedTask = task.updateRule(updatedRule, project)
             project.transformModule.update(updatedTask)

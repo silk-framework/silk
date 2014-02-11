@@ -85,6 +85,7 @@
         <xs:element ref="Input" />
         <xs:element ref="TransformInput" />
       </xs:choice>
+      <xs:attribute name="targetProperty" type="xs:string" />
     </xs:complexType>
   </xs:element>
 

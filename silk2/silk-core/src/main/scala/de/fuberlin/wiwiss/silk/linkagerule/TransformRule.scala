@@ -44,7 +44,7 @@ case class TransformRule(operator: Option[Input] = None, targetProperty: String 
    * Serializes this transform rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <TransformRule>
+    <TransformRule targetProperty={targetProperty}>
       {operator.toList.map(_.toXML)}
     </TransformRule>
   }
@@ -67,6 +67,9 @@ object TransformRule {
    * Reads a transform rule from xml.
    */
   def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
-    TransformRule(Input.fromXML(node.child, resourceLoader).headOption)
+    TransformRule(
+      operator = Input.fromXML(node.child, resourceLoader).headOption,
+      targetProperty = (node \ "@targetProperty").text
+    )
   }
 }

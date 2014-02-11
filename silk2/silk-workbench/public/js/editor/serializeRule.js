@@ -2,16 +2,7 @@
  * Serializes the current linkage rule in the editor as XML.
  */
 function serializeLinkageRule() {
-  // Retrieve all connections
-  var connections = jsPlumb.getConnections({scope: ['value', 'similarity']}, true);
-  // Find the root of the linkage rule
-  var root = findRootOperator(connections);
-
-  var xmlDoc = document.implementation.createDocument('', 'root', null);
-  var xml = xmlDoc.createElement("LinkageRule");
-  if (root != null) {
-    xml.appendChild(parseOperator(xmlDoc, root, connections));
-  }
+  var xml = serializeRule("LinkageRule");
 
   // TODO add to linkage rule
 //  var filter = xmlDocument.createElement("Filter");
@@ -20,9 +11,35 @@ function serializeLinkageRule() {
 //  }
 //  xml.appendChild(filter);
 
-  var xmlString = (new XMLSerializer()).serializeToString(xml);
-  xmlString = xmlString.replace(/&amp;/g, "&");
-  return xmlString;
+  return makeXMLString(xml);
+}
+
+/**
+ * Serializes the current transformation rule in the editor as XML.
+ */
+function serializeTransformRule() {
+  var xml = serializeRule("TransformRule");
+  xml.setAttribute("targetProperty", $("#targetproperty").val());
+  return makeXMLString(xml);
+}
+
+/**
+ * Serializes the current rule as XML.
+ */
+function serializeRule(tagName) {
+  // Retrieve all connections
+  var connections = jsPlumb.getConnections({scope: ['value', 'similarity']}, true);
+  // Find the root of the linkage rule
+  var root = findRootOperator(connections);
+
+  // Serialize rule
+  var xmlDoc = document.implementation.createDocument('', 'root', null);
+  var xml = xmlDoc.createElement(tagName);
+  if (root != null) {
+    xml.appendChild(parseOperator(xmlDoc, root, connections));
+  }
+
+  return xml;
 }
 
 /**
@@ -104,6 +121,9 @@ function parseOperator(xmlDoc, elementId, connections) {
   return xml;
 }
 
+/**
+ * Finds the root of the rule tree
+ */
 function findRootOperator(connections) {
   // If there is only one element, it is the root
   var elements = $("#droppable").find("> div.dragDiv");
@@ -130,4 +150,13 @@ function findRootOperator(connections) {
   }
 
   return root;
+}
+
+/**
+ * Generate XML string
+ */
+function makeXMLString(xml) {
+  var xmlString = (new XMLSerializer()).serializeToString(xml);
+  xmlString = xmlString.replace(/&amp;/g, "&");
+  return xmlString;
 }
