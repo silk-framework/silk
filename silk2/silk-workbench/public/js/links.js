@@ -86,10 +86,6 @@ function initPagination(number_results) {
     current_page: page,
     callback: handlePaginationClick
   });
-  var navi_width = 94 + (number_results/100)*34;
-  if (number_results < 101) navi_width = 124;
-  if (number_results > 1100) navi_width = 525;
-  $(".navigation").css("width", navi_width + "px").css("float", "none").css("margin", "0 auto");
 }
 
 function initTrees() {
