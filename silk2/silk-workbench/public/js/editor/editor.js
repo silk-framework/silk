@@ -38,18 +38,28 @@ var instanceSaved = false;
 
 var confirmOnExit = false;
 
+// Set jsPlumb default values
 jsPlumb.Defaults.Container = "droppable";
+jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
 
 var valueConnectorStyle = {
-  lineWidth:4,
+  lineWidth: 4,
   strokeStyle: "#61B7CF",
   joinstyle: "round"
+};
+
+var valueConnectorHoverStyle = {
+  strokeStyle: "#216477"
 };
 
 var similarityConnectorStyle = {
   lineWidth:4,
   strokeStyle: "#BF7761",
   joinstyle: "round"
+};
+
+var similarityConnectorHoverStyle = {
+  strokeStyle: "#7F2711"
 };
 
 var endpointValueSource = {
@@ -60,6 +70,7 @@ var endpointValueSource = {
     radius: 4
   },
   connectorStyle: valueConnectorStyle,
+  connectorHoverStyle: valueConnectorHoverStyle,
   connectorOverlays: [ [ "Arrow", { location: 1, width: 15, length: 15 } ] ],
   connector: [ "Flowchart", { stub: 10, cornerRadius: 5 } ],
   isSource: true,
@@ -87,6 +98,7 @@ var endpointSimilaritySource = {
     radius: 4
   },
   connectorStyle: similarityConnectorStyle,
+  connectorHoverStyle: similarityConnectorHoverStyle,
   connectorOverlays: [ [ "Arrow", { location: 1, width: 15, length: 15 } ] ],
   connector: [ "Flowchart", { stub: 10, cornerRadius: 5 } ],
   isSource: true,
@@ -105,6 +117,10 @@ var endpointSimilarityTarget = {
   scope: "similarity",
   maxConnections: -1
 };
+
+jsPlumb.bind("click", function(conn, originalEvent) {
+  jsPlumb.detach(conn);
+});
 
 document.onselectstart = function ()
 {
