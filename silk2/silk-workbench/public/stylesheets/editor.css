@@ -90,7 +90,13 @@ body{
 	border:1px dotted #c35454;
 }
 
-._jsPlumb_endpoint { z-index: 2; }
+._jsPlumb_endpoint {
+  z-index: 2;
+}
+
+._jsPlumb_connector {
+  cursor: pointer;
+}
 
 .dragDiv {
   width:200px;
