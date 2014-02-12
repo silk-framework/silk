@@ -118,10 +118,6 @@ var endpointSimilarityTarget = {
   maxConnections: -1
 };
 
-jsPlumb.bind("click", function(conn, originalEvent) {
-  jsPlumb.detach(conn);
-});
-
 document.onselectstart = function ()
 {
   return false;
@@ -182,6 +178,11 @@ $(function ()
 
   $('body').attr('onresize', 'updateWindowSize();');
   $('body').attr('onunload', 'jsPlumb.unload();');
+
+  // Delete connections on clicking them
+  jsPlumb.bind("click", function(conn, originalEvent) {
+    jsPlumb.detach(conn);
+  });
 
   // Update whenever a new connection has been established
   jsPlumb.bind("connection", function(info) {
@@ -397,7 +398,7 @@ function validateLinkSpec() {
 };
 
 function modifyLinkSpec() {
-  console.log("modifyLinkSpec");
+  console.log("Rule modified");
   confirmOnExit = true;
   showPendingIcon();
   clearTimeout(modificationTimer);
@@ -566,75 +567,64 @@ function redo() {
 }
 
 function loadInstance(index) {
-    //console.log("loadInstance("+index+")");
-    reverting = true;
-    instanceIndex = index;
-    updateRevertButtons();
-    var elements = instanceStack[index];
-    var endpoint_right;
-    var endpoint_left;
+  //console.log("loadInstance("+index+")");
+  reverting = true;
+  instanceIndex = index;
+  updateRevertButtons();
+  var elements = instanceStack[index];
+  var endpoints = [];
 
-    jsPlumb.detachEveryConnection();
-    $("#droppable > div.dragDiv").each(function () {
-        jsPlumb.removeAllEndpoints($(this).attr('id'));
-        $(this).remove();
-    });
+  jsPlumb.detachEveryConnection();
+  $("#droppable").find("> div.dragDiv").each(function () {
+    jsPlumb.removeAllEndpoints($(this).attr('id'));
+    $(this).remove();
+  });
 
-    for (var i = 0; i<elements.length; i++) {
+  for (var i = 0; i<elements.length; i++) {
+    var endpoint_right = null;
+    var endpoint_left = null;
+    var box = elements[i][0].clone();
+    var boxid = box.attr('id');
+    var boxclass = box.attr('class');
 
-       endpoint_right = null;
-       endpoint_left = null;
-       var box = elements[i][0].clone();
-       var boxid = box.attr('id');
-       var boxclass = box.attr('class');
+    $("#droppable").append(box);
 
-        $("#droppable").append(box);
-
-        if (boxclass.search(/aggregate/) != -1)
-        {
-          endpoint_left = jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="compare"], canvas[elType="aggregate"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }, uuid: boxid}, endpointOptions1));
-          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions2);
-          box.nextUntil("div", ".ui-draggable").attr("elType", "aggregate");
-        }
-        if (boxclass.search(/transform/) != -1)
-        {
-          endpoint_left = jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }, uuid: boxid}, endpointOptions1));
-          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions2);
-          box.nextUntil("div", ".ui-draggable").attr("elType", "transform");
-        }
-        if (boxclass.search(/compare/) != -1)
-        {
-          endpoint_left = jsPlumb.addEndpoint(boxid, jsPlumb.extend({dropOptions:{ accept: 'canvas[elType="transform"], canvas[elType="source"], canvas[elType="target"]', activeClass: 'accepthighlight', hoverClass: 'accepthoverhighlight', over: function(event, ui) { $("body").css('cursor','pointer'); }, out: function(event, ui) { $("body").css('cursor','default'); } }, uuid: boxid}, endpointOptions1));
-          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions2);
-          box.nextUntil("div", ".ui-draggable").attr("elType", "compare");
-        }
-        if (boxclass.search(/source/) != -1)
-        {
-          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions);
-          box.nextUntil("div", ".ui-draggable").attr("elType", "source");
-        }
-        if (boxclass.search(/target/) != -1)
-        {
-          endpoint_right = jsPlumb.addEndpoint(boxid, endpointOptions);
-          box.nextUntil("div", ".ui-draggable").attr("elType", "target");
-        }
-
-        elements[i][2] = endpoint_right;
-        jsPlumb.draggable(box);
+    if (boxclass.search(/aggregate/) != -1) {
+      endpoint_left = jsPlumb.addEndpoint(boxid, endpointSimilarityTarget);
+      endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
+    }
+    else if (boxclass.search(/compare/) != -1) {
+      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueTarget);
+      endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
+    }
+    else if (boxclass.search(/transform/) != -1) {
+      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueSource);
+      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueTarget);
+    }
+    else if (boxclass.search(/source/) != -1 || boxclass.search(/target/) != -1) {
+      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
+    }
+    else {
+      alert("Invalid Element dropped: " + boxclass);
     }
 
-    for (var j = 0; j<elements.length; j++) {
-        var endp_left = elements[j][2];
-        var endp_right = jsPlumb.getEndpoint(elements[j][1]);
-        if (endp_left && endp_right) {
-            jsPlumb.connect({
-                sourceEndpoint: endp_left,
-                targetEndpoint: endp_right
-            });
-        }
-    }
+    endpoints[boxid] = endpoint_left;
+    elements[i][2] = endpoint_right;
+    jsPlumb.draggable(box);
+  }
 
-    modifyLinkSpec();
+  for(var j = 0; j < elements.length; j++) {
+    var endp_left = elements[j][2];
+    var endp_right = endpoints[elements[j][1]];
+    if (endp_left && endp_right) {
+      jsPlumb.connect({
+        sourceEndpoint: endp_left,
+        targetEndpoint: endp_right
+      });
+    }
+  }
+
+  modifyLinkSpec();
 }
 
 function saveInstance() {
@@ -642,16 +632,16 @@ function saveInstance() {
     var elements = new Array();
     var targets = new Array();
     var i = 0;
-    $("#droppable > div.dragDiv").each(function() {
+    $("#droppable").find("> div.dragDiv").each(function() {
         elements[i] = new Array();
         var box = $(this).clone();
         var id = box.attr('id');
         elements[i][0] = box;
-        var conns = jsPlumb.getConnections({source: id});
-        targets = conns[jsPlumb.getDefaultScope()];
+        var conns = jsPlumb.getConnections({scope: ['value', 'similarity'], source: id}, true);
+        targets = conns;
         if (targets !== undefined && targets.length > 0) {
             var target = targets[0].target;
-            elements[i][1] = target.attr('id');
+            elements[i][1] = target.id;
         }
         i++;
     });
