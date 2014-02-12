@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.workspace.Constants
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.{LinkFilter, LinkageRule, TransformRule}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
@@ -21,6 +21,7 @@ import java.io.{FileInputStream, ByteArrayOutputStream}
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 import play.api.libs.iteratee.Enumerator
 import scala.concurrent.ExecutionContext.Implicits.global
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 
 object WorkspaceApi extends Controller {
   
@@ -32,26 +33,35 @@ object WorkspaceApi extends Controller {
       implicit val prefixes = project.config.prefixes
 
       val sources = JsArray(
-        for (task <- project.sourceModule.tasks.toList.sortBy(n => (n.name.toString.toLowerCase))) yield {
+        for (task <- project.sourceModule.tasks.toList.sortBy(n => n.name.toString.toLowerCase)) yield {
           task.source.dataSource match {
             case DataSource(_, params) => JsObject(Seq(
-              ("name" -> JsString(task.name.toString)),
-              ("params" -> paramsToJson(params))
+              "name" -> JsString(task.name.toString),
+              "params" -> paramsToJson(params)
             ))
           }
         }
       )
 
       val linkingTasks = JsArray(
-        for (task <- project.linkingModule.tasks.toList.sortBy(n => (n.name.toString.toLowerCase))) yield {
+        for (task <- project.linkingModule.tasks.toList.sortBy(n => n.name.toString.toLowerCase)) yield {
           JsObject(Seq(
-                    ("name" -> JsString(task.name.toString)),
-                    ("source" -> JsString(task.linkSpec.datasets.source.sourceId.toString)),
-                    ("target" -> JsString(task.linkSpec.datasets.target.sourceId.toString)),
-                    ("sourceDataset" -> JsString(task.linkSpec.datasets.source.restriction.toString)),
-                    ("targetDataset" -> JsString(task.linkSpec.datasets.target.restriction.toString)),
-                    ("linkType" -> JsString(task.linkSpec.linkType.toTurtle))
-                  ))
+            "name" -> JsString(task.name.toString),
+            "source" -> JsString(task.linkSpec.datasets.source.sourceId.toString),
+            "target" -> JsString(task.linkSpec.datasets.target.sourceId.toString),
+            "sourceDataset" -> JsString(task.linkSpec.datasets.source.restriction.toString),
+            "targetDataset" -> JsString(task.linkSpec.datasets.target.restriction.toString)
+          ))
+        }
+      )
+
+      val transformTasks = JsArray(
+        for (task <- project.transformModule.tasks.toList.sortBy(n => n.name.toString.toLowerCase)) yield {
+          JsObject(Seq(
+            "name" -> JsString(task.name.toString),
+            "source" -> JsString(task.dataset.sourceId.toString),
+            "dataset" -> JsString(task.dataset.restriction.toString)
+          ))
         }
       )
 
@@ -59,23 +69,25 @@ object WorkspaceApi extends Controller {
         for (task <- project.outputModule.tasks.toList.sortBy(n => (n.name.toString.toLowerCase))) yield {
           task.output.writer match {
             case LinkWriter(_, params) => JsObject(Seq(
-              ("name" -> JsString(task.name.toString)),
-              ("params" -> paramsToJson(params))
+              "name" -> JsString(task.name.toString),
+              "params" -> paramsToJson(params)
             ))
           }
         }
       )
 
       val proj = JsObject(Seq(
-        ("name" -> JsString(project.name.toString)),
-        ("dataSource" -> sources),
-        ("linkingTask" -> linkingTasks),
-        ("output" -> outputs)
+        "name" -> JsString(project.name.toString),
+        "dataSource" -> sources,
+        "transformTask" -> transformTasks,
+        "linkingTask" -> linkingTasks,
+        "output" -> outputs
       ))
 
       projectList :+= proj
     }
 
+    // TODO remove the notion of an open project
     val projects = ("project" -> JsArray(projectList))
     val activeProject = ("activeProject" -> JsString(if (User().projectOpen) User().project.name.toString else ""))
     val activeTask = ("activeTask" -> JsString(if (User().taskOpen) User().task.name.toString else ""))
@@ -208,6 +220,34 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
+  def putTransformTask(project: String, task: String) = Action { implicit request => {
+    val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
+
+    val proj = User().workspace.project(project)
+    implicit val prefixes = proj.config.prefixes
+
+    val dataset = Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+
+    proj.transformModule.tasks.find(_.name == task) match {
+      //Update existing task
+      case Some(oldTask) => {
+        val updatedTransformTask = oldTask.updateDataset(dataset, proj)
+        proj.transformModule.update(updatedTransformTask)
+      }
+      //Create new task
+      case None => {
+        val transformTask = TransformTask(proj, task, dataset, TransformRule())
+        proj.transformModule.update(transformTask)
+      }
+    }
+    Ok
+  }}
+
+  def deleteTransformTask(project: String, task: String) = Action {
+    User().workspace.project(project).transformModule.remove(task)
+    Ok
+  }
+
   def putLinkingTask(project: String, task: String) = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
@@ -220,7 +260,7 @@ object WorkspaceApi extends Controller {
     proj.linkingModule.tasks.find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
-        val updatedLinkSpec = oldTask.linkSpec.copy(datasets = datasets, linkType = values("linktype"))
+        val updatedLinkSpec = oldTask.linkSpec.copy(datasets = datasets)
         val updatedLinkingTask = oldTask.updateLinkSpec(updatedLinkSpec, proj)
         proj.linkingModule.update(updatedLinkingTask)
       }
@@ -229,10 +269,8 @@ object WorkspaceApi extends Controller {
         val linkSpec =
           LinkSpecification(
             id = task,
-            linkType = values("linktype"),
             datasets = datasets,
             rule = LinkageRule(None),
-            filter = LinkFilter(),
             outputs = Nil
           )
 

@@ -41,12 +41,15 @@ object SpatialExtensionsUtils {
      * This function reads a WKT Geometry.
      *
      * @param geometryString : String
+     * @param SRID: Int
      * @return Option[Geometry]
      */
-    def WKTReader(geometryString: String): Option[Geometry] = {
+    def WKTReader(geometryString: String, srid: Int): Option[Geometry] = {
 
       val wktr = new WKTReader
-      Option(wktr.read(geometryString))
+      var geometry = wktr.read(geometryString)
+      geometry.setSRID(srid)
+      Option(geometry)
     }
 
     /**
@@ -180,7 +183,7 @@ object SpatialExtensionsUtils {
     val WGS84_LON_LAT_SRID = 3857
 
     /**
-     * Default SRID
+     * Default SRID.
      */
     val DEFAULT_SRID = WGS84_LAT_LON_SRID;
 

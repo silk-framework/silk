@@ -41,7 +41,7 @@ trait Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask] {
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
   def task(name: Identifier): TaskType = {
-    tasks.find(_.name == name).getOrElse(throw new NoSuchElementException("Task '" + name + "' not found."))
+    tasks.find(_.name == name).getOrElse(throw new NoSuchElementException(s"Task '$name' not found in ${getClass.getSimpleName}"))
   }
 
   /**

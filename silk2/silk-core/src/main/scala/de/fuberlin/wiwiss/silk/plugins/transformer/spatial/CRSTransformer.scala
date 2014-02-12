@@ -41,18 +41,16 @@ case class CRSTransformer() extends SimpleTransformer {
     val logger = Logger.getLogger(CRSTransformer.getClass.getName)
 
     var geometry = null.asInstanceOf[Option[Geometry]]
-    var srid = null.asInstanceOf[Int]
+    var (geometryString, srid) = SpatialExtensionsUtils.Parser.separateGeometryFromSRID(literal)
 
     try {
-      var (geometryString, srid) = SpatialExtensionsUtils.Parser.separateGeometryFromSRID(literal)
-
       srid match {
         case SpatialExtensionsUtils.Constants.DEFAULT_SRID =>
-          return literal
+          return geometryString
         case -1 =>
           geometry = SpatialExtensionsUtils.Parser.GMLReader(geometryString)
         case _ =>
-          geometry = SpatialExtensionsUtils.Parser.WKTReader(geometryString)
+          geometry = SpatialExtensionsUtils.Parser.WKTReader(geometryString, srid)
       }
     } catch {
       case e: Exception =>
@@ -66,7 +64,7 @@ case class CRSTransformer() extends SimpleTransformer {
     }
 
     try {
-      val sourceCRS = CRS.decode("EPSG:" + srid)
+      val sourceCRS = CRS.decode("EPSG:" + geometry.get.getSRID())
       val targetCRS = CRS.decode("EPSG:" + SpatialExtensionsUtils.Constants.DEFAULT_SRID)
       val transform = CRS.findMathTransform(sourceCRS, targetCRS, true)
 

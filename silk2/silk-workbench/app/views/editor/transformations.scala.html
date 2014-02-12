@@ -64,20 +64,23 @@
 @transformationExpanded(plugin: PluginDescription[Transformer]) = {
   <div class="dragDiv transformDiv" style="display: none;">
     <small class="name">@plugin.id</small>
-    <small class="type">TransformInput</small>
+    <small class="type">Transform</small>
     <h5 class="handler">
-      <div style="width: 170px; white-space:nowrap; overflow:hidden; float: left;" title="">
-        @plugin.label (Transformation)
+      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
+        @plugin.label (Transform)
       </div>
-      <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"></img>
+      <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))" />
+      <img align="right" src="@routes.Assets.at("img/undecided.png")" style="cursor:help;" title="@plugin.description"/>
     </h5>
     <div class="content">
+      name:
+      <span class="label"></span>
+      <br/>
       @for((param, index) <- plugin.parameters.zipWithIndex) {
         @if(index != 0) {<br/>}
         @param.name:
         <input type="text" name="@param.name" size="10" @for(v <- param.defaultValue) {value="@v"} ></input>
       }
-      <img align="right" src="@routes.Assets.at("img/help.png")" style="margin-top: 6px; cursor:help;" title=""></img>
     </div>
   </div>
 }

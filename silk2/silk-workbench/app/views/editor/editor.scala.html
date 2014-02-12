@@ -1,19 +1,21 @@
-@(project: String, task: String)
-
-@import de.fuberlin.wiwiss.silk.workspace.User
+@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+  task: de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask)
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@routes.Assets.at("js/excanvas.js")"></script>
-  <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.2.4.js")"></script>
-  <script type="text/javascript" src="@routes.Assets.at("js/editor.js")" ></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
-    var projectName = '@project';
-    var taskName = '@task';
-    var apiUrl = '@config.baseUrl/api/workspace/@project/linking/@task';
+    var projectName = '@project.name';
+    var taskName = '@task.name';
+    var editorUrl = baseUrl + '/' + projectName + '/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/api/workspace/@project.name/linking/@task.name';
+    var serializationFunction = serializeLinkageRule;
   </script>
 }
 
@@ -65,14 +67,9 @@
     </div>
 
     <div id="operators">
-      <script type="text/javascript">
-        getOperators();
-      </script>
-
       @transformations()
       @comparators()
       @aggregators()
-
     </div>
   </div>
 
@@ -81,7 +78,12 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @*rule(User().workspace.project(project).linkingModule.task(task).linkSpec.rule)*@
+        @for(op <- task.linkSpec.rule.operator) {
+          @rule(
+            rule = op,
+            prefixes = project.config.prefixes
+          )
+        }
       </div>
 
       <div style="width: 180px; float: left;">
@@ -102,8 +104,9 @@
         <img src="@routes.Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
       </div>
 
-      <div style="width: 10px; float: left; visibility:hidden;">
-        <input type="text" id="linktype"/>
+      <div style="width: 300px; float: left;">
+        Link Type:
+        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.linkSpec.rule.linkType.uri)" />
       </div>
 
     </div>
@@ -111,4 +114,4 @@
   </div>
 }
 
-@main(Some(project), Some(task), "editor")(header)(toolbar)(content)
+@main(Some(project.name), Some(task.name), "editor")(header)(toolbar)(content)

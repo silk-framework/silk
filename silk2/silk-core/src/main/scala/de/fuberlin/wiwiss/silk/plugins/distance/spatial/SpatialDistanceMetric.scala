@@ -32,10 +32,11 @@ import de.fuberlin.wiwiss.silk.entity.Index
 case class SpatialDistanceMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
- Double.PositiveInfinity
+    println("evaluate "+str1)
+    Double.PositiveInfinity
   }
 
   override def indexValue(str: String, limit: Double): Index = {
-Index.empty
+    Index.default
   }
 }

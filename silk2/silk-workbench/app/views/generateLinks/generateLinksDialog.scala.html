@@ -23,24 +23,23 @@
   </tr>
 </table>
 
-<script>//<![CDATA[
-function submit() {
-  var values = {
-    outputs: $.makeArray($("input[type='checkbox']:checked").map(function() {return this.name}))
-  };
+  <script type="application/javascript">
+    function submit() {
+      var values = {
+        outputs: $.makeArray($("input[type='checkbox']:checked").map(function() {return this.name}))
+      };
 
-  $.ajax({
-    type: 'PUT',
-    url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
-    data: values,
-    success: function(response) {
-      $('.dialog').dialog('close');
-    },
-    error: function(request) {
-      alert(request.responseText);
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
+        data: values,
+        success: function(response) {
+          $('.dialog').dialog('close');
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
     }
-  });
-}
-//]]>
-</script>
+  </script>
 }

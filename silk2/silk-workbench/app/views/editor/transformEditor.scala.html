@@ -1,0 +1,100 @@
+@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+    task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
+
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@header = {
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
+
+  <script type="text/javascript" src="@routes.Assets.at("js/excanvas.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
+
+  <script type="text/javascript">
+    var projectName = '@project.name';
+    var taskName = '@task.name';
+    var editorUrl = baseUrl + '/' + projectName + '/transform/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/api/workspace/@project.name/transform/@task.name';
+    var serializationFunction = serializeTransformRule;
+  </script>
+}
+
+@toolbar = {
+  <script type="text/javascript" src="@routes.Assets.at("js/wz_tooltip.js")"></script>
+
+  <ul>
+    <li>
+      <button id="undo" onclick="undo();">Undo</button>
+    </li>
+    <li>
+      <button id="redo" onclick="redo();">Redo</button>
+    </li>
+    <li>
+      <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">Help</a>
+    </li>
+  </ul>
+
+  <div id="validation-icons">
+    <div id="tick" style="display: none" onmouseover="Tip('Validated successfully.', DELAY, 20, WIDTH, 135, FIX, ['tick', -102, 3]);" onmouseout="UnTip();"></div>
+    <div id="exclamation" style="display: none"><span class="number-messages"></span></div>
+    <div id="warning" style="display: none"><span class="number-messages"></span></div>
+    <div id="pending" style="display: none"></div>
+    <div id="info" style="display: none">
+      <span class="note" style="display: none" title="Positive and negative reference links are needed in order to evaluate the link specification"></span>
+      <span class="precision" style="display: none" title="Precision can be seen as a measure of exactness (or quality). Precision := truePositive / (truePositive + falsePositive)"></span>
+      <span class="recall" style="display: none" title="Recall can be seen as a measure of completeness (or quantity). Recall := truePositive / (truePositive + falseNegative)"></span>
+      <span class="measure" title="The harmonic mean of Precision and Recall. F-measure := 2 * (Precision*Recall) / (Precision+Recall)" style="display: none"></span>
+    </div>
+  </div>
+
+  <div id="info-box" style="display: none"></div>
+
+  <div id="score-widget">@* Filled by updateScore() *@</div>
+}
+
+@content = {
+  <div class="draggables">
+    <div style="width:200px;">
+      <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
+      @*<div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>*@
+    </div>
+    <div style="clear: both"></div>
+    <div id="paths">
+      <div id="loading" style="width:230px;">loading ...</div>
+      <script type="text/javascript">
+        getPropertyPaths();
+      </script>
+    </div>
+
+    <div id="operators">
+      @transformations()
+    </div>
+  </div>
+
+  <div class="wrapperEditor">
+
+    <div class="droppable_outer">
+
+      <div id="droppable">
+        @for(op <- task.rule.operator) {
+          @rule(
+            rule = op,
+            prefixes = project.config.prefixes
+          )
+        }
+      </div>
+
+      <div style="float: left;">
+        Target Property:
+        <input type="text" size="40" id="targetproperty" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.rule.targetProperty)" />
+        <img src="@routes.Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
+      </div>
+
+    </div>
+
+  </div>
+}
+
+@main(Some(project.name), Some(task.name), "transformEditor")(header)(toolbar)(content)

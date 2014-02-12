@@ -5,12 +5,20 @@
   <span>
     <div class="tab @if(tab == "start") {selected}"><a href="@config.baseUrl/">Start</a></div>
     <div class="tab @if(tab == "workspace") {selected}"><a href="@config.baseUrl/workspace">Workspace</a></div>
-    @for(p <- project; t <- task) {
-      @if(config.workbench.tabs.editor)         { <div class="tab @if(tab == "editor") {selected}"        ><a href="@config.baseUrl/@p/@t/editor">Editor</a></div> }
-      @if(config.workbench.tabs.generateLinks)  { <div class="tab @if(tab == "generateLinks") {selected}" ><a href="@config.baseUrl/@p/@t/generateLinks">Generate Links</a></div> }
-      @if(config.workbench.tabs.learn)          { <div class="tab @if(tab == "learn") {selected}"         ><a href="@config.baseUrl/@p/@t/learnStart">Learn</a></div> }
-      @if(config.workbench.tabs.referenceLinks) { <div class="tab @if(tab == "referenceLinks") {selected}"><a href="@config.baseUrl/@p/@t/referenceLinks">Reference Links</a></div> }
-      @if(config.workbench.tabs.status)         { <div class="tab @if(tab == "status") {selected}"        ><a href="@config.baseUrl/@p/@t/status">Status</a></div> }
+    @if(Set("editor", "generateLinks", "learn", "referenceLinks", "status") contains tab) {
+      @for(p <- project; t <- task) {
+        @if(config.workbench.tabs.editor)         { <div class="tab @if(tab == "editor") {selected}"        ><a href="@config.baseUrl/@p/@t/editor">Editor</a></div> }
+        @if(config.workbench.tabs.generateLinks)  { <div class="tab @if(tab == "generateLinks") {selected}" ><a href="@config.baseUrl/@p/@t/generateLinks">Generate Links</a></div> }
+        @if(config.workbench.tabs.learn)          { <div class="tab @if(tab == "learn") {selected}"         ><a href="@config.baseUrl/@p/@t/learnStart">Learn</a></div> }
+        @if(config.workbench.tabs.referenceLinks) { <div class="tab @if(tab == "referenceLinks") {selected}"><a href="@config.baseUrl/@p/@t/referenceLinks">Reference Links</a></div> }
+        @if(config.workbench.tabs.status)         { <div class="tab @if(tab == "status") {selected}"        ><a href="@config.baseUrl/@p/@t/status">Status</a></div> }
+      }
+    }
+    @if(Set("transformEditor", "executeTransform") contains tab) {
+      @for(p <- project; t <- task) {
+        <div class="tab @if(tab == "transformEditor") {selected}"><a href="@config.baseUrl/@p/transform/@t/editor">Editor</a></div>
+        <div class="tab @if(tab == "executeTransform") {selected}"><a href="@config.baseUrl/@p/transform/@t/execute">Execute</a></div>
+      }
     }
     <div class="tab"><a onclick="showDialog('@config.baseUrl/aboutDialog')">About</a></div>
   </span>

@@ -1,0 +1,73 @@
+@(paths: de.fuberlin.wiwiss.silk.util.DPair[Seq[String]], loadingMsg: String = "")
+
+<script type="text/javascript">
+  // Initialization
+  $(function() {
+    // Make operators draggable
+    $('.paths').draggable({
+      helper: function() {
+        var box = $(this).children('.dragDiv').clone(false);
+        box.attr("id", generateNewElementId());
+        box.show();
+        return box;
+      }
+    });
+  })
+</script>
+
+@pathOperators(paths.source, "Source")
+@pathOperators(paths.target, "Target")
+
+@pathOperators(paths: Seq[String], pathType: String) = {
+  <div style="padding-top: 4px">
+    <span style='font-weight: bold; color: #582271;'>@pathType:</span>
+    <span id='@{pathType.toLowerCase}_id'></span>
+  </div>
+
+  @*<div class="more">
+    <span class='restriction'>
+      <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;'>Restriction: </span>
+      <span id='@{pathType.toLowerCase}_restriction'></span>
+    </span>
+    <div style='clear: both;'></div>
+  </div>*@
+
+  <div id="@{pathType.toLowerCase}paths" class="scrollboxes">
+    <div id="@{pathType.toLowerCase}C" class="draggable paths">
+      <span></span>
+      <small></small>
+      <p>(custom path)</p>
+      @pathExpanded("", pathType)
+    </div>
+
+    @loadingMsg
+
+    @for((path, index) <- paths.zipWithIndex) {
+      <div id="@{pathType.toLowerCase}@index" class="draggable paths" title="@path">
+        <span></span>
+        <p style="white-space:nowrap; overflow:hidden;">@path</p>
+        @pathExpanded(path, pathType)
+      </div>
+    }
+  </div>
+}
+
+@pathExpanded(path: String, pathType: String) = {
+  <div class="dragDiv @{pathType.toLowerCase}Div" style="display: none;">
+    <small class="name">Path</small>
+    <small class="type">@pathType</small>
+    <h5 class="handler">
+      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
+        Path (@pathType)
+      </div>
+      <img align="right" src="@routes.Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      <img align="right" src="@routes.Assets.at("img/undecided.png")" style="cursor:help;" title="Entity Path"/>
+    </h5>
+    <div class="content">
+      name:
+      <span class="label"></span>
+      <br/>
+      <input type="text" name="path" size="28" value="@path"/>
+    </div>
+  </div>
+}

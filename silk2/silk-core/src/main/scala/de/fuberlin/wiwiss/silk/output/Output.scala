@@ -41,6 +41,8 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
     isOpen = true
   }
 
+
+
   /**
    * Writes a new link to this writer.
    */

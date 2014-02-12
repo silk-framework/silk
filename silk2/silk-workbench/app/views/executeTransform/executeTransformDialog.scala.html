@@ -1,0 +1,45 @@
+@(project: String, task: String, outputs: Seq[String])
+
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@widgets.dialog(title = "Execute Transformation", width = 500) {
+<table border="0">
+  <tr>
+    <td>Select outputs<br/></td>
+    <td></td>
+  </tr>
+  @for(output <- outputs) {
+    <tr>
+      <td>@output</td>
+      <td>
+        <input type="checkbox" name="@output" id="@output" />
+        <label for="@output">Enable</label>
+      </td>
+    </tr>
+  }
+  <tr>
+    <td></td>
+    <td align="right"><br/><button onclick='execute()'>Execute</button></td>
+  </tr>
+</table>
+
+  <script type="application/javascript">
+    function execute() {
+      var values = {
+        outputs: $.makeArray($("input[type='checkbox']:checked").map(function() {return this.name}))
+      };
+
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/api/tasks/@project/@task/executeTransform',
+        data: values,
+        success: function(response) {
+          $('.dialog').dialog('close');
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  </script>
+}

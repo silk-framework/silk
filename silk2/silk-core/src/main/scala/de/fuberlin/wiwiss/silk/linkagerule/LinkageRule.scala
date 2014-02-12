@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, DPair}
+import de.fuberlin.wiwiss.silk.util.{Uri, ValidatingXMLReader, DPair}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import evaluation.{DetailedEvaluator, DetailedIndexer}
 import math.abs
@@ -25,9 +25,11 @@ import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
- * A Linkage Rule specifies the conditions which must hold true so that a link is generated between two entities.
+ * A linkage rule specifies the conditions which must hold true so that a link is generated between two entities.
  */
-case class LinkageRule(operator: Option[SimilarityOperator] = None) {
+case class LinkageRule(operator: Option[SimilarityOperator] = None,
+                       filter: LinkFilter = LinkFilter(),
+                       linkType: Uri = Uri.fromURI("http://www.w3.org/2002/07/owl#sameAs")) {
   /**
    * Computes the similarity between two entities.
    *
@@ -61,7 +63,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None) {
   }
 
   /**
-   * Serializes this Link Condition as XML.
+   * Serializes this linkage rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
     <LinkageRule>
@@ -79,14 +81,14 @@ object LinkageRule {
    */
   def apply(operator: SimilarityOperator): LinkageRule = LinkageRule(Some(operator))
 
-  def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
+  def load(filter: LinkFilter, linkType: Uri, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
+    new ValidatingXMLReader(node => fromXML(node, filter, linkType, resourceLoader)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
   }
 
   /**
    * Reads a linkage rule from xml.
    */
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
+  def fromXML(node: Node, filter: LinkFilter, linkType: Uri, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
     LinkageRule(SimilarityOperator.fromXML(node.child, resourceLoader).headOption)
   }
 }

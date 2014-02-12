@@ -39,13 +39,26 @@ object LinkingTaskApi extends Controller {
 
     request.body.asXml match {
       case Some(xml) =>
-        val rule = LinkageRule.fromXML(xml.head, project.resourceManager)
-
-        //Update linking task
-        val updatedTask = task.updateLinkSpec(task.linkSpec.copy(rule = rule), project)
-        project.linkingModule.update(updatedTask)
-
-        Ok
+        try {
+          //Collect warnings while parsing linkage rule
+          val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
+            //Load linkage rule
+            val updatedRule = LinkageRule.load(task.linkSpec.rule.filter, task.linkSpec.rule.linkType, project.resourceManager)(prefixes)(xml.head)
+            //Update linking task
+            val updatedLinkSpec = task.linkSpec.copy(rule = updatedRule)
+            val updatedTask = task.updateLinkSpec(updatedLinkSpec, project)
+            project.linkingModule.update(updatedTask)
+          }
+          // Return warnings
+          Ok(statusJson(warnings = warnings.map(_.getMessage)))
+        } catch {
+          case ex: ValidationException =>
+            log.log(Level.INFO, "Invalid linkage rule")
+            BadRequest(statusJson(errors = ex.errors))
+          case ex: Exception =>
+            log.log(Level.INFO, "Failed to save linkage rule", ex)
+            InternalServerError(statusJson(errors = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+        }
       case None =>
         BadRequest("Expecting text/xml request body")
     }
@@ -68,7 +81,7 @@ object LinkingTaskApi extends Controller {
     request.body.asXml match {
       case Some(xml) => {
         try {
-          //Collect warnings while saving link spec
+          //Collect warnings while parsing link spec
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
             //Load link specification
             val newLinkSpec = LinkSpecification.load(project.resourceManager)(prefixes)(xml.head)

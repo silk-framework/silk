@@ -6,9 +6,10 @@ import java.util.logging.Level
 import xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 
 /**
- * Base trait of a cache.
+ * Base class of a cache.
  *
  * @tparam TaskType The task type for which values are cached.
  * @tparam T The type of the values that are cached.
@@ -87,6 +88,7 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
         //TODO  Make project modules (e.g. the linking module) register a callback
         if(!isInterrupted) {
           task match {
+            case transformTask: TransformTask => project.transformModule.update(transformTask)
             case linkingTask: LinkingTask => project.linkingModule.update(linkingTask)
             case sourceTask: SourceTask => project.sourceModule.update(sourceTask)
           }

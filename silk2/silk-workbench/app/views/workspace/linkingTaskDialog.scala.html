@@ -21,7 +21,7 @@
       <td>
         <select name="source" title="Source dataset">
           @for(source <- sources) {
-            @if(datasets.isDefined && source.name == datasets.get.source.sourceId.toString) {
+            @if(datasets.isDefined && source.name == datasets.get.source.sourceId) {
               <option value="@source.name" selected="selected">@source.name</option>
             } else {
               <option value="@source.name">@source.name</option>
@@ -59,11 +59,6 @@
                value="@datasets.map(_.target.restriction).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
       </td>
-    </tr>
-    <tr>
-      <td>Link type</td>
-      <td><input name="linktype" title="Type of the generated link" size="50"
-                 value="@linkingTask.map(_.linkSpec.linkType.toString).getOrElse("http://www.w3.org/2002/07/owl#sameAs")"/></td>
     </tr>
     <tr>
       <td></td>
@@ -108,8 +103,7 @@
       source: $("select[name='source']").val(),
       sourcerestriction: $("input[name='sourcerestriction']").val(),
       target: $("select[name='target']").val(),
-      targetrestriction: $("input[name='targetrestriction']").val(),
-      linktype: $("input[name='linktype']").val()
+      targetrestriction: $("input[name='targetrestriction']").val()
     };
 
     if(values.name.length === 0) {

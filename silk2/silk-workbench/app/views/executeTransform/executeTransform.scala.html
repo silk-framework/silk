@@ -1,0 +1,25 @@
+@(project: String, task: String)
+
+@header = {
+}
+
+@toolbar = {
+  <ul>
+    <li>
+      <button onclick="showDialog('executeDialog')" >Start</button>
+    </li>
+    <li>
+      @widgets.taskStatus("execute/statusStream")
+    </li>
+    <li>
+    </li>
+  </ul>
+}
+
+@content = {
+  <script type="application/javascript">
+
+  </script>
+}
+
+@main(Some(project), Some(task), "executeTransform")(header)(toolbar)(content)
