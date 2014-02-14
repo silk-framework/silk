@@ -91,34 +91,34 @@ object SpatialExtensionsUtils {
         if (trimmedLiteral.length() != 0) {
           val index = trimmedLiteral.lastIndexOf(Constants.STRDF_SRID_DELIM)
           if (index > 0) {
-            // strdf:WKT with SRID (assumes EPSG URI for SRID)
+            //strdf:WKT with SRID (assumes EPSG URI for SRID).
             geometryString = trimmedLiteral.substring(0, index)
             srid = augmentString(trimmedLiteral.substring((trimmedLiteral.lastIndexOf('/') + 1))).toInt
           } else {
             if (trimmedLiteral.startsWith("<http://")) {
-              // starts with a URI => geo:wktLiteral (assumes EPSG URI for SRID)
+              //Starts with a URI => geo:wktLiteral (assumes EPSG URI for SRID).
               val index = trimmedLiteral.indexOf('>')
               val URI = trimmedLiteral.substring(0, index)
               geometryString = trimmedLiteral.substring(index + 1).trim
               srid = augmentString(URI.substring(URI.lastIndexOf('/') + 1)).toInt
             } else if (trimmedLiteral.startsWith("<") && trimmedLiteral.contains("gml")) {
-              // gml literal
+              //GML literal.
               geometryString = trimmedLiteral
               srid = -1
             } else {
-              // cannot guess the datatype, only plain literal was given
+              //Cannot guess the datatype, only plain literal was given.
               geometryString = trimmedLiteral
               srid = Constants.DEFAULT_SRID
             }
           }
         } else {
-          // empty geometry
+          //Empty geometry.
           geometryString = Constants.EMPTY_GEOM
           srid = Constants.DEFAULT_SRID
         }
       } catch {
         case e: Exception =>
-          // in case of parse exception the literal is returned as it is
+          //In case of parse exception the literal is returned as it is.
           geometryString = trimmedLiteral
           srid = Constants.DEFAULT_SRID
       }

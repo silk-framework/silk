@@ -86,7 +86,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTrans
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
-import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.CRSTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.GeometryTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.SpatialDistanceMetric
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.
@@ -151,7 +151,7 @@ object Plugins {
     Transformer.register(classOf[SoundexTransformer])
     Transformer.register(classOf[NysiisTransformer])
     Transformer.register(classOf[MetaphoneTransformer])
-    Transformer.register(classOf[CRSTransformer])
+    Transformer.register(classOf[GeometryTransformer])
 
     
     DistanceMeasure.register(classOf[LevenshteinMetric])
