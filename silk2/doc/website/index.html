@@ -1,5 +1,5 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3c.org/TR/1999/REC-html401-19991224/loose.dtd">
-<HTML lang=en xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE HTML>
+<html lang=en>
 <HEAD>
     <TITLE>Silk - A Link Discovery Framework for the Web of Data</TITLE>
     <link rel="stylesheet" type="text/css" href="style.css" />
@@ -7,16 +7,15 @@
     <base target="_top" />
 </HEAD>
 <BODY>
-<?php $wbsg_project = "Silk"; include_once('C:\!htdocs\navbar.inc.php'); ?>
-<DIV id=logo><A href="http://www.fu-berlin.de/"><IMG src="images/fu-logo.gif" alt="Freie Universit&auml;t Berlin Logo" width="225" height="63"></A> </DIV>
+<DIV id=logo><A href="http://dws.informatik.uni-mannheim.de/"><IMG src="images/logo_uni_en.gif" alt="Universit&auml;t Mannheim Logo"></A> </DIV>
 <DIV id=header>
 <H1 style="FONT-SIZE: 250%">Silk - A Link Discovery Framework for the Web of Data</H1>
 <DIV id=tagline></DIV>
 </DIV>
 <DIV id=authors>
-  <p><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (Freie Universit&auml;t Berlin) <BR>
-      <A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/JentzschAnja.html">Anja Jentzsch</A> (Freie Universit&auml;t Berlin)<BR>
-     <A href="http://www.bizer.de/">Chris Bizer</A> (Freie Universit&auml;t Berlin)<br>
+  <p><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (University of Mannheim) <BR>
+      <A href="http://www.hpi.uni-potsdam.de/naumann/people/anja_jentzsch.html">Anja Jentzsch</A> (Hasso Plattner Institut)<BR>
+     <A href="http://www.bizer.de/">Christian Bizer</A> (University of Mannheim)<br>
      <A href="mailto:julius.volz@gmail.com">Julius Volz</A> (Google)  </p>
 </DIV>
 <DIV id=content>
@@ -25,62 +24,57 @@
 
 <div id="boxcontainer">
 	<div id="downloadbox" class="box">
-	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.5.3.zip"><span>Download Silk<br/><small>v2.5.3, released 2012-03-06</small></span></a>
+	<a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/silk_2.6.0.zip"><span>Download Silk<br/><small>v2.6.0, released 2014-02-24</small></span></a>
 	</div>
 </div>
 <H2 id=news>News</H2>
 <ul>
+  <li><strong>2014-02-24:</strong> Version 2.6 released.</li>
+  <li><strong>2013-03-20:</strong> New article about Silk's active learning features: Robert Isele, Christian Bizer: <a href="http://dws.informatik.uni-mannheim.de/fileadmin/lehrstuehle/ki/pub/IseleBizer-ActiveLearningOfExpressiveLinkageRules-JWS2013.pdf">Active Learning of Expressive Linkage Rules using Genetic Programming</a>. To appear in the Journal of Web Semantics, 2013.</li>
+  <li><strong>2012-08-20:</strong> New article about Silk's linkage rule learning features: Robert Isele, Christian Bizer: <a href="http://vldb.org/pvldb/vol5/p1638_robertisele_vldb2012.pdf">Learning Expressive Linkage Rules using Genetic Programming</a>. Proceedings of the VLDB Endowment (PVLDB), Vol. 5, No. 11, pp. 1638-1649, August 2012.</li>
   <li><strong>2012-03-06:</strong> Version 2.5.3 released including various improvements and bugfixes.</li>
   <li><strong>2012-02-21:</strong> Webinar about Silk Workbench. The <a href="http://www.youtube.com/watch?v=CPl5eeyW-Xk">screencast</a> and the <a href="http://www.slideshare.net/lod2project/slides-11702787" >slides</a> are available online.</li>
   <li><strong>2011-11-17:</strong> Version 2.5.2 released adding active learning of linkage rules.</li>
-  <li><strong>2011-10-24:</strong> Presentation: Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleBizer-Silk-Learning-OM2011.pdf">Learning Linkage Rules using Genetic Programming</a>. 6th International Workshop on Ontology Matching. Bonn, Germany, October 2011.</li>
+  <li><strong>2011-10-24:</strong> Presentation: Robert Isele, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleBizer-Silk-Learning-OM2011.pdf">Learning Linkage Rules using Genetic Programming</a>. 6th International Workshop on Ontology Matching. Bonn, Germany, October 2011.</li>
   <li><strong>2011-10-21:</strong> Version 2.5.1 released including various improvements to the Workbench.</li>
   <li><strong>2011-10-03:</strong> Version 2.5 released adding support for learning linkage rules.</li>
   <li><strong>2011-07-22:</strong> Version 2.4.2 released adding SPARQL/Update output, improved indexing and many improvements to the Silk Workbench.</li>
   <li><strong>2011-07-01:</strong> Version 2.4.1 released with an improved Silk Workbench, various new distance measures and per-comparison thresholds.</li>
-  <li><strong>2011-06-12:</strong> Presentation: Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf">Efficient Multidimensional Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
+  <li><strong>2011-06-12:</strong> Presentation: Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleJentzschBizer-WebDB2011.pdf">Efficient Multidimensional Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
   <li><strong>2011-06-01:</strong> Version 2.4 released including the new Silk Workbench, a web application which guides the user through the process of interlinking different data sources.</li>
   <li><strong>2011-01-31:</strong> Version 2.3 released with improved performance employing parallel data loading and a new blocking method.</li>
   <li><strong>2010-12-20:</strong> Version 2.3 beta released offering an increased performance by using a new blocking method.</li>
-  <li><strong>2010-10-08:</strong> Presentation: Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
+  <li><strong>2010-10-08:</strong> Presentation: Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
   <li><strong>2010-10-06:</strong> Version 2.2 released. This release includes Silk MapReduce which is based on Hadoop and enables Silk to scale out to very large datasets by distributing the link generation to multiple machines.</li>
   <li><strong>2010-09-15:</strong> Version 2.1 released. The main addition is Silk Server which provides a REST interface that handles an incoming data stream of newly discovered entities, while keeping track of known entities. It generates links between the incoming entities based on a set of given Silk Link Specifications.</li>
   <li><strong>2010-07-02:</strong> Version 2.0 released. Reimplementation of the Silk framework in Scala providing improved scalability, optional blocking features and support of the OAEI Alignment format as additional output format. </li>
-  <li><strong>2009-10-27:</strong> Presentation about Silk at ISWC 2009: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a> (<a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk-Talk.pdf">Slides</a>).</li>
+  <li><strong>2009-10-27:</strong> Presentation about Silk at ISWC 2009: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a> (<a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/VolzBizerGaedkeKobilarov-ISWC2009-Silk-Talk.pdf">Slides</a>).</li>
   <li><strong>2009-03-02:</strong> Version 0.2 released. Adding prematching of data items.</li>
   <li><strong>2009-02-01:</strong> Version 0.1 released. Initial release in Python.</li>
 </ul>
 <H2 id=contents>Contents</H2>
 <OL class=toc>
   <LI><A href="#about">About Silk</A></LI>
-  <LI><A href="#manual">Silk Workbench</A></LI>
-  <LI><A href="#manual">User Manual</A></LI>
-  <LI><A href="#history">Version History</A></LI>
-  <LI><A href="#examples">Usage Examples</A></LI>
-  <LI><A href="#support">Support and Feedback</A></LI>
+  <LI><A href="#workbench">Silk Workbench</A></LI>
+  <LI><A href="#commandline">Silk Command Line</A></LI>
+  <LI><A href="#support">Support</A></LI>
   <LI><A href="#download">Download</A></LI>
-  <LI><A href="#acknowledgments">Acknowledgments</A></LI> 
+  <LI><A href="#history">Version History</A></LI>
+  <LI><A href="#acknowledgments">Acknowledgments</A></LI>
   <LI><A href="#references">References</A></LI>
 </OL>
-<H2 id=about><a name="about"></a>About Silk</H2>
+<H2><a name="about"></a>About Silk</H2>
 <P>The Web of Data is built upon two simple ideas: First, to employ the RDF
 data model to publish structured data on the Web. Second, to set explicit <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/#links">RDF links</a>
 between data items within different data sources. Background information about the Web of Data is found at the wiki pages of the <a href="http://esw.w3.org/topic/SweoIG/TaskForces/CommunityProjects/LinkingOpenData">W3C Linking Open Data community effort</a>,
     in the overview article <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>
-and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>. 
+and in the tutorial on <a href="http://www4.wiwiss.fu-berlin.de/bizer/pub/LinkedDataTutorial/">How to publish Linked Data on the Web</a>.
 </P>
 <p>The <em>Silk Link Discovery Framework</em> supports data publishers in accomplishing the
-second task. Using the declarative <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/"><em>Silk - Link Specification Language</em></a> (Silk-LSL), developers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must
+second task. Using the declarative <em>Silk - Link Specification Language</em> (Silk-LSL), developers can specify which types of RDF links should be discovered between data sources as well as which conditions data items must
 fulfill in order to be interlinked. These link conditions may combine various similarity
 metrics and can take the graph around a data item into account, which is addressed
 using an RDF path language. Silk accesses the data sources that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints. </p>
-
-<p>Silk is provided in three different variants which address different use cases:
-<ul>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk Single Machine</em> provides multithreading and caching. In addition, the performance is further enhanced using the <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf">MultiBlock</a> blocking algorithm.</li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk MapReduce</em></a> is used to generate RDF links between data sets using a cluster of multiple machines. <em>Silk MapReduce</em> is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. <em>Silk MapReduce</em> enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk Server</em></a> can be used as an identity resolution component within applications that consume Linked Data from the Web. <em>Silk Server</em> provides an HTTP API for matching entities from an incoming stream of RDF data while keeping track of known entities. It can be used for instance together with a Linked Data crawler to populate a local duplicate-free cache with data from the Web.</li>
-</ul></p>
 
 <p>All variants are based on the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/"><em>Silk Link Discovery Engine</em></a> which offers the following features:</p>
 <ul>
@@ -100,7 +94,8 @@ using an RDF path language. Silk accesses the data sources that should be interl
 <H2><a name="workbench"></a>Silk Workbench</H2>
 <p>
   <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/workbench/"><em>Silk Workbench</em></a> is a web application which guides the user through the process of interlinking different data sources.
-</p> 
+</p>
+<img src="images/screenshot.png"/>
 <p>
   Silk Workbench offers the following features:
   <ul>
@@ -109,18 +104,29 @@ using an RDF path language. Silk accesses the data sources that should be interl
     <li>As finding a good linking heuristics is usually an iterative process, the Silk Workbench makes it possible for the user to quickly evaluate the links which are generated by the current link specification.</li>
     <li>It allows the user to create and edit a set of reference links used to evaluate the current link specification.</li>
   </ul>
+
+<h2><a name="commandline"></a>Silk Command Line</h2>
+
+<p>In addition to the Workbench, Silk provides three different command line applications for executing link specifications:
+<ul>
+    <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a> is used to generate RDF links on a single machine. The datasets that should be interlinked can either reside on the same machine or on remote machines which are accessed via the SPARQL protocol. <em>Silk Single Machine</em> provides multithreading and caching. In addition, the performance is further enhanced using the <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleJentzschBizer-WebDB2011.pdf">MultiBlock</a> blocking algorithm.</li>
+    <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk MapReduce</em></a> is used to generate RDF links between data sets using a cluster of multiple machines. <em>Silk MapReduce</em> is based on Hadoop and can for instance be run on Amazon Elastic MapReduce. <em>Silk MapReduce</em> enables Silk to scale out to very big datasets by distributing the link generation to multiple machines.</li>
+    <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk Server</em></a> can be used as an identity resolution component within applications that consume Linked Data from the Web. <em>Silk Server</em> provides an HTTP API for matching entities from an incoming stream of RDF data while keeping track of known entities. It can be used for instance together with a Linked Data crawler to populate a local duplicate-free cache with data from the Web.</li>
+</ul>
+
+<H2><a name="support"></a>Support</H2>
+
+<p>Documentation on the <em>Silk Link Discovery Framework</em> is available in the <a href="https://www.assembla.com/spaces/silk/wiki">Wiki</a>.</p>
+
+<p>
+    For questions and feedback please use the <a href="http://groups.google.com/group/silk-discussion">Silk Google Group</a>.
 </p>
 
-<H2><a name="manual"></a>User Manual</H2>
-<p>Documentation on a specific application included in the <em>Silk Link Discovery Framework</em> can be found in the corresponding user manual:
-<ul>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/singlemachine/"><em>Silk Single Machine</em></a></li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/mapreduce/"><em>Silk MapReduce</em></a></li> 
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/server/"><em>Silk Server</em></a></li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/workbench/"><em>Silk Workbench</em></a></li> 
-</ul></p>
-<p>To learn how to use the <em>Silk - Link Specification Language</em>, which is used in all applications to specifiy the linkage rules, please read the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/">Specification</a>.</p>
-<p>For an overview of the underlying architecture see the documentation of the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/"><em>Silk Link Discovery Engine</em></a></p>
+<H2 id=development><a name="download"></a>Download </H2>
+<p>All stable releases can be <a href="http://silk.wbsg.de/releases/">downloaded</a>.<br />
+    The framework can be used under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License</a>. </P>
+<P>The latest source code is available from the project's <A href="http://www.assembla.com/code/silk/git/nodes">Git repository</A> and can be browsed online.</P>
+
 
 <H2 id=history>Version History</H2>
 
@@ -131,7 +137,16 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <th>Comment</th>
         <th>Release Date</th>
       </tr>
-      <tr id="grey">
+      <tr>
+        <td>2.6.0</td>
+        <td>New Version of the Workbench<br/>
+        REST API<br/>
+        Plugin System<br/>
+        Silk Free Text Preprocessor
+        </td>
+        <td>2014-02-24</td>
+      </tr>
+      <tr class="grey">
         <td>2.5.3</td>
         <td>Various improvements and bugfixes.</td>
         <td>2012-03-06</td>
@@ -141,7 +156,7 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <td>Adding active learning of linkage rules.</td>
         <td>2011-11-17</td>
       </tr>
-      <tr id="grey">
+      <tr class="grey">
         <td>2.5.1</td>
         <td>Various improvements to the Workbench.</td>
         <td>2011-10-21</td>
@@ -151,7 +166,7 @@ using an RDF path language. Silk accesses the data sources that should be interl
         <td>Added support for learning linkage rules.</td>
         <td>2011-10-03</td>
       </tr>
-      <tr id="grey">
+      <tr class="grey">
         <td>2.4.2</td>
         <td>SPARQL/Update output<br/>
 Dump file input<br/>
@@ -166,7 +181,7 @@ New data transformations and distance measures including token-based distance me
 Improved Silk Workbench.<br/></td>
         <td>2011-07-01</td>
       </tr>
-	  <tr id="grey"> 
+	  <tr class="grey">
         <td>2.4</td>
         <td>Added the new Silk Workbench, a web application which guides the user through the process of interlinking different data sources.<br/></td>
         <td>2011-06-01</td>
@@ -179,7 +194,7 @@ Improved Silk Workbench.<br/></td>
         </td>
         <td>2011-01-31</td>
       </tr>
-      <tr id="grey">
+      <tr class="grey">
         <td>2.2</td>
         <td>Added Silk MapReduce
         </td>
@@ -193,7 +208,7 @@ Improved Silk Workbench.<br/></td>
         </td>
         <td>2010-09-15</td>
       </tr>
-      <tr id="grey">
+      <tr class="grey">
         <td>2.0</td>
         <td>Reimplementation of the Silk framework in Scala.<br/>
             Improved scalability and performance.<br/>
@@ -210,7 +225,7 @@ Improved Silk Workbench.<br/></td>
           The <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/spec/20090202/">Silk 0.2 language specification</a> is still available and <a href="http://code.google.com/p/silk/">Silk 0.2 framework</a> can be downloaded from GoogleCode.</td>
         <td>2009-03-02</td>
       </tr>
-      <tr id="grey">
+      <tr class="grey">
         <td>0.1</td>
         <td>Initial Release of the Python version of the Silk framework (Julius and Chris) </td>
         <td>2009-02-01</td>
@@ -219,38 +234,24 @@ Improved Silk Workbench.<br/></td>
     </table>
     </p>
 
-<H2><a name="examples"></a>Usage Examples</H2>
-<ul>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/sider_drugbank_drugs.xml">Interlinking Drugs in Sider and Drugbank</a></li>
-  <li><a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/linkspecs/dbpedia_linkedgeodata_cities.xml">Interlinking cities in DBpedia and LinkedGeoData</a></li>
-</ul>
-
-<H2><a name="support"></a>Support and feedback</H2>
-
-<p>
-For questions and feedback please use the <a href="http://groups.google.com/group/silk-discussion">Silk Google Group</a>.
-</p>
-
-<H2 id=development><a name="download"></a>Download </H2>
-<p>All stable releases can be <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/releases/">downloaded</a>.<br />
-The framework can be used under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License</a>. </P>
-<P>The latest source code is available from the project's <A href="http://www.assembla.com/code/silk/git/nodes">Git repository</A> and can be browsed online.</P>
-
-<H2 id=acknowledgments><a name="acknowledgments"></a>Acknowledgments</H2>
+<H2><a name="acknowledgments"></a>Acknowledgments</H2>
 <p>This work was supported in part by Vulcan Inc. as part of its <a href="http://www.projecthalo.com">Project Halo</a> and by the EU FP7 project <a href="http://lod2.eu/">LOD2 - Creating Knowledge out of Interlinked Data</a> (Grant No. 257943).</p>
 
 <H2><a name="references"></a>References</H2>
 <p>
 <ul>
-    <li>Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleBizer-Silk-Learning-OM2011.pdf">Learning Linkage Rules using Genetic Programming</a>. 6th International Workshop on Ontology Matching. Bonn, Germany, October 2011.</li>
-    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-WebDB2011.pdf">Efficient Multidimensional Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
-    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
-    <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
-    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/research/publications/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
+    <li>Robert Isele: <a href="https://ub-madoc.bib.uni-mannheim.de/33418/">Learning Expressive Linkage Rules for Entity Matching using Genetic Programming</a>. Dissertation, 2013.</li>
+    <li>Robert Isele, Christian Bizer: <a href="http://dws.informatik.uni-mannheim.de/fileadmin/lehrstuehle/ki/pub/IseleBizer-ActiveLearningOfExpressiveLinkageRules-JWS2013.pdf" target="_blank" class="download-new-window">Active Learning of Expressive Linkage Rules using Genetic Programming</a>. Journal of Web Semantics, Vol. 23, pp. 2-15, <a href="http://dx.doi.org/10.1016/j.websem.2013.06.001" target="_blank" class="external-link-new-window">DOI 10.1016/j.websem.2013.06.001</a>, 2013.</li>
+    <li>Robert Isele, Christian Bizer: <a href="http://vldb.org/pvldb/vol5/p1638_robertisele_vldb2012.pdf">Learning Expressive Linkage Rules using Genetic Programming</a>. Proceedings of the VLDB Endowment (PVLDB), Vol. 5, No. 11, pp. 1638-1649, August 2012.</li>
+    <li>Robert Isele, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleBizer-Silk-Learning-OM2011.pdf">Learning Linkage Rules using Genetic Programming</a>. 6th International Workshop on Ontology Matching. Bonn, Germany, October 2011.</li>
+    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleJentzschBizer-WebDB2011.pdf">Efficient Multidimensional Blocking for Link Discovery without losing Recall</a>. 14th International Workshop on the Web and Databases (WebDB 2011), Athens, June 2011.</li>
+    <li>Robert Isele, Anja Jentzsch, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/IseleJentzschBizer-Silk-Cold2010.pdf"> Silk Server - Adding missing Links while consuming Linked Data</a>. 1st International Workshop on Consuming Linked Data (COLD 2010), Shanghai, November 2010.</li>
+    <li>Anja Jentzsch, Robert Isele, Christian Bizer: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/JentzschIseleBizer-Silk-Poster-ISWC2010.pdf">Silk - Generating RDF Links while publishing or consuming Linked Data</a>. Poster at the International Semantic Web Conference (ISWC2010), Shanghai, November 2010.</li>
+    <li>Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://wifo5-03.informatik.uni-mannheim.de/bizer/pub/VolzBizerGaedkeKobilarov-ISWC2009-Silk.pdf">Discovering and Maintaining Links on the Web of Data</a>. International Semantic Web Conference (ISWC2009), Westfields, USA, October 2009.</li>
     <li> Julius Volz, Christian Bizer, Martin Gaedke, Georgi Kobilarov: <a href="http://events.linkeddata.org/ldow2009/papers/ldow2009_paper13.pdf">Silk – A Link Discovery Framework for the Web of Data </a>. 2nd Workshop about Linked Data on the Web (LDOW2009), Madrid, Spain, April 2009. </li>
     <li>Christian Bizer, Tom Heath, Tim Berners-Lee: <a href="http://tomheath.com/papers/bizer-heath-berners-lee-ijswis-linked-data.pdf">Linked Data - The Story So Far</a>. In: International Journal on Semantic Web & Information Systems, Vol. 5, Issue 3, Pages 1-22, 2009.</li>
 </ul>
 </p>
 
-<DIV id=footer><SMALL>Last change: 2011-06-01</SMALL>
+<DIV id=footer><SMALL>Last change: 2014-02-24</SMALL>
 </DIV></DIV></BODY></HTML>

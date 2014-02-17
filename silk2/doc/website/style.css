@@ -71,7 +71,7 @@ TD, TH
     vertical-align: top;
     padding-left: 8px;
 }
-#grey
+.grey
 {
     background-color: #EDEDED;
 }
@@ -124,7 +124,7 @@ OL.toc LI A {
 #boxcontainer { width: 670px; margin-left: 0px; margin-right: auto; height: 75px;}
 .box { border: 1px solid #D3D3D3; height: 75px; text-align: center; float: left; margin-right: 20px; }
 .box:hover { background: none repeat scroll 0 0 #FCFDFF; box-shadow: 0 0 9px 1px #DFEFFF; }
-.box a:link, .box a:visited, .box a:hover, .box a:active { color: #1C5489; display: block; font-size: 110%; margin-left: 5px; min-height: 55px; padding: 9px 5px 5px 5px; text-decoration: none; }		
+.box a:link, .box a:visited, .box a:hover, .box a:active { color: #1C5489; display: block; font-size: 110%; margin-left: 5px; min-height: 55px; padding: 9px 5px 5px 5px; text-decoration: none; }
 .box a:hover, .box a:active { color: #16426B !important; cursor: pointer; text-decoration: none !important; }
 .box a span { display: block; margin-left: 40px; text-align: left; }
 .box a span small { color: #888; font-size: 70%; }
@@ -167,4 +167,5 @@ DT {
 }
 PRE {
 	speak-punctuation: code
+}
 }
