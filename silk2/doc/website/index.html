@@ -13,7 +13,7 @@
 <DIV id=tagline></DIV>
 </DIV>
 <DIV id=authors>
-  <p><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (University of Mannheim) <BR>
+  <p><A href="http://www.wiwiss.fu-berlin.de/en/institute/pwo/bizer/team/IseleRobert.html">Robert Isele</A> (brox GmbH) <BR>
       <A href="http://www.hpi.uni-potsdam.de/naumann/people/anja_jentzsch.html">Anja Jentzsch</A> (Hasso Plattner Institut)<BR>
      <A href="http://www.bizer.de/">Christian Bizer</A> (University of Mannheim)<br>
      <A href="mailto:julius.volz@gmail.com">Julius Volz</A> (Google)  </p>
@@ -29,7 +29,8 @@
 </div>
 <H2 id=news>News</H2>
 <ul>
-  <li><strong>2014-02-24:</strong> Version 2.6 released.</li>
+  <li><strong>2014-02-24:</strong>Version 2.6 released including a new version of the Workbench that offers a REST API and a Plugin System.
+                                  Also includes a first version of the Silk Free Text Preprocessor for producing a structured representation for linking from free text.</li>
   <li><strong>2013-03-20:</strong> New article about Silk's active learning features: Robert Isele, Christian Bizer: <a href="http://dws.informatik.uni-mannheim.de/fileadmin/lehrstuehle/ki/pub/IseleBizer-ActiveLearningOfExpressiveLinkageRules-JWS2013.pdf">Active Learning of Expressive Linkage Rules using Genetic Programming</a>. To appear in the Journal of Web Semantics, 2013.</li>
   <li><strong>2012-08-20:</strong> New article about Silk's linkage rule learning features: Robert Isele, Christian Bizer: <a href="http://vldb.org/pvldb/vol5/p1638_robertisele_vldb2012.pdf">Learning Expressive Linkage Rules using Genetic Programming</a>. Proceedings of the VLDB Endowment (PVLDB), Vol. 5, No. 11, pp. 1638-1649, August 2012.</li>
   <li><strong>2012-03-06:</strong> Version 2.5.3 released including various improvements and bugfixes.</li>
@@ -76,7 +77,7 @@ fulfill in order to be interlinked. These link conditions may combine various si
 metrics and can take the graph around a data item into account, which is addressed
 using an RDF path language. Silk accesses the data sources that should be interlinked via the SPARQL protocol and can thus be used against local as well as remote SPARQL endpoints. </p>
 
-<p>All variants are based on the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/"><em>Silk Link Discovery Engine</em></a> which offers the following features:</p>
+<p>Silk can be used through the Silk Workbench graphical user interface or from the command line. Both variants are based on the <a href="http://www4.wiwiss.fu-berlin.de/bizer/silk/engine/"><em>Silk Link Discovery Engine</em></a> which offers the following features:</p>
 <ul>
   <li>Flexible, declarative language for specifying linkage rules</li>
   <li>Support of RDF link generation (owl:sameAs links as well as other types)</li>
@@ -123,8 +124,9 @@ using an RDF path language. Silk accesses the data sources that should be interl
 </p>
 
 <H2 id=development><a name="download"></a>Download </H2>
-<p>All stable releases can be <a href="http://silk.wbsg.de/releases/">downloaded</a>.<br />
-    The framework can be used under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License</a>. </P>
+<p>
+  All stable releases can be <a href="http://silk.wbsg.de/releases/">downloaded</a>.
+  The framework can be used under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License</a>. </P>
 <P>The latest source code is available from the project's <A href="http://www.assembla.com/code/silk/git/nodes">Git repository</A> and can be browsed online.</P>
 
 
