@@ -30,8 +30,7 @@ import de.fuberlin.wiwiss.silk.runtime.resource.Resource
       | Parameters:
       |  file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
       |  format: Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle"
-      |  graph: The graph name to be read. If not provided, the default graph will be used.
-      |         Must be provided if the format is N-Quads.
+      |  graph: The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.
     """
 )
 case class FileDataSource(file: Resource, format: String, graph: String = "") extends DataSource {
