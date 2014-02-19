@@ -1,4 +1,11 @@
 Silk Workbench
 ----------------------------
 
-Silk Workbench is a web application which guides the user through the process of creating linkage rules for interlinking two data sources. More information about the Silk Workbench can be found on http://silk.wbsg.de.
+Silk Workbench is a web application which guides the user through the process of creating linkage rules for interlinking two data sources.
+
+More information about the Silk Workbench can be found on http://silk.wbsg.de.
+
+Running the Silk Workbench:
+----------------------------
+
+The bin-folder contains scripts for running the Silk Workbench on Windows, Linux and iOS.
