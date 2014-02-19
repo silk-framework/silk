@@ -28,8 +28,7 @@
   font-size: 12px;
 }
 
-.individual-score, .individual-mcc, .individual-f1
-{
+.individual-score, .individual-mcc, .individual-f1 {
   margin-left: 10px;
   border-right: 1px solid #DBDBDB;
   width: 90px;
