@@ -27,8 +27,10 @@
 
 @createTab(plugin: PluginDescription[_]) = {
   <div id='@plugin.id'>
-    @plugin.description
-    <br/>
+    @for(line <- plugin.description.split('\n')) {
+      @line
+      <br/>
+    }
     <table>
       <tr>
         <td>name</td>

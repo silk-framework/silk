@@ -4,7 +4,7 @@ import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.config.{Dataset, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransformTask
+import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import java.util.logging.ConsoleHandler
@@ -65,7 +65,7 @@ object ControlApi extends Controller {
 
     // Create execution task
     val executeTransformTask =
-      new ExecuteTransformTask(
+      new ExecuteTransform(
         source = project.sourceModule.task(task.dataset.sourceId).source,
         dataset= task.dataset,
         rule = task.rule,
