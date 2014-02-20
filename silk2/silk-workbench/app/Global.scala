@@ -22,7 +22,8 @@ object Global extends GlobalSettings {
     }
   
     // Configure logging
-    val fileHandler = new FileHandler(app.getFile("/logs/engine.log").getAbsolutePath)
+    val logFile = if(app.getFile("/logs/").exists) app.getFile("/logs/engine.log") else app.getFile("../logs/engine.log")
+    val fileHandler = new FileHandler(logFile.getAbsolutePath)
     fileHandler.setFormatter(new SimpleFormatter())
     java.util.logging.Logger.getLogger("").addHandler(fileHandler)
 
