@@ -3,8 +3,7 @@ package controllers.api
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.config.{Dataset, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
+import de.fuberlin.wiwiss.silk.execution.{EvaluateTransform, GenerateLinksTask, ExecuteTransform}
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import java.util.logging.ConsoleHandler
@@ -53,6 +52,27 @@ object ControlApi extends Controller {
 
     Ok
   }
+
+  def evaluateTransformTask(projectName: String, taskName: String) = Action { request =>
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+
+    // Create execution task
+    val evaluateTransformTask =
+      new EvaluateTransform(
+        source = project.sourceModule.task(task.dataset.sourceId).source,
+        dataset = task.dataset,
+        rule = task.rule,
+        outputs = Nil
+      )
+
+    // Start task in the background
+    CurrentEvaluateTransformTask() = evaluateTransformTask
+    evaluateTransformTask.runInBackground()
+
+    Ok
+  }
+
 
   def executeTransformTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
