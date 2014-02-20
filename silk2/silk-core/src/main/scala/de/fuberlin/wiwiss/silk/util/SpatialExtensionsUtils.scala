@@ -191,5 +191,25 @@ object SpatialExtensionsUtils {
      * stRDF SRID delimiter.
      */
     val STRDF_SRID_DELIM = ";"
+      
+    /**
+     * Maximum Latitude (WGS 84 (latitude-longitude))
+     */
+    val MAX_LAT = 180.0
+
+    /**
+     * Minimum Latitude (WGS 84 (latitude-longitude))
+     */
+    val MIN_LAT = -180.0    
+
+    /**
+     * Maximum Longitude (WGS 84 (latitude-longitude))
+     */
+    val MAX_LONG = 90.0    
+
+    /**
+     * Minimum Longitude (WGS 84 (latitude-longitude))
+     */
+    val MIN_LONG = -90.0    
   }
 }
