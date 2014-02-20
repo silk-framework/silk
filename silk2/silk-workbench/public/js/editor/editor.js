@@ -534,31 +534,6 @@ function updateWindowSize() {
   }
 }
 
-function rearrangeBoxes() {
-  for (var i = boxes.length - 1; i >= 0; i--) {
-    for (var j = 0; j < boxes[i].length; j++) {
-
-      var box = boxes[i][j];
-      var box_id = box.attr("id");
-      var child_conns = jsPlumb.getConnections({target: box_id});
-      var children = child_conns[jsPlumb.getDefaultScope()];
-      if (children.length == 1) {
-        var child = children[0].source;
-        child.css("top",box.css("top"));
-      }
-      if (children.length > 1) {
-        var first_child = children[0].source;
-        var last_child = children[children.length-1].source;
-        var top_first = parseInt(first_child.css("top"));
-        var bottom_last = parseInt(last_child.css("top")) + parseInt(last_child.height());
-        var middle = parseInt((top_first+bottom_last)/2);
-        box.css("top",middle-parseInt(box.height()*0.5));
-      }
-    }
-  }
-  jsPlumb.repaintEverything();
-}
-
 function undo() {
   if (instanceIndex > 0) loadInstance(instanceIndex - 1);
 }

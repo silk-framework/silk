@@ -18,6 +18,16 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, PluginFactory}
 import de.fuberlin.wiwiss.silk.entity.Index
 
 trait DistanceMeasure extends AnyPlugin {
+
+  /**
+   * Computes the distance between two sets of strings.
+   *
+   * @param values1 The first set of strings.
+   * @param values2 The second set of strings.
+   * @param limit If the expected distance between both sets exceeds this limit, this method may
+   *              return Double.PositiveInfinity instead of the actual distance in order to save computation time.
+   * @return A positive number that denotes the computed distance between both strings.
+   */
   //TODO accept set instead of traversable?
   def apply(values1: Traversable[String], values2: Traversable[String], limit: Double = Double.PositiveInfinity): Double
 
