@@ -28,8 +28,8 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
   label = "Until Character",
   description = "Give a substring until the character given"
 )
-case class UntilCharacterTransformer(untilCharacter: String) extends SimpleTransformer {
+case class UntilCharacterTransformer(untilCharacter: Char) extends SimpleTransformer {
   override def evaluate(value: String) = {
-    value.split(untilCharacter)(0)
+    value.takeWhile(_ != untilCharacter)
   }
 }

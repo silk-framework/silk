@@ -18,9 +18,26 @@ import math.min
 import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
- * A simple similarity measure which compares pairs of values.
+ * A simple similarity measure, which compares pairs of values.
  */
 abstract class SimpleDistanceMeasure extends DistanceMeasure {
+
+  /**
+   * Computes the distance between two strings.
+   *
+   * @param value1 The first string.
+   * @param value2 The second string.
+   * @param limit If the expected distance between both strings exceeds this limit, this method may
+   *              return Double.PositiveInfinity instead of the actual distance in order to save computation time.
+   * @return A positive number that denotes the computed distance between both strings.
+   */
+  def evaluate(value1: String, value2: String, limit: Double = Double.PositiveInfinity): Double
+
+  /**
+   * Computes the index of a single value.
+   */
+  def indexValue(value: String, limit: Double): Index = Index.default
+
   override final def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
     var minDistance = Double.MaxValue
 
@@ -38,14 +55,4 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
     else
       values.map(indexValue(_, limit)).reduce(_ merge _)
   }
-
-  /**
-   * Computes the similarity of a pair of values.
-   */
-  def evaluate(value1: String, value2: String, limit: Double = Double.PositiveInfinity): Double
-
-  /**
-   * Computes the index of a single value.
-   */
-  def indexValue(value: String, limit: Double): Index = Index.default
 }
