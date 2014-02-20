@@ -23,12 +23,12 @@ object Editor extends Controller {
 
     if(pathsCache.status.isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status.progress * 100}%.1f%%)"
-      ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), loadingMsg))
+      ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, loadingMsg))
     } else if(pathsCache.status.failed) {
-      Ok(views.html.editor.paths(DPair.fill(Seq.empty)))
+      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false))
     } else {
       val paths = pathsCache.value.map(_.paths.map(_.serialize(prefixes)))
-      Ok(views.html.editor.paths(paths))
+      Ok(views.html.editor.paths(paths, onlySource = false))
     }
   }
 

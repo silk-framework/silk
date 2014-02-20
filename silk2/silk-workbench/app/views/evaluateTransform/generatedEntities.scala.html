@@ -1,0 +1,53 @@
+@()
+
+@import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{Value, TransformedValue, InputValue}
+
+<div id="entity-table">
+  @renderHeader
+  @for((value, index) <- CurrentEvaluateTransformTask().cache.zipWithIndex) {
+    @renderEntity(value, index)
+  }
+</div>
+
+@renderHeader = {
+  <div class="entity">
+    <div class="entity-table-header">
+      Description
+    </div>
+  </div>
+}
+
+@renderEntity(value: Value, counter: Int) = {
+  <div class="entity">
+    <div class="@if(counter % 2==0) {entity-header grey} else {entity-header white}" onclick="$(this).next().slideToggle()" >
+      @value.values
+    </div>
+    <div class="entity-content" style="display: none">
+      <ul class="entity-details">
+        @renderValue(value)
+      </ul>
+    </div>
+  </div>
+}
+
+@renderValue(value: Value) = { @value match {
+  case TransformedValue(transform, values, children) => {
+    <li>
+      <span class="input">
+    Transform:@transform.transformer.plugin.id (@transform.id)
+        @values.map(v => <span class="source-value">{v}</span>)
+      </span>
+      <ul>
+      @children.map(v => renderValue(v))
+      </ul>
+    </li>
+  }
+  case InputValue(input, values) => {
+    <li>
+      <span class="input">
+    Input:@input.path.serialize (@input.id)
+        @values.map(v => <span class="source-value">{v}</span>)
+      </span>
+    </li>
+  }
+}}

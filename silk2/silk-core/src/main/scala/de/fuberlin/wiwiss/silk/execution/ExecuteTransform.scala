@@ -16,16 +16,7 @@ class ExecuteTransform(source: Source,
                        rule: TransformRule,
                        outputs: Traversable[Output] = Traversable.empty) extends Task[Any] {
 
-  private val log = Logger.getLogger(getClass.getName)
-
-  private val cacheSize = 100
-
-  @volatile
-  private var cachedValues = Seq[String]()
-
-  def cache = cachedValues
-
-  def execute(): Any = {
+  def execute(): Unit = {
     // Retrieve entities
     val entityDesc =
       new EntityDescription(
@@ -39,21 +30,15 @@ class ExecuteTransform(source: Source,
     for(output <- outputs) output.open()
 
     // Transform all entities and write to outputs
-    for(entity <- entities;
-        value <- rule(entity)) {
-
-      for(output <- outputs)
-        output.write(new Link(entity.uri, value), rule.targetProperty)
-
-      if(cachedValues.size < cacheSize) {
-        cachedValues = cachedValues :+ s"${entity.uri} ${rule.targetProperty} $value"
-      }
+    for { entity <- entities
+          value <- rule(entity)
+          output <- outputs }
+      output.write(new Link(entity.uri, value), rule.targetProperty)
     }
 
     // Close outputs
     for(output <- outputs) output.close()
   }
-}
 
 object ExecuteTransform {
   def empty = new ExecuteTransform(null, null, null, null)

@@ -1,0 +1,27 @@
+@(project: String, task: String)
+
+@header = {
+  <link rel="stylesheet" href="@routes.Assets.at("stylesheets/treeview/jquery.treeview.css")" type="text/css" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/evaluateTransform/generatedEntities.css")" rel="stylesheet" />
+  <script src="@routes.Assets.at("js/jquery.treeview.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("js/evaluateTransform/generatedEntities.js")" type="text/javascript"></script>
+}
+
+@toolbar = {
+  <ul>
+    <li>
+      <button onclick="showDialog('evaluateDialog')" >Start</button>
+    </li>
+    <li>
+      @widgets.taskStatus("evaluate/statusStream")
+    </li>
+    <li>
+    </li>
+  </ul>
+}
+
+@content = {
+  @generatedEntities()
+}
+
+@main(Some(project), Some(task), "evaluateTransform")(header)(toolbar)(content)
