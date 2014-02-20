@@ -13,9 +13,7 @@ import java.util.regex.Pattern
   id = "concatMultiValues",
   categories = Array("Combine"),
   label = "ConcatenateMultipleValues",
-  description = "Concatenates multiple values " +
-  "received " +
-  "for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values."
+  description = "Concatenates multiple values received for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values."
 )
 case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:Boolean = false) extends Transformer {
   override def apply(values: Seq[Set[String]]): Set[String] = {

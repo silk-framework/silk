@@ -48,6 +48,7 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def put(name: String, inputStream: InputStream) {
+    baseDir.mkdirs()
     val outputStream = new BufferedOutputStream(new FileOutputStream(baseDir + "/" + name))
 
     var b = inputStream.read()
