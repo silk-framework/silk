@@ -1,0 +1,53 @@
+.entity-table-header {
+  border-top: 1px solid #DBDBDB;
+  height: 26px;
+  line-height: 18px;
+  background: #dee8e8;
+}
+
+.entity {
+  clear: both;
+}
+
+.entity-header {
+  border-top: 1px solid #DBDBDB;
+  height: 26px;
+  line-height: 18px;
+}
+
+.entity-header:hover {
+  background: #cfebe9 !important;
+  cursor: pointer;
+}
+
+.entity-header div {
+  float: left;
+}
+
+.white {
+  background: #e3ebe6;
+}
+
+.grey {
+  background: #ecf4ef;
+}
+
+.entity-content {
+  background: #ffffff;
+}
+
+.plus {
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('../treeview/images/plus.gif');
+}
+
+.minus {
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('../treeview/images/minus.gif');
+}

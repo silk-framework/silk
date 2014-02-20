@@ -666,7 +666,7 @@ function getPropertyPaths() {
 }
 
 function reloadPropertyPaths() {
-  getPropertyPaths(true);
+  getPropertyPaths();
   var answer = confirm("Reloading the cache may take a long time. Do you want to proceed?");
   if (answer) {
     reloadCache();

@@ -28,6 +28,11 @@ GET           /:project/transform/:task/editor                                  
 GET           /:project/transform/:task/editor/paths                                                controllers.tabs.TransformEditor.paths(project: String, task: String)
 GET           /:project/transform/:task/editor/score                                                controllers.tabs.TransformEditor.score(project: String, task: String)
 
+# Evaluate Transformation
+GET           /:project/transform/:task/evaluate                                                    controllers.tabs.EvaluateTransform.evaluate(project: String, task: String)
+GET           /:project/transform/:task/evaluateDialog                                              controllers.tabs.EvaluateTransform.evaluateDialog(project: String, task: String)
+GET           /:project/transform/:task/evaluate/statusStream                                       controllers.tabs.EvaluateTransform.statusStream(project: String, task: String)
+
 # Execute Transformation
 GET           /:project/transform/:task/execute                                                     controllers.tabs.ExecuteTransform.execute(project: String, task: String)
 GET           /:project/transform/:task/executeDialog                                               controllers.tabs.ExecuteTransform.executeDialog(project: String, task: String)
@@ -135,6 +140,7 @@ PUT           /api/tasks/:project/:task/generateLinks                           
 PUT           /api/tasks/:project/:task/writeReferenceLinks                                         controllers.api.ControlApi.writeReferenceLinks(project: String, task: String)
 PUT           /api/tasks/:project/:task/learningTask                                                controllers.api.ControlApi.learningTask(project: String, task: String)
 PUT           /api/tasks/:project/:task/activeLearningTask                                          controllers.api.ControlApi.activeLearningTask(project: String, task: String)
+PUT           /api/tasks/:project/:task/evaluateTransform                                           controllers.api.ControlApi.evaluateTransformTask(project: String, task: String)
 PUT           /api/tasks/:project/:task/executeTransform                                            controllers.api.ControlApi.executeTransformTask(project: String, task: String)
 
 ############################################################################################################################################

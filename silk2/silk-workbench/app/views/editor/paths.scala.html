@@ -1,4 +1,4 @@
-@(paths: de.fuberlin.wiwiss.silk.util.DPair[Seq[String]], loadingMsg: String = "")
+@(paths: de.fuberlin.wiwiss.silk.util.DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "")
 
 <script type="text/javascript">
   // Initialization
@@ -16,7 +16,9 @@
 </script>
 
 @pathOperators(paths.source, "Source")
-@pathOperators(paths.target, "Target")
+@if(!onlySource) {
+  @pathOperators(paths.target, "Target")
+}
 
 @pathOperators(paths: Seq[String], pathType: String) = {
   <div style="padding-top: 4px">

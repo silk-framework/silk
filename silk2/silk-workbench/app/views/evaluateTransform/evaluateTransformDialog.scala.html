@@ -1,0 +1,30 @@
+@(project: String, task: String, outputs: Seq[String])
+
+@widgets.dialog(title = "Execute Transformation", width = 500) {
+<table border="0">
+  <tr>
+    <td></td>
+    <td align="right"><br/><button onclick='execute()'>Execute</button></td>
+  </tr>
+</table>
+
+  <script type="application/javascript">
+    function execute() {
+      var values = {
+
+      };
+
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/api/tasks/@project/@task/evaluateTransform',
+        data: values,
+        success: function(response) {
+          $('.dialog').dialog('close');
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  </script>
+}

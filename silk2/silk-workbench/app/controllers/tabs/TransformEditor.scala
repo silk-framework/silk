@@ -21,12 +21,12 @@ object TransformEditor extends Controller {
 
     if(pathsCache.status.isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status.progress * 100}%.1f%%)"
-      ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), loadingMsg))
+      ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, loadingMsg))
     } else if(pathsCache.status.failed) {
-      Ok(views.html.editor.paths(DPair.fill(Seq.empty)))
+      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true))
     } else {
       val paths = DPair(pathsCache.value.paths.map(_.serialize(prefixes)), Seq.empty)
-      Ok(views.html.editor.paths(paths))
+      Ok(views.html.editor.paths(paths, onlySource = true))
     }
   }
 

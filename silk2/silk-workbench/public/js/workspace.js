@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-enableTransformTasks = false;
+enableTransformTasks = true;
 enableVoidSourceButton = false;
 
 var ws = {};
