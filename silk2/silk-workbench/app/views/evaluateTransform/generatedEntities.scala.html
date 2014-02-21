@@ -2,11 +2,27 @@
 
 @import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{Value, TransformedValue, InputValue}
 
-<div id="entity-table">
-  @renderHeader
-  @for((value, index) <- CurrentEvaluateTransformTask().cache.zipWithIndex) {
-    @renderEntity(value, index)
-  }
+<div class="wrapper">
+  <div id="tree-header">
+    <div class="left">
+      <div class="toggle-all" onclick="expand_all()">
+        <div class="plus" ></div>
+        Expand All
+      </div>
+      <div class="toggle-all" onclick="hide_all()">
+        <div class="minus" ></div>
+        Collapse All
+      </div>
+    </div>
+  </div>
+
+  <div id="entity-table">
+    @renderHeader
+    @for((value, index) <- CurrentEvaluateTransformTask().cache.zipWithIndex) {
+      @renderEntity(value, index)
+    }
+  </div>
+
 </div>
 
 @renderHeader = {
@@ -22,8 +38,8 @@
     <div class="@if(counter % 2==0) {entity-header grey} else {entity-header white}" onclick="$(this).next().slideToggle()" >
       @value.values
     </div>
-    <div class="entity-content" style="display: none">
-      <ul class="entity-details">
+    <div class="entity-details" style="display: none">
+      <ul class="entity-tree">
         @renderValue(value)
       </ul>
     </div>
@@ -35,7 +51,7 @@
     <li>
       <span class="input">
     Transform:@transform.transformer.plugin.id (@transform.id)
-        @values.map(v => <span class="source-value">{v}</span>)
+        @values.map(v => <span class="transformed-value">{v}</span>)
       </span>
       <ul>
       @children.map(v => renderValue(v))
@@ -46,7 +62,7 @@
     <li>
       <span class="input">
     Input:@input.path.serialize (@input.id)
-        @values.map(v => <span class="source-value">{v}</span>)
+        @values.map(v => <span class="input-value">{v}</span>)
       </span>
     </li>
   }
