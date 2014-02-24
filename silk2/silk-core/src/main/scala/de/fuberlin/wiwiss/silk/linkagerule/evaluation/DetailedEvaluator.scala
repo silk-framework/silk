@@ -22,6 +22,9 @@ import de.fuberlin.wiwiss.silk.entity.Entity
 
 object DetailedEvaluator {
 
+  /**
+   * Evaluates a linkage rule.
+   */
   def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[DetailedLink] = {
     rule.operator match {
       case Some(op) =>
@@ -39,6 +42,18 @@ object DetailedEvaluator {
     }
   }
 
+  /**
+   * Evaluates a set of transform rules.
+   */
+  def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
+    val values = for(rule <- rules; op <- rule.operator) yield evaluateInput(op, DPair.fill(entity))
+    val nonEmptyRules = rules.filter(_.operator.isDefined)
+    DetailedEntity(entity.uri, values, nonEmptyRules)
+  }
+
+  /**
+   * Evaluates a single transform rule.
+   */
   def apply(rule: TransformRule, entity: Entity): Option[Value] = {
     rule.operator match {
       case Some(op) => Some(evaluateInput(op, DPair.fill(entity)))
