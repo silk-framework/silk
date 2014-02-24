@@ -27,7 +27,7 @@ object ControlApi extends Controller {
     Ok
   }
 
-  def generateLinksTask(projectName: String, taskName: String) = Action { request =>
+  def startGenerateLinksTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)
 
@@ -50,6 +50,11 @@ object ControlApi extends Controller {
     CurrentGenerateLinksTask() = generateLinksTask
     generateLinksTask.runInBackground()
 
+    Ok
+  }
+
+  def stopGenerateLinksTask(projectName: String, taskName: String) = Action {
+    CurrentGenerateLinksTask().cancel()
     Ok
   }
 

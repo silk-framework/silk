@@ -21,7 +21,8 @@
 @toolbar = {
   <ul>
     <li>
-      <button onclick="showDialog('generateLinksDialog')" >Start</button>
+      <button name="start" onclick="showDialog('generateLinksDialog')" >Start</button>
+      <button name="stop" onclick="stopTask()" disabled="disabled" >Stop</button>
     </li>
     <li>
       @widgets.taskStatus("generateLinks/statusStream")
@@ -64,6 +65,23 @@
 
     <div style="clear: both"></div>
   </div>
+
+  <script type="application/javascript">
+    function stopTask() {
+
+      $.ajax({
+        type: 'DELETE',
+        url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
+        success: function(response) {
+          $("button[name='start']").button("option", "disabled", false);
+          $("button[name='stop']").button("option", "disabled", true);
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  </script>
 }
 
 @main(Some(project), Some(task), "generateLinks")(header)(toolbar)(content)
