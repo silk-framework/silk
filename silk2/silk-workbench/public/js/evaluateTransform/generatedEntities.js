@@ -4,9 +4,9 @@ $(function() {
 });
 
 function expand_all() {
-  $(".entity-content").show();
+  $(".entity-details").show();
 }
 
 function hide_all() {
-  $(".entity-content").hide();
+  $(".entity-details").hide();
 }

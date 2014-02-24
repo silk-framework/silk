@@ -1,46 +1,60 @@
-@()
+@(entities: Seq[de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEntity])
 
-@import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{Value, TransformedValue, InputValue}
+@import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{DetailedEntity, Value, TransformedValue, InputValue}
 
-<div class="wrapper">
-  <div id="tree-header">
-    <div class="left">
-      <div class="toggle-all" onclick="expand_all()">
-        <div class="plus" ></div>
-        Expand All
-      </div>
-      <div class="toggle-all" onclick="hide_all()">
-        <div class="minus" ></div>
-        Collapse All
+@frame() {
+  <link rel="stylesheet" href="@routes.Assets.at("stylesheets/treeview/jquery.treeview.css")" type="text/css" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/evaluateTransform/generatedEntities.css")" rel="stylesheet" />
+  <script src="@routes.Assets.at("js/jquery.treeview.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("js/evaluateTransform/generatedEntities.js")" type="text/javascript"></script>
+} {
+  <div class="wrapper">
+    <div id="tree-header">
+      <div class="left">
+        <div class="toggle-all" onclick="expand_all()">
+          <div class="plus" ></div>
+          Expand All
+        </div>
+        <div class="toggle-all" onclick="hide_all()">
+          <div class="minus" ></div>
+          Collapse All
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="entity-table">
-    @renderHeader
-    @for((value, index) <- CurrentEvaluateTransformTask().cache.zipWithIndex) {
-      @renderEntity(value, index)
-    }
-  </div>
+    <div id="entity-table">
+      @renderHeader
+      @for((entity, index) <- entities.zipWithIndex) {
+        @renderEntity(entity, index)
+      }
+    </div>
 
-</div>
+  </div>
+}
 
 @renderHeader = {
   <div class="entity">
     <div class="entity-table-header">
-      Description
+      Transformed Entities
     </div>
   </div>
 }
 
-@renderEntity(value: Value, counter: Int) = {
+@renderEntity(entity: DetailedEntity, counter: Int) = {
   <div class="entity">
     <div class="@if(counter % 2==0) {entity-header grey} else {entity-header white}" onclick="$(this).next().slideToggle()" >
-      @value.values
+      @entity.uri
     </div>
     <div class="entity-details" style="display: none">
       <ul class="entity-tree">
-        @renderValue(value)
+        @for((value, rule) <- entity.values zip entity.rules) {
+          <li>
+            <span class="property">@rule.targetProperty</span>
+            <ul>
+              @renderValue(value)
+            </ul>
+          </li>
+        }
       </ul>
     </div>
   </div>

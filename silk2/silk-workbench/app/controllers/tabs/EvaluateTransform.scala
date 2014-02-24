@@ -1,43 +1,31 @@
 package controllers.tabs
 
-import controllers.util.{Stream, Widgets}
 import play.api.mvc.{Controller, Action}
-import models._
-import models.EvalLink.Correct
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.execution.EvaluateTransform
+import de.fuberlin.wiwiss.silk.execution.{EvaluateTransform => EvaluateTransformTask}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object EvaluateTransform extends Controller {
 
   def evaluate(projectName: String, taskName: String) = Action {
+    Ok(views.html.evaluateTransform.evaluateTransform(projectName, taskName))
+  }
+
+  def generatedEntities(projectName: String, taskName: String) = Action.async {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
 
     // Create execution task
-    val evaluateTransformTask =
-      new EvaluateTransform(
+    val evaluateTransform =
+      new EvaluateTransformTask(
         source = project.sourceModule.task(task.dataset.sourceId).source,
         dataset = task.dataset,
-        rule = task.rule,
-        outputs = Nil
+        rules = Seq(task.rule)
       )
 
-    // Start task in the background
-    CurrentEvaluateTransformTask() = evaluateTransformTask
-
-
-    Ok(views.html.evaluateTransform.evaluateTransform(projectName, taskName))
-  }
-
-  def evaluateDialog(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val outputs = project.outputModule.tasks.toSeq.map(_.name.toString())
-    Ok(views.html.evaluateTransform.evaluateTransformDialog(projectName, taskName, outputs))
-  }
-
-  def statusStream(project: String, task: String) = Action {
-    val stream = Stream.currentTaskStatus(CurrentEvaluateTransformTask)
-    Ok.chunked(Widgets.taskStatus(stream))
+    for(entities <- evaluateTransform.runInBackground()) yield {
+      Ok(views.html.evaluateTransform.generatedEntities(entities))
+    }
   }
 
 }
