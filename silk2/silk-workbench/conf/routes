@@ -135,7 +135,8 @@ DELETE        /api/workspace/:project/output/:output                            
 
 # Control
 PUT           /api/tasks/:project/:task/reloadCache                                                 controllers.api.ControlApi.reloadCache(project: String, task: String)
-PUT           /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.generateLinksTask(project: String, task: String)
+PUT           /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.startGenerateLinksTask(project: String, task: String)
+DELETE        /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.stopGenerateLinksTask(project: String, task: String)
 PUT           /api/tasks/:project/:task/writeReferenceLinks                                         controllers.api.ControlApi.writeReferenceLinks(project: String, task: String)
 PUT           /api/tasks/:project/:task/learningTask                                                controllers.api.ControlApi.learningTask(project: String, task: String)
 PUT           /api/tasks/:project/:task/activeLearningTask                                          controllers.api.ControlApi.activeLearningTask(project: String, task: String)
