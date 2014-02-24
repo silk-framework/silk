@@ -45,7 +45,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
 
     MatchResult(
       links = matchResult.links,
-      linkType = linkSpec.linkType,
+      linkType = linkSpec.rule.linkType,
       unmatchedEntities = matchResult.unmatchedEntities
     )
   }
@@ -86,7 +86,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
       if (!matchOnlyInProvidedGraph) caches.target.write(unmatchedEntities)
     }
 
-    MatchResult(links, linkSpec.linkType, unmatchedEntities.map(_.uri).toSet)
+    MatchResult(links, linkSpec.rule.linkType, unmatchedEntities.map(_.uri).toSet)
   }
 
   def sourceEntityCount = caches.source.entityCount
