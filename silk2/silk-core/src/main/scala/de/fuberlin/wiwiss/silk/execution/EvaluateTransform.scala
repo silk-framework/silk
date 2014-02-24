@@ -7,7 +7,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Dataset
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{TransformedValue, DetailedEvaluator, Value}
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{DetailedEntity, DetailedEvaluator, TransformedValue, Value}
 
 /**
  * Evaluates a transformation rule.
@@ -16,48 +16,39 @@ import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{TransformedValue, Detaile
  */
 class EvaluateTransform(source: Source,
                         dataset: Dataset,
-                        rule: TransformRule,
-                        outputs: Traversable[Output] = Traversable.empty) extends Task[Any] {
+                        rules: Seq[TransformRule],
+                        maxEntities: Int = 100) extends Task[Seq[DetailedEntity]] {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  private val cacheSize = 100
-
   @volatile
-  private var cachedValues = Seq[Value]()
+  private var cachedValues = Seq[DetailedEntity]()
 
   lazy val cache = { execute(); cachedValues }
 
-  def execute(): Any = {
+  def execute(): Seq[DetailedEntity] = {
     // Retrieve entities
     val entityDesc =
       new EntityDescription(
         variable = dataset.variable,
         restrictions = dataset.restriction,
-        paths = rule.paths.toIndexedSeq
+        paths = rules.flatMap(_.paths).toIndexedSeq
       )
     val entities = source.retrieve(entityDesc)
 
-    // Open outputs
-    for(output <- outputs) output.open()
-
-    // Transform all entities and write to outputs
-    for(entity <- entities;
-        detailedValue <- DetailedEvaluator(rule, entity)) {
-
-      for(output <- outputs; value <- detailedValue.values)
-        output.write(new Link(entity.uri, value), rule.targetProperty)
-
-      if(cachedValues.size < cacheSize) {
-        cachedValues = cachedValues :+ detailedValue
-      }
+    // Read all entities
+    for(entity <- entities) {
+      // Transform entity
+      val transformedEntity = DetailedEvaluator(rules, entity)
+      // Write transformed entity to cache
+      cachedValues = cachedValues :+ transformedEntity
+      if(cachedValues.size >= maxEntities) return cachedValues
     }
 
-    // Close outputs
-    for(output <- outputs) output.close()
+    cachedValues
   }
 }
 
 object EvaluateTransform {
-  def empty = new EvaluateTransform(null, null, null, null)
+  def empty = new EvaluateTransform(null, null, null)
 }

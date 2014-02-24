@@ -9,9 +9,10 @@
 }
 
 .entity-table-header {
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
   border-top: 1px solid #DBDBDB;
-  height: 26px;
-  line-height: 18px;
   background: #ffffff;
 }
 
@@ -20,9 +21,10 @@
 }
 
 .entity-header {
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
   border-top: 1px solid #DBDBDB;
-  height: 26px;
-  line-height: 18px;
 }
 
 .entity-header:hover {
