@@ -34,6 +34,8 @@
         url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
         data: values,
         success: function(response) {
+          $("button[name='start']").button("option", "disabled", true);
+          $("button[name='stop']").button("option", "disabled", false);
           $('.dialog').dialog('close');
         },
         error: function(request) {
