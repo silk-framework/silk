@@ -5,8 +5,8 @@
 
   <properties>
     <silk.version>2.6.0-SNAPSHOT</silk.version>
-    <scala.version>2.10.2</scala.version>
-    <scalatest.version>1.9.2</scalatest.version>
+    <scala.version>2.10.3</scala.version>
+    <scalatest.version>2.0</scalatest.version>
     <skipTests>true</skipTests>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
