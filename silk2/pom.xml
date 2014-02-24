@@ -100,7 +100,6 @@
           <jvmArgs>
             <jvmArg>-Xmx1024m</jvmArg>
           </jvmArgs>
-          <displayCmd>true</displayCmd>
         </configuration>
       </plugin>
 
