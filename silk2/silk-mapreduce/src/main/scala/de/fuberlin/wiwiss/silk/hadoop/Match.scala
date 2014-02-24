@@ -74,7 +74,7 @@ class Match(inputPath : String, outputPath : String, linkSpec : Option[String], 
     job.setMapperClass(classOf[SilkMap])
 
     //Set Reducer
-    if(config.linkSpec.filter.limit.isDefined)
+    if(config.linkSpec.rule.filter.limit.isDefined)
     {
       job.setReducerClass(classOf[SilkReduce])
     }
