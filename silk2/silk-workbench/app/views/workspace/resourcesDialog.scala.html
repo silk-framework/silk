@@ -3,7 +3,7 @@
 @widgets.dialog(title = "Manage Resources", width = 500) {
   <fieldset>
     <legend>Available resources:</legend>
-    @for((resource, index) <- resourceLoader.list zipWithIndex) {
+    @for((resource, index) <- resourceLoader.list.zipWithIndex) {
       <div id="resource@index" class="resource">
         @resource
         <img class="button-delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@routes.Assets.at("img/workspace/cross.png")" />
@@ -96,6 +96,12 @@
             $(this).dialog("close");
           },
         }
+      });
+
+      // Listen to changes of the file to be uploaded
+      $("input:file").change(function (){
+        var fileName = $(this).val();
+        $("input[name='resource-name']").val(fileName);
       });
     });
 
