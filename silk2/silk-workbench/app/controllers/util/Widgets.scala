@@ -9,7 +9,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 object Widgets {
   val log = java.util.logging.Logger.getLogger(getClass.getName)
 
-  def taskStatus(stream: Enumerator[TaskStatus], id: String = "") = {
+  def taskStatus(stream: Enumerator[TaskStatus], id: String = "progress") = {
     def serializeStatus(status: TaskStatus): JsValue = {
       JsObject(
         ("id" -> JsString(id)) ::
