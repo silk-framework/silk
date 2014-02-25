@@ -130,7 +130,7 @@ $(function ()
 {
   $("#droppable").droppable({
     drop: function (ev, ui) {
-      var draggedId = $(ui.draggable).attr("id");
+      var draggedClass = $(ui.draggable).attr("class");
       var boxid = ui.helper.attr('id');
 
       // Check if we still need to add endpoints to the dropped element
@@ -144,23 +144,23 @@ $(function ()
         // Make operator draggable
         jsPlumb.draggable($('#' + boxid));
 
-        if (draggedId.search(/aggregator/) != -1) {
+        if (draggedClass.search(/aggregator/) != -1) {
           jsPlumb.addEndpoint(boxid, endpointSimilarityTarget);
           jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
         }
-        else if (draggedId.search(/comparator/) != -1) {
+        else if (draggedClass.search(/comparator/) != -1) {
           jsPlumb.addEndpoint(boxid, endpointValueTarget);
           jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
         }
-        else if (draggedId.search(/transform/) != -1) {
+        else if (draggedClass.search(/transform/) != -1) {
           jsPlumb.addEndpoint(boxid, endpointValueSource);
           jsPlumb.addEndpoint(boxid, endpointValueTarget);
         }
-        else if (draggedId.search(/source/) != -1 || draggedId.search(/target/) != -1) {
+        else if (draggedClass.search(/source/) != -1 || draggedClass.search(/target/) != -1) {
           jsPlumb.addEndpoint(boxid, endpointValueSource);
         }
         else {
-          alert("Invalid Element dropped: " + draggedId);
+          alert("Invalid Element dropped: " + draggedClass);
         }
 
         // fix the position of the new added box
@@ -666,7 +666,6 @@ function getPropertyPaths() {
 }
 
 function reloadPropertyPaths() {
-  getPropertyPaths();
   var answer = confirm("Reloading the cache may take a long time. Do you want to proceed?");
   if (answer) {
     reloadCache();
@@ -675,10 +674,13 @@ function reloadPropertyPaths() {
 
 function reloadCache() {
   $.ajax({
-    type: "PUT",
-    url: apiUrl + '/tasks/' + projectName + '/' + taskName + '/reloadCache',
+    type: "POST",
+    url: apiUrl + '/reloadCache',
     dataType: "xml",
-    success: function() { updateScore() }
+    success: function() {
+      getPropertyPaths();
+      updateScore();
+    }
   });
 }
 

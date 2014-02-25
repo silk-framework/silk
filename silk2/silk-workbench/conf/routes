@@ -123,10 +123,7 @@ GET           /api/workspace/:project/linking/:task/referenceLinks              
 PUT           /api/workspace/:project/linking/:task/referenceLinks                                  controllers.api.LinkingTaskApi.putReferenceLinks(project: String, task: String)
 PUT           /api/workspace/:project/linking/:task/referenceLinks/:linkType/:source/:target        controllers.api.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
 DELETE        /api/workspace/:project/linking/:task/referenceLinks/:source/:target                  controllers.api.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
-
-GET           /api/workspace/:project/linking/:task/types                                           controllers.api.LinkingTaskApi.types(project: String, task: String)
-GET           /api/workspace/:project/linking/:task/paths                                           controllers.api.LinkingTaskApi.paths(project: String, task: String)
-GET           /api/workspace/:project/linking/:task/operators                                       controllers.api.LinkingTaskApi.operators(project: String, task: String)
+POST          /api/workspace/:project/linking/:task/reloadCache                                     controllers.api.ControlApi.reloadCache(project: String, task: String)
 
 # Outputs
 GET           /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.getOutput(project: String, output: String)
@@ -134,7 +131,6 @@ PUT           /api/workspace/:project/output/:output                            
 DELETE        /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.deleteOutput(project: String, output: String)
 
 # Control
-PUT           /api/tasks/:project/:task/reloadCache                                                 controllers.api.ControlApi.reloadCache(project: String, task: String)
 PUT           /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.startGenerateLinksTask(project: String, task: String)
 DELETE        /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.stopGenerateLinksTask(project: String, task: String)
 PUT           /api/tasks/:project/:task/writeReferenceLinks                                         controllers.api.ControlApi.writeReferenceLinks(project: String, task: String)
