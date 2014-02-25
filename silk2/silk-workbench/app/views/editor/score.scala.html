@@ -1,5 +1,4 @@
-@(result: de.fuberlin.wiwiss.silk.evaluation.EvaluationResult)
+@(info: String = "", error: String = "")
 
-@{
-
-}
+@if(!info.isEmpty) { @info }
+@if(!error.isEmpty) { <img src="@routes.Assets.at("img/help.png")" style="cursor:help;" title="@error"/> }
