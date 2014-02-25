@@ -140,13 +140,21 @@ button
 
 .progresstext
 {
-  height: 0px;
+  height: 0;
   color: gray;
   font-weight: bold;
   position: relative;
   left: 10px;
   top: -22px;
   z-index: 1;
+}
+
+.progresshelp {
+  position: relative;
+  left: 280px;
+  top: -22px;
+  cursor: help;
+  display: none;
 }
 
 #about_dialog p {
