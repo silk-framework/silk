@@ -81,12 +81,12 @@ object Source {
 
   def fromXML(node: Node, resourceLoader: ResourceLoader): Source = {
     new Source(
-      id = node \ "@id" text,
-      dataSource = DataSource(node \ "@type" text, readParams(node), resourceLoader)
+      id = (node \ "@id").text,
+      dataSource = DataSource((node \ "@type").text, readParams(node), resourceLoader)
     )
   }
 
   private def readParams(element: Node): Map[String, String] = {
-    element \ "Param" map (p => (p \ "@name" text, p \ "@value" text)) toMap
+    (element \ "Param" map (p => ((p \ "@name").text, (p \ "@value").text))).toMap
   }
 }

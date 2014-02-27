@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.writer
 
-import de.fuberlin.wiwiss.silk.output.{Formatter, LinkWriter}
+import de.fuberlin.wiwiss.silk.output.{Formatter, DataWriter}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Link
 import java.io.{File, BufferedWriter, Writer}
@@ -23,7 +23,7 @@ import java.io.{File, BufferedWriter, Writer}
  * A file writer.
  */
 @Plugin(id = "file", label = "File", description = "Writes the links to a file. Links are written to {user.dir}/.silk/output/ by default (i.e. if a relative path is provided)")
-case class FileWriter(file: String = "output.nt", format: String = "ntriples") extends LinkWriter {
+case class FileWriter(file: String = "output.nt", format: String = "ntriples") extends DataWriter {
   private val formatter = Formatter(format)
 
   private var out: Writer = null
@@ -41,6 +41,10 @@ case class FileWriter(file: String = "output.nt", format: String = "ntriples") e
 
   override def write(link: Link, predicateUri: String) {
     out.write(formatter.format(link, predicateUri))
+  }
+
+  override def writeLiteralStatement(subject: String, predicate: String, value: String) {
+    out.write(formatter.formatLiteralStatement(subject, predicate, value))
   }
 
   override def close() {

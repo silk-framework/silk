@@ -90,7 +90,7 @@ object LinkingConfig {
   }
 
   def fromXML(node: Node, resourceLoader: ResourceLoader) = {
-    implicit val prefixes = Prefixes.fromXML(node \ "Prefixes" head)
+    implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
     val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML(_, resourceLoader))
     val blocking = (node \ "Blocking").headOption match {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)

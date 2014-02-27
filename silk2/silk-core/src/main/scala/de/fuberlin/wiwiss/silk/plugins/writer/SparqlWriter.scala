@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.writer
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.output.{LinkWriter}
+import de.fuberlin.wiwiss.silk.output.{DataWriter}
 import java.io.{OutputStreamWriter, Writer}
 import java.util.logging.Logger
 import java.net._
@@ -34,7 +34,7 @@ import de.fuberlin.wiwiss.silk.entity.Link
 case class SparqlWriter(uri: String,
                         login: String = null, password: String = null,
                         parameter: String = "query",
-                        graphUri: String = "") extends LinkWriter {
+                        graphUri: String = "") extends DataWriter {
 
   /**Maximum number of statements per request. */
   private val StatementsPerRequest = 200;
@@ -66,7 +66,18 @@ case class SparqlWriter(uri: String,
       beginSparul(false)
     }
 
-    writeStatement(link, predicateUri)
+    writer.write(URLEncoder.encode("<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n", "UTF-8"))
+    statements += 1
+  }
+
+  override def writeLiteralStatement(subject: String, predicate: String, value: String) {
+    if (statements + 1 > StatementsPerRequest) {
+      endSparql()
+      beginSparul(false)
+    }
+
+    writer.write(URLEncoder.encode("<" + subject + "> <" + predicate + "> \"" + value + "\" .\n", "UTF-8"))
+    statements += 1
   }
 
   override def close() {
@@ -92,17 +103,6 @@ case class SparqlWriter(uri: String,
       }
       writer.write("INSERT+DATA+INTO+%3C" + graphUri + "%3E+%7B")
     }
-  }
-
-  /**
-   * Adds a link to the current SPARQL/Update request.
-   *
-   * @param nodes The statement
-   * @throws IOException
-   */
-  private def writeStatement(link: Link, predicateUri: String) {
-    writer.write(URLEncoder.encode("<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n", "UTF-8"))
-    statements += 1
   }
 
   /**

@@ -47,10 +47,10 @@ object ReferenceLinksReader {
   }
 
   private def readLinks(xml: Node, relation: String): Traversable[Link] = {
-    for (cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation" text) == relation) yield {
+    for (cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation").text == relation) yield {
       new Link(
-        source = cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
-        target = cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource" text,
+        source = (cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource").text,
+        target = (cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource").text,
         confidence = Some((cell \ "measure").text.toDouble)
       )
     }

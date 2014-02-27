@@ -1,10 +1,10 @@
 @(project: String, output: String)
 
-@import de.fuberlin.wiwiss.silk.output.LinkWriter
+@import de.fuberlin.wiwiss.silk.output.DataWriter
 @import de.fuberlin.wiwiss.silk.workspace.User
 
 @widgets.pluginDialog(name = output,
-                      plugins = LinkWriter.availablePlugins,
+                      plugins = DataWriter.availablePlugins,
                       currentObj = User().workspace.project(project).outputModule.tasks.find(_.name == output).map(_.output.writer),
                       resources = User().workspace.project(project).resourceManager.list) {
 

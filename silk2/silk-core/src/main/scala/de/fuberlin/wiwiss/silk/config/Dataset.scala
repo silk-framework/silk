@@ -56,10 +56,10 @@ object Dataset {
    * Creates a DatasetSpecification from XML.
    */
   def fromXML(node: Node)(implicit prefixes: Prefixes): Dataset = {
-    val variable = node \ "@var" text
+    val variable = (node \ "@var").text
 
     Dataset(
-      sourceId = node \ "@dataSource" text,
+      sourceId = (node \ "@dataSource").text,
       variable = variable,
       restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
     )

@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.util
 
 import java.util.UUID
+import scala.language.implicitConversions
 
 /**
  * An identifier.
