@@ -16,8 +16,6 @@ import de.fuberlin.wiwiss.silk.output.Output
 
 object ControlApi extends Controller {
 
-  java.util.logging.Logger.getLogger("").addHandler(new ConsoleHandler())
-
   def reloadCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)

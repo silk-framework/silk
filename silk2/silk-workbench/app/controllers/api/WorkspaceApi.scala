@@ -4,7 +4,7 @@ import play.api.mvc.Action
 import play.api.libs.json.{JsString, JsObject, JsArray, JsValue}
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
-import de.fuberlin.wiwiss.silk.output.LinkWriter
+import de.fuberlin.wiwiss.silk.output.DataWriter
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.util.DPair
@@ -68,7 +68,7 @@ object WorkspaceApi extends Controller {
       val outputs = JsArray(
         for (task <- project.outputModule.tasks.toList.sortBy(n => (n.name.toString.toLowerCase))) yield {
           task.output.writer match {
-            case LinkWriter(_, params) => JsObject(Seq(
+            case DataWriter(_, params) => JsObject(Seq(
               "name" -> JsString(task.name.toString),
               "params" -> paramsToJson(params)
             ))

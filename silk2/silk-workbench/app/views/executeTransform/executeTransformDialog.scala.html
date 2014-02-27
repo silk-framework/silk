@@ -1,13 +1,15 @@
 @(project: String, task: String, outputs: Seq[String])
 
-@import de.fuberlin.wiwiss.silk.workspace.User
-
 @widgets.dialog(title = "Execute Transformation", width = 500) {
 <table border="0">
   <tr>
     <td>Select outputs<br/></td>
     <td></td>
   </tr>
+  @if(outputs.isEmpty) {
+    No outputs defined for this project!
+    Navigate to the workspace and define an output to which statements can be written.
+  }
   @for(output <- outputs) {
     <tr>
       <td>@output</td>

@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 /**
  * Represents an abstraction over an output of links.
  */
-case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Double] = None, maxConfidence: Option[Double] = None) {
+case class Output(id: Identifier, writer: DataWriter, minConfidence: Option[Double] = None, maxConfidence: Option[Double] = None) {
   private val logger = Logger.getLogger(classOf[Output].getName)
 
   private var linkCount: Int = 0
@@ -57,6 +57,11 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
 
   }
 
+  def writeLiteralStatement(subject: String, predicate: String, value: String) {
+    require(isOpen, "Output must be opened befored writing statements to it")
+    writer.writeLiteralStatement(subject, predicate, value)
+  }
+
   /**
    * Closes this writer.
    */
@@ -75,7 +80,7 @@ case class Output(id: Identifier, writer: LinkWriter, minConfidence: Option[Doub
 
   //TODO write minConfidence, maxConfidence
   def toXML: Node = writer match {
-    case LinkWriter(plugin, params) => {
+    case DataWriter(plugin, params) => {
       <Output id={id} type={plugin.id}>
         {params.map {
         case (name, value) => <Param name={name} value={value}/>
@@ -96,7 +101,7 @@ object Output {
     //The 'name' attribute is deprecated and replaced by the 'id' attribute, but we still support both
     Output(
       id = Identifier((node \ "@id" ++ node \ "@name").headOption.map(_.text).getOrElse("id")),
-      writer = LinkWriter(node \ "@type" text, readParams(node), resourceLoader),
+      writer = DataWriter((node \ "@type").text, readParams(node), resourceLoader),
       minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble).map(convertConfidence),
       maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble).map(convertConfidence)
     )
@@ -108,6 +113,6 @@ object Output {
   }
 
   private def readParams(element: Node): Map[String, String] = {
-    (element \ "Param").map(p => (p \ "@name" text, p \ "@value" text)).toMap
+    (element \ "Param").map(p => ((p \ "@name").text, (p \ "@value").text)).toMap
   }
 }

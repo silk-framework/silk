@@ -55,7 +55,7 @@ object TransformInput {
     if(inputs.isEmpty) throw new ValidationException("No input defined", id, "Transformation")
 
     try {
-      val transformer = Transformer(node \ "@function" text, Operator.readParams(node), resourceLoader)
+      val transformer = Transformer((node \ "@function").text, Operator.readParams(node), resourceLoader)
       TransformInput(id, transformer, inputs)
     } catch {
       case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")

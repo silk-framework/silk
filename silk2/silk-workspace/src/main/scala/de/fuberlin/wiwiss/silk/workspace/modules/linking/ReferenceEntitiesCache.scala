@@ -109,14 +109,16 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         entities = entities.withPositive(loadPositiveLink(link))
         loadedLinks += 1
-        updateStatus(0.5 * (loadedLinks.toDouble / linkCount))
+        if(loadedLinks % 10 == 0)
+          updateStatus(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- task.referenceLinks.negative) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         entities = entities.withNegative(loadNegativeLink(link))
         loadedLinks += 1
-        updateStatus(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
+        if(loadedLinks % 10 == 0)
+          updateStatus(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
     }
 
