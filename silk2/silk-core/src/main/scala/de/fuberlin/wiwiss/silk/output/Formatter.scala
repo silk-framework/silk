@@ -26,6 +26,8 @@ trait Formatter extends AnyPlugin {
   def footer: String = ""
 
   def format(link: Link, predicate: String): String
+
+  def formatLiteralStatement(subject: String, predicate: String, value: String): String = ???
 }
 
 /**

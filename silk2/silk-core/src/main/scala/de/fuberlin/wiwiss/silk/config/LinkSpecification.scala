@@ -110,13 +110,13 @@ object LinkSpecification {
     if(linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
     //Read filter
-    val filter = LinkFilter.fromXML(node \ "Filter" head)
+    val filter = LinkFilter.fromXML((node \ "Filter").head)
     implicit val globalThreshold = filter.threshold
 
     new LinkSpecification(
       id = id,
-      datasets = new DPair(Dataset.fromXML(node \ "SourceDataset" head),
-                           Dataset.fromXML(node \ "TargetDataset" head)),
+      datasets = new DPair(Dataset.fromXML((node \ "SourceDataset").head),
+                           Dataset.fromXML((node \ "TargetDataset").head)),
       rule =
         LinkageRule.fromXML(
           node = linkageRuleNode.getOrElse(linkConditionNode.get),

@@ -16,6 +16,7 @@ package de.fuberlin.wiwiss.silk.config
 
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.ValidationException
+import scala.language.implicitConversions
 
 /**
  * Holds namespace prefixes.
@@ -88,6 +89,6 @@ object Prefixes {
   def apply(map: Map[String, String]) = new Prefixes(map)
 
   def fromXML(xml: Node) = {
-    new Prefixes((xml \ "Prefix").map(n => (n \ "@id" text, n \ "@namespace" text)).toMap)
+    new Prefixes((xml \ "Prefix").map(n => ((n \ "@id").text, (n \ "@namespace").text)).toMap)
   }
 }

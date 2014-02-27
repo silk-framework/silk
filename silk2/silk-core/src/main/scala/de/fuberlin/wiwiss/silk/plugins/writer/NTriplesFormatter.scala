@@ -20,5 +20,12 @@ import de.fuberlin.wiwiss.silk.entity.Link
 
 @Plugin(id = "ntriples", label = "N-Triples")
 class NTriplesFormatter() extends Formatter {
-  override def format(link: Link, predicateUri: String) = "<" + link.source + ">  <" + predicateUri + ">  <" + link.target + "> .\n"
+
+  override def format(link: Link, predicateUri: String) = {
+    "<" + link.source + ">  <" + predicateUri + ">  <" + link.target + "> .\n"
+  }
+
+  override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
+    "<" + subject + ">  <" + predicate + ">  \"" + value + "\" .\n"
+  }
 }

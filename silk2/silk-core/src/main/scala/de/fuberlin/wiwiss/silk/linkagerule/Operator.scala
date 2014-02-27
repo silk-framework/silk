@@ -51,6 +51,6 @@ object Operator {
    * Reads the parameters of an operator.
    */
   def readParams(node: Node): Map[String, String] = {
-    (node \ "Param").map(p => (p \ "@name" text, p \ "@value" text)).toMap
+    (node \ "Param").map(p => ((p \ "@name").text, (p \ "@value").text)).toMap
   }
 }

@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.util
 
 import java.io.{IOException, File}
+import scala.language.implicitConversions
 
 /**
  * Defines additional methods on Files, which are not in the standard library.

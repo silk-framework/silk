@@ -14,12 +14,14 @@
 
 package de.fuberlin.wiwiss.silk.plugins.writer
 
-import de.fuberlin.wiwiss.silk.output.LinkWriter
+import de.fuberlin.wiwiss.silk.output.DataWriter
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Link
 
 @Plugin(id = "memory", label = "Memory")
-case class MemoryWriter() extends LinkWriter {
+case class MemoryWriter() extends DataWriter {
+
+  @volatile
   private var _links = List[Link]()
 
   def links = _links
@@ -31,4 +33,6 @@ case class MemoryWriter() extends LinkWriter {
   override def write(link: Link, predicateUri: String): Unit = {
     _links ::= link
   }
+
+  override def writeLiteralStatement(subject: String, predicate: String, value: String): Unit = ???
 }
