@@ -113,7 +113,7 @@ trait Task[+T] extends HasStatus with (() => T) {
           case TaskRunning(msg, taskProgress) => {
             updateStatus(msg, initialProgress + taskProgress * (finalProgress - initialProgress))
           }
-          case TaskFinished(_, success, _, _) if success == true => {
+          case TaskFinished(_, success, _, _) if success => {
             updateStatus(finalProgress)
           }
           case _ =>
