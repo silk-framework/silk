@@ -6,7 +6,6 @@ import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.Dataset
-import java.util.logging.Logger
 
 /**
  * Executes a transformation rule.
