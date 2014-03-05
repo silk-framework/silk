@@ -4,6 +4,8 @@ version := "2.6.0-SNAPSHOT"
 
 play.Project.playScalaSettings
 
+libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.1.0" % "test"
+
 lazy val core = project in file("silk-core")
 
 lazy val jena = project in file("silk-jena") dependsOn core
