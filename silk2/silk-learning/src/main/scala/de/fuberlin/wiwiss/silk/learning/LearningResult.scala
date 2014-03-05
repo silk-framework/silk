@@ -16,32 +16,15 @@ package de.fuberlin.wiwiss.silk.learning
 
 import individual.Population
 import de.fuberlin.wiwiss.silk.evaluation.EvaluationResult
-import de.fuberlin.wiwiss.silk.learning.LearningResult._
 
 case class LearningResult(iterations: Int = 0,
                           time: Long = 0,
                           population: Population = Population.empty,
                           trainingResult: EvaluationResult =  new EvaluationResult(0, 0, 0, 0),
                           validationResult: EvaluationResult = new EvaluationResult(0, 0, 0, 0),
-                          status: Status = NotStarted) {
+                          status: String = "") {
 
   def linkageRule = population.bestIndividual.node.build
-}
-
-object LearningResult {
-  sealed trait Status
-
-  case object NotStarted extends Status
-
-  case object Running extends Status
-
-  trait Finished extends Status
-
-  case object MaximumIterationsReached extends Finished
-
-  case object MaximumIneffectiveIterationsReached extends Finished
-
-  case object Success extends Finished
 }
 
 object LearningResultLatexFormatter {

@@ -116,7 +116,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           population = population,
           trainingResult =  trainScores,
           validationResult = valScores,
-          status = LearningResult.NotStarted
+          status = ""
         )
 
       println(i + " - " + trainScores)
