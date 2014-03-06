@@ -18,12 +18,12 @@
 
 	<artifactId>silk-core</artifactId>
 	<packaging>jar</packaging>
-	<name>Silk Core</name>	
+	<name>Silk Core</name>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.rockymadden.stringmetric</groupId>
-			<artifactId>stringmetric-core</artifactId>
+			<artifactId>stringmetric-core_2.10</artifactId>
 			<version>0.27.2</version>
 		</dependency>
 		<dependency>
