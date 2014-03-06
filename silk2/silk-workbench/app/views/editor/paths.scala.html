@@ -1,10 +1,10 @@
-@(paths: de.fuberlin.wiwiss.silk.util.DPair[Seq[String]], loadingMsg: String = "")
+@(paths: de.fuberlin.wiwiss.silk.util.DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "")
 
 <script type="text/javascript">
   // Initialization
   $(function() {
     // Make operators draggable
-    $('.paths').draggable({
+    $('.sourcePaths, .targetPaths').draggable({
       helper: function() {
         var box = $(this).children('.dragDiv').clone(false);
         box.attr("id", generateNewElementId());
@@ -16,7 +16,9 @@
 </script>
 
 @pathOperators(paths.source, "Source")
-@pathOperators(paths.target, "Target")
+@if(!onlySource) {
+  @pathOperators(paths.target, "Target")
+}
 
 @pathOperators(paths: Seq[String], pathType: String) = {
   <div style="padding-top: 4px">
@@ -32,8 +34,8 @@
     <div style='clear: both;'></div>
   </div>*@
 
-  <div id="@{pathType.toLowerCase}paths" class="scrollboxes">
-    <div id="@{pathType.toLowerCase}C" class="draggable paths">
+  <div class="scrollboxes">
+    <div class="draggable @{pathType.toLowerCase}Paths">
       <span></span>
       <small></small>
       <p>(custom path)</p>
@@ -41,9 +43,10 @@
     </div>
 
     @loadingMsg
+    @if(!warning.isEmpty) { <img src="@routes.Assets.at("img/exclamation.png")" style="cursor:help;" title="@warning"/> }
 
-    @for((path, index) <- paths.zipWithIndex) {
-      <div id="@{pathType.toLowerCase}@index" class="draggable paths" title="@path">
+    @for(path <- paths) {
+      <div class="draggable @{pathType.toLowerCase}Paths" title="@path">
         <span></span>
         <p style="white-space:nowrap; overflow:hidden;">@path</p>
         @pathExpanded(path, pathType)

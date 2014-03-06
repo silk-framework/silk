@@ -36,7 +36,7 @@ class SilkOutputFormat extends FileOutputFormat[Text, EntityConfidence]
   {
     override def write(sourceUri : Text, entitySimilarity : EntityConfidence) : Unit =
     {
-      val line = "<" + sourceUri + "> <" + config.linkSpec.linkType + "> <" + entitySimilarity.targetUri + "> .\n"
+      val line = "<" + sourceUri + "> <" + config.linkSpec.rule.linkType + "> <" + entitySimilarity.targetUri + "> .\n"
       out.write(line.getBytes("UTF-8"))
     }
 

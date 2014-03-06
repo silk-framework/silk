@@ -24,17 +24,6 @@ abstract class ValueTask[T](initialValue: T) extends Task[T]  {
   /** Holds the current value of this task */
   val value = new ValueHolder(initialValue)
 
-  /**
-   * Returns a traversable which executes the task in the background and iterates through all values.
-   */
-  def toTraversable = new Traversable[T] {
-    def foreach[U](f: T => U) = {
-      val listener = (v: T) => f(v)
-      value.onUpdate(listener)
-      apply()
-    }
-  }
-
   def executeSubValueTask(subTask: ValueTask[T], finalProgress: Double = 1.0): T = {
     val listener = (v: T) => value.update(v)
     subTask.value.onUpdate(listener)

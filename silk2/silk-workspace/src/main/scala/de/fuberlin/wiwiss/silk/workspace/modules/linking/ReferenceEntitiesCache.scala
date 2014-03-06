@@ -19,6 +19,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
   override def update(project: Project, task: LinkingTask) {
     updateStatus("Waiting for paths cache", 0.0)
     pathsCache.waitUntilLoaded()
+    if(pathsCache.status.failed)
+     throw new Exception("Cannot load reference entities cache, because the paths cache could not be loaded.")
 
 //    if(value == null ||
 //       currentEntityDescs.source.restrictions != value.source.restrictions &&
@@ -107,14 +109,16 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         entities = entities.withPositive(loadPositiveLink(link))
         loadedLinks += 1
-        updateStatus(0.5 * (loadedLinks.toDouble / linkCount))
+        if(loadedLinks % 10 == 0)
+          updateStatus(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- task.referenceLinks.negative) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         entities = entities.withNegative(loadNegativeLink(link))
         loadedLinks += 1
-        updateStatus(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
+        if(loadedLinks % 10 == 0)
+          updateStatus(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
     }
 

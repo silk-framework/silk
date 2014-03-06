@@ -14,6 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.runtime.task
 
+import scala.concurrent.ExecutionContext
+
 /**
  * Represents the result of an asynchronous computation.
  */
@@ -37,4 +39,6 @@ object Future {
       def isSet = future.isDone
     }
   }
+
+  implicit def toScalaFuture[T](future: Future[T])(implicit execctx: ExecutionContext) = scala.concurrent.Future { future() }
 }

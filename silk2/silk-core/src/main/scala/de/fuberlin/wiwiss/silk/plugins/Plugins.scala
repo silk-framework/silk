@@ -20,7 +20,7 @@ import characterbased._
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.output.{LinkWriter, Formatter}
+import de.fuberlin.wiwiss.silk.output.{DataWriter, Formatter}
 import equality._
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.Timer
@@ -188,8 +188,8 @@ object Plugins {
     Aggregator.register(classOf[QuadraticMeanAggregator])
     Aggregator.register(classOf[GeometricMeanAggregator])
 
-    LinkWriter.register(classOf[FileWriter])
-    LinkWriter.register(classOf[SparqlWriter])
+    DataWriter.register(classOf[FileWriter])
+    DataWriter.register(classOf[SparqlWriter])
     //LinkWriter.register(classOf[MemoryWriter])
 
     Formatter.register(classOf[NTriplesFormatter])

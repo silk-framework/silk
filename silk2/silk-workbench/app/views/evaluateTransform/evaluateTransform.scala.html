@@ -1,0 +1,13 @@
+@(project: String, task: String)
+
+@header = {
+}
+
+@toolbar = {
+}
+
+@content = {
+  <iframe src="evaluate/generatedEntities" frameborder="0" width="100%" height="100%"></iframe>
+}
+
+@main(Some(project), Some(task), "evaluateTransform")(header)(toolbar)(content)

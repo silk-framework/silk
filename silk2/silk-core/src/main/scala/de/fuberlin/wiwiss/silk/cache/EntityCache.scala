@@ -105,7 +105,7 @@ trait EntityCache {
 
       override def foreach[U](f: Entity => U) {
         for (blockNode <- node \ "Block") {
-          currentBlock = (blockNode \ "@id" text).toInt
+          currentBlock = (blockNode \ "@id").text.toInt
 
           for (partitionNode <- blockNode \ "Partition";
                entityNode <- partitionNode \ "_") {

@@ -1,12 +1,11 @@
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.runtime.task.{ValueTask, Task}
+import de.fuberlin.wiwiss.silk.runtime.task.Task
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.Dataset
-import java.util.logging.Logger
 
 /**
  * Executes a transformation rule.
@@ -16,16 +15,7 @@ class ExecuteTransform(source: Source,
                        rule: TransformRule,
                        outputs: Traversable[Output] = Traversable.empty) extends Task[Any] {
 
-  private val log = Logger.getLogger(getClass.getName)
-
-  private val cacheSize = 100
-
-  @volatile
-  private var cachedValues = Seq[String]()
-
-  def cache = cachedValues
-
-  def execute(): Any = {
+  def execute(): Unit = {
     // Retrieve entities
     val entityDesc =
       new EntityDescription(
@@ -39,15 +29,10 @@ class ExecuteTransform(source: Source,
     for(output <- outputs) output.open()
 
     // Transform all entities and write to outputs
-    for(entity <- entities;
-        value <- rule(entity)) {
-
-      for(output <- outputs)
-        output.write(new Link(entity.uri, value), rule.targetProperty)
-
-      if(cachedValues.size < cacheSize) {
-        cachedValues = cachedValues :+ s"${entity.uri} ${rule.targetProperty} $value"
-      }
+    for { entity <- entities
+          value <- rule(entity)
+          output <- outputs } {
+      output.writeLiteralStatement(entity.uri, rule.targetProperty, value)
     }
 
     // Close outputs

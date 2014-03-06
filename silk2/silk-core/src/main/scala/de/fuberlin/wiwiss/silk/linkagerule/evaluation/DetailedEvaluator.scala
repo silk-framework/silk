@@ -17,27 +17,47 @@ package de.fuberlin.wiwiss.silk.linkagerule.evaluation
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.{TransformRule, LinkageRule}
 import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink._
 
 object DetailedEvaluator {
-  def apply(condition: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[DetailedLink] = {
-    condition.operator match {
-      case Some(op) => {
-        val confidence = evaluateOperator(op, entities, limit)
 
+  /**
+   * Evaluates a linkage rule.
+   */
+  def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[DetailedLink] = {
+    rule.operator match {
+      case Some(op) =>
+        val confidence = evaluateOperator(op, entities, limit)
         if (confidence.score.getOrElse(-1.0) >= limit)
           Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(confidence)))
         else
           None
-      }
-      case None => {
+
+      case None =>
         if (limit == -1.0)
           Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(SimpleConfidence(Some(-1.0)))))
         else
           None
-      }
+    }
+  }
+
+  /**
+   * Evaluates a set of transform rules.
+   */
+  def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
+    val values = for(rule <- rules; op <- rule.operator) yield evaluateInput(op, DPair.fill(entity))
+    val nonEmptyRules = rules.filter(_.operator.isDefined)
+    DetailedEntity(entity.uri, values, nonEmptyRules)
+  }
+
+  /**
+   * Evaluates a single transform rule.
+   */
+  def apply(rule: TransformRule, entity: Entity): Option[Value] = {
+    rule.operator match {
+      case Some(op) => Some(evaluateInput(op, DPair.fill(entity)))
+      case None => None
     }
   }
 
@@ -46,7 +66,7 @@ object DetailedEvaluator {
     case comparison: Comparison => evaluateComparison(comparison, entities, threshold)
   }
 
-  private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): DetailedLink.AggregatorConfidence = {
+  private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): AggregatorConfidence = {
     val totalWeights = agg.operators.map(_.weight).sum
 
     var isNone = false
@@ -71,7 +91,7 @@ object DetailedEvaluator {
       AggregatorConfidence(aggregatedValue, agg, operatorValues)
   }
 
-  private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): DetailedLink.ComparisonConfidence = {
+  private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {
     ComparisonConfidence(
       score = comparison.apply(entities, threshold),
       comparison = comparison,
@@ -81,10 +101,10 @@ object DetailedEvaluator {
   }
 
   private def evaluateInput(input: Input, entities: DPair[Entity]): Value = input match {
-    case ti: TransformInput => {
+    case ti: TransformInput =>
       val children = ti.inputs.map(i => evaluateInput(i, entities))
       TransformedValue(ti, ti.transformer(children.map(_.values)), children)
-    }
+
     case pi: PathInput => InputValue(pi, input(entities))
   }
 }

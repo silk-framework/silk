@@ -80,8 +80,8 @@ object Link {
       entities = {
         for(desc <- entityDescription; entitiesNode <- (node \ "Entities").headOption) yield {
           DPair(
-            source = Entity.fromXML(entitiesNode \ "Source" head, desc),
-            target = Entity.fromXML(entitiesNode \ "Target" head, desc)
+            source = Entity.fromXML((entitiesNode \ "Source").head, desc),
+            target = Entity.fromXML((entitiesNode \ "Target").head, desc)
           )
         }
       }

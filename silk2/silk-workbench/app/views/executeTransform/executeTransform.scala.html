@@ -1,7 +1,5 @@
 @(project: String, task: String)
 
-@import de.fuberlin.wiwiss.silk.workspace.User
-
 @header = {
 }
 
@@ -19,17 +17,6 @@
 }
 
 @content = {
-
-  @for(statement <- CurrentExecuteTransformTask().cache) {
-    <div>@statement</div>
-
-  }
-
-  User().workspace.project(project).transformModule.task(task)
-
-  <script type="application/javascript">
-
-  </script>
 }
 
 @main(Some(project), Some(task), "executeTransform")(header)(toolbar)(content)

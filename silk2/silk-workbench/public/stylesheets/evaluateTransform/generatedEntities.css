@@ -1,0 +1,98 @@
+.toggle-all {
+  float: left;
+  border: 1px solid #cdcccc;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  padding: 0.2em 0.4em;
+  margin-right: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.entity-table-header {
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-top: 1px solid #DBDBDB;
+  background: #ffffff;
+}
+
+.entity {
+  clear: both;
+}
+
+.entity-header {
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-top: 1px solid #DBDBDB;
+}
+
+.entity-header:hover {
+  background: #f0f0df;
+  cursor: pointer;
+}
+
+.entity-header div {
+  float: left;
+}
+
+.white {
+  background: #ffffff;
+}
+
+.grey {
+  background: #f8f8f8;
+}
+
+.entity-details {
+  border-top: 1px solid #DBDBDB;
+  background: #f2f2f4;
+}
+
+.entity-tree {
+  margin: 0;
+}
+
+.input {
+  line-height: 22px;
+}
+
+.transformed-value {
+  padding: 1px 3px;
+  margin-left: 3px;
+  color: #09482f;
+  background-color: #d6fff0;
+  border:1px solid #0ceba5;
+  border-radius: 5px;
+}
+
+.input-value {
+  padding: 1px 3px;
+  margin-left: 3px;
+  color: #502c4f;
+  background-color: #f2d7ff;
+  border: 1px solid #c6a0c4;
+  border-radius: 5px;
+}
+
+.plus {
+  float: left;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('../treeview/images/plus.gif');
+}
+
+.minus {
+  float: left;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  margin-top: 3px;
+  background-image: url('../treeview/images/minus.gif');
+}
+
+.treeview ul {
+  background: none !important;
+}

@@ -3,8 +3,7 @@ package controllers.api
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.config.{Dataset, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
+import de.fuberlin.wiwiss.silk.execution.{EvaluateTransform, GenerateLinksTask, ExecuteTransform}
 import play.api.mvc.Controller
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import java.util.logging.ConsoleHandler
@@ -17,8 +16,6 @@ import de.fuberlin.wiwiss.silk.output.Output
 
 object ControlApi extends Controller {
 
-  java.util.logging.Logger.getLogger("").addHandler(new ConsoleHandler())
-
   def reloadCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)
@@ -28,7 +25,7 @@ object ControlApi extends Controller {
     Ok
   }
 
-  def generateLinksTask(projectName: String, taskName: String) = Action { request =>
+  def startGenerateLinksTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)
 
@@ -51,6 +48,11 @@ object ControlApi extends Controller {
     CurrentGenerateLinksTask() = generateLinksTask
     generateLinksTask.runInBackground()
 
+    Ok
+  }
+
+  def stopGenerateLinksTask(projectName: String, taskName: String) = Action {
+    CurrentGenerateLinksTask().cancel()
     Ok
   }
 

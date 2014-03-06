@@ -29,8 +29,6 @@ body{
   height: 13px;
   padding: 4px;
   margin: 4px 4px 4px 0;
-  background-color: #f2d7ff;
-  border:1px dotted #582271;
   text-align: left;
   cursor:move;
   font-size: 9pt;
@@ -73,21 +71,25 @@ body{
   font-size: 9pt;
 }
 
+.sourcePaths {
+  background-color: #f2d7ff;
+  border:1px dotted #582271;
+}
+.targetPaths {
+  background-color: #ffd7d7;
+  border:1px dotted #c35454;
+}
+.transformations {
+  background-color: #d6fff0;
+  border:1px dotted #0cc481;
+}
+.comparators {
+  background-color: #ffeed6;
+  border:1px dotted #e59829;
+}
 .aggregators {
 	background-color: #d6eeff;
 	border:1px dotted #1484d4;
-}
-.transformations {
-	background-color: #d6fff0;
-	border:1px dotted #0cc481;
-}
-.comparators {
-	background-color: #ffeed6;
-	border:1px dotted #e59829;
-}
-.targets {
-  background-color: #ffd7d7;
-	border:1px dotted #c35454;
 }
 
 ._jsPlumb_endpoint {
@@ -343,6 +345,7 @@ body{
   margin-top: 2px;
   background-image: url('../img/refresh.png');
   float: left;
+  cursor: pointer;
 }
 
 #source_restriction, #target_restriction {
