@@ -89,6 +89,6 @@ object LinkageRule {
    * Reads a linkage rule from xml.
    */
   def fromXML(node: Node, filter: LinkFilter, linkType: Uri, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
-    LinkageRule(operator=SimilarityOperator.fromXML(node.child, resourceLoader).headOption, linkType=linkType)
+    LinkageRule(SimilarityOperator.fromXML(node.child, resourceLoader).headOption, filter, linkType)
   }
 }
