@@ -1,7 +1,3 @@
-.classpath
-.project
-.settings
-.cache
 *.class
 .idea/*
 .idea_modules/*
