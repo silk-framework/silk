@@ -17,7 +17,6 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.spatial
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import scala.reflect.io._
 import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
 import com.vividsolutions.jts.geom.Geometry
 import org.opengis.referencing.crs.CoordinateReferenceSystem
