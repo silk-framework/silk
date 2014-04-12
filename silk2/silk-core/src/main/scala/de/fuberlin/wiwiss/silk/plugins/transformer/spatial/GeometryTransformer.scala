@@ -48,7 +48,7 @@ case class GeometryTransformer() extends Transformer {
         //2 inputs to the Transformer => assumes W3C Geo (lat and long) literals to be transformed.
         var Seq(set1, set2) = values
 
-        if ((set1.iterator.size == 1) && (set1.iterator.size == 1)) {
+        if ((set1.iterator.size >= 1) && (set1.iterator.size >= 1)) {
           //With this vocabulary, only exactly one point can corresponds to each resource.
           Set(w3cGeoTransformer(set1.iterator.next.toString(), set2.iterator.next.toString()))
         } else
