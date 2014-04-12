@@ -14,6 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.util
 
+import math._
 import com.vividsolutions.jts.geom.{ Geometry, GeometryFactory, PrecisionModel }
 import com.vividsolutions.jts.io.ParseException
 import com.vividsolutions.jts.io.WKTReader
@@ -33,14 +34,15 @@ object SpatialExtensionsUtils {
 
   private val logger = Logger.getLogger(SpatialExtensionsUtils.getClass.getName)
 
-  def IndexGeometries(geometryString: String, percentage: Double): Index = {
+  def IndexGeometries(geometryString: String, distance: Double): Index = {
     try {
       val geometry = Parser.WKTReader(geometryString, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
       val centroid = geometry.getCentroid()
 
       //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getX()+Constants.MAX_LAT, 0,  2*Constants.MAX_LAT, percentage * 2*Constants.MAX_LAT)
-      val longIndex = Index.continuous(centroid.getY()+Constants.MAX_LONG, 0, 2*Constants.MAX_LONG, percentage * 2*Constants.MAX_LONG)
+      val latIndex = Index.continuous(centroid.getX(), Constants.MIN_LAT,  Constants.MAX_LAT, distance)
+      val longIndex = Index.continuous(centroid.getY()*cos(centroid.getX().toRadians), Constants.MIN_LONG, Constants.MAX_LONG, distance)
+
       latIndex conjunction longIndex
     } catch {
       case e: Exception =>

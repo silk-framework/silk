@@ -41,7 +41,7 @@ case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
 
       //Compute the spatial containment.
       if (geometry1.contains(geometry2))
-        return 1.0
+        return limit
       else
         return Double.PositiveInfinity
 
@@ -51,7 +51,7 @@ case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
     }
   }
 
-  override def indexValue(str: String, percentage: Double): Index = {
-    SpatialExtensionsUtils.IndexGeometries(str, percentage)
+  override def indexValue(str: String, distance: Double): Index = {
+    SpatialExtensionsUtils.IndexGeometries(str, distance)
   }
 }
