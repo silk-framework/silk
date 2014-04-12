@@ -44,7 +44,7 @@ case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
         return 1.0
       else
         return Double.PositiveInfinity
-        
+
     } catch {
       case e: Exception =>
         Double.PositiveInfinity
@@ -52,17 +52,6 @@ case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, percentage: Double): Index = {
-    try {
-      val geometry = SpatialExtensionsUtils.Parser.WKTReader(str, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val centroid = geometry.getCentroid()
-
-      //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getX(), SpatialExtensionsUtils.Constants.MIN_LAT, SpatialExtensionsUtils.Constants.MAX_LAT, percentage * (SpatialExtensionsUtils.Constants.MAX_LAT - SpatialExtensionsUtils.Constants.MIN_LAT))
-      val longIndex = Index.continuous(centroid.getY(), SpatialExtensionsUtils.Constants.MIN_LONG, SpatialExtensionsUtils.Constants.MAX_LONG, percentage * (SpatialExtensionsUtils.Constants.MAX_LONG - SpatialExtensionsUtils.Constants.MIN_LONG))
-      latIndex conjunction longIndex
-    } catch {
-      case e: Exception =>
-        Index.empty
-    }
+    SpatialExtensionsUtils.IndexGeometries(str, percentage)
   }
 }

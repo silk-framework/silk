@@ -22,6 +22,7 @@ import java.util.logging.{ Level, Logger }
 import java.io.StringReader
 import javax.xml.bind.JAXBContext
 import java.io.Reader
+import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
  * Useful utils for the spatial extensions of Silk.
@@ -31,6 +32,21 @@ import java.io.Reader
 object SpatialExtensionsUtils {
 
   private val logger = Logger.getLogger(SpatialExtensionsUtils.getClass.getName)
+
+  def IndexGeometries(geometryString: String, percentage: Double): Index = {
+    try {
+      val geometry = Parser.WKTReader(geometryString, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+      val centroid = geometry.getCentroid()
+
+      //Create the index of the geometry based on its centroid.
+      val latIndex = Index.continuous(centroid.getX()+Constants.MAX_LAT, 0,  2*Constants.MAX_LAT, percentage * 2*Constants.MAX_LAT)
+      val longIndex = Index.continuous(centroid.getY()+Constants.MAX_LONG, 0, 2*Constants.MAX_LONG, percentage * 2*Constants.MAX_LONG)
+      latIndex conjunction longIndex
+    } catch {
+      case e: Exception =>
+        Index.empty
+    }
+  }
 
   /**
    * An stRDF/stSPARQL and GeoSPARQL parser.
@@ -82,7 +98,7 @@ object SpatialExtensionsUtils {
      * @return (geometryString, SRID)
      */
     def separateGeometryFromSRID(literal: String): (String, Int) = {
-      
+
       val trimmedLiteral = literal.trim
       var geometryString = null.asInstanceOf[String]
       var srid = null.asInstanceOf[Int]
@@ -191,7 +207,7 @@ object SpatialExtensionsUtils {
      * stRDF SRID delimiter.
      */
     val STRDF_SRID_DELIM = ";"
-      
+
     /**
      * Maximum Latitude (WGS 84 (latitude-longitude))
      */
@@ -200,16 +216,16 @@ object SpatialExtensionsUtils {
     /**
      * Minimum Latitude (WGS 84 (latitude-longitude))
      */
-    val MIN_LAT = -180.0    
+    val MIN_LAT = -180.0
 
     /**
      * Maximum Longitude (WGS 84 (latitude-longitude))
      */
-    val MAX_LONG = 90.0    
+    val MAX_LONG = 90.0
 
     /**
      * Minimum Longitude (WGS 84 (latitude-longitude))
      */
-    val MIN_LONG = -90.0    
+    val MIN_LONG = -90.0
   }
 }
