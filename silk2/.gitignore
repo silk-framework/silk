@@ -2,6 +2,7 @@
 .project
 .settings
 .cache
+**/project/*
 *.class
 .idea/*
 .idea_modules/*
