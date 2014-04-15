@@ -34,21 +34,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    try {
-      //Get the geometries.
-      val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(str1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(str2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-
-      //Compute the spatial containment.
-      if (geometry1.contains(geometry2))
-        return limit
-      else
-        return Double.PositiveInfinity
-
-    } catch {
-      case e: Exception =>
-        Double.PositiveInfinity
-    }
+    SpatialExtensionsUtils.evaluateRelation(str1, str2, limit, SpatialExtensionsUtils.Constants.CONTAINS)
   }
 
   override def indexValue(str: String, distance: Double): Index = {

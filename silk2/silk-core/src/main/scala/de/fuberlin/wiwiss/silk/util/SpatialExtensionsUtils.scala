@@ -34,19 +34,68 @@ object SpatialExtensionsUtils {
 
   private val logger = Logger.getLogger(SpatialExtensionsUtils.getClass.getName)
 
+  /**
+   * This function indexes Geometries.
+   *
+   * @param geometryString : String
+   * @param distance: Double
+   * @return Index
+   */
   def indexGeometries(geometryString: String, distance: Double): Index = {
     try {
       val geometry = Parser.WKTReader(geometryString, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
       val centroid = geometry.getCentroid()
 
       //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getX(), Constants.MIN_LAT,  Constants.MAX_LAT, distance)
-      val longIndex = Index.continuous(centroid.getY()*cos(centroid.getX().toRadians), Constants.MIN_LONG, Constants.MAX_LONG, distance)
+      val latIndex = Index.continuous(centroid.getX(), Constants.MIN_LAT, Constants.MAX_LAT, distance)
+      val longIndex = Index.continuous(centroid.getY() * cos(centroid.getX().toRadians), Constants.MIN_LONG, Constants.MAX_LONG, distance)
 
       latIndex conjunction longIndex
     } catch {
       case e: Exception =>
         Index.empty
+    }
+  }
+
+  /**
+   * This function evaluates a relation between two Geometries.
+   *
+   * @param geometryString1 : String
+   * @param geometryString2 : String
+   * @param limit: Double
+   * @param relation: String
+   * @return Double
+   */
+  def evaluateRelation(geometryString1: String, geometryString2: String, limit: Double, relation: String): Double = {
+    try {
+      //Get the geometries.
+      val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(geometryString1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+      val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(geometryString2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+
+      //Compute the spatial containment.
+      if (relate(geometry1, geometry2, relation))
+        return limit
+      else
+        return Double.PositiveInfinity
+
+    } catch {
+      case e: Exception =>
+        Double.PositiveInfinity
+    }
+  }
+
+  /**
+   * This function returns true if the given relation holds between two geometries.
+   *
+   * @param geometry1 : Geometry
+   * @param geometry2 : Geometry
+   * @param relation: String
+   * @return Boolean
+   */
+  def relate(geometry1: Geometry, geometry2: Geometry, relation: String): Boolean = {
+    relation match {
+      case Constants.CONTAINS => geometry1.contains(geometry2)
+      case _ => false   
     }
   }
 
@@ -229,5 +278,10 @@ object SpatialExtensionsUtils {
      * Minimum Longitude (WGS 84 (latitude-longitude))
      */
     val MIN_LONG = -90.0
+
+    /**
+     * Topology Relations
+     */    
+    val CONTAINS = "contains" 
   }
 }
