@@ -1,10 +1,10 @@
-.classpath
-.project
-.settings
-.cache
-**/project/*
 *.class
 .idea/*
 .idea_modules/*
 **/target/*
 **/logs/*
+.classpath
+.project
+.settings
+.cache
+**/project/*
