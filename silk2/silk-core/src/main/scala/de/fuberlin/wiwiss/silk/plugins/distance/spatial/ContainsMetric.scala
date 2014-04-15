@@ -23,15 +23,15 @@ import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
 import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 
 /**
- * Computes the spatial containment between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
+ * Computes the relation \"contains\" between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "SpatialContainmentMetric",
+  id = "ContainsMetric",
   categories = Array("Spatial"),
-  label = "Spatial Containment",
-  description = "Computes the spatial containment between two geometries. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
-case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
+  label = "Contains",
+  description = "Computes the relation \"contains\" between two geometries. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+case class ContainsMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     SpatialExtensionsUtils.evaluateRelation(str1, str2, limit, SpatialExtensionsUtils.Constants.CONTAINS)
