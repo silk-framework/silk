@@ -101,8 +101,7 @@ object SpatialExtensionsUtils {
       case Constants.CROSSES => geometry1.crosses(geometry2)
       case Constants.WITHIN => geometry1.within(geometry2)
       case Constants.CONTAINS => geometry1.contains(geometry2)
-      case Constants.OVERLAPS => geometry1.overlaps(geometry2)
-      
+      case Constants.OVERLAPS => geometry1.overlaps(geometry2)  
       case _ => false
     }
   }
