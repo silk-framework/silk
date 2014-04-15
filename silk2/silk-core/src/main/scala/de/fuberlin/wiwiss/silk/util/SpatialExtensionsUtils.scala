@@ -34,7 +34,7 @@ object SpatialExtensionsUtils {
 
   private val logger = Logger.getLogger(SpatialExtensionsUtils.getClass.getName)
 
-  def IndexGeometries(geometryString: String, distance: Double): Index = {
+  def indexGeometries(geometryString: String, distance: Double): Index = {
     try {
       val geometry = Parser.WKTReader(geometryString, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
       val centroid = geometry.getCentroid()

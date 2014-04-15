@@ -52,6 +52,6 @@ case class SpatialContainmentMetric() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    SpatialExtensionsUtils.IndexGeometries(str, distance)
+    SpatialExtensionsUtils.indexGeometries(str, distance)
   }
 }
