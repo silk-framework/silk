@@ -94,8 +94,16 @@ object SpatialExtensionsUtils {
    */
   def relate(geometry1: Geometry, geometry2: Geometry, relation: String): Boolean = {
     relation match {
+      case Constants.EQUALS => geometry1.equals(geometry2)
+      case Constants.DISJOINT => geometry1.disjoint(geometry2)
+      case Constants.INTERSECTS => geometry1.intersects(geometry2)
+      case Constants.TOUCHES => geometry1.touches(geometry2)
+      case Constants.CROSSES => geometry1.crosses(geometry2)
+      case Constants.WITHIN => geometry1.within(geometry2)
       case Constants.CONTAINS => geometry1.contains(geometry2)
-      case _ => false   
+      case Constants.OVERLAPS => geometry1.overlaps(geometry2)
+      
+      case _ => false
     }
   }
 
@@ -281,7 +289,14 @@ object SpatialExtensionsUtils {
 
     /**
      * Topology Relations
-     */    
-    val CONTAINS = "contains" 
+     */
+    val EQUALS = "equals"
+    val DISJOINT = "disjoint"
+    val INTERSECTS = "intersects"
+    val TOUCHES = "touches"
+    val CROSSES = "crosses"
+    val WITHIN = "within"
+    val CONTAINS = "contains"
+    val OVERLAPS = "overlaps"  
   }
 }
