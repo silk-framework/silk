@@ -118,6 +118,6 @@ case class GeometryTransformer() extends Transformer {
    */
   def w3cGeoTransformer(lat: Any, long: Any): String = {
 
-    "POINT(" + lat + " " + long + ")"
+    "POINT (" + lat + " " + long + ")"
   }
 }
