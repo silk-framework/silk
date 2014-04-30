@@ -8,6 +8,10 @@ Changelog
 ------------------------------------------------------------------------
 Notes
 ------------------------------------------------------------------------
+How to run tests:
+mvn -DskipTests=false -Dtest=<TestClass> -DfailIfNoTests=false test
+
+
 How to merge with default Silk:
 
 $ git fetch git@git.assembla.com:silk.git
