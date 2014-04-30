@@ -20,6 +20,11 @@ import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+/**
+ * Tests the PointsToCentroid Transformer.
+ * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
+ */
+
 @RunWith(classOf[JUnitRunner])
 class PointsToCentroidTransformerTest extends FlatSpec with ShouldMatchers {
   Plugins.register()
