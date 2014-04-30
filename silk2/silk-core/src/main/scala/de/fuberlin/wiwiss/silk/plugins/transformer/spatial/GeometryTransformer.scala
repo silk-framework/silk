@@ -109,15 +109,15 @@ case class GeometryTransformer() extends Transformer {
 
   /**
    * This function transforms a geometry expressed in the W3C Geo Vocabulary to WKT.
-   * It concatenates appropriately the "lat" and "long" values to create a Point.
+   * It concatenates appropriately the values "lat" and "long" to create a single Point.
    * This point is already in WGS 84 (latitude-longitude) CRS, so there is no need for transformation.
    * 
-   * @param lat  : String
-   * @param long : String
-   * @return Point(lat, long) : String
+   * @param lat  : Any
+   * @param long : Any
+   * @return POINT (lat, long) : String
    */
   def w3cGeoTransformer(lat: Any, long: Any): String = {
 
-    "POINT (" + lat + " " + long + ")"
+    SpatialExtensionsUtils.latLongConcat(lat, long)
   }
 }

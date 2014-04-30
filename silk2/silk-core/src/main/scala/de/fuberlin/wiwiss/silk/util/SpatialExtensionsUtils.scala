@@ -101,7 +101,7 @@ object SpatialExtensionsUtils {
       case Constants.CROSSES => geometry1.crosses(geometry2)
       case Constants.WITHIN => geometry1.within(geometry2)
       case Constants.CONTAINS => geometry1.contains(geometry2)
-      case Constants.OVERLAPS => geometry1.overlaps(geometry2)  
+      case Constants.OVERLAPS => geometry1.overlaps(geometry2)
       case _ => false
     }
   }
@@ -202,6 +202,18 @@ object SpatialExtensionsUtils {
   }
 
   /**
+   * This function concatenates appropriately the values "lat" and "long" to create a single Point.
+   *
+   * @param lat  : Any
+   * @param long : Any
+   * @return POINT (lat, long) : String
+   */
+  def latLongConcat(lat: Any, long: Any): String = {
+
+    "POINT (" + lat + " " + long + ")"
+  }
+
+  /**
    * An object that contains all needed constants (namespaces, URIs, prefixes).
    */
   object Constants {
@@ -296,6 +308,6 @@ object SpatialExtensionsUtils {
     val CROSSES = "crosses"
     val WITHIN = "within"
     val CONTAINS = "contains"
-    val OVERLAPS = "overlaps"  
+    val OVERLAPS = "overlaps"
   }
 }
