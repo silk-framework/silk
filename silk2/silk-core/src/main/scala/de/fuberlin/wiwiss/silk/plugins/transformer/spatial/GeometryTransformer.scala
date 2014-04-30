@@ -49,8 +49,8 @@ case class GeometryTransformer() extends Transformer {
         var Seq(set1, set2) = values
 
         if ((set1.iterator.size >= 1) && (set1.iterator.size >= 1)) {
-          //With this vocabulary, only exactly one point can corresponds to each resource.
-          Set(w3cGeoTransformer(set1.iterator.next.toString(), set2.iterator.next.toString()))
+          //Assumes that the first point corresponds to the geometry of the resource.
+          Set(w3cGeoTransformer(set1.iterator.next, set2.iterator.next))
         } else
           values.reduce(_ ++ _)
       case _ =>
@@ -116,7 +116,7 @@ case class GeometryTransformer() extends Transformer {
    * @param long : String
    * @return Point(lat, long) : String
    */
-  def w3cGeoTransformer(lat: String, long: String): String = {
+  def w3cGeoTransformer(lat: Any, long: Any): String = {
 
     "POINT(" + lat + " " + long + ")"
   }
