@@ -24,6 +24,7 @@ import java.io.StringReader
 import javax.xml.bind.JAXBContext
 import java.io.Reader
 import de.fuberlin.wiwiss.silk.entity.Index
+import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 
 /**
  * Useful utils for the spatial extensions of Silk.
@@ -58,6 +59,31 @@ object SpatialExtensionsUtils {
   }
 
   /**
+   * This function evaluates a distance between two Geometries.
+   *
+   * @param geometryString1 : String
+   * @param geometryString2 : String
+   * @param limit: Double
+   * @param distanceType: String
+   * @return Double
+   */
+  def evaluateDistance(geometryString1: String, geometryString2: String, limit: Double, distanceType: String): Double = {
+    try {
+      //Get the geometries.
+      val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(geometryString1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+      val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(geometryString2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+
+      distanceType match {
+        case Constants.CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
+      }
+      
+    } catch {
+      case e: Exception =>
+        Double.PositiveInfinity
+    }
+  }
+
+  /**
    * This function evaluates a relation between two Geometries.
    *
    * @param geometryString1 : String
@@ -72,7 +98,7 @@ object SpatialExtensionsUtils {
       val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(geometryString1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
       val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(geometryString2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
 
-      //Compute the spatial containment.
+      //Compute the spatial relation.
       if (relate(geometry1, geometry2, relation))
         return limit
       else
@@ -297,6 +323,11 @@ object SpatialExtensionsUtils {
      * Minimum Longitude (WGS 84 (latitude-longitude))
      */
     val MIN_LONG = -90.0
+
+    /**
+     * Spatial Distance
+     */
+    val CENTROID_DISTANCE = "centroid distance"
 
     /**
      * Topology Relations

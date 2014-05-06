@@ -20,7 +20,6 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
-import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 
 /**
  * Computes the distance between the centroids of two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -34,33 +33,10 @@ import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 case class CentroidDistanceMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    try {
-      //Get the centroid of each geometry.
-      val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(str1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(str2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val centroid1 = geometry1.getCentroid()
-      val centroid2 = geometry2.getCentroid()
-
-      //Compute the distance between the centroids.
-      distance(centroid1, centroid2)
-    } catch {
-      case e: Exception =>
-        Double.PositiveInfinity
-    }
+    SpatialExtensionsUtils.evaluateDistance(str1, str2, limit, SpatialExtensionsUtils.Constants.CENTROID_DISTANCE)
   }
 
-  override def indexValue(str: String, percentage: Double): Index = {
-    try {
-      val geometry = SpatialExtensionsUtils.Parser.WKTReader(str, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val centroid = geometry.getCentroid()
-      
-      //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getX(), SpatialExtensionsUtils.Constants.MIN_LAT, SpatialExtensionsUtils.Constants.MAX_LAT, percentage*(SpatialExtensionsUtils.Constants.MAX_LAT-SpatialExtensionsUtils.Constants.MIN_LAT))
-      val longIndex = Index.continuous(centroid.getY(), SpatialExtensionsUtils.Constants.MIN_LONG, SpatialExtensionsUtils.Constants.MAX_LONG, percentage*(SpatialExtensionsUtils.Constants.MAX_LONG-SpatialExtensionsUtils.Constants.MIN_LONG))
-      latIndex conjunction longIndex   
-    } catch {
-      case e: Exception =>
-        Index.empty
-    }
+  override def indexValue(str: String, distance: Double): Index = {
+    SpatialExtensionsUtils.indexGeometries(str, distance)
   }
 }
