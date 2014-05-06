@@ -50,7 +50,7 @@ class CentroidDinstanceMetricTest extends FlatSpec with ShouldMatchers {
   }
   
   //Indexing.
-  "CentroidDinstanceMetric test 4" should "return 'Index.multiDim(Set(Seq(0, 0)), 2)'" in {
+  "CentroidDinstanceMetric test 4" should "return '(Set(List(0, 0))'" in {
     metric.indexValue("POINT (-180 -90)", 0.0) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
   }  
 }
