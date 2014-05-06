@@ -49,7 +49,7 @@ object SpatialExtensionsUtils {
 
       //Create the index of the geometry based on its centroid.
       val latIndex = Index.continuous(centroid.getX(), Constants.MIN_LAT, Constants.MAX_LAT, distance)
-      val longIndex = Index.continuous(centroid.getY() * cos(centroid.getX().toRadians), Constants.MIN_LONG, Constants.MAX_LONG, distance)
+      val longIndex = Index.continuous(centroid.getY(), Constants.MIN_LONG, Constants.MAX_LONG, distance)
 
       latIndex conjunction longIndex
     } catch {
