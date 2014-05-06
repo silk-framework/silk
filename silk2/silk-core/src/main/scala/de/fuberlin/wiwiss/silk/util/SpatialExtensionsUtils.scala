@@ -14,17 +14,14 @@
 
 package de.fuberlin.wiwiss.silk.util
 
-import math._
-import com.vividsolutions.jts.geom.{ Geometry, GeometryFactory, PrecisionModel }
-import com.vividsolutions.jts.io.ParseException
+import java.util.logging.Level
+import java.util.logging.Logger
+
+import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
-import com.vividsolutions.jts.io.gml2.GMLReader
-import java.util.logging.{ Level, Logger }
-import java.io.StringReader
-import javax.xml.bind.JAXBContext
-import java.io.Reader
-import de.fuberlin.wiwiss.silk.entity.Index
 import com.vividsolutions.jts.operation.distance.DistanceOp.distance
+
+import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
  * Useful utils for the spatial extensions of Silk.

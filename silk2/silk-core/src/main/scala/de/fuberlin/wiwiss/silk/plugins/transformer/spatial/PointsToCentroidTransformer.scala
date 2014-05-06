@@ -14,15 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.spatial
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.StringUtils._
+import java.util.logging.Level
+import java.util.logging.Logger
+
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
-import com.vividsolutions.jts.geom.Geometry
-import org.opengis.referencing.crs.CoordinateReferenceSystem
-import org.geotools.referencing.CRS;
-import org.geotools.geometry.jts.JTS;
-import java.util.logging.{ Level, Logger }
 
 /**
  * This plugin transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).

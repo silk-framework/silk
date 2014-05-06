@@ -14,15 +14,17 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.spatial
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.StringUtils._
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
+import java.util.logging.Level
+import java.util.logging.Logger
+
+import org.geotools.geometry.jts.JTS
+import org.geotools.referencing.CRS
+
 import com.vividsolutions.jts.geom.Geometry
-import org.opengis.referencing.crs.CoordinateReferenceSystem
-import org.geotools.referencing.CRS;
-import org.geotools.geometry.jts.JTS;
-import java.util.logging.{ Level, Logger }
+
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
 
 /**
  * This plugin transforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).
