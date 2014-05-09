@@ -34,6 +34,21 @@ object SpatialExtensionsUtils {
   private val logger = Logger.getLogger(this.getClass.getName)
 
   /**
+   * This function returns the Envelope of a Geometry.
+   *
+   * @param geometryString : String
+   * @return String
+   */
+  def getEnvelopeFromGeometry(geometryString: String): String = {
+    try {
+      Parser.WKTReader(geometryString, Constants.DEFAULT_SRID).get.getEnvelope().toText()
+    } catch {
+      case e: Exception =>
+        geometryString
+    }
+  }
+  
+  /**
    * This function simplifies a Geometry.
    *
    * @param geometryString : String

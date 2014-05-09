@@ -19,21 +19,21 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
 
 /**
- * This plugin simplifies a geometry according to a given distance tolerance (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
+ * This plugin returns the Envelope (Minimum Bounding Rectangle) of the input geometry (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
  * In case that the literal is not a geometry, it is returned as it is.
  *
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 
 @Plugin(
-  id = "SimplifyTransformer",
+  id = "EnvelopeTransformer",
   categories = Array("Spatial"),
-  label = "Simplify Transformer",
-  description = "Simplifies a geometry according to a given distance tolerance. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
-case class SimplifyTransformer(distanceTolerance: Double) extends SimpleTransformer {
+  label = "Envelope Transformer",
+  description = "Returns the Envelope (Minimum Bounding Rectangle) of the input geometry. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+case class EnvelopeTransformer() extends SimpleTransformer {
 
   override def evaluate(value: String) = {
-    SpatialExtensionsUtils.simplifyGeometry(value, distanceTolerance)
+    SpatialExtensionsUtils.getEnvelopeFromGeometry(value)
   }
 
 }
