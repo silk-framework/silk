@@ -20,6 +20,7 @@ import java.util.logging.Logger
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import com.vividsolutions.jts.operation.distance.DistanceOp.distance
+import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 
 import de.fuberlin.wiwiss.silk.entity.Index
 
@@ -30,7 +31,24 @@ import de.fuberlin.wiwiss.silk.entity.Index
 
 object SpatialExtensionsUtils {
 
-  private val logger = Logger.getLogger(SpatialExtensionsUtils.getClass.getName)
+  private val logger = Logger.getLogger(this.getClass.getName)
+
+  /**
+   * This function simplifies a Geometry.
+   *
+   * @param geometryString : String
+   * @param distanceTolerance: Double
+   * @return String
+   */
+  def simplifyGeometry(geometryString: String, distanceTolerance: Double): String = {
+    try {
+      val geometry = Parser.WKTReader(geometryString, Constants.DEFAULT_SRID).get
+      TopologyPreservingSimplifier.simplify(geometry, distanceTolerance).toText()
+    } catch {
+      case e: Exception =>
+        geometryString
+    }
+  }
 
   /**
    * This function indexes Geometries.
@@ -41,7 +59,7 @@ object SpatialExtensionsUtils {
    */
   def indexGeometries(geometryString: String, distance: Double): Index = {
     try {
-      val geometry = Parser.WKTReader(geometryString, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+      val geometry = Parser.WKTReader(geometryString, Constants.DEFAULT_SRID).get
       val centroid = geometry.getCentroid()
 
       //Create the index of the geometry based on its centroid.
@@ -67,13 +85,13 @@ object SpatialExtensionsUtils {
   def evaluateDistance(geometryString1: String, geometryString2: String, limit: Double, distanceType: String): Double = {
     try {
       //Get the geometries.
-      val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(geometryString1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(geometryString2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+      val geometry1 = Parser.WKTReader(geometryString1, Constants.DEFAULT_SRID).get
+      val geometry2 = Parser.WKTReader(geometryString2, Constants.DEFAULT_SRID).get
 
       distanceType match {
         case Constants.CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
       }
-      
+
     } catch {
       case e: Exception =>
         Double.PositiveInfinity
@@ -92,8 +110,8 @@ object SpatialExtensionsUtils {
   def evaluateRelation(geometryString1: String, geometryString2: String, limit: Double, relation: String): Double = {
     try {
       //Get the geometries.
-      val geometry1 = SpatialExtensionsUtils.Parser.WKTReader(geometryString1, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
-      val geometry2 = SpatialExtensionsUtils.Parser.WKTReader(geometryString2, SpatialExtensionsUtils.Constants.DEFAULT_SRID).get
+      val geometry1 = Parser.WKTReader(geometryString1, Constants.DEFAULT_SRID).get
+      val geometry2 = Parser.WKTReader(geometryString2, Constants.DEFAULT_SRID).get
 
       //Compute the spatial relation.
       if (relate(geometry1, geometry2, relation))
