@@ -17,7 +17,8 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{evaluateRelation, indexGeometries}
+import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
  * Computes the relation \"crosses\" between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -31,10 +32,10 @@ import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 case class CrossesMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    SpatialExtensionsUtils.evaluateRelation(str1, str2, limit, SpatialExtensionsUtils.Constants.CROSSES)
+    evaluateRelation(str1, str2, limit, CROSSES)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    SpatialExtensionsUtils.indexGeometries(str, distance)
+    indexGeometries(str, distance)
   }
 }

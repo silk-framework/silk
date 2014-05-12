@@ -24,7 +24,8 @@ import com.vividsolutions.jts.geom.Geometry
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.Constants._
+import de.fuberlin.wiwiss.silk.util.spatial.Parser._
 
 /**
  * This plugin transforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).
@@ -72,17 +73,17 @@ case class GeometryTransformer() extends Transformer {
     val logger = Logger.getLogger(this.getClass.getName)
 
     var geometry = null.asInstanceOf[Option[Geometry]]
-    var (geometryString, srid) = SpatialExtensionsUtils.Parser.separateGeometryFromSRID(literal)
+    var (geometryString, srid) = separateGeometryFromSRID(literal)
 
     try {
       srid match {
-        case SpatialExtensionsUtils.Constants.DEFAULT_SRID =>
+        case DEFAULT_SRID =>
           //Default SRID => no need for transformation.
           return geometryString
         case -1 =>
-          geometry = SpatialExtensionsUtils.Parser.GMLReader(geometryString)
+          geometry = GMLReader(geometryString)
         case _ =>
-          geometry = SpatialExtensionsUtils.Parser.WKTReader(geometryString, srid)
+          geometry = WKTReader(geometryString, srid)
       }
     } catch {
       case e: Exception =>
@@ -98,7 +99,7 @@ case class GeometryTransformer() extends Transformer {
     //Convert geometry to default SRID.
     try {
       val sourceCRS = CRS.decode("EPSG:" + geometry.get.getSRID())
-      val targetCRS = CRS.decode("EPSG:" + SpatialExtensionsUtils.Constants.DEFAULT_SRID)
+      val targetCRS = CRS.decode("EPSG:" + DEFAULT_SRID)
       val transform = CRS.findMathTransform(sourceCRS, targetCRS, true)
 
       return JTS.transform(geometry.get, transform).toText()
@@ -120,6 +121,6 @@ case class GeometryTransformer() extends Transformer {
    */
   def w3cGeoTransformer(lat: Any, long: Any): String = {
 
-    SpatialExtensionsUtils.latLongConcat(lat, long)
+    latLongConcat(lat, long)
   }
 }

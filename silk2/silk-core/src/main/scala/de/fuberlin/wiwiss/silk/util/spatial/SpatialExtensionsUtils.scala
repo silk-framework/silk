@@ -23,6 +23,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 
 import de.fuberlin.wiwiss.silk.entity.Index
+import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
  * Useful utils for the spatial extensions of Silk.
@@ -41,13 +42,13 @@ object SpatialExtensionsUtils {
    */
   def getEnvelopeFromGeometry(geometryString: String): String = {
     try {
-      Parser.WKTReader(geometryString, Constants.DEFAULT_SRID).get.getEnvelope().toText()
+      Parser.WKTReader(geometryString, DEFAULT_SRID).get.getEnvelope().toText()
     } catch {
       case e: Exception =>
         geometryString
     }
   }
-  
+
   /**
    * This function simplifies a Geometry.
    *
@@ -57,7 +58,7 @@ object SpatialExtensionsUtils {
    */
   def simplifyGeometry(geometryString: String, distanceTolerance: Double): String = {
     try {
-      val geometry = Parser.WKTReader(geometryString, Constants.DEFAULT_SRID).get
+      val geometry = Parser.WKTReader(geometryString, DEFAULT_SRID).get
       TopologyPreservingSimplifier.simplify(geometry, distanceTolerance).toText()
     } catch {
       case e: Exception =>
@@ -74,12 +75,12 @@ object SpatialExtensionsUtils {
    */
   def indexGeometries(geometryString: String, distance: Double): Index = {
     try {
-      val geometry = Parser.WKTReader(geometryString, Constants.DEFAULT_SRID).get
+      val geometry = Parser.WKTReader(geometryString, DEFAULT_SRID).get
       val centroid = geometry.getCentroid()
 
       //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getX(), Constants.MIN_LAT, Constants.MAX_LAT, distance)
-      val longIndex = Index.continuous(centroid.getY(), Constants.MIN_LONG, Constants.MAX_LONG, distance)
+      val latIndex = Index.continuous(centroid.getX(), MIN_LAT, MAX_LAT, distance)
+      val longIndex = Index.continuous(centroid.getY(), MIN_LONG, MAX_LONG, distance)
 
       latIndex conjunction longIndex
     } catch {
@@ -100,11 +101,11 @@ object SpatialExtensionsUtils {
   def evaluateDistance(geometryString1: String, geometryString2: String, limit: Double, distanceType: String): Double = {
     try {
       //Get the geometries.
-      val geometry1 = Parser.WKTReader(geometryString1, Constants.DEFAULT_SRID).get
-      val geometry2 = Parser.WKTReader(geometryString2, Constants.DEFAULT_SRID).get
+      val geometry1 = Parser.WKTReader(geometryString1, DEFAULT_SRID).get
+      val geometry2 = Parser.WKTReader(geometryString2, DEFAULT_SRID).get
 
       distanceType match {
-        case Constants.CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
+        case CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
       }
 
     } catch {
@@ -125,8 +126,8 @@ object SpatialExtensionsUtils {
   def evaluateRelation(geometryString1: String, geometryString2: String, limit: Double, relation: String): Double = {
     try {
       //Get the geometries.
-      val geometry1 = Parser.WKTReader(geometryString1, Constants.DEFAULT_SRID).get
-      val geometry2 = Parser.WKTReader(geometryString2, Constants.DEFAULT_SRID).get
+      val geometry1 = Parser.WKTReader(geometryString1, DEFAULT_SRID).get
+      val geometry2 = Parser.WKTReader(geometryString2, DEFAULT_SRID).get
 
       //Compute the spatial relation.
       if (relate(geometry1, geometry2, relation))
@@ -150,225 +151,16 @@ object SpatialExtensionsUtils {
    */
   def relate(geometry1: Geometry, geometry2: Geometry, relation: String): Boolean = {
     relation match {
-      case Constants.EQUALS => geometry1.equals(geometry2)
-      case Constants.DISJOINT => geometry1.disjoint(geometry2)
-      case Constants.INTERSECTS => geometry1.intersects(geometry2)
-      case Constants.TOUCHES => geometry1.touches(geometry2)
-      case Constants.CROSSES => geometry1.crosses(geometry2)
-      case Constants.WITHIN => geometry1.within(geometry2)
-      case Constants.CONTAINS => geometry1.contains(geometry2)
-      case Constants.OVERLAPS => geometry1.overlaps(geometry2)
+      case EQUALS => geometry1.equals(geometry2)
+      case DISJOINT => geometry1.disjoint(geometry2)
+      case INTERSECTS => geometry1.intersects(geometry2)
+      case TOUCHES => geometry1.touches(geometry2)
+      case CROSSES => geometry1.crosses(geometry2)
+      case WITHIN => geometry1.within(geometry2)
+      case CONTAINS => geometry1.contains(geometry2)
+      case OVERLAPS => geometry1.overlaps(geometry2)
       case _ => false
     }
   }
 
-  /**
-   * An stRDF/stSPARQL and GeoSPARQL parser.
-   */
-  object Parser {
-
-    /**
-     * This function reads a WKT Geometry.
-     *
-     * @param geometryString : String
-     * @param SRID: Int
-     * @return Option[Geometry]
-     */
-    def WKTReader(geometryString: String, srid: Int): Option[Geometry] = {
-
-      val wktr = new WKTReader
-      var geometry = wktr.read(geometryString)
-      geometry.setSRID(srid)
-      Option(geometry)
-    }
-
-    /**
-     * This function reads a GML Geometry.
-     *
-     * @param geometryString : String
-     * @return Option[Geometry]
-     */
-    def GMLReader(geometryString: String): Option[Geometry] = {
-
-      //FIXME: This will be fixed, when the same bug will be fixed in Strabon.
-      null.asInstanceOf[Option[Geometry]]
-
-    }
-
-    /**
-     * This function parses a geometry literal (WKT or GML) according to the specifications of stRDF/stSPARQL and GeoSPARQL.
-     *
-     * ==WKT==
-     * If the literal is an strdf:WKT or geo:wktLiteral literal concatenated with the SRID URI it returns the tuple (geometryString, SRID).
-     * If the literal is a plain WKT literal it returns the tuple (geometryString, {@link Constants.DEFAULT_SRID}).
-     *
-     * ==GML==
-     * If the literal is a GML literal it returns the tuple (geometryString, -1).
-     * This happens because SRID is an attribute in the GML literal and it is parsed from the {@link GMLReader}.
-     *
-     * In any other case it returns (literal, {@link Constants.DEFAULT_SRID}).
-     *
-     * @param literal
-     * @return (geometryString, SRID)
-     */
-    def separateGeometryFromSRID(literal: String): (String, Int) = {
-
-      val trimmedLiteral = literal.trim
-      var geometryString = null.asInstanceOf[String]
-      var srid = null.asInstanceOf[Int]
-
-      try {
-        if (trimmedLiteral.length() != 0) {
-          val index = trimmedLiteral.lastIndexOf(Constants.STRDF_SRID_DELIM)
-          if (index > 0) {
-            //strdf:WKT with SRID (assumes EPSG URI for SRID).
-            geometryString = trimmedLiteral.substring(0, index)
-            srid = augmentString(trimmedLiteral.substring((trimmedLiteral.lastIndexOf('/') + 1))).toInt
-          } else {
-            if (trimmedLiteral.startsWith("<http://")) {
-              //Starts with a URI => geo:wktLiteral (assumes EPSG URI for SRID).
-              val index = trimmedLiteral.indexOf('>')
-              val URI = trimmedLiteral.substring(0, index)
-              geometryString = trimmedLiteral.substring(index + 1).trim
-              srid = augmentString(URI.substring(URI.lastIndexOf('/') + 1)).toInt
-            } else if (trimmedLiteral.startsWith("<") && trimmedLiteral.contains("gml")) {
-              //GML literal.
-              geometryString = trimmedLiteral
-              srid = -1
-            } else {
-              //Cannot guess the datatype, only plain literal was given.
-              geometryString = trimmedLiteral
-              srid = Constants.DEFAULT_SRID
-            }
-          }
-        } else {
-          //Empty geometry.
-          geometryString = Constants.EMPTY_GEOM
-          srid = Constants.DEFAULT_SRID
-        }
-      } catch {
-        case e: Exception =>
-          //In case of parse exception the literal is returned as it is.
-          geometryString = trimmedLiteral
-          srid = Constants.DEFAULT_SRID
-      }
-      logger.log(Level.ALL, "\nGeometry: " + geometryString + "\nSRID: " + srid)
-      (geometryString, srid)
-    }
-  }
-
-  /**
-   * This function concatenates appropriately the values "lat" and "long" to create a single Point.
-   *
-   * @param lat  : Any
-   * @param long : Any
-   * @return POINT (lat, long) : String
-   */
-  def latLongConcat(lat: Any, long: Any): String = {
-
-    "POINT (" + lat + " " + long + ")"
-  }
-
-  /**
-   * An object that contains all needed constants (namespaces, URIs, prefixes).
-   */
-  object Constants {
-
-    /**
-     * The namespace for stRDF data model.
-     */
-    val stRDF = "http://strdf.di.uoa.gr/ontology#"
-
-    /**
-     * The namespace for GeoSPARQL ontology.
-     */
-    val GEO = "http://www.opengis.net/ont/geosparql#"
-
-    /**
-     * The namespace for GML.
-     */
-    val GML_OGC = "http://www.opengis.net/gml"
-
-    /**
-     * The URI for the datatype Well-Known Text (WKT).
-     */
-    val WKT = stRDF + "WKT"
-
-    /**
-     * The URI for the datatype Geography Markup Language (GML).
-     */
-    val GML = stRDF + "GML"
-
-    /**
-     * The URI for the datatype wktLiteral.
-     */
-    val WKTLITERAL = GEO + "wktLiteral"
-
-    /**
-     * The URI for the datatype gmlLiteral.
-     */
-    val GMLLITERAL = GEO + "gmlLiteral"
-
-    /**
-     * WKT representation for an empty geometry.
-     */
-    val EMPTY_GEOM = "MULTIPOLYGON EMPTY"
-
-    /**
-     * EPSG:4326 (default for stSPARQL).
-     */
-    val WGS84_LAT_LON_SRID = 4326
-
-    /**
-     * EPSG:3857 (default for GeoSPARQL).
-     */
-    val WGS84_LON_LAT_SRID = 3857
-
-    /**
-     * Default SRID.
-     */
-    val DEFAULT_SRID = WGS84_LAT_LON_SRID;
-
-    /**
-     * stRDF SRID delimiter.
-     */
-    val STRDF_SRID_DELIM = ";"
-
-    /**
-     * Maximum Latitude (WGS 84 (latitude-longitude))
-     */
-    val MAX_LAT = 180.0
-
-    /**
-     * Minimum Latitude (WGS 84 (latitude-longitude))
-     */
-    val MIN_LAT = -180.0
-
-    /**
-     * Maximum Longitude (WGS 84 (latitude-longitude))
-     */
-    val MAX_LONG = 90.0
-
-    /**
-     * Minimum Longitude (WGS 84 (latitude-longitude))
-     */
-    val MIN_LONG = -90.0
-
-    /**
-     * Spatial Distance
-     */
-    val CENTROID_DISTANCE = "centroid distance"
-
-    /**
-     * Topology Relations
-     */
-    val EQUALS = "equals"
-    val DISJOINT = "disjoint"
-    val INTERSECTS = "intersects"
-    val TOUCHES = "touches"
-    val CROSSES = "crosses"
-    val WITHIN = "within"
-    val CONTAINS = "contains"
-    val OVERLAPS = "overlaps"
-  }
 }

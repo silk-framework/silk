@@ -17,7 +17,8 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{evaluateDistance, indexGeometries}
+import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
  * Computes the distance between the centroids of two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -31,10 +32,10 @@ import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 case class CentroidDistanceMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    SpatialExtensionsUtils.evaluateDistance(str1, str2, limit, SpatialExtensionsUtils.Constants.CENTROID_DISTANCE)
+    evaluateDistance(str1, str2, limit, CENTROID_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    SpatialExtensionsUtils.indexGeometries(str, distance)
+    indexGeometries(str, distance)
   }
 }

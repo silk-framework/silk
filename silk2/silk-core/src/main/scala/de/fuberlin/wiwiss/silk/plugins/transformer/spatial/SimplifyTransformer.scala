@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.spatial
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.simplifyGeometry
 
 /**
  * This plugin simplifies a geometry according to a given distance tolerance (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -33,7 +33,7 @@ import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 case class SimplifyTransformer(distanceTolerance: Double) extends SimpleTransformer {
 
   override def evaluate(value: String) = {
-    SpatialExtensionsUtils.simplifyGeometry(value, distanceTolerance)
+    simplifyGeometry(value, distanceTolerance)
   }
 
 }
