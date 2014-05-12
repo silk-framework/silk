@@ -19,7 +19,7 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 
 /**
  * This plugin transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).

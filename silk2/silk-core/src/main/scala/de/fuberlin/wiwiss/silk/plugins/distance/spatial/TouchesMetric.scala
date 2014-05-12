@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
-import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 
 /**
  * Computes the relation \"touches\" between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

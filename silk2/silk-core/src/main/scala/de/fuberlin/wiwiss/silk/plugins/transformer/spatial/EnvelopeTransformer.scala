@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.spatial
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 
 /**
  * This plugin returns the Envelope (Minimum Bounding Rectangle) of the input geometry (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

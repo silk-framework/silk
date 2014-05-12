@@ -24,7 +24,7 @@ import com.vividsolutions.jts.geom.Geometry
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.SpatialExtensionsUtils
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils
 
 /**
  * This plugin transforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).
