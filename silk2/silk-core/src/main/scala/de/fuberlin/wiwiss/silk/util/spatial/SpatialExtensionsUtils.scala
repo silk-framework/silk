@@ -18,7 +18,6 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.WKTReader
 import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 
