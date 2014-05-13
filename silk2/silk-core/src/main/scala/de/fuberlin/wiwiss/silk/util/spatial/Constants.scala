@@ -105,7 +105,7 @@ object Constants {
   /**
    * Spatial Distances
    */
-  val CENTROID_DISTANCE = "centroid distance"
+  val CENTROID_DISTANCE = "centroidDistance"
 
   /**
    * Topology Relations
