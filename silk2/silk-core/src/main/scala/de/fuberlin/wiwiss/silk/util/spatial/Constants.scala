@@ -108,7 +108,7 @@ object Constants {
   val CENTROID_DISTANCE = "centroidDistance"
 
   /**
-   * Topology Relations
+   * Simple Features Topology Relations
    */
   val EQUALS = "equals"
   val DISJOINT = "disjoint"
