@@ -106,6 +106,7 @@ object SpatialExtensionsUtils {
 
       distanceType match {
         case CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
+        case _ => Double.PositiveInfinity
       }
 
     } catch {
