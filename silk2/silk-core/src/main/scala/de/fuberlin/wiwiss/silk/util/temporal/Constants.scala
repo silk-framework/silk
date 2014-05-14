@@ -24,37 +24,37 @@ import java.util.Date
 object Constants {
 
   /**
-   * period delimiter.
+   * Period delimiter.
    */
   val PERIOD_DELIM = ","
 
   /**
-   * Simple Date Format
+   * Simple Date Format.
    */
-  val SIMPLE_DATE_FORMAT = "yyyy-MM-DD'T'hh:mm:ss"
+  val SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss"
 
   /**
-   * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT)
+   * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT).
    */
   val MIN_TIME = new Date(0l).getDate()
 
   /**
-   * Max Time - "NOW"
+   * Max Time - "NOW".
    */
   val MAX_TIME = new Date().getDate()
 
   /**
-   * Convert Milliseconds
+   * Convert Milliseconds.
    */
   val MILLISECS_PER_SEC = 1000.0
   val MILLISECS_PER_MIN = 60000.0
   val MILLISECS_PER_HOUR = 3600000.0
   val MILLISECS_PER_DAY = 86400000.0
-  val MILLISECS_PER_MONTH = 2629743830.0
+  val MILLISECS_PER_MONTH = 2678400000.0
   val MILLISECS_PER_YEAR = 31556926000.0
 
   /**
-   * Time Distances
+   * Time Distances.
    */
   val MILLISECS_DISTANCE = "millisecsDistance"
   val SECS_DISTANCE = "secsDistance"
@@ -65,7 +65,7 @@ object Constants {
   val YEARS_DISTANCE = "yearDistance"
 
   /**
-   * Allen's Relations
+   * Allen's Relations.
    */
   val BEFORE = "before"
   val AFTER = "after"
