@@ -80,11 +80,11 @@ object TemporalExtensionsUtils {
       distanceType match {
         case MILLISECS_DISTANCE => diffInMillisecs
         case SECS_DISTANCE => diffInMillisecs / MILLISECS_PER_SEC
-        case MIN_DISTANCE => diffInMillisecs / MILLISECS_PER_MIN
-        case HOUR_DISTANCE => diffInMillisecs / MILLISECS_PER_HOUR
-        case DAY_DISTANCE => diffInMillisecs / MILLISECS_PER_DAY
-        case MONTH_DISTANCE => diffInMillisecs / MILLISECS_PER_MONTH
-        case YEAR_DISTANCE => diffInMillisecs / MILLISECS_PER_YEAR
+        case MINS_DISTANCE => diffInMillisecs / MILLISECS_PER_MIN
+        case HOURS_DISTANCE => diffInMillisecs / MILLISECS_PER_HOUR
+        case DAYS_DISTANCE => diffInMillisecs / MILLISECS_PER_DAY
+        case MONTHS_DISTANCE => diffInMillisecs / MILLISECS_PER_MONTH
+        case YEARS_DISTANCE => diffInMillisecs / MILLISECS_PER_YEAR
         case _ => Double.PositiveInfinity
       }
 

@@ -58,11 +58,11 @@ object Constants {
    */
   val MILLISECS_DISTANCE = "millisecsDistance"
   val SECS_DISTANCE = "secsDistance"
-  val MIN_DISTANCE = "minDistance"
-  val HOUR_DISTANCE = "hourDistance"
-  val DAY_DISTANCE = "dayDistance"
-  val MONTH_DISTANCE = "monthDistance"
-  val YEAR_DISTANCE = "yearDistance"
+  val MINS_DISTANCE = "minDistance"
+  val HOURS_DISTANCE = "hourDistance"
+  val DAYS_DISTANCE = "dayDistance"
+  val MONTHS_DISTANCE = "monthDistance"
+  val YEARS_DISTANCE = "yearDistance"
 
   /**
    * Allen's Relations
