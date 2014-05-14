@@ -21,6 +21,9 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 
+import org.geotools.geometry.jts.JTS
+import org.geotools.referencing.CRS
+
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 import de.fuberlin.wiwiss.silk.util.spatial.Parser._
@@ -33,6 +36,99 @@ import de.fuberlin.wiwiss.silk.util.spatial.Parser._
 object SpatialExtensionsUtils {
 
   private val logger = Logger.getLogger(this.getClass.getName)
+
+  /**
+   * This function transforms a geometry expressed in stSPARQL or GeoSPARQL from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).
+   * In case that the literal is not a geometry, it is returned as it is.
+   *
+   * @param literal : String
+   * @return WKTLiteral || literal : String
+   */
+  def stSPARQLGeoSPARQLTransformer(literal: String): String = {
+
+    val logger = Logger.getLogger(this.getClass.getName)
+
+    var geometry = null.asInstanceOf[Geometry]
+    var (geometryString, srid) = separateGeometryFromSRID(literal)
+
+    try {
+      srid match {
+        case DEFAULT_SRID =>
+          //Default SRID => no need for transformation.
+          return geometryString
+        case -1 =>
+          geometry = GMLReader(geometryString)
+        case _ =>
+          geometry = WKTReader(geometryString, srid)
+      }
+    } catch {
+      case e: Exception =>
+        logger.log(Level.ALL, "Parse Error. Returning literal as it is.")
+        return literal
+    }
+
+    if (geometry == null) {
+      logger.log(Level.ALL, "Null Geometry. Returning literal as it is.")
+      return literal
+    }
+
+    //Convert geometry to default SRID.
+    try {
+      val sourceCRS = CRS.decode("EPSG:" + geometry.getSRID())
+      val targetCRS = CRS.decode("EPSG:" + DEFAULT_SRID)
+      val transform = CRS.findMathTransform(sourceCRS, targetCRS, true)
+
+      return JTS.transform(geometry, transform).toText()
+    } catch {
+      case e: Exception =>
+        logger.log(Level.ALL, "Tranformation Error. Returning literal as it is.")
+        return literal
+    }
+  }
+
+  /**
+   * This function transforms a geometry expressed in the W3C Geo Vocabulary to WKT.
+   * It concatenates appropriately the values "lat" and "long" to create a single Point.
+   * This point is already in WGS 84 (latitude-longitude) CRS, so there is no need for transformation.
+   *
+   * @param lat  : Any
+   * @param long : Any
+   * @return POINT (lat, long) : String
+   */
+  def w3cGeoTransformer(lat: Any, long: Any): String = {
+
+    latLongConcat(lat, long)
+  }
+
+  /**
+   * This function transforms a cluster of points to their centroid.
+   *
+   * @param points: Seq[Set[String]]
+   * @return Set[String]
+   */
+  def pointsToCentroidTransformer(points: Seq[Set[String]]): Set[String] = {
+
+    var Seq(set1, set2) = points
+    var lat = 0.0
+    var long = 0.0
+
+    //Computes the centroid.
+    try {
+      while (set1.iterator.hasNext)
+        lat += set1.iterator.next.toFloat
+
+      while (set2.iterator.hasNext)
+        long += set2.iterator.next.toFloat
+      lat /= set1.iterator.size
+      long /= set2.iterator.size
+
+      Set(latLongConcat(lat, long))
+    } catch {
+      case e: Exception =>
+        logger.log(Level.ALL, "Cast Error. Returning literal as it is.")
+        points.reduce(_ ++ _)
+    }
+  }
 
   /**
    * This function returns the Envelope of a Geometry.
