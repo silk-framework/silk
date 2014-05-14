@@ -34,11 +34,6 @@ object Constants {
   val SIMPLE_DATE_FORMAT = "yyyy-MM-DD'T'hh:mm:ss"
 
   /**
-   * Max Distance
-   */
-  val MAX_DISTANCE = -1.0
-
-  /**
    * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT)
    */
   val MIN_TIME = new Date(0l).getDate()

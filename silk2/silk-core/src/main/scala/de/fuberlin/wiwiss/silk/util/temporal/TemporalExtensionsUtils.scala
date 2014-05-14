@@ -47,12 +47,7 @@ object TemporalExtensionsUtils {
 
       val (start, end) = period.get
 
-      //Case that we want the relations between all the times.
-      var newDistance = distance
-      if (distance == MAX_DISTANCE)
-        newDistance = MAX_TIME - MIN_TIME
-
-      Index.continuous((start.getDate() + end.getDate()) / 2.0, MIN_TIME, MAX_TIME, newDistance)
+      Index.continuous((start.getDate() + end.getDate()) / 2.0, MIN_TIME, MAX_TIME, distance)
 
     } catch {
       case e: Exception =>
