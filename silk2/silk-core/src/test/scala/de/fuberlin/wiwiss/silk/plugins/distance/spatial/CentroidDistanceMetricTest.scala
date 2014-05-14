@@ -22,35 +22,35 @@ import org.scalatest.junit.JUnitRunner
 import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
- * Tests the CentroidDinstance Metric.
+ * Tests the CentroidDistance Metric.
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 
 @RunWith(classOf[JUnitRunner])
-class CentroidDinstanceMetricTest extends FlatSpec with ShouldMatchers {
+class CentroidDistanceMetricTest extends FlatSpec with ShouldMatchers {
   Plugins.register()
 
   val metric = new CentroidDistanceMetric()
 
   //Same point.
-  "CentroidDinstanceMetric test 1" should "return '0.0'" in {
+  "CentroidDinstaceMetric test 1" should "return '0.0'" in {
     metric.evaluate("POINT (0 0)", "POINT (0 0)") should equal(0.0)
   }
 
   //Same centroid.
-  "CentroidDinstanceMetric test 2" should "return '0.0'" in {
+  "CentroidDinstaceMetric test 2" should "return '0.0'" in {
     metric.evaluate("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))", "POINT (1 1)") should equal(0.0)
 
   }
 
   //Distance 1.
-  "CentroidDinstanceMetric test 3" should "return '1.0'" in {
+  "CentroidDinstaceMetric test 3" should "return '1.0'" in {
     metric.evaluate("POINT (0 0)", "POINT (0 1)") should equal(1.0)
 
   }
   
   //Indexing.
-  "CentroidDinstanceMetric test 4" should "return '(Set(List(0, 0))'" in {
+  "CentroidDinstaceMetric test 4" should "return '(Set(List(0, 0))'" in {
     metric.indexValue("POINT (-180 -90)", 0.0) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
   }  
 }
