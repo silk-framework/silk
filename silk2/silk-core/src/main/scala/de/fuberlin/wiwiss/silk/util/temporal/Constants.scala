@@ -31,7 +31,7 @@ object Constants {
   /**
    * Simple Date Format.
    */
-  val SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss"
+  val SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
 
   /**
    * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT).
