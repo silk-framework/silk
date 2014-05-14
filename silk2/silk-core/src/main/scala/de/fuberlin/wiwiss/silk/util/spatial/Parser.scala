@@ -36,26 +36,26 @@ object Parser {
    *
    * @param geometryString : String
    * @param SRID: Int
-   * @return Option[Geometry]
+   * @return Geometry
    */
-  def WKTReader(geometryString: String, srid: Int): Option[Geometry] = {
+  def WKTReader(geometryString: String, srid: Int): Geometry = {
 
     val wktr = new WKTReader
     var geometry = wktr.read(geometryString)
     geometry.setSRID(srid)
-    Option(geometry)
+    geometry
   }
 
   /**
    * This function reads a GML Geometry.
    *
    * @param geometryString : String
-   * @return Option[Geometry]
+   * @return Geometry
    */
-  def GMLReader(geometryString: String): Option[Geometry] = {
+  def GMLReader(geometryString: String): Geometry = {
 
     //FIXME: This will be fixed, when the same bug will be fixed in Strabon.
-    null.asInstanceOf[Option[Geometry]]
+    null
 
   }
 

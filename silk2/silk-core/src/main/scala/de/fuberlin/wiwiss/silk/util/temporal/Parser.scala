@@ -33,23 +33,20 @@ object Parser {
    * This function parses a time String.
    *
    * @param timeString : String
-   * @return Option[(Date, Date)]
+   * @return (Date, Date)
    */
-  def parseTime(timeString: String): Option[((Date, Date))] = {
+  def parseTime(timeString: String): (Date, Date) = {
 
     try {
-      var period = null.asInstanceOf[Option[(Date, Date)]]
 
-      period = parsePeriod(timeString)
-      if (!period.isDefined)
+      var period = parsePeriod(timeString)
+      if (period == null)
         period = parseInstant(timeString)
-      if (!period.isDefined)
-        return null.asInstanceOf[Option[((Date, Date))]]
 
-      Option(period.get)
+      period
 
     } catch {
-      case e: Exception => null.asInstanceOf[Option[((Date, Date))]]
+      case e: Exception => null
     }
   }
 
@@ -57,18 +54,21 @@ object Parser {
    * This function parses a period String.
    *
    * @param periodString : String
-   * @return Option[(Date, Date)]
+   * @return (Date, Date)
    */
-  def parsePeriod(periodString: String): Option[(Date, Date)] = {
+  def parsePeriod(periodString: String): (Date, Date) = {
 
     try {
-      //Remove brackets and split to instants.
-      val instants = periodString.substring(1, periodString.length() - 1).split(PERIOD_DELIM)
       val sdf = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
 
-      Option((sdf.parse(instants.head), sdf.parse(instants.last)))
+      //Remove brackets and split to instants.
+      val instants = periodString.substring(1, periodString.length() - 1).split(PERIOD_DELIM)
+      instants.length match {
+        case 2 => (sdf.parse(instants.head), sdf.parse(instants.last))
+        case _ => null
+      }
     } catch {
-      case e: Exception => null.asInstanceOf[Option[(Date, Date)]]
+      case e: Exception => null
     }
   }
 
@@ -76,16 +76,16 @@ object Parser {
    * This function parses an instant String.
    *
    * @param instantString : String
-   * @return Option[(Date, Date)]
+   * @return (Date, Date)
    */
-  def parseInstant(instantString: String): Option[(Date, Date)] = {
+  def parseInstant(instantString: String): (Date, Date) = {
 
     try {
       val sdf = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
 
-      Option((sdf.parse(instantString), sdf.parse(instantString)))
+      (sdf.parse(instantString), sdf.parse(instantString))
     } catch {
-      case e: Exception => null.asInstanceOf[Option[(Date, Date)]]
+      case e: Exception => null
     }
   }
 }

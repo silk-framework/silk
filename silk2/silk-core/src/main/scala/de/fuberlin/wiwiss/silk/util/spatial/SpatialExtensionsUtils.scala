@@ -42,7 +42,7 @@ object SpatialExtensionsUtils {
    */
   def getEnvelopeFromGeometry(geometryString: String): String = {
     try {
-      WKTReader(geometryString, DEFAULT_SRID).get.getEnvelope().toText()
+      WKTReader(geometryString, DEFAULT_SRID).getEnvelope().toText()
     } catch {
       case e: Exception =>
         geometryString
@@ -58,7 +58,7 @@ object SpatialExtensionsUtils {
    */
   def simplifyGeometry(geometryString: String, distanceTolerance: Double): String = {
     try {
-      val geometry = WKTReader(geometryString, DEFAULT_SRID).get
+      val geometry = WKTReader(geometryString, DEFAULT_SRID)
       TopologyPreservingSimplifier.simplify(geometry, distanceTolerance).toText()
     } catch {
       case e: Exception =>
@@ -75,7 +75,7 @@ object SpatialExtensionsUtils {
    */
   def indexGeometries(geometryString: String, distance: Double): Index = {
     try {
-      val geometry = WKTReader(geometryString, DEFAULT_SRID).get
+      val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val centroid = geometry.getCentroid()
 
       //Create the index of the geometry based on its centroid.
@@ -101,8 +101,8 @@ object SpatialExtensionsUtils {
   def evaluateDistance(geometryString1: String, geometryString2: String, limit: Double, distanceType: String): Double = {
     try {
       //Get the geometries.
-      val geometry1 = WKTReader(geometryString1, DEFAULT_SRID).get
-      val geometry2 = WKTReader(geometryString2, DEFAULT_SRID).get
+      val geometry1 = WKTReader(geometryString1, DEFAULT_SRID)
+      val geometry2 = WKTReader(geometryString2, DEFAULT_SRID)
 
       distanceType match {
         case CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
@@ -127,8 +127,8 @@ object SpatialExtensionsUtils {
   def evaluateRelation(geometryString1: String, geometryString2: String, limit: Double, relation: String): Double = {
     try {
       //Get the geometries.
-      val geometry1 = WKTReader(geometryString1, DEFAULT_SRID).get
-      val geometry2 = WKTReader(geometryString2, DEFAULT_SRID).get
+      val geometry1 = WKTReader(geometryString1, DEFAULT_SRID)
+      val geometry2 = WKTReader(geometryString2, DEFAULT_SRID)
 
       //Compute the spatial relation.
       if (relate(geometry1, geometry2, relation))

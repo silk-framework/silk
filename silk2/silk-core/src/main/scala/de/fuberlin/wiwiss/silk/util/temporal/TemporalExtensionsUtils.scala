@@ -42,10 +42,10 @@ object TemporalExtensionsUtils {
       val period = parseTime(timeString)
 
       //Ensure that period is well-defined.
-      if (!period.isDefined)
+      if (period==null)
         return Index.empty
 
-      val (start, end) = period.get
+      val (start, end) = period
 
       Index.continuous((start.getDate() + end.getDate()) / 2.0, MIN_TIME, MAX_TIME, distance)
 
@@ -70,13 +70,13 @@ object TemporalExtensionsUtils {
       val period2 = parseTime(timeString2)
 
       //Ensure that periods are well-defined.
-      if (!period1.isDefined || !period2.isDefined)
+      if (period1 == null || period2 == null)
         return Double.PositiveInfinity
 
-      val (start1, end1) = period1.get
-      val (start2, end2) = period2.get
+      val (start1, end1) = period1
+      val (start2, end2) = period2
       val diffInMillisecs = Math.min(Math.abs(start1.getTime() - end2.getTime()), Math.abs(end1.getTime() - start2.getTime()))
-
+println(start1, start2, diffInMillisecs)
       distanceType match {
         case MILLISECS_DISTANCE => diffInMillisecs
         case SECS_DISTANCE => diffInMillisecs / MILLISECS_PER_SEC
@@ -109,11 +109,11 @@ object TemporalExtensionsUtils {
       val period2 = parseTime(timeString2)
 
       //Ensure that periods are well-defined.
-      if (!period1.isDefined || !period2.isDefined)
+      if (period1 == null || period2 == null)
         return Double.PositiveInfinity
 
       //Compute the temporal relation.
-      if (relate(period1.get, period2.get, relation))
+      if (relate(period1, period2, relation))
         return limit
       else
         return Double.PositiveInfinity

@@ -72,7 +72,7 @@ case class GeometryTransformer() extends Transformer {
 
     val logger = Logger.getLogger(this.getClass.getName)
 
-    var geometry = null.asInstanceOf[Option[Geometry]]
+    var geometry = null.asInstanceOf[Geometry]
     var (geometryString, srid) = separateGeometryFromSRID(literal)
 
     try {
@@ -91,18 +91,18 @@ case class GeometryTransformer() extends Transformer {
         return literal
     }
 
-    if (!geometry.isDefined) {
+    if (geometry == null) {
       logger.log(Level.ALL, "Null Geometry. Returning literal as it is.")
       return literal
     }
 
     //Convert geometry to default SRID.
     try {
-      val sourceCRS = CRS.decode("EPSG:" + geometry.get.getSRID())
+      val sourceCRS = CRS.decode("EPSG:" + geometry.getSRID())
       val targetCRS = CRS.decode("EPSG:" + DEFAULT_SRID)
       val transform = CRS.findMathTransform(sourceCRS, targetCRS, true)
 
-      return JTS.transform(geometry.get, transform).toText()
+      return JTS.transform(geometry, transform).toText()
     } catch {
       case e: Exception =>
         logger.log(Level.ALL, "Tranformation Error. Returning literal as it is.")
