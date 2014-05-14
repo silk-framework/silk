@@ -74,7 +74,7 @@ object Constants {
   val OVERLAPS = "overlaps"
   val IS_OVERLAPPED_BY = "isOverlappedBy"
   val FINISHES = "finishes"
-  val IS_FINISHED_BY = "isFinishesBy"
+  val IS_FINISHED_BY = "isFinishedBy"
   val CONTAINS = "contains"
   val DURRING = "durring"
   val STARTS = "starts"
