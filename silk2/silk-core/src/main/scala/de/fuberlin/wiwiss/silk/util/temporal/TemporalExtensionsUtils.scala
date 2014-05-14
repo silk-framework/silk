@@ -75,7 +75,7 @@ object TemporalExtensionsUtils {
 
       val (start1, end1) = period1.get
       val (start2, end2) = period2.get
-      val diffInMillisecs = Math.min(Math.abs(start1.getDate() - end2.getDate()), Math.abs(end1.getDate() - start2.getDate()))
+      val diffInMillisecs = Math.min(Math.abs(start1.getTime() - end2.getTime()), Math.abs(end1.getTime() - start2.getTime()))
 
       distanceType match {
         case MILLISECS_DISTANCE => diffInMillisecs
