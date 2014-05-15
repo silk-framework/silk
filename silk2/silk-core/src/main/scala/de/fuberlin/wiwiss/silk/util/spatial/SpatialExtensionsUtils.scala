@@ -108,17 +108,19 @@ object SpatialExtensionsUtils {
    */
   def pointsToCentroidTransformer(points: Seq[Set[String]]): Set[String] = {
 
-    var Seq(set1, set2) = points
+    val Seq(set1, set2) = points
+    val iterator1 = set1.iterator
+    val iterator2 = set2.iterator
     var lat = 0.0
     var long = 0.0
 
     //Computes the centroid.
     try {
-      while (set1.iterator.hasNext)
-        lat += set1.iterator.next.toFloat
+      while (iterator1.hasNext)
+        lat += iterator1.next.toFloat
+      while (iterator2.hasNext)
+        long += iterator2.next.toFloat
 
-      while (set2.iterator.hasNext)
-        long += set2.iterator.next.toFloat
       lat /= set1.iterator.size
       long /= set2.iterator.size
 
