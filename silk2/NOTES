@@ -14,6 +14,9 @@ mvn -DskipTests=false -Dtest=<TestClass> -DfailIfNoTests=false test
 
 How to merge with default Silk:
 
-$ git fetch git@github.com:silk-framework/silk.git
-$ git merge FETCH_HEAD HEAD
+Run once:
+git remote add silk-default git@github.com:silk-framework/silk.git
+
+And then each time:
+$ git pull silk-default master
 $ git push
