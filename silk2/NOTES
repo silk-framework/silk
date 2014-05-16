@@ -20,3 +20,8 @@ git remote add silk-default git@github.com:silk-framework/silk.git
 And then each time:
 $ git pull silk-default master
 $ git push
+
+How to see the differences with the default Silk:
+$ git diff master remotes/silk-default/master
+
+
