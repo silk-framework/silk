@@ -2,17 +2,26 @@ package de.fuberlin.wiwiss.silk.plugins.datasource
 
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.entity._
-import io.Source
+import scala.io.Source
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 @Plugin(
   id = "csv",
-  label = "CSV Source",
-  description = "DataSource which retrieves all entities from a csv file.")
-case class CsvDataSource(file: Resource, properties: String, separator: Char = ',', prefix: String = "") extends DataSource {
+  label = "CSV Source.",
+  description =
+    "DataSource which retrieves all entities from a csv file.\n" +
+    "Parameters: \n" +
+    "  file:  File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.\n" +
+    "  properties: Comma-separated list of properties.\n" +
+    "  separator: The character that is used to separate values. " +
+                  "If not provided, defaults to ',', i.e., comma-separated values. " +
+                  "Regexes, such as '\\t' for specifying tab-separated values, are also supported.\n" +
+    "  prefix: The prefix that is used to generate URIs for each line.\n"
+)
+case class CsvDataSource(file: Resource, properties: String, separator: String = ",", prefix: String = "") extends DataSource {
 
-  private val propertyList: Seq[String] = properties.split(separator)
+  private val propertyList: Seq[String] = properties.split(',')
 
   override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     for(property <- propertyList) yield {

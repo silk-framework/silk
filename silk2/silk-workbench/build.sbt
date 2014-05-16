@@ -8,15 +8,13 @@ name := "Silk-Workbench"
 
 version := "2.6.0-SNAPSHOT"
 
-playScalaSettings
-
 ////////////////////////////////////////////////
 // War Packaging
 ////////////////////////////////////////////////
 
-com.github.play2war.plugin.Play2WarPlugin.play2WarSettings
+//com.github.play2war.plugin.Play2WarPlugin.play2WarSettings
 
-com.github.play2war.plugin.Play2WarKeys.servletVersion := "3.0"
+//com.github.play2war.plugin.Play2WarKeys.servletVersion := "3.0"
 
 ////////////////////////////////////////////////
 // Linux Packaging
