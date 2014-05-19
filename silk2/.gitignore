@@ -3,3 +3,6 @@
 .idea_modules/*
 **/target/*
 **/logs/*
+*.iml
+*.ipr
+*.iws
