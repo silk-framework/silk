@@ -86,7 +86,7 @@ class PluginFactory[T <: AnyPlugin : Manifest] {
    */
   def registerClasspath() {
     val classFinder = ClassFinder()
-    val classes = classFinder.getClasses()
+    val classes = classFinder.getClasses().toIterator
 
     val pluginClassNames = ClassFinder.concreteSubclasses(manifest[T].runtimeClass.getName, classes).map(_.name)
     val pluginClasses = pluginClassNames.map(Class.forName)
