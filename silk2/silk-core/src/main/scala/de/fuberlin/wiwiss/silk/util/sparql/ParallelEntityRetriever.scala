@@ -91,7 +91,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
           entities.drop(counter).foreach(f)
         }
         else {
-          logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by.")
+          logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by. Falling back to serial querying.")
           val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
           val entities = simpleEntityRetriever.retrieve(entityDesc, entityUris)
           entities.drop(counter).foreach(f)
@@ -162,7 +162,10 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
           sparql += SparqlPathBuilder(path :: Nil, "<" + subjectUri + ">", "?" + varPrefix)
         }
         case None => {
-          sparql += entityDesc.restrictions.toSparql + "\n"
+          if (entityDesc.restrictions.toSparql.isEmpty)
+            sparql += "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
+          else
+            sparql += entityDesc.restrictions.toSparql + "\n"
           sparql += SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
         }
       }
