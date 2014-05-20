@@ -19,5 +19,5 @@ lazy val workbench = project in file("silk-workbench") dependsOn workspace aggre
 lazy val root = project.in(file("."))
                      //.aggregate(workbench)
                      //.dependsOn(workbench)
-					   
+
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.1.6" % "test"
