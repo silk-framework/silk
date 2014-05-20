@@ -6,7 +6,7 @@ import com.typesafe.sbt.packager.Keys._
 
 name := "Silk-Workbench"
 
-version := "2.6.0-SNAPSHOT"
+version := "2.6.1-SNAPSHOT"
 
 ////////////////////////////////////////////////
 // War Packaging
@@ -23,7 +23,7 @@ version := "2.6.0-SNAPSHOT"
 // Uncomment to generate Debian packages that register the Workbench as an Upstart service
 // packageArchetype.java_server
 
-version in Debian := "2.6.0"
+version in Debian := "2.6.1"
 
 maintainer := "Robert Isele <silk-discussion@googlegroups.com>"
 
