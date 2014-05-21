@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.spatial.Constants._
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "ContainsMetric",
+  id = "SContainsMetric",
   categories = Array("Spatial"),
   label = "Contains",
   description = "Computes the relation \"contains\" between two geometries. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")

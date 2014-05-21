@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.spatial.Constants._
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "OverlapsMetric",
+  id = "SOverlapsMetric",
   categories = Array("Spatial"),
   label = "Overlaps",
   description = "Computes the relation \"overlaps\" between two geometries. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")

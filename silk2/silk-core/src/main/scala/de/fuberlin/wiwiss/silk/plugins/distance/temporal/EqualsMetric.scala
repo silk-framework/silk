@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.temporal.Constants._
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "EqualsMetric",
+  id = "TEqualsMetric",
   categories = Array("Temporal"),
   label = "Equals",
   description = "Computes the relation \"equals\" between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")

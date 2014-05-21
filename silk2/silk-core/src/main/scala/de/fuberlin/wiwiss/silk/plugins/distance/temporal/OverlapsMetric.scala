@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.temporal.Constants._
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "OverlapsMetric",
+  id = "TOverlapsMetric",
   categories = Array("Temporal"),
   label = "Overlaps",
   description = "Computes the relation \"overlaps\" between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")

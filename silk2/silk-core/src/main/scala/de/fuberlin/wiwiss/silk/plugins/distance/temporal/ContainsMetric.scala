@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.temporal.Constants._
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "ContainsMetric",
+  id = "TContainsMetric",
   categories = Array("Temporal"),
   label = "Contains",
   description = "Computes the relation \"contains\" between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
