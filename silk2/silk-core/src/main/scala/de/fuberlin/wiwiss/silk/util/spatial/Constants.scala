@@ -85,22 +85,22 @@ object Constants {
   /**
    * Maximum Latitude (WGS 84 (latitude-longitude))
    */
-  val MAX_LAT = 180.0
+  val MAX_LAT = 90.0
 
   /**
    * Minimum Latitude (WGS 84 (latitude-longitude))
    */
-  val MIN_LAT = -180.0
+  val MIN_LAT = -90.0
 
   /**
    * Maximum Longitude (WGS 84 (latitude-longitude))
    */
-  val MAX_LONG = 90.0
+  val MAX_LONG = 180.0
 
   /**
    * Minimum Longitude (WGS 84 (latitude-longitude))
    */
-  val MIN_LONG = -90.0
+  val MIN_LONG = -180.0
 
   /**
    * Spatial Distances

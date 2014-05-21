@@ -177,8 +177,8 @@ object SpatialExtensionsUtils {
       val centroid = geometry.getCentroid()
 
       //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getX(), MIN_LAT, MAX_LAT, distance)
-      val longIndex = Index.continuous(centroid.getY(), MIN_LONG, MAX_LONG, distance)
+      val latIndex = Index.continuous(centroid.getY(), MIN_LAT, MAX_LAT, distance)
+      val longIndex = Index.continuous(centroid.getX(), MIN_LONG, MAX_LONG, distance)
 
       latIndex conjunction longIndex
     } catch {
