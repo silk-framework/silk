@@ -1,0 +1,146 @@
+############################################################################################################################################
+# Tabs
+############################################################################################################################################
+
+# Welcome Page
+GET           /                                                                                     controllers.tabs.Start.index
+
+# Workspace
+GET           /workspace                                                                            controllers.tabs.Workspace.index
+GET           /workspace/dialogs/newproject                                                         controllers.tabs.Workspace.newProjectDialog()
+GET           /workspace/dialogs/importproject                                                      controllers.tabs.Workspace.importProjectDialog()
+GET           /workspace/dialogs/importlinkspec/:project                                            controllers.tabs.Workspace.importLinkSpecDialog(project: String)
+GET           /workspace/dialogs/prefixes/:project                                                  controllers.tabs.Workspace.prefixDialog(project: String)
+GET           /workspace/dialogs/resources/:project                                                 controllers.tabs.Workspace.resourcesDialog(project: String)
+GET           /workspace/dialogs/newSource/:project                                                 controllers.tabs.Workspace.sourceDialog(project: String, source = "")
+GET           /workspace/dialogs/editSource/:project/:source                                        controllers.tabs.Workspace.sourceDialog(project: String, source: String)
+GET           /workspace/dialogs/newTransformTask/:project                                     controllers.tabs.Workspace.transformationTaskDialog(project: String, task = "")
+GET           /workspace/dialogs/editTransformTask/:project/:task                              controllers.tabs.Workspace.transformationTaskDialog(project: String, task: String)
+GET           /workspace/dialogs/newLinkingTask/:project                                            controllers.tabs.Workspace.linkingTaskDialog(project: String, task = "")
+GET           /workspace/dialogs/editLinkingTask/:project/:task                                     controllers.tabs.Workspace.linkingTaskDialog(project: String, task: String)
+GET           /workspace/dialogs/editRestriction/:project/:source                                   controllers.tabs.Workspace.restrictionDialog(project: String, source: String, sourceOrTarget: String, restriction: String)
+GET           /workspace/dialogs/newOutput/:project                                                 controllers.tabs.Workspace.outputDialog(project: String, output = "")
+GET           /workspace/dialogs/editOutput/:project/:output                                        controllers.tabs.Workspace.outputDialog(project: String, output: String)
+POST          /workspace/:project/importExample                                                     controllers.tabs.Workspace.importExample(project: String)
+
+# Transformation Editor
+GET           /:project/transform/:task/editor                                                      controllers.tabs.TransformEditor.editor(project: String, task: String)
+GET           /:project/transform/:task/editor/paths                                                controllers.tabs.TransformEditor.paths(project: String, task: String)
+GET           /:project/transform/:task/editor/score                                                controllers.tabs.TransformEditor.score(project: String, task: String)
+
+# Evaluate Transformation
+GET           /:project/transform/:task/evaluate                                                    controllers.tabs.EvaluateTransform.evaluate(project: String, task: String)
+GET           /:project/transform/:task/evaluate/generatedEntities                                  controllers.tabs.EvaluateTransform.generatedEntities(project: String, task: String)
+
+# Execute Transformation
+GET           /:project/transform/:task/execute                                                     controllers.tabs.ExecuteTransform.execute(project: String, task: String)
+GET           /:project/transform/:task/executeDialog                                               controllers.tabs.ExecuteTransform.executeDialog(project: String, task: String)
+GET           /:project/transform/:task/execute/statusStream                                        controllers.tabs.ExecuteTransform.statusStream(project: String, task: String)
+
+# Linkage Rule Editor
+GET           /:project/:task/editor                                                                controllers.tabs.Editor.editor(project: String, task: String)
+GET           /:project/:task/editor/paths                                                          controllers.tabs.Editor.paths(project: String, task: String)
+GET           /:project/:task/editor/score                                                          controllers.tabs.Editor.score(project: String, task: String)
+
+# Generate Links
+GET           /:project/:task/generateLinks                                                         controllers.tabs.GenerateLinks.generateLinks(project: String, task: String)
+GET           /:project/:task/generateLinksDialog                                                   controllers.tabs.GenerateLinks.generateLinksDialog(project: String, task: String)
+GET           /:project/:task/generateLinks/links/:sorting/:filter/:page                            controllers.tabs.GenerateLinks.links(project: String, task: String, sorting: String, filter: String, page: Int)
+GET           /:project/:task/generateLinks/linksStream                                             controllers.tabs.GenerateLinks.linksStream(project: String, task: String)
+GET           /:project/:task/generateLinks/statusStream                                            controllers.tabs.GenerateLinks.statusStream(project: String, task: String)
+
+# Reference Links
+GET           /:project/:task/referenceLinks                                                        controllers.tabs.ReferenceLinks.referenceLinksView(project: String, task: String)
+GET           /:project/:task/referenceLinks/importDialog                                           controllers.tabs.ReferenceLinks.importDialog(project: String, task: String)
+GET           /:project/:task/referenceLinks/exportDialog                                           controllers.tabs.ReferenceLinks.exportDialog(project: String, task: String)
+GET           /:project/:task/referenceLinks/:linkType/:sorting/:filter/:page                       controllers.tabs.ReferenceLinks.referenceLinks(project: String, task: String, linkType: String, sorting: String, filter: String, page: Int)
+
+# Learn
+GET           /:project/:task/learnStart                                                            controllers.tabs.Learning.start(project: String, task: String)
+GET           /:project/:task/learn                                                                 controllers.tabs.Learning.learn(project: String, task: String)
+GET           /:project/:task/activeLearn                                                           controllers.tabs.Learning.activeLearn(project: String, task: String)
+GET           /:project/:task/learn/rule                                                            controllers.tabs.Learning.rule(project: String, task: String)
+GET           /:project/:task/learn/ruleStream                                                      controllers.tabs.Learning.ruleStream(project: String, task: String)
+GET           /:project/:task/learn/links/:sorting/:filter/:page                                    controllers.tabs.Learning.links(project: String, task: String, sorting: String, filter: String, page: Int)
+GET           /:project/:task/learn/linksStream                                                     controllers.tabs.Learning.linksStream(project: String, task: String)
+GET           /:project/:task/learn/statusStream                                                    controllers.tabs.Learning.statusStream(project: String, task: String)
+GET           /:project/:task/learn/population                                                      controllers.tabs.Learning.population(project: String, task: String)
+GET           /:project/:task/learn/populationView/:page                                            controllers.tabs.Learning.populationView(project: String, task: String, page: Int)
+
+# Status
+GET           /:project/:task/status                                                                controllers.tabs.Status.status(project: String, task: String)
+GET           /:project/:task/status/cacheStream                                                    controllers.tabs.Status.cacheStream(project: String, task: String)
+GET           /:project/:task/status/sourceTypesCacheStream                                         controllers.tabs.Status.sourceTypesCacheStream(project: String, task: String)
+GET           /:project/:task/status/targetTypesCacheStream                                         controllers.tabs.Status.targetTypesCacheStream(project: String, task: String)
+GET           /:project/:task/status/pathCacheStream                                                controllers.tabs.Status.pathCacheStream(project: String, task: String)
+GET           /:project/:task/status/referenceEntitiesCacheStream                                   controllers.tabs.Status.referenceEntitiesCacheStream(project: String, task: String)
+
+# Branding
+GET           /logo.png                                                                             controllers.util.Branding.logo
+GET           /aboutDialog                                                                          controllers.util.Branding.aboutDialog
+
+############################################################################################################################################
+# Api
+############################################################################################################################################
+
+# Workspace
+GET           /api/workspace                                                                        controllers.api.WorkspaceApi.workspace
+
+# Projects
+PUT           /api/workspace/:project                                                               controllers.api.WorkspaceApi.newProject(project: String)
+DELETE        /api/workspace/:project                                                               controllers.api.WorkspaceApi.deleteProject(project: String)
+POST          /api/workspace/:project/import                                                        controllers.api.WorkspaceApi.importProject(project: String)
+GET           /api/workspace/:project/export                                                        controllers.api.WorkspaceApi.exportProject(project: String)
+POST          /api/workspace/:project/importLinkSpec                                                controllers.api.WorkspaceApi.importLinkSpec(project: String)
+
+# Prefixes
+PUT           /api/workspace/:project/prefixes                                                      controllers.api.WorkspaceApi.updatePrefixes(project: String)
+
+# Resources
+GET           /api/workspace/:project/resources/:name                                               controllers.api.WorkspaceApi.getResource(project: String, name: String)
+PUT           /api/workspace/:project/resources/:name                                               controllers.api.WorkspaceApi.putResource(project: String, name: String)
+DELETE        /api/workspace/:project/resources/:name                                               controllers.api.WorkspaceApi.deleteResource(project: String, name: String)
+
+# Sources
+GET           /api/workspace/:project/source/:source                                                controllers.api.WorkspaceApi.getSource(project: String, source: String)
+PUT           /api/workspace/:project/source/:source                                                controllers.api.WorkspaceApi.putSource(project: String, source: String)
+DELETE        /api/workspace/:project/source/:source                                                controllers.api.WorkspaceApi.deleteSource(project: String, source: String)
+
+# Transformation Tasks
+PUT           /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.putTransformTask(project: String, task: String)
+DELETE        /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.deleteTransformTask(project: String, task: String)
+GET           /api/workspace/:project/transform/:task/rule                                          controllers.api.TransformTaskApi.getRule(project: String, task: String)
+PUT           /api/workspace/:project/transform/:task/rule                                          controllers.api.TransformTaskApi.putRule(project: String, task: String)
+
+# Linking Tasks
+PUT           /api/workspace/:project/linking/:task                                                 controllers.api.WorkspaceApi.putLinkingTask(project: String, task: String)
+DELETE        /api/workspace/:project/linking/:task                                                 controllers.api.WorkspaceApi.deleteLinkingTask(project: String, task: String)
+GET           /api/workspace/:project/linking/:task/rule                                            controllers.api.LinkingTaskApi.getRule(project: String, task: String)
+PUT           /api/workspace/:project/linking/:task/rule                                            controllers.api.LinkingTaskApi.putRule(project: String, task: String)
+GET           /api/workspace/:project/linking/:task/linkSpec                                        controllers.api.LinkingTaskApi.getLinkSpec(project: String, task: String)
+PUT           /api/workspace/:project/linking/:task/linkSpec                                        controllers.api.LinkingTaskApi.putLinkSpec(project: String, task: String)
+GET           /api/workspace/:project/linking/:task/referenceLinks                                  controllers.api.LinkingTaskApi.getReferenceLinks(project: String, task: String)
+PUT           /api/workspace/:project/linking/:task/referenceLinks                                  controllers.api.LinkingTaskApi.putReferenceLinks(project: String, task: String)
+PUT           /api/workspace/:project/linking/:task/referenceLinks/:linkType/:source/:target        controllers.api.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
+DELETE        /api/workspace/:project/linking/:task/referenceLinks/:source/:target                  controllers.api.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
+POST          /api/workspace/:project/linking/:task/reloadCache                                     controllers.api.ControlApi.reloadCache(project: String, task: String)
+
+# Outputs
+GET           /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.getOutput(project: String, output: String)
+PUT           /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.putOutput(project: String, output: String)
+DELETE        /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.deleteOutput(project: String, output: String)
+
+# Control
+PUT           /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.startGenerateLinksTask(project: String, task: String)
+DELETE        /api/tasks/:project/:task/generateLinks                                               controllers.api.ControlApi.stopGenerateLinksTask(project: String, task: String)
+PUT           /api/tasks/:project/:task/writeReferenceLinks                                         controllers.api.ControlApi.writeReferenceLinks(project: String, task: String)
+PUT           /api/tasks/:project/:task/learningTask                                                controllers.api.ControlApi.learningTask(project: String, task: String)
+PUT           /api/tasks/:project/:task/activeLearningTask                                          controllers.api.ControlApi.activeLearningTask(project: String, task: String)
+PUT           /api/tasks/:project/:task/executeTransform                                            controllers.api.ControlApi.executeTransformTask(project: String, task: String)
+
+############################################################################################################################################
+# Files
+############################################################################################################################################
+
+# Map static resources from the /public folder to the /assets URL path
+GET           /assets/*file                                                                         controllers.Assets.at(path="/public", file)

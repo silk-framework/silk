@@ -30,10 +30,10 @@ import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.simplifyGeome
   categories = Array("Spatial"),
   label = "Simplify Transformer",
   description = "Simplifies a geometry according to a given distance tolerance. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
-case class SimplifyTransformer(distanceTolerance: Double) extends SimpleTransformer {
+case class SimplifyTransformer(distanceTolerance: Double = 0.0, preserveTopology: Boolean = false) extends SimpleTransformer {
 
   override def evaluate(value: String) = {
-    simplifyGeometry(value, distanceTolerance)
+    simplifyGeometry(value, distanceTolerance, preserveTopology)
   }
 
 }

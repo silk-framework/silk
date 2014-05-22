@@ -20,6 +20,8 @@ import java.util.logging.Logger
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.operation.distance.DistanceOp.distance
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
+import com.vividsolutions.jts.simplify.DouglasPeuckerSimplifier
+import com.vividsolutions.jts.algorithm.MinimumBoundingCircle
 
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
@@ -154,10 +156,13 @@ object SpatialExtensionsUtils {
    * @param distanceTolerance: Double
    * @return String
    */
-  def simplifyGeometry(geometryString: String, distanceTolerance: Double): String = {
+  def simplifyGeometry(geometryString: String, distanceTolerance: Double, preserveTopology: Boolean): String = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
-      TopologyPreservingSimplifier.simplify(geometry, distanceTolerance).toText()
+      if (preserveTopology)
+    	  TopologyPreservingSimplifier.simplify(geometry, distanceTolerance).toText()
+    else
+        DouglasPeuckerSimplifier.simplify(geometry, distanceTolerance).toText()
     } catch {
       case e: Exception =>
         geometryString
@@ -174,11 +179,11 @@ object SpatialExtensionsUtils {
   def indexGeometries(geometryString: String, distance: Double): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
-      val centroid = geometry.getCentroid()
+      val centre = new MinimumBoundingCircle(geometry).getCentre()
 
       //Create the index of the geometry based on its centroid.
-      val latIndex = Index.continuous(centroid.getY(), MIN_LAT, MAX_LAT, distance)
-      val longIndex = Index.continuous(centroid.getX(), MIN_LONG, MAX_LONG, distance)
+      val latIndex = Index.continuous(centre.y, MIN_LAT, MAX_LAT, distance)
+      val longIndex = Index.continuous(centre.x, MIN_LONG, MAX_LONG, distance)
 
       latIndex conjunction longIndex
     } catch {
@@ -203,7 +208,7 @@ object SpatialExtensionsUtils {
       val geometry2 = WKTReader(geometryString2, DEFAULT_SRID)
 
       distanceType match {
-        case CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid())
+        case CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid()).toRadians
         case _ => Double.PositiveInfinity
       }
 
