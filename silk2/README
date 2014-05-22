@@ -12,3 +12,8 @@ within different Linked Data sources. More information about Silk can be found o
 
 - Execute: sbt "project workbench" run
 - In your browser, navigate to 'http://localhost:9000'
+
+## Packaging the Silk Workbench
+
+- Execute: sbt "project workbench" dist
+- The package should be available in the folder silk-workbench/target/universal

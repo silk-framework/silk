@@ -57,12 +57,11 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
 
     //Body
     sparql += "WHERE {\n"
-    if (entityDesc.restrictions.toSparql.isEmpty && entityDesc.paths.isEmpty) {
-      sparql += "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o "
-    } else {
+    if (entityDesc.restrictions.toSparql.isEmpty)
+      sparql += "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
+    else
       sparql += entityDesc.restrictions.toSparql + "\n"
-      sparql += SparqlPathBuilder(entityDesc.paths, "?" + entityDesc.variable, "?" + varPrefix)
-    }
+    sparql += SparqlPathBuilder(entityDesc.paths, "?" + entityDesc.variable, "?" + varPrefix)
     sparql += "}"
 
     val sparqlResults = endpoint.query(sparql)

@@ -3,6 +3,9 @@
 .idea_modules/*
 **/target/*
 **/logs/*
+*.iml
+*.ipr
+*.iws
 .classpath
 .project
 .settings
