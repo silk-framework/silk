@@ -27,7 +27,6 @@ import de.fuberlin.wiwiss.silk.util.Timer
 import java.util.logging.Logger
 import tokenbased._
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumOperationTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.TimestampToDateTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.CamelCaseTokenizer
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic._
@@ -86,6 +85,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTrans
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
+import de.fuberlin.wiwiss.silk.plugins.transformer.date.{DurationInSecondsTransformer, DurationTransformer, DurationInDaysTransformer, TimestampToDateTransformer}
 
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.
@@ -143,13 +143,17 @@ object Plugins {
     Transformer.register(classOf[NormalizeCharsTransformer])
     Transformer.register(classOf[FilterByLength])
     Transformer.register(classOf[FilterByRegex])
-    Transformer.register(classOf[TimestampToDateTransformer])
     Transformer.register(classOf[NumOperationTransformer])
     Transformer.register(classOf[UntilCharacterTransformer])
     Transformer.register(classOf[SubstringTransformer])
     Transformer.register(classOf[SoundexTransformer])
     Transformer.register(classOf[NysiisTransformer])
     Transformer.register(classOf[MetaphoneTransformer])
+    // Date
+    Transformer.register(classOf[TimestampToDateTransformer])
+    Transformer.register(classOf[DurationTransformer])
+    Transformer.register(classOf[DurationInSecondsTransformer])
+    Transformer.register(classOf[DurationInDaysTransformer])
 
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])
