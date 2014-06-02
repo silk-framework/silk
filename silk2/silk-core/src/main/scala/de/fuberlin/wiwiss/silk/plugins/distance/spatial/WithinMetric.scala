@@ -36,6 +36,6 @@ case class WithinMetric() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometries(str, distance)
+    indexGeometries(str)
   }
 }
