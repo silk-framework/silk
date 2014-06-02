@@ -42,12 +42,15 @@ object TemporalExtensionsUtils {
       val period = parseTime(timeString)
 
       //Ensure that period is well-defined.
-      if (period==null)
+      if (period == null)
         return Index.empty
 
       val (start, end) = period
 
-      Index.continuous((start.getDate() + end.getDate()) / 2.0, MIN_TIME, MAX_TIME, distance)
+      val blockCount = TIME_RANGE
+      val blocks = for (i <- start.getDate() to end.getDate()) yield i
+
+      Index.oneDim(blocks.toSet, blockCount)
 
     } catch {
       case e: Exception =>
@@ -56,7 +59,7 @@ object TemporalExtensionsUtils {
   }
 
   /**
-   * This function evaluates a distance between two time periods or instants (for periods, it evaluates the distance between their centres).
+   * This function evaluates a distance between two time periods or instants (for periods, it evaluates the minimum distance between their starts/ends).
    *
    * @param timeString1 : String
    * @param timeString2 : String
@@ -75,7 +78,7 @@ object TemporalExtensionsUtils {
 
       val (start1, end1) = period1
       val (start2, end2) = period2
-      val diffInMillisecs = Math.min(Math.abs(start1.getTime() - end2.getTime()), Math.abs(end1.getTime() - start2.getTime()))
+      val diffInMillisecs = Math.min(Math.min(Math.abs(start1.getTime() - end2.getTime()), Math.abs(end1.getTime() - start2.getTime())), Math.min(Math.abs(start1.getTime() - start2.getTime()), Math.abs(end1.getTime() - end2.getTime())))
 
       distanceType match {
         case MILLISECS_DISTANCE => diffInMillisecs

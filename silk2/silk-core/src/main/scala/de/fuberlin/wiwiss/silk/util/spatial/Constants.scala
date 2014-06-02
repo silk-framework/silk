@@ -83,42 +83,42 @@ object Constants {
   val STRDF_SRID_DELIM = ";"
 
   /**
-   * Maximum Latitude (WGS 84 (latitude-longitude))
+   * Maximum Latitude (WGS 84 (latitude-longitude)).
    */
   val MAX_LAT = 90.0
 
   /**
-   * Minimum Latitude (WGS 84 (latitude-longitude))
+   * Minimum Latitude (WGS 84 (latitude-longitude)).
    */
   val MIN_LAT = -90.0
 
   /**
-   * Maximum Longitude (WGS 84 (latitude-longitude))
+   * Maximum Longitude (WGS 84 (latitude-longitude)).
    */
   val MAX_LONG = 180.0
 
   /**
-   * Minimum Longitude (WGS 84 (latitude-longitude))
+   * Minimum Longitude (WGS 84 (latitude-longitude)).
    */
   val MIN_LONG = -180.0
 
   /**
-   * Latitude Range (WGS 84 (latitude-longitude))
+   * Latitude Range (WGS 84 (latitude-longitude)).
    */
   val LAT_RANGE = (MAX_LAT - MIN_LAT).toInt
   
   /**
-   * Longitude Range (WGS 84 (latitude-longitude))
+   * Longitude Range (WGS 84 (latitude-longitude)).
    */
   val LONG_RANGE = (MAX_LONG - MIN_LONG).toInt
   
   /**
-   * Spatial Distances
+   * Spatial Distances.
    */
   val CENTROID_DISTANCE = "centroidDistance"
 
   /**
-   * Simple Features Topology Relations
+   * Simple Features Topology Relations.
    */
   val EQUALS = "equals"
   val DISJOINT = "disjoint"

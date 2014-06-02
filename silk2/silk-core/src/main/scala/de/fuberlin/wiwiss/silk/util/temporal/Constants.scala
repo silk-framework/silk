@@ -44,6 +44,11 @@ object Constants {
   val MAX_TIME = new Date().getDate()
 
   /**
+   * Time Range.
+   */
+  val TIME_RANGE = (MAX_TIME - MIN_TIME)
+
+  /**
    * Convert Milliseconds.
    */
   val MILLISECS_PER_SEC = 1000.0
