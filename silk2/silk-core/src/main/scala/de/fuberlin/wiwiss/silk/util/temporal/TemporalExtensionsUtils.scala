@@ -37,7 +37,7 @@ object TemporalExtensionsUtils {
    * @param distance: Double
    * @return Index
    */
-  def indexTimesByInterval(timeString: String, distance: Double): Index = {
+  def indexTimes(timeString: String): Index = {
     try {
       val period = parseTime(timeString)
 
@@ -65,7 +65,7 @@ object TemporalExtensionsUtils {
    * @param distance: Double
    * @return Index
    */
-  def indexTimesByPeriodCentre(timeString: String, distance: Double): Index = {
+  def indexTimes(timeString: String, distance: Double): Index = {
     try {
       val period = parseTime(timeString)
 

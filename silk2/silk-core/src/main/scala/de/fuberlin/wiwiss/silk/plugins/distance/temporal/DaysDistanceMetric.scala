@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.temporal
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.temporal.TemporalExtensionsUtils.{evaluateDistance, indexGeometries}
+import de.fuberlin.wiwiss.silk.util.temporal.TemporalExtensionsUtils.{evaluateDistance, indexTimes}
 import de.fuberlin.wiwiss.silk.util.temporal.Constants._
 
 /**
@@ -36,6 +36,6 @@ case class DaysDistanceMetric() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometries(str, distance*MILLISECS_PER_DAY)
+    indexTimes(str, distance*MILLISECS_PER_DAY)
   }
 }
