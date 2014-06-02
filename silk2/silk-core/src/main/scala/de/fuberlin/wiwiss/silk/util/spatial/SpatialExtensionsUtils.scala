@@ -170,18 +170,17 @@ object SpatialExtensionsUtils {
   }
 
   /**
-   * This function indexes Geometries.
+   * This function indexes Geometries by their Centre.
    *
    * @param geometryString : String
    * @param distance: Double
    * @return Index
    */
-  def oldindexGeometries(geometryString: String, distance: Double): Index = {
+  def indexGeometriesByCentre(geometryString: String, distance: Double): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val centre = new MinimumBoundingCircle(geometry).getCentre()
 
-      //Create the index of the geometry based on its centroid.
       val latIndex = Index.continuous(centre.y, MIN_LAT, MAX_LAT, distance)
       val longIndex = Index.continuous(centre.x, MIN_LONG, MAX_LONG, distance)
 
@@ -193,42 +192,40 @@ object SpatialExtensionsUtils {
   }
 
   /**
-   * This function indexes Geometries.
+   * This function indexes Geometries by their Envelope.
    *
    * @param geometryString : String
    * @param distance: Double
    * @return Index
    */
-  def indexGeometries(geometryString: String, distance: Double): Index = {
+  def indexGeometriesByEnvelope(geometryString: String, distance: Double): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val envelope = geometry.getEnvelopeInternal()
 
-      //val centre = new MinimumBoundingCircle(geometry).getCentre()
+      val blockCountLat = LAT_RANGE
+      val blockCountLong = LONG_RANGE
 
-      //Create the index of the geometry based on its centroid.
-      // val latIndex = Index.continuous(centre.y, MIN_LAT, MAX_LAT, distance)
-      // val longIndex = Index.continuous(centre.x, MIN_LONG, MAX_LONG, distance)
+      val minLatBlock = envelope.getMinY().toInt
+      val maxLatBlock = envelope.getMaxY().toInt
+      val minLongBlock = envelope.getMinX().toInt
+      val maxLongBlock = envelope.getMaxX().toInt
 
-      val blockCountLat = ((MAX_LAT - MIN_LAT) * 1.0).toInt
-      val blockCountLong = ((MAX_LONG - MIN_LONG) * 1.0).toInt
+      val latBlocks = for (i <- minLatBlock to maxLatBlock) yield i
+      val longBlocks = for (i <- minLongBlock to maxLongBlock) yield i
 
-      val minLatBlock = (envelope.getMinY() * 1.0).toInt
-      val maxLatBlock = (envelope.getMaxY() * 1.0).toInt
-      val minLongBlock = (envelope.getMinX() * 1.0).toInt
-      val maxLongBlock = (envelope.getMaxX() * 1.0).toInt
+      Index.oneDim(latBlocks.toSet, blockCountLat) conjunction Index.oneDim(longBlocks.toSet, blockCountLong)
 
-      var i = 0
-      var setLat = for (i <- minLatBlock to maxLatBlock) yield i
-      var setLong = for (i <- minLongBlock to maxLongBlock) yield i
-      
-      Index.oneDim(setLat.toSet, blockCountLat) conjunction Index.oneDim(setLong.toSet, blockCountLong)
-      
     } catch {
       case e: Exception =>
         Index.empty
     }
   }
+
+  /**
+   * Choose function for indexing.
+   */
+  def indexGeometries = indexGeometriesByEnvelope(_, _)
 
   /**
    * This function evaluates a distance between two Geometries.

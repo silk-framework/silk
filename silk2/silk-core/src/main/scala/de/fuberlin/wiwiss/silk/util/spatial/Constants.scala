@@ -103,6 +103,16 @@ object Constants {
   val MIN_LONG = -180.0
 
   /**
+   * Latitude Range (WGS 84 (latitude-longitude))
+   */
+  val LAT_RANGE = (MAX_LAT - MIN_LAT).toInt
+  
+  /**
+   * Longitude Range (WGS 84 (latitude-longitude))
+   */
+  val LONG_RANGE = (MAX_LONG - MIN_LONG).toInt
+  
+  /**
    * Spatial Distances
    */
   val CENTROID_DISTANCE = "centroidDistance"
