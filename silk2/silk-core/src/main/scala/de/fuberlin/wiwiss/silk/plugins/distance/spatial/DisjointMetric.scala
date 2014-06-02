@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{evaluateRelation, indexGeometries}
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.evaluateRelation
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
@@ -36,6 +36,6 @@ case class DisjointMetric() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometries(str)
+    Index.default
   }
 }
