@@ -37,7 +37,7 @@ object TemporalExtensionsUtils {
    * @param distance: Double
    * @return Index
    */
-  def indexGeometries(timeString: String, distance: Double): Index = {
+  def indexTimesByInterval(timeString: String, distance: Double): Index = {
     try {
       val period = parseTime(timeString)
 
@@ -51,6 +51,31 @@ object TemporalExtensionsUtils {
       val blocks = for (i <- start.getDate() to end.getDate()) yield i
 
       Index.oneDim(blocks.toSet, blockCount)
+
+    } catch {
+      case e: Exception =>
+        Index.empty
+    }
+  }
+
+  /**
+   * This function indexes times. Assumes that all the times are between "the epoch" (January 1, 1970, 00:00:00 GMT) and "NOW".
+   *
+   * @param timeString : String
+   * @param distance: Double
+   * @return Index
+   */
+  def indexTimesByPeriodCentre(timeString: String, distance: Double): Index = {
+    try {
+      val period = parseTime(timeString)
+
+      //Ensure that period is well-defined.
+      if (period == null)
+        return Index.empty
+
+      val (start, end) = period
+
+      Index.continuous((start.getDate() + end.getDate()) / 2.0, MIN_TIME, MAX_TIME, distance)
 
     } catch {
       case e: Exception =>

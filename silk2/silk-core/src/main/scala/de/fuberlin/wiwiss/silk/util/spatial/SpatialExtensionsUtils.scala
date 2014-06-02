@@ -243,7 +243,7 @@ object SpatialExtensionsUtils {
       val geometry2 = WKTReader(geometryString2, DEFAULT_SRID)
 
       distanceType match {
-        case CENTROID_DISTANCE => distance(geometry1.getCentroid(), geometry2.getCentroid()).toRadians
+        case CENTROID_DISTANCE => JTS.orthodromicDistance(geometry1.getCentroid().getCoordinate(), geometry2.getCentroid().getCoordinate(), CRS.decode("EPSG:" + DEFAULT_SRID))
         case _ => Double.PositiveInfinity
       }
 

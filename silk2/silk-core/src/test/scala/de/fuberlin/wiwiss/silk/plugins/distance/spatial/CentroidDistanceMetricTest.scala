@@ -42,15 +42,9 @@ class CentroidDistanceMetricTest extends FlatSpec with ShouldMatchers {
     metric.evaluate("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))", "POINT (1 1)") should equal(0.0)
 
   }
-
-  //Distance 1.
-  "CentroidDinstaceMetric test 3" should "return '1.0'" in {
-    metric.evaluate("POINT (0 0)", "POINT (0 1)") should equal(1.0)
-
-  }
   
   //Indexing.
-  "CentroidDinstaceMetric test 4" should "return '(Set(List(0, 0))'" in {
-    metric.indexValue("POINT (-180 -90)", 0.0) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
+  "CentroidDinstaceMetric test 3" should "return '(Set(List(0, 0))'" in {
+    metric.indexValue("POINT (0 0)", 0.0) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
   }  
 }
