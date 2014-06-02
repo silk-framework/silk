@@ -126,6 +126,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.temporal.DurringMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.StartsMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.IsStartedByMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.EqualsMetric
+import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.AreaTransformer
 
 
 /**
@@ -195,6 +196,7 @@ object Plugins {
     Transformer.register(classOf[PointsToCentroidTransformer])
     Transformer.register(classOf[SimplifyTransformer])
     Transformer.register(classOf[EnvelopeTransformer])
+    Transformer.register(classOf[AreaTransformer])
 
     
     DistanceMeasure.register(classOf[LevenshteinMetric])

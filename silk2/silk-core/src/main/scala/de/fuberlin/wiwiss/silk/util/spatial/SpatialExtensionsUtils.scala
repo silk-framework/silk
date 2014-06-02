@@ -150,6 +150,21 @@ object SpatialExtensionsUtils {
   }
 
   /**
+   * This function returns the Area of a Geometry.
+   *
+   * @param geometryString : String
+   * @return String
+   */
+  def getAreaFromGeometry(geometryString: String): String = {
+    try {
+      WKTReader(geometryString, DEFAULT_SRID).getArea().toString
+    } catch {
+      case e: Exception =>
+        geometryString
+    }
+  }
+  
+  /**
    * This function simplifies a Geometry.
    *
    * @param geometryString : String
