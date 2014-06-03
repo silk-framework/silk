@@ -16,12 +16,18 @@ import de.fuberlin.wiwiss.silk.output.Output
 
 object ControlApi extends Controller {
 
-  def reloadCache(projectName: String, taskName: String) = Action {
+  def reloadTransformCache(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+    task.cache.clear()
+    task.cache.load(project, task)
+    Ok
+  }
+
+  def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)
-
     task.cache.reload(project, task)
-
     Ok
   }
 

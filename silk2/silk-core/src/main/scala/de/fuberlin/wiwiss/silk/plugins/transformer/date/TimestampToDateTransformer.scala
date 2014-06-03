@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer.conversion
+package de.fuberlin.wiwiss.silk.plugins.transformer.date
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer;
 import java.text.SimpleDateFormat;
@@ -29,7 +29,7 @@ import scala.math.BigInt;
  */
 @Plugin(
   id = "timeToDate",
-  categories = Array("Conversion"),
+  categories = Array("Date"),
   label = "TimestampToDate",
   description = "convert Unix timestamp to xsd:date"
 )

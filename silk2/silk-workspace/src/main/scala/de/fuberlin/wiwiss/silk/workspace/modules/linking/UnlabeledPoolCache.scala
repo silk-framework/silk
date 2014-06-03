@@ -11,8 +11,8 @@ class UnlabeledPoolCache extends Cache[LinkingTask, Seq[Link]](Seq.empty) {
   /**
    * Loads the unlabeled pool.
    */
-  override def update(project: Project, task: LinkingTask) {
-
+  override def update(project: Project, task: LinkingTask) = {
+    false
   }
 
   override def toXML: NodeSeq = {

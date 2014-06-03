@@ -15,7 +15,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
   /**
    * Loads the most frequent property paths.
    */
-  override def update(project: Project, task: LinkingTask) {
+  override def update(project: Project, task: LinkingTask) = {
     updateStatus("Retrieving frequent property paths", 0.0)
 
     //Create an entity description from the link specification
@@ -36,9 +36,11 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
 
       //Add the frequent paths to the entity description
       value = for ((entityDesc, paths) <- currentEntityDescs zip paths) yield entityDesc.copy(paths = (entityDesc.paths ++ paths.map(_._1)).distinct)
+      true
     } else {
       //Add the existing paths to the entity description
       value = for ((spec1, spec2) <- currentEntityDescs zip value) yield spec1.copy(paths = (spec1.paths ++ spec2.paths).distinct)
+      false
     }
   }
 
