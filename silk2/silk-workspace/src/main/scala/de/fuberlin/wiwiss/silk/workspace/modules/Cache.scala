@@ -74,19 +74,23 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
   /** Reads the cache value from an XML node and updates the current value of this cache. */
   def loadFromXML(node: Node)
 
-  /** Overridden in sub classes to do the actual loading of the cache value. */
-  protected def update(project: Project, task: TaskType)
+  /**
+   * Overridden in sub classes to do the actual loading of the cache value
+   * @return True, if the cached value has been updated. False, otherwise.
+   */
+  protected def update(project: Project, task: TaskType): Boolean
 
   /** The thread that is used to load the cache value. */
   private class LoadingThread(project: Project, task: TaskType) extends Thread {
     override def run() {
       val startTime = System.currentTimeMillis
       try {
-        update(project, task)
+        val updated = update(project, task)
         updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))
+        if(updated) logger.info("Cache updated")
         // Commit to the project
         //TODO  Make project modules (e.g. the linking module) register a callback
-        if(!isInterrupted) {
+        if(updated && !isInterrupted) {
           task match {
             case transformTask: TransformTask => project.transformModule.update(transformTask)
             case linkingTask: LinkingTask => project.linkingModule.update(linkingTask)

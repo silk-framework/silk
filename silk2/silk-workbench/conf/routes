@@ -111,6 +111,7 @@ PUT           /api/workspace/:project/transform/:task                           
 DELETE        /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.deleteTransformTask(project: String, task: String)
 GET           /api/workspace/:project/transform/:task/rule                                          controllers.api.TransformTaskApi.getRule(project: String, task: String)
 PUT           /api/workspace/:project/transform/:task/rule                                          controllers.api.TransformTaskApi.putRule(project: String, task: String)
+POST          /api/workspace/:project/transform/:task/reloadCache                                   controllers.api.ControlApi.reloadTransformCache(project: String, task: String)
 
 # Linking Tasks
 PUT           /api/workspace/:project/linking/:task                                                 controllers.api.WorkspaceApi.putLinkingTask(project: String, task: String)
@@ -123,7 +124,7 @@ GET           /api/workspace/:project/linking/:task/referenceLinks              
 PUT           /api/workspace/:project/linking/:task/referenceLinks                                  controllers.api.LinkingTaskApi.putReferenceLinks(project: String, task: String)
 PUT           /api/workspace/:project/linking/:task/referenceLinks/:linkType/:source/:target        controllers.api.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
 DELETE        /api/workspace/:project/linking/:task/referenceLinks/:source/:target                  controllers.api.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
-POST          /api/workspace/:project/linking/:task/reloadCache                                     controllers.api.ControlApi.reloadCache(project: String, task: String)
+POST          /api/workspace/:project/linking/:task/reloadCache                                     controllers.api.ControlApi.reloadLinkingCache(project: String, task: String)
 
 # Outputs
 GET           /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.getOutput(project: String, output: String)

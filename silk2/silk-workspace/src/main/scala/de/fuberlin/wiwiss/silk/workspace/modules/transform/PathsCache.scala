@@ -13,7 +13,7 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
   /**
    * Loads the most frequent paths.
    */
-  override def update(project: Project, task: TransformTask) {
+  override def update(project: Project, task: TransformTask) = {
     updateStatus("Retrieving frequent paths", 0.0)
 
     //Create an entity description from the transformation task
@@ -29,9 +29,11 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
 
       //Add the frequent paths to the entity description
       value = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ paths).distinct)
+      true
     } else {
       //Add the existing paths to the entity description
       value = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ value.paths).distinct)
+      false
     }
   }
 

@@ -16,7 +16,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
   /** Alias for value to make code more readable */
   private def entities_=(v: ReferenceEntities) { value = v}
 
-  override def update(project: Project, task: LinkingTask) {
+  override def update(project: Project, task: LinkingTask) = {
     updateStatus("Waiting for paths cache", 0.0)
     pathsCache.waitUntilLoaded()
     if(pathsCache.status.failed)
@@ -99,11 +99,14 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
 
     private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
 
-    def load() {
+    private var updated = false
+
+    def load() = {
       updateStatus("Loading entities", 0.0)
 
       val linkCount = task.referenceLinks.positive.size + task.referenceLinks.negative.size
       var loadedLinks = 0
+      updated = false
 
       for (link <- task.referenceLinks.positive) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
@@ -120,12 +123,15 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         if(loadedLinks % 10 == 0)
           updateStatus(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
+
+      updated
     }
 
     private def loadPositiveLink(link: Link) = {
       link.entities match {
         case Some(entities) => entities
         case None => {
+          updated = true
           entities.positive.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
@@ -138,6 +144,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
       link.entities match {
         case Some(entities) => entities
         case None => {
+          updated = true
           entities.negative.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)

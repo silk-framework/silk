@@ -10,11 +10,14 @@ import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 class TypesCache() extends Cache[SourceTask, Seq[(String, Double)]](Seq[(String, Double)]()) {
 
   /** Load the cache value. */
-  override protected def update(project: Project, task: SourceTask) {
+  override protected def update(project: Project, task: SourceTask) =  {
     if(value.isEmpty) {
       val dataSource = task.source.dataSource
       val types = dataSource.retrieveTypes().toSeq
       value = types
+      true
+    } else {
+      false
     }
   }
 
