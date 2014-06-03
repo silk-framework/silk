@@ -174,7 +174,7 @@ object TemporalExtensionsUtils {
       case FINISHES => start1.after(start2) && end1.equals(end2)
       case IS_FINISHED_BY => start1.before(start2) && end1.equals(end2)
       case CONTAINS => start1.before(start2) && end1.after(end2)
-      case DURRING => start1.after(start2) && end1.before(end2)
+      case DURING => start1.after(start2) && end1.before(end2)
       case STARTS => start1.equals(start2) && end1.before(end2)
       case IS_STARTED_BY => start1.equals(start2) && end1.after(end2)
       case EQUALS => start1.equals(start2) && end1.equals(end2)

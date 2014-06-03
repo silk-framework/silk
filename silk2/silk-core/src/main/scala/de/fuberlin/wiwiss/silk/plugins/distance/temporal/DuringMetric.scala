@@ -21,18 +21,18 @@ import de.fuberlin.wiwiss.silk.util.temporal.TemporalExtensionsUtils.{evaluateRe
 import de.fuberlin.wiwiss.silk.util.temporal.Constants._
 
 /**
- * Computes the relation \"durring\" between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).
+ * Computes the relation \"during\" between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
-  id = "DurringMetric",
+  id = "DuringMetric",
   categories = Array("Temporal"),
-  label = "Durring",
-  description = "Computes the relation \"durring\" between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
-case class DurringMetric() extends SimpleDistanceMeasure {
+  label = "During",
+  description = "Computes the relation \"during\" between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+case class DuringMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    evaluateRelation(str1, str2, limit, DURRING)
+    evaluateRelation(str1, str2, limit, DURING)
   }
 
   override def indexValue(str: String, distance: Double): Index = {

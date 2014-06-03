@@ -21,18 +21,18 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 /**
- * Tests the Durring Metric.
+ * Tests the During Metric.
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 
 @RunWith(classOf[JUnitRunner])
-class DurringMetricTest extends FlatSpec with ShouldMatchers {
+class DuringMetricTest extends FlatSpec with ShouldMatchers {
   Plugins.register()
 
-  val metric = new DurringMetric()
+  val metric = new DuringMetric()
 
-  //Durring evaluation.
-  "DurringMetric test 1" should "return '1.0'" in {
+  //During evaluation.
+  "DuringMetric test 1" should "return '1.0'" in {
     metric.evaluate("[2000-01-01T00:00:01, 2000-01-01T00:00:02)", "[2000-01-01T00:00:00, 2000-01-01T00:00:03)", 1.0) should equal(1.0)
   }
 }

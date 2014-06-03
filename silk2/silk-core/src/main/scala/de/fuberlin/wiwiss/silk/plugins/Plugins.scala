@@ -122,7 +122,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.temporal.IsOverlappedByMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.FinishesMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.IsFinishedByMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.ContainsMetric
-import de.fuberlin.wiwiss.silk.plugins.distance.temporal.DurringMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.temporal.DuringMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.StartsMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.IsStartedByMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.EqualsMetric
@@ -246,7 +246,7 @@ object Plugins {
     DistanceMeasure.register(classOf[temporal.FinishesMetric])
     DistanceMeasure.register(classOf[temporal.IsFinishedByMetric])
     DistanceMeasure.register(classOf[temporal.ContainsMetric])
-    DistanceMeasure.register(classOf[temporal.DurringMetric])
+    DistanceMeasure.register(classOf[temporal.DuringMetric])
     DistanceMeasure.register(classOf[temporal.StartsMetric])
     DistanceMeasure.register(classOf[temporal.IsStartedByMetric])
     DistanceMeasure.register(classOf[temporal.EqualsMetric])

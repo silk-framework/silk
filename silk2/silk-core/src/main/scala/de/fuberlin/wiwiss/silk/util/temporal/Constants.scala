@@ -81,7 +81,7 @@ object Constants {
   val FINISHES = "finishes"
   val IS_FINISHED_BY = "isFinishedBy"
   val CONTAINS = "contains"
-  val DURRING = "durring"
+  val DURING = "during"
   val STARTS = "starts"
   val IS_STARTED_BY = "isStartedBy"
   val EQUALS = "equals"
