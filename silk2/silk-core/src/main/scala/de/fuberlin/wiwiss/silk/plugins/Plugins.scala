@@ -196,6 +196,7 @@ object Plugins {
     Transformer.register(classOf[DurationTransformer])
     Transformer.register(classOf[DurationInSecondsTransformer])
     Transformer.register(classOf[DurationInDaysTransformer])
+    //Spatial Transformers
     Transformer.register(classOf[GeometryTransformer])
     Transformer.register(classOf[PointsToCentroidTransformer])
     Transformer.register(classOf[SimplifyTransformer])
@@ -225,6 +226,7 @@ object Plugins {
     DistanceMeasure.register(classOf[KoreanPhonemeDistance])
     DistanceMeasure.register(classOf[KoreanTranslitDistance])
     DistanceMeasure.register(classOf[CJKReadingDistance])
+    //Spatial and Temporal Distance Metrics
     DistanceMeasure.register(classOf[spatial.CentroidDistanceMetric])
     DistanceMeasure.register(classOf[spatial.ContainsMetric])
     DistanceMeasure.register(classOf[spatial.CrossesMetric])
