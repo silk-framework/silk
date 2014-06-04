@@ -14,7 +14,8 @@
   <artifactId>silk-core</artifactId>
   <packaging>jar</packaging>
   <name>Silk Core</name>
-  
+
+  <!-- Spatial Extensions -->
   <properties>
     <jts.version>1.13</jts.version>
     <geotools.version>2.7.4</geotools.version>

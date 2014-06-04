@@ -8,6 +8,8 @@ libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.6"
 
 libraryDependencies += "org.clapper" % "classutil_2.10" % "1.0.5"
 
+//Spatial Extensions
+
 libraryDependencies += "com.vividsolutions" % "jts" % "1.13"
 
 libraryDependencies += "org.jvnet.ogc" % "ogc-tools-gml-jts" % "1.0.2"
