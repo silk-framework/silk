@@ -14,78 +14,32 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
-import writer._
-import distance._
-import characterbased._
+import java.io.File
+import java.util.logging.Logger
+
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.output.{DataWriter, Formatter}
-import equality._
-import java.io.File
-import de.fuberlin.wiwiss.silk.util.Timer
-import java.util.logging.Logger
-import tokenbased._
-import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumOperationTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
-import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.CamelCaseTokenizer
+import de.fuberlin.wiwiss.silk.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
+import de.fuberlin.wiwiss.silk.plugins.datasource.{CsvDataSource, SparqlDataSource}
+import de.fuberlin.wiwiss.silk.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
+import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._
+import de.fuberlin.wiwiss.silk.plugins.distance.equality._
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric.{DateMetric, DateTimeMetric, GeographicDistanceMetric, NumMetric}
+import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased._
+import de.fuberlin.wiwiss.silk.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.date._
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{FilterByLength, FilterByRegex, RemoveEmptyValues, RemoveValues}
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic._
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize._
-import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{ReplaceTransformer, RegexReplaceTransformer}
-import de.fuberlin.wiwiss.silk.plugins.writer.FileWriter
-import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransformer
-import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.JaccardDistance
-import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransformer
-import de.fuberlin.wiwiss.silk.plugins.aggegrator.QuadraticMeanAggregator
-import de.fuberlin.wiwiss.silk.plugins.aggegrator.AverageAggregator
-import de.fuberlin.wiwiss.silk.plugins.distance.numeric.GeographicDistanceMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatMultipleValuesTransformer
-import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.QGramsMetric
-import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.SubstringTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByLength
-import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.NysiisTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.LowerCaseTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
-import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.DiceCoefficient
-import de.fuberlin.wiwiss.silk.plugins.transformer.filter.RemoveValues
-import de.fuberlin.wiwiss.silk.plugins.transformer.combine.MergeTransformer
-import de.fuberlin.wiwiss.silk.plugins.datasource.SparqlDataSource
-import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.JaroWinklerDistance
-import de.fuberlin.wiwiss.silk.plugins.distance.numeric.NumMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.LogarithmTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.StemmerTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.MetaphoneTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.UpperCaseTransformer
-import de.fuberlin.wiwiss.silk.plugins.distance.asian.CJKReadingDistance
-import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByRegex
-import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.CapitalizeTransformer
-import de.fuberlin.wiwiss.silk.plugins.writer.SparqlWriter
-import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateTimeMetric
-import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.JaroDistanceMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveParentheses
-import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.AlphaReduceTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.filter.RemoveEmptyValues
-import de.fuberlin.wiwiss.silk.plugins.aggegrator.GeometricMeanAggregator
-import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.Tokenizer
-import de.fuberlin.wiwiss.silk.plugins.transformer.numeric.NumReduceTransformer
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPostfixTransformer
-import de.fuberlin.wiwiss.silk.plugins.datasource.CsvDataSource
-import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
-import de.fuberlin.wiwiss.silk.plugins.distance.equality.InequalityMetric
-import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanTranslitDistance
-import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.TokenwiseStringDistance
-import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.SoundexTransformer
-import de.fuberlin.wiwiss.silk.plugins.distance.numeric.DateMetric
-import de.fuberlin.wiwiss.silk.plugins.distance.equality.LowerThanMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripUriPrefixTransformer
-import de.fuberlin.wiwiss.silk.plugins.distance.asian.KoreanPhonemeDistance
-import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.SoftJaccardDistance
-import de.fuberlin.wiwiss.silk.plugins.aggegrator.MaximumAggregator
-import de.fuberlin.wiwiss.silk.plugins.transformer.date.{DurationInSecondsTransformer, DurationTransformer, DurationInDaysTransformer, TimestampToDateTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.numeric._
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformer, ReplaceTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
+import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
+import de.fuberlin.wiwiss.silk.plugins.writer._
+import de.fuberlin.wiwiss.silk.util.Timer
 
 /**
  * Registers all default plugins as well as external plugins found in the provided directory.
@@ -123,14 +77,12 @@ object Plugins {
     Transformer.register(classOf[LowerCaseTransformer])
     Transformer.register(classOf[UpperCaseTransformer])
     Transformer.register(classOf[CapitalizeTransformer])
-    Transformer.register(classOf[NumReduceTransformer])
     Transformer.register(classOf[StemmerTransformer])
     Transformer.register(classOf[StripPrefixTransformer])
     Transformer.register(classOf[StripPostfixTransformer])
     Transformer.register(classOf[StripUriPrefixTransformer])
     Transformer.register(classOf[AlphaReduceTransformer])
     Transformer.register(classOf[RemoveSpecialCharsTransformer])
-    Transformer.register(classOf[LogarithmTransformer])
     Transformer.register(classOf[ConvertCharsetTransformer])
     Transformer.register(classOf[RemoveValues])
     Transformer.register(classOf[RemoveEmptyValues])
@@ -143,18 +95,25 @@ object Plugins {
     Transformer.register(classOf[NormalizeCharsTransformer])
     Transformer.register(classOf[FilterByLength])
     Transformer.register(classOf[FilterByRegex])
-    Transformer.register(classOf[NumOperationTransformer])
     Transformer.register(classOf[UntilCharacterTransformer])
     Transformer.register(classOf[SubstringTransformer])
     Transformer.register(classOf[SoundexTransformer])
     Transformer.register(classOf[NysiisTransformer])
     Transformer.register(classOf[MetaphoneTransformer])
+    // Numeric
+    Transformer.register(classOf[NumReduceTransformer])
+    Transformer.register(classOf[NumOperationTransformer])
+    Transformer.register(classOf[LogarithmTransformer])
+    Transformer.register(classOf[AggregateNumbersTransformer])
+    Transformer.register(classOf[CompareNumbersTransformer])
     // Date
     Transformer.register(classOf[TimestampToDateTransformer])
+    Transformer.register(classOf[DateToTimestampTransformer])
     Transformer.register(classOf[DurationTransformer])
     Transformer.register(classOf[DurationInSecondsTransformer])
     Transformer.register(classOf[DurationInDaysTransformer])
-
+    Transformer.register(classOf[CompareDatesTransformer])
+    
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])
     DistanceMeasure.register(classOf[JaroDistanceMetric])

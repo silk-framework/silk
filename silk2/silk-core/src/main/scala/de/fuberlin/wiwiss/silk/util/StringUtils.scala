@@ -14,6 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.util
 
+import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
+
 object StringUtils {
   implicit def toStringUtils(str: String) = new StringUtils(str)
 
@@ -64,6 +66,22 @@ object StringUtils {
         } catch {
           case _: NumberFormatException => None
         }
+      }
+    }
+  }
+
+  object XSDDateLiteral {
+
+    private val datatypeFactory = DatatypeFactory.newInstance()
+
+    def apply(x: XMLGregorianCalendar) = x.toString
+
+    def unapply(x: String): Option[XMLGregorianCalendar] = {
+      try {
+        Some(datatypeFactory.newXMLGregorianCalendar(x))
+      } catch {
+        case _: NullPointerException => None
+        case _: IllegalArgumentException => None
       }
     }
   }

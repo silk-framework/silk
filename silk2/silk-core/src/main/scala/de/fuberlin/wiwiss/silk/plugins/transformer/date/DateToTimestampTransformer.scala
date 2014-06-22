@@ -16,30 +16,28 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.date
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer;
-import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import scala.math.BigInt;
+import javax.xml.datatype.DatatypeFactory
+
+import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
 
 /**
- * Convert Unix timestamp to xsd:date.
+ * Convert an xsd:date to a Unix timestamp.
  *
- * @author Julien Plu
+ * @author Robert Isele
  */
 @Plugin(
-  id = "timeToDate",
+  id = "datetoTimestamp",
   categories = Array("Date"),
-  label = "Timestamp to date",
-  description = "convert Unix timestamp to xsd:date"
+  label = "Date to timestamp",
+  description = "Convert an xsd:date to a Unix timestamp"
 )
-class TimestampToDateTransformer extends SimpleTransformer {
+class DateToTimestampTransformer extends SimpleTransformer {
+
+  private val datatypeFactory = DatatypeFactory.newInstance()
+
   override def evaluate(value: String) = {
-    val cal = new GregorianCalendar()
-    cal.setTimeInMillis((BigInt.apply(value) * 1000).longValue())
-    val format = new SimpleDateFormat("yyyy-MM-dd")
-    val date = format.format(cal.getTime)
-    
-    date.toString
+    val millis = datatypeFactory.newXMLGregorianCalendar(value).toGregorianCalendar.getTimeInMillis
+    millis.toString
   }
 }
