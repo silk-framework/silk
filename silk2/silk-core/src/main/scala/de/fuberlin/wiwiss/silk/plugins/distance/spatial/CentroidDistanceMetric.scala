@@ -21,14 +21,14 @@ import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{evaluateDist
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
- * Computes the distance between the centroids of two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
+ * Computes the distance between the centroids of two geometries in meters (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
  */
 @Plugin(
   id = "CentroidDistanceMetric",
   categories = Array("Spatial"),
   label = "Centroid distance",
-  description = "Computes the distance between the centroids of two geometries. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+  description = "Computes the distance between the centroids of two geometries in meters. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
 case class CentroidDistanceMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {

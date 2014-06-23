@@ -163,7 +163,7 @@ object SpatialExtensionsUtils {
         geometryString
     }
   }
-  
+
   /**
    * This function simplifies a Geometry.
    *
@@ -195,9 +195,10 @@ object SpatialExtensionsUtils {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val centre = new MinimumBoundingCircle(geometry).getCentre()
+      val maxDistanceInRads = distance / EQUATORIAL_RADIUS
 
-      val latIndex = Index.continuous(centre.y, MIN_LAT, MAX_LAT, distance)
-      val longIndex = Index.continuous(centre.x, MIN_LONG, MAX_LONG, distance)
+      val latIndex = Index.continuous(centre.y, MIN_LAT, MAX_LAT, maxDistanceInRads)
+      val longIndex = Index.continuous(centre.x, MIN_LONG, MAX_LONG, maxDistanceInRads)
 
       latIndex conjunction longIndex
     } catch {
@@ -253,7 +254,12 @@ object SpatialExtensionsUtils {
       val geometry2 = WKTReader(geometryString2, DEFAULT_SRID)
 
       distanceType match {
-        case CENTROID_DISTANCE => JTS.orthodromicDistance(geometry1.getCentroid().getCoordinate(), geometry2.getCentroid().getCoordinate(), CRS.decode("EPSG:" + DEFAULT_SRID))
+        case CENTROID_DISTANCE =>
+          val normalizedDistance = JTS.orthodromicDistance(geometry1.getCentroid().getCoordinate(), geometry2.getCentroid().getCoordinate(), CRS.decode("EPSG:" + DEFAULT_SRID)) / limit
+          if (normalizedDistance <= 1.0)
+            return normalizedDistance
+          else
+            return Double.PositiveInfinity
         case _ => Double.PositiveInfinity
       }
 

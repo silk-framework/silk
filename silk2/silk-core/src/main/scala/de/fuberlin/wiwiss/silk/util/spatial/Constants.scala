@@ -103,6 +103,11 @@ object Constants {
   val MIN_LONG = -180.0
 
   /**
+   * Equatorial radius of Earth (in meters).
+   */
+  val EQUATORIAL_RADIUS =  6378137.0
+  
+  /**
    * Latitude Range (WGS 84 (latitude-longitude)).
    */
   val LAT_RANGE = (MAX_LAT - MIN_LAT).toInt

@@ -42,9 +42,19 @@ class CentroidDistanceMetricTest extends FlatSpec with ShouldMatchers {
     metric.evaluate("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))", "POINT (1 1)") should equal(0.0)
 
   }
+
+  //Big threshold.
+  "CentroidDinstaceMetric test 3" should "not return 'Double.PositiveInfinity'" in {
+    metric.evaluate("POINT (37.9889023 23.7180747)", "POINT (37.9884826 23.7181476)", 100.0) should not equal(Double.PositiveInfinity)
+  }
+
+  //Small threshold.
+  "CentroidDinstaceMetric test 4" should "return 'Double.PositiveInfinity'" in {
+    metric.evaluate("POINT (37.9889023 23.7180747)", "POINT (37.9884826 23.7181476)", 10.0) should equal(Double.PositiveInfinity)
+  }
   
   //Indexing.
-  "CentroidDinstaceMetric test 3" should "return '(Set(List(0, 0))'" in {
+  "CentroidDinstaceMetric test 5" should "return '(Set(List(0, 0))'" in {
     metric.indexValue("POINT (0 0)", 0.0) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
   }  
 }
