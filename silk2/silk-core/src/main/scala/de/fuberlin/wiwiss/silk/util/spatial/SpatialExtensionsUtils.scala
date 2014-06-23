@@ -150,6 +150,22 @@ object SpatialExtensionsUtils {
   }
 
   /**
+   * This function returns a Geometry with a computed buffer area.
+   *
+   * @param geometryString : String
+   * @param distance : Double
+   * @return String
+   */
+  def getBufferedGeometry(geometryString: String, distance : Double): String = {
+    try {
+      WKTReader(geometryString, DEFAULT_SRID).buffer(distance).toText()
+    } catch {
+      case e: Exception =>
+        geometryString
+    }
+  }  
+  
+  /**
    * This function returns the Area of a Geometry.
    *
    * @param geometryString : String

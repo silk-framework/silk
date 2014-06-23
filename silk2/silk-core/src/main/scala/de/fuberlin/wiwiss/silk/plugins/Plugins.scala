@@ -62,6 +62,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.PointsToCentroidTrans
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.SimplifyTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.EnvelopeTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.AreaTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.BufferTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.MillisecsDistanceMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.SecsDistanceMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.MinsDistanceMetric
@@ -162,6 +163,7 @@ object Plugins {
     Transformer.register(classOf[SimplifyTransformer])
     Transformer.register(classOf[EnvelopeTransformer])
     Transformer.register(classOf[AreaTransformer])
+    Transformer.register(classOf[BufferTransformer])
 
     
     DistanceMeasure.register(classOf[LevenshteinMetric])
