@@ -18,13 +18,13 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.operation.distance.DistanceOp.distance
+import com.vividsolutions.jts.operation.distance.DistanceOp.closestPoints
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 import com.vividsolutions.jts.simplify.DouglasPeuckerSimplifier
 import com.vividsolutions.jts.algorithm.MinimumBoundingCircle
 
-import org.geotools.geometry.jts.JTS
-import org.geotools.referencing.CRS
+import org.geotools.geometry.jts.JTS.{ orthodromicDistance, transform }
+import org.geotools.referencing.CRS.{ findMathTransform, decode }
 
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
@@ -76,11 +76,11 @@ object SpatialExtensionsUtils {
 
     //Convert geometry to default SRID.
     try {
-      val sourceCRS = CRS.decode("EPSG:" + geometry.getSRID())
-      val targetCRS = CRS.decode("EPSG:" + DEFAULT_SRID)
-      val transform = CRS.findMathTransform(sourceCRS, targetCRS, true)
+      val sourceCRS = decode("EPSG:" + geometry.getSRID())
+      val targetCRS = decode("EPSG:" + DEFAULT_SRID)
+      val mathTransform = findMathTransform(sourceCRS, targetCRS, true)
 
-      return JTS.transform(geometry, transform).toText()
+      return transform(geometry, mathTransform).toText()
     } catch {
       case e: Exception =>
         logger.log(Level.ALL, "Tranformation Error. Returning literal as it is.")
@@ -255,7 +255,14 @@ object SpatialExtensionsUtils {
 
       distanceType match {
         case CENTROID_DISTANCE =>
-          val normalizedDistance = JTS.orthodromicDistance(geometry1.getCentroid().getCoordinate(), geometry2.getCentroid().getCoordinate(), CRS.decode("EPSG:" + DEFAULT_SRID)) / limit
+          val normalizedDistance = orthodromicDistance(geometry1.getCentroid().getCoordinate(), geometry2.getCentroid().getCoordinate(), decode("EPSG:" + DEFAULT_SRID)) / limit
+          if (normalizedDistance <= 1.0)
+            return normalizedDistance
+          else
+            return Double.PositiveInfinity
+        case MIN_DISTANCE =>
+          val points = closestPoints(geometry1, geometry2)
+          val normalizedDistance = orthodromicDistance(points(0), points(1), decode("EPSG:" + DEFAULT_SRID)) / limit
           if (normalizedDistance <= 1.0)
             return normalizedDistance
           else

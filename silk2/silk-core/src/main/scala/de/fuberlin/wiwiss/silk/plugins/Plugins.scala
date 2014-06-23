@@ -42,6 +42,7 @@ import de.fuberlin.wiwiss.silk.plugins.writer._
 import de.fuberlin.wiwiss.silk.util.Timer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.GeometryTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.CentroidDistanceMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.spatial.MinDistanceMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.ContainsMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.CrossesMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.DisjointMetric
@@ -60,6 +61,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.spatial.WithinMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.PointsToCentroidTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.SimplifyTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.EnvelopeTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.AreaTransformer
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.MillisecsDistanceMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.SecsDistanceMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.MinsDistanceMetric
@@ -80,7 +82,6 @@ import de.fuberlin.wiwiss.silk.plugins.distance.temporal.DuringMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.StartsMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.IsStartedByMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.temporal.EqualsMetric
-import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.AreaTransformer
 
 
 /**
@@ -187,6 +188,7 @@ object Plugins {
     DistanceMeasure.register(classOf[CJKReadingDistance])
     //Spatial and Temporal Distance Metrics
     DistanceMeasure.register(classOf[CentroidDistanceMetric])
+    DistanceMeasure.register(classOf[MinDistanceMetric])
     DistanceMeasure.register(classOf[de.fuberlin.wiwiss.silk.plugins.distance.spatial.ContainsMetric])
     DistanceMeasure.register(classOf[CrossesMetric])
     DistanceMeasure.register(classOf[DisjointMetric])

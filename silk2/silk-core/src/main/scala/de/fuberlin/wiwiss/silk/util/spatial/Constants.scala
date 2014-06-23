@@ -121,6 +121,7 @@ object Constants {
    * Spatial Distances.
    */
   val CENTROID_DISTANCE = "centroidDistance"
+  val MIN_DISTANCE = "minDistance"
 
   /**
    * Simple Features Topology Relations.
