@@ -227,26 +227,26 @@ object SpatialExtensionsUtils {
    * This function indexes Geometries by their Envelope.
    *
    * @param geometryString : String
-   * @param distance: Double
+   * @param blockingParameter: Double
    * @return Index
    */
-  def indexGeometries(geometryString: String): Index = {
+  def indexGeometriesbyEnvelope(geometryString: String, blockingParameter: Double): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val envelope = geometry.getEnvelopeInternal()
 
-      val blockCountLat = LAT_RANGE
-      val blockCountLong = LONG_RANGE
+      val blockCountLat = (LAT_RANGE*blockingParameter).toInt
+      val blockCountLong = (LONG_RANGE*blockingParameter).toInt
 
-      val minLatBlock = envelope.getMinY().toInt
-      val maxLatBlock = envelope.getMaxY().toInt
-      val minLongBlock = envelope.getMinX().toInt
-      val maxLongBlock = envelope.getMaxX().toInt
+      val minLatBlock = (envelope.getMinY()*blockingParameter).toInt
+      val maxLatBlock = (envelope.getMaxY().ceil*blockingParameter).toInt
+      val minLongBlock = (envelope.getMinX()*blockingParameter).toInt
+      val maxLongBlock = (envelope.getMaxX().ceil*blockingParameter).toInt
 
-      val latBlocks = for (i <- minLatBlock to maxLatBlock) yield i
-      val longBlocks = for (i <- minLongBlock to maxLongBlock) yield i
+      val latBlocks = (for (i <- minLatBlock to maxLatBlock) yield i).toSet
+      val longBlocks = (for(i <- minLongBlock to maxLongBlock) yield i).toSet
 
-      Index.oneDim(latBlocks.toSet, blockCountLat) conjunction Index.oneDim(longBlocks.toSet, blockCountLong)
+      Index.oneDim(latBlocks, blockCountLat) conjunction Index.oneDim(longBlocks, blockCountLong)
 
     } catch {
       case e: Exception =>
