@@ -110,12 +110,12 @@ object Constants {
   /**
    * Latitude Range (WGS 84 (latitude-longitude)).
    */
-  val LAT_RANGE = (MAX_LAT - MIN_LAT).toInt
+  val LAT_RANGE = MAX_LAT - MIN_LAT
   
   /**
    * Longitude Range (WGS 84 (latitude-longitude)).
    */
-  val LONG_RANGE = (MAX_LONG - MIN_LONG).toInt
+  val LONG_RANGE = MAX_LONG - MIN_LONG
   
   /**
    * Spatial Distances.

@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{evaluateDistance, indexGeometries}
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{ evaluateDistance, indexGeometriesByCentre }
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
@@ -36,6 +36,6 @@ case class MinDistanceMetric() extends SimpleDistanceMeasure {
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometries(str, distance)
+    indexGeometriesByCentre(str, distance)
   }
 }

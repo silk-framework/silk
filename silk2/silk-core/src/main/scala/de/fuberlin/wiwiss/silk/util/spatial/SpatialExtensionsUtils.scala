@@ -207,7 +207,7 @@ object SpatialExtensionsUtils {
    * @param distance: Double
    * @return Index
    */
-  def indexGeometries(geometryString: String, distance: Double): Index = {
+  def indexGeometriesByCentre(geometryString: String, distance: Double): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val centre = new MinimumBoundingCircle(geometry).getCentre()
@@ -230,7 +230,7 @@ object SpatialExtensionsUtils {
    * @param blockingParameter: Double
    * @return Index
    */
-  def indexGeometriesbyEnvelope(geometryString: String, blockingParameter: Double): Index = {
+  def indexGeometriesByEnvelope(geometryString: String, blockingParameter: Double): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val envelope = geometry.getEnvelopeInternal()

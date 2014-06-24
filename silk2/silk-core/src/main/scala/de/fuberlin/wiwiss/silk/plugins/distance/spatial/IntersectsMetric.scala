@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{evaluateRelation, indexGeometries}
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{ evaluateRelation, indexGeometriesByEnvelope }
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
@@ -29,13 +29,13 @@ import de.fuberlin.wiwiss.silk.util.spatial.Constants._
   categories = Array("Spatial"),
   label = "Intersects",
   description = "Computes the relation \"intersects\" between two geometries. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
-case class IntersectsMetric() extends SimpleDistanceMeasure {
+case class IntersectsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     evaluateRelation(str1, str2, limit, INTERSECTS)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometries(str)
+    indexGeometriesByEnvelope(str, blockingParameter)
   }
 }
