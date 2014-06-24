@@ -239,9 +239,9 @@ object SpatialExtensionsUtils {
       val blockCountLong = (LONG_RANGE*blockingParameter).toInt
 
       val minLatBlock = (envelope.getMinY()*blockingParameter).toInt
-      val maxLatBlock = (envelope.getMaxY().ceil*blockingParameter).toInt
+      val maxLatBlock = (envelope.getMaxY()*blockingParameter).toInt
       val minLongBlock = (envelope.getMinX()*blockingParameter).toInt
-      val maxLongBlock = (envelope.getMaxX().ceil*blockingParameter).toInt
+      val maxLongBlock = (envelope.getMaxX()*blockingParameter).toInt
 
       val latBlocks = (for (i <- minLatBlock to maxLatBlock) yield i).toSet
       val longBlocks = (for(i <- minLongBlock to maxLongBlock) yield i).toSet
