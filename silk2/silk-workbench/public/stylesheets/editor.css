@@ -92,6 +92,23 @@ body{
 	border:1px dotted #1484d4;
 }
 
+.boxheaders {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.transformHeader {
+  color: #0cc481;
+}
+
+.compareHeader {
+  color: #e59829;
+}
+
+.aggregateHeader {
+  color: #1484d4;
+}
+
 ._jsPlumb_endpoint {
   z-index: 2;
 }
@@ -237,11 +254,6 @@ body{
   border: 1px dotted #c8c7c7;
   padding: 1px 1px 3px 5px;
   box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
-}
-
-.boxheaders {
-  font-weight: bold;
-  margin-top: 5px;
 }
 
 .accepthighlight{

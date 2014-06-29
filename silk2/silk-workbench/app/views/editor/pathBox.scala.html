@@ -1,0 +1,17 @@
+@(id: String,
+  isSource: Boolean,
+  path: String,
+  x: Int, y: Int, display: Boolean)
+
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
+
+@operatorBox(
+  opType = if(isSource) "Source" else "Target",
+  id = id,
+  plugin = new PluginDescription(id, Set.empty, "Path", "Path", Seq.empty, null),
+  parameters = Map.empty,
+  x = x,
+  y = y,
+  display = display) {
+    <input type="text" name="path" size="28" value="@path"/>
+  }

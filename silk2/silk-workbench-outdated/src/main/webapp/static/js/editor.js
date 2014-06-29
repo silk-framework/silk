@@ -1711,7 +1711,7 @@ function getOperators()
         box.appendTo("#operators");
 
         var box = $(document.createElement('div'));
-        box.attr("id", "transformationbox");
+        box.attr("id", "transformbox");
         box.addClass("scrollboxes");
         box.appendTo("#operators");
 
@@ -1792,7 +1792,7 @@ function getOperators()
               return box1;
             }
           });
-          box.appendTo("#transformationbox");
+          box.appendTo("#transformbox");
 
           list_item_id = list_item_id + 1;
         });

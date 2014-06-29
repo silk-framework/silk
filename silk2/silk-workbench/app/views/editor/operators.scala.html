@@ -1,0 +1,79 @@
+@(name: String,
+  opType: String,
+  pluginsByCategory: Map[String, Seq[de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription[_]]])
+
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginDescription
+
+<script type="text/javascript">
+// Initialization
+$(function() {
+  // Make operators draggable
+  $('.@name.toLowerCase').draggable({
+    helper: function() {
+      var box = $(this).children('.@{opType}Div').clone(false);
+      box.attr("id", generateNewElementId());
+      box.show();
+      return box;
+    }
+  });
+
+  // Hide all operators except the recommended ones
+  @for(category <- pluginsByCategory.keys if category != "Recommended") {
+    $('#@{opType}_category_@category').hide();
+  }
+
+  $("#@{opType}_category").change(function() {
+    // Hide all categories
+    $('div[id^=@{opType}_category_]').hide();
+    // Show selected Category
+    var selectedCategory = $(this).val();
+    $('#@{opType}_category_' + selectedCategory).show();
+  });
+});
+</script>
+
+<div class="boxheaders @{opType}Header">
+  @name
+  <select id="@{opType}_category" name="category" style="font-size:0.9em;">
+    @for(category <- pluginsByCategory.keys) {
+      <option value="@category" @if(category == "Recommended"){ selected="selected" } >
+        @category
+      </option>
+    }
+  </select>
+</div>
+
+<div id="@{opType}box" class="scrollboxes" style="height: 67.9px;">
+  @for((category, plugins) <- pluginsByCategory) {
+    <div id="@{opType}_category_@category">
+    @for(plugin <- plugins.sortBy(_.label)) {
+      @operatorIcon(plugin, category)
+    }
+    </div>
+  }
+</div>
+
+@**
+ * A single operator in the toolbox.
+ *@
+@operatorIcon(plugin: PluginDescription[_], category: String) = {
+  <div id="@{opType}_@{category}_@plugin.id" class="draggable @name.toLowerCase" title="@plugin.description">
+    <span></span>
+    <small>@plugin.label</small>
+    <p>@plugin.label</p>
+    @operatorExpanded(plugin)
+  </div>
+}
+
+@operatorExpanded(plugin: PluginDescription[_]) = {
+  @opType match {
+    case "transform" => { @transformationBox("undefined", plugin, parameterValues(plugin), 0, 0, false) }
+    case "compare" => { @comparisonBox("undefined", false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false) }
+    case "aggregate" => { @aggregationBox("undefined", false, 1, plugin, parameterValues(plugin), 0, 0, false) }
+  }
+}
+
+@parameterValues(plugin: PluginDescription[_]) = @{
+  val values = for(p <- plugin.parameters) yield (p.name, p.defaultValue.getOrElse("").toString)
+  values.toMap
+}

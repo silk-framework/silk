@@ -1,6 +1,10 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project,
   task: de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask)
 
+@import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
@@ -67,9 +71,9 @@
     </div>
 
     <div id="operators">
-      @transformations()
-      @comparators()
-      @aggregators()
+      @operators("Transformations", "transform", Transformer.pluginsByCategory)
+      @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
+      @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
     </div>
   </div>
 

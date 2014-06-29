@@ -2,6 +2,7 @@
     task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
 
 @import de.fuberlin.wiwiss.silk.workspace.User
+@import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
@@ -69,7 +70,7 @@
     </div>
 
     <div id="operators">
-      @transformations()
+      @operators("Transformations", "transform", Transformer.pluginsByCategory)
     </div>
   </div>
 
