@@ -34,16 +34,21 @@ class Prefixes(val prefixMap: Map[String, String]) {
   /**
    * Resolves a qualified name to its full URI.
    *
-   * @param qualifiedName The qualified name e.g. rdf:label
+   * @param name The qualified name e.g. rdf:label or a full URI enclosed in <> brackets.
    * @return The full URI e.g. http://www.w3.org/1999/02/22-rdf-syntax-ns#label
    * @see shorten
    */
-  def resolve(qualifiedName: String) = qualifiedName.split(":", 2) match {
-    case Array(prefix, suffix) => prefixMap.get(prefix) match {
-      case Some(resolvedPrefix) => resolvedPrefix + suffix
-      case None => throw new ValidationException("Unknown prefix: " + prefix)
+  def resolve(name: String) =
+    if (name.startsWith("<") && name.endsWith(">")) {
+      name.substring(1, name.length - 1)
+    } else {
+      name.split(":", 2) match {
+        case Array(prefix, suffix) => prefixMap.get(prefix) match {
+          case Some(resolvedPrefix) => resolvedPrefix + suffix
+          case None => throw new ValidationException("Unknown prefix: " + prefix)
+        }
+        case _ => throw new ValidationException("No prefix found in " + name)
     }
-    case _ => throw new ValidationException("No prefix found in " + qualifiedName)
   }
 
   /**

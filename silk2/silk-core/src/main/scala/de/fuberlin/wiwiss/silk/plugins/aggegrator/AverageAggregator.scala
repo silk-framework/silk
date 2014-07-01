@@ -18,7 +18,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
 
-@Plugin(id = "average", label = "Average", description = "Computes the weighted average.")
+@Plugin(
+  id = "average",
+  categories = Array("All", "Recommended"),
+  label = "Average",
+  description = "Computes the weighted average."
+)
 case class AverageAggregator() extends Aggregator {
   private val positiveWeight: Int = 9
   private val negativeWeight: Int = 10

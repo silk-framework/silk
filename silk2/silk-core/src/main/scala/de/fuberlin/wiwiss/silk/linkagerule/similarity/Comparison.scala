@@ -68,7 +68,7 @@ case class Comparison(id: Identifier = Operator.generateId,
    * Indexes an entity.
    *
    * @param entity The entity to be indexed
-   * @param threshold The similarity threshold.
+   * @param limit The similarity threshold.
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
@@ -95,14 +95,14 @@ case class Comparison(id: Identifier = Operator.generateId,
 
 object Comparison {
 
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Comparison = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Comparison = {
     val id = Operator.readId(node)
     val inputs = Input.fromXML(node.child, resourceLoader)
     if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
 
     try {
       val requiredStr = (node \ "@required").text
-      val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(1.0 - globalThreshold.getOrElse(1.0))
+      val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
       val weightStr = (node \ "@weight").text
       val indexingStr = (node \ "@indexing").text
       val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node), resourceLoader)

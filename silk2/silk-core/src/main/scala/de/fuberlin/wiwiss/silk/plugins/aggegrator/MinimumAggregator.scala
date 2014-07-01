@@ -18,7 +18,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
 
-@Plugin(id = "min", label = "Minimum", description = "Selects the minimum value.")
+@Plugin(
+  id = "min",
+  categories = Array("All", "Recommended"),
+  label = "Minimum",
+  description = "Selects the minimum value."
+)
 case class MinimumAggregator() extends Aggregator {
   /**
    * Returns the minimum of the provided values.

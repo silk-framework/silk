@@ -70,12 +70,24 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="Filter">
+    <xs:complexType>
+      <xs:attribute name="threshold" type="xs:decimal" use="optional" />
+      <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
+      <xs:attribute name="unambiguous" type="xs:boolean" use="optional" default="false" />
+    </xs:complexType>
+  </xs:element>
+
   <xs:element name="LinkageRule">
     <xs:complexType>
-      <xs:choice minOccurs="0" maxOccurs="1">
-        <xs:element ref="Aggregate" />
-        <xs:element ref="Compare" />
-      </xs:choice>
+      <xs:sequence>
+        <xs:choice minOccurs="0" maxOccurs="1">
+          <xs:element ref="Aggregate" />
+          <xs:element ref="Compare" />
+        </xs:choice>
+        <xs:element ref="Filter" minOccurs="0" />
+      </xs:sequence>
+      <xs:attribute name="linkType" type="xs:string" use="optional"/>
     </xs:complexType>
   </xs:element>
 
@@ -114,7 +126,8 @@
     <xs:complexType>
       <xs:sequence>
 
-        <xs:element name="LinkType" type="xs:string" />
+        <!-- Deprecated: LinkType is now an attribute of a linkage rule -->
+        <xs:element name="LinkType" type="xs:string" minOccurs="0" />
 
         <xs:element name="SourceDataset">
           <xs:complexType>
@@ -136,7 +149,7 @@
           </xs:complexType>
         </xs:element>
 
-        <!-- <LinkCondition> has been renamed to <LinkageRule> but we still need to support it -->
+        <!-- Deprecated: <LinkCondition> has been renamed to <LinkageRule> but we still need to support it -->
         <xs:element name="LinkCondition" minOccurs="0">
           <xs:complexType>
             <xs:choice minOccurs="0" maxOccurs="1">
@@ -148,13 +161,8 @@
 
         <xs:element ref="LinkageRule" minOccurs="0" />
 
-        <xs:element name="Filter">
-          <xs:complexType>
-            <xs:attribute name="threshold" type="xs:decimal" use="optional" />
-            <xs:attribute name="limit" type="xs:unsignedShort" use="optional" />
-            <xs:attribute name="unambiguous" type="xs:boolean" use="optional" default="false" />
-          </xs:complexType>
-        </xs:element>
+        <!-- Deprecated: Filters are now defined inside the linkage rule -->
+        <xs:element ref="Filter" minOccurs="0" />
 
         <xs:element ref="Outputs" minOccurs="0"/>
 

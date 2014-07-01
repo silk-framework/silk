@@ -24,8 +24,10 @@ import de.fuberlin.wiwiss.silk.entity.Index
  */
 @Plugin(
   id = "geometricMean",
+  categories = Array("All"),
   label = "Geometric mean",
-  description = "Compute the (weighted) geometric mean.")
+  description = "Compute the (weighted) geometric mean."
+)
 case class GeometricMeanAggregator() extends Aggregator {
   override def evaluate(values: Traversable[(Int, Double)]) = {
     if (!values.isEmpty) {

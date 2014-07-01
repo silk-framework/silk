@@ -4,12 +4,16 @@
 function serializeLinkageRule() {
   var xml = serializeRule("LinkageRule");
 
-  // TODO add to linkage rule
-//  var filter = xmlDocument.createElement("Filter");
-//  if ($("#linklimit :selected").text() != "unlimited") {
-//    filter.setAttribute("limit", $("#linklimit :selected").text());
-//  }
-//  xml.appendChild(filter);
+  // Add filter
+  var filter = xml.ownerDocument.createElement("Filter");
+  var filterLimit = $("#linklimit").find(":selected").text();
+  if (filterLimit != "unlimited") {
+    filter.setAttribute("limit", filterLimit);
+  }
+  xml.appendChild(filter);
+
+  // Add link type attribute
+  xml.setAttribute("linkType", $("#linktype").val());
 
   return makeXMLString(xml);
 }

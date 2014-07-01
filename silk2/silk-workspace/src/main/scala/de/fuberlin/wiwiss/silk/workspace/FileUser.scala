@@ -22,7 +22,13 @@ class FileUser extends User {
 }
 
 object FileUser {
-  private lazy val workspaceDir = new File(System.getProperty("user.home") + "/.silk/workspace/")
+  private lazy val workspaceDir = {
+    val elds_home = System.getenv("ELDS_HOME")
+    if(elds_home != null)
+      new File(elds_home + "/srv/data_integration/workspace/")
+    else
+      new File(System.getProperty("user.home") + "/.silk/workspace/")
+  }
 
   lazy val workspace = {
     try {

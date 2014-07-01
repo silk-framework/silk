@@ -100,7 +100,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
 
 object Aggregation {
 
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Aggregation = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Aggregation = {
     val requiredStr = (node \ "@required").text
     val weightStr = (node \ "@weight").text
 

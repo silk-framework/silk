@@ -1,28 +1,40 @@
-import models.WorkbenchConfig
-import play.api.{Application, GlobalSettings}
-import play.api.mvc.RequestHeader
-import play.api.mvc.Results._
-import java.util.logging.{ConsoleHandler, SimpleFormatter, FileHandler}
-import de.fuberlin.wiwiss.silk.workspace.FileUser
-import de.fuberlin.wiwiss.silk.workspace.User
+import java.io.File
+import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
+
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
-import play.api.Play
+import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
+import models.WorkbenchConfig
 import play.api.Play.current
+import play.api.mvc.RequestHeader
+import play.api.mvc.Results._
+import play.api.{Application, GlobalSettings, Play}
+
 import scala.concurrent.Future
 
 object Global extends GlobalSettings {
 
   override def beforeStart(app: Application) {
-    
-    // ensure user.home is set to $ELDS_HOME, if present
+    // If the ELDS_HOME variable is set, Silk is run inside the eccenca Linked Data Suite
     val elds_home = System.getenv("ELDS_HOME")
-    if (elds_home != null) {
-      System.setProperty("user.home", elds_home)
-    }
-  
-    // Configure logging
-    val logFile = if(app.getFile("/logs/").exists) app.getFile("/logs/engine.log") else app.getFile("../logs/engine.log")
+
+    // Configure workbench logging
+    // The 'workbench.logDir' variable will be read in application.logger.xml
+    if (elds_home != null)
+      System.setProperty("workbench.logDir", elds_home + "/var/log/data_integration")
+    else
+      System.setProperty("workbench.logDir", Play.configuration.getString("application.home") + "logs")
+
+    // Configure engine logging
+    val logFile =
+      if (elds_home != null)
+        new File(elds_home + "/var/log/data_integration/engine.log")
+      else if(app.getFile("/logs/").exists)
+        app.getFile("/logs/engine.log")
+      else
+        app.getFile("../logs/engine.log")
+
+    logFile.getParentFile.mkdirs()
     val fileHandler = new FileHandler(logFile.getAbsolutePath)
     fileHandler.setFormatter(new SimpleFormatter())
     java.util.logging.Logger.getLogger("").addHandler(fileHandler)

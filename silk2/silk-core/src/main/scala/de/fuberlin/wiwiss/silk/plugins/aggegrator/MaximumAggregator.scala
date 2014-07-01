@@ -18,7 +18,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index
 
-@Plugin(id = "max", label = "Maximum", description = "Selects the maximum value.")
+@Plugin(
+  id = "max",
+  categories = Array("All", "Recommended"),
+  label = "Maximum",
+  description = "Selects the maximum value."
+)
 case class MaximumAggregator() extends Aggregator {
   /**
    * Returns the maximum of the provided values.

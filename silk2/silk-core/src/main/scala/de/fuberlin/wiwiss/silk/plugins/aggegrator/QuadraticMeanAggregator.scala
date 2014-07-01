@@ -21,7 +21,12 @@ import de.fuberlin.wiwiss.silk.entity.Index
 /**
  * Computes the weighted quadratic mean.
  */
-@Plugin(id = "quadraticMean", label = "Euclidian distance", description = "Calculates the Euclidian distance.")
+@Plugin(
+  id = "quadraticMean",
+  categories = Array("All"),
+  label = "Euclidian distance",
+  description = "Calculates the Euclidian distance."
+)
 case class QuadraticMeanAggregator() extends Aggregator {
   override def evaluate(values: Traversable[(Int, Double)]) = {
     if (!values.isEmpty) {

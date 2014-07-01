@@ -62,7 +62,7 @@ trait SimilarityOperator extends Operator {
 
 object SimilarityOperator {
 
-  def fromXML(nodes: Seq[Node], resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]): Seq[SimilarityOperator] = {
+  def fromXML(nodes: Seq[Node], resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Seq[SimilarityOperator] = {
     nodes.collect {
       case node@ <Aggregate>{_*}</Aggregate> => Aggregation.fromXML(node, resourceLoader)
       case node@ <Compare>{_*}</Compare> => Comparison.fromXML(node, resourceLoader)
