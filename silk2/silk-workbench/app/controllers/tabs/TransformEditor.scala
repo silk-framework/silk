@@ -7,10 +7,19 @@ import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 
 object TransformEditor extends Controller {
 
-  def editor(projectName: String, taskName: String, rule: Int) = Action {
+  def start(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
-    Ok(views.html.editor.transformEditor(project, task, task.rules(rule)))
+    Ok(views.html.editor.transformEditorStart(project, task))
+  }
+
+  def editor(projectName: String, taskName: String, rule: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+    task.rules.find(_.name == rule) match {
+      case Some(r) => Ok(views.html.editor.transformEditor(project, task, r))
+      case None => NotFound(s"No rule named '$rule' found!")
+    }
   }
 
   def paths(projectName: String, taskName: String) = Action {

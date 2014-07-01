@@ -1,5 +1,6 @@
 package controllers.api
 
+import controllers.tabs.TransformEditor._
 import play.api.mvc.{Action, Controller}
 import de.fuberlin.wiwiss.silk.workspace.User
 import java.util.logging.{Logger, Level}
@@ -12,16 +13,51 @@ object TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def getRule(projectName: String, taskName: String, rule: Int) = Action {
+  def getRules(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
     implicit val prefixes = project.config.prefixes
-    val ruleXml = task.rules(rule).toXML
 
-    Ok(ruleXml)
+    Ok(<TransformRules>{ task.rules.map(_.toXML) }</TransformRules>)
   }
 
-  def putRule(projectName: String, taskName: String, ruleIndex: Int) = Action { request => {
+  def putRules(projectName: String, taskName: String) = Action { request => {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+    implicit val prefixes = project.config.prefixes
+
+    request.body.asXml match {
+      case Some(xml) =>
+        try {
+          //Parse transformation rules
+          val updatedRules = (xml \ "TransformRule").map(TransformRule.load(project.resourceManager)(prefixes))
+          //Update transformation task
+          val updatedTask = task.updateRules(updatedRules, project)
+          project.transformModule.update(updatedTask)
+          Ok
+        } catch {
+          case ex: ValidationException =>
+            BadRequest(ex.toString)
+          case ex: Exception =>
+            InternalServerError("Error in back end: " + ex.getMessage)
+        }
+      case None =>
+        BadRequest("Expecting text/xml request body")
+    }
+  }}
+
+  def getRule(projectName: String, taskName: String, rule: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+    implicit val prefixes = project.config.prefixes
+
+    task.rules.find(_.name == rule) match {
+      case Some(r) => Ok(r.toXML)
+      case None => NotFound(s"No rule named '$rule' found!")
+    }
+  }
+
+  def putRule(projectName: String, taskName: String, rule: String) = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
     implicit val prefixes = project.config.prefixes
@@ -33,8 +69,8 @@ object TransformTaskApi extends Controller {
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load transformation rule
             val updatedRule = TransformRule.load(project.resourceManager)(prefixes)(xml.head)
-            //Update linking task
-            val updatedTask = task.updateRule(updatedRule, ruleIndex, project)
+            //Update transformation task
+            val updatedTask = task.updateRule(updatedRule, project)
             project.transformModule.update(updatedTask)
           }
           // Return warnings

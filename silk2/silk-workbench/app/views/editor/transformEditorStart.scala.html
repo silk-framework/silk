@@ -1,0 +1,98 @@
+
+@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+  task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
+
+@import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+
+@header = {
+  <script>
+    var apiUrl = '@config.baseUrl/api/workspace/@project.name/transform/@task.name';
+
+    $(function() {
+      $("#ruleContainer").sortable();
+      $("#ruleContainer").disableSelection();
+    });
+
+    function modified() {
+      //TODO save on modification
+    }
+
+    function save() {
+      var xmlDoc = $.parseXML('<TransformRules></TransformRules>');
+
+      // Collect all rules
+      $("#ruleContainer").children(".transformRule").each(function() {
+        // Parse original transform rule
+        var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
+        // Update name
+        ruleXml.setAttribute("name", $(this).children("input").val());
+        // Add to document
+        xmlDoc.importNode(ruleXml);
+        xmlDoc.documentElement.appendChild(ruleXml);
+      });
+
+      // Push to back-end
+      var xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
+      $.ajax({
+        type: 'PUT',
+        url: apiUrl + '/rules',
+        contentType: 'text/xml',
+        processData: false,
+        data: xmlString,
+        success: function(response) {
+        },
+        error: function(req) {
+          console.log('Error committing rule: ' + req.responseText);
+          alert(req.responseText);
+        }
+      });
+    }
+
+    function openRule(name) {
+      save();
+      window.location.href = "./editor/" + name
+    }
+
+    function addRule() {
+      var newRule = $("#ruleTemplate").children().clone();
+      newRule.appendTo("#ruleContainer");
+    }
+  </script>
+}
+
+@toolbar = {
+  <ul>
+    <li>
+      <button onclick="addRule()">Add Rule</button>
+    </li>
+    <li>
+      <button onclick="save()">Save</button>
+    </li>
+  </ul>
+}
+
+@content = {
+  <div id="ruleContainer">
+    @for(rule <- task.rules) {
+      @renderRule(rule)
+    }
+  </div>
+
+  <div id="ruleTemplate" style="display: none">
+    @renderRule(TransformRule())
+  </div>
+}
+
+@renderRule(rule: TransformRule) = {
+  <div class="transformRule">
+    <input value="@rule.name" />
+    @rule.targetProperty
+    <img class="button-delete" title="Delete" onclick="$(this).parent().remove()" src="@routes.Assets.at("img/delete.png")" style="cursor: pointer" />
+    <img class="button-edit" title="Open in Editor" onclick="openRule('@rule.name')" src="@routes.Assets.at("img/editor/wrench.png")" style="cursor: pointer" />
+    <script class="ruleXML" type="application/xml">
+      @rule.toXML
+    </script>
+  </div>
+}
+
+@main(Some(project.name), Some(task.name), "transformEditor")(header)(toolbar)(content)

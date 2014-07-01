@@ -469,7 +469,7 @@ function removeTransformTask(project, task) {
 }
 
 function openTransformTask(project, task) {
-  window.location = baseUrl + '/' + project + '/transform/' + task + '/editor/0'
+  window.location = baseUrl + '/' + project + '/transform/' + task + '/editor'
 }
 
 function newLinkingTask(project) {

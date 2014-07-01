@@ -24,7 +24,8 @@ GET           /workspace/dialogs/editOutput/:project/:output                    
 POST          /workspace/:project/importExample                                                     controllers.tabs.Workspace.importExample(project: String)
 
 # Transformation Editor
-GET           /:project/transform/:task/editor/:index                                               controllers.tabs.TransformEditor.editor(project: String, task: String, index: Int)
+GET           /:project/transform/:task/editor                                                      controllers.tabs.TransformEditor.start(project: String, task: String)
+GET           /:project/transform/:task/editor/:rule                                                controllers.tabs.TransformEditor.editor(project: String, task: String, rule: String)
 GET           /:project/transform/:task/editor/widgets/paths                                        controllers.tabs.TransformEditor.paths(project: String, task: String)
 GET           /:project/transform/:task/editor/widgets/score                                        controllers.tabs.TransformEditor.score(project: String, task: String)
 
@@ -109,8 +110,10 @@ DELETE        /api/workspace/:project/source/:source                            
 # Transformation Tasks
 PUT           /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.putTransformTask(project: String, task: String)
 DELETE        /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.deleteTransformTask(project: String, task: String)
-GET           /api/workspace/:project/transform/:task/rule/:index                                   controllers.api.TransformTaskApi.getRule(project: String, task: String, index: Int)
-PUT           /api/workspace/:project/transform/:task/rule/:index                                   controllers.api.TransformTaskApi.putRule(project: String, task: String, index: Int)
+GET           /api/workspace/:project/transform/:task/rules                                         controllers.api.TransformTaskApi.getRules(project: String, task: String)
+PUT           /api/workspace/:project/transform/:task/rules                                         controllers.api.TransformTaskApi.putRules(project: String, task: String)
+GET           /api/workspace/:project/transform/:task/rule/:rule                                    controllers.api.TransformTaskApi.getRule(project: String, task: String, rule: String)
+PUT           /api/workspace/:project/transform/:task/rule/:rule                                    controllers.api.TransformTaskApi.putRule(project: String, task: String, rule: String)
 POST          /api/workspace/:project/transform/:task/reloadCache                                   controllers.api.ControlApi.reloadTransformCache(project: String, task: String)
 
 # Linking Tasks
