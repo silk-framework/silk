@@ -14,15 +14,17 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import xml.Node
-import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.util._
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.linkagerule.{LinkFilter, LinkageRule}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation, SimilarityOperator}
-import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
+
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.util._
+
+import scala.xml.Node
 
 /**
  * Represents a Silk Link Specification.
@@ -36,11 +38,9 @@ case class LinkSpecification(id: Identifier = Identifier.random,
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty): Node = {
     <Interlink id={id}>
-      <LinkType>{rule.linkType.toTurtle}</LinkType>
       {datasets.source.toXML(true)}
       {datasets.target.toXML(false)}
       {rule.toXML}
-      {rule.filter.toXML}
       <Outputs>
       {outputs.map(_.toXML)}
       </Outputs>
@@ -104,41 +104,17 @@ object LinkSpecification {
 
     //Read linkage rule node
     val linkConditionNode = (node \ "LinkCondition").headOption
-    val linkageRuleNode = (node \ "LinkageRule").headOption
+    val linkageRuleNode = (node \ "LinkageRule").headOption.getOrElse(linkConditionNode.get)
 
     if(linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
     if(linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
-    //Read filter
-    val filter = LinkFilter.fromXML((node \ "Filter").head)
-    implicit val globalThreshold = filter.threshold
-
-    new LinkSpecification(
+    LinkSpecification(
       id = id,
       datasets = new DPair(Dataset.fromXML((node \ "SourceDataset").head),
                            Dataset.fromXML((node \ "TargetDataset").head)),
-      rule =
-        LinkageRule.fromXML(
-          node = linkageRuleNode.getOrElse(linkConditionNode.get),
-          filter = filter,
-          linkType = resolveQualifiedName("LinkType", (node \ "LinkType").text.trim, prefixes),
-          resourceLoader = resourceLoader),
+      rule = LinkageRule.fromXML(linkageRuleNode, resourceLoader),
       outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
     )
-  }
-
-  private def resolveQualifiedName(element: String, value: String, prefixes: Map[String, String]) = {
-    if (value.startsWith("<") && value.endsWith(">")) {
-      value.substring(1, value.length - 1)
-    }
-    else {
-      value.split(":", 2) match {
-        case Array(prefix, suffix) => prefixes.get(prefix) match {
-          case Some(resolvedPrefix) => resolvedPrefix + suffix
-          case None => throw new ValidationException("Unknown prefix: '" + prefix + "'")
-        }
-        case _ => throw new ValidationException("No prefix found in '" + value + "'", element)
-      }
-    }
   }
 }
