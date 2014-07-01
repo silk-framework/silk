@@ -12,16 +12,16 @@ object TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def getRule(projectName: String, taskName: String) = Action {
+  def getRule(projectName: String, taskName: String, rule: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
     implicit val prefixes = project.config.prefixes
-    val ruleXml = task.rule.toXML
+    val ruleXml = task.rules(rule).toXML
 
     Ok(ruleXml)
   }
 
-  def putRule(projectName: String, taskName: String) = Action { request => {
+  def putRule(projectName: String, taskName: String, ruleIndex: Int) = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
     implicit val prefixes = project.config.prefixes
@@ -34,7 +34,7 @@ object TransformTaskApi extends Controller {
             //Load transformation rule
             val updatedRule = TransformRule.load(project.resourceManager)(prefixes)(xml.head)
             //Update linking task
-            val updatedTask = task.updateRule(updatedRule, project)
+            val updatedTask = task.updateRule(updatedRule, ruleIndex, project)
             project.transformModule.update(updatedTask)
           }
           // Return warnings

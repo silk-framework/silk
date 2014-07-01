@@ -6,13 +6,13 @@ import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 
-object Editor extends Controller {
+object LinkingEditor extends Controller {
 
   def editor(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.linkingModule.task(taskName)
 
-    Ok(views.html.editor.editor(project, task))
+    Ok(views.html.editor.linkingEditor(project, task))
   }
 
   def paths(projectName: String, taskName: String) = Action {

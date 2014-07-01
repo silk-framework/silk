@@ -319,7 +319,8 @@ class FileProject(file : File) extends Project {
           val projectConfig = FileProject.this.config
           implicit val prefixes = projectConfig.prefixes
           val dataset = Dataset.fromXML(XML.loadFile(file + ("/" + fileName + "/dataset.xml")))
-          val rule = TransformRule.load(resourceManager)(projectConfig.prefixes)(file + ("/" + fileName + "/rule.xml"))
+          val rulesXml = XML.loadFile(file + ("/" + fileName + "/rules.xml"))
+          val rules = (rulesXml \ "TransformRule").map(TransformRule.load(resourceManager)(projectConfig.prefixes))
           val cache = new PathsCache()
 
           //Load the cache
@@ -331,7 +332,7 @@ class FileProject(file : File) extends Project {
               new LinkingCaches()
           }
 
-          TransformTask(FileProject.this, fileName, dataset, rule, cache)
+          TransformTask(FileProject.this, fileName, dataset, rules, cache)
         }
 
       tasks.map(task => (task.name, task)).toMap
@@ -347,9 +348,12 @@ class FileProject(file : File) extends Project {
 
         //Don't use any prefixes
         implicit val prefixes = Prefixes.empty
-
         task.dataset.toXML(true).write(taskDir+ "/dataset.xml")
-        task.rule.toXML.write(taskDir+ "/rule.xml")
+
+        <TransformRules>
+          { task.rules.map(_.toXML) }
+        </TransformRules>.write(taskDir+ "/rules.xml")
+
         task.cache.toXML.write(taskDir +  "/cache.xml")
       }
     }

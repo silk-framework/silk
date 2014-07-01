@@ -8,11 +8,11 @@ import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.config.Dataset
 
 /**
- * Executes a transformation rule.
+ * Executes a set of transformation rules.
  */
 class ExecuteTransform(source: Source,
                        dataset: Dataset,
-                       rule: TransformRule,
+                       rules: Seq[TransformRule],
                        outputs: Traversable[Output] = Traversable.empty) extends Task[Any] {
 
   def execute(): Unit = {
@@ -21,7 +21,7 @@ class ExecuteTransform(source: Source,
       new EntityDescription(
         variable = dataset.variable,
         restrictions = dataset.restriction,
-        paths = rule.paths.toIndexedSeq
+        paths = rules.flatMap(_.paths).distinct.toIndexedSeq
       )
     val entities = source.retrieve(entityDesc)
 
@@ -30,6 +30,7 @@ class ExecuteTransform(source: Source,
 
     // Transform all entities and write to outputs
     for { entity <- entities
+          rule <- rules
           value <- rule(entity)
           output <- outputs } {
       output.writeLiteralStatement(entity.uri, rule.targetProperty, value)

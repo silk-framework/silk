@@ -379,7 +379,7 @@ function validateLinkSpec() {
     // send to server
     $.ajax({
       type: 'PUT',
-      url: apiUrl + '/rule',
+      url: apiUrl + '/rule' + ruleIndex,
       contentType: 'text/xml',
       processData: false,
       data: serializationFunction(),
@@ -653,7 +653,7 @@ function encodeHtml(value) {
 function getPropertyPaths() {
   $.ajax({
     type: 'get',
-    url: editorUrl + '/paths',
+    url: editorUrl + '/widgets/paths',
     complete: function(response, status) {
       $("#paths").html(response.responseText);
       if(status == "error") {
@@ -687,7 +687,7 @@ function reloadCache() {
 function updateScore() {
   $.ajax({
     type: 'get',
-    url: editorUrl + "/score",
+    url: editorUrl + "/widgets/score",
     complete: function(response, status) {
       $("#score-widget").html(response.responseText);
       if(status == "error") {

@@ -17,6 +17,7 @@
   <script type="text/javascript">
     var projectName = '@project.name';
     var taskName = '@task.name';
+    var ruleIndex = '';
     var editorUrl = baseUrl + '/' + projectName + '/' + taskName + '/editor';
     var apiUrl = '@config.baseUrl/api/workspace/@project.name/linking/@task.name';
     var serializationFunction = serializeLinkageRule;
@@ -83,7 +84,7 @@
 
       <div id="droppable">
         @for(op <- task.linkSpec.rule.operator) {
-          @rule(
+          @renderRule(
             rule = op,
             prefixes = project.config.prefixes
           )

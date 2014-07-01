@@ -1,18 +1,13 @@
 package controllers.api
 
-import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.config.{Dataset, RuntimeConfig}
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.execution.{EvaluateTransform, GenerateLinksTask, ExecuteTransform}
-import play.api.mvc.Controller
+import de.fuberlin.wiwiss.silk.config.RuntimeConfig
+import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinksTask}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
-import java.util.logging.ConsoleHandler
-import models._
+import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningResult, LearningTask}
 import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
-import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningInput, LearningTask}
-import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.workspace.User
+import models._
+import play.api.mvc.{Action, Controller}
 
 object ControlApi extends Controller {
 
@@ -76,7 +71,7 @@ object ControlApi extends Controller {
       new ExecuteTransform(
         source = project.sourceModule.task(task.dataset.sourceId).source,
         dataset= task.dataset,
-        rule = task.rule,
+        rules = task.rules,
         outputs = outputs
       )
 

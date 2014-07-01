@@ -14,8 +14,8 @@ GET           /workspace/dialogs/prefixes/:project                              
 GET           /workspace/dialogs/resources/:project                                                 controllers.tabs.Workspace.resourcesDialog(project: String)
 GET           /workspace/dialogs/newSource/:project                                                 controllers.tabs.Workspace.sourceDialog(project: String, source = "")
 GET           /workspace/dialogs/editSource/:project/:source                                        controllers.tabs.Workspace.sourceDialog(project: String, source: String)
-GET           /workspace/dialogs/newTransformTask/:project                                     controllers.tabs.Workspace.transformationTaskDialog(project: String, task = "")
-GET           /workspace/dialogs/editTransformTask/:project/:task                              controllers.tabs.Workspace.transformationTaskDialog(project: String, task: String)
+GET           /workspace/dialogs/newTransformTask/:project                                          controllers.tabs.Workspace.transformationTaskDialog(project: String, task = "")
+GET           /workspace/dialogs/editTransformTask/:project/:task                                   controllers.tabs.Workspace.transformationTaskDialog(project: String, task: String)
 GET           /workspace/dialogs/newLinkingTask/:project                                            controllers.tabs.Workspace.linkingTaskDialog(project: String, task = "")
 GET           /workspace/dialogs/editLinkingTask/:project/:task                                     controllers.tabs.Workspace.linkingTaskDialog(project: String, task: String)
 GET           /workspace/dialogs/editRestriction/:project/:source                                   controllers.tabs.Workspace.restrictionDialog(project: String, source: String, sourceOrTarget: String, restriction: String)
@@ -24,9 +24,9 @@ GET           /workspace/dialogs/editOutput/:project/:output                    
 POST          /workspace/:project/importExample                                                     controllers.tabs.Workspace.importExample(project: String)
 
 # Transformation Editor
-GET           /:project/transform/:task/editor                                                      controllers.tabs.TransformEditor.editor(project: String, task: String)
-GET           /:project/transform/:task/editor/paths                                                controllers.tabs.TransformEditor.paths(project: String, task: String)
-GET           /:project/transform/:task/editor/score                                                controllers.tabs.TransformEditor.score(project: String, task: String)
+GET           /:project/transform/:task/editor/:index                                               controllers.tabs.TransformEditor.editor(project: String, task: String, index: Int)
+GET           /:project/transform/:task/editor/widgets/paths                                        controllers.tabs.TransformEditor.paths(project: String, task: String)
+GET           /:project/transform/:task/editor/widgets/score                                        controllers.tabs.TransformEditor.score(project: String, task: String)
 
 # Evaluate Transformation
 GET           /:project/transform/:task/evaluate                                                    controllers.tabs.EvaluateTransform.evaluate(project: String, task: String)
@@ -38,9 +38,9 @@ GET           /:project/transform/:task/executeDialog                           
 GET           /:project/transform/:task/execute/statusStream                                        controllers.tabs.ExecuteTransform.statusStream(project: String, task: String)
 
 # Linkage Rule Editor
-GET           /:project/:task/editor                                                                controllers.tabs.Editor.editor(project: String, task: String)
-GET           /:project/:task/editor/paths                                                          controllers.tabs.Editor.paths(project: String, task: String)
-GET           /:project/:task/editor/score                                                          controllers.tabs.Editor.score(project: String, task: String)
+GET           /:project/:task/editor                                                                controllers.tabs.LinkingEditor.editor(project: String, task: String)
+GET           /:project/:task/editor/widgets/paths                                                  controllers.tabs.LinkingEditor.paths(project: String, task: String)
+GET           /:project/:task/editor/widgets/score                                                  controllers.tabs.LinkingEditor.score(project: String, task: String)
 
 # Generate Links
 GET           /:project/:task/generateLinks                                                         controllers.tabs.GenerateLinks.generateLinks(project: String, task: String)
@@ -109,8 +109,8 @@ DELETE        /api/workspace/:project/source/:source                            
 # Transformation Tasks
 PUT           /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.putTransformTask(project: String, task: String)
 DELETE        /api/workspace/:project/transform/:task                                               controllers.api.WorkspaceApi.deleteTransformTask(project: String, task: String)
-GET           /api/workspace/:project/transform/:task/rule                                          controllers.api.TransformTaskApi.getRule(project: String, task: String)
-PUT           /api/workspace/:project/transform/:task/rule                                          controllers.api.TransformTaskApi.putRule(project: String, task: String)
+GET           /api/workspace/:project/transform/:task/rule/:index                                   controllers.api.TransformTaskApi.getRule(project: String, task: String, index: Int)
+PUT           /api/workspace/:project/transform/:task/rule/:index                                   controllers.api.TransformTaskApi.putRule(project: String, task: String, index: Int)
 POST          /api/workspace/:project/transform/:task/reloadCache                                   controllers.api.ControlApi.reloadTransformCache(project: String, task: String)
 
 # Linking Tasks

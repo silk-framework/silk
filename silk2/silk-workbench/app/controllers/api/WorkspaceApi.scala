@@ -234,9 +234,9 @@ object WorkspaceApi extends Controller {
         val updatedTransformTask = oldTask.updateDataset(dataset, proj)
         proj.transformModule.update(updatedTransformTask)
       }
-      //Create new task
+      //Create new task with a single rule
       case None => {
-        val transformTask = TransformTask(proj, task, dataset, TransformRule())
+        val transformTask = TransformTask(proj, task, dataset, Seq(TransformRule()))
         proj.transformModule.update(transformTask)
       }
     }

@@ -20,7 +20,7 @@ object EvaluateTransform extends Controller {
       new EvaluateTransformTask(
         source = project.sourceModule.task(task.dataset.sourceId).source,
         dataset = task.dataset,
-        rules = Seq(task.rule)
+        rules = task.rules
       )
 
     for(entities <- evaluateTransform.runInBackground()) yield {

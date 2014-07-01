@@ -1,5 +1,6 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project,
-    task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
+  task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask,
+  rule: de.fuberlin.wiwiss.silk.linkagerule.TransformRule)
 
 @import de.fuberlin.wiwiss.silk.workspace.User
 @import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
@@ -16,6 +17,7 @@
   <script type="text/javascript">
     var projectName = '@project.name';
     var taskName = '@task.name';
+    var ruleIndex = '/@task.rules.indexOf(rule)';
     var editorUrl = baseUrl + '/' + projectName + '/transform/' + taskName + '/editor';
     var apiUrl = '@config.baseUrl/api/workspace/@project.name/transform/@task.name';
     var serializationFunction = serializeTransformRule;
@@ -79,8 +81,8 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- task.rule.operator) {
-          @rule(
+        @for(op <- rule.operator) {
+          @renderRule(
             rule = op,
             prefixes = project.config.prefixes
           )
@@ -89,7 +91,7 @@
 
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.rule.targetProperty)" />
+        <input type="text" size="40" id="targetproperty" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(rule.targetProperty)" />
         <img src="@routes.Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
       </div>
 
