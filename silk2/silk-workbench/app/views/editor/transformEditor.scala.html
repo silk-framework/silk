@@ -29,7 +29,7 @@
 
   <ul>
     <li>
-      <button id="back" onclick="window.history.back()">Back</button>
+      <a class="button" href="../editor">Back</a>
     </li>
     <li>
       <button id="undo" onclick="undo();">Undo</button>
@@ -92,9 +92,15 @@
         }
       </div>
 
+      <div style="float: left; margin-right: 20px">
+        Name:
+        <input type="text" size="40" id="rulename"  value="@rule.name" />
+        <img src="@routes.Assets.at("img/help.png")" title="The name of this transformation rule." />
+      </div>
+
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(rule.targetProperty)" />
+        <input type="text" size="40" id="targetproperty"  value="@project.config.prefixes.shorten(rule.targetProperty)" />
         <img src="@routes.Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
       </div>
 

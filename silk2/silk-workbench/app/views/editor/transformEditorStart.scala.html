@@ -5,19 +5,38 @@
 @import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 
 @header = {
-  <script>
+  <style type="text/css">
+    #ruleContainer {
+      width: 435px;
+      background-color: #ffffff;
+      border-width: 1px;
+      border-style: solid;
+      border-color: #a0a0a0;
+    }
+
+    .transformRule {
+      width: 400px;
+      height: 30px;
+      margin: 10px;
+      padding: 5px;
+      background-color: #ddddff;
+      border-width: 1px;
+      border-style: solid;
+      border-color: #a0a0a0;
+    }
+  </style>
+  <script type="text/javascript">
     var apiUrl = '@config.baseUrl/api/workspace/@project.name/transform/@task.name';
 
     $(function() {
       $("#ruleContainer").sortable();
-      $("#ruleContainer").disableSelection();
     });
 
     function modified() {
       //TODO save on modification
     }
 
-    function save() {
+    function serializeRules() {
       var xmlDoc = $.parseXML('<TransformRules></TransformRules>');
 
       // Collect all rules
@@ -27,18 +46,22 @@
         // Update name
         ruleXml.setAttribute("name", $(this).children("input").val());
         // Add to document
-        xmlDoc.importNode(ruleXml);
+        xmlDoc.importNode(ruleXml, true);
         xmlDoc.documentElement.appendChild(ruleXml);
       });
 
       // Push to back-end
       var xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
+      return xmlString;
+    }
+
+    function save() {
       $.ajax({
         type: 'PUT',
         url: apiUrl + '/rules',
         contentType: 'text/xml',
         processData: false,
-        data: xmlString,
+        data: serializeRules(),
         success: function(response) {
         },
         error: function(req) {
@@ -49,8 +72,20 @@
     }
 
     function openRule(name) {
-      save();
-      window.location.href = "./editor/" + name
+      $.ajax({
+        type: 'PUT',
+        url: apiUrl + '/rules',
+        contentType: 'text/xml',
+        processData: false,
+        data: serializeRules(),
+        success: function(response) {
+          window.location.href = "./editor/" + name
+        },
+        error: function(req) {
+          console.log('Error committing rule: ' + req.responseText);
+          alert(req.responseText);
+        }
+      });
     }
 
     function addRule() {
@@ -85,10 +120,11 @@
 
 @renderRule(rule: TransformRule) = {
   <div class="transformRule">
+    <img title="Move" src="@routes.Assets.at("img/editor/move.png")" style="cursor: move" />
     <input value="@rule.name" />
     @rule.targetProperty
+    <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().children('input').val())" src="@routes.Assets.at("img/editor/wrench.png")" style="cursor: pointer" />
     <img class="button-delete" title="Delete" onclick="$(this).parent().remove()" src="@routes.Assets.at("img/delete.png")" style="cursor: pointer" />
-    <img class="button-edit" title="Open in Editor" onclick="openRule('@rule.name')" src="@routes.Assets.at("img/editor/wrench.png")" style="cursor: pointer" />
     <script class="ruleXML" type="application/xml">
       @rule.toXML
     </script>

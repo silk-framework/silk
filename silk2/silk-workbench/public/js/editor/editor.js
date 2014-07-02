@@ -387,6 +387,7 @@ function validateLinkSpec() {
       success: function(response) {
         updateStatus(response.error, response.warning, response.info);
         updateScore();
+        confirmOnExit = false;
       },
       error: function(req) {
         console.log('Error committing rule: ' + req.responseText);
@@ -411,11 +412,9 @@ function updateStatus(errorMessages, warningMessages, infoMessages) {
     $("#info-box").append(printErrorMessages(errorMessages));
     showInvalidIcon(errorMessages.length);
   } else if (warningMessages.length > 0) {
-    confirmOnExit = false;
     $("#info-box").append(printMessages(warningMessages));
     showWarningIcon(warningMessages.length);
   } else {
-    confirmOnExit = false;
     $("#info-box").slideUp(200);
     showValidIcon();
   }
