@@ -113,7 +113,7 @@ DELETE        /api/workspace/:project/transform/:task                           
 GET           /api/workspace/:project/transform/:task/rules                                         controllers.api.TransformTaskApi.getRules(project: String, task: String)
 PUT           /api/workspace/:project/transform/:task/rules                                         controllers.api.TransformTaskApi.putRules(project: String, task: String)
 GET           /api/workspace/:project/transform/:task/rule/:rule                                    controllers.api.TransformTaskApi.getRule(project: String, task: String, rule: String)
-PUT           /api/workspace/:project/transform/:task/rule/:rule                                    controllers.api.TransformTaskApi.putRule(project: String, task: String, rule: String)
+PUT           /api/workspace/:project/transform/:task/rule/:rule                                    controllers.api.TransformTaskApi.putRule(project: String, task: String, rule: Int)
 POST          /api/workspace/:project/transform/:task/reloadCache                                   controllers.api.ControlApi.reloadTransformCache(project: String, task: String)
 
 # Linking Tasks

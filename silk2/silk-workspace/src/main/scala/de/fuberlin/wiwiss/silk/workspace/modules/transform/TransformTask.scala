@@ -17,11 +17,6 @@ class TransformTask private(val name: Identifier, val dataset: Dataset, val rule
     TransformTask(project, name, dataset, rules, cache)
   }
 
-  def updateRule(rule: TransformRule, project: Project) = {
-    val updatedRules = rules.updated(rules.indexWhere(_.name == rule.name), rule)
-    TransformTask(project, name, dataset, updatedRules, cache)
-  }
-
   def updateRules(rules: Seq[TransformRule], project: Project) = {
     TransformTask(project, name, dataset, rules, cache)
   }

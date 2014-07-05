@@ -57,7 +57,7 @@ object TransformTaskApi extends Controller {
     }
   }
 
-  def putRule(projectName: String, taskName: String, rule: String) = Action { request => {
+  def putRule(projectName: String, taskName: String, ruleIndex: Int) = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
     implicit val prefixes = project.config.prefixes
@@ -69,8 +69,9 @@ object TransformTaskApi extends Controller {
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load transformation rule
             val updatedRule = TransformRule.load(project.resourceManager)(prefixes)(xml.head)
+            val updatedRules = task.rules.updated(ruleIndex, updatedRule)
             //Update transformation task
-            val updatedTask = task.updateRule(updatedRule, project)
+            val updatedTask = task.updateRules(updatedRules, project)
             project.transformModule.update(updatedTask)
           }
           // Return warnings
