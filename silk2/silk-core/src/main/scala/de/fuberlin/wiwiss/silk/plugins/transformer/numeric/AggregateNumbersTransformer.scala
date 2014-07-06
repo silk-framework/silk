@@ -30,18 +30,22 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
   description =
     """ | Aggregates all numbers in this set using a mathematical operation.
       | Accepts one paramter:
-      |   operator: One of '+', '*'"""
+      |   operator: One of '+', '*', 'min', 'max', 'average'"""
 )
 class AggregateNumbersTransformer(operator: String) extends Transformer {
-  require(Set("+", "*") contains operator, "Operator must be one of '+', '*'")
+  require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
   def apply(values: Seq[Set[String]]): Set[String] = {
     // Collect all numbers
     val numbers = values.flatten.collect { case DoubleLiteral(d) => d }
     // Aggregate numbers
     val result = operator match {
-      case "+" => numbers.fold(0.0)(_ + _)
+      case _ if numbers.isEmpty => 0.0
+      case "+" => numbers.sum
       case "*" => numbers.fold(1.0)(_ * _)
+      case "min" => numbers.min
+      case "max" => numbers.max
+      case "average" => numbers.sum / numbers.size
     }
     // Return result
     Set(result.toString)

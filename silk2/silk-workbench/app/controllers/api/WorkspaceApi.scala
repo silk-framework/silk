@@ -236,7 +236,7 @@ object WorkspaceApi extends Controller {
       }
       //Create new task with a single rule
       case None => {
-        val transformTask = TransformTask(proj, task, dataset, Seq(TransformRule()))
+        val transformTask = TransformTask(proj, task, dataset, Seq.empty)
         proj.transformModule.update(transformTask)
       }
     }
