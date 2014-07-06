@@ -10,7 +10,7 @@ object TransformEditor extends Controller {
   def start(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.transformModule.task(taskName)
-    Ok(views.html.editor.transformEditorStart(project, task))
+    Ok(views.html.editor.transformRules(project, task))
   }
 
   def editor(projectName: String, taskName: String, rule: String) = Action {
