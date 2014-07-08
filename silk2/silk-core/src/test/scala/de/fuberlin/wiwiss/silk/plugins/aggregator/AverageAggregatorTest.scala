@@ -14,8 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.aggregator
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FlatSpec}
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.AverageAggregator
 
 import org.junit.runner.RunWith
@@ -23,7 +22,7 @@ import org.scalatest.junit.JUnitRunner
 import de.fuberlin.wiwiss.silk.testutil.approximatelyEqualTo
 
 @RunWith(classOf[JUnitRunner])
-class AverageAggregatorTest extends FlatSpec with ShouldMatchers {
+class AverageAggregatorTest extends FlatSpec with Matchers {
   val aggregator = new AverageAggregator()
 
   "AverageAggregator" should "compute the arithmetic mean for non-weighted inputs" in {
