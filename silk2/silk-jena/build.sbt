@@ -10,6 +10,8 @@ libraryDependencies += "org.apache.jena" % "jena-arq" % "2.11.1" exclude("org.sl
 
 // Testing dependencies
 
+testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
+
 libraryDependencies += "junit" % "junit" % "4.11" % "test"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.6" % "test"
