@@ -14,14 +14,13 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FlatSpec}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.io.File
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 
-class FileDataSourceTest extends FlatSpec with ShouldMatchers {
+class FileDataSourceTest extends FlatSpec with Matchers {
 
   implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -48,9 +47,5 @@ class FileDataSourceTest extends FlatSpec with ShouldMatchers {
 
   "FileDataSource" should "return entities by uri" in {
     source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
-  }
-
-  "FileDataSource" should "not return entities by uri which do not match the restriction" in {
-    source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: "http://dbpedia.org/resource/Albert_Einstein" :: Nil).size should equal (1)
   }
 }
