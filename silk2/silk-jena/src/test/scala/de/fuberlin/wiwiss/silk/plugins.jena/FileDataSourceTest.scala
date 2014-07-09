@@ -25,7 +25,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
-    "dbpedia-owl" -> "http://dbpedia.org/ontology/"
+    "do" -> "http://dbpedia.org/ontology/"
   )
 
   val fileName = "test.nt"
@@ -34,18 +34,40 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val source = new FileDataSource(resourceLoader.get(fileName), "N-TRIPLE")
 
-  val entityDesc =
+  val entityDescCity =
     EntityDescription(
       variable = "a",
-      restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type dbpedia-owl:City"),
+      restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type do:City"),
       paths = IndexedSeq(Path.parse("?a/rdfs:label"))
     )
 
   "FileDataSource" should "return all cities" in {
-    source.retrieve(entityDesc, Nil).size should equal (3)
+    source.retrieve(entityDescCity, Nil).size should equal (3)
   }
 
   "FileDataSource" should "return entities by uri" in {
-    source.retrieve(entityDesc, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
+    source.retrieve(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
+  }
+
+  val pathPlaces = Path.parse("?a/do:place/rdfs:label")
+
+  val pathPlacesCalledMunich = Path.parse("""?a/do:place[rdfs:label = "Munich"]/rdfs:label""")
+
+  val pathCities = Path.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""")
+
+  val entityDescPerson =
+    EntityDescription(
+      variable = "a",
+      restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type do:Person"),
+      paths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
+    )
+
+  val persons = source.retrieve(entityDescPerson, Nil).toList
+
+  "FileDataSource" should "work with filters" in {
+    persons.size should equal (1)
+    persons.head.evaluate(pathPlaces) should equal (Set("Berlin", "Munich", "Some Place"))
+    persons.head.evaluate(pathPlacesCalledMunich) should equal (Set("Munich"))
+    persons.head.evaluate(pathCities) should equal (Set("Berlin", "Munich"))
   }
 }

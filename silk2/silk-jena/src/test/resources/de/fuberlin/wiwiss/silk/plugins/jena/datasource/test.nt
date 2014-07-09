@@ -4,5 +4,10 @@
 <http://dbpedia.org/resource/Hamburg>  <http://www.w3.org/2000/01/rdf-schema#label> "Hamburg" .
 <http://dbpedia.org/resource/Munich> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/City> .
 <http://dbpedia.org/resource/Munich>  <http://www.w3.org/2000/01/rdf-schema#label> "Munich" .
+<http://dbpedia.org/resource/SomePlace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Place> .
+<http://dbpedia.org/resource/SomePlace>  <http://www.w3.org/2000/01/rdf-schema#label> "Some Place" .
 <http://dbpedia.org/resource/Albert_Einstein> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Person> .
+<http://dbpedia.org/resource/Albert_Einstein> <http://dbpedia.org/ontology/place> <http://dbpedia.org/resource/Munich> .
+<http://dbpedia.org/resource/Albert_Einstein> <http://dbpedia.org/ontology/place> <http://dbpedia.org/resource/Berlin> .
+<http://dbpedia.org/resource/Albert_Einstein> <http://dbpedia.org/ontology/place> <http://dbpedia.org/resource/SomePlace> .
 <http://dbpedia.org/resource/Albert_Einstein>  <http://www.w3.org/2000/01/rdf-schema#label> "Albert Einstein" .
