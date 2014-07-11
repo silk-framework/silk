@@ -34,18 +34,18 @@ class TransformModuleProvider extends ModuleProvider[TransformConfig, TransformT
    * Writes an updated task.
    */
   override def writeTask(task: TransformTask, resources: ResourceManager): Unit = {
-    val taskResouces = resources.child(task.name)
+    val taskResources = resources.child(task.name)
 
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
-    taskResouces.put("dataset.xml") { os => task.dataset.toXML(asSource = true).write(os) }
-    taskResouces.put("rules.xml") { os =>
+    taskResources.put("dataset.xml") { os => task.dataset.toXML(asSource = true).write(os) }
+    taskResources.put("rules.xml") { os =>
       <TransformRules>
       { task.rules.map(_.toXML) }
       </TransformRules>.write(os)
     }
-    taskResouces.put("cache.xml") { os => task.cache.toXML.write(os) }
+    taskResources.put("cache.xml") { os => task.cache.toXML.write(os) }
   }
 
   /**

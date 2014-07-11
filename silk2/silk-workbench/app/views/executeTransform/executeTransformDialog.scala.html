@@ -33,7 +33,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/api/tasks/@project/@task/executeTransform',
+        url: '@config.baseUrl/transform/tasks/@project/@task/executeTransform',
         data: values,
         success: function(response) {
           $('.dialog').dialog('close');

@@ -465,11 +465,11 @@ function editTransformTask(project, task) {
 }
 
 function removeTransformTask(project, task) {
-  deleteTask(baseUrl + '/api/workspace/' + project + '/transform/' + task);
+  deleteTask(baseUrl + '/transform/tasks/' + project + '/' + task);
 }
 
 function openTransformTask(project, task) {
-  window.location = baseUrl + '/' + project + '/transform/' + task + '/editor'
+  window.location = baseUrl + '/transform/' + project + '/' +  task + '/editor';
 }
 
 function newLinkingTask(project) {
@@ -481,11 +481,11 @@ function editLinkingTask(project, task) {
 }
 
 function removeLinkingTask(project, task) {
-  deleteTask(baseUrl + '/api/workspace/' + project + '/linking/' + task);
+  deleteTask(baseUrl + '/linking/tasks/' + project + '/' + task);
 }
 
 function openLinkingTask(project, task) {
-  window.location = baseUrl + '/' + project + '/' + task + '/editor'
+  window.location = baseUrl + '/linking/' + project + '/' + task + '/editor'
 }
 
 function newOutput(project) {

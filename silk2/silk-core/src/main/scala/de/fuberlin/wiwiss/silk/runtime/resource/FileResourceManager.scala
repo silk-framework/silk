@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.runtime.resource
 
 import java.io._
-import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
  * A resource manager that loads files from a base directory.
@@ -56,7 +55,13 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def delete(name: String) {
-    new File(baseDir, name).deleteRecursive()
+    def deleteRecursive(file: File): Unit = {
+      if (file.isDirectory) {
+        file.listFiles.foreach(deleteRecursive)
+      }
+      if (file.exists && !file.delete()) throw new IOException("Could not delete file " + file)
+    }
+    deleteRecursive(new File(baseDir + "/" + name))
   }
 
   override def listChildren: List[String] = {
@@ -68,7 +73,7 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def child(name: String): ResourceManager = {
-    new FileResourceManager(new File(baseDir, name))
+    new FileResourceManager(new File(baseDir + "/" + name))
   }
 
 }

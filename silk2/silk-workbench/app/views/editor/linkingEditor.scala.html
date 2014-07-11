@@ -20,8 +20,8 @@
     var projectName = '@project.name';
     var taskName = '@task.name';
     var ruleIndex = '';
-    var editorUrl = baseUrl + '/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/api/workspace/@project.name/linking/@task.name';
+    var editorUrl = baseUrl + '/linking/' + projectName + '/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/linking/tasks/@project.name/@task.name';
     var serializationFunction = serializeLinkageRule;
   </script>
 }

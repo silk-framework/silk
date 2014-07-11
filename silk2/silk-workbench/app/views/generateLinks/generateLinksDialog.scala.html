@@ -31,7 +31,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/api/tasks/@project/@task/generateLinks',
+        url: '@config.baseUrl/linking/tasks/@project/@task/generateLinks',
         data: values,
         success: function(response) {
           $("button[name='start']").button("option", "disabled", true);

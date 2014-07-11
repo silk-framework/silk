@@ -113,7 +113,7 @@
 
     $.ajax({
       type: 'PUT',
-      url: '@config.baseUrl/api/workspace/@project/linking/' + values.name,
+      url: '@config.baseUrl/linking/tasks/@project/' + values.name,
       data: values,
       success: function(data) {
         closeDialog();

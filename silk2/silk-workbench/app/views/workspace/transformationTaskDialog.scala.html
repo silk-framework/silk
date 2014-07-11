@@ -62,7 +62,7 @@
 
     $.ajax({
       type: 'PUT',
-      url: '@config.baseUrl/api/workspace/@project/transform/' + values.name,
+      url: '@config.baseUrl/transform/tasks/@project/' + values.name,
       data: values,
       success: function(data) {
         closeDialog();
