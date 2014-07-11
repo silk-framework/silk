@@ -28,6 +28,7 @@ import org.xml.sax.{Attributes, SAXParseException, ErrorHandler, InputSource}
  * Parses an XML input source and validates it against the schema.
  */
 class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) extends (Node => T) {
+
   def apply(xml: Node): T = {
     //Validate
     new XmlReader().read(new InputSource(new StringReader(xml.toString)), schemaPath)

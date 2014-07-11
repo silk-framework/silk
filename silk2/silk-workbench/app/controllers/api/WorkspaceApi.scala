@@ -161,7 +161,7 @@ object WorkspaceApi extends Controller {
 
   def getResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val resource = project.resourceManager.get(resourceName)
+    val resource = project.resources.get(resourceName)
     val enumerator = Enumerator.fromStream(resource.load)
 
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
@@ -175,7 +175,7 @@ object WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
-          project.resourceManager.put(resourceName, inputStream)
+          project.resources.put(resourceName, inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -187,7 +187,7 @@ object WorkspaceApi extends Controller {
 
   def deleteResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    project.resourceManager.delete(resourceName)
+    project.resources.delete(resourceName)
 
     Ok
   }
@@ -205,7 +205,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resourceManager))
+          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resources))
           project.sourceModule.update(sourceTask)
           Ok
         } catch {
@@ -299,7 +299,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) => {
         try {
-          val outputTask = OutputTask(Output.fromXML(xml.head, project.resourceManager))
+          val outputTask = OutputTask(Output.fromXML(xml.head, project.resources))
           project.outputModule.update(outputTask)
           Ok
         } catch {

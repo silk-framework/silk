@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.runtime.resource
 
 import java.io._
+import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
  * A resource manager that loads files from a base directory.
@@ -11,9 +12,9 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
    * Lists all files in the resources directory.
    */
   override def list = {
-    val files = baseDir.list
+    val files = baseDir.listFiles
     if(files != null)
-      files.toList
+      files.toList.filter(_.isFile).map(_.getName)
     else
       Nil
   }
@@ -31,7 +32,7 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
     // We still need to support the deprecated method of putting files in a dataset directory in the user home
     val oldLocalFile = new File(System.getProperty("user.home") + "/.silk/datasets/" + name)
     // Current method of searching for files in the configured base dir
-    val newFile = new File(baseDir + "/" + name)
+    val newFile = new File(baseDir, name)
 
     // Try to find the file in all locations
     val file =
@@ -47,23 +48,27 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
     new FileResource(name, file)
   }
 
-  override def put(name: String, inputStream: InputStream) {
+  override def put(name: String)(write: OutputStream => Unit) {
     baseDir.mkdirs()
     val outputStream = new BufferedOutputStream(new FileOutputStream(baseDir + "/" + name))
-
-    var b = inputStream.read()
-    while(b != -1) {
-      outputStream.write(b)
-      b = inputStream.read()
-    }
-
-    inputStream.close()
+    write(outputStream)
     outputStream.close()
   }
 
   override def delete(name: String) {
-    if(!new File(baseDir + "/" + name).delete())
-      throw new IOException(s"Could not delete resource $name from directory '@baseDir'")
+    new File(baseDir, name).deleteRecursive()
+  }
+
+  override def listChildren: List[String] = {
+    val files = baseDir.listFiles
+    if(files != null)
+      files.toList.filter(_.isDirectory).map(_.getName)
+    else
+      Nil
+  }
+
+  override def child(name: String): ResourceManager = {
+    new FileResourceManager(new File(baseDir, name))
   }
 
 }

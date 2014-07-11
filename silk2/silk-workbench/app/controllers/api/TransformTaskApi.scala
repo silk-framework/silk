@@ -30,7 +30,7 @@ object TransformTaskApi extends Controller {
       case Some(xml) =>
         try {
           //Parse transformation rules
-          val updatedRules = (xml \ "TransformRule").map(TransformRule.load(project.resourceManager)(prefixes))
+          val updatedRules = (xml \ "TransformRule").map(TransformRule.load(project.resources)(prefixes))
           //Update transformation task
           val updatedTask = task.updateRules(updatedRules, project)
           project.transformModule.update(updatedTask)
@@ -68,7 +68,7 @@ object TransformTaskApi extends Controller {
           //Collect warnings while parsing transformation rule
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load transformation rule
-            val updatedRule = TransformRule.load(project.resourceManager)(prefixes)(xml.head)
+            val updatedRule = TransformRule.load(project.resources)(prefixes)(xml.head)
             val updatedRules = task.rules.updated(ruleIndex, updatedRule)
             //Update transformation task
             val updatedTask = task.updateRules(updatedRules, project)

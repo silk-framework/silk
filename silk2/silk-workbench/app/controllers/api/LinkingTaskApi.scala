@@ -42,7 +42,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing linkage rule
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load linkage rule
-            val updatedRule = LinkageRule.load(project.resourceManager)(prefixes)(xml.head)
+            val updatedRule = LinkageRule.load(project.resources)(prefixes)(xml.head)
             //Update linking task
             val updatedLinkSpec = task.linkSpec.copy(rule = updatedRule)
             val updatedTask = task.updateLinkSpec(updatedLinkSpec, project)
@@ -83,7 +83,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing link spec
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
             //Load link specification
-            val newLinkSpec = LinkSpecification.load(project.resourceManager)(prefixes)(xml.head)
+            val newLinkSpec = LinkSpecification.load(project.resources)(prefixes)(xml.head)
 
             //Update linking task
             val updatedTask = task.updateLinkSpec(newLinkSpec, project)

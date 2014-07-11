@@ -16,8 +16,7 @@ package de.fuberlin.wiwiss.silk.workbench.lift.comet
 
 import net.liftweb.http.js.{JsCmd, JsCmds}
 import net.liftweb.http.js.JsCmds.{OnLoad, SetHtml, Script}
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.util.{PrefixRegistry}
+import de.fuberlin.wiwiss.silk.workspace.{PrefixRegistry, User}
 import xml.{Text, NodeSeq}
 import net.liftweb.http.{SHtml, CometActor}
 import net.liftweb.http.js.JE.{Call, JsRaw}

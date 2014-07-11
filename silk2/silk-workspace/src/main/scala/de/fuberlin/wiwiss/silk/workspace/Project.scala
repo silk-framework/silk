@@ -14,51 +14,83 @@
 
 package de.fuberlin.wiwiss.silk.workspace
 
-import modules.linking.LinkingModule
-import modules.output.OutputModule
-import modules.source.SourceModule
+import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformModule
+import de.fuberlin.wiwiss.silk.util.XMLUtils._
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.transform._
+import de.fuberlin.wiwiss.silk.workspace.modules.{ModuleTask, ModuleConfig, Module, ModuleProvider}
+import scala.xml.XML
 
-trait Project {
-  /**
-   * The name of this project
-   */
-  val name : Identifier
+/**
+ * Implementation of a project which is stored on the local file system.
+ */
+class Project(val name: Identifier, resourceManager: ResourceManager) {
+
+  private implicit val logger = Logger.getLogger(classOf[Project].getName)
+
+  val resources = resourceManager.child("resources")
+
+  private var cachedConfig: Option[ProjectConfig] = None
 
   /**
-   * Retrieves the project configuration.
+   * Reads the project configuration.
    */
-  def config : ProjectConfig
+  def config = {
+    if(cachedConfig.isEmpty) {
+      if(resourceManager.list.contains("config.xml")) {
+        val configXML = XML.load(resourceManager.get("config.xml").load)
+        val prefixes = Prefixes.fromXML(configXML \ "Prefixes" head)
+        cachedConfig = Some(ProjectConfig(prefixes))
+      } else {
+        cachedConfig = Some(ProjectConfig.default)
+      }
+    }
+
+    cachedConfig.get
+  }
 
   /**
-   * Updates the project configuration.
+   * Writes the updated project configuration.
    */
-  def config_=(config : ProjectConfig)
+  def config_=(config : ProjectConfig) {
+    val configXMl =
+      <ProjectConfig>
+      { config.prefixes.toXML }
+      </ProjectConfig>
+
+    resourceManager.put("config.xml") { os => configXMl.write(os) }
+    cachedConfig = Some(config)
+  }
 
   /**
    * The source module, which encapsulates all data sources.
    */
-  def sourceModule : SourceModule
+  val sourceModule = module("source", new SourceModuleProvider())
 
   /**
    * The linking module, which encapsulates all linking tasks.
    */
-  def linkingModule : LinkingModule
+  val linkingModule = module("linking", new LinkingModuleProvider())
 
   /**
-   * The transform module, which encapsulates all transform tasks.
+   * The transform module, which encapsulates all linking tasks.
    */
-  def transformModule: TransformModule
+  val transformModule = module("transform", new TransformModuleProvider())
 
   /**
-   * The output module, which encapsulates all outputs.
+   * The output module, which encapsulates all output tasks.
    */
-  def outputModule : OutputModule
+  val outputModule = module("output", new OutputModuleProvider())
 
   /**
-   * For loading and writing resources.
+   * Creates a new module from a module provider.
    */
-  def resourceManager: ResourceManager
+  private def module[C <: ModuleConfig, T <: ModuleTask](name: String, provider: ModuleProvider[C,T]) = {
+    new Module(provider, resourceManager.child(name), this)
+  }
 }

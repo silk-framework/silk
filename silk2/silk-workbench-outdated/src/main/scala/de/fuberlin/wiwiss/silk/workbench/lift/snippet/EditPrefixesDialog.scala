@@ -16,11 +16,10 @@ package de.fuberlin.wiwiss.silk.workbench.lift.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.SHtml
-import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.{PrefixRegistry, User}
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.OnLoad
 import net.liftmodules.widgets.autocomplete.AutoComplete
-import de.fuberlin.wiwiss.silk.workspace.util.PrefixRegistry
 import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.js.JsCmd
 
