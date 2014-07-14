@@ -24,6 +24,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.{ModuleTask, ModuleConfig, Module, ModuleProvider}
+import scala.reflect.ClassTag
 import scala.xml.XML
 
 /**
@@ -70,27 +71,42 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   /**
    * The source module, which encapsulates all data sources.
    */
-  val sourceModule = module("source", new SourceModuleProvider())
+  val sourceModule = createModule("source", new SourceModuleProvider())
 
   /**
    * The linking module, which encapsulates all linking tasks.
    */
-  val linkingModule = module("linking", new LinkingModuleProvider())
+  val linkingModule = createModule("linking", new LinkingModuleProvider())
 
   /**
    * The transform module, which encapsulates all linking tasks.
    */
-  val transformModule = module("transform", new TransformModuleProvider())
+  val transformModule = createModule("transform", new TransformModuleProvider())
 
   /**
    * The output module, which encapsulates all output tasks.
    */
-  val outputModule = module("output", new OutputModuleProvider())
+  val outputModule = createModule("output", new OutputModuleProvider())
+
+  private val modules: Seq[Module[_, _]] = sourceModule :: linkingModule :: transformModule :: outputModule :: Nil
+
+  /**
+   * Retrieves a task by name.
+   * @param taskName The name of the task.
+   * @tparam T The task type
+   */
+  def task[T <: ModuleTask : ClassTag](taskName: Identifier): T = {
+    val foundTask = modules.flatMap(_.taskOption(taskName)).collect{ case t: T => t }
+    if(foundTask.isEmpty)
+      throw new NoSuchElementException(s"No task called '$name' found in project $name")
+    else
+      foundTask.head
+  }
 
   /**
    * Creates a new module from a module provider.
    */
-  private def module[C <: ModuleConfig, T <: ModuleTask](name: String, provider: ModuleProvider[C,T]) = {
+  private def createModule[C <: ModuleConfig, T <: ModuleTask](name: String, provider: ModuleProvider[C,T]) = {
     new Module(provider, resourceManager.child(name), this)
   }
 }

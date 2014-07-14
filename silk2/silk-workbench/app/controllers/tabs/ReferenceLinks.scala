@@ -1,5 +1,6 @@
 package controllers.tabs
 
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
@@ -8,11 +9,13 @@ import de.fuberlin.wiwiss.silk.entity.Link
 import models.EvalLink._
 import de.fuberlin.wiwiss.silk.workspace.User
 import models.LinkSorter
+import plugins.Context
 
 object ReferenceLinks extends Controller {
 
-  def referenceLinksView(projectName: String, taskName: String) = Action {
-    Ok(views.html.referenceLinks.referenceLinks(projectName, taskName))
+  def referenceLinksView(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.referenceLinks.referenceLinks(context))
   }
 
   def referenceLinks(projectName: String, taskName: String, linkType: String, sorting: String, filter: String, page: Int) = Action {

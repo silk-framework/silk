@@ -1,8 +1,12 @@
 package controllers.api
 
-import controllers.tabs.TransformEditor._
+import de.fuberlin.wiwiss.silk.config.Dataset
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+import models.CurrentExecuteTransformTask
 import play.api.mvc.{Action, Controller}
-import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import java.util.logging.{Logger, Level}
 import play.api.libs.json.{JsArray, JsString, JsObject}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
@@ -12,6 +16,34 @@ import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 object TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
+
+  def putTransformTask(project: String, task: String) = Action { implicit request => {
+    val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
+
+    val proj = User().workspace.project(project)
+    implicit val prefixes = proj.config.prefixes
+
+    val dataset = Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+
+    proj.transformModule.tasks.find(_.name == task) match {
+      //Update existing task
+      case Some(oldTask) => {
+        val updatedTransformTask = oldTask.updateDataset(dataset, proj)
+        proj.transformModule.update(updatedTransformTask)
+      }
+      //Create new task with a single rule
+      case None => {
+        val transformTask = TransformTask(proj, task, dataset, Seq.empty)
+        proj.transformModule.update(transformTask)
+      }
+    }
+    Ok
+  }}
+
+  def deleteTransformTask(project: String, task: String) = Action {
+    User().workspace.project(project).transformModule.remove(task)
+    Ok
+  }
 
   def getRules(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -98,6 +130,39 @@ object TransformTaskApi extends Controller {
           ("warning", JsArray(warnings.map(JsString(_)))) ::
           ("info", JsArray(infos.map(JsString(_)))) :: Nil
     )
+  }
+
+  def reloadTransformCache(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+    task.cache.clear()
+    task.cache.load(project, task)
+    Ok
+  }
+
+  def executeTransformTask(projectName: String, taskName: String) = Action { request =>
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+
+    // Retrieve parameters
+    val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
+    val outputNames = params.get("outputs[]").toSeq.flatten
+    val outputs = outputNames.map(project.outputModule.task(_).output)
+
+    // Create execution task
+    val executeTransformTask =
+      new ExecuteTransform(
+        source = project.sourceModule.task(task.dataset.sourceId).source,
+        dataset= task.dataset,
+        rules = task.rules,
+        outputs = outputs
+      )
+
+    // Start task in the background
+    CurrentExecuteTransformTask() = executeTransformTask
+    executeTransformTask.runInBackground()
+
+    Ok
   }
 
 }

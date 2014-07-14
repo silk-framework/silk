@@ -3,14 +3,18 @@ package controllers.tabs
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import controllers.util.{Stream, Widgets}
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.{Controller, Action}
 import models.{LinkSorter, CurrentGenerateLinksTask,EvalLink}
 import models.EvalLink.{Unknown, Incorrect, Generated, Correct}
+import plugins.Context
 
 object GenerateLinks extends Controller {
 
-  def generateLinks(projectName: String, taskName: String) = Action {
-    Ok(views.html.generateLinks.generateLinks(projectName, taskName))
+  def generateLinks(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.generateLinks.generateLinks(context))
   }
 
   def generateLinksDialog(projectName: String, taskName: String) = Action {

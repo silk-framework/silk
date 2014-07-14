@@ -1,14 +1,17 @@
 package controllers.tabs
 
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import controllers.util.{Widgets, Stream}
 import de.fuberlin.wiwiss.silk.workspace.User
+import plugins.Context
 
 object Status extends Controller {
 
-  def status(projectName: String, taskName: String) = Action {
-    Ok(views.html.status.status(projectName, taskName))
+  def status(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.status.status(context))
   }
 
   def cacheStream(projectName: String, taskName: String) = Action {

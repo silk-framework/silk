@@ -1,8 +1,8 @@
-
-@(project: de.fuberlin.wiwiss.silk.workspace.Project,
-  task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
-
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 @import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+
+@(context: Context[TransformTask])
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
@@ -11,7 +11,7 @@
   <script type="text/javascript" src="@routes.Assets.at("js/editor/transformRules.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript">
-    var apiUrl = '@config.baseUrl/transform/tasks/@project.name/@task.name';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
   </script>
 }
 
@@ -29,7 +29,7 @@
 
 @content = {
   <div id="ruleContainer">
-    @for(rule <- task.rules) {
+    @for(rule <- context.task.rules) {
       @renderRule(rule)
     }
   </div>
@@ -71,4 +71,4 @@
   </div>
 }
 
-@main(Some(project.name), Some(task.name), "transformEditor")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

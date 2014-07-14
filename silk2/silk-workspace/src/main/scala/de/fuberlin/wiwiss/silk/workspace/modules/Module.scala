@@ -50,8 +50,8 @@ class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: Modul
   /**
    * Retrieves all tasks in this module.
    */
-  def tasks = {
-    cachedTasks.values
+  def tasks: Seq[TaskType] = {
+    cachedTasks.values.toSeq
   }
 
   /**
@@ -60,7 +60,11 @@ class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: Modul
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
   def task(name: Identifier): TaskType = {
-    tasks.find(_.name == name).getOrElse(throw new NoSuchElementException(s"Task '$name' not found in ${getClass.getSimpleName}"))
+    cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' not found in ${getClass.getSimpleName}"))
+  }
+
+  def taskOption(name: Identifier): Option[TaskType] = {
+    cachedTasks.get(name)
   }
 
   /**

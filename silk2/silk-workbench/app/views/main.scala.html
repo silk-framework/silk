@@ -1,4 +1,7 @@
-@(project: Option[String], task: Option[String], tab: String)(header: Html)(toolbar: Html)(content: Html)
+@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import plugins.Context
+
+@(context: Option[Context[ModuleTask]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)
 
 <!DOCTYPE html>
 
@@ -20,7 +23,7 @@
     @header
   </head>
   <body>
-    @tabbar(project, task, tab)
+    @tabbar(context, selectedTab)
     <div id="toolbar">
       @toolbar
     </div>

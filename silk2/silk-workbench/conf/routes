@@ -113,18 +113,18 @@ PUT           /api/workspace/:project/output/:output                            
 DELETE        /api/workspace/:project/output/:output                                                controllers.api.WorkspaceApi.deleteOutput(project: String, output: String)
 
 # Transformation Tasks
-PUT           /transform/tasks/:project/:task                                                       controllers.api.WorkspaceApi.putTransformTask(project: String, task: String)
-DELETE        /transform/tasks/:project/:task                                                       controllers.api.WorkspaceApi.deleteTransformTask(project: String, task: String)
+PUT           /transform/tasks/:project/:task                                                       controllers.api.TransformTaskApi.putTransformTask(project: String, task: String)
+DELETE        /transform/tasks/:project/:task                                                       controllers.api.TransformTaskApi.deleteTransformTask(project: String, task: String)
 GET           /transform/tasks/:project/:task/rules                                                 controllers.api.TransformTaskApi.getRules(project: String, task: String)
 PUT           /transform/tasks/:project/:task/rules                                                 controllers.api.TransformTaskApi.putRules(project: String, task: String)
 GET           /transform/tasks/:project/:task/rule/:rule                                            controllers.api.TransformTaskApi.getRule(project: String, task: String, rule: String)
 PUT           /transform/tasks/:project/:task/rule/:rule                                            controllers.api.TransformTaskApi.putRule(project: String, task: String, rule: Int)
-POST          /transform/tasks/:project/:task/reloadCache                                           controllers.api.ControlApi.reloadTransformCache(project: String, task: String)
-PUT           /transform/tasks/:project/:task/executeTransform                                      controllers.api.ControlApi.executeTransformTask(project: String, task: String)
+POST          /transform/tasks/:project/:task/reloadCache                                           controllers.api.TransformTaskApi.reloadTransformCache(project: String, task: String)
+PUT           /transform/tasks/:project/:task/executeTransform                                      controllers.api.TransformTaskApi.executeTransformTask(project: String, task: String)
 
 # Linking Tasks
-PUT           /linking/tasks/:project/:task                                                         controllers.api.WorkspaceApi.putLinkingTask(project: String, task: String)
-DELETE        /linking/tasks/:project/:task                                                         controllers.api.WorkspaceApi.deleteLinkingTask(project: String, task: String)
+PUT           /linking/tasks/:project/:task                                                         controllers.api.LinkingTaskApi.putLinkingTask(project: String, task: String)
+DELETE        /linking/tasks/:project/:task                                                         controllers.api.LinkingTaskApi.deleteLinkingTask(project: String, task: String)
 GET           /linking/tasks/:project/:task/rule                                                    controllers.api.LinkingTaskApi.getRule(project: String, task: String)
 PUT           /linking/tasks/:project/:task/rule                                                    controllers.api.LinkingTaskApi.putRule(project: String, task: String)
 GET           /linking/tasks/:project/:task/linkSpec                                                controllers.api.LinkingTaskApi.getLinkSpec(project: String, task: String)
@@ -134,12 +134,12 @@ PUT           /linking/tasks/:project/:task/referenceLinks                      
 PUT           /linking/tasks/:project/:task/referenceLinks/:linkType/:source/:target                controllers.api.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
 DELETE        /linking/tasks/:project/:task/referenceLinks/:source/:target                          controllers.api.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
 
-POST          /linking/tasks/:project/:task/reloadCache                                             controllers.api.ControlApi.reloadLinkingCache(project: String, task: String)
-PUT           /linking/tasks/:project/:task/generateLinks                                           controllers.api.ControlApi.startGenerateLinksTask(project: String, task: String)
-DELETE        /linking/tasks/:project/:task/generateLinks                                           controllers.api.ControlApi.stopGenerateLinksTask(project: String, task: String)
-PUT           /linking/tasks/:project/:task/writeReferenceLinks                                     controllers.api.ControlApi.writeReferenceLinks(project: String, task: String)
-PUT           /linking/tasks/:project/:task/learningTask                                            controllers.api.ControlApi.learningTask(project: String, task: String)
-PUT           /linking/tasks/:project/:task/activeLearningTask                                      controllers.api.ControlApi.activeLearningTask(project: String, task: String)
+POST          /linking/tasks/:project/:task/reloadCache                                             controllers.api.LinkingTaskApi.reloadLinkingCache(project: String, task: String)
+PUT           /linking/tasks/:project/:task/generateLinks                                           controllers.api.LinkingTaskApi.startGenerateLinksTask(project: String, task: String)
+DELETE        /linking/tasks/:project/:task/generateLinks                                           controllers.api.LinkingTaskApi.stopGenerateLinksTask(project: String, task: String)
+PUT           /linking/tasks/:project/:task/writeReferenceLinks                                     controllers.api.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
+PUT           /linking/tasks/:project/:task/learningTask                                            controllers.api.LinkingTaskApi.learningTask(project: String, task: String)
+PUT           /linking/tasks/:project/:task/activeLearningTask                                      controllers.api.LinkingTaskApi.activeLearningTask(project: String, task: String)
 
 ############################################################################################################################################
 # Files

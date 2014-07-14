@@ -1,4 +1,7 @@
-@(project: String, task: String)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+
+@(context: Context[LinkingTask])
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/table.css")" rel="stylesheet" />
@@ -14,12 +17,12 @@
   <script type="text/javascript">
     function back() {
       //TODO stop current task
-      window.location = "@config.baseUrl/linking/@project/@task/learnStart"
+      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learnStart"
     }
 
     function next() {
       //TODO stop current task
-      window.location = "@config.baseUrl/linking/@project/@task/learn/population"
+      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learn/population"
     }
   </script>
 }
@@ -48,4 +51,4 @@
   </div>
 }
 
-@main(Some(project), Some(task), "learn")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

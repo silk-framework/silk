@@ -1,15 +1,17 @@
 package controllers.tabs
 
 import controllers.util.{Stream, Widgets}
-import play.api.mvc.{Controller, Action}
-import models.{CurrentExecuteTransformTask, LinkSorter, CurrentGenerateLinksTask, EvalLink}
-import models.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+import models.CurrentExecuteTransformTask
+import play.api.mvc.{Action, Controller}
+import plugins.Context
 
 object ExecuteTransform extends Controller {
 
-  def execute(projectName: String, taskName: String) = Action {
-    Ok(views.html.executeTransform.executeTransform(projectName, taskName))
+  def execute(project: String, task: String) = Action { request =>
+    val context = Context.get[TransformTask](project, task, request.path)
+    Ok(views.html.executeTransform.executeTransform(context))
   }
 
   def executeDialog(projectName: String, taskName: String) = Action {

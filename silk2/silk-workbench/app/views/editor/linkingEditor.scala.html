@@ -1,9 +1,10 @@
-@(project: de.fuberlin.wiwiss.silk.workspace.Project,
-  task: de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask)
-
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import plugins.Context
 @import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+
+@(context: Context[LinkingTask])
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
@@ -17,11 +18,11 @@
   <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
-    var projectName = '@project.name';
-    var taskName = '@task.name';
+    var projectName = '@context.project.name';
+    var taskName = '@context.task.name';
     var ruleIndex = '';
     var editorUrl = baseUrl + '/linking/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/linking/tasks/@project.name/@task.name';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
     var serializationFunction = serializeLinkageRule;
   </script>
 }
@@ -72,10 +73,10 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- task.linkSpec.rule.operator) {
+        @for(op <- context.task.linkSpec.rule.operator) {
           @renderRule(
             rule = op,
-            prefixes = project.config.prefixes
+            prefixes = context.project.config.prefixes
           )
         }
       </div>
@@ -100,7 +101,7 @@
 
       <div style="width: 300px; float: left;">
         Link Type:
-        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.linkSpec.rule.linkType.uri)" />
+        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.linkSpec.rule.linkType.uri)" />
       </div>
 
     </div>
@@ -108,4 +109,4 @@
   </div>
 }
 
-@main(Some(project.name), Some(task.name), "editor")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

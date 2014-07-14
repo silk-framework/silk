@@ -1,6 +1,8 @@
-@(project: de.fuberlin.wiwiss.silk.workspace.Project,
-  task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask,
-  rule: de.fuberlin.wiwiss.silk.linkagerule.TransformRule)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+
+@(context: Context[TransformTask], rule: TransformRule)
 
 @import de.fuberlin.wiwiss.silk.workspace.User
 @import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
@@ -17,11 +19,11 @@
   <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
-    var projectName = '@project.name';
-    var taskName = '@task.name';
-    var ruleIndex = '/@task.rules.indexOf(rule)';
+    var projectName = '@context.project.name';
+    var taskName = '@context.task.name';
+    var ruleIndex = '/@context.task.rules.indexOf(rule)';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/transform/tasks/@project.name/@task.name';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
     var serializationFunction = serializeTransformRule;
   </script>
 }
@@ -76,7 +78,7 @@
         @for(op <- rule.operator) {
           @renderRule(
             rule = op,
-            prefixes = project.config.prefixes
+            prefixes = context.project.config.prefixes
           )
         }
       </div>
@@ -89,7 +91,7 @@
 
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty"  value="@project.config.prefixes.shorten(rule.targetProperty)" />
+        <input type="text" size="40" id="targetproperty"  value="@context.project.config.prefixes.shorten(rule.targetProperty)" />
         <img src="@routes.Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
       </div>
 
@@ -98,4 +100,4 @@
   </div>
 }
 
-@main(Some(project.name), Some(task.name), "transformEditor")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

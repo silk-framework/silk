@@ -1,4 +1,7 @@
-@(project: String, task: String)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+
+@(context: Context[LinkingTask])
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/table.css")" rel="stylesheet" />
@@ -18,7 +21,7 @@
 @toolbar = {
   <ul>
     <li>
-      <button onclick="window.location = '@config.baseUrl/@project/@task/learn'" >Back</button>
+      <button onclick="window.location = '@config.baseUrl/@context.project.name/@context.task.name/learn'" >Back</button>
     </li>
   </ul>
 }
@@ -53,4 +56,4 @@
   </div>
 }
 
-@main(Some(project), Some(task), "learn")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)
