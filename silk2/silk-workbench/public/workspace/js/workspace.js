@@ -230,12 +230,12 @@ function loadWorkspace(obj){
         if (!document.getElementById("root-folder")){
             var rootFolder = document.createElement("div");
             $(rootFolder).attr("id",'root-folder');
-            $("#content").append(rootFolder);
+            $("#workspaceTree").append(rootFolder);
         }
 
         var proj_actions = document.createElement("div");
             $(proj_actions).addClass('actions');
-            $("#content").append(proj_actions);
+            $("#workspaceTree").append(proj_actions);
 
         // new project button
         if (!document.getElementById("newproject")) {
@@ -322,7 +322,7 @@ function loadWorkspace(obj){
             }
         }
 
-        $("#content").append(tree);
+        $("#workspaceTree").append(tree);
 
         // uncollapse active project/task
         if(obj.workspace.activeProject){

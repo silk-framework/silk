@@ -8,6 +8,10 @@ import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
  */
 case class LinkingPlugin() extends WorkbenchPlugin {
 
+  override def tasks = {
+    Seq(LinkingTaskActions)
+  }
+
   override def tabs(context: Context[ModuleTask]) = {
     var tabs = List[Tab]()
     if(context.task.isInstanceOf[LinkingTask]) {
@@ -25,6 +29,28 @@ case class LinkingPlugin() extends WorkbenchPlugin {
         tabs ::= Tab("Status", s"linking/$p/$t/status")
     }
     tabs.reverse
+  }
+
+  object LinkingTaskActions extends TaskActions[LinkingTask] {
+
+    /** The name of the task type */
+    override def task: String = "Linking Task"
+
+    /** The path to the dialog for creating a new task. */
+    override def createDialog(project: String) =
+      s"workspace/dialogs/newLinkingTask/$project"
+
+    /** The path to the dialog for editing an existing task. */
+    override def editDialog(project: String, task: String) =
+      s"workspace/dialogs/editLinkingTask/$project/$task"
+
+    /** The path to redirect to when the task is opened. */
+    override def open(project: String, task: String): String =
+      s"linking/$project/$task/editor"
+
+    /** The path to delete the task by sending a DELETE HTTP request. */
+    override def delete(project: String, task: String): String =
+      s"linking/tasks/$project/$task"
   }
 
 }

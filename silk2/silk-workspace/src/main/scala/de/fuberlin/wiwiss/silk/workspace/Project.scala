@@ -88,7 +88,11 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
    */
   val outputModule = createModule("output", new OutputModuleProvider())
 
-  private val modules: Seq[Module[_, _]] = sourceModule :: linkingModule :: transformModule :: outputModule :: Nil
+  private val modules: Seq[Module[_ <: ModuleConfig, _ <: ModuleTask]] = sourceModule :: linkingModule :: transformModule :: outputModule :: Nil
+
+  def tasks[T <: ModuleTask : ClassTag]: Seq[T] = {
+    modules.flatMap(_.tasks).collect{ case t: T => t }
+  }
 
   /**
    * Retrieves a task by name.
