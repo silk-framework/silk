@@ -29,7 +29,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
   categories = Array("Numeric"),
   label = "Numeric Operation",
   description =
-    """ | Applies a numeric operation.
+    """ | Applies a numeric operation to all values of the input operator.
         | Accepts two paramters:
         |   operator: One of '+', '-', '*', '/'
         |   operand: The operand. """

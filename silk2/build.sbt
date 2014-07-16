@@ -2,7 +2,7 @@ name := "Silk"
 
 version := "2.6.1-SNAPSHOT"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.1"
 
 lazy val core = project in file("silk-core")
 
@@ -14,9 +14,9 @@ lazy val learning = project in file("silk-learning") dependsOn core
 
 lazy val workspace = project in file("silk-workspace") dependsOn core dependsOn jena dependsOn learning
 
-lazy val workbench = project in file("silk-workbench") dependsOn workspace aggregate workspace// enablePlugins PlayScala
+lazy val workbench = project in file("silk-workbench") dependsOn workspace aggregate workspace enablePlugins PlayScala
 
 lazy val root = project.in(file("."))
                        .aggregate(core, jena, singlemachine, learning, workspace, workbench)
 
-libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.1.6" % "test"
+libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.1.6" % "test"

@@ -1,16 +1,17 @@
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import de.fuberlin.wiwiss.silk.util.{ValidatingXMLReader, DPair}
-import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription, Entity}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
+import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.util.{DPair, Identifier, ValidatingXMLReader}
+
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
 
 /**
  * A transform rule.
  */
-case class TransformRule(operator: Option[Input] = None, targetProperty: String = "http://silk.wbsg.de/transformed") {
+case class TransformRule(name: Identifier = "transformation", operator: Option[Input] = None, targetProperty: String = "http://silk.wbsg.de/transformed") {
   /**
    * Generates the transformed values.
    *
@@ -44,7 +45,7 @@ case class TransformRule(operator: Option[Input] = None, targetProperty: String 
    * Serializes this transform rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <TransformRule targetProperty={targetProperty}>
+    <TransformRule name={name} targetProperty={targetProperty}>
       {operator.toList.map(_.toXML)}
     </TransformRule>
   }
@@ -57,7 +58,7 @@ object TransformRule {
   /**
    * Creates a new transform rule with one root operator.
    */
-  def apply(operator: Input, targetProperty: String): TransformRule = TransformRule(Some(operator), targetProperty)
+  def apply(name: Identifier, operator: Input, targetProperty: String): TransformRule = TransformRule(name, Some(operator), targetProperty)
 
   def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
@@ -68,6 +69,7 @@ object TransformRule {
    */
   def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
     TransformRule(
+      name = (node \ "@name").text,
       operator = Input.fromXML(node.child, resourceLoader).headOption,
       targetProperty = (node \ "@targetProperty").text
     )

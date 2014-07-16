@@ -230,12 +230,12 @@ function loadWorkspace(obj){
         if (!document.getElementById("root-folder")){
             var rootFolder = document.createElement("div");
             $(rootFolder).attr("id",'root-folder');
-            $("#content").append(rootFolder);
+            $("#workspaceTree").append(rootFolder);
         }
 
         var proj_actions = document.createElement("div");
             $(proj_actions).addClass('actions');
-            $("#content").append(proj_actions);
+            $("#workspaceTree").append(proj_actions);
 
         // new project button
         if (!document.getElementById("newproject")) {
@@ -322,7 +322,7 @@ function loadWorkspace(obj){
             }
         }
 
-        $("#content").append(tree);
+        $("#workspaceTree").append(tree);
 
         // uncollapse active project/task
         if(obj.workspace.activeProject){
@@ -465,11 +465,11 @@ function editTransformTask(project, task) {
 }
 
 function removeTransformTask(project, task) {
-  deleteTask(baseUrl + '/api/workspace/' + project + '/transform/' + task);
+  deleteTask(baseUrl + '/transform/tasks/' + project + '/' + task);
 }
 
 function openTransformTask(project, task) {
-  window.location = baseUrl + '/' + project + '/transform/' + task + '/editor'
+  window.location = baseUrl + '/transform/' + project + '/' +  task + '/editor';
 }
 
 function newLinkingTask(project) {
@@ -481,11 +481,11 @@ function editLinkingTask(project, task) {
 }
 
 function removeLinkingTask(project, task) {
-  deleteTask(baseUrl + '/api/workspace/' + project + '/linking/' + task);
+  deleteTask(baseUrl + '/linking/tasks/' + project + '/' + task);
 }
 
 function openLinkingTask(project, task) {
-  window.location = baseUrl + '/' + project + '/' + task + '/editor'
+  window.location = baseUrl + '/linking/' + project + '/' + task + '/editor'
 }
 
 function newOutput(project) {

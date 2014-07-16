@@ -1,4 +1,7 @@
-@(project: Option[String], task: Option[String], tab: String)(header: Html)(toolbar: Html)(content: Html)
+@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import plugins.Context
+
+@(context: Option[Context[ModuleTask]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)
 
 <!DOCTYPE html>
 
@@ -13,14 +16,14 @@
     <script src="@routes.Assets.at("js/jquery-1.11.1.min.js")" type="text/javascript"></script>
     <script src="@routes.Assets.at("js/jquery-ui-1.11.0.min.js")" type="text/javascript"></script>
     <script type="text/javascript">
-      var baseUrl = '@config.baseUrl' // Base URL of this deployment
+      var baseUrl = '@config.baseUrl'; // Base URL of this deployment
     </script>
     <script src="@routes.Assets.at("js/main.js")" type="text/javascript"></script>
 
     @header
   </head>
   <body>
-    @tabbar(project, task, tab)
+    @tabbar(context, selectedTab)
     <div id="toolbar">
       @toolbar
     </div>

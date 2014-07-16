@@ -1,4 +1,7 @@
-@(project: String, task: String)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+
+@(context: Context[TransformTask])
 
 @header = {
 }
@@ -19,4 +22,4 @@
 @content = {
 }
 
-@main(Some(project), Some(task), "executeTransform")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

@@ -35,7 +35,7 @@
       <td>
         <input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="50"
                value="@datasets.map(_.source.restriction).getOrElse("")"/>
-        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
+        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@routes.Assets.at("workspace/img/wrench-screwdriver.png")" />
       </td>
     </tr>
     <tr>
@@ -57,7 +57,7 @@
       <td>
         <input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="50"
                value="@datasets.map(_.target.restriction).getOrElse("")"/>
-        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" />
+        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@routes.Assets.at("workspace/img/wrench-screwdriver.png")" />
       </td>
     </tr>
     <tr>
@@ -113,7 +113,7 @@
 
     $.ajax({
       type: 'PUT',
-      url: '@config.baseUrl/api/workspace/@project/linking/' + values.name,
+      url: '@config.baseUrl/linking/tasks/@project/' + values.name,
       data: values,
       success: function(data) {
         closeDialog();

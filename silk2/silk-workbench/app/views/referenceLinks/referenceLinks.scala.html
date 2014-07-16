@@ -1,4 +1,7 @@
-@(project: String, task: String)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+
+@(context: Context[LinkingTask])
 
 @header = {
   <link type="text/css" href="@routes.Assets.at("stylesheets/table.css")" rel="stylesheet" />
@@ -11,7 +14,7 @@
   <script src="@routes.Assets.at("js/links.js")" type="text/javascript"></script>
   
   <script type="text/javascript">
-    var apiUrl = '@config.baseUrl/api/workspace/@project/linking/@task/referenceLinks';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/referenceLinks';
     initLinks('referenceLinks', 'positive');
   </script>
 }
@@ -73,4 +76,4 @@
   </div>
 }
 
-@main(Some(project), Some(task), "referenceLinks")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

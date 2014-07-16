@@ -2,8 +2,7 @@ package controllers.tabs
 
 import play.api.mvc.Controller
 import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
-import de.fuberlin.wiwiss.silk.workspace.util.PrefixRegistry
+import de.fuberlin.wiwiss.silk.workspace.{PrefixRegistry, Constants, User}
 import models.WorkbenchConfig
 import java.io.FileInputStream
 import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionParser
@@ -38,7 +37,7 @@ object Workspace extends Controller {
   }
 
   def resourcesDialog(project: String) = Action {
-    val resourceManager = User().workspace.project(project).resourceManager
+    val resourceManager = User().workspace.project(project).resources
 
     Ok(views.html.workspace.resourcesDialog(project, resourceManager))
   }

@@ -1,4 +1,7 @@
-@(project: String, task: String)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+
+@(context: Context[TransformTask])
 
 @header = {
 }
@@ -10,4 +13,4 @@
   <iframe src="evaluate/generatedEntities" frameborder="0" width="100%" height="100%"></iframe>
 }
 
-@main(Some(project), Some(task), "evaluateTransform")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

@@ -6,7 +6,7 @@
 @widgets.pluginDialog(name = source,
                       plugins = DataSource.availablePlugins,
                       currentObj = User().workspace.project(project).sourceModule.tasks.find(_.name == source).map(_.source.dataSource),
-                      resources = User().workspace.project(project).resourceManager.list) {
+                      resources = User().workspace.project(project).resources.list) {
 
   <script type="text/javascript">
     function submit(pluginId, name, parameters) {

@@ -1,16 +1,26 @@
 package controllers.tabs
 
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.{Action, Controller}
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
+import plugins.Context
 
 object TransformEditor extends Controller {
 
-  def editor(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
-    Ok(views.html.editor.transformEditor(project, task))
+  def start(project: String, task: String) = Action { request =>
+    val context = Context.get[TransformTask](project, task, request.path)
+    Ok(views.html.editor.transformRules(context))
+  }
+
+  def editor(project: String, task: String, rule: String) = Action { request =>
+    val context = Context.get[TransformTask](project, task, request.path)
+    context.task.rules.find(_.name == rule) match {
+      case Some(r) => Ok(views.html.editor.transformEditor(context, r))
+      case None => NotFound(s"No rule named '$rule' found!")
+    }
   }
 
   def paths(projectName: String, taskName: String) = Action {

@@ -8,7 +8,7 @@ name := "Silk-Workbench"
 
 version := "2.6.1-SNAPSHOT"
 
-play.Project.playScalaSettings
+scalaVersion := "2.11.1"
 
 ////////////////////////////////////////////////
 // War Packaging

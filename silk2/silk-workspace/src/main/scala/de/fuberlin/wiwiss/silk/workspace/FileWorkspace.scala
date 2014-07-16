@@ -16,11 +16,10 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.io._
 import java.util.logging.Logger
+import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
+import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.util.Identifier
-import java.util.zip.{ZipInputStream, ZipEntry, ZipOutputStream}
-import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 
 class FileWorkspace(file : File) extends Workspace {
 
@@ -35,9 +34,8 @@ class FileWorkspace(file : File) extends Workspace {
   override def createProject(name : Identifier) = {
     require(!projectList.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
-    val projectDir = file + ("/" + name)
-    projectDir.mkdir()
-    val newProject = new FileProject(projectDir)
+    val resourceManager = new FileResourceManager(file + "/" + name)
+    val newProject = new Project(name, resourceManager)
     projectList ::= newProject
     newProject
   }
@@ -114,7 +112,8 @@ class FileWorkspace(file : File) extends Workspace {
   private def loadProjects(): List[Project] = {
     for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield {
       logger.info("Loading project: " + projectDir)
-      new FileProject(projectDir)
+      val resourceManager = new FileResourceManager(projectDir)
+      new Project(projectDir.getName, resourceManager)
     }
   }
 }

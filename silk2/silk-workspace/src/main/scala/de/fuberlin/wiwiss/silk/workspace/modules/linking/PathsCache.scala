@@ -1,11 +1,10 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
-import xml.{Node, NodeSeq, NodeBuffer}
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
+import scala.xml.{Node, NodeSeq}
 
 /**
  * Holds the most frequent paths.

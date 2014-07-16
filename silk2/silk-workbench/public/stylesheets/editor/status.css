@@ -1,0 +1,78 @@
+/**
+ * The Stylesheet for the status.scala.html template.
+ */
+
+#exclamation {
+  width: 24px;
+  height: 24px;
+  background-image: url('../../img/exclamation.png');
+  float: right;
+  margin-top: 8px;
+  margin-right: 27px;
+}
+
+#tick {
+  width: 24px;
+  height: 24px;
+  background-image: url('../../img/tick.png');
+  float: right;
+  margin-top: 8px;
+  margin-right: 27px;
+}
+
+#warning {
+  width: 24px;
+  height: 24px;
+  background-image: url('../../img/warning.png');
+  float: right;
+  margin-top: 8px;
+  margin-right: 27px;
+}
+
+#pending {
+  width: 24px;
+  height: 24px;
+  background-image: url('../../img/pending.gif');
+  float: right;
+  margin-top: 8px;
+  margin-right: 27px;
+}
+
+#info {
+  color: #717171;
+  line-height: 40px;
+  float: right;
+  padding-right: 14px;
+}
+
+#info .precision, #info .recall, #info .measure {
+  border-right: 1px solid #bab9b9;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+#info-box {
+  position: absolute;
+  background-color: #000000;
+  color: #ffffff;
+  filter:alpha(opacity=70);
+  -moz-opacity: 0.7;
+  opacity: 0.7;
+  padding: 8px 8px 0;
+  width: 270px;
+  max-height: 200px;
+  top: 35px;
+  overflow: auto;
+  z-index: 3;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.number-messages {
+  margin-left: 26px;
+  vertical-align: middle;
+}
+
+.msg {
+  margin-bottom: 8px;
+}

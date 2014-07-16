@@ -6,8 +6,8 @@
     @for((resource, index) <- resourceLoader.list.zipWithIndex) {
       <div id="resource@index" class="resource">
         @resource
-        <img class="button-delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@routes.Assets.at("img/workspace/cross.png")" />
-        <img class="button-export" title="Download" onclick="getResource('@resource')" src="@routes.Assets.at("img/workspace/document-export.png")" />
+        <img class="button-delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@routes.Assets.at("workspace/img/cross.png")" />
+        <img class="button-export" title="Download" onclick="getResource('@resource')" src="@routes.Assets.at("workspace/img/document-export.png")" />
       </div>
     }
   </fieldset>

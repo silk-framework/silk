@@ -23,6 +23,7 @@ function serializeLinkageRule() {
  */
 function serializeTransformRule() {
   var xml = serializeRule("TransformRule");
+  xml.setAttribute("name", $("#rulename").val());
   xml.setAttribute("targetProperty", $("#targetproperty").val());
   return makeXMLString(xml);
 }

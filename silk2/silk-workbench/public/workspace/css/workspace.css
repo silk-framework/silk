@@ -1,0 +1,72 @@
+#content {
+  background: #ffffff;
+}
+
+#toolbar {
+  display:none
+}
+
+.workspace_button {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 1px 3px 1px 1px;
+  margin-right: 2px;
+  background-color: #ffffff;
+  border: 1px solid #b6b6b6;
+  border-radius: 4px;
+}
+
+.workspace_button img {
+  float: left;
+}
+
+.workspace_button span {
+  float: left;
+  margin-left: 2px;
+  line-height: 16px;
+  font-size: 0.8em;
+  color: #575757;
+}
+
+.import-icon {
+  background-image: url(../img/document-import.png);
+}
+.new-project-icon {
+  background-image: url(../img/document.png);
+}
+.edit-prefixes-icon {
+  background-image: url(../img/wrench-screwdriver.png);
+}
+.edit-icon {
+  background-image: url(../img/wrench.png);
+}
+.add-icon {
+  background-image: url(../img/plus.png);
+}
+.remove-icon {
+  background-image: url(../img/cross.png);
+}
+.export-icon {
+  background-image: url(../img/document-export.png);
+}
+.open-icon {
+  background-image: url(../img/document--pencil.png);
+}
+.add-ls-icon {
+  background-image: url(../img/document--plus.png);
+}
+.filetree span.source {
+  background: url("../img/server.png") no-repeat !important;
+}
+
+.filetree span.transform {
+  background: url("../img/arrow-skip.png") no-repeat !important;
+}
+
+.filetree span.link {
+  background: url("../img/arrow-join.png") no-repeat !important;
+}
+
+.filetree span.output {
+  background: url("../img/server--arrow.png") no-repeat !important;
+}

@@ -1,5 +1,7 @@
 package controllers.tabs
 
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -9,23 +11,23 @@ import models.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.util.{Stream, Widgets}
 import models._
 import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
+import plugins.Context
 
 object Learning extends Controller {
 
-  def start(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
-    val referenceLinks = task.referenceLinks
-
-    Ok(views.html.learning.start(projectName, taskName, referenceLinks))
+  def start(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.learning.start(context))
   }
 
-  def learn(project: String, task: String) = Action {
-    Ok(views.html.learning.learn(project, task))
+  def learn(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.learning.learn(context))
   }
 
-  def activeLearn(project: String, task: String) = Action {
-    Ok(views.html.learning.activeLearn(project, task))
+  def activeLearn(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.learning.activeLearn(context))
   }
 
   def rule(projectName: String, taskName: String) = Action {
@@ -74,8 +76,9 @@ object Learning extends Controller {
     Ok.chunked(Widgets.taskStatus(stream1 interleave stream2))
   }
 
-  def population(projectName: String, taskName: String) = Action {
-    Ok(views.html.learning.population(projectName, taskName))
+  def population(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.learning.population(context))
   }
 
   def populationView(projectName: String, taskName: String, page: Int) = Action {

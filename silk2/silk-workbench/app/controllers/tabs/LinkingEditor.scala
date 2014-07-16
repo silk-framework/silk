@@ -1,18 +1,18 @@
 package controllers.tabs
 
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
+import plugins.Context
 
-object Editor extends Controller {
+object LinkingEditor extends Controller {
 
-  def editor(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
-
-    Ok(views.html.editor.editor(project, task))
+  def editor(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkingTask](project, task, request.path)
+    Ok(views.html.editor.linkingEditor(context))
   }
 
   def paths(projectName: String, taskName: String) = Action {

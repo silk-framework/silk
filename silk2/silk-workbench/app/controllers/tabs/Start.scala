@@ -1,8 +1,8 @@
 package controllers.tabs
 
 import play.api.mvc.{Action, Controller}
-import play.api.templates.Html
 import models.WorkbenchConfig
+import play.twirl.api.Html
 
 object Start extends Controller {
 

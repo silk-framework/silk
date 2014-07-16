@@ -5,6 +5,9 @@ package de.fuberlin.wiwiss.silk.runtime.resource
  */
 trait ResourceLoader {
 
+  /**
+   * Lists all available resources.
+   */
   def list: List[String]
 
   /**
@@ -15,4 +18,8 @@ trait ResourceLoader {
    * @throws ResourceNotFoundException If no resource with the given name has been found.
    */
   def get(name: String): Resource
+
+  def listChildren: List[String]
+
+  def child(name: String): ResourceLoader
 }

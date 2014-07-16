@@ -205,19 +205,6 @@ $(function ()
   $("#undo").button({ disabled: true });
   $("#redo").button({ disabled: true });
 
-  $("#exclamation, #warning").mouseover(function() {
-    $(this).attr("style", "cursor:pointer;");
-  });
-
-  $("#exclamation, #warning").click(function() {
-    if ($("#info-box").is(':visible')) {
-      $("#info-box").slideUp(200);
-    } else {
-      $("#info-box").css("left", $(window).width()-294+"px");
-      $("#info-box").slideDown(200);
-    }
-  });
-
   $(document).on('click', ".label", function() {
     var current_label = $(this).html();
     var input = '<input class="label-change" type="text" value="' + current_label + '" />';
@@ -374,105 +361,50 @@ function validateLinkSpec() {
 
   if (errors.length > 0) {
     // display frontend errors
-    updateStatus(errors, null, null);
+    updateEditorStatus(errors, null, null);
   } else {
     // send to server
     $.ajax({
       type: 'PUT',
-      url: apiUrl + '/rule',
+      url: apiUrl + '/rule' + ruleIndex,
       contentType: 'text/xml',
       processData: false,
       data: serializationFunction(),
       dataType: "json",
       success: function(response) {
-        updateStatus(response.error, response.warning, response.info);
+        updateEditorStatus(response.error, response.warning, response.info);
         updateScore();
+        confirmOnExit = false;
       },
       error: function(req) {
         console.log('Error committing rule: ' + req.responseText);
         var response = jQuery.parseJSON(req.responseText);
-        updateStatus(response.error, response.warning, response.info);
+        updateEditorStatus(response.error, response.warning, response.info);
       }
     });
   }
 };
 
 function modifyLinkSpec() {
-  console.log("Rule modified");
   confirmOnExit = true;
   showPendingIcon();
   clearTimeout(modificationTimer);
   modificationTimer = setTimeout(function() { validateLinkSpec(); }, 2000);
 }
 
-function updateStatus(errorMessages, warningMessages, infoMessages) {
-  $("#info-box").html("");
-  if (errorMessages.length > 0) {
-    $("#info-box").append(printErrorMessages(errorMessages));
-    showInvalidIcon(errorMessages.length);
-  } else if (warningMessages.length > 0) {
-    confirmOnExit = false;
-    $("#info-box").append(printMessages(warningMessages));
-    showWarningIcon(warningMessages.length);
-  } else {
-    confirmOnExit = false;
-    $("#info-box").slideUp(200);
-    showValidIcon();
-  }
-  if (infoMessages != null && infoMessages.length > 0) {
-    $("#info > .precision").html(infoMessages[0]).css("display", "inline");
-    if (infoMessages[1] !== undefined) {
-      $("#info > .recall").html(infoMessages[1]).css("display", "inline");
-    } else {
-      $("#info > .recall").css("display", "none");
-    }
-    if (infoMessages[2] !== undefined) {
-      $("#info > .measure").html(infoMessages[2]).css("display", "inline");
-    } else {
-      $("#info > .measure").css("display", "none");
-    }
-    $("#info").css("display", "block");
-  }
+function updateEditorStatus(errorMessages, warningMessages, infoMessages) {
+  // Update status icon
+  updateStatus(errorMessages, warningMessages, infoMessages);
+  // Highlight elements
+  highlightElements(errorMessages);
 }
 
-function showValidIcon() {
-  $("#exclamation, #warning, #pending").css("display", "none");
-  $("#tick").css("display", "block");
-}
-function showInvalidIcon(numberMessages) {
-  $("#exclamation > .number-messages").html(numberMessages);
-  $("#tick, #warning, #pending").css("display", "none");
-  $("#exclamation").css("display", "block");
-}
-function showWarningIcon(numberMessages) {
-  $("#warning > .number-messages").html(numberMessages);
-  $("#tick, #exclamation, #pending").css("display", "none");
-  $("#warning").css("display", "block");
-}
-function showPendingIcon() {
-  $("#exclamation, #warning, #tick").css("display", "none");
-  $("#pending").css("display", "block");
-}
-
-function printMessages(array) {
-  var result = "";
+function highlightElements(array) {
   var c = 1;
   for (var i = 0; i<array.length; i++) {
-    result = result + '<div class="msg">' + c + '. ' + encodeHtml(array[i]) + '</div>';
-    c++;
-  }
-  return result;
-}
-
-function printErrorMessages(array) {
-  var result = "";
-  var c = 1;
-  for (var i = 0; i<array.length; i++) {
-    result = result + '<div class="msg">' + c + '. ' + encodeHtml(array[i].message) + '</div>';
     if (array[i].id) highlightElement(array[i].id, encodeHtml(array[i].message));
     c++;
   }
-  return result;
 }
 
 function highlightElement(elId, message) {
@@ -644,7 +576,7 @@ function updateRevertButtons() {
 }
 
 function encodeHtml(value) {
-  encodedHtml = value.replace("<", "&lt;");
+  var encodedHtml = value.replace("<", "&lt;");
   encodedHtml = encodedHtml.replace(">", "&gt;");
   encodedHtml = encodedHtml.replace("\"", '\\"');
   return encodedHtml;
@@ -653,7 +585,7 @@ function encodeHtml(value) {
 function getPropertyPaths() {
   $.ajax({
     type: 'get',
-    url: editorUrl + '/paths',
+    url: editorUrl + '/widgets/paths',
     complete: function(response, status) {
       $("#paths").html(response.responseText);
       if(status == "error") {
@@ -687,7 +619,7 @@ function reloadCache() {
 function updateScore() {
   $.ajax({
     type: 'get',
-    url: editorUrl + "/score",
+    url: editorUrl + "/widgets/score",
     complete: function(response, status) {
       $("#score-widget").html(response.responseText);
       if(status == "error") {

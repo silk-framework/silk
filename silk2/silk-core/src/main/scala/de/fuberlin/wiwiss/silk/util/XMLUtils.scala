@@ -51,4 +51,8 @@ class XMLUtils(xml: NodeSeq) {
     writer.write("\n")
     writer.flush()
   }
+
+  def write(outputStream: OutputStream) {
+    write(new OutputStreamWriter(outputStream, "UTF-8"))
+  }
 }

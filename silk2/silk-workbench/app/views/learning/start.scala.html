@@ -1,8 +1,11 @@
-@(project: String, task: String, referenceLinks: de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+
+@(context: Context[LinkingTask])
 
 @header = {
   <script type="text/javascript">
-    var taskUrl = '@config.baseUrl/api/tasks/@project/@task';
+    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
 
     function startLearning() {
       $.ajax({
@@ -38,9 +41,9 @@
 }
 
 @content = {
-  @if(referenceLinks.isDefined) {
+  @if(context.task.referenceLinks.isDefined) {
     <span>
-      There are already @referenceLinks.positive.size positive and @referenceLinks.positive.size negative reference links.
+      There are already @context.task.referenceLinks.positive.size positive and @context.task.referenceLinks.positive.size negative reference links.
       Start learning a linkage rules from existing reference links: 
       <button onClick="startLearning()">Start</button>
       <br/>
@@ -55,4 +58,4 @@
   }
 }
 
-@main(Some(project), Some(task), "learn")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

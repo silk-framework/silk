@@ -12,11 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace.util
+package de.fuberlin.wiwiss.silk.workspace
 
-import io.Source
 import java.util.logging.{Level, Logger}
+
 import de.fuberlin.wiwiss.silk.config.Prefixes
+
+import scala.io.Source
 
 /**
  * Registry of known prefixes.

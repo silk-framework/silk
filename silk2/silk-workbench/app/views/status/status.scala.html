@@ -1,4 +1,7 @@
-@(project: String, task: String)
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import plugins.Context
+
+@(context: Context[LinkingTask])
 
 @header = {
 }
@@ -53,4 +56,4 @@
   </div>
 }
 
-@main(Some(project), Some(task), "status")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

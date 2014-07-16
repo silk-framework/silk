@@ -23,7 +23,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/api/workspace/@project/linking/@task/referenceLinks',
+        url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks',
         xhr: function() {
           myXhr = $.ajaxSettings.xhr();
           return myXhr;

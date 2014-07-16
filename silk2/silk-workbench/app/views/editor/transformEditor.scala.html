@@ -1,23 +1,29 @@
-@(project: de.fuberlin.wiwiss.silk.workspace.Project,
-    task: de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask)
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+
+@(context: Context[TransformTask], rule: TransformRule)
 
 @import de.fuberlin.wiwiss.silk.workspace.User
 @import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 
 @header = {
-  <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
-  <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@routes.Assets.at("js/excanvas.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
-    var projectName = '@project.name';
-    var taskName = '@task.name';
-    var editorUrl = baseUrl + '/' + projectName + '/transform/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/api/workspace/@project.name/transform/@task.name';
+    var projectName = '@context.project.name';
+    var taskName = '@context.task.name';
+    var ruleIndex = '/@context.task.rules.indexOf(rule)';
+    var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
     var serializationFunction = serializeTransformRule;
   </script>
 }
@@ -26,6 +32,9 @@
   <script type="text/javascript" src="@routes.Assets.at("js/wz_tooltip.js")"></script>
 
   <ul>
+    <li>
+      <a class="button" href="../editor">Back</a>
+    </li>
     <li>
       <button id="undo" onclick="undo();">Undo</button>
     </li>
@@ -37,20 +46,7 @@
     </li>
   </ul>
 
-  <div id="validation-icons">
-    <div id="tick" style="display: none" onmouseover="Tip('Validated successfully.', DELAY, 20, WIDTH, 135, FIX, ['tick', -102, 3]);" onmouseout="UnTip();"></div>
-    <div id="exclamation" style="display: none"><span class="number-messages"></span></div>
-    <div id="warning" style="display: none"><span class="number-messages"></span></div>
-    <div id="pending" style="display: none"></div>
-    <div id="info" style="display: none">
-      <span class="note" style="display: none" title="Positive and negative reference links are needed in order to evaluate the link specification"></span>
-      <span class="precision" style="display: none" title="Precision can be seen as a measure of exactness (or quality). Precision := truePositive / (truePositive + falsePositive)"></span>
-      <span class="recall" style="display: none" title="Recall can be seen as a measure of completeness (or quantity). Recall := truePositive / (truePositive + falseNegative)"></span>
-      <span class="measure" title="The harmonic mean of Precision and Recall. F-measure := 2 * (Precision*Recall) / (Precision+Recall)" style="display: none"></span>
-    </div>
-  </div>
-
-  <div id="info-box" style="display: none"></div>
+  @status()
 
   <div id="score-widget">@* Filled by updateScore() *@</div>
 }
@@ -79,17 +75,23 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- task.rule.operator) {
-          @rule(
+        @for(op <- rule.operator) {
+          @renderRule(
             rule = op,
-            prefixes = project.config.prefixes
+            prefixes = context.project.config.prefixes
           )
         }
       </div>
 
+      <div style="float: left; margin-right: 20px">
+        Name:
+        <input type="text" size="40" id="rulename"  value="@rule.name" />
+        <img src="@routes.Assets.at("img/help.png")" title="The name of this transformation rule." />
+      </div>
+
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.rule.targetProperty)" />
+        <input type="text" size="40" id="targetproperty"  value="@context.project.config.prefixes.shorten(rule.targetProperty)" />
         <img src="@routes.Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
       </div>
 
@@ -98,4 +100,4 @@
   </div>
 }
 
-@main(Some(project.name), Some(task.name), "transformEditor")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

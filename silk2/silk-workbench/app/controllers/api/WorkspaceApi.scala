@@ -161,7 +161,7 @@ object WorkspaceApi extends Controller {
 
   def getResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val resource = project.resourceManager.get(resourceName)
+    val resource = project.resources.get(resourceName)
     val enumerator = Enumerator.fromStream(resource.load)
 
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
@@ -175,7 +175,7 @@ object WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
-          project.resourceManager.put(resourceName, inputStream)
+          project.resources.put(resourceName, inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -187,7 +187,7 @@ object WorkspaceApi extends Controller {
 
   def deleteResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    project.resourceManager.delete(resourceName)
+    project.resources.delete(resourceName)
 
     Ok
   }
@@ -205,7 +205,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resourceManager))
+          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resources))
           project.sourceModule.update(sourceTask)
           Ok
         } catch {
@@ -217,72 +217,6 @@ object WorkspaceApi extends Controller {
 
   def deleteSource(project: String, source: String) = Action {
     User().workspace.project(project).sourceModule.remove(source)
-    Ok
-  }
-
-  def putTransformTask(project: String, task: String) = Action { implicit request => {
-    val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
-
-    val proj = User().workspace.project(project)
-    implicit val prefixes = proj.config.prefixes
-
-    val dataset = Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
-
-    proj.transformModule.tasks.find(_.name == task) match {
-      //Update existing task
-      case Some(oldTask) => {
-        val updatedTransformTask = oldTask.updateDataset(dataset, proj)
-        proj.transformModule.update(updatedTransformTask)
-      }
-      //Create new task
-      case None => {
-        val transformTask = TransformTask(proj, task, dataset, TransformRule())
-        proj.transformModule.update(transformTask)
-      }
-    }
-    Ok
-  }}
-
-  def deleteTransformTask(project: String, task: String) = Action {
-    User().workspace.project(project).transformModule.remove(task)
-    Ok
-  }
-
-  def putLinkingTask(project: String, task: String) = Action { implicit request => {
-    val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
-
-    val proj = User().workspace.project(project)
-    implicit val prefixes = proj.config.prefixes
-
-    val datasets = DPair(Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
-                         Dataset(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
-
-    proj.linkingModule.tasks.find(_.name == task) match {
-      //Update existing task
-      case Some(oldTask) => {
-        val updatedLinkSpec = oldTask.linkSpec.copy(datasets = datasets)
-        val updatedLinkingTask = oldTask.updateLinkSpec(updatedLinkSpec, proj)
-        proj.linkingModule.update(updatedLinkingTask)
-      }
-      //Create new task
-      case None => {
-        val linkSpec =
-          LinkSpecification(
-            id = task,
-            datasets = datasets,
-            rule = LinkageRule(None),
-            outputs = Nil
-          )
-
-        val linkingTask = LinkingTask(proj, linkSpec, ReferenceLinks())
-        proj.linkingModule.update(linkingTask)
-      }
-    }
-    Ok
-  }}
-
-  def deleteLinkingTask(project: String, task: String) = Action {
-    User().workspace.project(project).linkingModule.remove(task)
     Ok
   }
 
@@ -299,7 +233,7 @@ object WorkspaceApi extends Controller {
     request.body.asXml match {
       case Some(xml) => {
         try {
-          val outputTask = OutputTask(Output.fromXML(xml.head, project.resourceManager))
+          val outputTask = OutputTask(Output.fromXML(xml.head, project.resources))
           project.outputModule.update(outputTask)
           Ok
         } catch {

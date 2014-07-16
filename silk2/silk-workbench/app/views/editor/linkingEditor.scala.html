@@ -1,24 +1,28 @@
-@(project: de.fuberlin.wiwiss.silk.workspace.Project,
-  task: de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask)
-
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import plugins.Context
 @import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
 
+@(context: Context[LinkingTask])
+
 @header = {
-  <link type="text/css" href="@routes.Assets.at("stylesheets/editor-reset.css")" rel="stylesheet" />
-  <link type="text/css" href="@routes.Assets.at("stylesheets/editor.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
+  <link type="text/css" href="@routes.Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@routes.Assets.at("js/excanvas.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@routes.Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript" src="@routes.Assets.at("js/editor/serializeRule.js")"></script>
 
   <script type="text/javascript">
-    var projectName = '@project.name';
-    var taskName = '@task.name';
-    var editorUrl = baseUrl + '/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/api/workspace/@project.name/linking/@task.name';
+    var projectName = '@context.project.name';
+    var taskName = '@context.task.name';
+    var ruleIndex = '';
+    var editorUrl = baseUrl + '/linking/' + projectName + '/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
     var serializationFunction = serializeLinkageRule;
   </script>
 }
@@ -38,20 +42,7 @@
     </li>
   </ul>
 
-  <div id="validation-icons">
-    <div id="tick" style="display: none" onmouseover="Tip('Validated successfully.', DELAY, 20, WIDTH, 135, FIX, ['tick', -102, 3]);" onmouseout="UnTip();"></div>
-    <div id="exclamation" style="display: none"><span class="number-messages"></span></div>
-    <div id="warning" style="display: none"><span class="number-messages"></span></div>
-    <div id="pending" style="display: none"></div>
-    <div id="info" style="display: none">
-      <span class="note" style="display: none" title="Positive and negative reference links are needed in order to evaluate the link specification"></span>
-      <span class="precision" style="display: none" title="Precision can be seen as a measure of exactness (or quality). Precision := truePositive / (truePositive + falsePositive)"></span>
-      <span class="recall" style="display: none" title="Recall can be seen as a measure of completeness (or quantity). Recall := truePositive / (truePositive + falseNegative)"></span>
-      <span class="measure" title="The harmonic mean of Precision and Recall. F-measure := 2 * (Precision*Recall) / (Precision+Recall)" style="display: none"></span>
-    </div>
-  </div>
-
-  <div id="info-box" style="display: none"></div>
+  @status()
 
   <div id="score-widget">@* Filled by updateScore() *@</div>
 }
@@ -82,10 +73,10 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- task.linkSpec.rule.operator) {
-          @rule(
+        @for(op <- context.task.linkSpec.rule.operator) {
+          @renderRule(
             rule = op,
-            prefixes = project.config.prefixes
+            prefixes = context.project.config.prefixes
           )
         }
       </div>
@@ -110,7 +101,7 @@
 
       <div style="width: 300px; float: left;">
         Link Type:
-        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@project.config.prefixes.shorten(task.linkSpec.rule.linkType.uri)" />
+        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.linkSpec.rule.linkType.uri)" />
       </div>
 
     </div>
@@ -118,4 +109,4 @@
   </div>
 }
 
-@main(Some(project.name), Some(task.name), "editor")(header)(toolbar)(content)
+@main(Some(context))(header)(toolbar)(content)

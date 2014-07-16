@@ -67,7 +67,7 @@
 
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/api/tasks/@project/@task/writeReferenceLinks',
+        url: '@config.baseUrl/linking/tasks/@project/@task/writeReferenceLinks',
         data: values,
         success: function(response) {
           $('.dialog').dialog('close');

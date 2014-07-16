@@ -22,6 +22,14 @@ class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
       throw new ResourceNotFoundException(s"Resource $name not found in classpath $basePath")
     new ClasspathResource(name, path)
   }
+
+  override def listChildren: List[String] = {
+    throw new UnsupportedOperationException("ClasspathResourceLoader does not support listing resources")
+  }
+
+  override def child(name: String): ResourceLoader = {
+    new ClasspathResourceLoader(basePath + "/" + name)
+  }
 }
 
 private class ClasspathResource(val name: String, path: String) extends Resource {
