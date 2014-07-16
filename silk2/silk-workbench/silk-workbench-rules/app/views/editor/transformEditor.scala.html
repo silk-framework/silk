@@ -1,0 +1,104 @@
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+@import controllers.rules.routes.Assets
+
+@(context: Context[TransformTask], rule: TransformRule)
+
+@import de.fuberlin.wiwiss.silk.workspace.User
+@import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+
+@header = {
+  <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
+  <link type="text/css" href="@Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
+  <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
+
+  <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/serializeRule.js")"></script>
+
+  <script type="text/javascript">
+    var projectName = '@context.project.name';
+    var taskName = '@context.task.name';
+    var ruleIndex = '/@context.task.rules.indexOf(rule)';
+    var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
+    var serializationFunction = serializeTransformRule;
+  </script>
+}
+
+@toolbar = {
+  <script type="text/javascript" src="@Assets.at("js/wz_tooltip.js")"></script>
+
+  <ul>
+    <li>
+      <a class="button" href="">Back</a>
+    </li>
+    <li>
+      <button id="undo" onclick="undo();">Undo</button>
+    </li>
+    <li>
+      <button id="redo" onclick="redo();">Redo</button>
+    </li>
+    <li>
+      <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">Help</a>
+    </li>
+  </ul>
+
+  @status()
+
+  <div id="score-widget">@* Filled by updateScore() *@</div>
+}
+
+@content = {
+  <div class="draggables">
+    <div style="width:200px;">
+      <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
+      <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>
+    </div>
+    <div style="clear: both"></div>
+    <div id="paths">
+      <div id="loading" style="width:230px;">loading ...</div>
+      <script type="text/javascript">
+        getPropertyPaths();
+      </script>
+    </div>
+
+    <div id="operators">
+      @operators("Transformations", "transform", Transformer.pluginsByCategory)
+    </div>
+  </div>
+
+  <div class="wrapperEditor">
+
+    <div class="droppable_outer">
+
+      <div id="droppable">
+        @for(op <- rule.operator) {
+          @renderRule(
+            rule = op,
+            prefixes = context.project.config.prefixes
+          )
+        }
+      </div>
+
+      <div style="float: left; margin-right: 20px">
+        Name:
+        <input type="text" size="40" id="rulename"  value="@rule.name" />
+        <img src="@Assets.at("img/help.png")" title="The name of this transformation rule." />
+      </div>
+
+      <div style="float: left;">
+        Target Property:
+        <input type="text" size="40" id="targetproperty"  value="@context.project.config.prefixes.shorten(rule.targetProperty)" />
+        <img src="@Assets.at("img/help.png")" title="The target property. Currently must be a full URI." />
+      </div>
+
+    </div>
+
+  </div>
+}
+
+@main(Some(context))(header)(toolbar)(content)

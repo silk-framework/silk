@@ -1,0 +1,60 @@
+# Dialogs
+GET           /dialogs/newLinkingTask/:project                                              controllers.linking.LinkingDialogs.linkingTaskDialog(project: String, task = "")
+GET           /dialogs/editLinkingTask/:project/:task                                       controllers.linking.LinkingDialogs.linkingTaskDialog(project: String, task: String)
+
+# Linkage Rule Editor
+GET           /:project/:task/editor                                                        controllers.linking.LinkingEditor.editor(project: String, task: String)
+GET           /:project/:task/editor/widgets/paths                                          controllers.linking.LinkingEditor.paths(project: String, task: String)
+GET           /:project/:task/editor/widgets/score                                          controllers.linking.LinkingEditor.score(project: String, task: String)
+
+# Generate Links
+GET           /:project/:task/generateLinks                                                 controllers.linking.GenerateLinks.generateLinks(project: String, task: String)
+GET           /:project/:task/generateLinksDialog                                           controllers.linking.GenerateLinks.generateLinksDialog(project: String, task: String)
+GET           /:project/:task/generateLinks/links/:sorting/:filter/:page                    controllers.linking.GenerateLinks.links(project: String, task: String, sorting: String, filter: String, page: Int)
+GET           /:project/:task/generateLinks/linksStream                                     controllers.linking.GenerateLinks.linksStream(project: String, task: String)
+GET           /:project/:task/generateLinks/statusStream                                    controllers.linking.GenerateLinks.statusStream(project: String, task: String)
+
+# Reference Links
+GET           /:project/:task/referenceLinks                                                controllers.linking.ReferenceLinksManager.referenceLinksView(project: String, task: String)
+GET           /:project/:task/referenceLinks/importDialog                                   controllers.linking.ReferenceLinksManager.importDialog(project: String, task: String)
+GET           /:project/:task/referenceLinks/exportDialog                                   controllers.linking.ReferenceLinksManager.exportDialog(project: String, task: String)
+GET           /:project/:task/referenceLinks/:linkType/:sorting/:filter/:page               controllers.linking.ReferenceLinksManager.referenceLinks(project: String, task: String, linkType: String, sorting: String, filter: String, page: Int)
+
+# Learn
+GET           /:project/:task/learnStart                                                    controllers.linking.Learning.start(project: String, task: String)
+GET           /:project/:task/learn                                                         controllers.linking.Learning.learn(project: String, task: String)
+GET           /:project/:task/activeLearn                                                   controllers.linking.Learning.activeLearn(project: String, task: String)
+GET           /:project/:task/learn/rule                                                    controllers.linking.Learning.rule(project: String, task: String)
+GET           /:project/:task/learn/ruleStream                                              controllers.linking.Learning.ruleStream(project: String, task: String)
+GET           /:project/:task/learn/links/:sorting/:filter/:page                            controllers.linking.Learning.links(project: String, task: String, sorting: String, filter: String, page: Int)
+GET           /:project/:task/learn/linksStream                                             controllers.linking.Learning.linksStream(project: String, task: String)
+GET           /:project/:task/learn/statusStream                                            controllers.linking.Learning.statusStream(project: String, task: String)
+GET           /:project/:task/learn/population                                              controllers.linking.Learning.population(project: String, task: String)
+GET           /:project/:task/learn/populationView/:page                                    controllers.linking.Learning.populationView(project: String, task: String, page: Int)
+
+# Status
+GET           /:project/:task/status                                                        controllers.linking.Status.status(project: String, task: String)
+GET           /:project/:task/status/cacheStream                                            controllers.linking.Status.cacheStream(project: String, task: String)
+GET           /:project/:task/status/sourceTypesCacheStream                                 controllers.linking.Status.sourceTypesCacheStream(project: String, task: String)
+GET           /:project/:task/status/targetTypesCacheStream                                 controllers.linking.Status.targetTypesCacheStream(project: String, task: String)
+GET           /:project/:task/status/pathCacheStream                                        controllers.linking.Status.pathCacheStream(project: String, task: String)
+GET           /:project/:task/status/referenceEntitiesCacheStream                           controllers.linking.Status.referenceEntitiesCacheStream(project: String, task: String)
+
+# API
+PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.putLinkingTask(project: String, task: String)
+DELETE        /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.deleteLinkingTask(project: String, task: String)
+GET           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.getRule(project: String, task: String)
+PUT           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.putRule(project: String, task: String)
+GET           /tasks/:project/:task/linkSpec                                        controllers.linking.LinkingTaskApi.getLinkSpec(project: String, task: String)
+PUT           /tasks/:project/:task/linkSpec                                        controllers.linking.LinkingTaskApi.putLinkSpec(project: String, task: String)
+GET           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.getReferenceLinks(project: String, task: String)
+PUT           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.putReferenceLinks(project: String, task: String)
+PUT           /tasks/:project/:task/referenceLinks/:linkType/:source/:target        controllers.linking.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
+DELETE        /tasks/:project/:task/referenceLinks/:source/:target                  controllers.linking.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
+
+POST          /tasks/:project/:task/reloadCache                                     controllers.linking.LinkingTaskApi.reloadLinkingCache(project: String, task: String)
+PUT           /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.startGenerateLinksTask(project: String, task: String)
+DELETE        /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.stopGenerateLinksTask(project: String, task: String)
+PUT           /tasks/:project/:task/writeReferenceLinks                             controllers.linking.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
+PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningTask(project: String, task: String)
+PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningTask(project: String, task: String)

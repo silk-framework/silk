@@ -1,0 +1,5 @@
+<DataSource id="DBpedia" type="file">
+  <Param name="file" value="source.nt"/>
+  <Param name="format" value="N-TRIPLE"/>
+  <Param name="graph" value=""/>
+</DataSource>

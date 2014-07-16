@@ -1,0 +1,28 @@
+# Dialogs
+GET           /dialogs/newTransformTask/:project                controllers.transform.TransformDialogs.transformationTaskDialog(project: String, task = "")
+GET           /dialogs/editTransformTask/:project/:task         controllers.transform.TransformDialogs.transformationTaskDialog(project: String, task: String)
+
+# Transformation Editor
+GET           /:project/:task/editor                            controllers.transform.TransformEditor.start(project: String, task: String)
+GET           /:project/:task/editor/:rule                      controllers.transform.TransformEditor.editor(project: String, task: String, rule: String)
+GET           /:project/:task/editor/widgets/paths              controllers.transform.TransformEditor.paths(project: String, task: String)
+GET           /:project/:task/editor/widgets/score              controllers.transform.TransformEditor.score(project: String, task: String)
+
+# Evaluate Transformation
+GET           /:project/:task/evaluate                          controllers.transform.EvaluateTransform.evaluate(project: String, task: String)
+GET           /:project/:task/evaluate/generatedEntities        controllers.transform.EvaluateTransform.generatedEntities(project: String, task: String)
+
+# Execute Transformation
+GET           /:project/:task/execute                           controllers.transform.ExecuteTransformTab.execute(project: String, task: String)
+GET           /:project/:task/executeDialog                     controllers.transform.ExecuteTransformTab.executeDialog(project: String, task: String)
+GET           /:project/:task/execute/statusStream              controllers.transform.ExecuteTransformTab.statusStream(project: String, task: String)
+
+# API
+PUT           /tasks/:project/:task                             controllers.transform.TransformTaskApi.putTransformTask(project: String, task: String)
+DELETE        /tasks/:project/:task                             controllers.transform.TransformTaskApi.deleteTransformTask(project: String, task: String)
+GET           /tasks/:project/:task/rules                       controllers.transform.TransformTaskApi.getRules(project: String, task: String)
+PUT           /tasks/:project/:task/rules                       controllers.transform.TransformTaskApi.putRules(project: String, task: String)
+GET           /tasks/:project/:task/rule/:rule                  controllers.transform.TransformTaskApi.getRule(project: String, task: String, rule: String)
+PUT           /tasks/:project/:task/rule/:rule                  controllers.transform.TransformTaskApi.putRule(project: String, task: String, rule: Int)
+POST          /tasks/:project/:task/reloadCache                 controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
+PUT           /tasks/:project/:task/executeTransform            controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)

@@ -1,0 +1,27 @@
+@()
+
+@import controllers.workspace.routes.Assets
+
+@header = {
+  <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />
+  <link rel="stylesheet" href="@Assets.at("workspace.css")" type="text/css" />
+  <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
+  <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
+}
+
+@toolbar = {
+  <ul>
+    <li>
+      <button onclick="newProject()" >New Project</button>
+      <button onclick="importProject()" >Import Project</button>
+    </li>
+  </ul>
+}
+
+@content = {
+  <div id="workspace_tree" >
+    <img src="@Assets.at("img/pending.gif")">
+  </div>
+}
+
+@main(None, "workspace")(header)(toolbar)(content)

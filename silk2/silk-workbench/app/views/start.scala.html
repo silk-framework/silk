@@ -1,3 +1,5 @@
+@import controllers.core.routes.Assets
+
 @(welcome: Html)
 
 @exampleName = @{ "movies" }
@@ -5,7 +7,7 @@
 @projects = @{ de.fuberlin.wiwiss.silk.workspace.User().workspace.projects }
 
 @header = {
-  <link rel="stylesheet" href="@routes.Assets.at("stylesheets/start.css")" type="text/css" />
+  <link rel="stylesheet" href="@Assets.at("start/start.css")" type="text/css" />
 }
 
 @toolbar = {

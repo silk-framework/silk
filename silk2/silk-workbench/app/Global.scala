@@ -3,7 +3,6 @@ import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
-import models.WorkbenchConfig
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.api.mvc.Results._
@@ -52,15 +51,4 @@ object Global extends GlobalSettings {
   override def onError(request: RequestHeader, ex: Throwable) = {
     Future.successful(InternalServerError(ex.getMessage))
   }
-}
-
-/**
- * Provides the global configuration.
- */
-package object config {
-
-  /* The baseUrl where the application is deployed */
-  lazy val baseUrl = Play.configuration.getString("application.context").getOrElse("").stripSuffix("/")
-
-  def workbench = WorkbenchConfig.get
 }

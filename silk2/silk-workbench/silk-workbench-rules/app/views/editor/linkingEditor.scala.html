@@ -1,0 +1,113 @@
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
+@import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+@import controllers.rules.routes.Assets
+
+@(context: Context[LinkingTask])
+
+@header = {
+  <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
+  <link type="text/css" href="@Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
+  <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
+
+  <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/serializeRule.js")"></script>
+
+  <script type="text/javascript">
+    var projectName = '@context.project.name';
+    var taskName = '@context.task.name';
+    var ruleIndex = '';
+    var editorUrl = baseUrl + '/linking/' + projectName + '/' + taskName + '/editor';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
+    var serializationFunction = serializeLinkageRule;
+  </script>
+}
+
+@toolbar = {
+  <script type="text/javascript" src="@Assets.at("js/wz_tooltip.js")"></script>
+
+  <ul>
+    <li>
+      <button id="undo" onclick="undo();">Undo</button>
+    </li>
+    <li>
+      <button id="redo" onclick="redo();">Redo</button>
+    </li>
+    <li>
+      <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">Help</a>
+    </li>
+  </ul>
+
+  @status()
+
+  <div id="score-widget">@* Filled by updateScore() *@</div>
+}
+
+@content = {
+  <div class="draggables">
+    <div style="width:200px;">
+      <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
+      <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>
+    </div>
+    <div style="clear: both"></div>
+    <div id="paths">
+      <div id="loading" style="width:230px;">loading ...</div>
+      <script type="text/javascript">
+        getPropertyPaths();
+      </script>
+    </div>
+
+    <div id="operators">
+      @operators("Transformations", "transform", Transformer.pluginsByCategory)
+      @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
+      @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+    </div>
+  </div>
+
+  <div class="wrapperEditor">
+
+    <div class="droppable_outer">
+
+      <div id="droppable">
+        @for(op <- context.task.linkSpec.rule.operator) {
+          @renderRule(
+            rule = op,
+            prefixes = context.project.config.prefixes
+          )
+        }
+      </div>
+
+      <div style="width: 180px; float: left;">
+        Link Limit:
+        <select id="linklimit" onchange="modifyLinkSpec()">
+          <option>unlimited</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+          <option>6</option>
+          <option>7</option>
+          <option>8</option>
+          <option>9</option>
+          <option>10</option>
+        </select>
+        <img src="@Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
+      </div>
+
+      <div style="width: 300px; float: left;">
+        Link Type:
+        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.linkSpec.rule.linkType.uri)" />
+      </div>
+
+    </div>
+
+  </div>
+}
+
+@main(Some(context))(header)(toolbar)(content)

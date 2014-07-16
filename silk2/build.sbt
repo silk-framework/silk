@@ -14,7 +14,13 @@ lazy val learning = project in file("silk-learning") dependsOn core
 
 lazy val workspace = project in file("silk-workspace") dependsOn core dependsOn jena dependsOn learning
 
-lazy val workbench = project in file("silk-workbench") dependsOn workspace aggregate workspace enablePlugins PlayScala
+lazy val workbenchCore = project in file("silk-workbench/silk-workbench-core") enablePlugins PlayScala dependsOn workspace aggregate workspace
+
+lazy val workbenchWorkspace = project in file("silk-workbench/silk-workbench-workspace") enablePlugins PlayScala dependsOn workbenchCore aggregate workbenchCore
+
+lazy val workbenchRules = project in file("silk-workbench/silk-workbench-rules") enablePlugins PlayScala dependsOn workbenchCore aggregate workbenchCore
+
+lazy val workbench = project in file("silk-workbench") enablePlugins PlayScala dependsOn (workbenchWorkspace, workbenchRules) aggregate (workbenchWorkspace, workbenchRules)
 
 lazy val root = project.in(file("."))
                        .aggregate(core, jena, singlemachine, learning, workspace, workbench)

@@ -1,0 +1,33 @@
+@import controllers.rules.routes.Assets
+@import java.net.URLEncoder
+@import models.linking.EvalLink
+@import models.linking.EvalLink._
+
+@(link: EvalLink,
+  rateButtons: Boolean)
+
+@if(rateButtons) {
+  <div>
+    <div id="@id("confirmedLink")" style="@if(link.correct == Correct) {display:block} else {display:none}">
+      <img src="@Assets.at("img/confirm.png")"/>
+      <a onclick="resetLink(@encode(link))"><img src="@Assets.at("img/undecided-disabled.png")"/></a>
+      <a onclick="addNegativeLink(@encode(link))"><img src="@Assets.at("img/decline-disabled.png")"/></a>
+    </div>
+    <div id="@id("declinedLink")" style="@if(link.correct == Incorrect) {display:block} else {display:none}">
+      <a onclick="addPositiveLink(@encode(link))"><img src="@Assets.at("img/confirm-disabled.png")"/></a>
+      <a onclick="resetLink(@encode(link))"><img src="@Assets.at("img/undecided-disabled.png")"/></a>
+      <img src="@Assets.at("img/decline.png")"/>
+    </div>
+    <div id="@id("undecidedLink")" style="@if(link.correct == Unknown) {display:block} else {display:none}">
+      <a onclick="addPositiveLink(@encode(link))"><img src="@Assets.at("img/confirm-disabled.png")"/></a>
+      <img src="@Assets.at("img/undecided.png")"/>
+      <a onclick="addNegativeLink(@encode(link))"><img src="@Assets.at("img/decline-disabled.png")"/></a>
+    </div>
+  </div>
+} else {
+  <a onclick="deleteLink(@encode(link))"><img title="Remove link" alt="Remove link" src="@Assets.at("img/delete.png")"/></a>
+}
+
+@encode(link: EvalLink) = {'@link.hashCode', '@URLEncoder.encode(link.source, "UTF-8")', '@URLEncoder.encode(link.target, "UTF-8")'}
+
+@id(prefix: String = "") = @{ prefix + link.hashCode }

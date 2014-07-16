@@ -1,0 +1,12 @@
+#content {
+  background: #ffffff;
+}
+
+#toolbar {
+  display:none;
+}
+
+#welcome {
+  background: url('/core/logo.png') no-repeat right top;
+  margin-right: 50px;
+}

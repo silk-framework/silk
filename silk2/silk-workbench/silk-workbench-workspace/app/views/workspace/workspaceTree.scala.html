@@ -1,0 +1,76 @@
+@(workspace: de.fuberlin.wiwiss.silk.workspace.Workspace)
+
+@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import de.fuberlin.wiwiss.silk.workspace.Project
+@import plugins.WorkbenchPlugins
+@import plugins.WorkbenchPlugin.TaskActions
+@import controllers.workspace.routes.Assets
+
+<script type="application/javascript" >
+  $(function () {
+    $('#workspace_root').jstree({
+      "state": { "key" : "workspace_state" },
+      "plugins": [ "state" ]
+    });
+  });
+</script>
+
+<div id="workspace_root">
+  <ul  class="filetree">
+    @for(p <- workspace.projects) {
+      @project(p)
+    }
+  </ul>
+</div>
+
+@project(project: Project) = {
+  <li class="jstree-open" >
+    @project.name
+    @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
+    @button("Resources", "Manager resources", "wrench.png", s"editResources('${project.name}')")
+    @for(plugin <- WorkbenchPlugins.all;
+         taskActions <- plugin.tasks;
+         path <- taskActions.createDialog(project.name)) {
+      @button(taskActions.name.takeWhile(_ != ' '), "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
+    }
+    @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
+    @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
+    @button("Remove", "Remove project", "cross.png", s"deleteProject('${project.name}')")
+    <ul>
+      @for(plugin <- WorkbenchPlugins.all;
+           taskActions <- plugin.tasks;
+           t <- taskActions.projectTasks(project)) {
+        @task(project, t, taskActions)
+      }
+    </ul>
+  </li>
+}
+
+@task(project: Project, task: ModuleTask, taskActions: TaskActions[ModuleTask]) = {
+  <li data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
+    @task.name
+    @for(path <- taskActions.editDialog(project.name, task.name)) {
+      @button("Edit", "Edit task", "wrench.png", s"workspaceDialog('$path')")
+    }
+    @for(path <- taskActions.open(project.name, task.name)) {
+      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
+    }
+    @for(path <- taskActions.delete(project.name, task.name)) {
+      @button("Remove", "Remove task", "cross.png", s"deleteTask('${task.name}', '${config.baseUrl}/$path')")
+    }
+    <ul>
+      @for((key, value) <- taskActions.properties(task) if !value.isEmpty) {
+        <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
+          @key: @value
+        </li>
+      }
+    </ul>
+  </li>
+}
+
+@button(title: String, tooltip: String, icon: String, onClick: String) = {
+  <div class="workspace_button" title="@tooltip" onclick="@onClick">
+    <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
+    <span>@title</span>
+  </div>
+}
