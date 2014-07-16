@@ -18,6 +18,10 @@ object Workspace extends Controller {
     Ok(views.html.workspace.workspace())
   }
 
+  def tree = Action {
+    Ok(views.html.workspace.workspaceTree(User().workspace))
+  }
+
   def newProjectDialog() = Action {
     Ok(views.html.workspace.newProjectDialog())
   }

@@ -41,7 +41,7 @@ class DataPlugin extends WorkbenchPlugin {
 
     /** The path to delete the task by sending a DELETE HTTP request. */
     override def delete(project: String, task: String) =
-      Some(s"/api/workspace/$project/source/$task")
+      Some(s"api/workspace/$project/source/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(task: ModuleTask): Seq[(String, String)] = {
@@ -73,7 +73,7 @@ class DataPlugin extends WorkbenchPlugin {
 
     /** The path to delete the task by sending a DELETE HTTP request. */
     override def delete(project: String, task: String) =
-      Some(s"/api/workspace/$project/output/$task")
+      Some(s"api/workspace/$project/output/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(task: ModuleTask): Seq[(String, String)] = {

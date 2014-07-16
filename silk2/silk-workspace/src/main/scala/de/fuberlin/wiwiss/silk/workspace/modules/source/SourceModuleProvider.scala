@@ -15,7 +15,6 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.source
 
 import java.util.logging.{Logger, Level}
-
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
@@ -76,5 +75,8 @@ class SourceModuleProvider extends ModuleProvider[SourceConfig, SourceTask] {
   /**
    * Removes a specific task.
    */
-  override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = ???
+  override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {
+    resources.delete(taskId + ".xml")
+    resources.delete(taskId + "_cache.xml")
+  }
 }

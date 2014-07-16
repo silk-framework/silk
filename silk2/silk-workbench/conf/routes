@@ -7,6 +7,7 @@ GET           /                                                                 
 
 # Workspace
 GET           /workspace                                                                            controllers.tabs.Workspace.index
+GET           /workspace/tree                                                                       controllers.tabs.Workspace.tree
 GET           /workspace/dialogs/newproject                                                         controllers.tabs.Workspace.newProjectDialog()
 GET           /workspace/dialogs/importproject                                                      controllers.tabs.Workspace.importProjectDialog()
 GET           /workspace/dialogs/importlinkspec/:project                                            controllers.tabs.Workspace.importLinkSpecDialog(project: String)

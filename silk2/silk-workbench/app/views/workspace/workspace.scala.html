@@ -1,7 +1,5 @@
 @()
 
-@import de.fuberlin.wiwiss.silk.workspace.User
-
 @header = {
   <link rel="stylesheet" href="@routes.Assets.at("stylesheets/treeview/jquery.treeview.css")" type="text/css" />
   <link rel="stylesheet" href="@routes.Assets.at("libs/jstree/style.min.css")" type="text/css" />
@@ -12,13 +10,18 @@
 }
 
 @toolbar = {
+  <ul>
+    <li>
+      <button onclick="newProject()" >New Project</button>
+      <button onclick="importProject()" >Import Project</button>
+    </li>
+  </ul>
 }
 
 @content = {
-
-  <div id="workspaceTree" />
-
-  @* @workspaceTree(User().workspace) *@
+  <div id="workspace_tree" >
+    <img src="@routes.Assets.at("img/pending.gif")">
+  </div>
 }
 
 @main(None, "workspace")(header)(toolbar)(content)

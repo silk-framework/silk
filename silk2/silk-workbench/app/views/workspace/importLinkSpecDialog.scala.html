@@ -36,7 +36,7 @@ function submit() {
     processData: false,
     success: function(data) {
       $('.dialog').dialog('close');
-      updateWorkspace();
+      reloadWorkspace();
     },
     error: function(request) {
       alert(request.responseText);

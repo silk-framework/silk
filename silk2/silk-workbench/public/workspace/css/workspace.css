@@ -2,10 +2,6 @@
   background: #ffffff;
 }
 
-#toolbar {
-  display:none
-}
-
 .workspace_button {
   display: inline-block;
   vertical-align: middle;

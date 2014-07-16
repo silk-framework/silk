@@ -117,7 +117,7 @@
       data: values,
       success: function(data) {
         closeDialog();
-        updateWorkspace();
+        reloadWorkspace();
       },
       error: function(request) {
         alert(request.responseText);

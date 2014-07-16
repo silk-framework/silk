@@ -6,26 +6,31 @@
 @import plugins.WorkbenchPlugin.TaskActions
 
 <script type="application/javascript" >
-  $(function () { $('#workspace_tree').jstree(); });
+  $(function () {
+    $('#workspace_root').jstree({
+      "state": { "key" : "workspace_state" },
+      "plugins": [ "state" ]
+    });
+  });
 </script>
 
-<div id="workspace_tree">
-<ul  class="filetree">
-  @for(p <- workspace.projects) {
-    @project(p)
-  }
-</ul>
+<div id="workspace_root">
+  <ul  class="filetree">
+    @for(p <- workspace.projects) {
+      @project(p)
+    }
+  </ul>
 </div>
 
 @project(project: Project) = {
-  <li>
+  <li class="jstree-open" >
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manager resources", "wrench.png", s"editResources('${project.name}')")
     @for(plugin <- WorkbenchPlugins.all;
          taskActions <- plugin.tasks;
          path <- taskActions.createDialog(project.name)) {
-      @button(taskActions.name.takeWhile(_ != ' '), "Add " + taskActions.name, "plus.png", s"showDialog('${config.baseUrl}/$path')")
+      @button(taskActions.name.takeWhile(_ != ' '), "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
     }
     @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
     @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
@@ -44,13 +49,13 @@
   <li data-jstree='{"icon":"@routes.Assets.at(taskActions.icon)"}'>
     @task.name
     @for(path <- taskActions.editDialog(project.name, task.name)) {
-      @button("Edit", "Edit task", "wrench.png", s"showDialog('${config.baseUrl}/$path')")
+      @button("Edit", "Edit task", "wrench.png", s"workspaceDialog('$path')")
     }
     @for(path <- taskActions.open(project.name, task.name)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
     }
     @for(path <- taskActions.delete(project.name, task.name)) {
-      @button("Remove", "Remove task", "cross.png", s"deleteTask('${config.baseUrl}/$path')")
+      @button("Remove", "Remove task", "cross.png", s"deleteTask('${task.name}', '${config.baseUrl}/$path')")
     }
     <ul>
       @for((key, value) <- taskActions.properties(task) if !value.isEmpty) {
