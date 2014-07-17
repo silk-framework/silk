@@ -20,12 +20,12 @@
       // Delete the old output in case its name changed
       if(!@output.isEmpty) {
         if(name != '@output') {
-          deleteTask('@config.baseUrl/api/workspace/@project/output/@output');
+          deleteTask('@config.baseUrl/workspace/projects/@project/output/@output');
         }
       }
 
       // Submit output
-      putTask('@config.baseUrl/api/workspace/@project/output/' + name, xml);
+      putTask('@config.baseUrl/workspace/projects/@project/output/' + name, xml);
     }
   </script>
 }

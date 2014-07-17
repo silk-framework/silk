@@ -20,12 +20,12 @@
       // Delete the old source in case its name changed
       if(!@source.isEmpty) {
         if(name != '@source') {
-          deleteTask('@config.baseUrl/api/workspace/@project/source/@source');
+          deleteTask('@config.baseUrl/workspace/projects/@project/source/@source');
         }
       }
 
       // Submit data source
-      putTask('@config.baseUrl/api/workspace/@project/source/' + name, xml);
+      putTask('@config.baseUrl/workspace/projects/@project/source/' + name, xml);
     }
   </script>
 }

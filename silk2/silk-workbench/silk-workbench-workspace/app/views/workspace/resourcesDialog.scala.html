@@ -142,7 +142,7 @@
       $('#icon-pending').show();
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/api/workspace/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
         xhr: function() {
           myXhr = $.ajaxSettings.xhr();
           return myXhr;

@@ -32,11 +32,11 @@ function importLinkSpec(project) {
 }
 
 function exportProject(project) {
-  window.location = baseUrl + '/api/workspace/' + project + '/export'
+  window.location = baseUrl + '/workspace/projects/' + project + '/export'
 }
 
 function deleteProject(project) {
-  deleteTask(project, baseUrl + '/api/workspace/' + project);
+  deleteTask(project, baseUrl + '/workspace/projects/' + project);
 }
 
 function editPrefixes(project) {

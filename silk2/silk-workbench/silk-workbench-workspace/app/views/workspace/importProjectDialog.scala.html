@@ -29,7 +29,7 @@
 
       $.ajax({
         type: 'POST',
-        url: '@config.baseUrl/api/workspace/' + name + '/import',
+        url: '@config.baseUrl/workspace/projects/' + name + '/import',
         xhr: function() {  // custom xhr
             myXhr = $.ajaxSettings.xhr();
             return myXhr;

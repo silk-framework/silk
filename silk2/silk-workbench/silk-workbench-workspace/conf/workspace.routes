@@ -26,33 +26,30 @@ POST          /:project/importExample                          controllers.works
 # Api
 ############################################################################################################################################
 
-# Workspace
-GET           /api/                                            controllers.workspace.WorkspaceApi.workspace
-
 # Projects
-PUT           /api/:project                                    controllers.workspace.WorkspaceApi.newProject(project: String)
-DELETE        /api/:project                                    controllers.workspace.WorkspaceApi.deleteProject(project: String)
-POST          /api/:project/import                             controllers.workspace.WorkspaceApi.importProject(project: String)
-GET           /api/:project/export                             controllers.workspace.WorkspaceApi.exportProject(project: String)
-POST          /api/:project/importLinkSpec                     controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
+PUT           /projects/:project                               controllers.workspace.WorkspaceApi.newProject(project: String)
+DELETE        /projects/:project                               controllers.workspace.WorkspaceApi.deleteProject(project: String)
+POST          /projects/:project/import                        controllers.workspace.WorkspaceApi.importProject(project: String)
+GET           /projects/:project/export                        controllers.workspace.WorkspaceApi.exportProject(project: String)
+POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
 
 # Prefixes
-PUT           /api/:project/prefixes                           controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
+PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 
 # Resources
-GET           /api/:project/resources/:name                    controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
-PUT           /api/:project/resources/:name                    controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
-DELETE        /api/:project/resources/:name                    controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
+GET           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
+PUT           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
+DELETE        /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
 
 # Sources
-GET           /api/:project/source/:source                     controllers.workspace.WorkspaceApi.getSource(project: String, source: String)
-PUT           /api/:project/source/:source                     controllers.workspace.WorkspaceApi.putSource(project: String, source: String)
-DELETE        /api/:project/source/:source                     controllers.workspace.WorkspaceApi.deleteSource(project: String, source: String)
+GET           /projects/:project/source/:source                controllers.workspace.WorkspaceApi.getSource(project: String, source: String)
+PUT           /projects/:project/source/:source                controllers.workspace.WorkspaceApi.putSource(project: String, source: String)
+DELETE        /projects/:project/source/:source                controllers.workspace.WorkspaceApi.deleteSource(project: String, source: String)
 
 # Outputs
-GET           /api/:project/output/:output                     controllers.workspace.WorkspaceApi.getOutput(project: String, output: String)
-PUT           /api/:project/output/:output                     controllers.workspace.WorkspaceApi.putOutput(project: String, output: String)
-DELETE        /api/:project/output/:output                     controllers.workspace.WorkspaceApi.deleteOutput(project: String, output: String)
+GET           /projects/:project/output/:output                controllers.workspace.WorkspaceApi.getOutput(project: String, output: String)
+PUT           /projects/:project/output/:output                controllers.workspace.WorkspaceApi.putOutput(project: String, output: String)
+DELETE        /projects/:project/output/:output                controllers.workspace.WorkspaceApi.deleteOutput(project: String, output: String)
 
 # Assests
-GET          /assets/*file                                     controllers.workspace.Assets.at(path="/public", file)
+GET           /assets/*file                                    controllers.workspace.Assets.at(path="/public", file)

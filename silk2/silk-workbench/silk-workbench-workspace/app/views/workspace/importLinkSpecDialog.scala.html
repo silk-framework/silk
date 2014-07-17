@@ -25,7 +25,7 @@ function submit() {
 
   $.ajax({
     type: 'POST',
-    url: '@config.baseUrl/api/workspace/@project/importLinkSpec',
+    url: '@config.baseUrl/workspace/projects/@project/importLinkSpec',
     xhr: function() {
       myXhr = $.ajaxSettings.xhr();
       return myXhr;
