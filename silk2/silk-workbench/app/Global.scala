@@ -1,12 +1,12 @@
 import java.io.File
 import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
 import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.api.mvc.Results._
 import play.api.{Application, GlobalSettings, Play}
+
 import scala.concurrent.Future
 
 object Global extends GlobalSettings {
@@ -45,7 +45,6 @@ object Global extends GlobalSettings {
 
     //Load plugins
     Plugins.register()
-    JenaPlugins.register()
   }
   
   override def onError(request: RequestHeader, ex: Throwable) = {

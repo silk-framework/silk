@@ -18,14 +18,14 @@ import modules.linking.LinkingTask
 import modules.source.SourceTask
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import java.net.URI
 import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
 
 class LDEWorkspaceTest extends FlatSpec with ShouldMatchers
 {
-    Plugins.register()
+    CorePlugins.register()
 
     // Test LDE backend on a local TripleStore
 

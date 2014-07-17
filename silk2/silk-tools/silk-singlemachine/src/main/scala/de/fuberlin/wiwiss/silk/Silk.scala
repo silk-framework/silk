@@ -14,16 +14,15 @@
 
 package de.fuberlin.wiwiss.silk
 
-import config.LinkingConfig
-import execution.GenerateLinksTask
-import plugins.Plugins
 import java.io.File
-import config.LinkSpecification
-import plugins.jena.JenaPlugins
-import util.StringUtils._
-import util.CollectLogs
 import java.util.logging.{Level, Logger}
+
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, LinkingConfig}
+import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
+import de.fuberlin.wiwiss.silk.util.CollectLogs
+import de.fuberlin.wiwiss.silk.util.StringUtils._
 
 /**
  * Executes the complete Silk workflow.
@@ -41,7 +40,6 @@ object Silk {
 
   //Register all available plugins
   Plugins.register()
-  JenaPlugins.register()
 
   /**
    * Executes Silk.

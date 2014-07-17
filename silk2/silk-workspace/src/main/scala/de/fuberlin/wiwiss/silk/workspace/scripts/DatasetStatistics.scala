@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
@@ -13,7 +13,7 @@ import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
  */
 object DatasetStatistics extends App {
   implicit val log = Logger.getLogger(getClass.getName)
-  Plugins.register()
+  CorePlugins.register()
   JenaPlugins.register()
 
   val datasets = Dataset.fromWorkspace

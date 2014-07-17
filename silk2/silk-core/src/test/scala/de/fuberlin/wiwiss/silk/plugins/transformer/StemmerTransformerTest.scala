@@ -16,14 +16,14 @@ package de.fuberlin.wiwiss.silk.plugins.transformer
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.StemmerTransformer
 
 @RunWith(classOf[JUnitRunner])
 class StemmerTransformerTest extends FlatSpec with ShouldMatchers {
-  Plugins.register()
+  CorePlugins.register()
 
   val transformer = new StemmerTransformer()
 

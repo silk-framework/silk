@@ -2,7 +2,7 @@ package controllers.core
 
 import play.api.mvc.{Action, Controller}
 import config.WorkbenchConfig
-import play.api.templates.Html
+import play.twirl.api.Html
 
 object Branding extends Controller {
 

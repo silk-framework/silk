@@ -14,9 +14,6 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
-import java.io.File
-import java.util.logging.Logger
-
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
@@ -39,33 +36,16 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransfor
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import de.fuberlin.wiwiss.silk.plugins.writer._
-import de.fuberlin.wiwiss.silk.util.Timer
 
 /**
- * Registers all default plugins as well as external plugins found in the provided directory.
+ * Registers all default plugins.
  */
-object Plugins {
-  /** Indicates if register() has already been called */
-  private var registered = false
-
-  private implicit val logger = Logger.getLogger(Plugins.getClass.getName)
-
-  /**
-   * Registers all default plugins as well as external plugins found in the provided directory.
-   */
-  def register(pluginsDir: File = new File(System.getProperty("user.home") + "/.silk/plugins/")): Unit = synchronized {
-    if(!registered) {
-      registerDefaultPlugins()
-      registerExternalPlugins(pluginsDir)
-      registered = true
-    }
-  }
-
+object CorePlugins {
   /**
    * Registers all default plugins.
    * For performance reasons, this is done manually instead of using automatic classpath lookup.
    */
-  private def registerDefaultPlugins() {
+  def register() {
     DataSource.register(classOf[SparqlDataSource])
     DataSource.register(classOf[CsvDataSource])
     //DataSource.register(classOf[CacheDataSource])
@@ -149,22 +129,5 @@ object Plugins {
 
     Formatter.register(classOf[NTriplesFormatter])
     Formatter.register(classOf[AlignmentFormatter])
-  }
-
-  /**
-   * Registers external plugins.
-   */
-  private def registerExternalPlugins(pluginsDir: File) {
-    Timer("Registering external plugins") {
-      if(pluginsDir.isDirectory) {
-        DataSource.registerJars(pluginsDir)
-        Transformer.registerJars(pluginsDir)
-        DistanceMeasure.registerJars(pluginsDir)
-        Aggregator.registerJars(pluginsDir)
-      }
-      else {
-       logger.info("No plugins loaded because the plugin directory " + pluginsDir + " has not been found.")
-      }
-    }
   }
 }
