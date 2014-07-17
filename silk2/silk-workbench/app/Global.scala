@@ -6,12 +6,34 @@ import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.api.mvc.Results._
 import play.api.{Application, GlobalSettings, Play}
+import plugins.WorkbenchPlugins
 
 import scala.concurrent.Future
 
 object Global extends GlobalSettings {
 
   override def beforeStart(app: Application) {
+    // Configure logging
+    configureLogging(app)
+
+    // Initialize user manager
+    val user = new FileUser
+    User.userManager = () => user
+
+    // Load Silk plugins
+    Plugins.register()
+
+    // Load Workbench plugins
+    WorkbenchPlugins.register(DataPlugin())
+    WorkbenchPlugins.register(TransformPlugin())
+    WorkbenchPlugins.register(LinkingPlugin())
+  }
+  
+  override def onError(request: RequestHeader, ex: Throwable) = {
+    Future.successful(InternalServerError(ex.getMessage))
+  }
+
+  private def configureLogging(app: Application) {
     // If the ELDS_HOME variable is set, Silk is run inside the eccenca Linked Data Suite
     val elds_home = System.getenv("ELDS_HOME")
 
@@ -38,16 +60,5 @@ object Global extends GlobalSettings {
 
     val consoleHandler = new ConsoleHandler()
     java.util.logging.Logger.getLogger("").addHandler(consoleHandler)
-
-    //Initialize user manager
-    val user = new FileUser
-    User.userManager = () => user
-
-    //Load plugins
-    Plugins.register()
-  }
-  
-  override def onError(request: RequestHeader, ex: Throwable) = {
-    Future.successful(InternalServerError(ex.getMessage))
   }
 }

@@ -1,8 +1,7 @@
-package plugins
-
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
+import plugins.{Context, WorkbenchPlugin}
 
 /**
  * The linking Workbench plugin.

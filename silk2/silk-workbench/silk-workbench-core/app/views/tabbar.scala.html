@@ -1,7 +1,6 @@
 @import plugins.Context
 @import plugins.WorkbenchPlugins
 @import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-@import play.api.mvc.Request
 
 @(context: Option[Context[ModuleTask]], selectedTab: String)
 
@@ -17,7 +16,7 @@
 
 @pluginTabs = {
   @for(cont <- context.toSeq;
-       plugin <- WorkbenchPlugins.all;
+       plugin <- WorkbenchPlugins();
        tab <- plugin.tabs(cont)) {
     <div class="tab @if(cont.path.contains(tab.path)) {selected}" ><a href="@config.baseUrl/@tab.path">@tab.title</a></div>
   }

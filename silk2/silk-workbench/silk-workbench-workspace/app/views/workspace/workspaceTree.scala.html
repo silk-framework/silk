@@ -1,8 +1,8 @@
 @(workspace: de.fuberlin.wiwiss.silk.workspace.Workspace)
 
+@import plugins.WorkbenchPlugins
 @import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 @import de.fuberlin.wiwiss.silk.workspace.Project
-@import plugins.WorkbenchPlugins
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workspace.routes.Assets
 
@@ -28,7 +28,7 @@
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manager resources", "wrench.png", s"editResources('${project.name}')")
-    @for(plugin <- WorkbenchPlugins.all;
+    @for(plugin <- WorkbenchPlugins();
          taskActions <- plugin.tasks;
          path <- taskActions.createDialog(project.name)) {
       @button(taskActions.name.takeWhile(_ != ' '), "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
@@ -37,7 +37,7 @@
     @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
     @button("Remove", "Remove project", "cross.png", s"deleteProject('${project.name}')")
     <ul>
-      @for(plugin <- WorkbenchPlugins.all;
+      @for(plugin <- WorkbenchPlugins();
            taskActions <- plugin.tasks;
            t <- taskActions.projectTasks(project)) {
         @task(project, t, taskActions)

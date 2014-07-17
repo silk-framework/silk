@@ -4,5 +4,14 @@ package plugins
  * Holds all available Workbench plugins.
  */
 object WorkbenchPlugins {
-  val all: Seq[WorkbenchPlugin] = Seq(new DataPlugin(), new TransformPlugin(), new LinkingPlugin())
+
+  private var plugins = Seq[WorkbenchPlugin]()
+
+  def register(plugin: WorkbenchPlugin) {
+    plugins = plugins :+ plugin
+  }
+
+  def apply() = {
+    plugins
+  }
 }

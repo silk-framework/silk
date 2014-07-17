@@ -1,8 +1,7 @@
-package plugins
-
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
+import plugins.{Context, WorkbenchPlugin}
 
 case class TransformPlugin() extends WorkbenchPlugin {
 

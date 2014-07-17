@@ -1,13 +1,15 @@
-package plugins
-
 import de.fuberlin.wiwiss.silk.datasource.DataSource
 import de.fuberlin.wiwiss.silk.output.DataWriter
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
+import plugins.{Context, WorkbenchPlugin}
 
-class DataPlugin extends WorkbenchPlugin {
+/**
+ * The data plugin adds data sources and outputs.
+ */
+case class DataPlugin() extends WorkbenchPlugin {
   /**
    * The task types to be added to the Workspace.
    */
