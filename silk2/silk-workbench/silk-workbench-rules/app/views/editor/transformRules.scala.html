@@ -1,6 +1,10 @@
+@import de.fuberlin.wiwiss.silk.entity.ForwardOperator
+
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 @import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+@import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
+@import de.fuberlin.wiwiss.silk.entity.Path
 @import controllers.rules.routes.Assets
 
 @(context: Context[TransformTask])
@@ -52,17 +56,37 @@
     <div class="ruleTitle">
       Transformation
       <img class="button-delete" title="Delete" onclick="deleteRule($(this).parent().parent())" src="@Assets.at("img/delete.png")" style="float: right; cursor: pointer" />
-      <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().parent().find('input').val())" src="@Assets.at("img/editor/wrench.png")" style="float:right; cursor: pointer" />
+      <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().parent().find('.name').val())" src="@Assets.at("img/editor/wrench.png")" style="float:right; cursor: pointer" />
     </div>
     <div class="ruleContents">
       <table>
         <tr>
           <th>Name</th>
+          <th>Source Path</th>
           <th>Target Property</th>
         </tr>
         <tr>
-          <td><input value="@rule.name" /></td>
-          <td><div class="transformProperty" title="@rule.targetProperty">@rule.targetProperty</div></td>
+          <td><input class="name" value="@rule.name" /></td>
+          <td>
+            @rule.operator match {
+              case None => {
+                @* No input path defined so far. *@
+                <input class="source" value="" />
+              }
+              case Some(PathInput(id, Path(v, ForwardOperator(prop) :: Nil))) => {
+                @* An input with a single property defined -> Use simplified syntax. *@
+                <input class="source" value="@prop.toTurtle(prefixes())" />
+              }
+              case Some(PathInput(id, path)) => {
+                @* An input with a property path defined *@
+                <input class="source" value="@path.serialize(prefixes())" />
+              }
+              case _ => {
+                (complex)
+              }
+            }
+          </td>
+          <td><input class="target" value="@rule.targetProperty.toTurtle(prefixes())" /></td>
         </tr>
       </table>
     </div>
@@ -71,5 +95,7 @@
     </script>
   </div>
 }
+
+@prefixes() = @{ context.project.config.prefixes }
 
 @main(Some(context))(header)(toolbar)(content)

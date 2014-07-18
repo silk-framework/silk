@@ -1,11 +1,11 @@
 #ruleContainer {
-  width: 470px;
+  width: 490px;
   background: url("../../img/editor/grid.png") repeat scroll 0 0;
   border:1px dashed #d9d9d9;
 }
 
 .transformRule {
-  width: 450px;
+  width: 470px;
   margin: 10px;
   background-color: #ffffff;
   border-radius: 5px;
@@ -42,6 +42,12 @@
   overflow:hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ui-autocomplete {
+  max-height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 th,td

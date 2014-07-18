@@ -39,15 +39,21 @@ class Prefixes(val prefixMap: Map[String, String]) {
    * @see shorten
    */
   def resolve(name: String) =
-    if (name.startsWith("<") && name.endsWith(">")) {
+    if(name.trim.isEmpty) {
+      throw new ValidationException("Value cannot be empty.")
+    } else if (name.startsWith("<") && name.endsWith(">")) {
       name.substring(1, name.length - 1)
     } else {
       name.split(":", 2) match {
         case Array(prefix, suffix) => prefixMap.get(prefix) match {
           case Some(resolvedPrefix) => resolvedPrefix + suffix
-          case None => throw new ValidationException("Unknown prefix: " + prefix)
+          case None => throw new ValidationException(
+            s"Unknown prefix: '$prefix'. Please add the missing prefix to the project " +
+             "or use a full URI, e.g., <http:/example.org/name>.")
         }
-        case _ => throw new ValidationException("No prefix found in " + name)
+        case _ => throw new ValidationException(
+          s"Expected a prefixed name of the form 'prefix:name', but got '$name'. " +
+           "If you want to write a full URI, use angle brackets, e.g., <http:/example.org/name>.")
     }
   }
 

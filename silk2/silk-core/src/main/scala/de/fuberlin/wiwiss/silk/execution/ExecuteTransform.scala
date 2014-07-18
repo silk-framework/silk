@@ -33,7 +33,7 @@ class ExecuteTransform(source: Source,
           rule <- rules
           value <- rule(entity)
           output <- outputs } {
-      output.writeLiteralStatement(entity.uri, rule.targetProperty, value)
+      output.writeLiteralStatement(entity.uri, rule.targetProperty.uri, value)
     }
 
     // Close outputs

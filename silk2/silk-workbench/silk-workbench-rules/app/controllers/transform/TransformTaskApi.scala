@@ -1,16 +1,17 @@
 package controllers.transform
 
+import java.util.logging.{Level, Logger}
+
 import de.fuberlin.wiwiss.silk.config.Dataset
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
-import models.transform.CurrentExecuteTransformTask
-import play.api.mvc.{Action, Controller}
-import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
-import java.util.logging.{Logger, Level}
-import play.api.libs.json.{JsArray, JsString, JsObject}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.util.{ValidationException, CollectLogs}
+import de.fuberlin.wiwiss.silk.util.{CollectLogs, ValidationException}
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
+import models.transform.CurrentExecuteTransformTask
+import play.api.libs.json.{JsArray, JsObject, JsString}
+import play.api.mvc.{Action, Controller}
 
 object TransformTaskApi extends Controller {
 
@@ -126,8 +127,8 @@ object TransformTaskApi extends Controller {
 
     JsObject(
       ("error", JsArray(errors.map(errorToJsExp))) ::
-          ("warning", JsArray(warnings.map(JsString(_)))) ::
-          ("info", JsArray(infos.map(JsString(_)))) :: Nil
+          ("warning", JsArray(warnings.map(JsString))) ::
+          ("info", JsArray(infos.map(JsString))) :: Nil
     )
   }
 
@@ -164,4 +165,44 @@ object TransformTaskApi extends Controller {
     Ok
   }
 
+  /**
+   * Given a search term, returns all possible completions for source property paths.
+   */
+  def sourcePathCompletions(projectName: String, taskName: String, term: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+    val knownPaths = task.cache.value.paths
+
+    // Add known paths, use short notation for paths that only consist of a single property
+    val pathCompletions =
+      for(path <- knownPaths) yield {
+        path.operators match {
+          case ForwardOperator(p) :: Nil => p.toTurtle(project.config.prefixes)
+          case _ => path.serialize(project.config.prefixes)
+        }
+      }
+
+    // Add known prefixes last
+    val allCompletions = pathCompletions ++  project.config.prefixes.prefixMap.keys.map(_ + ":")
+
+    // Filter all completions that match the search term
+    val matches = allCompletions.filter(_.contains(term)).take(20)
+
+    // Convert to JSON and return
+    Ok(JsArray(matches.map(JsString)))
+  }
+
+  def targetPathCompletions(projectName: String, taskName: String, term: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.transformModule.task(taskName)
+
+    // Collect known prefixes
+    val prefixCompletions = project.config.prefixes.prefixMap.keys
+
+    // Filter all completions that match the search term
+    val matches = prefixCompletions.filter(_.contains(term)).toSeq.sorted.take(20).map(_ + ":")
+
+    // Convert to JSON and return
+    Ok(JsArray(matches.map(JsString)))
+  }
 }

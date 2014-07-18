@@ -4,14 +4,14 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
-import de.fuberlin.wiwiss.silk.util.{DPair, Identifier, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.util.{Uri, DPair, Identifier, ValidatingXMLReader}
 
 import scala.xml.Node
 
 /**
  * A transform rule.
  */
-case class TransformRule(name: Identifier = "transformation", operator: Option[Input] = None, targetProperty: String = "http://silk.wbsg.de/transformed") {
+case class TransformRule(name: Identifier = "transformation", operator: Option[Input] = None, targetProperty: Uri = "http://silk.wbsg.de/transformed") {
   /**
    * Generates the transformed values.
    *
@@ -45,7 +45,7 @@ case class TransformRule(name: Identifier = "transformation", operator: Option[I
    * Serializes this transform rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <TransformRule name={name} targetProperty={targetProperty}>
+    <TransformRule name={name} targetProperty={targetProperty.toTurtle}>
       {operator.toList.map(_.toXML)}
     </TransformRule>
   }
@@ -71,7 +71,7 @@ object TransformRule {
     TransformRule(
       name = (node \ "@name").text,
       operator = Input.fromXML(node.child, resourceLoader).headOption,
-      targetProperty = (node \ "@targetProperty").text
+      targetProperty = prefixes.resolve((node \ "@targetProperty").text)
     )
   }
 }
