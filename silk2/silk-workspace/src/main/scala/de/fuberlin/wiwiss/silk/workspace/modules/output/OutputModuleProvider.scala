@@ -24,23 +24,16 @@ import de.fuberlin.wiwiss.silk.util.XMLUtils._
 /**
  * The output module which encapsulates all data sinks.
  */
-class OutputModuleProvider extends ModuleProvider[OutputConfig, OutputTask] {
-  /**
-   * Loads the configuration for this module.
-   */
-  override def loadConfig(resources: ResourceLoader) = OutputConfig()
+class OutputModuleProvider extends ModuleProvider[OutputTask] {
 
-  /**
-   * Writes updated configuration for this module.
-   */
-  override def writeConfig(config: OutputConfig, resources: ResourceManager): Unit = { }
+  override def prefix = "output"
 
   /**
    * Loads all tasks of this module.
    */
   override def loadTasks(resources: ResourceLoader, project: Project): Seq[OutputTask] = {
     for(name <- resources.list) yield {
-      val output = Output.load(project.resources)(resources.get(name + ".xml").load)
+      val output = Output.load(project.resources)(resources.get(name).load)
       OutputTask(output)
     }
   }

@@ -92,9 +92,9 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
         //TODO  Make project modules (e.g. the linking module) register a callback
         if(updated && !isInterrupted) {
           task match {
-            case transformTask: TransformTask => project.transformModule.update(transformTask)
-            case linkingTask: LinkingTask => project.linkingModule.update(linkingTask)
-            case sourceTask: SourceTask => project.sourceModule.update(sourceTask)
+            case transformTask: TransformTask => project.updateTask(transformTask)
+            case linkingTask: LinkingTask => project.updateTask(linkingTask)
+            case sourceTask: SourceTask => project.updateTask(sourceTask)
           }
         }
       } catch {

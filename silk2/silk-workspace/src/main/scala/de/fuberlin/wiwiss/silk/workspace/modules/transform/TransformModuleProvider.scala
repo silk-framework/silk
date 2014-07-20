@@ -16,19 +16,11 @@ import scala.xml.XML
 /**
  * The transform module, which encapsulates all transform tasks.
  */
-class TransformModuleProvider extends ModuleProvider[TransformConfig, TransformTask] {
+class TransformModuleProvider extends ModuleProvider[TransformTask] {
 
   private val logger = Logger.getLogger(classOf[TransformModuleProvider].getName)
 
-  /**
-   * Loads the configuration for this module.
-   */
-  override def loadConfig(resources: ResourceLoader) = TransformConfig()
-
-  /**
-   * Writes updated configuration for this module.
-   */
-  override def writeConfig(config: TransformConfig, resources: ResourceManager): Unit = { }
+  override def prefix = "transform"
 
   /**
    * Writes an updated task.

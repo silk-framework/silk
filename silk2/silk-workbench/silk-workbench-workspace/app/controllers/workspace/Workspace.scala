@@ -1,6 +1,7 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.{PrefixRegistry, Constants, User}
@@ -52,7 +53,7 @@ object Workspace extends Controller {
 
   def restrictionDialog(projectName: String, sourceName: String, sourceOrTarget: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
-    val pathCache = project.sourceModule.task(sourceName).cache
+    val pathCache = project.task[SourceTask](sourceName).cache
     implicit val prefixes = project.config.prefixes
 
     val variable = sourceOrTarget match {

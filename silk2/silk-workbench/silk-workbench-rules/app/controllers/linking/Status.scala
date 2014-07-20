@@ -1,6 +1,7 @@
 package controllers.linking
 
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import controllers.core.{Widgets, Stream}
@@ -16,7 +17,7 @@ object Status extends Controller {
 
   def cacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     val stream = Stream.taskStatus(task.cache)
 
@@ -25,10 +26,10 @@ object Status extends Controller {
   
   def sourceTypesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val linkingTask = project.linkingModule.task(taskName)
+    val linkingTask = project.task[LinkingTask](taskName)
 
     val sourceTaskName = linkingTask.linkSpec.datasets.source.sourceId
-    val sourceTask = project.sourceModule.task(sourceTaskName)
+    val sourceTask = project.task[SourceTask](sourceTaskName)
 
     val stream = Stream.taskStatus(sourceTask.cache)
 
@@ -37,10 +38,10 @@ object Status extends Controller {
 
   def targetTypesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val linkingTask = project.linkingModule.task(taskName)
+    val linkingTask = project.task[LinkingTask](taskName)
 
     val sourceTaskName = linkingTask.linkSpec.datasets.target.sourceId
-    val sourceTask = project.sourceModule.task(sourceTaskName)
+    val sourceTask = project.task[SourceTask](sourceTaskName)
 
     val stream = Stream.taskStatus(sourceTask.cache)
 
@@ -49,7 +50,7 @@ object Status extends Controller {
 
   def pathCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     val stream = Stream.taskStatus(task.cache.pathCache)
 
@@ -58,7 +59,7 @@ object Status extends Controller {
 
   def referenceEntitiesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     val stream = Stream.taskStatus(task.cache.referenceEntitiesCache)
 

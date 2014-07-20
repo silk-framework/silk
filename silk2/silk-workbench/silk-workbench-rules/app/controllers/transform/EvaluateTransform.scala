@@ -1,5 +1,6 @@
 package controllers.transform
 
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.{Controller, Action}
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -16,12 +17,12 @@ object EvaluateTransform extends Controller {
 
   def generatedEntities(projectName: String, taskName: String) = Action.async {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
 
     // Create execution task
     val evaluateTransform =
       new EvaluateTransformTask(
-        source = project.sourceModule.task(task.dataset.sourceId).source,
+        source = project.task[SourceTask](task.dataset.sourceId).source,
         dataset = task.dataset,
         rules = task.rules
       )

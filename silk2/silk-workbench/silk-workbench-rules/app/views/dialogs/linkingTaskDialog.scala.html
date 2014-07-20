@@ -1,11 +1,13 @@
-@(project: String, task: String)
-
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 @import de.fuberlin.wiwiss.silk.workspace.User
 @import controllers.rules.routes.Assets
 
-@sources = @{ User().workspace.project(project).sourceModule.tasks.toSeq }
+@(project: String, task: String)
 
-@linkingTask = @{ User().workspace.project(project).linkingModule.tasks.find(_.name == task) }
+@sources = @{ User().workspace.project(project).tasks[SourceTask].toSeq }
+
+@linkingTask = @{ User().workspace.project(project).tasks[LinkingTask].find(_.name == task) }
 
 @datasets = @{ linkingTask.map(_.linkSpec.datasets) }
 

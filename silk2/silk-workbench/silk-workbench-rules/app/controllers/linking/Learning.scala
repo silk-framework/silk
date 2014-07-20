@@ -32,7 +32,7 @@ object Learning extends Controller {
 
   def rule(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val referenceLinks = task.referenceLinks
     val population = CurrentPopulation()
 
@@ -46,7 +46,7 @@ object Learning extends Controller {
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     def refLinks = task.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
@@ -83,7 +83,7 @@ object Learning extends Controller {
 
   def populationView(projectName: String, taskName: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     val pageSize = 20
     val individuals = CurrentPopulation().individuals.toSeq

@@ -27,19 +27,11 @@ import scala.xml.XML
 /**
  * The source module which encapsulates all data sources.
  */
-class SourceModuleProvider extends ModuleProvider[SourceConfig, SourceTask] {
+class SourceModuleProvider extends ModuleProvider[SourceTask] {
 
   private val logger = Logger.getLogger(classOf[SourceModuleProvider].getName)
 
-  /**
-   * Loads the configuration for this module.
-   */
-  override def loadConfig(resources: ResourceLoader) = SourceConfig()
-
-  /**
-   * Writes updated configuration for this module.
-   */
-  override def writeConfig(config: SourceConfig, resources: ResourceManager): Unit = {}
+  override def prefix = "source"
 
   /**
    * Loads all tasks of this module.

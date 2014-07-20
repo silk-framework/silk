@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModuleTask, ModuleConfig, Module, ModuleProvider}
+import de.fuberlin.wiwiss.silk.workspace.modules.{Module, ModuleProvider, ModuleTask}
 import scala.reflect.ClassTag
 import scala.xml.XML
 
@@ -36,7 +36,17 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
 
   val resources = resourceManager.child("resources")
 
+  @volatile
   private var cachedConfig: Option[ProjectConfig] = None
+
+  @volatile
+  private var modules = Seq[Module[_ <: ModuleTask]]()
+
+  // Register all default modules
+  registerModule(new SourceModuleProvider())
+  registerModule(new LinkingModuleProvider())
+  registerModule(new TransformModuleProvider())
+  registerModule(new OutputModuleProvider())
 
   /**
    * Reads the project configuration.
@@ -69,48 +79,61 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   }
 
   /**
-   * The source module, which encapsulates all data sources.
+   * Retrieves al tasks of a specific type.
    */
-  val sourceModule = createModule("source", new SourceModuleProvider())
-
-  /**
-   * The linking module, which encapsulates all linking tasks.
-   */
-  val linkingModule = createModule("linking", new LinkingModuleProvider())
-
-  /**
-   * The transform module, which encapsulates all linking tasks.
-   */
-  val transformModule = createModule("transform", new TransformModuleProvider())
-
-  /**
-   * The output module, which encapsulates all output tasks.
-   */
-  val outputModule = createModule("output", new OutputModuleProvider())
-
-  private val modules: Seq[Module[_ <: ModuleConfig, _ <: ModuleTask]] = sourceModule :: linkingModule :: transformModule :: outputModule :: Nil
-
   def tasks[T <: ModuleTask : ClassTag]: Seq[T] = {
-    modules.flatMap(_.tasks).collect{ case t: T => t }
+    module[T].tasks
   }
 
   /**
    * Retrieves a task by name.
-   * @param taskName The name of the task.
+   *
+   * @param taskName The name of the task
    * @tparam T The task type
    */
   def task[T <: ModuleTask : ClassTag](taskName: Identifier): T = {
-    val foundTask = modules.flatMap(_.taskOption(taskName)).collect{ case t: T => t }
-    if(foundTask.isEmpty)
-      throw new NoSuchElementException(s"No task called '$name' found in project $name")
-    else
-      foundTask.head
+    module[T].task(taskName)
   }
 
   /**
-   * Creates a new module from a module provider.
+   * Updates a task of a specific type.
+   *
+   * @param task The updated task
+   * @tparam T The task type
    */
-  private def createModule[C <: ModuleConfig, T <: ModuleTask](name: String, provider: ModuleProvider[C,T]) = {
-    new Module(provider, resourceManager.child(name), this)
+  def updateTask[T <: ModuleTask : ClassTag](task: T): Unit = {
+    module[T].update(task)
+  }
+
+  /**
+   * Removes a task.
+   *
+   * @param taskName The name of the task
+   * @tparam T The task type
+   */
+  def removeTask[T <: ModuleTask : ClassTag](taskName: Identifier): Unit = {
+    module[T].remove(taskName)
+  }
+
+  /**
+   * Retrieves a module for a specific task type.
+   *
+   * @tparam T The task type
+   * @throws NoSuchElementException If no module for the given task type has been registered
+   */
+  private def module[T <: ModuleTask : ClassTag]: Module[T] = {
+    modules.find(_.hasTaskType[T]) match {
+      case Some(m) => m.asInstanceOf[Module[T]]
+      case None =>
+        val className = implicitly[ClassTag[T]].runtimeClass.getName
+        throw new NoSuchElementException(s"No module for task type $className has been registered.")
+    }
+  }
+
+  /**
+   * Registers a new module from a module provider.
+   */
+  private def registerModule[T <: ModuleTask : ClassTag](provider: ModuleProvider[T]) = {
+    modules = modules :+ new Module(provider, resourceManager.child(provider.prefix), this)
   }
 }

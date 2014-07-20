@@ -1,27 +1,19 @@
 package controllers.workspace
 
-import play.api.mvc.Action
-import play.api.libs.json.{JsString, JsObject, JsArray, JsValue}
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
-import de.fuberlin.wiwiss.silk.output.DataWriter
-import play.api.mvc.Controller
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
-import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
-import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.workspace.Constants
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.linkagerule.{LinkFilter, LinkageRule, TransformRule}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
-import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
+import java.io.{ByteArrayOutputStream, FileInputStream}
+
 import de.fuberlin.wiwiss.silk.config._
-import java.io.{FileInputStream, ByteArrayOutputStream}
+import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
+import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
+import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import play.api.libs.iteratee.Enumerator
+import play.api.mvc.{Action, Controller}
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 
 object WorkspaceApi extends Controller {
 
@@ -110,7 +102,7 @@ object WorkspaceApi extends Controller {
 
   def getSource(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.sourceModule.task(sourceName)
+    val task = project.task[SourceTask](sourceName)
     val sourceXml = task.source.toXML
 
     Ok(sourceXml)
@@ -122,7 +114,7 @@ object WorkspaceApi extends Controller {
       case Some(xml) =>
         try {
           val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resources))
-          project.sourceModule.update(sourceTask)
+          project.updateTask(sourceTask)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
@@ -132,13 +124,13 @@ object WorkspaceApi extends Controller {
   }}
 
   def deleteSource(project: String, source: String) = Action {
-    User().workspace.project(project).sourceModule.remove(source)
+    User().workspace.project(project).removeTask[SourceTask](source)
     Ok
   }
 
   def getOutput(projectName: String, outputName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.outputModule.task(outputName)
+    val task = project.task[OutputTask](outputName)
     val outputXml = task.output.toXML
 
     Ok(outputXml)
@@ -150,7 +142,7 @@ object WorkspaceApi extends Controller {
       case Some(xml) => {
         try {
           val outputTask = OutputTask(Output.fromXML(xml.head, project.resources))
-          project.outputModule.update(outputTask)
+          project.updateTask(outputTask)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
@@ -161,7 +153,7 @@ object WorkspaceApi extends Controller {
   }}
 
   def deleteOutput(project: String, output: String) = Action {
-    User().workspace.project(project).outputModule.remove(output)
+    User().workspace.project(project).removeTask[OutputTask](output)
     Ok
   }
 }

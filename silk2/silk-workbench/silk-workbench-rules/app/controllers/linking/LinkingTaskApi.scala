@@ -1,8 +1,10 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.execution.{GenerateLinksTask}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningTask, LearningInput}
+import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import models.{CurrentTaskStatusListener, CurrentTaskValueListener}
 import models.linking._
 import play.api.mvc.{Action, Controller}
@@ -35,12 +37,12 @@ object LinkingTaskApi extends Controller {
     val datasets = DPair(Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
       Dataset(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
 
-    proj.linkingModule.tasks.find(_.name == task) match {
+    proj.tasks[LinkingTask].find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
         val updatedLinkSpec = oldTask.linkSpec.copy(datasets = datasets)
         val updatedLinkingTask = oldTask.updateLinkSpec(updatedLinkSpec, proj)
-        proj.linkingModule.update(updatedLinkingTask)
+        proj.updateTask(updatedLinkingTask)
       }
       //Create new task
       case None => {
@@ -53,21 +55,21 @@ object LinkingTaskApi extends Controller {
           )
 
         val linkingTask = LinkingTask(proj, linkSpec, ReferenceLinks())
-        proj.linkingModule.update(linkingTask)
+        proj.updateTask(linkingTask)
       }
     }
     Ok
   }}
 
   def deleteLinkingTask(project: String, task: String) = Action {
-    User().workspace.project(project).linkingModule.remove(task)
+    User().workspace.project(project).removeTask(task)
     Ok
   }
 
 
   def getRule(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     implicit val prefixes = project.config.prefixes
     val ruleXml = task.linkSpec.rule.toXML
 
@@ -76,7 +78,7 @@ object LinkingTaskApi extends Controller {
 
   def putRule(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     implicit val prefixes = project.config.prefixes
 
     request.body.asXml match {
@@ -89,7 +91,7 @@ object LinkingTaskApi extends Controller {
             //Update linking task
             val updatedLinkSpec = task.linkSpec.copy(rule = updatedRule)
             val updatedTask = task.updateLinkSpec(updatedLinkSpec, project)
-            project.linkingModule.update(updatedTask)
+            project.updateTask(updatedTask)
           }
           // Return warnings
           Ok(statusJson(warnings = warnings.map(_.getMessage)))
@@ -108,7 +110,7 @@ object LinkingTaskApi extends Controller {
 
   def getLinkSpec(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     implicit val prefixes = project.config.prefixes
     val linkSpecXml = task.linkSpec.toXML
 
@@ -117,7 +119,7 @@ object LinkingTaskApi extends Controller {
 
   def putLinkSpec(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val prefixes = project.config.prefixes
 
     request.body.asXml match {
@@ -130,7 +132,7 @@ object LinkingTaskApi extends Controller {
 
             //Update linking task
             val updatedTask = task.updateLinkSpec(newLinkSpec, project)
-            project.linkingModule.update(updatedTask)
+            project.updateTask(updatedTask)
           }
 
           Ok(statusJson(warnings = warnings.map(_.getMessage)))
@@ -162,7 +164,7 @@ object LinkingTaskApi extends Controller {
 
   def getReferenceLinks(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val referenceLinksXml = task.referenceLinks.toXML
 
     Ok(referenceLinksXml)
@@ -170,29 +172,29 @@ object LinkingTaskApi extends Controller {
 
   def putReferenceLinks(projectName: String, taskName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
       val referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.file))
-      project.linkingModule.update(task.updateReferenceLinks(referenceLinks, project))
+      project.updateTask(task.updateReferenceLinks(referenceLinks, project))
     }
     Ok
   }}
   
   def putReferenceLink(projectName: String, taskName: String, linkType: String, source: String, target: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val link = new Link(source, target)
     
     linkType match {
       case "positive" => {
         val updatedTask = task.updateReferenceLinks(task.referenceLinks.withPositive(link), project)
-        project.linkingModule.update(updatedTask)
+        project.updateTask(updatedTask)
       }
       case "negative" => {
         val updatedTask = task.updateReferenceLinks(task.referenceLinks.withNegative(link), project)
-        project.linkingModule.update(updatedTask)
+        project.updateTask(updatedTask)
       }
     }
     
@@ -201,37 +203,37 @@ object LinkingTaskApi extends Controller {
   
   def deleteReferenceLink(projectName: String, taskName: String, source: String, target: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val link = new Link(source, target)
     
     val updatedTask = task.updateReferenceLinks(task.referenceLinks.without(link), project)
-    project.linkingModule.update(updatedTask)
+    project.updateTask(updatedTask)
     
     Ok
   }
 
   def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     task.cache.reload(project, task)
     Ok
   }
 
   def startGenerateLinksTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     //Retrieve parameters
     val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val outputNames = params.get("outputs[]").toSeq.flatten
-    val outputs = outputNames.map(project.outputModule.task(_).output)
+    val outputs = outputNames.map(name => project.task[OutputTask](name).output)
 
     /** We use a custom runtime config */
     val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
 
     val generateLinksTask =
       new GenerateLinksTask(
-        sources = project.sourceModule.tasks.map(_.source),
+        sources = project.tasks[SourceTask].map(_.source),
         linkSpec = task.linkSpec,
         outputs = outputs,
         runtimeConfig = runtimeConfig
@@ -250,16 +252,16 @@ object LinkingTaskApi extends Controller {
 
   def writeReferenceLinks(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val params = request.body.asFormUrlEncoded.get
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.outputModule.task(posOutputName.head).output
+      val posOutput = project.task[OutputTask](posOutputName.head).output
       posOutput.writeAll(task.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.outputModule.task(negOutputName.head).output
+      val negOutput = project.task[OutputTask](negOutputName.head).output
       negOutput.writeAll(task.referenceLinks.negative, params("negativeProperty").head)
     }
 
@@ -268,7 +270,7 @@ object LinkingTaskApi extends Controller {
 
   def learningTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     //Start passive learning task
     val input =
@@ -284,13 +286,13 @@ object LinkingTaskApi extends Controller {
 
   def activeLearningTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
 
     //Start active learning task
     val activeLearningTask =
       new ActiveLearningTask(
         config = CurrentConfiguration(),
-        sources = project.sourceModule.tasks.map(_.source),
+        sources = project.tasks[SourceTask].map(_.source),
         linkSpec = task.linkSpec,
         paths = task.cache.entityDescs.map(_.paths),
         referenceEntities = task.cache.entities,

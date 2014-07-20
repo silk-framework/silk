@@ -25,7 +25,7 @@ object TransformEditor extends Controller {
 
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     val pathsCache = task.cache
     val prefixes = project.config.prefixes
 

@@ -20,7 +20,7 @@ object ReferenceLinksManager extends Controller {
 
   def referenceLinks(projectName: String, taskName: String, linkType: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val referenceLinks = task.referenceLinks
     def linkageRule = task.linkSpec.rule
     def entities = task.cache.entities

@@ -1,12 +1,13 @@
 package controllers.transform
 
 import java.util.logging.{Level, Logger}
-
 import de.fuberlin.wiwiss.silk.config.Dataset
 import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
+import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, ValidationException}
+import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import models.transform.CurrentExecuteTransformTask
@@ -25,29 +26,29 @@ object TransformTaskApi extends Controller {
 
     val dataset = Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
 
-    proj.transformModule.tasks.find(_.name == task) match {
+    proj.tasks[TransformTask].find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
         val updatedTransformTask = oldTask.updateDataset(dataset, proj)
-        proj.transformModule.update(updatedTransformTask)
+        proj.updateTask(updatedTransformTask)
       }
       //Create new task with a single rule
       case None => {
         val transformTask = TransformTask(proj, task, dataset, Seq.empty)
-        proj.transformModule.update(transformTask)
+        proj.updateTask(transformTask)
       }
     }
     Ok
   }}
 
   def deleteTransformTask(project: String, task: String) = Action {
-    User().workspace.project(project).transformModule.remove(task)
+    User().workspace.project(project).removeTask(task)
     Ok
   }
 
   def getRules(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     implicit val prefixes = project.config.prefixes
 
     Ok(<TransformRules>{ task.rules.map(_.toXML) }</TransformRules>)
@@ -55,7 +56,7 @@ object TransformTaskApi extends Controller {
 
   def putRules(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     implicit val prefixes = project.config.prefixes
 
     request.body.asXml match {
@@ -65,7 +66,7 @@ object TransformTaskApi extends Controller {
           val updatedRules = (xml \ "TransformRule").map(TransformRule.load(project.resources)(prefixes))
           //Update transformation task
           val updatedTask = task.updateRules(updatedRules, project)
-          project.transformModule.update(updatedTask)
+          project.updateTask(updatedTask)
           Ok
         } catch {
           case ex: ValidationException =>
@@ -80,7 +81,7 @@ object TransformTaskApi extends Controller {
 
   def getRule(projectName: String, taskName: String, rule: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     implicit val prefixes = project.config.prefixes
 
     task.rules.find(_.name == rule) match {
@@ -91,7 +92,7 @@ object TransformTaskApi extends Controller {
 
   def putRule(projectName: String, taskName: String, ruleIndex: Int) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     implicit val prefixes = project.config.prefixes
 
     request.body.asXml match {
@@ -104,7 +105,7 @@ object TransformTaskApi extends Controller {
             val updatedRules = task.rules.updated(ruleIndex, updatedRule)
             //Update transformation task
             val updatedTask = task.updateRules(updatedRules, project)
-            project.transformModule.update(updatedTask)
+            project.updateTask(updatedTask)
           }
           // Return warnings
           Ok(statusJson(warnings = warnings.map(_.getMessage)))
@@ -134,7 +135,7 @@ object TransformTaskApi extends Controller {
 
   def reloadTransformCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     task.cache.clear()
     task.cache.load(project, task)
     Ok
@@ -142,17 +143,17 @@ object TransformTaskApi extends Controller {
 
   def executeTransformTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
 
     // Retrieve parameters
     val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val outputNames = params.get("outputs[]").toSeq.flatten
-    val outputs = outputNames.map(project.outputModule.task(_).output)
+    val outputs = outputNames.map(project.task[OutputTask](_).output)
 
     // Create execution task
     val executeTransformTask =
       new ExecuteTransform(
-        source = project.sourceModule.task(task.dataset.sourceId).source,
+        source = project.task[SourceTask](task.dataset.sourceId).source,
         dataset= task.dataset,
         rules = task.rules,
         outputs = outputs
@@ -170,7 +171,7 @@ object TransformTaskApi extends Controller {
    */
   def sourcePathCompletions(projectName: String, taskName: String, term: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
     val knownPaths = task.cache.value.paths
 
     // Add known paths, use short notation for paths that only consist of a single property
@@ -194,7 +195,7 @@ object TransformTaskApi extends Controller {
 
   def targetPathCompletions(projectName: String, taskName: String, term: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.transformModule.task(taskName)
+    val task = project.task[TransformTask](taskName)
 
     // Collect known prefixes
     val prefixCompletions = project.config.prefixes.prefixMap.keys

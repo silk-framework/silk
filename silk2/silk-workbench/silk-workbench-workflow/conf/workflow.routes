@@ -1,0 +1,1 @@
+GET        /tasks/:project/:task/editor        controllers.workflow.Editor.editor(project: String, task: String)

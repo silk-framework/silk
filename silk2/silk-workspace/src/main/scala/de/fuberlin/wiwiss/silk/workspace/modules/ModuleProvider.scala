@@ -7,17 +7,9 @@ import de.fuberlin.wiwiss.silk.workspace.Project
 /**
  * Overwritten by module implementations.
  */
-trait ModuleProvider[ConfigType <: ModuleConfig, TaskType <: ModuleTask] {
+trait ModuleProvider[TaskType <: ModuleTask] {
 
-  /**
-   * Loads the configuration for this module.
-   */
-  def loadConfig(resources: ResourceLoader): ConfigType
-
-  /**
-   * Writes updated configuration for this module.
-   */
-  def writeConfig(config: ConfigType, resources: ResourceManager)
+  def prefix: String
 
   /**
    * Loads all tasks of this module.

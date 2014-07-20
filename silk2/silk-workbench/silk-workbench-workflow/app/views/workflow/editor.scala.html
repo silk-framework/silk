@@ -1,0 +1,34 @@
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+@import controllers.workflow.routes.Assets
+
+@(context: Context[WorkflowTask])
+
+@header = {
+  <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
+
+  <script type="text/javascript" src="@Assets.at("libs/jquery.jsPlumb-1.5.5.js")"></script>
+  <script type="text/javascript" src="@Assets.at("editor/editor.js")"></script>
+
+  <script type="text/javascript">
+  </script>
+}
+
+@toolbar = {
+}
+
+@content = {
+  <div id="operators">
+    operators
+  </div>
+
+  <div class="wrapperEditor">
+    <div class="droppable_outer">
+      <div id="droppable">
+        renderRule
+      </div>
+    </div>
+  </div>
+}
+
+@main(Some(context))(header)(toolbar)(content)

@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.{Controller, Action}
 import models.linking.{LinkSorter, CurrentGenerateLinksTask,EvalLink}
@@ -19,14 +20,14 @@ object GenerateLinks extends Controller {
 
   def generateLinksDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.outputModule.tasks.toSeq.map(_.name.toString())
+    val outputs = project.tasks[OutputTask].toSeq.map(_.name.toString())
 
     Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.linkingModule.task(taskName)
+    val task = project.task[LinkingTask](taskName)
     val referenceLinks = task.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 

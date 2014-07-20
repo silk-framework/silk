@@ -2,6 +2,7 @@ package controllers.transform
 
 import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import models.transform.CurrentExecuteTransformTask
 import play.api.mvc.{Action, Controller}
@@ -16,7 +17,7 @@ object ExecuteTransformTab extends Controller {
 
   def executeDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.outputModule.tasks.toSeq.map(_.name.toString())
+    val outputs = project.tasks[OutputTask].toSeq.map(_.name.toString())
 
     Ok(views.html.executeTransform.executeTransformDialog(projectName, taskName, outputs))
   }

@@ -29,19 +29,11 @@ import scala.xml.XML
 /**
  * The linking module which encapsulates all linking tasks.
  */
-class LinkingModuleProvider extends ModuleProvider[LinkingConfig, LinkingTask] {
+class LinkingModuleProvider extends ModuleProvider[LinkingTask] {
 
   private val logger = Logger.getLogger(classOf[LinkingModuleProvider].getName)
 
-  /**
-   * Loads the configuration for this module.
-   */
-  def loadConfig(resources: ResourceLoader) = LinkingConfig()
-
-  /**
-   * Writes updated configuration for this module.
-   */
-  def writeConfig(config: LinkingConfig, resources: ResourceManager) = {}
+  override def prefix = "linking"
 
   /**
    * Loads all tasks of this module.

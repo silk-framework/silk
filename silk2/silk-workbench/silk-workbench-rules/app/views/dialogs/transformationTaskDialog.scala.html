@@ -1,10 +1,12 @@
-@(project: String, task: String)
-
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 @import de.fuberlin.wiwiss.silk.workspace.User
 
-@sources = @{ User().workspace.project(project).sourceModule.tasks.toSeq }
+@(project: String, task: String)
 
-@transformationTask = @{ User().workspace.project(project).transformModule.tasks.find(_.name == task) }
+@sources = @{ User().workspace.project(project).tasks[SourceTask].toSeq }
+
+@transformationTask = @{ User().workspace.project(project).tasks[TransformTask].find(_.name == task) }
 
 @dataset = @{ transformationTask.map(_.dataset) }
 

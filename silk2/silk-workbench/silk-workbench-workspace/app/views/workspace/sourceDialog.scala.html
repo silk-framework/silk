@@ -1,11 +1,12 @@
 @(project: String, source: String)
 
 @import de.fuberlin.wiwiss.silk.datasource.DataSource
+@import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 @import de.fuberlin.wiwiss.silk.workspace.User
 
 @widgets.pluginDialog(name = source,
                       plugins = DataSource.availablePlugins,
-                      currentObj = User().workspace.project(project).sourceModule.tasks.find(_.name == source).map(_.source.dataSource),
+                      currentObj = User().workspace.project(project).tasks[SourceTask].find(_.name == source).map(_.source.dataSource),
                       resources = User().workspace.project(project).resources.list) {
 
   <script type="text/javascript">

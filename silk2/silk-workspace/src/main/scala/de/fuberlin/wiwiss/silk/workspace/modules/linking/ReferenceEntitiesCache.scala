@@ -4,6 +4,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import xml.{NodeSeq, NodeBuffer, Node}
 import de.fuberlin.wiwiss.silk.datasource.Source
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
@@ -97,7 +98,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
 
   private class EntityLoader(project: Project, task: LinkingTask, entityDescs: DPair[EntityDescription]) {
 
-    private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
+    private val sources = task.linkSpec.datasets.map(ds => project.task[SourceTask](ds.sourceId).source)
 
     private var updated = false
 
