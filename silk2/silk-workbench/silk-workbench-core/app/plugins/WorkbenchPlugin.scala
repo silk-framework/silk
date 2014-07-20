@@ -2,6 +2,7 @@ package plugins
 
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+import play.core.Router.Routes
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import scala.reflect.ClassTag
 
@@ -10,15 +11,17 @@ import scala.reflect.ClassTag
  */
 trait WorkbenchPlugin {
 
+  def routes: Map[String, Routes] = Map.empty
+
   /**
    * The task types to be added to the Workspace.
    */
-  def tasks: Seq[TaskActions[ModuleTask]]
+  def tasks: Seq[TaskActions[ModuleTask]] = Seq.empty
 
   /**
    * Given a request context, lists the shown tabs.
    */
-  def tabs(context: Context[ModuleTask]): Seq[Tab]
+  def tabs(context: Context[ModuleTask]): Seq[Tab] = Seq.empty
 
 }
 

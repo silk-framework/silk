@@ -4,6 +4,5 @@ GET        /                 controllers.Start.index
 # Redirect call to individual modules
 ->         /core             core.Routes
 ->         /workspace        workspace.Routes
-->         /rules            rules.Routes
-->         /linking          linking.Routes
-->         /transform        transform.Routes
+
+# Plugin routes are handled automatically

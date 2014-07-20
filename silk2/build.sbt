@@ -6,6 +6,8 @@ version := "2.6.1-SNAPSHOT"
 
 scalaVersion := "2.11.1"
 
+scalacOptions += "-deprecation"
+
 // Core Modules
 
 lazy val core = project in file("silk-core")

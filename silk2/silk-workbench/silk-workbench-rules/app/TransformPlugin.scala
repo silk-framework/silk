@@ -5,6 +5,8 @@ import plugins.{Context, WorkbenchPlugin}
 
 case class TransformPlugin() extends WorkbenchPlugin {
 
+  override def routes = Map("rules" -> rules.Routes, "transform" -> transform.Routes)
+
   override def tasks = {
     Seq(TransformTaskActions)
   }
