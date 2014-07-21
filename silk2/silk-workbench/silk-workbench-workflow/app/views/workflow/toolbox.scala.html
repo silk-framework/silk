@@ -1,0 +1,46 @@
+@(project: de.fuberlin.wiwiss.silk.workspace.Project)
+
+@import plugins.WorkbenchPlugins
+@import controllers.workflow.routes.Assets
+
+<div id="toolbox" style="height: 67.9px;">
+  @for(plugin <- WorkbenchPlugins();
+       taskActions <- plugin.tasks;
+       task <- taskActions.projectTasks(project)) {
+    <div>
+      @toolboxOperator(task.name, taskActions.icon, taskActions.name, taskActions.properties(task))
+    </div>
+  }
+</div>
+
+@**
+ * A single operator in the toolbox.
+ *@
+@toolboxOperator(name: String, icon: String, taskType: String, properties: Seq[(String, String)]) = {
+  <div class="toolboxOperator" title="@name">
+    @*<img src="@icon">*@
+    @name
+    @operatorExpanded(name, icon, taskType, properties)
+  </div>
+}
+
+@operatorExpanded(name: String, icon: String, taskType: String, properties: Seq[(String, String)]) = {
+  <div class="operator" style="display:none;" >
+    <div class="operatorHeader">
+      @*<img src="@icon">*@
+      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
+        @name (@taskType)
+      </div>
+      <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+    </div>
+    <div class="operatorContent">
+        name:
+        <span class="label">id</span>
+        <br/>
+        @for(((key, value), index) <- properties.zipWithIndex) {
+            @if(index != 0) {<br/>}
+            @key: @value
+        }
+    </div>
+  </div>
+}

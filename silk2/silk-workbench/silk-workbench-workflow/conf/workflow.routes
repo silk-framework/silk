@@ -1,1 +1,4 @@
-GET        /tasks/:project/:task/editor        controllers.workflow.Editor.editor(project: String, task: String)
+GET        /:project/:task/editor        controllers.workflow.Editor.editor(project: String, task: String)
+
+# Assests
+GET        /assets/*file                 controllers.workflow.Assets.at(path="/public", file)

@@ -1,0 +1,80 @@
+/* Toolbox */
+
+#toolbox {
+  width: 220px;
+  float: left;
+}
+
+.toolboxOperator {
+  width: 200px;
+  height: 13px;
+  padding: 4px;
+  margin: 4px 4px 4px 0;
+  text-align: left;
+  cursor:move;
+  font-size: 9pt;
+  z-index:50;
+  background-color: #d6eeff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1) inset;
+}
+
+/* Editor */
+
+#editorContent {
+  width: auto;
+  height: 800px;
+  padding: 5px;
+  overflow: scroll;
+  position: relative;
+  background: url("../img/grid.png") repeat scroll 0 0;
+  border:1px dashed #d9d9d9;
+  margin-bottom: 8px;
+}
+
+.operator {
+  width:200px;
+  position:relative;
+  left:100px;
+  top:100px;
+  font-size: 9pt;
+  z-index: 1;
+  background-color: #ffffff;
+  border-radius: 5px;
+  box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.5);
+  -webkit-transition: background-color 0.25s ease-in;
+  -moz-transition: background-color 0.25s ease-in;
+  transition: background-color 0.25s ease-in;
+}
+
+.operatorHeader {
+  height: 15px;
+  font-size: 9pt;
+  cursor: move;
+  padding: 4px;
+  background-color:#1484d4;
+  border-radius: 5px 5px 0 0;
+}
+
+.operatorContent {
+  min-height: 14px;
+  padding: 5px;
+  border-radius: 0 0 5px 5px;
+  border-left:1px solid #1484d4;
+  border-right:1px solid #1484d4;
+  border-bottom:1px solid #1484d4;
+}
+
+.operator:hover {
+  background-color: #d6eeff;
+  box-shadow: 1px 1px 6px #1484d4;
+}
+
+/* jsPlump */
+
+._jsPlumb_endpoint {
+  z-index: 2;
+}
+
+._jsPlumb_connector {
+  cursor: pointer;
+}

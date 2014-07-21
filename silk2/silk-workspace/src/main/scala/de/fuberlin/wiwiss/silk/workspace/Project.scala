@@ -23,6 +23,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.{Module, ModuleProvider, ModuleTask}
 import scala.reflect.ClassTag
 import scala.xml.XML
@@ -47,6 +48,7 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   registerModule(new LinkingModuleProvider())
   registerModule(new TransformModuleProvider())
   registerModule(new OutputModuleProvider())
+  registerModule(new WorkflowModuleProvider())
 
   /**
    * Reads the project configuration.

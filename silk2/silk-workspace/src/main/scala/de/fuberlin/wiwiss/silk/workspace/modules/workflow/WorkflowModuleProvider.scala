@@ -20,11 +20,13 @@ class WorkflowModuleProvider extends ModuleProvider[WorkflowTask] {
    * Writes an updated task.
    */
   override def writeTask(task: WorkflowTask, resources: ResourceManager): Unit = {
-
+    //resources.put(task.name + ".xml"){ os => <WorkflowTask/>.write(os) }
   }
 
   /**
    * Removes a specific task.
    */
-  override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {}
+  override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {
+    //resources.delete(taskId + ".xml")
+  }
 }
