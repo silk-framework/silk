@@ -337,7 +337,7 @@ object SpatialExtensionsUtils {
       case WITHIN => geometry1.within(geometry2)
       case CONTAINS => geometry1.contains(geometry2)
       case OVERLAPS => geometry1.overlaps(geometry2)
-      case _ => false
+      case _ => geometry1.relate(geometry2, relation)
     }
   }
 

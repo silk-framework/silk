@@ -58,6 +58,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.spatial.IntersectsMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.OverlapsMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.TouchesMetric
 import de.fuberlin.wiwiss.silk.plugins.distance.spatial.WithinMetric
+import de.fuberlin.wiwiss.silk.plugins.distance.spatial.RelateMetric
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.PointsToCentroidTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.SimplifyTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.spatial.EnvelopeTransformer
@@ -199,6 +200,7 @@ object Plugins {
     DistanceMeasure.register(classOf[de.fuberlin.wiwiss.silk.plugins.distance.spatial.OverlapsMetric])
     DistanceMeasure.register(classOf[TouchesMetric])
     DistanceMeasure.register(classOf[WithinMetric])
+    DistanceMeasure.register(classOf[RelateMetric])
     DistanceMeasure.register(classOf[MillisecsDistanceMetric])
     DistanceMeasure.register(classOf[SecsDistanceMetric])
     DistanceMeasure.register(classOf[MinsDistanceMetric])
