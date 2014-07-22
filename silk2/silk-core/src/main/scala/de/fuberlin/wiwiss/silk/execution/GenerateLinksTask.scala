@@ -16,10 +16,9 @@ package de.fuberlin.wiwiss.silk.execution
 
 import java.util.logging.LogRecord
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
-import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import java.io.File
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -29,9 +28,9 @@ import de.fuberlin.wiwiss.silk.cache.{MemoryEntityCache, FileEntityCache}
 /**
  * Main task to generate links.
  */
-class GenerateLinksTask(sources: Traversable[Source],
+class GenerateLinksTask(datasets: Traversable[Dataset],
                         linkSpec: LinkSpecification,
-                        outputs: Traversable[Output] = Traversable.empty,
+                        outputs: Traversable[Dataset] = Traversable.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
   statusLogLevel = runtimeConfig.logLevel
@@ -70,7 +69,7 @@ class GenerateLinksTask(sources: Traversable[Source],
 
     warningLog = CollectLogs() {
       //Retrieve sources
-      val sourcePair = linkSpec.datasets.map(_.sourceId).map(id => sources.find(_.id == id).get)
+      val sourcePair = linkSpec.datasets.map(_.datasetId).map(id => datasets.find(_.id == id).get)
 
       //Entity caches
       val caches = createCaches()

@@ -1,26 +1,12 @@
-package de.fuberlin.wiwiss.silk.plugins.datasource
+package de.fuberlin.wiwiss.silk.plugins.dataset
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
-import scala.io.Source
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
-@Plugin(
-  id = "csv",
-  label = "CSV Source.",
-  description =
-"""DataSource which retrieves all entities from a csv file.
-Parameters:
-  file:  File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
-  properties: Comma-separated list of properties.
-  separator: The character that is used to separate values.  If not provided, defaults to ',', i.e., comma-separated values.
-             Regexes, such as '\t' for specifying tab-separated values, are also supported.
-  prefix: The prefix that is used to generate URIs for each line.
-  uri: A pattern used to construct the entity URI. If not provided the prefix + the line number is used.
-  regexFilter: A regex filter used to match rows from the CSV file. If not set all the rows are used."""
-)
-case class CsvDataSource(file: Resource, properties: String, separator: String = ",", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
+import scala.io.Source
+
+case class CsvSource(file: Resource, properties: String, separator: String = ",", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
 
   private val propertyList: Seq[String] = properties.split(',')
 

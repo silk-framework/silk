@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.dataset.Source
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.Link

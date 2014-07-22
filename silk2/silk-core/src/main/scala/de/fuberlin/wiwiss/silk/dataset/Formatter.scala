@@ -12,33 +12,25 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.output
+package de.fuberlin.wiwiss.silk.dataset
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, PluginFactory}
 
 /**
- * Represents an abstraction over an writer of links.
- *
- * Implementing classes of this trait must override the write method.
+ * Serializes a link.
  */
-trait DataWriter extends AnyPlugin {
-  /**
-   * Initializes this writer.
-   */
-  def open() {}
+trait Formatter extends AnyPlugin {
+  def header: String = ""
 
-  /**
-   * Writes a new link to this writer.
-   */
-  def write(link: Link, predicateUri: String)
+  def footer: String = ""
 
-  def writeLiteralStatement(subject: String, predicate: String, value: String)
+  def format(link: Link, predicate: String): String
 
-  /**
-   * Closes this writer.
-   */
-  def close() {}
+  def formatLiteralStatement(subject: String, predicate: String, value: String): String = ???
 }
 
-object DataWriter extends PluginFactory[DataWriter]
+/**
+ * Formatter factory
+ */
+object Formatter extends PluginFactory[Formatter]

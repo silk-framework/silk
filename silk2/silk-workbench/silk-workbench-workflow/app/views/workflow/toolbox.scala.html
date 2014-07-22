@@ -20,11 +20,15 @@
   <div class="toolboxOperator" title="@name">
     @*<img src="@icon">*@
     @name
-    @operatorExpanded(name, icon, taskType, properties)
+    @if(taskType != "Source") {
+      @operator(name, icon, taskType, properties)
+    } else {
+      @dataset(name)
+    }
   </div>
 }
 
-@operatorExpanded(name: String, icon: String, taskType: String, properties: Seq[(String, String)]) = {
+@operator(name: String, icon: String, taskType: String, properties: Seq[(String, String)]) = {
   <div class="operator" style="display:none;" >
     <div class="operatorHeader">
       @*<img src="@icon">*@
@@ -42,5 +46,15 @@
             @key: @value
         }
     </div>
+  </div>
+}
+
+@dataset(name: String) = {
+  <div class="database" style="display: none">
+    <div class="database-bottom"></div>
+    <div class="database-contents">
+      @name
+    </div>
+    <div class="database-top"></div>
   </div>
 }

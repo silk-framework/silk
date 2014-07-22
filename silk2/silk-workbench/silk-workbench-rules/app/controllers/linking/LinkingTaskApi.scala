@@ -3,8 +3,7 @@ package controllers.linking
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinksTask}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningTask, LearningInput}
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import models.{CurrentTaskStatusListener, CurrentTaskValueListener}
 import models.linking._
 import play.api.mvc.{Action, Controller}
@@ -17,7 +16,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, AnyPlugin}
 import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, Dataset, LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.config.{DatasetSelection, RuntimeConfig, LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.util.{DPair, ValidationException, CollectLogs}
@@ -34,8 +33,8 @@ object LinkingTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val datasets = DPair(Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
-      Dataset(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
+    val datasets = DPair(DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
+      DatasetSelection(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
 
     proj.tasks[LinkingTask].find(_.name == task) match {
       //Update existing task
@@ -62,7 +61,7 @@ object LinkingTaskApi extends Controller {
   }}
 
   def deleteLinkingTask(project: String, task: String) = Action {
-    User().workspace.project(project).removeTask(task)
+    User().workspace.project(project).removeTask[LinkingTask](task)
     Ok
   }
 
@@ -226,14 +225,14 @@ object LinkingTaskApi extends Controller {
     //Retrieve parameters
     val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val outputNames = params.get("outputs[]").toSeq.flatten
-    val outputs = outputNames.map(name => project.task[OutputTask](name).output)
+    val outputs = outputNames.map(name => project.task[DatasetTask](name).dataset)
 
     /** We use a custom runtime config */
     val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
 
     val generateLinksTask =
       new GenerateLinksTask(
-        sources = project.tasks[SourceTask].map(_.source),
+        datasets = project.tasks[DatasetTask].map(_.dataset),
         linkSpec = task.linkSpec,
         outputs = outputs,
         runtimeConfig = runtimeConfig
@@ -256,12 +255,12 @@ object LinkingTaskApi extends Controller {
     val params = request.body.asFormUrlEncoded.get
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[OutputTask](posOutputName.head).output
+      val posOutput = project.task[DatasetTask](posOutputName.head).dataset.sink
       posOutput.writeAll(task.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[OutputTask](negOutputName.head).output
+      val negOutput = project.task[DatasetTask](negOutputName.head).dataset.sink
       negOutput.writeAll(task.referenceLinks.negative, params("negativeProperty").head)
     }
 
@@ -292,7 +291,7 @@ object LinkingTaskApi extends Controller {
     val activeLearningTask =
       new ActiveLearningTask(
         config = CurrentConfiguration(),
-        sources = project.tasks[SourceTask].map(_.source),
+        dataset = project.tasks[DatasetTask].map(_.dataset),
         linkSpec = task.linkSpec,
         paths = task.cache.entityDescs.map(_.paths),
         referenceEntities = task.cache.entities,

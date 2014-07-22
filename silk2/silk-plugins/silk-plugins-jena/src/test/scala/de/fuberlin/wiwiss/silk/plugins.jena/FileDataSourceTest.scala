@@ -32,7 +32,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource").getFile))
 
-  val source = new FileDataSource(resourceLoader.get(fileName), "N-TRIPLE")
+  val source = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDescCity =
     EntityDescription(

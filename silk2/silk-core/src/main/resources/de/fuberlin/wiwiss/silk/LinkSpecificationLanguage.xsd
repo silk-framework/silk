@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:element name="Dataset">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="DatasetPlugin">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="type" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required" />
+    </xs:complexType>
+
+  </xs:element>
+
+  <!-- DataSource elements have been replaced by Datasets but are still supported -->
   <xs:element name="DataSource">
     <xs:complexType>
       <xs:sequence>

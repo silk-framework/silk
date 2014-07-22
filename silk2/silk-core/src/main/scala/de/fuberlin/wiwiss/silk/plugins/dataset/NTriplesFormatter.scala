@@ -12,27 +12,20 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.writer
+package de.fuberlin.wiwiss.silk.plugins.dataset
 
-import de.fuberlin.wiwiss.silk.output.DataWriter
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
+import de.fuberlin.wiwiss.silk.dataset.Formatter
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
-@Plugin(id = "memory", label = "Memory")
-case class MemoryWriter() extends DataWriter {
+@Plugin(id = "ntriples", label = "N-Triples")
+class NTriplesFormatter() extends Formatter {
 
-  @volatile
-  private var _links = List[Link]()
-
-  def links = _links
-
-  def clear() {
-    _links = List[Link]()
+  override def format(link: Link, predicateUri: String) = {
+    "<" + link.source + ">  <" + predicateUri + ">  <" + link.target + "> .\n"
   }
 
-  override def write(link: Link, predicateUri: String): Unit = {
-    _links ::= link
+  override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
+    "<" + subject + ">  <" + predicate + ">  \"" + value + "\" .\n"
   }
-
-  override def writeLiteralStatement(subject: String, predicate: String, value: String): Unit = ???
 }

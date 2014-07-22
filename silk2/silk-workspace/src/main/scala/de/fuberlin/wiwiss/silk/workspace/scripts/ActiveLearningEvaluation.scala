@@ -14,7 +14,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
 
   override protected def run() {
     val experiment = Experiment.default
-    val datasets = Dataset.fromWorkspace
+    val datasets = Data.fromWorkspace
 
     val values =
       for(dataset <- datasets) yield {
@@ -36,7 +36,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
      println(result.toCsv)
   }
 
-  private def execute(config: LearningConfiguration, dataset: Dataset): RunResult = {
+  private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
     val cache = dataset.task.cache
     cache.waitUntilLoaded()
     val task = new ActiveLearningEvaluator(config, dataset)
@@ -45,7 +45,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
 }
 
 class ActiveLearningEvaluator(config: LearningConfiguration,
-                              ds: Dataset) extends Task[RunResult] {
+                              ds: Data) extends Task[RunResult] {
 
   val numRuns = 1
 
@@ -92,7 +92,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val task =
         new ActiveLearningTask(
           config = config,
-          sources = ds.sources,
+          dataset = ds.sources,
           linkSpec = ds.task.linkSpec,
           paths = ds.task.cache.entityDescs.map(_.paths),
           referenceEntities = referenceEntities,

@@ -30,7 +30,7 @@ object CrossValidation extends EvaluationScript {
 
   protected def runExperiment() {
     val experiment = Experiment.default
-    val datasets = Dataset.fromWorkspace
+    val datasets = Data.fromWorkspace
     
     val values =
       for(ds <- datasets) yield {
@@ -52,7 +52,7 @@ object CrossValidation extends EvaluationScript {
     println(result.transpose.toLatex)
   }
   
-  private def execute(dataset: Dataset, config: LearningConfiguration): RunResult = {
+  private def execute(dataset: Data, config: LearningConfiguration): RunResult = {
     log.info("Running: " + dataset.name)
     val cache = dataset.task.cache
     cache.waitUntilLoaded()

@@ -1,11 +1,11 @@
 @import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-@import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 @import de.fuberlin.wiwiss.silk.workspace.User
 @import controllers.rules.routes.Assets
 
 @(project: String, task: String)
 
-@sources = @{ User().workspace.project(project).tasks[SourceTask].toSeq }
+@sources = @{ User().workspace.project(project).tasks[DatasetTask].toSeq }
 
 @linkingTask = @{ User().workspace.project(project).tasks[LinkingTask].find(_.name == task) }
 
@@ -24,7 +24,7 @@
       <td>
         <select name="source" title="Source dataset">
           @for(source <- sources) {
-            @if(datasets.isDefined && source.name == datasets.get.source.sourceId) {
+            @if(datasets.isDefined && source.name == datasets.get.source.datasetId) {
               <option value="@source.name" selected="selected">@source.name</option>
             } else {
               <option value="@source.name">@source.name</option>
@@ -46,7 +46,7 @@
       <td>
         <select name="target" title="Target dataset">
           @for(source <- sources) {
-            @if(datasets.isDefined && source.name == datasets.get.target.sourceId.toString) {
+            @if(datasets.isDefined && source.name == datasets.get.target.datasetId.toString) {
               <option value="@source.name" selected="selected">@source.name</option>
             } else {
               <option value="@source.name">@source.name</option>

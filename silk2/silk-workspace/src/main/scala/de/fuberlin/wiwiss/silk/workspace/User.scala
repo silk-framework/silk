@@ -16,8 +16,7 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import modules.linking.LinkingTask
 import modules.ModuleTask
-import modules.output.OutputTask
-import modules.source.SourceTask
+import modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.workspace.User.{CurrentProjectChanged, CurrentTaskChanged}
 
@@ -80,7 +79,7 @@ trait User extends Observable[User.Message] {
   /**
    * True, if a source task is open at the moment.
    */
-  def sourceTaskOpen = taskOpen && task.isInstanceOf[SourceTask]
+  def sourceTaskOpen = taskOpen && task.isInstanceOf[DatasetTask]
 
   /**
    * The current source task of this user.
@@ -88,7 +87,7 @@ trait User extends Observable[User.Message] {
    * @throws java.util.NoSuchElementException If no source task is open
    */
   def sourceTask = task match {
-    case t: SourceTask => t
+    case t: DatasetTask => t
     case _ => throw new NoSuchElementException("Active task is no source task")
   }
 
@@ -105,21 +104,6 @@ trait User extends Observable[User.Message] {
   def linkingTask = task match {
     case t: LinkingTask => t
     case _ => throw new NoSuchElementException("Active task is no linking task")
-  }
-
-  /**
-   * True, if a output task is open at the moment.
-   */
-  def outputTaskOpen = taskOpen && task.isInstanceOf[OutputTask]
-
-  /**
-   * The current output task of this user.
-   *
-   * @throws java.util.NoSuchElementException If no output task is open
-   */
-  def outputTask = task match {
-    case t: OutputTask => t
-    case _ => throw new NoSuchElementException("Active task is no output task")
   }
 
   /**

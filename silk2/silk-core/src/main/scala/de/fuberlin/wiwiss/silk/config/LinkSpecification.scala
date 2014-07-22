@@ -15,12 +15,11 @@
 package de.fuberlin.wiwiss.silk.config
 
 import java.util.logging.Logger
-
+import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.util._
 
@@ -30,9 +29,9 @@ import scala.xml.Node
  * Represents a Silk Link Specification.
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
-                             datasets: DPair[Dataset] = DPair.fill(Dataset.empty),
+                             datasets: DPair[DatasetSelection] = DPair.fill(DatasetSelection.empty),
                              rule: LinkageRule = LinkageRule(),
-                             outputs: Traversable[Output] = Traversable.empty) {
+                             outputs: Traversable[Dataset] = Traversable.empty) {
   /**
    * Serializes this Link Specification as XML.
    */
@@ -111,10 +110,10 @@ object LinkSpecification {
 
     LinkSpecification(
       id = id,
-      datasets = new DPair(Dataset.fromXML((node \ "SourceDataset").head),
-                           Dataset.fromXML((node \ "TargetDataset").head)),
+      datasets = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
+                           DatasetSelection.fromXML((node \ "TargetDataset").head)),
       rule = LinkageRule.fromXML(linkageRuleNode, resourceLoader),
-      outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
+      outputs = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))
     )
   }
 }

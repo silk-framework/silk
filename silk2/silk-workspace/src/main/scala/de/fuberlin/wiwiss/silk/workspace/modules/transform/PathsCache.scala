@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.transform
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import scala.xml.{Node, NodeSeq}
 
 /**
@@ -23,10 +23,10 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
     //Check if paths have not been loaded yet or if the restriction has been changed
     if (value == null || currentEntityDesc.restrictions != value.restrictions) {
       // Retrieve the data sources
-      val source = project.task[SourceTask](task.dataset.sourceId).source
+      val source = project.task[DatasetTask](task.dataSelection.datasetId).source
 
       //Retrieve most frequent paths
-      val paths = source.retrievePaths(task.dataset.restriction, 1, Some(50)).map(_._1)
+      val paths = source.retrievePaths(task.dataSelection.restriction, 1, Some(50)).map(_._1)
 
       //Add the frequent paths to the entity description
       value = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ paths).distinct)

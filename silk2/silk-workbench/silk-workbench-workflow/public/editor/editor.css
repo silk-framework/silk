@@ -31,6 +31,8 @@
   margin-bottom: 8px;
 }
 
+/* Operator */
+
 .operator {
   width:200px;
   position:relative;
@@ -67,6 +69,48 @@
 .operator:hover {
   background-color: #d6eeff;
   box-shadow: 1px 1px 6px #1484d4;
+}
+
+/* Dataset */
+
+.database {
+  position: absolute;
+  width: 100px;
+  height: 80px;
+  z-index: 1;
+}
+
+.database-contents {
+  width: 100px;
+  height: 80px;
+  position: absolute;
+  border-left: 1px solid #C354BF;
+  border-right: 1px solid #C354BF;
+  background-color: white;
+  cursor: move;
+  text-align: center;;
+  line-height: 80px;
+}
+
+.database-top {
+  border-radius: 50%;
+  width: 100px;
+  height: 30px;
+  position: absolute;
+  top: -15px;
+  border: 1px solid #C354BF;
+  background-color: white;
+  cursor: move;
+}
+
+.database-bottom {
+  border-radius: 50%;
+  width: 100px;
+  height: 30px;
+  position: absolute;
+  top: 65px;
+  border: 1px solid #C354BF;
+  background-color: white;
 }
 
 /* jsPlump */

@@ -14,8 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.datasource.{Source}
+import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
@@ -31,9 +30,9 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
  */
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeConfig,
-                         sources: Traversable[Source],
+                         sources: Traversable[Dataset],
                          linkSpecs: Traversable[LinkSpecification],
-                         outputs: Traversable[Output] = Traversable.empty) {
+                         outputs: Traversable[Dataset] = Traversable.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
@@ -91,7 +90,7 @@ object LinkingConfig {
 
   def fromXML(node: Node, resourceLoader: ResourceLoader) = {
     implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
-    val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML(_, resourceLoader))
+    val sources = (node \ "DataSources" \ "DataSource").map(Dataset.fromXML(_, resourceLoader))
     val blocking = (node \ "Blocking").headOption match {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)
       case None => Blocking()
@@ -99,7 +98,7 @@ object LinkingConfig {
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, resourceLoader))
 
     implicit val globalThreshold = None
-    val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
+    val outputs = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))
 
     LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs)
   }

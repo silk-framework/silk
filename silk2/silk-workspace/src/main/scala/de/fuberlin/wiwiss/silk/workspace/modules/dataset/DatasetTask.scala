@@ -12,29 +12,30 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace.modules.source
+package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 
 /**
  * A data source.
  */
-class SourceTask private(val source : Source, val cache: TypesCache) extends ModuleTask {
+class DatasetTask private(val dataset: Dataset, val cache: TypesCache) extends ModuleTask {
 
-  val name = source.id
+  val name = dataset.id
+
+  def source = dataset.source
+
+  def sink = dataset.sink
 }
 
-object SourceTask {
+object DatasetTask {
   /**
    * Constructs a new source task and starts loading the cache.
    */
-  def apply(project: Project, source: Source, cache: TypesCache = new TypesCache()) = {
-    val task = new SourceTask(source, cache)
+  def apply(project: Project, source: Dataset, cache: TypesCache = new TypesCache()) = {
+    val task = new DatasetTask(source, cache)
     task.cache.load(project, task)
     task
   }

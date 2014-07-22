@@ -51,8 +51,8 @@ case class TransformPlugin() extends WorkbenchPlugin {
     override def properties(task: ModuleTask): Seq[(String, String)] = {
       val transformTask = task.asInstanceOf[TransformTask]
       Seq(
-        ("Source", transformTask.dataset.sourceId.toString),
-        ("Dataset", transformTask.dataset.restriction.toString)
+        ("Source", transformTask.dataSelection.datasetId.toString),
+        ("Dataset", transformTask.dataSelection.restriction.toString)
       )
     }
   }

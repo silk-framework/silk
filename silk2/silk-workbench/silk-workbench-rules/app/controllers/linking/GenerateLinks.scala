@@ -3,9 +3,8 @@ package controllers.linking
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import controllers.core.{Stream, Widgets}
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.{Controller, Action}
 import models.linking.{LinkSorter, CurrentGenerateLinksTask,EvalLink}
 import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
@@ -20,7 +19,7 @@ object GenerateLinks extends Controller {
 
   def generateLinksDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[OutputTask].toSeq.map(_.name.toString())
+    val outputs = project.tasks[DatasetTask].toSeq.map(_.name.toString())
 
     Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }

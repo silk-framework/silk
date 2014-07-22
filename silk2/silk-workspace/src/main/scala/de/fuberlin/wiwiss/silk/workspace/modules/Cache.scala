@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStarted, HasStatu
 import java.util.logging.Level
 import xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 
 /**
@@ -94,7 +94,7 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
           task match {
             case transformTask: TransformTask => project.updateTask(transformTask)
             case linkingTask: LinkingTask => project.updateTask(linkingTask)
-            case sourceTask: SourceTask => project.updateTask(sourceTask)
+            case sourceTask: DatasetTask => project.updateTask(sourceTask)
           }
         }
       } catch {

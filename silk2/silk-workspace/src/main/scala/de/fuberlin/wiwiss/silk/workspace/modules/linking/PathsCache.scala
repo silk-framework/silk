@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import scala.xml.{Node, NodeSeq}
 
 /**
@@ -29,7 +29,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
 
     if (value == null || update) {
       // Retrieve the data sources
-      val sources = task.linkSpec.datasets.map(ds => project.task[SourceTask](ds.sourceId).source)
+      val sources = task.linkSpec.datasets.map(ds => project.task[DatasetTask](ds.datasetId).source)
 
       //Retrieve most frequent paths
       val paths = for ((source, dataset) <- sources zip task.linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))

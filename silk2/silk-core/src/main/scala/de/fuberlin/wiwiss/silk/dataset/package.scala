@@ -15,6 +15,6 @@
 package de.fuberlin.wiwiss.silk
 
 /**
- * Contains classes to write generated links to external outputs.
+ * Contains classes to read and write entities from/to external sources.
  */
-package object output
+package object dataset

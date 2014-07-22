@@ -20,8 +20,7 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModuleProvider
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputModuleProvider
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.{Module, ModuleProvider, ModuleTask}
@@ -44,10 +43,9 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   private var modules = Seq[Module[_ <: ModuleTask]]()
 
   // Register all default modules
-  registerModule(new SourceModuleProvider())
+  registerModule(new DatasetModuleProvider())
   registerModule(new LinkingModuleProvider())
   registerModule(new TransformModuleProvider())
-  registerModule(new OutputModuleProvider())
   registerModule(new WorkflowModuleProvider())
 
   /**

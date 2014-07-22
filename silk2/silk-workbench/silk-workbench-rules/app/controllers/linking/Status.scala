@@ -1,7 +1,7 @@
 package controllers.linking
 
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import controllers.core.{Widgets, Stream}
@@ -28,8 +28,8 @@ object Status extends Controller {
     val project = User().workspace.project(projectName)
     val linkingTask = project.task[LinkingTask](taskName)
 
-    val sourceTaskName = linkingTask.linkSpec.datasets.source.sourceId
-    val sourceTask = project.task[SourceTask](sourceTaskName)
+    val sourceTaskName = linkingTask.linkSpec.datasets.source.datasetId
+    val sourceTask = project.task[DatasetTask](sourceTaskName)
 
     val stream = Stream.taskStatus(sourceTask.cache)
 
@@ -40,8 +40,8 @@ object Status extends Controller {
     val project = User().workspace.project(projectName)
     val linkingTask = project.task[LinkingTask](taskName)
 
-    val sourceTaskName = linkingTask.linkSpec.datasets.target.sourceId
-    val sourceTask = project.task[SourceTask](sourceTaskName)
+    val sourceTaskName = linkingTask.linkSpec.datasets.target.datasetId
+    val sourceTask = project.task[DatasetTask](sourceTaskName)
 
     val stream = Stream.taskStatus(sourceTask.cache)
 

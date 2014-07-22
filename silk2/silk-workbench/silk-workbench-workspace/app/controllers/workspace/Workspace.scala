@@ -1,17 +1,14 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
-import play.api.mvc.Controller
-import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.workspace.{PrefixRegistry, Constants, User}
-import java.io.FileInputStream
+import de.fuberlin.wiwiss.silk.entity.Restriction.{Condition, Operator, Or}
+import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.util.ValidationException
 import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionParser
-import de.fuberlin.wiwiss.silk.entity.{Restriction, ForwardOperator, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Or, Condition}
-import de.fuberlin.wiwiss.silk.util.{ValidationException, Uri}
-import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.workspace.{Constants, PrefixRegistry, User}
 import play.Logger
+import play.api.mvc.{Action, Controller}
 
 object Workspace extends Controller {
 
@@ -47,13 +44,13 @@ object Workspace extends Controller {
     Ok(views.html.workspace.resourcesDialog(project, resourceManager))
   }
 
-  def sourceDialog(project: String, source: String) = Action {
-    Ok(views.html.workspace.sourceDialog(project, source))
+  def datasetDialog(project: String, task: String) = Action {
+    Ok(views.html.workspace.datasetDialog(project, task))
   }
 
   def restrictionDialog(projectName: String, sourceName: String, sourceOrTarget: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
-    val pathCache = project.task[SourceTask](sourceName).cache
+    val pathCache = project.task[DatasetTask](sourceName).cache
     implicit val prefixes = project.config.prefixes
 
     val variable = sourceOrTarget match {
@@ -87,10 +84,6 @@ object Workspace extends Controller {
     }
 
     Ok(views.html.workspace.restrictionDialog(project, restriction, types, pathCache))
-  }
-
-  def outputDialog(project: String, output: String) = Action {
-    Ok(views.html.workspace.outputDialog(project, output))
   }
 
   def importExample(project: String) = Action {

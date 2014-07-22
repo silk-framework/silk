@@ -16,7 +16,7 @@ object DatasetStatistics extends App {
   CorePlugins.register()
   JenaPlugins.register()
 
-  val datasets = Dataset.fromWorkspace
+  val datasets = Data.fromWorkspace
 
   val measures = SourceEntities :: TargetEntities :: SourceProperties :: TargetProperties :: SourceCoverage :: TargetCoverage :: PosReferenceLinks :: NegReferenceLinks :: Nil
 
@@ -28,13 +28,13 @@ object DatasetStatistics extends App {
 
   println("Finished")
   
-  private def collect(ds: Dataset) = Timer("Collecting statistics for " + ds.name) {
+  private def collect(ds: Data) = Timer("Collecting statistics for " + ds.name) {
     //Retrieve frequent paths
     val entityDescs = ds.task.linkSpec.entityDescriptions
-    val paths = for((source, desc) <- ds.sources zip entityDescs) yield source.retrievePaths(restriction = desc.restrictions, depth = 1, limit = None).map(_._1).toIndexedSeq
+    val paths = for((source, desc) <- ds.sources zip entityDescs) yield source.source.retrievePaths(restriction = desc.restrictions, depth = 1, limit = None).map(_._1).toIndexedSeq
     //Retrieve entities
     val fullEntityDescs = for((desc, p) <- entityDescs zip paths) yield desc.copy(paths = p)
-    val entities = for((source, desc) <- ds.sources zip fullEntityDescs) yield source.retrieve(desc).toSeq
+    val entities = for((source, desc) <- ds.sources zip fullEntityDescs) yield source.source.retrieve(desc).toSeq
     //Apply all measures
     val data = TaskData(ds.task, paths, entities)
     measures.map(_(data))

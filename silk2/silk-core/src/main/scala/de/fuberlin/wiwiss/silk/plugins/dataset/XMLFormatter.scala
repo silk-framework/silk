@@ -12,12 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace.modules.output
+package de.fuberlin.wiwiss.silk.plugins.dataset
 
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.dataset.Formatter
+import de.fuberlin.wiwiss.silk.entity.Link
 
-case class OutputTask(output : Output) extends ModuleTask
-{
-  val name = output.id
+import scala.xml.NodeSeq
+
+/**
+ * Base trait of all formatters using XML.
+ */
+trait XMLFormatter extends Formatter {
+
+  override final def format(link: Link, predicateUri: String): String = formatXML(link, predicateUri).toString + "\n"
+
+  def formatXML(link: Link, predicateUri: String): NodeSeq
 }

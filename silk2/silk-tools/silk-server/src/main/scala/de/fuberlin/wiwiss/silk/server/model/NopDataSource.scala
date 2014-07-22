@@ -15,7 +15,7 @@
 
 package de.fuberlin.wiwiss.silk.server.model
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, Entity, EntityDescription}
 

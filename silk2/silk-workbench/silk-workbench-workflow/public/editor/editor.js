@@ -1,7 +1,3 @@
-// Set jsPlumb default values
-//jsPlumb.Defaults.Container = "droppable";
-jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
-
 var connectorStyle = {
   lineWidth: 4,
   strokeStyle: "#61B7CF",
@@ -44,10 +40,14 @@ var elementcounter = 0;
 
 $(function () {
 
+  // Set jsPlumb default values
+  jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
+  jsPlumb.setContainer("editorContent");
+
   // Make operators draggable
   $('.toolboxOperator').draggable({
     helper: function() {
-      var box = $(this).children('.operator').clone(false);
+      var box = $(this).children('.operator,.database').clone(false);
       box.attr("id", generateNewElementId());
       box.show();
       return box;

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.source
+package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
 import de.fuberlin.wiwiss.silk.workspace.Project
 import scala.xml.{Node, NodeSeq}
@@ -7,12 +7,12 @@ import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 /**
  * Holds the most frequent classes.
  */
-class TypesCache() extends Cache[SourceTask, Seq[(String, Double)]](Seq[(String, Double)]()) {
+class TypesCache() extends Cache[DatasetTask, Seq[(String, Double)]](Seq[(String, Double)]()) {
 
   /** Load the cache value. */
-  override protected def update(project: Project, task: SourceTask) =  {
+  override protected def update(project: Project, task: DatasetTask) =  {
     if(value.isEmpty) {
-      val dataSource = task.source.dataSource
+      val dataSource = task.source
       val types = dataSource.retrieveTypes().toSeq
       value = types
       true

@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
@@ -25,20 +25,20 @@ import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, Link
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, ReproductionTask}
 import linkselector.WeightedLinkageRule
-import de.fuberlin.wiwiss.silk.config.{Dataset, LinkSpecification}
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
 import math.max
 
 //TODO support canceling
 class ActiveLearningTask(config: LearningConfiguration,
-                         sources: Traversable[Source],
+                         dataset: Traversable[Dataset],
                          linkSpec: LinkSpecification,
                          paths: DPair[Seq[Path]],
                          referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                          var pool: Traversable[Link] = Traversable.empty,
                          var population: Population = Population.empty) extends ValueTask[Seq[Link]](Seq.empty) {
 
-  def isEmpty = sources.isEmpty
+  def isEmpty = dataset.isEmpty
 
   def links = value.get
 
@@ -74,7 +74,7 @@ class ActiveLearningTask(config: LearningConfiguration,
     //Build unlabeled pool
     if(pool.isEmpty) {
       updateStatus("Loading")
-      pool = executeSubTask(new GeneratePoolTask(sources, linkSpec, paths), 0.5)
+      pool = executeSubTask(new GeneratePoolTask(dataset, linkSpec, paths), 0.5)
     }
 
     //Assert that no reference links are in the pool

@@ -27,9 +27,10 @@ object Global extends GlobalSettings {
     Plugins.register()
 
     // Load Workbench plugins
-    WorkbenchPlugins.register(DataPlugin())
+    WorkbenchPlugins.register(DatasetPlugin())
     WorkbenchPlugins.register(TransformPlugin())
     WorkbenchPlugins.register(LinkingPlugin())
+    //WorkbenchPlugins.register(WorkflowPlugin())
 
     pluginRoutes = WorkbenchPlugins().map(_.routes).reduce(_ ++ _)
     for((prefix, routes) <- pluginRoutes)

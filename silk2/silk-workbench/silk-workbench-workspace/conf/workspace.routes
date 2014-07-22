@@ -14,12 +14,9 @@ GET           /dialogs/importproject                           controllers.works
 GET           /dialogs/importlinkspec/:project                 controllers.workspace.Workspace.importLinkSpecDialog(project: String)
 GET           /dialogs/prefixes/:project                       controllers.workspace.Workspace.prefixDialog(project: String)
 GET           /dialogs/resources/:project                      controllers.workspace.Workspace.resourcesDialog(project: String)
-GET           /dialogs/newSource/:project                      controllers.workspace.Workspace.sourceDialog(project: String, source = "")
-GET           /dialogs/editSource/:project/:source             controllers.workspace.Workspace.sourceDialog(project: String, source: String)
-GET           /dialogs/editRestriction/:project/:source        controllers.workspace.Workspace.restrictionDialog(project: String, source: String, sourceOrTarget: String, restriction: String)
-GET           /dialogs/newOutput/:project                      controllers.workspace.Workspace.outputDialog(project: String, output = "")
-GET           /dialogs/editOutput/:project/:output             controllers.workspace.Workspace.outputDialog(project: String, output: String)
-
+GET           /dialogs/newDataset/:project                     controllers.workspace.Workspace.datasetDialog(project: String, task = "")
+GET           /dialogs/editDataset/:project/:task              controllers.workspace.Workspace.datasetDialog(project: String, task: String)
+GET           /dialogs/editRestriction/:project/:task          controllers.workspace.Workspace.restrictionDialog(project: String, task: String, sourceOrTarget: String, restriction: String)
 POST          /:project/importExample                          controllers.workspace.Workspace.importExample(project: String)
 
 ############################################################################################################################################
@@ -41,15 +38,11 @@ GET           /projects/:project/resources/:name               controllers.works
 PUT           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
 
-# Sources
-GET           /projects/:project/source/:source                controllers.workspace.WorkspaceApi.getSource(project: String, source: String)
-PUT           /projects/:project/source/:source                controllers.workspace.WorkspaceApi.putSource(project: String, source: String)
-DELETE        /projects/:project/source/:source                controllers.workspace.WorkspaceApi.deleteSource(project: String, source: String)
-
-# Outputs
-GET           /projects/:project/output/:output                controllers.workspace.WorkspaceApi.getOutput(project: String, output: String)
-PUT           /projects/:project/output/:output                controllers.workspace.WorkspaceApi.putOutput(project: String, output: String)
-DELETE        /projects/:project/output/:output                controllers.workspace.WorkspaceApi.deleteOutput(project: String, output: String)
+# Datasets
+GET           /projects/:project/dataset/:name                 controllers.workspace.WorkspaceApi.getDataset(project: String, name: String)
+PUT           /projects/:project/dataset/:name                 controllers.workspace.WorkspaceApi.putDataset(project: String, name: String)
+DELETE        /projects/:project/dataset/:name                 controllers.workspace.WorkspaceApi.deleteDataset(project: String, name: String)
 
 # Assests
 GET           /assets/*file                                    controllers.workspace.Assets.at(path="/public", file)
+

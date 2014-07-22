@@ -12,10 +12,10 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.writer
+package de.fuberlin.wiwiss.silk.plugins.dataset
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 /**
  * Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.

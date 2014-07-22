@@ -61,8 +61,8 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     override def properties(task: ModuleTask): Seq[(String, String)] = {
       val linkingTask = task.asInstanceOf[LinkingTask]
       Seq(
-        ("Source", linkingTask.linkSpec.datasets.source.sourceId.toString),
-        ("Target", linkingTask.linkSpec.datasets.target.sourceId.toString),
+        ("Source", linkingTask.linkSpec.datasets.source.datasetId.toString),
+        ("Target", linkingTask.linkSpec.datasets.target.datasetId.toString),
         ("Source dataset", linkingTask.linkSpec.datasets.source.restriction.toString),
         ("Target dataset", linkingTask.linkSpec.datasets.target.restriction.toString)
       )

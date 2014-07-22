@@ -14,12 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.dataset.{DatasetPlugin, Formatter}
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.output.{DataWriter, Formatter}
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
-import de.fuberlin.wiwiss.silk.plugins.datasource.{CsvDataSource, SparqlDataSource}
+import de.fuberlin.wiwiss.silk.plugins.dataset._
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._
 import de.fuberlin.wiwiss.silk.plugins.distance.equality._
@@ -35,7 +34,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.numeric._
 import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformer, ReplaceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import de.fuberlin.wiwiss.silk.plugins.writer._
 
 /**
  * Registers all default plugins.
@@ -46,9 +44,9 @@ object CorePlugins {
    * For performance reasons, this is done manually instead of using automatic classpath lookup.
    */
   def register() {
-    DataSource.register(classOf[SparqlDataSource])
-    DataSource.register(classOf[CsvDataSource])
-    //DataSource.register(classOf[CacheDataSource])
+    DatasetPlugin.register(classOf[SparqlDataset])
+    DatasetPlugin.register(classOf[CsvDataset])
+    //DatasetPlugin.register(classOf[CacheDataset])
 
     Transformer.register(classOf[ReplaceTransformer])
     Transformer.register(classOf[RegexReplaceTransformer])
@@ -122,10 +120,6 @@ object CorePlugins {
     Aggregator.register(classOf[MinimumAggregator])
     Aggregator.register(classOf[QuadraticMeanAggregator])
     Aggregator.register(classOf[GeometricMeanAggregator])
-
-    DataWriter.register(classOf[FileWriter])
-    DataWriter.register(classOf[SparqlWriter])
-    //LinkWriter.register(classOf[MemoryWriter])
 
     Formatter.register(classOf[NTriplesFormatter])
     Formatter.register(classOf[AlignmentFormatter])

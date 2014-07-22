@@ -3,13 +3,11 @@ package controllers.workspace
 import java.io.{ByteArrayOutputStream, FileInputStream}
 
 import de.fuberlin.wiwiss.silk.config._
-import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
 
@@ -100,20 +98,20 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
-  def getSource(projectName: String, sourceName: String) = Action {
+  def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[SourceTask](sourceName)
-    val sourceXml = task.source.toXML
+    val task = project.task[DatasetTask](sourceName)
+    val sourceXml = task.dataset.toXML
 
     Ok(sourceXml)
   }
 
-  def putSource(projectName: String, sourceName: String) = Action { implicit request => {
+  def putDataset(projectName: String, sourceName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = SourceTask(project, Source.fromXML(xml.head, project.resources))
+          val sourceTask = DatasetTask(project, Dataset.fromXML(xml.head, project.resources))
           project.updateTask(sourceTask)
           Ok
         } catch {
@@ -123,37 +121,8 @@ object WorkspaceApi extends Controller {
     }
   }}
 
-  def deleteSource(project: String, source: String) = Action {
-    User().workspace.project(project).removeTask[SourceTask](source)
-    Ok
-  }
-
-  def getOutput(projectName: String, outputName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.task[OutputTask](outputName)
-    val outputXml = task.output.toXML
-
-    Ok(outputXml)
-  }
-
-  def putOutput(projectName: String, output: String) = Action { implicit request => {
-    val project = User().workspace.project(projectName)
-    request.body.asXml match {
-      case Some(xml) => {
-        try {
-          val outputTask = OutputTask(Output.fromXML(xml.head, project.resources))
-          project.updateTask(outputTask)
-          Ok
-        } catch {
-          case ex: Exception => BadRequest(ex.getMessage)
-        }
-      }
-      case None => BadRequest("Expecting text/xml request body")
-    }
-  }}
-
-  def deleteOutput(project: String, output: String) = Action {
-    User().workspace.project(project).removeTask[OutputTask](output)
+  def deleteDataset(project: String, source: String) = Action {
+    User().workspace.project(project).removeTask[DatasetTask](source)
     Ok
   }
 }

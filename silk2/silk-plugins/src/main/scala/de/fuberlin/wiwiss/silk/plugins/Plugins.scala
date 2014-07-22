@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins
 
 import java.io.File
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
@@ -36,7 +36,7 @@ object Plugins {
   private def registerExternalPlugins(pluginsDir: File) {
     Timer("Registering external plugins") {
       if(pluginsDir.isDirectory) {
-        DataSource.registerJars(pluginsDir)
+        DatasetPlugin.registerJars(pluginsDir)
         Transformer.registerJars(pluginsDir)
         DistanceMeasure.registerJars(pluginsDir)
         Aggregator.registerJars(pluginsDir)

@@ -1,6 +1,6 @@
 package controllers.transform
 
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import play.api.mvc.{Controller, Action}
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -22,8 +22,8 @@ object EvaluateTransform extends Controller {
     // Create execution task
     val evaluateTransform =
       new EvaluateTransformTask(
-        source = project.task[SourceTask](task.dataset.sourceId).source,
-        dataset = task.dataset,
+        source = project.task[DatasetTask](task.dataSelection.datasetId).dataset,
+        dataSelection = task.dataSelection,
         rules = task.rules
       )
 

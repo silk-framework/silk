@@ -14,18 +14,19 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import xml.Node
-import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.util.Identifier
+
+import scala.xml.Node
 
 /**
  * Defines a dataset.
  *
- * @param sourceId The id of the source
+ * @param datasetId The id of the dataset
  * @param variable Each data item will be bound to this variable.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class Dataset(sourceId: Identifier, variable: String, restriction: SparqlRestriction) {
+case class DatasetSelection(datasetId: Identifier, variable: String, restriction: SparqlRestriction) {
   require(!variable.isEmpty, "Variable must be non-empty")
 
   /**
@@ -35,14 +36,14 @@ case class Dataset(sourceId: Identifier, variable: String, restriction: SparqlRe
    */
   def toXML(asSource: Boolean) = {
     if (asSource) {
-      <SourceDataset dataSource={sourceId} var={restriction.variable}>
+      <SourceDataset dataSource={datasetId} var={restriction.variable}>
         <RestrictTo>
           {restriction.toSparql}
         </RestrictTo>
       </SourceDataset>
     }
     else {
-      <TargetDataset dataSource={sourceId} var={restriction.variable}>
+      <TargetDataset dataSource={datasetId} var={restriction.variable}>
         <RestrictTo>
           {restriction.toSparql}
         </RestrictTo>
@@ -51,19 +52,19 @@ case class Dataset(sourceId: Identifier, variable: String, restriction: SparqlRe
   }
 }
 
-object Dataset {
+object DatasetSelection {
   /**
    * Creates a DatasetSpecification from XML.
    */
-  def fromXML(node: Node)(implicit prefixes: Prefixes): Dataset = {
+  def fromXML(node: Node)(implicit prefixes: Prefixes): DatasetSelection = {
     val variable = (node \ "@var").text
 
-    Dataset(
-      sourceId = (node \ "@dataSource").text,
+    DatasetSelection(
+      datasetId = (node \ "@dataSource").text,
       variable = variable,
       restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
     )
   }
 
-  def empty = Dataset(Identifier.random, "x", SparqlRestriction.empty)
+  def empty = DatasetSelection(Identifier.random, "x", SparqlRestriction.empty)
 }

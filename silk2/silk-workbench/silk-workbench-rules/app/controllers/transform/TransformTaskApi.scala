@@ -1,13 +1,12 @@
 package controllers.transform
 
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.config.Dataset
+import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, ValidationException}
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputTask
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import models.transform.CurrentExecuteTransformTask
@@ -24,7 +23,7 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val dataset = Dataset(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+    val dataset = DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
 
     proj.tasks[TransformTask].find(_.name == task) match {
       //Update existing task
@@ -42,7 +41,7 @@ object TransformTaskApi extends Controller {
   }}
 
   def deleteTransformTask(project: String, task: String) = Action {
-    User().workspace.project(project).removeTask(task)
+    User().workspace.project(project).removeTask[TransformTask](task)
     Ok
   }
 
@@ -148,13 +147,13 @@ object TransformTaskApi extends Controller {
     // Retrieve parameters
     val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val outputNames = params.get("outputs[]").toSeq.flatten
-    val outputs = outputNames.map(project.task[OutputTask](_).output)
+    val outputs = outputNames.map(project.task[DatasetTask](_).dataset)
 
     // Create execution task
     val executeTransformTask =
       new ExecuteTransform(
-        source = project.task[SourceTask](task.dataset.sourceId).source,
-        dataset= task.dataset,
+        input = project.task[DatasetTask](task.dataSelection.datasetId).dataset,
+        selection = task.dataSelection,
         rules = task.rules,
         outputs = outputs
       )

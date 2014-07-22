@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.jena
 
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import de.fuberlin.wiwiss.silk.datasource.DataSource
+import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.util.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
