@@ -40,6 +40,11 @@ sealed trait TaskStatus {
   def failed: Boolean = false
 
   /**
+   * True, if the task succeeded.
+   */
+  def succeeded = !isRunning && !failed
+
+  /**
    * The complete status message including the progress.
    */
   override def toString = message + " (" + "%3.1f".format(progress * 100.0) + "%)"

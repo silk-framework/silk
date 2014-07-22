@@ -15,11 +15,11 @@
   </fieldset>
 
   <fieldset>
-    <legend>Upload resource:</legend>
+    <legend>Upload input resource:</legend>
     <table border="0">
       <tr>
         <td>Name</td>
-        <td><input name="resource-name" title="New Resource Name" size="25" value="unnamed"/></td>
+        <td><input name="resource-name" title="Resource Name" size="25" value="unnamed"/></td>
       </tr>
       <tr>
         <td>File</td>
@@ -35,6 +35,21 @@
       </tr>
     </table>
   </fieldset>
+
+  <fieldset>
+    <legend>New output resource:</legend>
+      <table border="0">
+        <tr>
+          <td>Name</td>
+          <td><input name="newresource-name" title="New Resource Name" size="25" value="output"/></td>
+        </tr>
+        <tr>
+          <tr>
+            <td></td>
+            <td align="right"><button onclick="newResource()">Create</button></td>
+          </tr>
+      </table>
+    </fieldset>
 
   <button id="button-close" onclick="closeDialog()" >Close</button>
 
@@ -116,14 +131,14 @@
 
     // Downloads a resource
     function getResource(name) {
-      window.location = '@config.baseUrl/api/workspace/@project/resources/' + name
+      window.location = '@config.baseUrl/workspace/projects/@project/resources/' + name
     }
 
     // Deletes a resource
     function deleteResource(index, name) {
       $.ajax({
         type: 'DELETE',
-        url: '@config.baseUrl/api/workspace/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
         success: function(data) {
           $('#resource' + index).remove();
         },
@@ -157,6 +172,21 @@
         },
         error: function(request) {
           $('#icon-pending').hide();
+          alert(request.responseText);
+        }
+      });
+    }
+
+    // Creates a new resource
+    function newResource() {
+      var name = $("input[name='newresource-name']").val();
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        success: function() {
+          reloadDialog();
+        },
+        error: function(request) {
           alert(request.responseText);
         }
       });

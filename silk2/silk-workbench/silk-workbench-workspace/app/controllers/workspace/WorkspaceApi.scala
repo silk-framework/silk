@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import java.io.{ByteArrayOutputStream, FileInputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
 import de.fuberlin.wiwiss.silk.config._
 import de.fuberlin.wiwiss.silk.dataset.{Dataset}
@@ -87,7 +87,10 @@ object WorkspaceApi extends Controller {
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
         }
-      case None => BadRequest("No resource provided.")
+      case None =>
+        // Put empty resource
+        project.resources.put(resourceName, new ByteArrayInputStream(Array[Byte]()))
+        Ok
     }
   }}
 

@@ -14,15 +14,15 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import java.io.{BufferedWriter, File, Writer}
+import java.io.{OutputStreamWriter, FileOutputStream, BufferedWriter, Writer}
 
-import org.apache.jena.riot.{RDFLanguages, RDFDataMgr}
-import de.fuberlin.wiwiss.silk.dataset.{DatasetPlugin, Formatter, DataSink, DataSource}
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription, Path, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.util.sparql.{SparqlTypesCollector, EntityRetriever, SparqlAggregatePathsCollector}
 import com.hp.hpl.jena.query.DatasetFactory
-import de.fuberlin.wiwiss.silk.runtime.resource.Resource
+import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, DatasetPlugin, Formatter}
+import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
+import de.fuberlin.wiwiss.silk.runtime.resource.{FileResource, Resource}
+import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
+import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 
 @Plugin(
   id = "file",
@@ -37,15 +37,15 @@ import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 )
 case class FileDataset(file: Resource, format: String, graph: String = "") extends DatasetPlugin {
 
-  // Try to parse the format
-  private val lang = RDFLanguages.nameToLang(format)
-  require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
-
   override def source = FileSource
 
   override def sink = FileSink
 
   object FileSource extends DataSource {
+
+    // Try to parse the format
+    private val lang = RDFLanguages.nameToLang(format)
+    require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
 
     // Load dataset
     private var endpoint: JenaSparqlEndpoint = null
@@ -89,17 +89,18 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
 
   object FileSink extends DataSink {
 
-    private val formatter = Formatter(format)
+    private val formatter = Formatter(format.filter(_ != '-').toLowerCase)
+
+    private val javaFile = file match {
+      case f: FileResource => f.file
+      case _ => throw new IllegalArgumentException("Can only write to files, but got a resource of type " + file.getClass)
+    }
 
     private var out: Writer = null
 
     override def open() {
-      //Translate relative paths to absolute paths
-      val filePath = System.getProperty("user.home") + "/.silk/output/" + file.name
-      //Create parent directory
-      new File(filePath).getParentFile.mkdirs()
       //Create buffered writer
-      out = new BufferedWriter(new java.io.FileWriter(filePath))
+      out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
       //Write header
       out.write(formatter.header)
     }

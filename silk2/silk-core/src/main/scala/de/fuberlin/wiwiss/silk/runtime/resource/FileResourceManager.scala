@@ -82,7 +82,7 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 }
 
-private class FileResource(val name: String, file: File) extends Resource {
+class FileResource(val name: String, val file: File) extends Resource {
 
   override def load = {
     new BufferedInputStream(new FileInputStream(file))
