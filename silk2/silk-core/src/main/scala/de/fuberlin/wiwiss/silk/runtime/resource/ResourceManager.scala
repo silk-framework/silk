@@ -6,4 +6,6 @@ package de.fuberlin.wiwiss.silk.runtime.resource
 trait ResourceManager extends ResourceLoader with ResourceWriter {
 
   override def child(name: String): ResourceManager
+
+  override def parent: Option[ResourceManager]
 }

@@ -76,6 +76,10 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
     new FileResourceManager(new File(baseDir + "/" + name))
   }
 
+  override def parent: Option[ResourceManager] = {
+    for(parent <- Option(baseDir.getParentFile)) yield
+      new FileResourceManager(parent)
+  }
 }
 
 private class FileResource(val name: String, file: File) extends Resource {

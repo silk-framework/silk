@@ -22,4 +22,6 @@ trait ResourceLoader {
   def listChildren: List[String]
 
   def child(name: String): ResourceLoader
+
+  def parent: Option[ResourceLoader]
 }

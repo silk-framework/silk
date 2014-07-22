@@ -30,6 +30,13 @@ class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
   override def child(name: String): ResourceLoader = {
     new ClasspathResourceLoader(basePath + "/" + name)
   }
+
+  override def parent: Option[ResourceLoader] = {
+    if(basePath == "")
+      None
+    else
+      Some(new ClasspathResourceLoader(basePath.substring(0, basePath.lastIndexOf('/'))))
+  }
 }
 
 private class ClasspathResource(val name: String, path: String) extends Resource {
