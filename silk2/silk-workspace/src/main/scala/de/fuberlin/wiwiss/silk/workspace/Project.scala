@@ -102,6 +102,7 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
    * @tparam T The task type
    */
   def updateTask[T <: ModuleTask : ClassTag](task: T): Unit = {
+    // TODO assert that task name is unique
     module[T].update(task)
   }
 

@@ -1,19 +1,13 @@
 import java.io.File
 import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
+
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
 import play.api.Play.current
-import play.api.mvc.{Handler, RequestHeader}
-import play.api.mvc.Results._
-import play.api.{Application, GlobalSettings, Play}
-import play.core.Router.Routes
+import play.api.{Application, Play}
 import plugins.WorkbenchPlugins
 
-import scala.concurrent.Future
-
-object Global extends GlobalSettings {
-
-  private var pluginRoutes = Map[String, Routes]()
+object Global extends WorkbenchGlobal {
 
   override def beforeStart(app: Application) {
     // Configure logging
@@ -30,23 +24,9 @@ object Global extends GlobalSettings {
     WorkbenchPlugins.register(DatasetPlugin())
     WorkbenchPlugins.register(TransformPlugin())
     WorkbenchPlugins.register(LinkingPlugin())
-    //WorkbenchPlugins.register(WorkflowPlugin())
+    // WorkbenchPlugins.register(WorkflowPlugin())
 
-    pluginRoutes = WorkbenchPlugins().map(_.routes).reduce(_ ++ _)
-    for((prefix, routes) <- pluginRoutes)
-      routes.setPrefix(Routes.prefix + prefix + "/")
-  }
-
-  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-    val prefix = request.path.stripPrefix(Routes.prefix).takeWhile(_ != '/')
-    pluginRoutes.get(prefix) match {
-      case Some(routes) => routes.handlerFor(request)
-      case None => super.onRouteRequest(request)
-    }
-  }
-
-  override def onError(request: RequestHeader, ex: Throwable) = {
-    Future.successful(InternalServerError(ex.getMessage))
+    super.beforeStart(app)
   }
 
   private def configureLogging(app: Application) {

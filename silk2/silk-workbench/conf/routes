@@ -1,8 +1,7 @@
 # Welcome Page
-GET        /                 controllers.Start.index
 
 # Redirect call to individual modules
 ->         /core             core.Routes
 ->         /workspace        workspace.Routes
 
-# Plugin routes are handled automatically
+# Note: Plugin routes are handled automatically in the WorkbenchGlobal object

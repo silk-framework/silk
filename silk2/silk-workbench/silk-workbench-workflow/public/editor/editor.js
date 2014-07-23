@@ -19,8 +19,7 @@ var endpointSource = {
   connectorHoverStyle: connectorHoverStyle,
   connectorOverlays: [ [ "Arrow", { location: 1, width: 15, length: 15 } ] ],
   connector: [ "Flowchart", { stub: 10, cornerRadius: 5 } ],
-  isSource: true,
-  scope: "value"
+  isSource: true
 };
 
 var endpointTarget = {
@@ -32,7 +31,6 @@ var endpointTarget = {
   },
   connectorStyle: connectorStyle,
   isTarget: true,
-  scope: "value",
   maxConnections: -1
 };
 
@@ -41,14 +39,15 @@ var elementcounter = 0;
 $(function () {
 
   // Set jsPlumb default values
-  jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
   jsPlumb.setContainer("editorContent");
 
   // Make operators draggable
   $('.toolboxOperator').draggable({
     helper: function() {
-      var box = $(this).children('.operator,.database').clone(false);
-      box.attr("id", generateNewElementId());
+      var box = $(this).children('.operator,.dataset').clone(false);
+      // Generate a new id for the operator of the form operator_name
+      var boxId = $(this).attr('id');
+      box.attr('id', 'operator' + boxId.substring(boxId.indexOf("_")));
       box.show();
       return box;
     }
@@ -56,25 +55,31 @@ $(function () {
 
   $("#editorContent").droppable({
     drop: function (ev, ui) {
-      var id = ui.helper.attr('id');
+      // Check if we still need to add endpoints to the dropped element
+      if(jsPlumb.getEndpoints(ui.helper) === undefined) {
+        var id = ui.helper.attr('id');
 
-      // Add operator to editor contents
-      $.ui.ddmanager.current.cancelHelperRemoval = true;
-      ui.helper.appendTo(this);
+        // Hide operator in toolbox
+        ui.draggable.hide();
 
-      // Make operator draggable
-      jsPlumb.draggable(ui.helper);
+        // Add operator to editor contents
+        $.ui.ddmanager.current.cancelHelperRemoval = true;
+        ui.helper.appendTo(this);
 
-      // Add endpoints
-      jsPlumb.addEndpoint(id, endpointSource);
-      jsPlumb.addEndpoint(id, endpointTarget);
+        // Make operator draggable
+        jsPlumb.draggable(ui.helper);
+
+        // Add endpoints
+        jsPlumb.addEndpoint(id, endpointSource);
+        jsPlumb.addEndpoint(id, endpointTarget);
+      }
     }
   });
 
-//  // Delete connections on clicking them
-//  jsPlumb.bind("click", function(conn, originalEvent) {
-//    jsPlumb.detach(conn);
-//  });
+  // Delete connections on clicking them
+  jsPlumb.bind("click", function(conn, originalEvent) {
+    jsPlumb.detach(conn);
+  });
 
 //  // Update whenever a new connection has been established
 //  jsPlumb.bind("connection", function(info) {
@@ -95,15 +100,13 @@ $(function () {
 //  });
 });
 
-function generateNewElementId() {
-  elementcounter += 1;
-  return "operator_" + elementcounter;
-}
-
 function removeElement(elementId) {
   //We need to set a time-out here as a element should not remove its own parent in its event handler
   setTimeout(function() {
+    // Remove the elemenet from the workflow
     jsPlumb.removeAllEndpoints(elementId);
     $('#' + elementId).remove();
+    // Show the corresponding element in the toolbox again
+    $('#toolbox' + elementId.substring(elementId.indexOf("_"))).show();
   }, 100);
 }

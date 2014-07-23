@@ -73,43 +73,43 @@
 
 /* Dataset */
 
-.database {
+.dataset {
   position: absolute;
   width: 100px;
   height: 80px;
   z-index: 1;
 }
 
-.database-contents {
+.dataset-contents {
   width: 100px;
   height: 80px;
   position: absolute;
-  border-left: 1px solid #C354BF;
-  border-right: 1px solid #C354BF;
+  border-left: 1px solid #1484d4;
+  border-right: 1px solid #1484d4;
   background-color: white;
   cursor: move;
   text-align: center;;
   line-height: 80px;
 }
 
-.database-top {
+.dataset-top {
   border-radius: 50%;
   width: 100px;
   height: 30px;
   position: absolute;
   top: -15px;
-  border: 1px solid #C354BF;
+  border: 1px solid #1484d4;
   background-color: white;
   cursor: move;
 }
 
-.database-bottom {
+.dataset-bottom {
   border-radius: 50%;
   width: 100px;
   height: 30px;
   position: absolute;
   top: 65px;
-  border: 1px solid #C354BF;
+  border: 1px solid #1484d4;
   background-color: white;
 }
 

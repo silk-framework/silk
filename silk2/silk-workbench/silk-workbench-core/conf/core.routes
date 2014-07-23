@@ -1,4 +1,4 @@
-# Branding
+GET        /                    controllers.core.Start.index
 GET        /logo.png            controllers.core.Branding.logo
 GET        /aboutDialog         controllers.core.Branding.aboutDialog
 

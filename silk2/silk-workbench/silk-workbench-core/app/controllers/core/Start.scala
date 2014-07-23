@@ -1,4 +1,4 @@
-package controllers
+package controllers.core
 
 import config.WorkbenchConfig
 import play.api.mvc.{Action, Controller}

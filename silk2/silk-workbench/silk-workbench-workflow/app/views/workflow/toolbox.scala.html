@@ -1,6 +1,7 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project)
 
 @import plugins.WorkbenchPlugins
+@import de.fuberlin.wiwiss.silk.util.Identifier
 @import controllers.workflow.routes.Assets
 
 <div id="toolbox" style="height: 67.9px;">
@@ -16,11 +17,11 @@
 @**
  * A single operator in the toolbox.
  *@
-@toolboxOperator(name: String, icon: String, taskType: String, properties: Seq[(String, String)]) = {
-  <div class="toolboxOperator" title="@name">
+@toolboxOperator(name: Identifier, icon: String, taskType: String, properties: Seq[(String, String)]) = {
+  <div id="toolbox_@name" class="toolboxOperator" title="@name">
     @*<img src="@icon">*@
     @name
-    @if(taskType != "Source") {
+    @if(taskType != "Dataset") {
       @operator(name, icon, taskType, properties)
     } else {
       @dataset(name)
@@ -28,7 +29,7 @@
   </div>
 }
 
-@operator(name: String, icon: String, taskType: String, properties: Seq[(String, String)]) = {
+@operator(name: Identifier, icon: String, taskType: String, properties: Seq[(String, String)]) = {
   <div class="operator" style="display:none;" >
     <div class="operatorHeader">
       @*<img src="@icon">*@
@@ -49,12 +50,13 @@
   </div>
 }
 
-@dataset(name: String) = {
-  <div class="database" style="display: none">
-    <div class="database-bottom"></div>
-    <div class="database-contents">
+@dataset(name: Identifier) = {
+  <div class="dataset" style="display: none">
+    <div class="dataset-bottom"></div>
+    <div class="dataset-contents">
       @name
+      <img src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
     </div>
-    <div class="database-top"></div>
+    <div class="dataset-top"></div>
   </div>
 }

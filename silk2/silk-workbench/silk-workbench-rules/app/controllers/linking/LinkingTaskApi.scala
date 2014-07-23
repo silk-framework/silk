@@ -232,7 +232,7 @@ object LinkingTaskApi extends Controller {
 
     val generateLinksTask =
       new GenerateLinksTask(
-        datasets = project.tasks[DatasetTask].map(_.dataset),
+        inputs = project.tasks[DatasetTask].map(_.dataset),
         linkSpec = task.linkSpec,
         outputs = outputs,
         runtimeConfig = runtimeConfig

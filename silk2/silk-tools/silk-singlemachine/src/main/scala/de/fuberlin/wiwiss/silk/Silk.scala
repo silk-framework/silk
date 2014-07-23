@@ -123,7 +123,7 @@ object Silk {
    */
   private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
     new GenerateLinksTask(
-      datasets = config.sources,
+      inputs = config.sources,
       linkSpec = linkSpec,
       outputs = linkSpec.outputs ++ config.outputs,
       runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)

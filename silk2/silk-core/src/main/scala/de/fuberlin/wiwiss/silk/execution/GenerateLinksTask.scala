@@ -28,7 +28,7 @@ import de.fuberlin.wiwiss.silk.cache.{MemoryEntityCache, FileEntityCache}
 /**
  * Main task to generate links.
  */
-class GenerateLinksTask(datasets: Traversable[Dataset],
+class GenerateLinksTask(inputs: Traversable[Dataset],
                         linkSpec: LinkSpecification,
                         outputs: Traversable[Dataset] = Traversable.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
@@ -69,7 +69,7 @@ class GenerateLinksTask(datasets: Traversable[Dataset],
 
     warningLog = CollectLogs() {
       //Retrieve sources
-      val sourcePair = linkSpec.datasets.map(_.datasetId).map(id => datasets.find(_.id == id).get)
+      val sourcePair = linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).get)
 
       //Entity caches
       val caches = createCaches()

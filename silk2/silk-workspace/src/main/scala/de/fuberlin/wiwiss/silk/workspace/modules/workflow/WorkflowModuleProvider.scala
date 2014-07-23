@@ -13,7 +13,7 @@ class WorkflowModuleProvider extends ModuleProvider[WorkflowTask] {
    * Loads all tasks of this module.
    */
   override def loadTasks(resources: ResourceLoader, project: Project): Seq[WorkflowTask] = {
-    Seq(new WorkflowTask("workflow"))
+    Seq(new WorkflowTask("workflow", Nil))
   }
 
   /**
