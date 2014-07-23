@@ -32,7 +32,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource").getFile))
 
-  val source = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
+  val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDescCity =
     EntityDescription(
@@ -42,11 +42,11 @@ class FileDataSourceTest extends FlatSpec with Matchers {
     )
 
   "FileDataSource" should "return all cities" in {
-    source.retrieve(entityDescCity, Nil).size should equal (3)
+    dataset.source.retrieve(entityDescCity, Nil).size should equal (3)
   }
 
   "FileDataSource" should "return entities by uri" in {
-    source.retrieve(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
+    dataset.source.retrieve(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
   }
 
   val pathPlaces = Path.parse("?a/do:place/rdfs:label")
@@ -62,7 +62,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
       paths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
     )
 
-  val persons = source.retrieve(entityDescPerson, Nil).toList
+  val persons = dataset.source.retrieve(entityDescPerson, Nil).toList
 
   "FileDataSource" should "work with filters" in {
     persons.size should equal (1)

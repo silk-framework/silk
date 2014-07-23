@@ -1,5 +1,3 @@
-# Welcome Page
-
 # Redirect call to individual modules
 ->         /core             core.Routes
 ->         /workspace        workspace.Routes

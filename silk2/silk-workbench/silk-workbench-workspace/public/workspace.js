@@ -76,7 +76,20 @@ function putTask(path, xml) {
   });
 }
 
-function deleteTask(name, path) {
+function deleteTask(path) {
+  $.ajax({
+    type: 'DELETE',
+    url: path,
+    success: function(data) {
+      reloadWorkspace();
+    },
+    error: function(request) {
+      alert("Error deleting:" + request.responseText);
+    }
+  });
+}
+
+function deleteTaskConfirm(name, path) {
   var confirmDialog = document.createElement("div");
   $(confirmDialog).attr("title",'Delete')
       .attr("id",'dialog');
@@ -91,16 +104,7 @@ function deleteTask(name, path) {
     resizable: false,
     buttons: {
       "Yes, delete it": function() {
-        $.ajax({
-          type: 'DELETE',
-          url: path,
-          success: function(data) {
-            reloadWorkspace();
-          },
-          error: function(request) {
-            alert("Error deleting:" + request.responseText);
-          }
-        });
+        deleteTask(path);
         $(this).dialog("close");
       },
       "Cancel": function() {

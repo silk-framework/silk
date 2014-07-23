@@ -56,7 +56,7 @@
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
     }
     @for(path <- taskActions.delete(project.name, task.name)) {
-      @button("Remove", "Remove task", "cross.png", s"deleteTask('${task.name}', '${config.baseUrl}/$path')")
+      @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${task.name}', '${config.baseUrl}/$path')")
     }
     <ul>
       @for((key, value) <- taskActions.properties(task) if !value.isEmpty) {
