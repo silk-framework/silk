@@ -6,7 +6,7 @@ within different Linked Data sources. More information about Silk can be found o
 ## Requirements
 
 - JDK 7 or later
-- [Simple Build Tool](http://www.scala-sbt.org/)(sbt)
+- [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
 
 Downloading and installing sbt is not necessary as it is available from this directory. Depending on the operating system you may need to adapt the commands below to run it from the local directory, i.e., by using `./sbt` instead of `sbt`
 
