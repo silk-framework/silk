@@ -12,10 +12,10 @@ Downloading and installing sbt is not necessary as it is available from this dir
 
 ## Running the Silk Workbench
 
-- Execute: sbt "project workbench" run
+- Execute: `sbt "project workbench" run`
 - In your browser, navigate to 'http://localhost:9000'
 
 ## Packaging the Silk Workbench
 
-- Execute: sbt "project workbench" dist
+- Execute: `sbt "project workbench" dist`
 - The package should be available in the folder silk-workbench/target/universal
