@@ -1,4 +1,10 @@
-GET        /:project/:task/editor        controllers.workflow.Editor.editor(project: String, task: String)
+GET        /dialogs/:project/workflowDialog        controllers.workflow.Dialogs.workflowTaskDialog(project: String)
+
+GET        /:project/:task/editor                  controllers.workflow.Editor.editor(project: String, task: String)
+
+PUT        /workflows/:project/:task               controllers.workflow.WorkflowApi.workflow(project: String, task: String)
 
 # Assests
-GET        /assets/*file                 controllers.workflow.Assets.at(path="/public", file)
+GET        /assets/*file                           controllers.workflow.Assets.at(path="/public", file)
+
+

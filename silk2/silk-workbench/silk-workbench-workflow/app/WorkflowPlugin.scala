@@ -36,7 +36,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
-      None
+      Some(s"workflow/dialogs/$project/workflowDialog")
 
     /** The path to the dialog for editing an existing task. */
     override def editDialog(project: String, task: String) =

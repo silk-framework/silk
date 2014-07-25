@@ -3,8 +3,11 @@ package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask.WorkflowOperator
+
+import scala.xml.Node
 
 class WorkflowTask(val name: Identifier, val operators: Seq[WorkflowOperator]) extends ModuleTask {
 
@@ -13,11 +16,38 @@ class WorkflowTask(val name: Identifier, val operators: Seq[WorkflowOperator]) e
     executor()
   }
 
+  def toXML = {
+    <Workflow>{
+      for(op <- operators) yield {
+        <WorkflowOperator
+          posX={op.position._1.toString}
+          posY={op.position._2.toString}
+          task={op.task.name.toString}
+          inputs={op.inputs.mkString(",")}
+          outputs={op.outputs.mkString(",")} />
+      }
+    }</Workflow>
+  }
+
 }
 
 object WorkflowTask {
 
-  case class WorkflowOperator(inputs: Seq[String], task: ModuleTask, outputs: Seq[String])
+  def fromXML(name: Identifier, xml: Node, project: Project) = {
+    val operators =
+      for(op <- xml \ "WorkflowOperator") yield {
+        WorkflowOperator(
+          inputs = (op \ "@inputs").text.split(',').toSeq,
+          task = project.anyTask((op \ "@task").text),
+          outputs = (op \ "@outputs").text.split(',').toSeq,
+          position = ((op \ "@posX").text.toInt, (op \ "@posX").text.toInt)
+        )
+      }
+
+    new WorkflowTask(name, operators)
+  }
+
+  case class WorkflowOperator(inputs: Seq[String], task: ModuleTask, outputs: Seq[String], position: (Int, Int))
 
 }
 

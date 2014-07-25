@@ -95,6 +95,10 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
     module[T].task(taskName)
   }
 
+  def anyTask(taskName: Identifier): ModuleTask = {
+     modules.flatMap(_.taskOption(taskName)).head
+  }
+
   /**
    * Updates a task of a specific type.
    *

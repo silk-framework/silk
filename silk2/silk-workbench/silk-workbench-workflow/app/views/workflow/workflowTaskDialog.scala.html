@@ -1,0 +1,49 @@
+@(project: String, task: String)
+
+@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@workflowTask = @{ User().workspace.project(project).tasks[WorkflowTask].find(_.name == task) }
+
+@widgets.dialog(title = "Workflow Task") {
+  <table border="0">
+    @if(task.isEmpty) {
+      <tr>
+        <td>Name</td>
+        <td><input name="name" title="Name" size="60"/></td>
+      </tr>
+    }
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+}
+
+<script type="text/javascript">
+  function submit() {
+    var values = {
+      name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
+    };
+
+    if(values.name.length === 0) {
+      alert("Task name is empty.");
+      return;
+    }
+
+    $.ajax({
+      type: 'PUT',
+      url: '@config.baseUrl/workflow/workflows/@project/' + values.name,
+      contentType: 'text/xml',
+      processData: false,
+      data: "<Workflow></Workflow>",
+      success: function(data) {
+        closeDialog();
+        reloadWorkspace();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+</script>

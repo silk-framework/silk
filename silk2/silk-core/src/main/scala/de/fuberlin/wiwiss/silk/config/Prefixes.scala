@@ -41,6 +41,8 @@ class Prefixes(val prefixMap: Map[String, String]) {
   def resolve(name: String) =
     if(name.trim.isEmpty) {
       throw new ValidationException("Value cannot be empty.")
+    } else if (name.startsWith("http")) {
+      name
     } else if (name.startsWith("<") && name.endsWith(">")) {
       name.substring(1, name.length - 1)
     } else {

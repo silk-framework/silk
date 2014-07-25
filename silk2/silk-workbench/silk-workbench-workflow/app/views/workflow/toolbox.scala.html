@@ -1,6 +1,8 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project)
 
+@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 @import plugins.WorkbenchPlugins
+@import plugins.WorkbenchPlugin.TaskActions
 @import de.fuberlin.wiwiss.silk.util.Identifier
 @import controllers.workflow.routes.Assets
 
@@ -9,7 +11,7 @@
        taskActions <- plugin.tasks;
        task <- taskActions.projectTasks(project)) {
     <div>
-      @toolboxOperator(task.name, taskActions.icon, taskActions.name, taskActions.properties(task))
+      @toolboxOperator(task, taskActions)
     </div>
   }
 </div>
@@ -17,32 +19,35 @@
 @**
  * A single operator in the toolbox.
  *@
-@toolboxOperator(name: Identifier, icon: String, taskType: String, properties: Seq[(String, String)]) = {
-  <div id="toolbox_@name" class="toolboxOperator" title="@name">
+@toolboxOperator(task: ModuleTask, taskActions: TaskActions[_]) = {
+  <div id="toolbox_@task.name" class="toolboxOperator" title="@task.name">
     @*<img src="@icon">*@
-    @name
-    @if(taskType != "Dataset") {
-      @operator(name, icon, taskType, properties)
+    @task.name
+    @if(taskActions.name != "Dataset") {
+      @operator(task, taskActions)
     } else {
-      @dataset(name)
+      @dataset(task.name)
     }
   </div>
 }
 
-@operator(name: Identifier, icon: String, taskType: String, properties: Seq[(String, String)]) = {
+@operator(task: ModuleTask, taskActions: TaskActions[_]) = {
   <div class="operator" style="display:none;" >
     <div class="operatorHeader">
       @*<img src="@icon">*@
       <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
-        @name (@taskType)
+        @task.name (@taskActions.name)
       </div>
       <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      @for(path <- taskActions.open(project.name, task.name)) {
+        <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.location = '@config.baseUrl/@path'" />
+      }
     </div>
     <div class="operatorContent">
         name:
         <span class="label">id</span>
         <br/>
-        @for(((key, value), index) <- properties.zipWithIndex) {
+        @for(((key, value), index) <- taskActions.properties(task).zipWithIndex) {
             @if(index != 0) {<br/>}
             @key: @value
         }
