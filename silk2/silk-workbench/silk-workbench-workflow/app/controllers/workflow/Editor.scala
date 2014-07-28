@@ -8,6 +8,6 @@ object Editor extends Controller {
 
   def editor(project: String, task: String) = Action { request =>
     val context = Context.get[WorkflowTask](project, task, request.path)
-    Ok(views.html.workflow.editor(context))
+    Ok(views.html.workflow.editor.editor(context))
   }
 }

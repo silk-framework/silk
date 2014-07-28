@@ -55,6 +55,8 @@ object WorkbenchPlugin {
 
     /** Retrieves all tasks of this type from a project*/
     def projectTasks(project: Project) = project.tasks[T]
+
+    def isCompatible(task: ModuleTask) = task.getClass == implicitly[ClassTag[T]].runtimeClass
   }
 
   /**

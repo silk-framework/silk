@@ -1,3 +1,5 @@
+@import plugins.WorkbenchPlugins
+
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
 @import controllers.workflow.routes.Assets
@@ -10,6 +12,7 @@
   <script type="text/javascript" src="@Assets.at("libs/jquery.jsPlumb-1.6.2-min.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/editor.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/serializeWorkflow.js")"></script>
+  <script type="text/javascript" src="@Assets.at("editor/deserializeWorkflow.js")"></script>
 
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/workflow/workflows/@context.project.name/@context.task.name';
@@ -18,6 +21,9 @@
 
 @toolbar = {
   <ul>
+    <li>
+      <button onclick="loadWorkflow()" >Load</button>
+    </li>
     <li>
       <button onclick="commitWorkflow()" >Save</button>
     </li>
@@ -28,6 +34,12 @@
   @toolbox(context.project)
 
   <div id="editorContent">
+@*//    @for(op <- context.task.operators) {*@
+@*//      @operator(context.project, op.task, WorkbenchPlugins.findTaskActions(op.task), Some(op.position))*@
+@*//    }*@
+@*//    @for(ds <- context.task.datasets) {*@
+@*//      @dataset(ds.task.name, Some(ds.position))*@
+@*//    }*@
   </div>
 }
 

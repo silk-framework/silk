@@ -1,0 +1,13 @@
+@import de.fuberlin.wiwiss.silk.util.Identifier
+@import controllers.workflow.routes.Assets
+
+@(name: Identifier, pos: Option[(Int, Int)] = None)
+
+<div class="dataset" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">
+  <div class="dataset-bottom"></div>
+  <div class="dataset-contents">
+    @name
+    <img src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+  </div>
+  <div class="dataset-top"></div>
+</div>

@@ -6,10 +6,14 @@ import play.api.mvc.{Action, Controller}
 
 object WorkflowApi extends Controller {
 
-  def workflow(projectName: String, taskName: String) = Action { request =>
+  def getWorkflow(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val workflow = project.task[WorkflowTask](taskName)
 
-    println(request.body.asXml)
+    Ok(workflow.toXML)
+  }
 
+  def putWorkflow(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
     val workflow = WorkflowTask.fromXML(taskName, request.body.asXml.get.head, project)
     project.updateTask[WorkflowTask](workflow)
