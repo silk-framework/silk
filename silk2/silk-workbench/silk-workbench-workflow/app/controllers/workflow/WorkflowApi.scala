@@ -1,7 +1,8 @@
 package controllers.workflow
 
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.{WorkflowExecutor, WorkflowTask}
+import models.CurrentExecutionTask
 import play.api.mvc.{Action, Controller}
 
 object WorkflowApi extends Controller {
@@ -22,10 +23,16 @@ object WorkflowApi extends Controller {
   }
 
   def executeWorkflow(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val workflow = project.task[WorkflowTask](taskName)
-    workflow.execute(project)
+    if(CurrentExecutionTask().status.isRunning)
+      PreconditionFailed
+    else {
+      val project = User().workspace.project(projectName)
+      val workflow = project.task[WorkflowTask](taskName)
+      val executor = new WorkflowExecutor(workflow.operators, project)
 
-    Ok
+      CurrentExecutionTask() = executor()
+      CurrentExecutionTask().runInBackground()
+      Ok
+    }
   }
 }

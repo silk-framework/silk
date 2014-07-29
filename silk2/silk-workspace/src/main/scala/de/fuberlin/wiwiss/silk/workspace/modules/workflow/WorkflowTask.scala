@@ -12,11 +12,6 @@ class WorkflowTask(val name: Identifier,
                    val operators: Seq[WorkflowOperator],
                    val datasets: Seq[WorkflowDataset]) extends ModuleTask {
 
-  def execute(project: Project) = {
-    val executor = new WorkflowExecutor(operators, project)
-    executor()
-  }
-
   def toXML = {
     <Workflow>{
       for(op <- operators) yield {
