@@ -1,21 +1,40 @@
 /* Toolbox */
 
 #toolbox {
-  width: 220px;
   float: left;
+  margin-right: 10px;
+}
+
+#operatorToolbox,
+#datasetToolbox {
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border:1px solid #d9d9d9;
+  border-radius: 5px;
+}
+
+#operatorToolboxHeader,
+#datasetToolboxHeader {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 5px 5px 0 0;
+  border-bottom: 1px solid #D9D9D9;
 }
 
 .toolboxOperator {
   width: 200px;
   height: 13px;
   padding: 4px;
-  margin: 4px 4px 4px 0;
+  margin: 5px;
   text-align: left;
   cursor:move;
   font-size: 9pt;
   z-index:50;
   background-color: #d6eeff;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.1) inset;
+  border-radius: 4px;
 }
 
 /* Editor */

@@ -10,7 +10,7 @@ function commitWorkflow() {
     success: function(response) {
     },
     error: function(req) {
-      alert('Error committing rule: ' + req.responseText);
+      alert('Error committing workflow to backend: ' + req.responseText);
     }
   });
 }

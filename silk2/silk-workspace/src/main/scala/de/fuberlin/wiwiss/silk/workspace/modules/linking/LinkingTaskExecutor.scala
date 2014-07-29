@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.workspace.TaskExecutor
+import de.fuberlin.wiwiss.silk.workspace.modules.TaskExecutor
 
 class LinkingTaskExecutor extends TaskExecutor[LinkingTask] {
 

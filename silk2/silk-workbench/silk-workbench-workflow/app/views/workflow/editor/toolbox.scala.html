@@ -1,3 +1,4 @@
+
 @(project: de.fuberlin.wiwiss.silk.workspace.Project)
 
 @import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
@@ -7,13 +8,26 @@
 @import controllers.workflow.routes.Assets
 
 <div id="toolbox" style="height: 67.9px;">
-  @for(plugin <- WorkbenchPlugins();
-       taskActions <- plugin.tasks;
-       task <- taskActions.projectTasks(project)) {
-    <div>
-      @toolboxOperator(task, taskActions)
+  <div id="operatorToolbox">
+    <div id="operatorToolboxHeader">
+      Operators
     </div>
-  }
+    @for(plugin <- WorkbenchPlugins();
+         taskActions <- plugin.tasks if taskActions.name != "Dataset" && taskActions.name != "Workflow";
+         task <- taskActions.projectTasks(project)) {
+         @toolboxOperator(task, taskActions)
+    }
+  </div>
+  <div id="datasetToolbox">
+    <div id="datasetToolboxHeader">
+      Datasets
+    </div>
+    @for(plugin <- WorkbenchPlugins();
+        taskActions <- plugin.tasks if taskActions.name == "Dataset";
+        task <- taskActions.projectTasks(project)) {
+        @toolboxOperator(task, taskActions)
+    }
+  </div>
 </div>
 
 @**

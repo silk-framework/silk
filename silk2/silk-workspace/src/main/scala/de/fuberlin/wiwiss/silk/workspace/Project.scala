@@ -19,11 +19,11 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTaskExecutor, LinkingModuleProvider}
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModuleProvider
-import de.fuberlin.wiwiss.silk.workspace.modules.{Module, ModuleProvider, ModuleTask}
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModuleProvider, ModuleTask}
 import scala.reflect.ClassTag
 import scala.xml.XML
 
@@ -42,11 +42,17 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   @volatile
   private var modules = Seq[Module[_ <: ModuleTask]]()
 
+  @volatile
+  private var executors = Map[String, TaskExecutor[_ <: ModuleTask]]()
+
   // Register all default modules
   registerModule(new DatasetModuleProvider())
   registerModule(new LinkingModuleProvider())
   registerModule(new TransformModuleProvider())
   registerModule(new WorkflowModuleProvider())
+
+  registerExecutor(new LinkingTaskExecutor())
+  registerExecutor(new TransformTaskExecutor())
 
   /**
    * Reads the project configuration.
@@ -121,6 +127,13 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   }
 
   /**
+   * Retrieves an executor for a specific task.
+   */
+  def getExecutor(task: ModuleTask): Option[TaskExecutor[ModuleTask]] = {
+    executors.get(task.getClass.getName).map(_.asInstanceOf[TaskExecutor[ModuleTask]])
+  }
+
+  /**
    * Retrieves a module for a specific task type.
    *
    * @tparam T The task type
@@ -138,7 +151,15 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   /**
    * Registers a new module from a module provider.
    */
-  private def registerModule[T <: ModuleTask : ClassTag](provider: ModuleProvider[T]) = {
+  def registerModule[T <: ModuleTask : ClassTag](provider: ModuleProvider[T]) = {
     modules = modules :+ new Module(provider, resourceManager.child(provider.prefix), this)
+  }
+
+  /**
+   * Registers a new executor for a specific task type.
+   */
+  def registerExecutor[T <: ModuleTask : ClassTag](executor: TaskExecutor[T]) = {
+    val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
+    executors = executors.updated(taskClassName, executor)
   }
 }

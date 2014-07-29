@@ -1,8 +1,7 @@
-package de.fuberlin.wiwiss.silk.workspace
+package de.fuberlin.wiwiss.silk.workspace.modules
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.task.Task
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 
 trait TaskExecutor[T <: ModuleTask] {
 

@@ -20,4 +20,12 @@ object WorkflowApi extends Controller {
 
     Ok
   }
+
+  def executeWorkflow(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val workflow = project.task[WorkflowTask](taskName)
+    workflow.execute(project)
+
+    Ok
+  }
 }

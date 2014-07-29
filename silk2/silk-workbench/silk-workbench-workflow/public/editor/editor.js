@@ -35,12 +35,13 @@ var endpointTarget = {
   maxConnections: -1
 };
 
-var elementcounter = 0;
-
 $(function () {
 
   // Set jsPlumb default values
   jsPlumb.setContainer("editorContent");
+
+  // Load workflow from backend
+  loadWorkflow();
 
   // Make operators draggable
   $('.toolboxOperator').draggable({
@@ -54,6 +55,7 @@ $(function () {
     }
   });
 
+  // Handle dropped operators
   $("#editorContent").droppable({
     drop: function (ev, ui) {
       // Check if we still need to add endpoints to the dropped element
@@ -110,4 +112,16 @@ function removeElement(elementId) {
     // Show the corresponding element in the toolbox again
     $('#toolbox' + elementId.substring(elementId.indexOf("_"))).show();
   }, 100);
+}
+
+function executeWorkflow() {
+  $.ajax({
+    type: 'PUT',
+    url: apiUrl + "/execute",
+    success: function(response) {
+    },
+    error: function(req) {
+      alert('Error executing workflow: ' + req.responseText);
+    }
+  });
 }

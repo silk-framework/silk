@@ -9,7 +9,7 @@
 @header = {
   <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
 
-  <script type="text/javascript" src="@Assets.at("libs/jquery.jsPlumb-1.6.2.js")"></script>
+  <script type="text/javascript" src="@Assets.at("libs/jquery.jsPlumb-1.6.2-min.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/editor.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/serializeWorkflow.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/deserializeWorkflow.js")"></script>
@@ -22,10 +22,10 @@
 @toolbar = {
   <ul>
     <li>
-      <button onclick="loadWorkflow()" >Load</button>
+      <button onclick="commitWorkflow()" >Save</button>
     </li>
     <li>
-      <button onclick="commitWorkflow()" >Save</button>
+      <button onclick="executeWorkflow()" >Execute</button>
     </li>
   </ul>
 }

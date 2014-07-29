@@ -12,7 +12,9 @@ function loadWorkflow() {
 function deserializeWorkflow(xml) {
   // Retrieve the xml root element
   var xmlRoot = xml.children('Workflow');
+  // Find the editor contents to put the operators into
   var editorContent = $("#editorContent");
+  // Remember generated endpoints
   var sourceEndpoints = {};
   var targetEndpoints = {};
 
@@ -20,6 +22,7 @@ function deserializeWorkflow(xml) {
   jsPlumb.reset();
   editorContent.empty();
 
+  // Deserialize all datasets
   xmlRoot.find('Dataset').each(function() {
     var xml = $(this);
     var taskId = xml.attr('task');
@@ -41,6 +44,7 @@ function deserializeWorkflow(xml) {
     targetEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointTarget);
   });
 
+  // Deserialize all operators
   xmlRoot.find('Operator').each(function() {
     var xml = $(this);
     var taskId = xml.attr('task');
@@ -64,14 +68,13 @@ function deserializeWorkflow(xml) {
     // Connect endpoints
     $.each(xml.attr('inputs').split(','), function() {
       if(this != "") {
-        console.log("Adding: " + this + " | " + taskId);
         jsPlumb.connect({source: sourceEndpoints[this], target: targetEndpoints[taskId]});
       }
     });
-//    $.each(xml.attr('outputs').split(','), function() {
-//      if(this != "") {
-//        jsPlumb.connect({source: sourceEndpoints[taskId], target: targetEndpoints[this]});
-//      }
-//    });
+    $.each(xml.attr('outputs').split(','), function() {
+      if(this != "") {
+        jsPlumb.connect({source: sourceEndpoints[taskId], target: targetEndpoints[this]});
+      }
+    });
   });
 }
