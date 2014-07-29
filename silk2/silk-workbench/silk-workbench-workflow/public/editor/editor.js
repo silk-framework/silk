@@ -19,7 +19,8 @@ var endpointSource = {
   connectorHoverStyle: connectorHoverStyle,
   connectorOverlays: [ [ "Arrow", { location: 1, width: 15, length: 15 } ] ],
   connector: [ "Flowchart", { stub: 10, cornerRadius: 5 } ],
-  isSource: true
+  isSource: true,
+  maxConnections: -1
 };
 
 var endpointTarget = {

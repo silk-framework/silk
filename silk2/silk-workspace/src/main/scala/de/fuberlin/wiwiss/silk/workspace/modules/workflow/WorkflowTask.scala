@@ -50,7 +50,7 @@ object WorkflowTask {
           inputs = (op \ "@inputs").text.split(',').toSeq,
           task = project.anyTask((op \ "@task").text),
           outputs = (op \ "@outputs").text.split(',').toSeq,
-          position = ((op \ "@posX").text.toInt, (op \ "@posX").text.toInt)
+          position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt)
         )
       }
 
@@ -58,7 +58,7 @@ object WorkflowTask {
       for(ds <- xml \ "Dataset") yield {
         WorkflowDataset(
           task = project.task[DatasetTask]((ds \ "@task").text),
-          position = ((ds \ "@posX").text.toInt, (ds \ "@posX").text.toInt)
+          position = ((ds \ "@posX").text.toInt, (ds \ "@posY").text.toInt)
         )
       }
 
