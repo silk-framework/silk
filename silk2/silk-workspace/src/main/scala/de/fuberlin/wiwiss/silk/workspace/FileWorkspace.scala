@@ -34,7 +34,7 @@ class FileWorkspace(file : File) extends Workspace {
   override def createProject(name : Identifier) = {
     require(!projectList.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
-    val resourceManager = new FileResourceManager(file + "/" + name)
+    val resourceManager = new FileResourceManager(file + ("/" + name))
     val newProject = new Project(name, resourceManager)
     projectList ::= newProject
     newProject

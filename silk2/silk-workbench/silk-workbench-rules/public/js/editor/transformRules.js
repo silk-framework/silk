@@ -131,8 +131,22 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
 }
 
 function addRule() {
+  // Clone rule template
   var newRule = $("#ruleTemplate").children().clone();
   newRule.appendTo("#ruleContainer");
+
+  // Add autocompletion
+  newRule.find(".source").autocomplete({
+    source: apiUrl + "/sourcePathCompletions",
+    minLength: 0
+  }).focus(function() { $(this).autocomplete("search"); });
+
+  newRule.find(".target").autocomplete({
+    source: apiUrl + "/targetPathCompletions",
+    minLength: 0
+  }).focus(function() { $(this).autocomplete("search"); });
+
+  // Set modification flag
   modified();
 }
 

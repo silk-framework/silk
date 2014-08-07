@@ -6,9 +6,18 @@ import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 import scala.io.Source
 
-case class CsvSource(file: Resource, properties: String, separator: String = ",", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
+class CsvSource(file: Resource, properties: String, separator: String = ",", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
 
-  private val propertyList: Seq[String] = properties.split(',')
+  private lazy val propertyList: Seq[String] = {
+    if (!properties.trim.isEmpty)
+      properties.split(',')
+    else {
+      val source = Source.fromInputStream(file.load)
+      val firstLine = source.getLines().next()
+      source.close()
+      firstLine.split(separator)
+    }
+  }
 
   override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     for(property <- propertyList) yield {
@@ -30,12 +39,13 @@ case class CsvSource(file: Resource, properties: String, separator: String = ","
       def foreach[U](f: Entity => U) {
         val inputStream = file.load
         val source = Source.fromInputStream(inputStream)
+        val ignoreFirstLine = properties.trim.isEmpty
         try {
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
           // the rows.
           for {
-              (line, number) <- source.getLines.zipWithIndex
-                .filter(regexFilter.isEmpty || _._1.matches(regexFilter))
+              (line, number) <- source.getLines().zipWithIndex
+              if !(ignoreFirstLine && number == 0) && (regexFilter.isEmpty || line.matches(regexFilter))
           } {
 
             //Split the line into values

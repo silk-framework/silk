@@ -174,7 +174,7 @@ object TransformTaskApi extends Controller {
     var completions = Seq[String]()
 
     // Add known paths, use short notation for paths that only consist of a single property
-    if(task.cache.status.succeeded) {
+    if(task.cache.value != null) {
       val knownPaths = task.cache.value.paths
       val pathCompletions =
         for (path <- knownPaths) yield {
