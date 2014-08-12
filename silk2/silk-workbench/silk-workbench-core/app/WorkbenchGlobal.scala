@@ -20,6 +20,7 @@ trait WorkbenchGlobal extends GlobalSettings {
     pluginRoutes = WorkbenchPlugins().map(_.routes).reduce(_ ++ _)
     for((prefix, routes) <- pluginRoutes)
       routes.setPrefix(context + prefix + "/")
+    pluginRoutes = pluginRoutes.updated("core", core.Routes)
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
@@ -30,7 +31,9 @@ trait WorkbenchGlobal extends GlobalSettings {
     // Route to registered modules
     val prefix = request.path.stripPrefix(context).takeWhile(_ != '/')
     pluginRoutes.get(prefix) match {
-      case Some(routes) => routes.handlerFor(request)
+      case Some(routes) => {
+        routes.handlerFor(request)
+      }
       case None => super.onRouteRequest(request)
     }
   }
