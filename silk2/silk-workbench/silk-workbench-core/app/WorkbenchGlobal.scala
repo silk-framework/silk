@@ -18,22 +18,20 @@ trait WorkbenchGlobal extends GlobalSettings {
     context = app.configuration.getString("application.context").getOrElse("/")
     // Collect plugin routes
     pluginRoutes = WorkbenchPlugins().map(_.routes).reduce(_ ++ _)
-    for((prefix, routes) <- pluginRoutes)
-      routes.setPrefix(context + prefix + "/")
     pluginRoutes = pluginRoutes.updated("core", core.Routes)
+    for((prefix, routes) <- pluginRoutes if !(prefix == "core" && context != "/"))
+      routes.setPrefix(context + prefix + "/")
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     // Route to start page
     if(request.path == context)
-      return core.Routes.handlerFor(request.copy(path = context + "core"))
+      return core.Routes.handlerFor(request.copy(path = context + "core/"))
 
     // Route to registered modules
     val prefix = request.path.stripPrefix(context).takeWhile(_ != '/')
     pluginRoutes.get(prefix) match {
-      case Some(routes) => {
-        routes.handlerFor(request)
-      }
+      case Some(routes) => routes.handlerFor(request)
       case None => super.onRouteRequest(request)
     }
   }
