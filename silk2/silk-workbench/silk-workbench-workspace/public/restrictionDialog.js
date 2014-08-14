@@ -4,7 +4,7 @@ $(function() {
   $("button").button();
 });
 
-function commitSimpleRestriction() {
+function commitSimpleRestriction(sourceVar, targetVar) {
   var sparql =
       $(".type.selected").map(function() {
         // Retrieve type name
@@ -16,9 +16,9 @@ function commitSimpleRestriction() {
         // Determine variable
         var variable;
         if(sourceOrTarget == "source")
-          variable = '@Constants.SourceVariable';
+          variable = sourceVar;
         else
-          variable = '@Constants.TargetVariable';
+          variable = targetVar;
         // Return SPARQL pattern
         return "{ ?" + variable + " a " + name + " }";
       }).toArray().join("\n UNION \n");
