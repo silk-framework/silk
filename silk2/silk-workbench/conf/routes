@@ -1,1 +1,3 @@
 # Note: Plugin routes are handled automatically in the WorkbenchGlobal object
+
+->         /workspace        workspace.Routes

@@ -1,0 +1,30 @@
+.description {
+  padding-bottom: 10px;
+}
+
+#typelist {
+  width: 500px;
+  height: 300px;
+  border: 1px solid black;
+  overflow-y: scroll;
+}
+
+.type {
+  float: left;
+  height: 20px;
+  margin: 10px;
+  padding: 5px;
+  background-color: #eeeeee;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #a0a0a0;
+}
+
+.type:hover {
+  background-color: #d0d0d0;
+  cursor: pointer;
+}
+
+.selected {
+  background-color: #a0eea0;
+}
