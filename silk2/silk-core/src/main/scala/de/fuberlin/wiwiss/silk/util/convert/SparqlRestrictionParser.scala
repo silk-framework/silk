@@ -30,9 +30,18 @@ import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Or, Condition, And}
 class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers {
 
   def apply(sparqlRestriction: SparqlRestriction): Restriction = {
-    parseAll(parser, new CharSequenceReader(sparqlRestriction.toString)) match {
-      case Success(parsedPath, _) => parsedPath
-      case error: NoSuccess => throw new ValidationException(error.toString)
+    // Check if pattern is empty
+    val ignored = ".{}".toSet
+    val isEmpty = sparqlRestriction.toString.filterNot(ignored).trim.isEmpty
+    if(isEmpty) {
+      // Pattern is empty
+      Restriction.empty
+    } else {
+      // Parse nonempty pattern
+      parseAll(parser, new CharSequenceReader(sparqlRestriction.toString)) match {
+        case Success(parsedPath, _) => parsedPath
+        case error: NoSuccess => throw new ValidationException(error.toString)
+      }
     }
   }
 
