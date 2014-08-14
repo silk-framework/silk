@@ -36,7 +36,7 @@ function exportProject(project) {
 }
 
 function deleteProject(project) {
-  deleteTask(baseUrl + '/workspace/projects/' + project);
+  deleteTaskConfirm(project, baseUrl + '/workspace/projects/' + project);
 }
 
 function editPrefixes(project) {
