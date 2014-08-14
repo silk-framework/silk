@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset
 
-import java.io.{OutputStreamWriter, Writer}
+import java.io.{IOException, OutputStreamWriter, Writer}
 import java.net._
 import java.util.logging.{Level, Logger}
 
@@ -174,7 +174,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
     private def openConnection() {
       //Preconditions
-      require(connection == null, "Connectiom already openend")
+      require(connection == null, "Connection already opened")
 
       //Set authentication
       for ((user, password) <- loginComplete) {
@@ -190,7 +190,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
       connection.setDoOutput(true)
       connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
       writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
-      statements = 0;
+      statements = 0
 
       writer.write("query=")
     }
@@ -207,10 +207,10 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
         val errorStream = connection.getErrorStream
         if (errorStream != null) {
           val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-          log.warning("SPARQL/Update query on " + endpointURI + " failed. Error Message: '" + errorMessage + "'.")
+          throw new IOException("SPARQL/Update query on " + endpointURI + " failed. Error Message: '" + errorMessage + "'.")
         }
         else {
-          log.warning("SPARQL/Update query on " + endpointURI + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ".")
+          throw new IOException("SPARQL/Update query on " + endpointURI + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ".")
         }
       }
 
