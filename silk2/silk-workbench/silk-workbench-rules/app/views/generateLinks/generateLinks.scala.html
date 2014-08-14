@@ -75,7 +75,7 @@
 
       $.ajax({
         type: 'DELETE',
-        url: '@config.baseUrl/api/tasks/@context.project.name/@context.task.name/generateLinks',
+        url: '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/generateLinks',
         success: function(response) {
           $("button[name='start']").button("option", "disabled", false);
           $("button[name='stop']").button("option", "disabled", true);
