@@ -7,6 +7,6 @@
 }
 
 #welcome {
-  background: url('/core/logo.png') no-repeat right top;
+  background: url('../logo.png') no-repeat right top;
   margin-right: 50px;
 }
