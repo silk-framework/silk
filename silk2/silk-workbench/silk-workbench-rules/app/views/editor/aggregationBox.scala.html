@@ -6,7 +6,7 @@
 
 @operatorBox("Aggregate", id, plugin, parameters, x, y, display) {
     required:
-    <input type="checkbox" name="required" value="@required"/>
+    <input type="checkbox" name="required"  @if(required) {checked="checked"}/>
     <br/>
     weight:
     <input type="text" name="weight" size="2" value="@weight"/>

@@ -97,7 +97,7 @@ function parseOperator(xmlDoc, elementId, connections) {
 
   for (var l = 0; l < params.length; l++) {
     if ($(params[l]).attr("name") == "required") {
-      if (($(elementIdName+" > div.content > input[name=required]:checked").val()) == "on") {
+      if ($(params[l]).is(':checked')) {
         xml.setAttribute("required", "true");
       } else {
         xml.setAttribute("required", "false");
