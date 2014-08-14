@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils._
   label = "LowerThan",
   description = "Return 1 if the source value is lower than the target " +
   "value, 0 otherwise. If both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used")
-case class LowerThanMetric(orEqual: Boolean) extends SimpleDistanceMeasure {
+case class LowerThanMetric(orEqual: Boolean = false) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     if(orEqual) {
