@@ -4,16 +4,32 @@ import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
-import scala.xml.{NodeSeq, XML}
+import scala.xml.{Node, NodeSeq, XML}
 
-class XmlSource(file: Resource, basePath: String) extends DataSource {
+class XmlSource(file: Resource, basePath: String, uriPrefix: String) extends DataSource {
 
   override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
    // At the moment we just generate paths from the first xml node that is found
    val xml = loadXmlNodes().head
-   for(child <- xml.child) yield {
-     (Path(restriction.variable, ForwardOperator("<" + child.label + ">") :: Nil), 1.0)
+   for(path <- collectPaths(Nil, xml)) yield {
+     (Path(restriction.variable, path.tail.toList), 1.0)
    }
+  }
+
+  /**
+   * Collects all direct and indirect paths from an xml node
+   * @param prefix Path prefix to be prepended to all found paths
+   * @param node The xml node to search paths in
+   * @return Sequence of all found paths
+   */
+  private def collectPaths(prefix: Seq[PathOperator], node: Node): Seq[Seq[PathOperator]] = {
+    // Generate a path from the xml node itself
+    val path = prefix :+ ForwardOperator(node.label)
+    // Generate paths for all children nodes
+    val childNodes = node \ "_"
+    val childPaths = childNodes.flatMap(child => collectPaths(path, child))
+    // We only want to generate paths for leave nodes
+    if(childPaths.isEmpty) Seq(path) else childPaths
   }
 
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
@@ -46,9 +62,9 @@ class XmlSource(file: Resource, basePath: String) extends DataSource {
   private class Entities(xml: NodeSeq, entityDesc: EntityDescription) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
-      for(node <- xml) {
+      for((node, index) <- xml.zipWithIndex) {
          val values = for(path <- entityDesc.paths) yield evaluatePath(node, path)
-         f(new Entity(node.label, values, entityDesc))
+         f(new Entity(uriPrefix + node.label + index, values, entityDesc))
       }
     }
 

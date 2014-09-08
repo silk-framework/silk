@@ -23,7 +23,7 @@ $(function() {
   });
 
   // Listen to modifications
-  $(document).on('keyup', "input", function() {
+  $(document).on('input', "input", function() {
     modified();
   });
 
