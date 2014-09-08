@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.dataset
+package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._

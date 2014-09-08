@@ -21,7 +21,7 @@ import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.input.Input
 import de.fuberlin.wiwiss.silk.testutil.approximatelyEqualTo
 

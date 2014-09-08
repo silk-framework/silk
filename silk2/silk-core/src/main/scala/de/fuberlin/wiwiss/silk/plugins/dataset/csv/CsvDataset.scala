@@ -1,6 +1,6 @@
-package de.fuberlin.wiwiss.silk.plugins.dataset
+package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
-import de.fuberlin.wiwiss.silk.dataset.{DataSource, DataSink, DatasetPlugin}
+import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, DatasetPlugin}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 

@@ -57,8 +57,6 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
     private val entityUris = Option(entityList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
-
-
     override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
       val entityRetriever =
         if(parallel)

@@ -1,0 +1,12 @@
+<Persons>
+  <Person>
+    <Name>Max Doe</Name>
+    <Events>
+      <Birth>May 1900</Birth>
+      <Death>June 1990</Death>
+    </Events>
+  </Person>
+  <Person>
+    <Name>Max Noe</Name>
+  </Person>
+</Persons>
