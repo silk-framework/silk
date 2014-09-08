@@ -1,5 +1,6 @@
 <Persons>
   <Person>
+    <ID>1</ID>
     <Name>Max Doe</Name>
     <Events>
       <Birth>May 1900</Birth>
@@ -7,6 +8,7 @@
     </Events>
   </Person>
   <Person>
+    <ID>2</ID>
     <Name>Max Noe</Name>
   </Person>
 </Persons>
