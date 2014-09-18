@@ -14,23 +14,23 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import java.util.logging.LogRecord
-import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
-import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import java.io.File
-import de.fuberlin.wiwiss.silk.util.FileUtils._
+import java.util.logging.LogRecord
+
+import de.fuberlin.wiwiss.silk.cache.{FileEntityCache, MemoryEntityCache}
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
+import de.fuberlin.wiwiss.silk.dataset.{Dataset,DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
-import de.fuberlin.wiwiss.silk.cache.{MemoryEntityCache, FileEntityCache}
+import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.util.FileUtils._
+import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 
 /**
  * Main task to generate links.
  */
-class GenerateLinksTask(inputs: Traversable[Dataset],
+class GenerateLinksTask(inputs: DPair[DataSource],
                         linkSpec: LinkSpecification,
-                        outputs: Traversable[Dataset] = Traversable.empty,
+                        outputs: Seq[DataSink] = Seq.empty,
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
 
   statusLogLevel = runtimeConfig.logLevel
@@ -68,14 +68,11 @@ class GenerateLinksTask(inputs: Traversable[Dataset],
     value.update(Seq.empty)
 
     warningLog = CollectLogs() {
-      //Retrieve sources
-      val sourcePair = linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).get)
-
       //Entity caches
       val caches = createCaches()
 
       //Create tasks
-      loadTask = new LoadTask(sourcePair, caches)
+      loadTask = new LoadTask(inputs, caches)
       matchTask = new MatchTask(linkSpec.rule, caches, runtimeConfig)
 
       //Load entities
@@ -126,5 +123,15 @@ class GenerateLinksTask(inputs: Traversable[Dataset],
 }
 
 object GenerateLinksTask {
-  def empty = new GenerateLinksTask(Traversable.empty, LinkSpecification())
+
+  def fromSources(inputs: Traversable[Dataset],
+                  linkSpec: LinkSpecification,
+                  outputs: Seq[Dataset] = Seq.empty,
+                  runtimeConfig: RuntimeConfig = RuntimeConfig()) = {
+    val sourcePair = DPair.fromSeq(linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).get.source))
+    val sinks = outputs.map(_.sink)
+    new GenerateLinksTask(sourcePair, linkSpec, sinks, runtimeConfig)
+  }
+
+  def empty = new GenerateLinksTask(DPair.empty, LinkSpecification())
 }

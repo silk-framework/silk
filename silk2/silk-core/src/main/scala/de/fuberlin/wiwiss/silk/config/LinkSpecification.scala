@@ -31,7 +31,7 @@ import scala.xml.Node
 case class LinkSpecification(id: Identifier = Identifier.random,
                              datasets: DPair[DatasetSelection] = DPair.fill(DatasetSelection.empty),
                              rule: LinkageRule = LinkageRule(),
-                             outputs: Traversable[Dataset] = Traversable.empty) {
+                             outputs: Seq[Dataset] = Seq.empty) {
   /**
    * Serializes this Link Specification as XML.
    */

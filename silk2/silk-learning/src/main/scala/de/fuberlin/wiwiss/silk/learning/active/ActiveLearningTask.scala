@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource}
 import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
@@ -31,14 +31,14 @@ import math.max
 
 //TODO support canceling
 class ActiveLearningTask(config: LearningConfiguration,
-                         dataset: Traversable[Dataset],
+                         datasets: DPair[DataSource],
                          linkSpec: LinkSpecification,
                          paths: DPair[Seq[Path]],
                          referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                          var pool: Traversable[Link] = Traversable.empty,
                          var population: Population = Population.empty) extends ValueTask[Seq[Link]](Seq.empty) {
 
-  def isEmpty = dataset.isEmpty
+  def isEmpty = datasets.isEmpty
 
   def links = value.get
 
@@ -74,7 +74,7 @@ class ActiveLearningTask(config: LearningConfiguration,
     //Build unlabeled pool
     if(pool.isEmpty) {
       updateStatus("Loading")
-      pool = executeSubTask(new GeneratePoolTask(dataset, linkSpec, paths), 0.5)
+      pool = executeSubTask(new GeneratePoolTask(datasets, linkSpec, paths), 0.5)
     }
 
     //Assert that no reference links are in the pool
@@ -118,5 +118,5 @@ class ActiveLearningTask(config: LearningConfiguration,
 }
 
 object ActiveLearningTask {
-  def empty = new ActiveLearningTask(LearningConfiguration.default, Traversable.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
+  def empty = new ActiveLearningTask(LearningConfiguration.default, DPair.empty, LinkSpecification(), DPair.fill(Seq.empty), ReferenceEntities.empty)
 }

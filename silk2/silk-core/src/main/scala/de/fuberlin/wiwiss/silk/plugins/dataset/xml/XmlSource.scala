@@ -8,7 +8,9 @@ import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 import scala.xml.{Node, NodeSeq, XML}
 
-class XmlSource(file: Resource, basePath: String, uriPrefix: String, idPath: String) extends DataSource {
+class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource {
+
+  val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
    // At the moment we just generate paths from the first xml node that is found
@@ -69,12 +71,15 @@ class XmlSource(file: Resource, basePath: String, uriPrefix: String, idPath: Str
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for((node, index) <- xml.zipWithIndex) {
-         val uri =
-           if(idPath.isEmpty)
-             uriPrefix + node.label + index
-           else
-             uriPrefix + URLEncoder.encode(evaluateXPath(node, idPath).text, "UTF8")
-         val values = for(path <- entityDesc.paths) yield evaluateSilkPath(node, path)
+        val uri =
+          if(uriPattern.isEmpty)
+            node.label + index
+          else
+            uriRegex.replaceAllIn(uriPattern, m =>
+              URLEncoder.encode(evaluateXPath(node, m.group(1)).text, "UTF8")
+            )
+
+        val values = for(path <- entityDesc.paths) yield evaluateSilkPath(node, path)
          f(new Entity(uri, values, entityDesc))
       }
     }

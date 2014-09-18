@@ -19,10 +19,7 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
    * Cache all tasks of this module in memory.
    */
   @volatile
-  private var cachedTasks : Map[Identifier, TaskType] = {
-    val tasks = provider.loadTasks(resourceMgr, project)
-    tasks.map(task => (task.name, task)).toMap
-  }
+  private var cachedTasks : Map[Identifier, TaskType] = null
 
   /**
    * Remember which tasks have been updated, but have not been written yet.
@@ -39,18 +36,28 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
   // Start a background writing thread
   WriteThread.start()
 
+  def loadTasks() = {
+    if(cachedTasks == null) {
+      cachedTasks = {
+        val tasks = provider.loadTasks(resourceMgr, project)
+        tasks.map(task => (task.name, task)).toMap
+      }
+    }
+  }
+
   def hasTaskType[T <: ModuleTask : ClassTag]: Boolean = {
     implicitly[ClassTag[T]].runtimeClass == implicitly[ClassTag[TaskType]].runtimeClass
   }
 
-  def printProvider() {
-    println("PROVIDER: " + provider.getClass)
+  def taskType: String = {
+    implicitly[ClassTag[TaskType]].runtimeClass.getName
   }
 
   /**
    * Retrieves all tasks in this module.
    */
   def tasks: Seq[TaskType] = {
+    loadTasks()
     cachedTasks.values.toSeq
   }
 
@@ -60,10 +67,12 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
   def task(name: Identifier): TaskType = {
+    loadTasks()
     cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' not found in ${project.name}"))
   }
 
   def taskOption(name: Identifier): Option[TaskType] = {
+    loadTasks()
     cachedTasks.get(name)
   }
 
@@ -71,6 +80,7 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
    * Updates a specific task.
    */
   def update(task : TaskType) {
+    loadTasks()
     cachedTasks += (task.name -> task)
     updatedTasks += (task.name -> task)
     lastUpdateTime = System.currentTimeMillis
@@ -84,6 +94,7 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
   def remove(taskId : Identifier) {
     provider.removeTask(taskId, resourceMgr)
 
+    loadTasks()
     cachedTasks -= taskId
     updatedTasks -= taskId
 

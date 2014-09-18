@@ -31,6 +31,7 @@ case class DPair[+T](source: T, target: T) {
  * Provides a number of functions to create pairs and to convert them from/to standard Scala classes.
  */
 object DPair {
+
   /**
    * Creates a DPair from a Scala Pair.
    */
@@ -54,4 +55,6 @@ object DPair {
   def fill[T](f: => T) = DPair(f, f)
 
   def generate[T](f: Boolean => T) = DPair(f(true), f(false))
+
+  def empty = DPair[Null](null, null)
 }

@@ -32,7 +32,7 @@ case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeConfig,
                          sources: Traversable[Dataset],
                          linkSpecs: Traversable[LinkSpecification],
-                         outputs: Traversable[Dataset] = Traversable.empty) {
+                         outputs: Seq[Dataset] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap

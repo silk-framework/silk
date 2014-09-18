@@ -44,8 +44,8 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
     def executeOperator(operator: WorkflowOperator) = {
       log.info("Executing " + operator.task.name)
 
-      val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset)
-      val outputs = operator.outputs.map(id => project.task[DatasetTask](id).dataset)
+      val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset.source)
+      val outputs = operator.outputs.map(id => project.task[DatasetTask](id).dataset.sink)
 
       val taskExecutor = project.getExecutor(operator.task)
           .getOrElse(throw new Exception("Cannot execute task " + operator.task.name))

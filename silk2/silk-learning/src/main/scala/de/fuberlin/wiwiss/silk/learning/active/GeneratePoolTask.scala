@@ -21,14 +21,14 @@ import util.Random
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Path, Index, Entity, Link}
 import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 
-private class GeneratePoolTask(datasets: Traversable[Dataset],
+private class GeneratePoolTask(inputs: Seq[DataSource],
                                linkSpec: LinkSpecification,
                                paths: DPair[Seq[Path]]) extends ValueTask[Seq[Link]](Seq.empty) {
 
@@ -43,7 +43,7 @@ private class GeneratePoolTask(datasets: Traversable[Dataset],
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
     generateLinksTask =
-      new GenerateLinksTask(datasets, linkSpec2, Traversable.empty, runtimeConfig) {
+      new GenerateLinksTask(inputs, linkSpec2, Seq.empty, runtimeConfig) {
         override def entityDescs = entityDesc
       }
 

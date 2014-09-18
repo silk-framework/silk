@@ -122,7 +122,7 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    new GenerateLinksTask(
+    GenerateLinksTask.fromSources(
       inputs = config.sources,
       linkSpec = linkSpec,
       outputs = linkSpec.outputs ++ config.outputs,

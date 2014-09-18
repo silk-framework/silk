@@ -144,7 +144,7 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
       case Some(m) => m.asInstanceOf[Module[T]]
       case None =>
         val className = implicitly[ClassTag[T]].runtimeClass.getName
-        throw new NoSuchElementException(s"No module for task type $className has been registered.")
+        throw new NoSuchElementException(s"No module for task type $className has been registered. ${modules.size} Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 

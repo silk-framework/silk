@@ -231,7 +231,7 @@ object LinkingTaskApi extends Controller {
     val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
 
     val generateLinksTask =
-      new GenerateLinksTask(
+      GenerateLinksTask.fromSources(
         inputs = project.tasks[DatasetTask].map(_.dataset),
         linkSpec = task.linkSpec,
         outputs = outputs,
@@ -286,12 +286,13 @@ object LinkingTaskApi extends Controller {
   def activeLearningTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkingTask](taskName)
+    val datasets = project.tasks[DatasetTask].map(_.dataset)
 
     //Start active learning task
     val activeLearningTask =
       new ActiveLearningTask(
         config = CurrentConfiguration(),
-        dataset = project.tasks[DatasetTask].map(_.dataset),
+        datasets = DPair.fromSeq(task.linkSpec.datasets.map(ds => datasets.find(_.id == ds.datasetId).get.source)),
         linkSpec = task.linkSpec,
         paths = task.cache.entityDescs.map(_.paths),
         referenceEntities = task.cache.entities,

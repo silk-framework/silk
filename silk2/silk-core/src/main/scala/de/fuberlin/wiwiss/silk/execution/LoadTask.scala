@@ -15,16 +15,15 @@
 package de.fuberlin.wiwiss.silk.execution
 
 import java.util.logging.Level
-
 import de.fuberlin.wiwiss.silk.cache.EntityCache
-import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.runtime.task.{Future, Task, TaskFinished}
 import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
  * Loads the entity cache
  */
-class LoadTask(datasets: DPair[Dataset],
+class LoadTask(sources: DPair[DataSource],
                caches: DPair[EntityCache]) extends Task[Unit] {
 
   taskName = "Loading"
@@ -80,15 +79,15 @@ class LoadTask(datasets: DPair[Dataset],
   }
 
   class LoadingThread(selectSource: Boolean) extends Thread {
-    private val dataset = datasets.select(selectSource)
+    private val source = sources.select(selectSource)
     private val entityCache = caches.select(selectSource)
 
     override def run() {
       try {
-        updateStatus("Loading entities of dataset " + dataset.source.toString)
+        updateStatus("Loading entities of dataset " + source.toString)
 
         entityCache.clear()
-        entityCache.write(dataset.source.retrieve(entityCache.entityDesc))
+        entityCache.write(source.retrieve(entityCache.entityDesc))
         entityCache.close()
       } catch {
         case ex: Exception => {

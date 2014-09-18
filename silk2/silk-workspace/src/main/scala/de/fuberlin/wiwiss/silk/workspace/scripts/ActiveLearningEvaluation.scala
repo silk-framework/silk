@@ -1,14 +1,13 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
-import de.fuberlin.wiwiss.silk.runtime.task.Task
-import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
-import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
-import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningConfiguration}
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
+import de.fuberlin.wiwiss.silk.learning.individual.Population
+import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
+import de.fuberlin.wiwiss.silk.runtime.task.Task
 import de.fuberlin.wiwiss.silk.util.DPair
-import util.Random
+import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends EvaluationScript {
 
@@ -92,7 +91,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val task =
         new ActiveLearningTask(
           config = config,
-          dataset = ds.sources,
+          datasets = ds.sources,
           linkSpec = ds.task.linkSpec,
           paths = ds.task.cache.entityDescs.map(_.paths),
           referenceEntities = referenceEntities,

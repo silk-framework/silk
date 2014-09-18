@@ -94,7 +94,7 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
           task match {
             case transformTask: TransformTask => project.updateTask(transformTask)
             case linkingTask: LinkingTask => project.updateTask(linkingTask)
-            case sourceTask: DatasetTask => project.updateTask(sourceTask)
+            case datasetTask: DatasetTask => project.updateTask(datasetTask)
           }
         }
       } catch {

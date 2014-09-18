@@ -152,10 +152,10 @@ object TransformTaskApi extends Controller {
     // Create execution task
     val executeTransformTask =
       new ExecuteTransform(
-        input = project.task[DatasetTask](task.dataSelection.datasetId).dataset,
+        input = project.task[DatasetTask](task.dataSelection.datasetId).dataset.source,
         selection = task.dataSelection,
         rules = task.rules,
-        outputs = outputs
+        outputs = outputs.map(_.sink)
       )
 
     // Start task in the background

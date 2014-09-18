@@ -6,7 +6,7 @@
 @echo off
 set SBT_HOME=%~dp0
 
-set SBT_OPTS=-Xmx512m -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M
+set SBT_OPTS=-Xmx1024m -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M
 
 rem We use the value of the JAVACMD environment variable if defined
 set _JAVACMD=%JAVACMD%

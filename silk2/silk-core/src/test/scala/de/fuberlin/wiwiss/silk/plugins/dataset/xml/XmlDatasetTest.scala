@@ -55,7 +55,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
 
 
   private def entities(basePath: String = "") = {
-    val source = new XmlDataset(resourceLoader.get("persons.xml"), basePath, "http://example.org/", "ID").source
+    val source = new XmlDataset(resourceLoader.get("persons.xml"), basePath, "http://example.org/{ID}").source
     source.retrieve(entityDesc).toSeq
   }
 }

@@ -2,17 +2,17 @@ package de.fuberlin.wiwiss.silk.execution
 
 import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.runtime.task.Task
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, DataSink}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 
 /**
  * Executes a set of transformation rules.
  */
-class ExecuteTransform(input: Dataset,
+class ExecuteTransform(input: DataSource,
                        selection: DatasetSelection,
                        rules: Seq[TransformRule],
-                       outputs: Traversable[Dataset] = Traversable.empty) extends Task[Any] {
+                       outputs: Seq[DataSink] = Seq.empty) extends Task[Any] {
 
   def execute(): Unit = {
     // Retrieve entities
@@ -22,22 +22,21 @@ class ExecuteTransform(input: Dataset,
         restrictions = selection.restriction,
         paths = rules.flatMap(_.paths).distinct.toIndexedSeq
       )
-    val entities = input.source.retrieve(entityDesc)
+    val entities = input.retrieve(entityDesc)
 
     // Open outputs
-    val sinks = outputs.map(_.sink)
-    for(sink <- sinks) sink.open()
+    for(output <- outputs) output.open()
 
     // Transform all entities and write to outputs
     for { entity <- entities
           rule <- rules
           value <- rule(entity)
-          sink <- sinks } {
-      sink.writeLiteralStatement(entity.uri, rule.targetProperty.uri, value)
+          output <- outputs } {
+      output.writeLiteralStatement(entity.uri, rule.targetProperty.uri, value)
     }
 
     // Close outputs
-    for(sink <- sinks) sink.close()
+    for(output <- outputs) output.close()
   }
 }
 
