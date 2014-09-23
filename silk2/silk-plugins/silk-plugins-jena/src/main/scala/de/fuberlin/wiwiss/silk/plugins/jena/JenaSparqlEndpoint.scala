@@ -14,27 +14,28 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import scala.collection.JavaConversions._
+import java.util.logging.{Level, Logger}
+import com.hp.hpl.jena.query.{QueryExecutionFactory, QuerySolution, ResultSet}
 import com.hp.hpl.jena.rdf.model.Model
-import com.hp.hpl.jena.query.{Dataset, QuerySolution, ResultSet, QueryExecutionFactory}
-import de.fuberlin.wiwiss.silk.util.sparql.{SparqlEndpoint, Node}
-import java.util.logging.{Logger, Level}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{ResultSet => SilkResultSet, BlankNode, Literal, Resource, SparqlEndpoint}
+import scala.collection.JavaConversions._
 
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.
  */
-private class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
+class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[JenaSparqlEndpoint].getName)
 
   /**
    * Executes a SPARQL SELECT query.
    */
-  override def query(sparql: String, limit: Int): Traversable[Map[String, Node]] = {
+  override def query(sparql: String, limit: Int): SilkResultSet = {
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
     // Execute query
-    val qe = QueryExecutionFactory.create(sparql + " LIMIT " + limit, model)
+    val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
+    val qe = QueryExecutionFactory.create(query, model)
     try {
       toSilkResults(qe.execSelect())
     }
@@ -52,7 +53,7 @@ private class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
         toSilkBinding(result)
       }
 
-    results.toList
+    SilkResultSet(results.toList)
   }
 
   /**
@@ -72,9 +73,9 @@ private class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
    *  Converts a Jena RDFNode to a Silk Node.
    */
   private def toSilkNode(node: com.hp.hpl.jena.rdf.model.RDFNode) = node match {
-    case r: com.hp.hpl.jena.rdf.model.Resource if !r.isAnon => de.fuberlin.wiwiss.silk.util.sparql.Resource(r.getURI)
-    case r: com.hp.hpl.jena.rdf.model.Resource => de.fuberlin.wiwiss.silk.util.sparql.BlankNode(r.getId.getLabelString)
-    case l: com.hp.hpl.jena.rdf.model.Literal => de.fuberlin.wiwiss.silk.util.sparql.Literal(l.getString)
+    case r: com.hp.hpl.jena.rdf.model.Resource if !r.isAnon => Resource(r.getURI)
+    case r: com.hp.hpl.jena.rdf.model.Resource => BlankNode(r.getId.getLabelString)
+    case l: com.hp.hpl.jena.rdf.model.Literal => Literal(l.getString)
     case _ => throw new IllegalArgumentException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
   }
 }

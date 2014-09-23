@@ -3,7 +3,6 @@ package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask.{WorkflowDataset, WorkflowOperator}
 
 import scala.xml.Node
@@ -18,7 +17,7 @@ class WorkflowTask(val name: Identifier,
         <Operator
           posX={op.position._1.toString}
           posY={op.position._2.toString}
-          task={op.task.name.toString}
+          task={op.task}
           inputs={op.inputs.mkString(",")}
           outputs={op.outputs.mkString(",")} />
       }
@@ -27,7 +26,7 @@ class WorkflowTask(val name: Identifier,
         <Dataset
           posX={ds.position._1.toString}
           posY={ds.position._2.toString}
-          task={ds.task.name.toString} />
+          task={ds.task} />
       }
     }</Workflow>
   }
@@ -41,7 +40,7 @@ object WorkflowTask {
       for(op <- xml \ "Operator") yield {
         WorkflowOperator(
           inputs = (op \ "@inputs").text.split(',').toSeq,
-          task = project.anyTask((op \ "@task").text),
+          task = (op \ "@task").text,
           outputs = (op \ "@outputs").text.split(',').toSeq,
           position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt)
         )
@@ -50,7 +49,7 @@ object WorkflowTask {
     val datasets =
       for(ds <- xml \ "Dataset") yield {
         WorkflowDataset(
-          task = project.task[DatasetTask]((ds \ "@task").text),
+          task = (ds \ "@task").text,
           position = ((ds \ "@posX").text.toInt, (ds \ "@posY").text.toInt)
         )
       }
@@ -58,8 +57,8 @@ object WorkflowTask {
     new WorkflowTask(name, operators, datasets)
   }
 
-  case class WorkflowOperator(inputs: Seq[String], task: ModuleTask, outputs: Seq[String], position: (Int, Int))
+  case class WorkflowOperator(inputs: Seq[String], task: String, outputs: Seq[String], position: (Int, Int))
 
-  case class WorkflowDataset(task: DatasetTask, position: (Int, Int))
+  case class WorkflowDataset(task: String, position: (Int, Int))
 
 }

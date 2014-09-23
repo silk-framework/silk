@@ -1,0 +1,32 @@
+@(endpoint: de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint,
+  prefixes: de.fuberlin.wiwiss.silk.config.Prefixes,
+  queryResults: Option[de.fuberlin.wiwiss.silk.dataset.rdf.ResultSet])
+
+<form action="sparql">
+  <textarea name="query" cols="70" rows="25">
+@for((prefix, namespace) <- prefixes.prefixMap) {PREFIX @prefix: &lt;@namespace&gt;
+}
+SELECT * WHERE {
+  ?s ?p ?o
+}
+LIMIT 20
+  </textarea>
+  <br/>
+  <input type="submit" value="Submit">
+</form>
+
+<table>
+  <tr>
+    @for(results <- queryResults.toList; variable <- results.bindings.head.keys) {
+      <th>@variable<th>
+    }
+  </tr>
+
+  @for(results <- queryResults.toList; bindings <- results.bindings) {
+    <tr>
+      @for((variable, node) <- bindings) {
+        <td>@node.value<td>
+      }
+    </tr>
+  }
+</table>

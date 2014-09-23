@@ -12,11 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
+
+import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
+import de.fuberlin.wiwiss.silk.entity.{BackwardOperator, ForwardOperator, Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.util.{Timer, Uri}
-import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, BackwardOperator, Path, ForwardOperator}
 
 /**
  * Retrieves the most frequent property paths by issuing a SPARQL 1.1 aggregation query.
@@ -52,7 +54,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         "GROUP BY ?p\n" +
         "ORDER BY DESC (?count)"
 
-      val results = endpoint.query(sparql, limit).toList
+      val results = endpoint.query(sparql, limit).bindings.toList
       if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
@@ -76,7 +78,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         "GROUP BY ?p\n" +
         "ORDER BY DESC (?count)"
 
-      val results = endpoint.query(sparql, limit).toList
+      val results = endpoint.query(sparql, limit).bindings.toList
       if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {

@@ -12,9 +12,10 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription, Entity}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{Resource, RdfNode, SparqlEndpoint}
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path}
 
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve the entities.
@@ -66,7 +67,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
 
     val sparqlResults = endpoint.query(sparql)
 
-    new EntityTraversable(sparqlResults, entityDesc, None)
+    new EntityTraversable(sparqlResults.bindings, entityDesc, None)
   }
 
   /**
@@ -118,13 +119,13 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     sparql += SparqlPathBuilder(paths, "<" + entityUri + ">", "?" + varPrefix)
     sparql += "}"
 
-    endpoint.query(sparql)
+    endpoint.query(sparql).bindings
   }
 
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(sparqlResults: Traversable[Map[String, Node]], entityDesc: EntityDescription, subject: Option[String]) extends Traversable[Entity] {
+  private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]], entityDesc: EntityDescription, subject: Option[String]) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U) {
       //Remember current subject
       var curSubject: Option[String] = subject

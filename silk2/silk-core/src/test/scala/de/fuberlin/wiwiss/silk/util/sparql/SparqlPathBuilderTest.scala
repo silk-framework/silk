@@ -1,5 +1,6 @@
 package de.fuberlin.wiwiss.silk.util.sparql
 
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.SparqlPathBuilder
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec

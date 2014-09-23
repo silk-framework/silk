@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.dataset
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 
 import de.fuberlin.wiwiss.silk.dataset.Formatter
 import de.fuberlin.wiwiss.silk.entity.Link

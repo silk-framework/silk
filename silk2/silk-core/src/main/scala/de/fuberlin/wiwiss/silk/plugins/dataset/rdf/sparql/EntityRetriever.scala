@@ -12,9 +12,10 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity}
+import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 
 /**
  * Retrieves entities from a SPARQL endpoint.

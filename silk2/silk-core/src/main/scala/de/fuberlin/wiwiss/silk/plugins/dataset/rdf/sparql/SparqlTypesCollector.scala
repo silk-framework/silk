@@ -1,6 +1,6 @@
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
 
 trait SparqlTypesCollector {
   def apply(endpoint: SparqlEndpoint, limit: Option[Int]): Traversable[(String, Double)]

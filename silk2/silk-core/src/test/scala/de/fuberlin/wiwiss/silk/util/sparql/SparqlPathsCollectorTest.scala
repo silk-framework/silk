@@ -14,6 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.util.sparql
 
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{SparqlSamplePathsCollector, SparqlAggregatePathsCollector, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.util.Timer
 import java.net.URI
 import java.util.logging.Logger

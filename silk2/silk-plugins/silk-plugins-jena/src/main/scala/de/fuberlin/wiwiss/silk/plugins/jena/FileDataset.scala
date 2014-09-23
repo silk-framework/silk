@@ -14,14 +14,15 @@
 
 package de.fuberlin.wiwiss.silk.plugins.jena
 
-import java.io.{OutputStreamWriter, FileOutputStream, BufferedWriter, Writer}
+import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter, Writer}
 
 import com.hp.hpl.jena.query.DatasetFactory
-import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, DatasetPlugin, Formatter}
+import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
+import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, Formatter}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.runtime.resource.{FileResource, Resource}
-import de.fuberlin.wiwiss.silk.util.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 
 @Plugin(
@@ -35,17 +36,32 @@ import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
       |  graph: The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.
     """
 )
-case class FileDataset(file: Resource, format: String, graph: String = "") extends DatasetPlugin {
+case class FileDataset(file: Resource, format: String, graph: String = "") extends RdfDatasetPlugin {
+
+  // Try to parse the format
+  private val lang = RDFLanguages.nameToLang(format)
+  require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
+
+  override def sparqlEndpoint = {
+    // Load data set
+    val dataset = DatasetFactory.createMem()
+    val inputStream = file.load
+    RDFDataMgr.read(dataset, inputStream, lang)
+    inputStream.close()
+
+    // Retrieve model
+    val model =
+      if (!graph.trim.isEmpty) dataset.getNamedModel(graph)
+      else dataset.getDefaultModel
+
+    new JenaSparqlEndpoint(model)
+  }
 
   override def source = FileSource
 
   override def sink = FileSink
 
   object FileSource extends DataSource {
-
-    // Try to parse the format
-    private val lang = RDFLanguages.nameToLang(format)
-    require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
 
     // Load dataset
     private var endpoint: JenaSparqlEndpoint = null
@@ -71,18 +87,7 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
      */
     private def load() = synchronized {
       if (endpoint == null) {
-        // Load data set
-        val dataset = DatasetFactory.createMem()
-        val inputStream = file.load
-        RDFDataMgr.read(dataset, inputStream, lang)
-        inputStream.close()
-
-        // Retrieve model
-        val model =
-          if (!graph.trim.isEmpty) dataset.getNamedModel(graph)
-          else dataset.getDefaultModel
-
-        endpoint = new JenaSparqlEndpoint(model)
+        endpoint = sparqlEndpoint
       }
     }
   }

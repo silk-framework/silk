@@ -6,6 +6,13 @@ GET           /                                                controllers.works
 GET           /tree                                            controllers.workspace.Workspace.tree
 
 ############################################################################################################################################
+# Datasets
+############################################################################################################################################
+
+GET           /datasets/:project/:task                         controllers.workspace.Datasets.view(project, task, maxEntities: Int)
+GET           /datasets/:project/:task/sparql                  controllers.workspace.Datasets.sparql(project, task, query)
+
+############################################################################################################################################
 # Dialogs
 ############################################################################################################################################
 
@@ -39,9 +46,9 @@ PUT           /projects/:project/resources/:name               controllers.works
 DELETE        /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
 
 # Datasets
-GET           /projects/:project/dataset/:name                 controllers.workspace.WorkspaceApi.getDataset(project: String, name: String)
-PUT           /projects/:project/dataset/:name                 controllers.workspace.WorkspaceApi.putDataset(project: String, name: String)
-DELETE        /projects/:project/dataset/:name                 controllers.workspace.WorkspaceApi.deleteDataset(project: String, name: String)
+GET           /projects/:project/dataset/:name                 controllers.workspace.Datasets.getDataset(project: String, name: String)
+PUT           /projects/:project/dataset/:name                 controllers.workspace.Datasets.putDataset(project: String, name: String)
+DELETE        /projects/:project/dataset/:name                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
 
 # Assests
 GET           /assets/*file                                    controllers.workspace.Assets.at(path="/public", file)

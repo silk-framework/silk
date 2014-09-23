@@ -12,11 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.util.Uri
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, ForwardOperator, Path}
+
+import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
+import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
  * Retrieves the most frequent paths of a number of random sample entities.
@@ -52,7 +54,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     val results = endpoint.query(sparql, maxEntities)
 
-    results.map(_("s").value)
+    results.bindings.map(_("s").value)
   }
 
   private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction): Traversable[String] = {
@@ -60,7 +62,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     val results = endpoint.query(sparql, maxEntities)
 
-    results.map(_(restrictions.variable).value)
+    results.bindings.map(_(restrictions.variable).value)
   }
 
   private def getEntitiesPaths(endpoint: SparqlEndpoint, entities: Traversable[String], variable: String, limit: Int): Traversable[(Path, Double)] = {
@@ -90,7 +92,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     sparql += " <" + entityUri + "> ?p ?o\n"
     sparql += "}"
 
-    for (result <- endpoint.query(sparql, limit); binding <- result.values) yield
+    for (result <- endpoint.query(sparql, limit).bindings; binding <- result.values) yield
       Path(variable, ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
   }
 }

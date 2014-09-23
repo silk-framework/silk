@@ -12,10 +12,12 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.util.Timer
 import java.util.logging.Logger
+
+import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
+import de.fuberlin.wiwiss.silk.util.Timer
 
 object SparqlAggregateTypesCollector extends SparqlTypesCollector {
 
@@ -31,7 +33,7 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
         "GROUP BY ?t\n" +
         "ORDER BY DESC (?count)"
 
-      val results = endpoint.query(sparql, limit.getOrElse(defaultLimit)).toList
+      val results = endpoint.query(sparql, limit.getOrElse(defaultLimit)).bindings.toList
       if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("t")) yield {

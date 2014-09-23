@@ -22,6 +22,11 @@ object WorkflowApi extends Controller {
     Ok
   }
 
+  def deleteWorkflow(project: String, task: String) = Action {
+    User().workspace.project(project).removeTask[WorkflowTask](task)
+    Ok
+  }
+
   def executeWorkflow(projectName: String, taskName: String) = Action {
     if(CurrentExecutionTask().status.isRunning)
       PreconditionFailed

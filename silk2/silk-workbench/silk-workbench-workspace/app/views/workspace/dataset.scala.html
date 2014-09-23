@@ -1,0 +1,20 @@
+@import de.fuberlin.wiwiss.silk.entity.Path
+@import de.fuberlin.wiwiss.silk.entity.Entity
+
+@(paths: IndexedSeq[Path], entities: Seq[Entity])
+
+<table>
+  <tr>
+    @for(path <- paths) {
+      <th>@path.toString<th>
+    }
+  </tr>
+
+  @for(entity <- entities) {
+    <tr>
+      @for(i <- 0 until paths.size) {
+        <td>@entity.evaluate(i)<td>
+      }
+    </tr>
+  }
+</table>

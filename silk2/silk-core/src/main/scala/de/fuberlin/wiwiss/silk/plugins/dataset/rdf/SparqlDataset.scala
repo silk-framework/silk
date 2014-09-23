@@ -1,13 +1,14 @@
-package de.fuberlin.wiwiss.silk.plugins.dataset
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
 import java.io.{IOException, OutputStreamWriter, Writer}
 import java.net._
 import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, DatasetPlugin}
-import de.fuberlin.wiwiss.silk.entity.{Link, Path, SparqlRestriction, EntityDescription}
+import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
+import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource}
+import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql._
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.sparql._
 
 import scala.io.Source
 
@@ -32,26 +33,28 @@ import scala.io.Source
 case class SparqlDataset(endpointURI: String, login: String = null, password: String = null,
                          graph: String = null, pageSize: Int = 1000, entityList: String = null,
                          pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
-                         queryParameters: String = "", parallel: Boolean = true) extends DatasetPlugin {
+                         queryParameters: String = "", parallel: Boolean = true) extends RdfDatasetPlugin {
 
   private val log = Logger.getLogger(SparqlDataset.getClass.getName)
+
+  private val loginComplete = {
+    if (login != null) {
+      require(password != null, "No password provided for login '" + login + "'. Please set the 'password' parameter.")
+      Some((login, password))
+    } else {
+      None
+    }
+  }
+
+  override def sparqlEndpoint = {
+    new RemoteSparqlEndpoint(new URI(endpointURI), loginComplete, pageSize, pauseTime, retryCount, retryPause, queryParameters)
+  }
 
   override def source = SparqlSource
 
   override def sink = SparqlSink
 
   object SparqlSource extends DataSource {
-
-    private val uri = new URI(endpointURI)
-
-    private val loginComplete = {
-      if (login != null) {
-        require(password != null, "No password provided for login '" + login + "'. Please set the 'password' parameter.")
-        Some((login, password))
-      } else {
-        None
-      }
-    }
 
     private val graphUri = if (graph == null) None else Some(graph)
 
@@ -60,32 +63,28 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
     override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
       val entityRetriever =
         if(parallel)
-          new ParallelEntityRetriever(createEndpoint(), pageSize, graphUri)
+          new ParallelEntityRetriever(sparqlEndpoint, pageSize, graphUri)
         else
-          new SimpleEntityRetriever(createEndpoint(), pageSize, graphUri)
+          new SimpleEntityRetriever(sparqlEndpoint, pageSize, graphUri)
 
       entityRetriever.retrieve(entityDesc, entityUris union entities)
     }
 
     override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
       //Create an endpoint which fails after 3 retries
-      val failFastEndpoint = new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, 3, 1000, queryParameters)
+      val failFastEndpoint = new RemoteSparqlEndpoint(new URI(endpointURI), loginComplete, pageSize, pauseTime, 3, 1000, queryParameters)
 
       try {
         SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)
       } catch {
         case ex: Exception =>
           log.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
-          SparqlSamplePathsCollector(createEndpoint(), restrictions, limit)
+          SparqlSamplePathsCollector(sparqlEndpoint, restrictions, limit)
       }
     }
 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-      SparqlTypesCollector(createEndpoint(), limit)
-    }
-
-    protected def createEndpoint() = {
-      new RemoteSparqlEndpoint(uri, loginComplete, pageSize, pauseTime, retryCount, retryPause, queryParameters)
+      SparqlTypesCollector(sparqlEndpoint, limit)
     }
 
     override def toString = endpointURI

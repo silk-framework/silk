@@ -42,20 +42,21 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
     }
 
     def executeOperator(operator: WorkflowOperator) = {
-      log.info("Executing " + operator.task.name)
+      log.info("Executing " + operator.task)
 
       val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset.source)
       val outputs = operator.outputs.map(id => project.task[DatasetTask](id).dataset.sink)
+      val task = project.anyTask(operator.task)
 
-      val taskExecutor = project.getExecutor(operator.task)
-          .getOrElse(throw new Exception("Cannot execute task " + operator.task.name))
+      val taskExecutor = project.getExecutor(task)
+          .getOrElse(throw new Exception("Cannot execute task " + operator.task))
 
-      val job = taskExecutor(inputs, operator.task, outputs)
+      val job = taskExecutor(inputs, task, outputs)
       job.statusLogLevel = Level.FINE
       job.progressLogLevel = Level.FINE
       job()
 
-      log.info("Finished execution of " + operator.task.name)
+      log.info("Finished execution of " + operator.task)
     }
   }
 

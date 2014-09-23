@@ -12,19 +12,19 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 
-import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path}
+import de.fuberlin.wiwiss.silk.dataset.Formatter
+import de.fuberlin.wiwiss.silk.entity.Link
+
+import scala.xml.NodeSeq
 
 /**
- * Retrieves the most frequent property paths.
+ * Base trait of all formatters using XML.
  */
-trait SparqlPathsCollector {
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)]
-}
+trait XMLFormatter extends Formatter {
 
-object SparqlPathsCollector {
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]) = {
-    SparqlSamplePathsCollector(endpoint, restrictions, limit)
-  }
+  override final def format(link: Link, predicateUri: String): String = formatXML(link, predicateUri).toString + "\n"
+
+  def formatXML(link: Link, predicateUri: String): NodeSeq
 }

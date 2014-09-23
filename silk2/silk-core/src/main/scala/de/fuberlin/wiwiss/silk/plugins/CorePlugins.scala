@@ -20,6 +20,8 @@ import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasu
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
 import de.fuberlin.wiwiss.silk.plugins.dataset._
 import de.fuberlin.wiwiss.silk.plugins.dataset.csv.CsvDataset
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.{AlignmentFormatter, NTriplesFormatter}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlDataset
 import de.fuberlin.wiwiss.silk.plugins.dataset.xml.XmlDataset
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._

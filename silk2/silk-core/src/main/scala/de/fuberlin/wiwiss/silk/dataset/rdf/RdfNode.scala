@@ -12,19 +12,29 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.dataset
-
-import de.fuberlin.wiwiss.silk.dataset.Formatter
-import de.fuberlin.wiwiss.silk.entity.Link
-
-import scala.xml.NodeSeq
+package de.fuberlin.wiwiss.silk.dataset.rdf
 
 /**
- * Base trait of all formatters using XML.
+ * An RDF node, which is one of: Resource, BlankNode, Literal.
  */
-trait XMLFormatter extends Formatter {
-
-  override final def format(link: Link, predicateUri: String): String = formatXML(link, predicateUri).toString + "\n"
-
-  def formatXML(link: Link, predicateUri: String): NodeSeq
+sealed trait RdfNode {
+  /**
+   * The value of this node.
+   */
+  val value: String
 }
+
+/**
+ * An RDF resource.
+ */
+case class Resource(value: String) extends RdfNode
+
+/**
+ * An RDF blank node.
+ */
+case class BlankNode(value: String) extends RdfNode
+
+/**
+ * An RDF literal.
+ */
+case class Literal(value: String) extends RdfNode

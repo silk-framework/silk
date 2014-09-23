@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 class CsvSource(file: Resource, properties: String, separator: String = ",", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
 
@@ -38,7 +38,7 @@ class CsvSource(file: Resource, properties: String, separator: String = ",", pre
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
         val inputStream = file.load
-        val source = Source.fromInputStream(inputStream)
+        val source = Source.fromInputStream(inputStream)(Codec.UTF8)
         val ignoreFirstLine = properties.trim.isEmpty
         try {
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
@@ -49,8 +49,8 @@ class CsvSource(file: Resource, properties: String, separator: String = ",", pre
           } {
 
             //Split the line into values
-            val allValues = line.split(separator)
-            assert(propertyList.size == allValues.size, "Invalid line '" + line + "' with " + allValues.size + " elements. Expected numer of elements " + propertyList.size + ".")
+            val allValues = line.split(separator, -1)
+            assert(propertyList.size == allValues.size, s"Invalid line ${number + 1}: '$line' in resource '${file.name}' with ${allValues.size} elements. Expected number of elements ${propertyList.size}.")
             //Extract requested values
             val values = indices.map(allValues(_))
 
@@ -59,7 +59,7 @@ class CsvSource(file: Resource, properties: String, separator: String = ",", pre
             // build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
             // as defined in the *properties* field.
             val entityURI = if (uri.isEmpty)
-              prefix + number
+              prefix + (number + 1)
             else
               "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
                 val propName = m.group(1)
@@ -70,11 +70,13 @@ class CsvSource(file: Resource, properties: String, separator: String = ",", pre
 
 
             //Build entity
-            f(new Entity(
-              uri = entityURI,
-              values = values.map(Set(_)),
-              desc = entityDesc
-            ))
+            if(entities.isEmpty || entities.contains(entityURI)) {
+              f(new Entity(
+                uri = entityURI,
+                values = values.map(Set(_)),
+                desc = entityDesc
+              ))
+            }
 
           }
         } finally {

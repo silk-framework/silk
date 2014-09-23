@@ -5,8 +5,9 @@ GET        /:project/:task/editor/statusStream     controllers.workflow.Editor.s
 
 GET        /workflows/:project/:task               controllers.workflow.WorkflowApi.getWorkflow(project: String, task: String)
 PUT        /workflows/:project/:task               controllers.workflow.WorkflowApi.putWorkflow(project: String, task: String)
+DELETE     /workflows/:project/:task               controllers.workflow.WorkflowApi.deleteWorkflow(project: String, task: String)
 
-PUT       /workflows/:project/:task/execute        controllers.workflow.WorkflowApi.executeWorkflow(project: String, task: String)
+PUT        /workflows/:project/:task/execute        controllers.workflow.WorkflowApi.executeWorkflow(project: String, task: String)
 
 # Assests
 GET        /assets/*file                           controllers.workflow.Assets.at(path="/public", file)

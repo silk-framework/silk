@@ -2,7 +2,9 @@ package controllers.workspace
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
+import controllers.workspace.Workspace._
 import de.fuberlin.wiwiss.silk.config._
+import de.fuberlin.wiwiss.silk.dataset.rdf.{ResultSet, RdfDatasetPlugin}
 import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -10,6 +12,7 @@ import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
+import plugins.Context
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -101,31 +104,5 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
-  def getDataset(projectName: String, sourceName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.task[DatasetTask](sourceName)
-    val sourceXml = task.dataset.toXML
 
-    Ok(sourceXml)
-  }
-
-  def putDataset(projectName: String, sourceName: String) = Action { implicit request => {
-    val project = User().workspace.project(projectName)
-    request.body.asXml match {
-      case Some(xml) =>
-        try {
-          val sourceTask = DatasetTask(project, Dataset.fromXML(xml.head, project.resources))
-          project.updateTask(sourceTask)
-          Ok
-        } catch {
-          case ex: Exception => BadRequest(ex.getMessage)
-        }
-      case None => BadRequest("Expecting text/xml request body")
-    }
-  }}
-
-  def deleteDataset(project: String, source: String) = Action {
-    User().workspace.project(project).removeTask[DatasetTask](source)
-    Ok
-  }
 }
