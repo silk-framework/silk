@@ -115,7 +115,7 @@ object Dataset {
 
   def fromXML(node: Node, resourceLoader: ResourceLoader): Dataset = {
     // Check if the data source still uses the old outdated XML format
-    if(node.label == "DataSource") {
+    if(node.label == "DataSource" || node.label == "Output") {
       // Read old format
       new Dataset(
         id = (node \ "@id").text,
