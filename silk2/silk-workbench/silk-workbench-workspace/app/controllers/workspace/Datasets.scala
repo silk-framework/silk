@@ -1,14 +1,18 @@
 package controllers.workspace
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.dataset.rdf.{ResultSet, RdfDatasetPlugin}
-import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, EntityDescription}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, ResultSet}
+import de.fuberlin.wiwiss.silk.entity.{EntityDescription, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
 object Datasets extends Controller {
+
+  def datasetDialog(project: String, task: String) = Action {
+    Ok(views.html.workspace.dataset.datasetDialog(project, task))
+  }
 
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -38,7 +42,12 @@ object Datasets extends Controller {
     Ok
   }
 
-  def view(project: String, task: String, maxEntities: Int) = Action { request =>
+  def dataset(project: String, task: String) = Action { request =>
+    val context = Context.get[DatasetTask](project, task, request.path)
+    Ok(views.html.workspace.dataset.dataset(context))
+  }
+
+  def table(project: String, task: String, maxEntities: Int) = Action { request =>
     val context = Context.get[DatasetTask](project, task, request.path)
     val source = context.task.source
 
@@ -46,7 +55,7 @@ object Datasets extends Controller {
     val entityDesc = EntityDescription("a", SparqlRestriction.empty, paths)
     val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
-    Ok(views.html.workspace.dataset(paths, entities))
+    Ok(views.html.workspace.dataset.table(paths, entities))
   }
 
   def sparql(project: String, task: String, query: String = "") = Action { request =>
@@ -60,7 +69,7 @@ object Datasets extends Controller {
         if(!query.isEmpty) {
           queryResults = Some(sparqlEndpoint.query(query))
         }
-        Ok(views.html.workspace.sparql(sparqlEndpoint, prefixes, queryResults))
+        Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
       case _ => BadRequest("This is not an RDF-Dataset.")
     }
   }

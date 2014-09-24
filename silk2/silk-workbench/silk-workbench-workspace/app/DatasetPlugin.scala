@@ -1,3 +1,4 @@
+import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
 import de.fuberlin.wiwiss.silk.dataset.{ DatasetPlugin => DataPlugin}
 import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
@@ -17,7 +18,19 @@ case class DatasetPlugin() extends WorkbenchPlugin {
   /**
    * Given a request context, lists the shown tabs.
    */
-  override def tabs(context: Context[ModuleTask]): Seq[Tab] = Seq.empty
+  override def tabs(context: Context[ModuleTask]): Seq[Tab] = {
+    val p = context.project.name
+    val t = context.task.name
+    var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
+    context.task match {
+      case task: DatasetTask =>
+        if (task.dataset.plugin.isInstanceOf[RdfDatasetPlugin] ) {
+          tabs = tabs :+ Tab ("Sparql", s"workspace/datasets/$p/$t/sparql")
+        }
+      case _ =>
+    }
+    tabs
+  }
 
   object DatasetActions extends TaskActions[DatasetTask] {
 
@@ -32,12 +45,12 @@ case class DatasetPlugin() extends WorkbenchPlugin {
       Some(s"workspace/dialogs/newDataset/$project")
 
     /** The path to the dialog for editing an existing task. */
-    override def editDialog(project: String, task: String) =
+    override def propertiesDialog(project: String, task: String) =
       Some(s"workspace/dialogs/editDataset/$project/$task")
 
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
-      None
+      Some(s"workspace/datasets/$project/$task/dataset")
 
     /** The path to delete the task by sending a DELETE HTTP request. */
     override def delete(project: String, task: String) =

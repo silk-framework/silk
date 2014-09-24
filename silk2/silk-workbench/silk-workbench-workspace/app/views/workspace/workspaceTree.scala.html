@@ -49,8 +49,8 @@
 @task(project: Project, task: ModuleTask, taskActions: TaskActions[ModuleTask]) = {
   <li data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
     @task.name
-    @for(path <- taskActions.editDialog(project.name, task.name)) {
-      @button("Edit", "Edit task", "wrench.png", s"workspaceDialog('$path')")
+    @for(path <- taskActions.propertiesDialog(project.name, task.name)) {
+      @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
     @for(path <- taskActions.open(project.name, task.name)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")

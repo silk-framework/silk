@@ -36,7 +36,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
       Some(s"transform/dialogs/newTransformTask/$project")
 
     /** The path to the dialog for editing an existing task. */
-    override def editDialog(project: String, task: String) =
+    override def propertiesDialog(project: String, task: String) =
       Some(s"transform/dialogs/editTransformTask/$project/$task")
 
     /** The path to redirect to when the task is opened. */

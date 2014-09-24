@@ -39,7 +39,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
       Some(s"workflow/dialogs/$project/workflowDialog")
 
     /** The path to the dialog for editing an existing task. */
-    override def editDialog(project: String, task: String) =
+    override def propertiesDialog(project: String, task: String) =
       None
 
     /** The path to redirect to when the task is opened. */

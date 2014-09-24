@@ -40,7 +40,7 @@
     @if(taskActions.name != "Dataset") {
       @operator(project, task, taskActions)
     } else {
-      @dataset(task.name)
+      @dataset(project, task, taskActions)
     }
   </div>
 }

@@ -46,7 +46,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
       Some(s"linking/dialogs/newLinkingTask/$project")
 
     /** The path to the dialog for editing an existing task. */
-    override def editDialog(project: String, task: String) =
+    override def propertiesDialog(project: String, task: String) =
       Some(s"linking/dialogs/editLinkingTask/$project/$task")
 
     /** The path to redirect to when the task is opened. */

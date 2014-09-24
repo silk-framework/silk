@@ -44,10 +44,6 @@ object Workspace extends Controller {
     Ok(views.html.workspace.resourcesDialog(project, resourceManager))
   }
 
-  def datasetDialog(project: String, task: String) = Action {
-    Ok(views.html.workspace.datasetDialog(project, task))
-  }
-
   def restrictionDialog(projectName: String, sourceName: String, sourceOrTarget: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
     val pathCache = project.task[DatasetTask](sourceName).cache

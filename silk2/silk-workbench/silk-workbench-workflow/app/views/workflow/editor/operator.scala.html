@@ -7,13 +7,12 @@
 
 <div class="operator" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
   <div class="operatorHeader">
-    @*<img src="@icon">*@
     <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
       @task.name (@taskActions.name)
     </div>
     <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
     @for(path <- taskActions.open(project.name, task.name)) {
-      <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.location = '@config.baseUrl/@path'" />
+      <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
     }
   </div>
   <div class="operatorContent">

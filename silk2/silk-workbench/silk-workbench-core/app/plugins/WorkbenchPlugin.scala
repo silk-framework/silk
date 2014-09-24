@@ -42,7 +42,7 @@ object WorkbenchPlugin {
     def createDialog(project: String): Option[String]
 
     /** The path to the dialog for editing an existing task. */
-    def editDialog(project: String, task: String): Option[String]
+    def propertiesDialog(project: String, task: String): Option[String]
 
     /** The path to redirect to when the task is opened. */
     def open(project: String, task: String): Option[String]

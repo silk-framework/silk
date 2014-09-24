@@ -107,8 +107,21 @@
   border-right: 1px solid #1484d4;
   background-color: white;
   cursor: move;
-  text-align: center;;
-  line-height: 80px;
+  text-align: center;
+}
+
+.dataset-buttons {
+  position: absolute;
+  right: 10px;
+  top: 25px;
+  cursor: pointer;
+}
+
+.dataset-name {
+  position: absolute;
+  left: 0;
+  top: 45px;
+  width: 100px;
 }
 
 .dataset-top {
