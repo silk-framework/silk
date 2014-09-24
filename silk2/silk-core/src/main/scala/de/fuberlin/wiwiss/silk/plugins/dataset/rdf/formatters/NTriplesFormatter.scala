@@ -26,6 +26,7 @@ class NTriplesFormatter() extends Formatter {
   }
 
   override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
-    "<" + subject + ">  <" + predicate + ">  \"" + value + "\" .\n"
+    val escapedValue = value.replace("\"", "\\\"")
+    "<" + subject + ">  <" + predicate + ">  \"" + escapedValue + "\" .\n"
   }
 }
