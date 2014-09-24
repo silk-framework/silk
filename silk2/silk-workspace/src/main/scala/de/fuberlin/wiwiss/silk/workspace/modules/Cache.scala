@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStarted, HasStatus}
 import java.util.logging.Level
-import xml.{Node, NodeSeq}
+import scala.xml.{Node, NodeSeq}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
@@ -17,7 +17,12 @@ import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) extends HasStatus {
 
   /** The current value of this thread. */
+  @volatile
   private var currentValue = initialValue
+
+  /** Indicates if this cache has been loaded successfully */
+  @volatile
+  private var loaded = false
 
   /** The thread used to load the current value. May be None if no thread has been created yet. */
   @volatile private var loadingThread: Option[Thread] = None
@@ -40,6 +45,7 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
     loadingThread = None
 
     //Reset value
+    loaded = false
     currentValue = initialValue
   }
 
@@ -51,14 +57,14 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
       thread.join()
     }
 
-    //Set the task status
-    updateStatus(TaskStarted("Loading cache"))
-
-    //Create new loading thread
-    loadingThread = Some(new LoadingThread(project, task))
-
-    //Start loading thread
-    loadingThread.map(_.start())
+    if(!loaded) {
+      //Set the task status
+      updateStatus(TaskStarted("Loading cache"))
+      //Create new loading thread
+      loadingThread = Some(new LoadingThread(project, task))
+      //Start loading thread
+      loadingThread.map(_.start())
+    }
   }
 
   /** Blocks until this cache has been loaded */
@@ -69,10 +75,24 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
   }
 
   /** Writes the current value of this cache to an XML node. */
-  def toXML: NodeSeq
+  final def toXML: NodeSeq = {
+    <Cache loaded={loaded.toString}>
+      { serialize }
+    </Cache>
+  }
 
   /** Reads the cache value from an XML node and updates the current value of this cache. */
-  def loadFromXML(node: Node)
+  final def loadFromXML(node: Node) = {
+    loaded = (node \ "@loaded").head.text.toBoolean
+    println("Cached loaded from XML: " + loaded)
+    deserialize(node \ "_" head)
+  }
+
+  /** Writes the current value of this cache to an XML node. */
+  protected def serialize: NodeSeq
+
+  /** Reads the cache value from an XML node and updates the current value of this cache. */
+  protected def deserialize(node: Node)
 
   /**
    * Overridden in sub classes to do the actual loading of the cache value
@@ -86,6 +106,7 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
       val startTime = System.currentTimeMillis
       try {
         val updated = update(project, task)
+        loaded = true
         updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))
         if(updated) logger.info("Cache updated")
         // Commit to the project

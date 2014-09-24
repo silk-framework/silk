@@ -44,7 +44,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
     }
   }
 
-  override def toXML: NodeSeq = {
+  override def serialize: NodeSeq = {
     if (value != null) {
         <EntityDescriptions>
           <Source>
@@ -59,7 +59,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
     }
   }
 
-  override def loadFromXML(node: Node) {
+  override def deserialize(node: Node) {
     value =
       if ((node \ "EntityDescriptions").isEmpty) {
         null

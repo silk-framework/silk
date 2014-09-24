@@ -55,7 +55,7 @@ object Datasets extends Controller {
     val entityDesc = EntityDescription("a", SparqlRestriction.empty, paths)
     val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
-    Ok(views.html.workspace.dataset.table(paths, entities))
+    Ok(views.html.workspace.dataset.table(context, paths, entities))
   }
 
   def sparql(project: String, task: String, query: String = "") = Action { request =>

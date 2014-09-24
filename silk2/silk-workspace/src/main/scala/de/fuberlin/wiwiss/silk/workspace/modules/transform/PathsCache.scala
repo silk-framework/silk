@@ -38,7 +38,7 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
     }
   }
 
-  override def toXML: NodeSeq = {
+  override def serialize: NodeSeq = {
     if (value != null) {
       <EntityDescription>
         {value.toXML}
@@ -48,7 +48,7 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
     }
   }
 
-  override def loadFromXML(node: Node) {
+  override def deserialize(node: Node) {
     value =
       if ((node \ "EntityDescription").isEmpty) {
         null

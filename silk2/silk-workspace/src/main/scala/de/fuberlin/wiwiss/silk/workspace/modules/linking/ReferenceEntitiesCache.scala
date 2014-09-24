@@ -35,7 +35,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     entityLoader.load()
   }
 
-  override def toXML: NodeSeq = {
+  override def serialize: NodeSeq = {
     val nodes = new NodeBuffer()
 
     nodes.append(
@@ -69,7 +69,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     NodeSeq.fromSeq(nodes)
   }
 
-  override def loadFromXML(node: Node) {
+  override def deserialize(node: Node) {
     val positiveEntities: Traversable[DPair[Entity]] = {
       if ((node \ "PositiveEntities").isEmpty) {
         Traversable.empty

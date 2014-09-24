@@ -15,11 +15,11 @@ class UnlabeledPoolCache extends Cache[LinkingTask, Seq[Link]](Seq.empty) {
     false
   }
 
-  override def toXML: NodeSeq = {
+  override def serialize: NodeSeq = {
     <Pool> { for(link <- value) yield link.toXML } </Pool>
   }
 
-  override def loadFromXML(node: Node) {
+  override def deserialize(node: Node) {
 //    value =
 //      for(linkNode <- node \ "Pool" \ "Link") yield {
 //        Link.fromXML(linkNode)

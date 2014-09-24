@@ -21,15 +21,17 @@ case class DatasetPlugin() extends WorkbenchPlugin {
   override def tabs(context: Context[ModuleTask]): Seq[Tab] = {
     val p = context.project.name
     val t = context.task.name
-    var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
     context.task match {
       case task: DatasetTask =>
+        var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
         if (task.dataset.plugin.isInstanceOf[RdfDatasetPlugin] ) {
-          tabs = tabs :+ Tab ("Sparql", s"workspace/datasets/$p/$t/sparql")
+          tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$p/$t/sparql")
+        } else {
+          tabs = tabs :+ Tab("Tableview", s"workspace/datasets/$p/$t/table")
         }
-      case _ =>
+        tabs
+      case _ => Seq.empty
     }
-    tabs
   }
 
   object DatasetActions extends TaskActions[DatasetTask] {

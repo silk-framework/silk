@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.runtime.task._
@@ -78,10 +78,10 @@ class LinkingCaches() extends HasStatus {
    * Serializes the caches to XML.
    */
   def toXML(implicit prefixes: Prefixes): Node = {
-    <Cache>
+    <Caches>
       {pathCache.toXML}
       {referenceEntitiesCache.toXML}
-    </Cache>
+    </Caches>
   }
 
   /**

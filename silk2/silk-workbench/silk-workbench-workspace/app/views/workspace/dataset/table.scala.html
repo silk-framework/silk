@@ -1,8 +1,17 @@
 @import de.fuberlin.wiwiss.silk.entity.Path
 @import de.fuberlin.wiwiss.silk.entity.Entity
+@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import plugins.Context
 
-@(paths: IndexedSeq[Path], entities: Seq[Entity])
+@(context: plugins.Context[DatasetTask], paths: IndexedSeq[Path], entities: Seq[Entity])
 
+@header = {
+}
+
+@toolbar = {
+}
+
+@content = {
 <table>
   <tr>
     @for(path <- paths) {
@@ -18,3 +27,6 @@
     </tr>
   }
 </table>
+}
+
+@main(Some(context))(header)(toolbar)(content)
