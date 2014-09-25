@@ -56,7 +56,7 @@ class LinkingModuleProvider extends ModuleProvider[LinkingTask] {
       cache.loadFromXML(XML.load(taskResources.get("cache.xml").load))
     } catch {
     case ex: Exception =>
-      logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+      logger.log(Level.WARNING, s"Cache for task ${linkSpec.id} in project ${project.name} corrupted. Rebuilding Cache.", ex)
       new LinkingCaches()
     }
 

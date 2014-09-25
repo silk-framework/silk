@@ -1,12 +1,14 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStarted, HasStatus}
 import java.util.logging.Level
-import scala.xml.{Node, NodeSeq}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+
+import de.fuberlin.wiwiss.silk.runtime.task.{HasStatus, TaskFinished, TaskStarted}
+import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+
+import scala.xml.Node
 
 /**
  * Base class of a cache.
@@ -75,7 +77,7 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
   }
 
   /** Writes the current value of this cache to an XML node. */
-  final def toXML: NodeSeq = {
+  final def toXML: Node = {
     <Cache loaded={loaded.toString}>
       { serialize }
     </Cache>
@@ -84,12 +86,11 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
   /** Reads the cache value from an XML node and updates the current value of this cache. */
   final def loadFromXML(node: Node) = {
     loaded = (node \ "@loaded").head.text.toBoolean
-    println("Cached loaded from XML: " + loaded)
     deserialize(node \ "_" head)
   }
 
   /** Writes the current value of this cache to an XML node. */
-  protected def serialize: NodeSeq
+  protected def serialize: Node
 
   /** Reads the cache value from an XML node and updates the current value of this cache. */
   protected def deserialize(node: Node)

@@ -79,8 +79,12 @@ class LinkingCaches() extends HasStatus {
    */
   def toXML(implicit prefixes: Prefixes): Node = {
     <Caches>
-      {pathCache.toXML}
-      {referenceEntitiesCache.toXML}
+      <Paths>
+        { pathCache.toXML }
+      </Paths>
+      <Entities>
+        { referenceEntitiesCache.toXML }
+      </Entities>
     </Caches>
   }
 
@@ -88,8 +92,8 @@ class LinkingCaches() extends HasStatus {
    * Loads the values of the caches from XML.
    */
   def loadFromXML(node: Node) {
-    pathCache.loadFromXML(node)
-    referenceEntitiesCache.loadFromXML(node)
+    pathCache.loadFromXML(node \ "Paths" \ "_" head)
+    referenceEntitiesCache.loadFromXML(node \ "Entities" \ "_" head)
   }
 
   object StatusListener extends (TaskStatus => Unit) {

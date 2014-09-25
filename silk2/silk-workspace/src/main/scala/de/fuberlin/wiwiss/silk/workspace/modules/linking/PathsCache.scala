@@ -5,7 +5,8 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import scala.xml.{Node, NodeSeq}
+
+import scala.xml.Node
 
 /**
  * Holds the most frequent paths.
@@ -44,7 +45,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
     }
   }
 
-  override def serialize: NodeSeq = {
+  override def serialize: Node = {
     if (value != null) {
         <EntityDescriptions>
           <Source>
@@ -55,17 +56,18 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
           </Target>
         </EntityDescriptions>
     } else {
-      NodeSeq.fromSeq(Nil)
+      <EntityDescriptions>
+      </EntityDescriptions>
     }
   }
 
   override def deserialize(node: Node) {
     value =
-      if ((node \ "EntityDescriptions").isEmpty) {
+      if ((node \ "_").isEmpty) {
         null
       } else {
-        val sourceSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Source" \ "_" head)
-        val targetSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Target" \ "_" head)
+        val sourceSpec = EntityDescription.fromXML(node \ "Source" \ "_" head)
+        val targetSpec = EntityDescription.fromXML(node \ "Target" \ "_" head)
         new DPair(sourceSpec, targetSpec)
       }
   }

@@ -35,12 +35,10 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     entityLoader.load()
   }
 
-  override def serialize: NodeSeq = {
-    val nodes = new NodeBuffer()
-
-    nodes.append(
+  override def serialize: Node = {
+    <Entities>
       <PositiveEntities>
-        {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
+      {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
         <Pair>
           <Source>
             {sourceEntity.toXML}
@@ -51,10 +49,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         </Pair>
       }}
       </PositiveEntities>)
-
-    nodes.append(
       <NegativeEntities>
-        {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
+      {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
         <Pair>
           <Source>
             {sourceEntity.toXML}
@@ -65,16 +61,18 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         </Pair>
       }}
       </NegativeEntities>)
-
-    NodeSeq.fromSeq(nodes)
+    </Entities>
   }
 
   override def deserialize(node: Node) {
+    val posNode = node \ "PositiveEntities"
+    val negNode = node \ "NegativeEntities"
+
     val positiveEntities: Traversable[DPair[Entity]] = {
-      if ((node \ "PositiveEntities").isEmpty) {
+      if (posNode.isEmpty) {
         Traversable.empty
       } else {
-        for (pairNode <- (node \ "PositiveEntities" \ "Pair").toList) yield {
+        for (pairNode <- (posNode \ "Pair").toList) yield {
           DPair(
             Entity.fromXML(pairNode \ "Source" \ "Entity" head, pathsCache.value.source),
             Entity.fromXML(pairNode \ "Target" \ "Entity" head, pathsCache.value.target))
@@ -83,10 +81,10 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     }
 
     val negativeEntities: Traversable[DPair[Entity]] = {
-      if ((node \ "NegativeEntities").isEmpty) {
+      if (negNode.isEmpty) {
         Traversable.empty
       } else {
-        for (pairNode <- (node \ "NegativeEntities" \ "Pair").toList) yield {
+        for (pairNode <- (negNode \ "Pair").toList) yield {
           DPair(
             Entity.fromXML(pairNode \ "Source" \ "Entity" head, pathsCache.value.source),
             Entity.fromXML(pairNode \ "Target" \ "Entity" head, pathsCache.value.target))

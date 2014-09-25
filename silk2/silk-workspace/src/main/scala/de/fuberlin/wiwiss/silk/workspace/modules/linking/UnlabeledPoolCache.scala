@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link}
+import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.workspace.Project
-import scala.xml.{Node, NodeSeq}
-import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
+
+import scala.xml.Node
 
 class UnlabeledPoolCache extends Cache[LinkingTask, Seq[Link]](Seq.empty) {
 
@@ -15,7 +15,7 @@ class UnlabeledPoolCache extends Cache[LinkingTask, Seq[Link]](Seq.empty) {
     false
   }
 
-  override def serialize: NodeSeq = {
+  override def serialize: Node = {
     <Pool> { for(link <- value) yield link.toXML } </Pool>
   }
 

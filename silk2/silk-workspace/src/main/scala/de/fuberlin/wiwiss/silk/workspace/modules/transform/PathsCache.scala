@@ -1,10 +1,11 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.transform
 
-import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import scala.xml.{Node, NodeSeq}
+
+import scala.xml.Node
 
 /**
  * Holds the most frequent paths.
@@ -38,22 +39,23 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
     }
   }
 
-  override def serialize: NodeSeq = {
+  override def serialize: Node = {
     if (value != null) {
       <EntityDescription>
         {value.toXML}
       </EntityDescription>
     } else {
-      NodeSeq.fromSeq(Nil)
+      <EntityDescription>
+      </EntityDescription>
     }
   }
 
   override def deserialize(node: Node) {
     value =
-      if ((node \ "EntityDescription").isEmpty) {
+      if ((node \ "_").isEmpty) {
         null
       } else {
-        EntityDescription.fromXML(node \ "EntityDescription" head)
+        EntityDescription.fromXML(node)
       }
   }
 }
