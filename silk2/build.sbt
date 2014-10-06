@@ -41,6 +41,7 @@ lazy val singlemachine = project in file("silk-tools/silk-singlemachine") depend
 // Root
 
 lazy val root = project.in(file("."))
-                       .aggregate(core, pluginsJena, singlemachine, learning, workspace, workbench)
+                       .aggregate(core, plugins, pluginsJena, singlemachine, learning, workspace, workbench)
 
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.1.6" % "test"
+

@@ -27,13 +27,14 @@ import scala.io.Source
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
  * - '''queryParameters (optional)''' Additional parameters to be appended to every request e.g. &soft-limit=1
  * - '''parallel (optional)''' True (default), if multiple queries should be executed in parallel for faster retrieval.
+ * - '''updateParameter (optional)''' The HTTP parameter used to submit queries. Defaults to "query".
  */
 //TODO The HTTP parameter used to submit queries. Defaults to "query" which works for most endpoints. Some endpoints require different parameters e.g. Sesame expects "update" and Joseki expects "request".
 @Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(endpointURI: String, login: String = null, password: String = null,
                          graph: String = null, pageSize: Int = 1000, entityList: String = null,
                          pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
-                         queryParameters: String = "", parallel: Boolean = true) extends RdfDatasetPlugin {
+                         queryParameters: String = "", parallel: Boolean = true, updateParameter: String = "query") extends RdfDatasetPlugin {
 
   private val log = Logger.getLogger(SparqlDataset.getClass.getName)
 
@@ -189,7 +190,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
       writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
       statements = 0
 
-      writer.write("query=")
+      writer.write( updateParameter + "=")
     }
 
     private def closeConnection() {
