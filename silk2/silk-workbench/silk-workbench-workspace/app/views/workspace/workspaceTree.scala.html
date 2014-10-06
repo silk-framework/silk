@@ -24,7 +24,7 @@
 </div>
 
 @project(project: Project) = {
-  <li class="jstree-open" >
+  <li id="project_@project.name" >
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manager resources", "wrench.png", s"editResources('${project.name}')")
@@ -47,7 +47,7 @@
 }
 
 @task(project: Project, task: ModuleTask, taskActions: TaskActions[ModuleTask]) = {
-  <li data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
+  <li id="task_@{project.name}_@task.name" data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
     @task.name
     @for(path <- taskActions.propertiesDialog(project.name, task.name)) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")

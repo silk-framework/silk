@@ -60,7 +60,7 @@ class LinkingModuleProvider extends ModuleProvider[LinkingTask] {
       new LinkingCaches()
     }
 
-    LinkingTask(project, linkSpec, referenceLinks, cache)
+    LinkingTask(project, linkSpec, referenceLinks, cache, updateCache = false)
   }
 
   /**

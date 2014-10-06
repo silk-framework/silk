@@ -52,14 +52,14 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
   }
 
   /** Start loading this cache. */
-  def load(project: Project, task: TaskType) {
+  def load(project: Project, task: TaskType, update: Boolean = true) {
     //Stop current loading thread
     for(thread <- loadingThread) {
       thread.interrupt()
       thread.join()
     }
 
-    if(!loaded) {
+    if(update || !loaded) {
       //Set the task status
       updateStatus(TaskStarted("Loading cache"))
       //Create new loading thread

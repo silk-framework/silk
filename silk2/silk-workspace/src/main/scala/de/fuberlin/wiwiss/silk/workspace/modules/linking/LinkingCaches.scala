@@ -61,9 +61,9 @@ class LinkingCaches() extends HasStatus {
   /**
    * Loads the cache.
    */
-  def load(project : Project, task: LinkingTask) {
-    pathCache.load(project, task)
-    referenceEntitiesCache.load(project, task)
+  def load(project : Project, task: LinkingTask, update: Boolean) {
+    pathCache.load(project, task, update)
+    referenceEntitiesCache.load(project, task, update)
   }
 
   /**

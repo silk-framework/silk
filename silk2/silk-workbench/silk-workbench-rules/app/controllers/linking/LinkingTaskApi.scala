@@ -53,7 +53,7 @@ object LinkingTaskApi extends Controller {
             outputs = Nil
           )
 
-        val linkingTask = LinkingTask(proj, linkSpec, ReferenceLinks())
+        val linkingTask = LinkingTask(proj, linkSpec, ReferenceLinks(), updateCache = true)
         proj.updateTask(linkingTask)
       }
     }

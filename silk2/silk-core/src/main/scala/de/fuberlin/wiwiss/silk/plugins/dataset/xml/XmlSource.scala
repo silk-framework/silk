@@ -10,7 +10,7 @@ import scala.xml.{Node, NodeSeq, XML}
 
 class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource {
 
-  val uriRegex = "\\{([^\\}]+)\\}".r
+  private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
    // At the moment we just generate paths from the first xml node that is found

@@ -34,9 +34,9 @@ object TransformTask {
   /**
    * Constructs a new transform task and starts loading the cache.
    */
-  def apply(project: Project, name: Identifier, dataset: DatasetSelection, rules: Seq[TransformRule], cache: PathsCache = new PathsCache()) = {
+  def apply(project: Project, name: Identifier, dataset: DatasetSelection, rules: Seq[TransformRule], cache: PathsCache = new PathsCache(), updateCache: Boolean = true) = {
     val task = new TransformTask(name, dataset, rules, cache)
-    task.cache.load(project, task)
+    task.cache.load(project, task, updateCache)
     task
   }
 }

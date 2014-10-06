@@ -34,9 +34,9 @@ object DatasetTask {
   /**
    * Constructs a new source task and starts loading the cache.
    */
-  def apply(project: Project, source: Dataset, cache: TypesCache = new TypesCache()) = {
+  def apply(project: Project, source: Dataset, cache: TypesCache = new TypesCache(), updateCache: Boolean = true) = {
     val task = new DatasetTask(source, cache)
-    task.cache.load(project, task)
+    task.cache.load(project, task, updateCache)
     task
   }
 }

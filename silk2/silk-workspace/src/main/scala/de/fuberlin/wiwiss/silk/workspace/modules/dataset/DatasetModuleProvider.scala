@@ -69,7 +69,7 @@ class DatasetModuleProvider extends ModuleProvider[DatasetTask] {
         new LinkingCaches()
     }
 
-    DatasetTask(project, source, cache)
+    DatasetTask(project, source, cache, updateCache = false)
   }
 
   /**

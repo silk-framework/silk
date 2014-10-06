@@ -21,7 +21,7 @@ class CsvSource(file: Resource, properties: String, separator: String = ",", pre
 
   override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     for(property <- propertyList) yield {
-      (Path.parse("?" + restriction.variable + "/<" + prefix + property + ">"), 1.0)
+      (Path(restriction.variable, ForwardOperator(prefix + property) :: Nil), 1.0)
     }
   }
 

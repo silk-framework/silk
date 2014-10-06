@@ -37,7 +37,7 @@ trait WorkbenchGlobal extends GlobalSettings {
   }
 
   override def onError(request: RequestHeader, ex: Throwable) = {
-    Future.successful(InternalServerError(ex.getMessage))
+    Future.successful(InternalServerError(views.html.error(ex)))
   }
 
 }
