@@ -60,7 +60,6 @@ object Datasets extends Controller {
 
   def sparql(project: String, task: String, query: String = "") = Action { request =>
     val context = Context.get[DatasetTask](project, task, request.path)
-    val prefixes = context.project.config.prefixes
 
     context.task.dataset.plugin match {
       case rdf: RdfDatasetPlugin =>

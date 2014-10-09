@@ -64,7 +64,7 @@ class TransformModuleProvider extends ModuleProvider[TransformTask] {
         new LinkingCaches()
     }
 
-    TransformTask(project, name, dataset, rules, cache)
+    TransformTask(project, name, dataset, rules, cache, updateCache = false)
   }
 
   /**
