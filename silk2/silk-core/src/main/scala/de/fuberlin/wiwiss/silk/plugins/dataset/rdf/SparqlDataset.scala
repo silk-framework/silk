@@ -131,7 +131,13 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
         beginSparul(false)
       }
 
-      writer.write(URLEncoder.encode("<" + subject + "> <" + predicate + "> \"" + value + "\" .\n", "UTF-8"))
+      if(value.startsWith("http:"))
+        writer.write(URLEncoder.encode("<" + subject + "> <" + predicate + "> <" + value + "> .\n", "UTF-8"))
+      else {
+        val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+        writer.write(URLEncoder.encode("<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n", "UTF-8"))
+      }
+
       statements += 1
     }
 
@@ -172,7 +178,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
     private def openConnection() {
       //Preconditions
-      require(connection == null, "Connection already opened")
+      //require(connection == null, "Connection already opened")
 
       //Set authentication
       for ((user, password) <- loginComplete) {
