@@ -1,12 +1,12 @@
 
 import play.api.mvc.Results._
-import play.api.mvc.{Handler, RequestHeader}
+import play.api.mvc._
 import play.api.{Logger, Application, GlobalSettings}
 import play.core.Router.Routes
 import plugins.WorkbenchPlugins
 import scala.concurrent.Future
 
-trait WorkbenchGlobal extends GlobalSettings {
+trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractors {
 
   /** The context path of this application, i.e. the URI prefix */
   protected var context: String = _
@@ -36,8 +36,16 @@ trait WorkbenchGlobal extends GlobalSettings {
     }
   }
 
-  override def onError(request: RequestHeader, ex: Throwable) = {
-    Future.successful(InternalServerError(views.html.error(ex)))
+  override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
+//TODO  Should return HTML pages if the accept header includes HTML
+//    val res =
+//      render {
+//        case Accepts.Html() => InternalServerError(views.html.error(ex))
+//        case _ => InternalServerError(ex.getMessage)
+//      }
+//
+//    Future.successful(res)
+    Future.successful(InternalServerError(ex.getMessage))
   }
 
 }
