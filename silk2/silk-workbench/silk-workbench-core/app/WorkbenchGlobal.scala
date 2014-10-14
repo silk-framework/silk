@@ -25,11 +25,12 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     // Route to start page
-    if(request.path == context)
-      return core.Routes.handlerFor(request.copy(path = context + "core/"))
+    if(request.path.stripSuffix("/") == context.stripSuffix("/")) {
+      return core.Routes.handlerFor(request.copy(path = context.stripSuffix("/") + "/core"))
+    }
 
     // Route to registered modules
-    val prefix = request.path.stripPrefix(context).takeWhile(_ != '/')
+    val prefix = request.path.stripPrefix(context).stripPrefix("/").takeWhile(_ != '/')
     pluginRoutes.get(prefix) match {
       case Some(routes) => routes.handlerFor(request)
       case None => super.onRouteRequest(request)
