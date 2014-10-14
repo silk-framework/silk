@@ -49,7 +49,6 @@ object CorePlugins {
     DatasetPlugin.register(classOf[CsvDataset])
     DatasetPlugin.register(classOf[XmlDataset])
 
-    Transformer.register(classOf[ConstantTransformer])
     Transformer.register(classOf[ReplaceTransformer])
     Transformer.register(classOf[RegexReplaceTransformer])
     Transformer.register(classOf[ConcatTransformer])
@@ -80,6 +79,7 @@ object CorePlugins {
     Transformer.register(classOf[SoundexTransformer])
     Transformer.register(classOf[NysiisTransformer])
     Transformer.register(classOf[MetaphoneTransformer])
+    Transformer.register(classOf[ConstantTransformer])
     // Numeric
     Transformer.register(classOf[NumReduceTransformer])
     Transformer.register(classOf[NumOperationTransformer])
@@ -117,6 +117,7 @@ object CorePlugins {
     DistanceMeasure.register(classOf[KoreanPhonemeDistance])
     DistanceMeasure.register(classOf[KoreanTranslitDistance])
     DistanceMeasure.register(classOf[CJKReadingDistance])
+    DistanceMeasure.register(classOf[ConstantMetric])
 
     Aggregator.register(classOf[AverageAggregator])
     Aggregator.register(classOf[MaximumAggregator])
