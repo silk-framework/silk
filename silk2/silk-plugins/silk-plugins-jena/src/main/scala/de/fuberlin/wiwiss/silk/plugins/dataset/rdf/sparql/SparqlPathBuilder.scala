@@ -38,7 +38,9 @@ object SparqlPathBuilder {
    * Builds a SPARQL pattern from a single Path.
    */
   private def buildPath(path: Path, index: Int, vars: Vars): String = {
-    "OPTIONAL {\n" + buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path, index)) + "}\n"
+    "OPTIONAL {\n" +
+        buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path, index)) +
+    "}\n"
   }
 
   /**

@@ -22,7 +22,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import de.fuberlin.wiwiss.silk.execution.LoadTask
 import java.io.File
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager

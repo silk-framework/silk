@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.util.{Table, DPair, Timer}

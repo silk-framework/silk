@@ -18,7 +18,7 @@ import impl.HadoopEntityCache
 import org.apache.hadoop.fs.{FileSystem, Path}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 
 object SilkConfiguration {

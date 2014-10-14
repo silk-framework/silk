@@ -12,9 +12,17 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk
+package de.fuberlin.wiwiss.silk.plugins.dataset
 
-/**
- * Includes plugins which are provided by Silk.
- */
-package object plugins
+import de.fuberlin.wiwiss.silk.dataset.{Formatter, DatasetPlugin}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.{AlignmentFormatter, NTriplesFormatter}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.{SparqlDataset, FileDataset}
+
+object JenaPlugins {
+  def register() {
+    DatasetPlugin.register(classOf[FileDataset])
+    DatasetPlugin.register(classOf[SparqlDataset])
+    Formatter.register(classOf[NTriplesFormatter])
+    Formatter.register(classOf[AlignmentFormatter])
+  }
+}

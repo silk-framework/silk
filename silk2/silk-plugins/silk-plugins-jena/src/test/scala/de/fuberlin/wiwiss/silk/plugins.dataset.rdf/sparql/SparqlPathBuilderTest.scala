@@ -1,12 +1,11 @@
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.SparqlPathBuilder
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.testutil.equalIgnoringWhitespace
+import org.junit.runner.RunWith
+import org.scalatest.FlatSpec
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
 class SparqlPathBuilderTest extends FlatSpec with ShouldMatchers {

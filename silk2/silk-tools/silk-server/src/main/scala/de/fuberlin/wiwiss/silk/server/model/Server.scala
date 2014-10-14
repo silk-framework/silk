@@ -16,8 +16,9 @@ package de.fuberlin.wiwiss.silk.server.model
 
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, Source}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.RdfDataSource
 import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
-import de.fuberlin.wiwiss.silk.plugins.jena.{FileDataSource, RdfDataSource}
+import de.fuberlin.wiwiss.silk.plugins.dataset.FileDataSource
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.Link
 import java.util.logging.{Level, Logger}

@@ -12,15 +12,17 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 
 import java.io.IOException
 import java.net._
 import java.util.logging.{Level, Logger}
 import javax.xml.bind.DatatypeConverter
+
 import de.fuberlin.wiwiss.silk.dataset.rdf._
+
 import scala.io.Source
-import scala.xml.{XML, Elem}
+import scala.xml.{Elem, XML}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -92,7 +94,8 @@ class RemoteSparqlEndpoint(val uri: URI,
       }
 
       //Execute query
-      if (logger.isLoggable(Level.FINE)) logger.fine("Executing query on " + uri + "\n" + query)
+      //if (logger.isLoggable(Level.FINE))
+      logger.info("Executing query on " + uri + "\n" + query)
 
       val url = new URL(uri + "?query=" + URLEncoder.encode(query, "UTF-8") + queryParameters)
 
@@ -103,7 +106,10 @@ class RemoteSparqlEndpoint(val uri: URI,
         val httpConnection = RemoteSparqlEndpoint.openConnection(url, login)
 
         try {
-          result = XML.load(httpConnection.getInputStream)
+          val inputStream = httpConnection.getInputStream
+          result = XML.load(inputStream)
+          inputStream.close()
+          httpConnection.disconnect()
         }
         catch {
           case ex: IOException => {

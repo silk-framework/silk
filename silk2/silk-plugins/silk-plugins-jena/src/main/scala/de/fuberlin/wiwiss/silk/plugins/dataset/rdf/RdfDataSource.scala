@@ -1,25 +1,13 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
-package de.fuberlin.wiwiss.silk.plugins.jena
-
-import de.fuberlin.wiwiss.silk.dataset.DataSource
-import com.hp.hpl.jena.rdf.model.ModelFactory
 import java.io.StringReader
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{SparqlTypesCollector, SparqlAggregatePathsCollector, EntityRetriever}
+
+import com.hp.hpl.jena.rdf.model.ModelFactory
+import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.JenaModelEndpoint
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription, Entity}
 
 /**
  * A DataSource where all entities are given directly in the configuration.
@@ -34,7 +22,7 @@ case class RdfDataSource(input: String, format: String) extends DataSource {
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(input), null, format)
 
-  private lazy val endpoint = new JenaSparqlEndpoint(model)
+  private lazy val endpoint = new JenaModelEndpoint(model)
 
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
     EntityRetriever(endpoint).retrieve(entityDesc, entities)

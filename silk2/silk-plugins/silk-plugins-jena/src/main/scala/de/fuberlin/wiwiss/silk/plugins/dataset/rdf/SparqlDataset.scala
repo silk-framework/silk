@@ -7,6 +7,7 @@ import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
 import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql._
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
@@ -29,7 +30,6 @@ import scala.io.Source
  * - '''parallel (optional)''' True (default), if multiple queries should be executed in parallel for faster retrieval.
  * - '''updateParameter (optional)''' The HTTP parameter used to submit queries. Defaults to "query".
  */
-//TODO The HTTP parameter used to submit queries. Defaults to "query" which works for most endpoints. Some endpoints require different parameters e.g. Sesame expects "update" and Joseki expects "request".
 @Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(endpointURI: String, login: String = null, password: String = null,
                          graph: String = null, pageSize: Int = 1000, entityList: String = null,
@@ -48,6 +48,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
   }
 
   override def sparqlEndpoint = {
+    //new JenaRemoteEndpoint(endpointURI)
     new RemoteSparqlEndpoint(new URI(endpointURI), loginComplete, pageSize, pauseTime, retryCount, retryPause, queryParameters)
   }
 

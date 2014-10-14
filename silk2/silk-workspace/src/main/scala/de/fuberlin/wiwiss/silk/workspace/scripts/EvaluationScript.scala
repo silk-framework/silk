@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import java.util.logging.Logger
 
 trait EvaluationScript extends App {

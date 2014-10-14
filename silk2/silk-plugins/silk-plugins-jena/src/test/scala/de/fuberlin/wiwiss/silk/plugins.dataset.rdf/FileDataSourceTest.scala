@@ -12,8 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.jena
+package de.fuberlin.wiwiss.silk.plugins.dataset
 
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.FileDataset
 import org.scalatest.{Matchers, FlatSpec}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

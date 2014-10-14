@@ -12,20 +12,26 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.jena
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 
 import java.util.logging.{Level, Logger}
-import com.hp.hpl.jena.query.{QueryExecutionFactory, QuerySolution, ResultSet}
-import com.hp.hpl.jena.rdf.model.Model
-import de.fuberlin.wiwiss.silk.dataset.rdf.{ResultSet => SilkResultSet, BlankNode, Literal, Resource, SparqlEndpoint}
+
+import com.hp.hpl.jena.query.{QueryExecution, QuerySolution, ResultSet}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{BlankNode, Literal, Resource, SparqlEndpoint, ResultSet => SilkResultSet}
+
 import scala.collection.JavaConversions._
 
 /**
- * A SPARQL endpoint which executes all queries on a Jena Model.
+ * A SPARQL endpoint which executes all queries using Jena.
  */
-class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
+abstract class JenaEndpoint extends SparqlEndpoint {
 
-  private val logger = Logger.getLogger(classOf[JenaSparqlEndpoint].getName)
+  private val logger = Logger.getLogger(classOf[JenaEndpoint].getName)
+
+  /**
+   * Overloaded in subclasses.
+   */
+  protected def createQueryExecution(query: String): QueryExecution
 
   /**
    * Executes a SPARQL SELECT query.
@@ -35,7 +41,7 @@ class JenaSparqlEndpoint(model: Model) extends SparqlEndpoint {
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
     // Execute query
     val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
-    val qe = QueryExecutionFactory.create(query, model)
+    val qe = createQueryExecution(query)
     try {
       toSilkResults(qe.execSelect())
     }

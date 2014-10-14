@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.sparql
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{SparqlAggregateTypesCollector, RemoteSparqlEndpoint}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Timer
 import java.net.URI
 import java.util.logging.Logger
@@ -23,16 +23,18 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 /**
  * Compares the performance of the different path collectors.
  */
-object SparqlTypesCollectorTest {
+object SparqlPathsCollectorTest {
   implicit val logger = Logger.getLogger(getClass.getName)
 
   private val tests = {
     Test(
       name = "Sider",
-      uri = "http://www4.wiwiss.fu-berlin.de/sider/sparql"
+      uri = "http://www4.wiwiss.fu-berlin.de/sider/sparql",
+      restriction = "?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www4.wiwiss.fu-berlin.de/sider/resource/sider/drugs>"
     ) :: Test(
-      name = "DBpedia",
-      uri = "http://dbpedia.org/sparql"
+      name = "DBpedia-Drugs",
+      uri = "http://dbpedia.org/sparql",
+      restriction = "?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Drug>"
     ) :: Nil
   }
 
@@ -40,17 +42,22 @@ object SparqlTypesCollectorTest {
     for(test <- tests) test.execute()
   }
 
-  private case class Test(name: String, uri: String) {
+  private case class Test(name: String, uri: String, restriction: String) {
 
     def execute() {
-      logger.info("Executing on " + uri + " test")
+      logger.info("Executing " + name + " test")
 
       val endpoint = new RemoteSparqlEndpoint(uri = new URI(uri), retryCount = 100)
+      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
+      val limit = Some(50)
 
-      val types = Timer("SparqlAggregateTypesCollector") {
-        SparqlAggregateTypesCollector(endpoint, limit = None).toList
+      Timer("SparqlAggregatePathsCollector") {
+        SparqlAggregatePathsCollector(endpoint, sparqlRestriction, limit).toList
       }
-      logger.info("Found " + types.size + " types: " + types.toString)
+
+      Timer("SparqlSamplePathsCollector") {
+        SparqlSamplePathsCollector(endpoint, sparqlRestriction, limit).toList
+      }
     }
   }
 }

@@ -5,7 +5,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import de.fuberlin.wiwiss.silk.util.Timer
 ;
 

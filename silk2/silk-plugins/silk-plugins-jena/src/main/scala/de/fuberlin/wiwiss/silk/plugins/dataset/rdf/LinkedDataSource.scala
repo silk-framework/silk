@@ -1,22 +1,9 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
-package de.fuberlin.wiwiss.silk.plugins.jena
-
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
@@ -30,7 +17,7 @@ case class LinkedDataSource() extends DataSource {
       model.read(uri)
     }
 
-    val endpoint = new JenaSparqlEndpoint(model)
+    val endpoint = new JenaModelEndpoint(model)
 
     val entityRetriever = EntityRetriever(endpoint)
 
