@@ -14,20 +14,18 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
-import de.fuberlin.wiwiss.silk.dataset.{DatasetPlugin, Formatter}
+import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
-import de.fuberlin.wiwiss.silk.plugins.dataset._
 import de.fuberlin.wiwiss.silk.plugins.dataset.csv.CsvDataset
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.{AlignmentFormatter, NTriplesFormatter}
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlDataset
 import de.fuberlin.wiwiss.silk.plugins.dataset.xml.XmlDataset
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._
 import de.fuberlin.wiwiss.silk.plugins.distance.equality._
-import de.fuberlin.wiwiss.silk.plugins.distance.numeric.{DateMetric, DateTimeMetric, GeographicDistanceMetric, NumMetric}
+import de.fuberlin.wiwiss.silk.plugins.distance.numeric._
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased._
+import de.fuberlin.wiwiss.silk.plugins.transformer.ConstantTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.date._
@@ -48,10 +46,10 @@ object CorePlugins {
    * For performance reasons, this is done manually instead of using automatic classpath lookup.
    */
   def register() {
-    DatasetPlugin.register(classOf[SparqlDataset])
     DatasetPlugin.register(classOf[CsvDataset])
     DatasetPlugin.register(classOf[XmlDataset])
 
+    Transformer.register(classOf[ConstantTransformer])
     Transformer.register(classOf[ReplaceTransformer])
     Transformer.register(classOf[RegexReplaceTransformer])
     Transformer.register(classOf[ConcatTransformer])
@@ -100,6 +98,7 @@ object CorePlugins {
     DistanceMeasure.register(classOf[LevenshteinDistance])
     DistanceMeasure.register(classOf[JaroDistanceMetric])
     DistanceMeasure.register(classOf[JaroWinklerDistance])
+    DistanceMeasure.register(classOf[InsideNumericInterval])
     DistanceMeasure.register(classOf[QGramsMetric])
     DistanceMeasure.register(classOf[SubStringDistance])
     DistanceMeasure.register(classOf[EqualityMetric])
@@ -124,8 +123,5 @@ object CorePlugins {
     Aggregator.register(classOf[MinimumAggregator])
     Aggregator.register(classOf[QuadraticMeanAggregator])
     Aggregator.register(classOf[GeometricMeanAggregator])
-
-    Formatter.register(classOf[NTriplesFormatter])
-    Formatter.register(classOf[AlignmentFormatter])
   }
 }

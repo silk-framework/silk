@@ -25,7 +25,6 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
  * A TransformInput applies a transform to input values.
  */
 case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: Seq[Input]) extends Input {
-  require(inputs.size > 0, "Number of inputs must be > 0.")
 
   def apply(entities: DPair[Entity]): Set[String] = {
     val values = for (input <- inputs) yield input(entities)
@@ -52,7 +51,6 @@ object TransformInput {
   def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     val id = Operator.readId(node)
     val inputs = Input.fromXML(node.child, resourceLoader)
-    if(inputs.isEmpty) throw new ValidationException("No input defined", id, "Transformation")
 
     try {
       val transformer = Transformer((node \ "@function").text, Operator.readParams(node), resourceLoader)
