@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 import scala.io.{Codec, Source}
 
-class CsvSource(file: Resource, properties: String, separator: String = ",", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
+class CsvSource(file: Resource, properties: String, separator: String, arraySeparator: String, prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
 
   private lazy val propertyList: Seq[String] = {
     if (!properties.trim.isEmpty)
@@ -71,9 +71,15 @@ class CsvSource(file: Resource, properties: String, separator: String = ",", pre
 
             //Build entity
             if(entities.isEmpty || entities.contains(entityURI)) {
+              val entityValues =
+                if(arraySeparator.isEmpty)
+                  values.map(Set(_))
+                else
+                  values.map(_.split(arraySeparator, -1).toSet)
+
               f(new Entity(
                 uri = entityURI,
-                values = values.map(Set(_)),
+                values = entityValues,
                 desc = entityDesc
               ))
             }
