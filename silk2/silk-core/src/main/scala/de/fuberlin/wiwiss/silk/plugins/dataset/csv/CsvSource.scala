@@ -31,6 +31,8 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
       for(path <- entityDesc.paths) yield {
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
         val propertyIndex = propertyList.indexOf(property)
+        if(propertyIndex == -1)
+          throw new Exception("Property " + path.toString + " not found in CSV")
         propertyIndex
       }
 
