@@ -201,39 +201,20 @@ object SpatialExtensionsUtils {
   }
 
   /**
-   * This function indexes Geometries by their Centre.
-   *
-   * @param geometryString : String
-   * @param distance: Double
-   * @return Index
-   */
-  def indexGeometriesByCentre(geometryString: String, distance: Double): Index = {
-    try {
-      val geometry = WKTReader(geometryString, DEFAULT_SRID)
-      val centre = new MinimumBoundingCircle(geometry).getCentre()
-      val maxDistanceInRads = distance / EQUATORIAL_RADIUS
-
-      val latIndex = Index.continuous(centre.y, MIN_LAT, MAX_LAT, maxDistanceInRads)
-      val longIndex = Index.continuous(centre.x, MIN_LONG, MAX_LONG, maxDistanceInRads)
-
-      latIndex conjunction longIndex
-    } catch {
-      case e: Exception =>
-        Index.empty
-    }
-  }
-
-  /**
    * This function indexes Geometries by their Envelope.
    *
    * @param geometryString : String
    * @param blockingParameter: Double
+   * @param distance: Double (optional; for distance measures)
    * @return Index
    */
-  def indexGeometriesByEnvelope(geometryString: String, blockingParameter: Double): Index = {
+  def indexGeometriesByEnvelope(geometryString: String, blockingParameter: Double, distance: Double = 0.0): Index = {
     try {
       val geometry = WKTReader(geometryString, DEFAULT_SRID)
       val envelope = geometry.getEnvelopeInternal()
+      
+      if (distance != 0.0)
+        envelope.expandBy((distance / EARTH_CIRCUMFERENCE_EQUATORIAL) * LONG_RANGE, (distance / EARTH_CIRCUMFERENCE_MERIDIONAL) * LAT_RANGE)
 
       val blockCountLat = (LAT_RANGE*blockingParameter).toInt
       val blockCountLong = (LONG_RANGE*blockingParameter).toInt

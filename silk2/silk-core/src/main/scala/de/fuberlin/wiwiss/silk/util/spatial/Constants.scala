@@ -103,9 +103,10 @@ object Constants {
   val MIN_LONG = -180.0
 
   /**
-   * Equatorial radius of Earth (in meters).
+   * Earth circumferences (in meters).
    */
-  val EQUATORIAL_RADIUS =  6378137.0
+  val EARTH_CIRCUMFERENCE_EQUATORIAL = 40075160.0
+  val EARTH_CIRCUMFERENCE_MERIDIONAL = 40008000.0
   
   /**
    * Latitude Range (WGS 84 (latitude-longitude)).

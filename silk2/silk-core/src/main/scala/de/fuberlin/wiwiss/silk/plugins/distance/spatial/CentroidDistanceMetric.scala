@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{ evaluateDistance, indexGeometriesByCentre }
+import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{ evaluateDistance, indexGeometriesByEnvelope }
 import de.fuberlin.wiwiss.silk.util.spatial.Constants._
 
 /**
@@ -29,13 +29,13 @@ import de.fuberlin.wiwiss.silk.util.spatial.Constants._
   categories = Array("Spatial"),
   label = "Centroid distance",
   description = "Computes the distance between the centroids of two geometries in meters. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
-case class CentroidDistanceMetric() extends SimpleDistanceMeasure {
+case class CentroidDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     evaluateDistance(str1, str2, limit, CENTROID_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometriesByCentre(str, distance)
+    indexGeometriesByEnvelope(str, blockingParameter, distance)
   }
 }
