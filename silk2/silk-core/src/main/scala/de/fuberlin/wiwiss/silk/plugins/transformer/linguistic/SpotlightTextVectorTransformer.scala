@@ -63,7 +63,7 @@ object SpotlightClient {
     val sb = new StringBuilder
 
     for(resource <- root \ "Resources" \ "Resource")
-      tempResources += Pair(resource.text, (resource \ "@similarityScore").text.toDouble)
+      tempResources += (resource.text, (resource \ "@similarityScore").text.toDouble)
     var first = true
     for((resource, score) <- normalize(tempResources)) {
       if(!first)

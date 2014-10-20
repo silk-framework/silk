@@ -14,10 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.util
 
-import collection.mutable.{SynchronizedMap, WeakHashMap}
+import scala.collection.mutable
 
 trait Observable[T] {
-  private val subscribers = new WeakHashMap[T => _, Unit]() with SynchronizedMap[T => _, Unit]
+  
+  private val subscribers = new mutable.WeakHashMap[T => _, Unit]()
 
   /**
    * Execute a function on every update.
@@ -25,17 +26,17 @@ trait Observable[T] {
    *
    * @return The provided function
    */
-  def onUpdate[U](f: T => U) = {
+  def onUpdate[U](f: T => U) = synchronized {
     subscribers.update(f, Unit)
     f
   }
 
-  protected def publish(event: T) {
+  protected def publish(event: T) = synchronized {
     for(subscriber <- subscribers.keys)
       subscriber(event)
   }
 
-  def removeSubscriptions() {
+  def removeSubscriptions() = synchronized {
     subscribers.clear()
   }
 }
