@@ -14,10 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.dataset.rdf.{Resource, RdfNode, SparqlEndpoint}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path}
-import scala.collection.mutable.SynchronizedQueue
 
 /**
  * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
@@ -102,7 +102,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
   }
 
   private class PathRetriever(entityUris: Seq[String], entityDesc: EntityDescription, path: Path) extends Thread {
-    private val queue = new SynchronizedQueue[PathValues]()
+    private val queue = new ConcurrentLinkedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null
 
@@ -122,7 +122,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       //Throw exceptions which occurred during querying
       if (exception != null) throw exception
 
-      queue.dequeue()
+      queue.remove()
     }
 
     override def run() {
@@ -202,7 +202,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
               Thread.sleep(100)
             }
 
-            queue.enqueue(PathValues(currentSubject.get, currentValues))
+            queue.add(PathValues(currentSubject.get, currentValues))
 
             currentSubject = subject
             currentValues = Set.empty
@@ -217,7 +217,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       }
 
       for (s <- currentSubject if !sparqlResults.isEmpty) {
-        queue.enqueue(PathValues(s, currentValues))
+        queue.add(PathValues(s, currentValues))
       }
     }
   }

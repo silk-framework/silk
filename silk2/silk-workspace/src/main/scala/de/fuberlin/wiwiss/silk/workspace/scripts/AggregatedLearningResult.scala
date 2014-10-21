@@ -16,6 +16,7 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 
 import de.fuberlin.wiwiss.silk.evaluation.statistics.{LinkageRuleComplexity, AggregatedComplexity, AggregatedEvaluationResult, VariableStatistic}
 import de.fuberlin.wiwiss.silk.learning.LearningResult
+import de.fuberlin.wiwiss.silk.util.Table
 
 /**
  * The aggregated result of multiple learning runs.
@@ -46,7 +47,7 @@ object AggregatedLearningResult {
   /**
    * Formats a sequence of aggregated learning results.
    */
-  def format(results: Seq[AggregatedLearningResult], includeStandardDeviation: Boolean = true, includeComplexity: Boolean = false): ResultTable = {
+  def format(results: Seq[AggregatedLearningResult], includeStandardDeviation: Boolean = true, includeComplexity: Boolean = false): Table = {
     new Formatter(includeStandardDeviation, includeComplexity).apply(results)
   }
 
@@ -54,9 +55,11 @@ object AggregatedLearningResult {
    * Formatter for sequence of aggregated learning results.
    */
   private class Formatter(includeStandardDeviation: Boolean, includeComplexity: Boolean) {
-    def apply(results: Seq[AggregatedLearningResult]): ResultTable = {
-      ResultTable(
+    def apply(results: Seq[AggregatedLearningResult]): Table = {
+      Table(
+        name = "Results",
         header = generateHeader,
+        rows = Seq.tabulate(results.size)(_.toString),
         values = results.zipWithIndex.map(row _ tupled)
       )
     }
