@@ -17,8 +17,8 @@ package de.fuberlin.wiwiss.silk
 import java.io.File
 import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, LinkingConfig}
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.config.{TransformSpecification, LinkSpecification, LinkingConfig}
+import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinksTask}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.util.CollectLogs
@@ -36,7 +36,7 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.6.0")
+  println("Silk Link Discovery Framework - Version 2.6.1")
 
   //Register all available plugins
   Plugins.register()
@@ -101,15 +101,28 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeConfig(config: LinkingConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
+
     if (linkSpecID != null) {
-      //Execute a specific link specification
-      val linkSpec = config.linkSpec(linkSpecID)
-      executeLinkSpec(config, linkSpec, numThreads, reload)
+
+      logger.log(Level.INFO, s"Executing [ id :: $linkSpecID ].")
+
+      // Execute a specific link specification
+      config.interlink(linkSpecID).foreach(executeLinkSpec(config, _, numThreads, reload))
+
+      // Execute each transform with the provided id.
+      config.transform(linkSpecID).foreach(executeTransform)
+
     } else {
+
+      logger.log(Level.INFO, s"Executing all.")
+
       //Execute all link specifications
       for (linkSpec <- config.linkSpecs) {
         executeLinkSpec(config, linkSpec, numThreads, reload)
       }
+
+      // Execute all transforms.
+      config.transforms.foreach(executeTransform)
     }
   }
 
@@ -129,6 +142,15 @@ object Silk {
       runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
     ).apply()
   }
+
+  /**
+   * Execute a transform with the provided transform specification.
+   *
+   * @since 2.6.1
+   *
+   * @param transform The transform specification.
+   */
+  private def executeTransform(transform: TransformSpecification) = ExecuteTransform(transform).execute()
 
   /**
    * Main method to allow Silk to be started from the command line.

@@ -14,6 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
+import java.util.logging.{Logger, Level}
+
 import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
@@ -41,11 +43,16 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokeni
  * Registers all default plugins.
  */
 object CorePlugins {
+
+  private val logger = Logger.getLogger("CorePlugins")
+
   /**
    * Registers all default plugins.
    * For performance reasons, this is done manually instead of using automatic classpath lookup.
    */
   def register() {
+    logger.log(Level.FINE, "Registering core plugins.")
+
     DatasetPlugin.register(classOf[CsvDataset])
     DatasetPlugin.register(classOf[XmlDataset])
 

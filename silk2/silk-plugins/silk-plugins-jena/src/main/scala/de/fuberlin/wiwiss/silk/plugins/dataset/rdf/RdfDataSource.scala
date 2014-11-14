@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
 import java.io.StringReader
+import java.util.logging.{Level, Logger}
 
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.dataset.DataSource
@@ -19,12 +20,17 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 @Plugin(id = "rdf", label = "RDF", description = "A DataSource where all entities are given directly in the configuration.")
 case class RdfDataSource(input: String, format: String) extends DataSource {
 
+  private val logger = Logger.getLogger(getClass.getName)
+
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(input), null, format)
 
   private lazy val endpoint = new JenaModelEndpoint(model)
 
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+
+    logger.log(Level.FINE, "Retrieving data from RDF.")
+
     EntityRetriever(endpoint).retrieve(entityDesc, entities)
   }
 

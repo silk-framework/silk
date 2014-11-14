@@ -14,12 +14,19 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset
 
+import java.util.logging.{Logger, Level}
+
 import de.fuberlin.wiwiss.silk.dataset.{Formatter, DatasetPlugin}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.{AlignmentFormatter, NTriplesFormatter}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.{SparqlDataset, FileDataset}
 
 object JenaPlugins {
+
+  private val logger = Logger.getLogger("JenaPlugins")
+
   def register() {
+    logger.log(Level.FINE, "Registering Jena plugins.")
+
     DatasetPlugin.register(classOf[FileDataset])
     DatasetPlugin.register(classOf[SparqlDataset])
     Formatter.register(classOf[NTriplesFormatter])

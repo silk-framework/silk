@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.cache
 
 import collection.mutable.ArrayBuffer
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
 import java.lang.InterruptedException
@@ -78,6 +78,9 @@ class MemoryEntityCache(val entityDesc: EntityDescription,
   }
 
   override def clear() {
+
+    logger.log(Level.FINE, "Clearing the memory cache.")
+
     entityCounter = 0
     blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
     allEntities = Set[String]()
