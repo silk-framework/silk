@@ -19,14 +19,14 @@ import java.net.{URL, URLClassLoader}
 import org.clapper.classutil._
 import collection.immutable.ListMap
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 /**
  * An abstract Factory.
  */
 class PluginFactory[T <: AnyPlugin : Manifest] {
 
-  private val log = Logger.getLogger(getClass.getName)
+  private val logger = Logger.getLogger(getClass.getName)
 
   /** Map of all plugins by their id. This is a list map as it preserves the iteration order of the entries. */
   private var plugins = ListMap[String, PluginDescription[T]]()
@@ -123,8 +123,14 @@ class PluginFactory[T <: AnyPlugin : Manifest] {
     val pluginClassNames = jarClasses.filter(isPlugin).map(_.name)
 
     //Load all found classes
-    val jarClassLoader = URLClassLoader.newInstance(jarFiles.map(file => new URL("jar:file:" + file.getAbsolutePath + "!/")), getClass.getClassLoader)
-    val pluginClasses = pluginClassNames.map(jarClassLoader.loadClass)
+    val jarClassLoader = URLClassLoader.newInstance(jarFiles.map(
+      f => new URL("jar:file:" + f.getAbsolutePath + "!/")
+    ), getClass.getClassLoader)
+
+    val pluginClasses = pluginClassNames.map( (className:String) => {
+      logger.log(Level.FINE, s"Loading class [ class :: $className ]")
+      jarClassLoader.loadClass(className)
+    })
 
     //Register all plugins
     for(pluginClass <- pluginClasses)
