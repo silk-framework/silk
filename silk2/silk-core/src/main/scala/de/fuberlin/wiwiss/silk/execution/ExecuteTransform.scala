@@ -1,6 +1,8 @@
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.config.DatasetSelection
+import java.util.logging.{Level, Logger}
+
+import de.fuberlin.wiwiss.silk.config.{TransformSpecification, DatasetSelection}
 import de.fuberlin.wiwiss.silk.runtime.task.Task
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, DataSink}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
@@ -15,6 +17,9 @@ class ExecuteTransform(input: DataSource,
                        outputs: Seq[DataSink] = Seq.empty) extends Task[Any] {
 
   def execute(): Unit = {
+
+    logger.log(Level.INFO, "Executing transform.")
+
     // Retrieve entities
     val entityDesc =
       new EntityDescription(
@@ -42,4 +47,14 @@ class ExecuteTransform(input: DataSource,
 
 object ExecuteTransform {
   def empty = new ExecuteTransform(null, null, null, null)
+
+  /**
+   * Create an ExecuteTransform task instance with the provided transform specification.
+   *
+   * @since 2.6.1
+   *
+   * @param transform The transform specification.
+   * @return An ExecuteTransform instance.
+   */
+  def apply(transform: TransformSpecification) = new ExecuteTransform(transform.input, transform.selection, transform.rules, transform.outputs)
 }
