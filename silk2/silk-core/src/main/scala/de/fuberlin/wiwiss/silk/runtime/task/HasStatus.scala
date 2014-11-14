@@ -51,15 +51,17 @@ trait HasStatus extends Observable[TaskStatus] {
    * @param status The new status
    */
   protected def updateStatus(status: TaskStatus) {
+
     status match {
       case _: TaskRunning => logger.log(progressLogLevel, status.toString)
       case _ => logger.log(statusLogLevel, status.toString)
     }
 
-    if(!currentStatus.isInstanceOf[TaskCanceling] || status.isInstanceOf[TaskFinished]) {
+    if(!currentStatus.isInstanceOf[TaskCanceling]) {
       currentStatus = status
       publish(status)
     }
+
   }
 
   /**
