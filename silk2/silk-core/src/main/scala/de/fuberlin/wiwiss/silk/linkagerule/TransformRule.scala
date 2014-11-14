@@ -61,13 +61,13 @@ object TransformRule {
   def apply(name: Identifier, operator: Input, targetProperty: String): TransformRule = TransformRule(name, Some(operator), targetProperty)
 
   def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes, None), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
+    new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
   }
 
   /**
    * Reads a transform rule from xml.
    */
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes, globalThreshold: Option[Double]) = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     TransformRule(
       name = (node \ "@name").text,
       operator = Input.fromXML(node.child, resourceLoader).headOption,
