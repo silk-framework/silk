@@ -14,11 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.cache
 
-import de.fuberlin.wiwiss.silk.util.FileUtils._
-import java.util.logging.{Level, Logger}
 import java.io._
+import java.util.logging.{Level, Logger}
+
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Index}
+import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
  * An entity cache, which caches the entities on the local file system.
@@ -35,15 +36,18 @@ class FileEntityCache(val entityDesc: EntityDescription,
   @volatile private var writing = false
 
   override def write(entities: Traversable[Entity]) {
+
+    logger.log(Level.FINER, "Writing data to file cache.")
+
     val startTime = System.currentTimeMillis()
     writing = true
     var entityCount = 0
 
     try {
       for (entity <- entities) {
-        if(Thread.currentThread().isInterrupted) throw new InterruptedException()
+        if (Thread.currentThread().isInterrupted) throw new InterruptedException()
 
-        val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
+        val indices = if (runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
         for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
           blocks(block).write(entity, BitsetIndex.build(index))
@@ -77,13 +81,22 @@ class FileEntityCache(val entityDesc: EntityDescription,
   }
 
   override def clear() {
+
+    logger.log(Level.FINE, s"Clearing the file cache [ path :: ${dir.getAbsolutePath} ].")
+
     dir.deleteRecursive()
     for (block <- blocks) {
       block.clear()
     }
+
+    logger.log(Level.FINE, "Cache cleared.")
+
   }
 
   override def close() {
+
+    logger.log(Level.FINER, s"Closing file cache [ size :: ${blocks.length} ].")
+
     for (block <- blocks) {
       block.close()
     }
