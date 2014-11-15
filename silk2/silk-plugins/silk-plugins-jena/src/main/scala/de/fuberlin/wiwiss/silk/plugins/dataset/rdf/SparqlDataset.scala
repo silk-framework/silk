@@ -94,6 +94,8 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
   object SparqlSink extends DataSink {
 
+    private val logger = Logger.getLogger(SparqlSink.getClass.getName)
+
     /**Maximum number of statements per request. */
     private val StatementsPerRequest = 200
 
@@ -132,12 +134,17 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
         beginSparul(false)
       }
 
-      if(value.startsWith("http:"))
-        writer.write(URLEncoder.encode("<" + subject + "> <" + predicate + "> <" + value + "> .\n", "UTF-8"))
+      // Create the statement.
+      val statement = if(value.startsWith("http:"))
+        URLEncoder.encode("<" + subject + "> <" + predicate + "> <" + value + "> .\n", "UTF-8")
       else {
         val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-        writer.write(URLEncoder.encode("<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n", "UTF-8"))
+        URLEncoder.encode("<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n", "UTF-8")
       }
+
+      // Write the statement.
+      logger.log(Level.FINE, s"Writing statement [ statement :: $statement ].")
+      writer.write(statement)
 
       statements += 1
     }
