@@ -90,7 +90,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin) {
     }
 
     override def writeLiteralStatement(subject: String, predicate: String, value: String) {
-      require(isOpen, "Output must be opened befored writing statements to it")
+      require(isOpen, "Output must be opened before writing statements to it.")
       writer.writeLiteralStatement(subject, predicate, value)
     }
 
