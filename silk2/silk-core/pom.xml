@@ -40,18 +40,8 @@
     </dependency>
 	<!-- Spatial Extensions -->
     <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
-      <version>${jts.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jvnet.ogc</groupId>
-      <artifactId>ogc-tools-gml-jts</artifactId>
-      <version>${ogctools.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.geotools</groupId>
-      <artifactId>gt-opengis</artifactId>
+      <artifactId>gt-epsg-wkt</artifactId>
       <version>${geotools.version}</version>
     </dependency>
     <dependency>
@@ -66,9 +56,19 @@
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
-      <artifactId>gt-epsg-wkt</artifactId>
+      <artifactId>gt-opengis</artifactId>
       <version>${geotools.version}</version>
-      </dependency>
+    </dependency>
+    <dependency>
+      <groupId>com.vividsolutions</groupId>
+      <artifactId>jts</artifactId>
+      <version>${jts.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jvnet.ogc</groupId>
+      <artifactId>ogc-tools-gml-jts</artifactId>
+      <version>${ogctools.version}</version>
+    </dependency>
   </dependencies>
 
   <repositories>
