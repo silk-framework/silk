@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
+import java.net.{HttpURLConnection, URL, URLEncoder}
+
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import java.net.{URLEncoder, HttpURLConnection, URL}
-import xml.Elem
-import collection.mutable.{ArrayBuffer, HashSet, Set => MSet}
-import java.lang.ConditionalSpecialCasing
-import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased.CosineDistanceMetric
+
+import scala.collection.mutable.{ArrayBuffer, Set => MSet}
+import scala.xml.{Elem, XML}
 
 /**
  * Created by IntelliJ IDEA.
@@ -53,7 +53,7 @@ object SpotlightClient {
     val is = conn.getInputStream
     if(is==null)
       return Set[String]()
-    val root = xml.XML.load(is)
+    val root = XML.load(is)
     Set(createEntityString(root))
   }
 
@@ -63,7 +63,7 @@ object SpotlightClient {
     val sb = new StringBuilder
 
     for(resource <- root \ "Resources" \ "Resource")
-      tempResources += Pair(resource.text, (resource \ "@similarityScore").text.toDouble)
+      tempResources += ((resource.text, (resource \ "@similarityScore").text.toDouble))
     var first = true
     for((resource, score) <- normalize(tempResources)) {
       if(!first)

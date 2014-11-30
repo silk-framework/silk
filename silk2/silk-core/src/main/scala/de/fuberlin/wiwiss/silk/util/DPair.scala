@@ -40,7 +40,7 @@ object DPair {
   /**
    * Converts a DPair to a Scala Pair.
    */
-  implicit def toPair[T](p: DPair[T]) = Pair(p.source, p.target)
+  implicit def toPair[T](p: DPair[T]) = (p.source, p.target)
 
   /**
    * Creates a Pair from a Sequence of 2 values.
