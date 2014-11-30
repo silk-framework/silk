@@ -1,5 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
+import java.net.URLEncoder
+
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
@@ -67,7 +69,8 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
                 val propName = m.group(1)
 
                 assert(propertyList.contains(propName))
-                allValues(propertyList.indexOf(propName))
+                val value = allValues(propertyList.indexOf(propName))
+                URLEncoder.encode(value, "UTF-8")
               })
 
 

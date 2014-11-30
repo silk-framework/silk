@@ -30,7 +30,7 @@ class OutputTask(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extend
 
     for (link <- links;
          output <- outputs) {
-      output.write(link, linkType.toString)
+      output.writeLink(link, linkType.toString)
     }
 
     outputs.foreach(_.close())

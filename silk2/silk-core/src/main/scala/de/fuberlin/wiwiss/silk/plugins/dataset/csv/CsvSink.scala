@@ -6,30 +6,30 @@ import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.runtime.resource.{FileResource, Resource}
 
-class CsvSink(file: Resource, properties: String, separator: String = ",", arraySeparator: String = "", prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSink {
+class CsvSink(file: Resource, separator: String = ",", arraySeparator: String = " ") extends DataSink {
 
   private val javaFile = file match {
     case f: FileResource => f.file
     case _ => throw new IllegalArgumentException("Can only write to files, but got a resource of type " + file.getClass)
   }
 
+  @volatile
   private var out: Writer = null
 
-  override def open() {
+  override def open(properties: Seq[String] = Seq.empty) {
     //Create buffered writer
     out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
     //Write header
-    if(!properties.isEmpty)
-      out.write(properties)
+    if(properties.nonEmpty)
+      out.write(properties.mkString(separator) + "\n")
   }
 
-  override def write(link: Link, predicateUri: String) {
-    out.write(link.source + separator + link.target)
+  override def writeLink(link: Link, predicateUri: String) {
+    out.write(link.source + separator + link.target + "\n")
   }
 
-  override def writeLiteralStatement(subject: String, predicate: String, value: String) {
-    //TODO
-    //out.write(formatter.formatLiteralStatement(subject, predicate, value))
+  override def writeEntity(subject: String, values: Seq[Set[String]]) {
+    out.write(values.map(_.mkString(arraySeparator)).mkString(separator) + "\n")
   }
 
   override def close() {

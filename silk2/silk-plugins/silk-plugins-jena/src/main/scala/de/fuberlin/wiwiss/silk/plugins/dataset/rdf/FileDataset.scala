@@ -83,6 +83,8 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
 
     private val formatter = Formatter(format.filter(_ != '-').toLowerCase)
 
+    private var properties = Seq[String]()
+
     private val javaFile = file match {
       case f: FileResource => f.file
       case _ => throw new IllegalArgumentException("Can only write to files, but got a resource of type " + file.getClass)
@@ -90,19 +92,22 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
 
     private var out: Writer = null
 
-    override def open() {
+    override def open(properties: Seq[String]) {
+      this.properties = properties
       //Create buffered writer
       out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
       //Write header
       out.write(formatter.header)
     }
 
-    override def write(link: Link, predicateUri: String) {
+    override def writeLink(link: Link, predicateUri: String) {
       out.write(formatter.format(link, predicateUri))
     }
 
-    override def writeLiteralStatement(subject: String, predicate: String, value: String) {
-      out.write(formatter.formatLiteralStatement(subject, predicate, value))
+    override def writeEntity(subject: String, values: Seq[Set[String]]) {
+      for((property, valueSet) <- properties zip values; value <- valueSet) {
+        out.write(formatter.formatLiteralStatement(subject, property, value))
+      }
     }
 
     override def close() {

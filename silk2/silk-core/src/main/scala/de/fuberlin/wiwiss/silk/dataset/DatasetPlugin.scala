@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.dataset
 import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 
 /**
- * Mnages the access to a specific dataset.
+ * Manages the access to a specific dataset.
  */
 trait DatasetPlugin extends AnyPlugin {
 

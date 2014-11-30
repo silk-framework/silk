@@ -9,7 +9,7 @@
   <div class="dataset-bottom"></div>
   <div class="dataset-contents">
     <div class="dataset-buttons">
-      <img src="@Assets.at("img/delete.png")" style="float:right" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      <img src="@Assets.at("img/delete.png")" style="float:right" onclick="removeElement($(this).parent().parent().parent().attr('id'))"/>
       @for(path <- taskActions.open(project.name, task.name)) {
         <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="float:right" onclick="window.open('@config.baseUrl/@path', '_blank')" />
       }

@@ -25,14 +25,15 @@ class ExecuteTransform(input: DataSource,
     val entities = input.retrieve(entityDesc)
 
     // Open outputs
-    for(output <- outputs) output.open()
+    val properties = rules.map(_.targetProperty.uri)
+    for(output <- outputs) output.open(properties)
 
     // Transform all entities and write to outputs
     for { entity <- entities
-          rule <- rules
-          value <- rule(entity)
-          output <- outputs } {
-      output.writeLiteralStatement(entity.uri, rule.targetProperty.uri, value)
+          rule <- rules } {
+      val values = rules.map(_(entity))
+      for(output <- outputs)
+        output.writeEntity(entity.uri, values)
     }
 
     // Close outputs

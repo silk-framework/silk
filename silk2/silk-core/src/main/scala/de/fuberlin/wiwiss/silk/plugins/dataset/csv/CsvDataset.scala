@@ -24,5 +24,5 @@ case class CsvDataset(file: Resource, properties: String, separator: String = ",
 
   override def source: DataSource = new CsvSource(file, properties, separator, arraySeparator, prefix, uri, regexFilter)
 
-  override def sink: DataSink = throw new NotImplementedError("CSVs cannot be written at the moment")
+  override def sink: DataSink = new CsvSink(file, separator, arraySeparator)
 }

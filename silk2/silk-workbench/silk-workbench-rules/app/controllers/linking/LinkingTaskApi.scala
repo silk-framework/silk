@@ -256,12 +256,12 @@ object LinkingTaskApi extends Controller {
 
     for(posOutputName <- params.get("positiveOutput")) {
       val posOutput = project.task[DatasetTask](posOutputName.head).dataset.sink
-      posOutput.writeAll(task.referenceLinks.positive, params("positiveProperty").head)
+      posOutput.writeLinks(task.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
       val negOutput = project.task[DatasetTask](negOutputName.head).dataset.sink
-      negOutput.writeAll(task.referenceLinks.negative, params("negativeProperty").head)
+      negOutput.writeLinks(task.referenceLinks.negative, params("negativeProperty").head)
     }
 
     Ok

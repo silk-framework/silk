@@ -26,7 +26,16 @@ class NTriplesFormatter() extends Formatter {
   }
 
   override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
-    val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-    "<" + subject + ">  <" + predicate + ">  \"" + escapedValue + "\" .\n"
+    // Check if value is an URI
+    if (value.startsWith("http:"))
+      "<" + subject + "> <" + predicate + "> <" + value + "> .\n"
+    // Check if value is a number
+    else if (value.forall(c => c.isDigit || c == '.'))
+      "<" + subject + "> <" + predicate + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n"
+    // Write string values
+    else {
+      val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+      "<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n"
+    }
   }
 }

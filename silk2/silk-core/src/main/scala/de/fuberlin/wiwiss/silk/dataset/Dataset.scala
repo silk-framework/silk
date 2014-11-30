@@ -15,7 +15,6 @@
 package de.fuberlin.wiwiss.silk.dataset
 
 import java.util.logging.Logger
-
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
@@ -31,7 +30,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin) {
 
   def source = plugin.source
 
-  def sink = new DataSinkWrapper
+  lazy val sink = new DataSinkWrapper
 
   def toXML: Node = {
     val datasetXML = plugin match {
@@ -60,15 +59,15 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin) {
 
     private var isOpen = false
 
-    private def writer = plugin.sink
+    private val writer = plugin.sink
 
     /**
      * Initializes this writer.
      */
-    override def open() {
+    override def open(properties: Seq[String]) {
       require(!isOpen, "Output already open")
 
-      writer.open()
+      writer.open(properties)
       linkCount = 0
       isOpen = true
     }
@@ -78,20 +77,20 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin) {
     /**
      * Writes a new link to this writer.
      */
-    override def write(link: Link, predicateUri: String) {
+    override def writeLink(link: Link, predicateUri: String) {
       require(isOpen, "Output must be opened befored writing statements to it")
 
       //        if ((minConfidence.isEmpty || link.confidence.getOrElse(-1.0) >= minConfidence.get) &&
       //            (maxConfidence.isEmpty || link.confidence.getOrElse(-1.0) < maxConfidence.get)) {
-      writer.write(link, predicateUri)
+      writer.writeLink(link, predicateUri)
       linkCount += 1
       //        }
 
     }
 
-    override def writeLiteralStatement(subject: String, predicate: String, value: String) {
+    override def writeEntity(subject: String, values: Seq[Set[String]]) {
       require(isOpen, "Output must be opened befored writing statements to it")
-      writer.writeLiteralStatement(subject, predicate, value)
+      writer.writeEntity(subject, values)
     }
 
     /**
