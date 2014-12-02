@@ -31,7 +31,7 @@ trait Observable[T] {
     f
   }
 
-  protected def publish(event: T) = synchronized {
+  protected def publish(event: T) = {
     for(subscriber <- subscribers.keys)
       subscriber(event)
   }
