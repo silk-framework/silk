@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import xml.Node
+import scala.xml.Node
 
 /**
  * The configuration of the blocking feature.
@@ -28,10 +28,10 @@ case class Blocking(isEnabled: Boolean = true, blocks: Int = Blocking.DefaultBlo
   /**
    * Returns the number of blocks if blocking is enabled or 1 if blocking is disabled.
    */
-  def enabledBlocks = if(isEnabled) blocks else 1
+  def enabledBlocks = if (isEnabled) blocks else 1
 
   def toXML: Node = {
-    <Blocking enabled={isEnabled.toString} blocks={blocks.toString}/>
+      <Blocking enabled={isEnabled.toString} blocks={blocks.toString}/>
   }
 }
 

@@ -83,12 +83,16 @@ class LoadTask(sources: DPair[DataSource],
     private val entityCache = caches.select(selectSource)
 
     override def run() {
+
       try {
         updateStatus("Loading entities of dataset " + source.toString)
 
         entityCache.clear()
         entityCache.write(source.retrieve(entityCache.entityDesc))
         entityCache.close()
+
+        updateStatus(s"Entities loaded [ dataset :: ${source.toString} ].")
+
       } catch {
         case ex: Exception => {
           logger.log(Level.WARNING, "Error loading resources", ex)

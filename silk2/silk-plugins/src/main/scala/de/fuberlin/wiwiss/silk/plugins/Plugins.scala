@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins
 
 import java.io.File
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
@@ -22,6 +22,9 @@ object Plugins {
    * Registers all default plugins as well as external plugins found in the provided directory.
    */
   def register(pluginsDir: File = new File(System.getProperty("user.home") + "/.silk/plugins/")): Unit = synchronized {
+
+    logger.log(Level.FINE, "Registering plugins.")
+
     if(!registered) {
       CorePlugins.register()
       JenaPlugins.register()
@@ -34,6 +37,8 @@ object Plugins {
    * Registers external plugins.
    */
   private def registerExternalPlugins(pluginsDir: File) {
+    logger.log(Level.FINE, "Registering 3rd party plugins.")
+
     Timer("Registering external plugins") {
       if(pluginsDir.isDirectory) {
         DatasetPlugin.registerJars(pluginsDir)
