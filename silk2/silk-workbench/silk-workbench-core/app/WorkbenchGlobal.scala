@@ -26,7 +26,7 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     // Route to start page
     if(request.path.stripSuffix("/") == context.stripSuffix("/")) {
-      return core.Routes.handlerFor(request.copy(path = context.stripSuffix("/") + "/core/"))
+      return core.Routes.handlerFor(request.copy(path = context.stripSuffix("/") + "/core/start"))
     }
 
     // Route to registered modules
