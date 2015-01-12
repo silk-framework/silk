@@ -18,7 +18,7 @@ lazy val pluginsJena = project in file("silk-plugins/silk-plugins-jena") depends
 
 lazy val pluginsSpatialTemporal = project in file("silk-plugins/silk-plugins-spatial-temporal") dependsOn core
 
-lazy val plugins = project in file("silk-plugins") dependsOn (pluginsJena, pluginsSpatialTemporal)
+lazy val plugins = project in file("silk-plugins") dependsOn pluginsJena dependsOn pluginsSpatialTemporal
 
 // Workbench
 

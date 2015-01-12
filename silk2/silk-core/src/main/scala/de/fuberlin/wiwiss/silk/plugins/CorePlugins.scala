@@ -39,7 +39,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransfor
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 
-
 /**
  * Registers all default plugins.
  */
