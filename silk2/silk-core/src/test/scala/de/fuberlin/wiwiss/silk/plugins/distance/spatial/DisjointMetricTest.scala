@@ -14,9 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -26,8 +25,7 @@ import org.scalatest.junit.JUnitRunner
  */
 
 @RunWith(classOf[JUnitRunner])
-class DisjointMetricTest extends FlatSpec with ShouldMatchers {
-  Plugins.register()
+class DisjointMetricTest extends FlatSpec with Matchers {
 
   val metric = new DisjointMetric()
 

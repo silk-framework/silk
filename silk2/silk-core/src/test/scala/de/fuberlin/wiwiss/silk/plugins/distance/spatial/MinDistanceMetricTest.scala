@@ -14,9 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.plugins.distance.spatial
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import de.fuberlin.wiwiss.silk.entity.Index
@@ -27,8 +26,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
  */
 
 @RunWith(classOf[JUnitRunner])
-class MinDistanceMetricTest extends FlatSpec with ShouldMatchers {
-  Plugins.register()
+class MinDistanceMetricTest extends FlatSpec with Matchers {
 
   val metric = new MinDistanceMetric()
 

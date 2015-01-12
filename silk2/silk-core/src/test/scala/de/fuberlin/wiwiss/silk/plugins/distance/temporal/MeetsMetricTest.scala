@@ -14,9 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.plugins.distance.temporal
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.Plugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -26,8 +25,7 @@ import org.scalatest.junit.JUnitRunner
  */
 
 @RunWith(classOf[JUnitRunner])
-class MeetsMetricTest extends FlatSpec with ShouldMatchers {
-  Plugins.register()
+class MeetsMetricTest extends FlatSpec with Matchers {
 
   val metric = new MeetsMetric()
 
