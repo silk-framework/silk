@@ -1,0 +1,34 @@
+@(project: String, task: String)
+
+@import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
+@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@widgets.pluginDialog(name = task,
+                      plugins = DatasetPlugin.availablePlugins,
+                      currentObj = User().workspace.project(project).tasks[DatasetTask].find(_.name == task).map(_.dataset.plugin),
+                      resources = User().workspace.project(project).resources.list) {
+
+  <script type="text/javascript">
+    function submit(pluginId, name, parameters) {
+      // Build dataset xml
+      var xml = '<Dataset id=\'' + name + '\'>';
+      xml += '  <DatasetPlugin type=\'' + pluginId + '\'>';
+      for(var i in parameters) {
+        xml += '    <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+      }
+      xml += '  </DatasetPlugin>';
+      xml += '</Dataset>';
+
+      // Delete the old dataset in case its name changed
+      if(!@task.isEmpty) {
+        if(name != '@task') {
+          deleteTask('@config.baseUrl/workspace/projects/@project/dataset/@task');
+        }
+      }
+
+      // Submit data source
+      putTask('@config.baseUrl/workspace/projects/@project/dataset/' + name, xml);
+    }
+  </script>
+}

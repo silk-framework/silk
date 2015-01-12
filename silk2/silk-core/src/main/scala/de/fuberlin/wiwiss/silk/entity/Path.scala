@@ -68,6 +68,10 @@ object Path {
     }
   }
 
+  def unapply(path: Path): Option[(String, List[PathOperator])] = {
+    Some(path.variable, path.operators)
+  }
+
   /**
    * Parses a path string.
    * Returns a cached copy if available.

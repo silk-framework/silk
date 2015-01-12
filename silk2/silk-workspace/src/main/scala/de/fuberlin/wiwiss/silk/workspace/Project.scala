@@ -19,11 +19,11 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModuleProvider
-import de.fuberlin.wiwiss.silk.workspace.modules.output.OutputModuleProvider
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTaskExecutor, LinkingModuleProvider}
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModuleProvider
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModuleTask, ModuleConfig, Module, ModuleProvider}
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModuleProvider, ModuleTask}
 import scala.reflect.ClassTag
 import scala.xml.XML
 
@@ -36,7 +36,23 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
 
   val resources = resourceManager.child("resources")
 
+  @volatile
   private var cachedConfig: Option[ProjectConfig] = None
+
+  @volatile
+  private var modules = Seq[Module[_ <: ModuleTask]]()
+
+  @volatile
+  private var executors = Map[String, TaskExecutor[_ <: ModuleTask]]()
+
+  // Register all default modules
+  registerModule(new DatasetModuleProvider())
+  registerModule(new LinkingModuleProvider())
+  registerModule(new TransformModuleProvider())
+  registerModule(new WorkflowModuleProvider())
+
+  registerExecutor(new LinkingTaskExecutor())
+  registerExecutor(new TransformTaskExecutor())
 
   /**
    * Reads the project configuration.
@@ -69,48 +85,81 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   }
 
   /**
-   * The source module, which encapsulates all data sources.
+   * Retrieves al tasks of a specific type.
    */
-  val sourceModule = createModule("source", new SourceModuleProvider())
-
-  /**
-   * The linking module, which encapsulates all linking tasks.
-   */
-  val linkingModule = createModule("linking", new LinkingModuleProvider())
-
-  /**
-   * The transform module, which encapsulates all linking tasks.
-   */
-  val transformModule = createModule("transform", new TransformModuleProvider())
-
-  /**
-   * The output module, which encapsulates all output tasks.
-   */
-  val outputModule = createModule("output", new OutputModuleProvider())
-
-  private val modules: Seq[Module[_ <: ModuleConfig, _ <: ModuleTask]] = sourceModule :: linkingModule :: transformModule :: outputModule :: Nil
-
   def tasks[T <: ModuleTask : ClassTag]: Seq[T] = {
-    modules.flatMap(_.tasks).collect{ case t: T => t }
+    module[T].tasks
   }
 
   /**
    * Retrieves a task by name.
-   * @param taskName The name of the task.
+   *
+   * @param taskName The name of the task
    * @tparam T The task type
    */
   def task[T <: ModuleTask : ClassTag](taskName: Identifier): T = {
-    val foundTask = modules.flatMap(_.taskOption(taskName)).collect{ case t: T => t }
-    if(foundTask.isEmpty)
-      throw new NoSuchElementException(s"No task called '$name' found in project $name")
-    else
-      foundTask.head
+    module[T].task(taskName)
+  }
+
+  def anyTask(taskName: Identifier): ModuleTask = {
+     modules.flatMap(_.taskOption(taskName)).head
   }
 
   /**
-   * Creates a new module from a module provider.
+   * Updates a task of a specific type.
+   *
+   * @param task The updated task
+   * @tparam T The task type
    */
-  private def createModule[C <: ModuleConfig, T <: ModuleTask](name: String, provider: ModuleProvider[C,T]) = {
-    new Module(provider, resourceManager.child(name), this)
+  def updateTask[T <: ModuleTask : ClassTag](task: T): Unit = {
+    // TODO assert that task name is unique
+    module[T].update(task)
+  }
+
+  /**
+   * Removes a task.
+   *
+   * @param taskName The name of the task
+   * @tparam T The task type
+   */
+  def removeTask[T <: ModuleTask : ClassTag](taskName: Identifier): Unit = {
+    module[T].remove(taskName)
+  }
+
+  /**
+   * Retrieves an executor for a specific task.
+   */
+  def getExecutor(task: ModuleTask): Option[TaskExecutor[ModuleTask]] = {
+    executors.get(task.getClass.getName).map(_.asInstanceOf[TaskExecutor[ModuleTask]])
+  }
+
+  /**
+   * Retrieves a module for a specific task type.
+   *
+   * @tparam T The task type
+   * @throws NoSuchElementException If no module for the given task type has been registered
+   */
+  private def module[T <: ModuleTask : ClassTag]: Module[T] = {
+    modules.find(_.hasTaskType[T]) match {
+      case Some(m) => m.asInstanceOf[Module[T]]
+      case None =>
+        val className = implicitly[ClassTag[T]].runtimeClass.getName
+        throw new NoSuchElementException(s"No module for task type $className has been registered. ${modules.size} Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
+  }
+
+  /**
+   * Registers a new module from a module provider.
+   */
+  def registerModule[T <: ModuleTask : ClassTag](provider: ModuleProvider[T]) = {
+    modules = modules :+ new Module(provider, resourceManager.child(provider.prefix), this)
+  }
+
+  /**
+   * Registers a new executor for a specific task type.
+   */
+  def registerExecutor[T <: ModuleTask : ClassTag](executor: TaskExecutor[T]) = {
+    val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
+    executors = executors.updated(taskClassName, executor)
   }
 }

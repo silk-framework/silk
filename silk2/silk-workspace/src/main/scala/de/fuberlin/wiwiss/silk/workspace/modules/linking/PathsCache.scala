@@ -4,7 +4,9 @@ import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
-import scala.xml.{Node, NodeSeq}
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+
+import scala.xml.Node
 
 /**
  * Holds the most frequent paths.
@@ -28,7 +30,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
 
     if (value == null || update) {
       // Retrieve the data sources
-      val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
+      val sources = task.linkSpec.datasets.map(ds => project.task[DatasetTask](ds.datasetId).source)
 
       //Retrieve most frequent paths
       val paths = for ((source, dataset) <- sources zip task.linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
@@ -43,7 +45,7 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
     }
   }
 
-  override def toXML: NodeSeq = {
+  override def serialize: Node = {
     if (value != null) {
         <EntityDescriptions>
           <Source>
@@ -54,17 +56,18 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
           </Target>
         </EntityDescriptions>
     } else {
-      NodeSeq.fromSeq(Nil)
+      <EntityDescriptions>
+      </EntityDescriptions>
     }
   }
 
-  override def loadFromXML(node: Node) {
+  override def deserialize(node: Node) {
     value =
-      if ((node \ "EntityDescriptions").isEmpty) {
+      if ((node \ "_").isEmpty) {
         null
       } else {
-        val sourceSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Source" \ "_" head)
-        val targetSpec = EntityDescription.fromXML(node \ "EntityDescriptions" \ "Target" \ "_" head)
+        val sourceSpec = EntityDescription.fromXML(node \ "Source" \ "_" head)
+        val targetSpec = EntityDescription.fromXML(node \ "Target" \ "_" head)
         new DPair(sourceSpec, targetSpec)
       }
   }

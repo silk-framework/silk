@@ -29,19 +29,11 @@ import scala.xml.XML
 /**
  * The linking module which encapsulates all linking tasks.
  */
-class LinkingModuleProvider extends ModuleProvider[LinkingConfig, LinkingTask] {
+class LinkingModuleProvider extends ModuleProvider[LinkingTask] {
 
   private val logger = Logger.getLogger(classOf[LinkingModuleProvider].getName)
 
-  /**
-   * Loads the configuration for this module.
-   */
-  def loadConfig(resources: ResourceLoader) = LinkingConfig()
-
-  /**
-   * Writes updated configuration for this module.
-   */
-  def writeConfig(config: LinkingConfig, resources: ResourceManager) = {}
+  override def prefix = "linking"
 
   /**
    * Loads all tasks of this module.
@@ -64,11 +56,11 @@ class LinkingModuleProvider extends ModuleProvider[LinkingConfig, LinkingTask] {
       cache.loadFromXML(XML.load(taskResources.get("cache.xml").load))
     } catch {
     case ex: Exception =>
-      logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
+      logger.log(Level.WARNING, s"Cache for task ${linkSpec.id} in project ${project.name} corrupted. Rebuilding Cache.", ex)
       new LinkingCaches()
     }
 
-    LinkingTask(project, linkSpec, referenceLinks, cache)
+    LinkingTask(project, linkSpec, referenceLinks, cache, updateCache = false)
   }
 
   /**

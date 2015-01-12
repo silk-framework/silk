@@ -24,6 +24,10 @@ class EmptyResourceManager extends ResourceManager {
   override def listChildren = Nil
 
   override def child(name: String): ResourceManager = {
-    throw new ResourceNotFoundException("Tried to retrieve a resource from an empty resource loader.")
+    throw new ResourceNotFoundException("Tried to retrieve the child of an empty resource loader.")
+  }
+
+  override def parent: Option[ResourceManager] = {
+    throw new ResourceNotFoundException("Tried to retrieve the parent from an empty resource loader.")
   }
 }

@@ -21,11 +21,12 @@ import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import xml.Node
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import de.fuberlin.wiwiss.silk.testutil.approximatelyEqualToOption
+
+import scala.xml.Node
 
 @RunWith(classOf[JUnitRunner])
 class AggregationTest extends FlatSpec with ShouldMatchers {

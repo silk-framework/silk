@@ -14,11 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.datasource.{Source}
-import xml.Node
-import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
+
+import scala.xml.Node
 
 /**
  * A Silk linking configuration.
@@ -31,9 +31,10 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
  */
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeConfig,
-                         sources: Traversable[Source],
+                         sources: Traversable[Dataset],
                          linkSpecs: Traversable[LinkSpecification],
-                         outputs: Traversable[Output] = Traversable.empty) {
+                         outputs: Seq[Dataset] = Seq.empty,
+                         transforms: Traversable[TransformSpecification] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
@@ -50,6 +51,28 @@ case class LinkingConfig(prefixes: Prefixes,
   def linkSpec(id: Identifier) = linkSpecMap(id)
 
   /**
+   * Get a link specification given an Identifier. This method is similar to *linkSpec* but returns an Option.
+   *
+   * @since 2.6.1
+   *
+   * @see linkSpec
+   *
+   * @param id The identifier.
+   * @return A LinkSpecification instance.
+   */
+  def interlink(id: Identifier) = linkSpecs.find(id == _.id)
+
+  /**
+   * Select a transform given an Id.
+   *
+   * @since 2.6.1
+   *
+   * @param id The transform identifier.
+   * @return A transform instance or None.
+   */
+  def transform(id: Identifier) = transforms.find(id == _.id)
+
+  /**
    * Selects an output by id.
    */
   def output(id: Identifier) = outputMap(id)
@@ -63,20 +86,22 @@ case class LinkingConfig(prefixes: Prefixes,
       runtime = runtime,
       sources = sources ++ config.sources,
       linkSpecs = linkSpecs ++ config.linkSpecs,
-      outputs = outputs ++ config.outputs
+      outputs = outputs ++ config.outputs,
+      transforms = transforms ++ config.transforms
     )
   }
 
   def toXML: Node = {
     <Silk>
-      {prefixes.toXML}
-      <DataSources>
-        {sources.map(_.toXML)}
-      </DataSources>
+      {prefixes.toXML}<DataSources>
+      {sources.map(_.toXML)}
+    </DataSources>
       <Interlinks>
         {linkSpecs.map(_.toXML(prefixes))}
       </Interlinks>
     </Silk>
+
+    // TODO: add support for serializing the transforms.
   }
 }
 
@@ -91,16 +116,17 @@ object LinkingConfig {
 
   def fromXML(node: Node, resourceLoader: ResourceLoader) = {
     implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
-    val sources = (node \ "DataSources" \ "DataSource").map(Source.fromXML(_, resourceLoader))
+    val sources = (node \ "DataSources" \ "DataSource").map(Dataset.fromXML(_, resourceLoader)).toSet
     val blocking = (node \ "Blocking").headOption match {
       case Some(blockingNode) => Blocking.fromXML(blockingNode)
       case None => Blocking()
     }
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, resourceLoader))
+    val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resourceLoader, sources))
 
     implicit val globalThreshold = None
-    val outputs = (node \ "Outputs" \ "Output").map(Output.fromXML(_, resourceLoader))
+    val outputs = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))
 
-    LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs)
+    LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
   }
 }

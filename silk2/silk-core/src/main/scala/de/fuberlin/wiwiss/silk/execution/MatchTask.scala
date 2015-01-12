@@ -14,16 +14,18 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import java.util.logging.Level
 import java.util.concurrent._
-import collection.mutable.{SynchronizedBuffer, Buffer, ArrayBuffer}
-import scala.math.{min, max}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.util.DPair
+import java.util.logging.Level
+
 import de.fuberlin.wiwiss.silk.cache.EntityCache
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.util.DPair
+
+import scala.collection.mutable.{ArrayBuffer, Buffer}
+import scala.math.{max, min}
 
 /**
  * Executes the matching.
@@ -43,7 +45,7 @@ class MatchTask(linkageRule: LinkageRule,
   taskName = "MatchTask"
 
   /** The buffer which holds the generated links. */
-  private val linkBuffer = new ArrayBuffer[Link]() with SynchronizedBuffer[Link]
+  private val linkBuffer = new ArrayBuffer[Link]()
 
   /** Indicates if this task has been canceled. */
   @volatile private var cancelled = false

@@ -25,7 +25,7 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
   override def updateChildren(newChildren: List[Node]) = {
     val sourceInput = newChildren.collect{ case c: InputNode if c.isSource => c }.head
     val targetInput = newChildren.collect{ case c: InputNode if !c.isSource => c }.head
-    val metricNode = newChildren.collect{ case c: FunctionNode[DistanceMeasure] => c }.head
+    val metricNode = newChildren.collect{ case c: FunctionNode[DistanceMeasure] @unchecked => c }.head
 
     ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, required, metricNode)
   }

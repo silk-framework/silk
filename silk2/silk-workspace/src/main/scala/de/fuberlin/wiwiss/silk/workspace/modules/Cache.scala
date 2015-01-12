@@ -1,12 +1,14 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStarted, HasStatus}
 import java.util.logging.Level
-import xml.{Node, NodeSeq}
+
+import de.fuberlin.wiwiss.silk.runtime.task.{HasStatus, TaskFinished, TaskStarted}
+import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.source.SourceTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+
+import scala.xml.Node
 
 /**
  * Base class of a cache.
@@ -17,7 +19,12 @@ import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) extends HasStatus {
 
   /** The current value of this thread. */
+  @volatile
   private var currentValue = initialValue
+
+  /** Indicates if this cache has been loaded successfully */
+  @volatile
+  private var loaded = false
 
   /** The thread used to load the current value. May be None if no thread has been created yet. */
   @volatile private var loadingThread: Option[Thread] = None
@@ -40,25 +47,26 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
     loadingThread = None
 
     //Reset value
+    loaded = false
     currentValue = initialValue
   }
 
   /** Start loading this cache. */
-  def load(project: Project, task: TaskType) {
+  def load(project: Project, task: TaskType, update: Boolean = true) {
     //Stop current loading thread
     for(thread <- loadingThread) {
       thread.interrupt()
       thread.join()
     }
 
-    //Set the task status
-    updateStatus(TaskStarted("Loading cache"))
-
-    //Create new loading thread
-    loadingThread = Some(new LoadingThread(project, task))
-
-    //Start loading thread
-    loadingThread.map(_.start())
+    if(update || !loaded) {
+      //Set the task status
+      updateStatus(TaskStarted("Loading cache"))
+      //Create new loading thread
+      loadingThread = Some(new LoadingThread(project, task))
+      //Start loading thread
+      loadingThread.map(_.start())
+    }
   }
 
   /** Blocks until this cache has been loaded */
@@ -69,10 +77,23 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
   }
 
   /** Writes the current value of this cache to an XML node. */
-  def toXML: NodeSeq
+  final def toXML: Node = {
+    <Cache loaded={loaded.toString}>
+      { serialize }
+    </Cache>
+  }
 
   /** Reads the cache value from an XML node and updates the current value of this cache. */
-  def loadFromXML(node: Node)
+  final def loadFromXML(node: Node) = {
+    loaded = (node \ "@loaded").head.text.toBoolean
+    deserialize(node \ "_" head)
+  }
+
+  /** Writes the current value of this cache to an XML node. */
+  protected def serialize: Node
+
+  /** Reads the cache value from an XML node and updates the current value of this cache. */
+  protected def deserialize(node: Node)
 
   /**
    * Overridden in sub classes to do the actual loading of the cache value
@@ -86,15 +107,16 @@ abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) exten
       val startTime = System.currentTimeMillis
       try {
         val updated = update(project, task)
+        loaded = true
         updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))
         if(updated) logger.info("Cache updated")
         // Commit to the project
         //TODO  Make project modules (e.g. the linking module) register a callback
         if(updated && !isInterrupted) {
           task match {
-            case transformTask: TransformTask => project.transformModule.update(transformTask)
-            case linkingTask: LinkingTask => project.linkingModule.update(linkingTask)
-            case sourceTask: SourceTask => project.sourceModule.update(sourceTask)
+            case transformTask: TransformTask => project.updateTask(transformTask)
+            case linkingTask: LinkingTask => project.updateTask(linkingTask)
+            case datasetTask: DatasetTask => project.updateTask(datasetTask)
           }
         }
       } catch {

@@ -6,21 +6,20 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.{Identifier, Timer}
 import de.fuberlin.wiwiss.silk.workspace.Project
 
-class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: ModuleProvider[ConfigType, TaskType], resourceMgr: ResourceManager, project: Project) {
+import scala.reflect.ClassTag
+
+class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskType], resourceMgr: ResourceManager, project: Project) {
 
   /* Do not write more frequently than this (in milliseconds) */
   private val writeInterval = 5000L
 
-  private val logger = Logger.getLogger(classOf[Module[_, _]].getName)
+  private val logger = Logger.getLogger(classOf[Module[_]].getName)
 
   /**
    * Cache all tasks of this module in memory.
    */
   @volatile
-  private var cachedTasks : Map[Identifier, TaskType] = {
-    val tasks = provider.loadTasks(resourceMgr, project)
-    tasks.map(task => (task.name, task)).toMap
-  }
+  private var cachedTasks : Map[Identifier, TaskType] = null
 
   /**
    * Remember which tasks have been updated, but have not been written yet.
@@ -37,20 +36,28 @@ class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: Modul
   // Start a background writing thread
   WriteThread.start()
 
-  /**
-   * Retrieves the configuration of this module.
-   */
-  def config = provider.loadConfig(resourceMgr)
+  def loadTasks() = {
+    if(cachedTasks == null) {
+      cachedTasks = {
+        val tasks = provider.loadTasks(resourceMgr, project)
+        tasks.map(task => (task.name, task)).toMap
+      }
+    }
+  }
 
-  /**
-   * Updates the configuration of this module.
-   */
-  def config_=(c : ConfigType) { provider.writeConfig(config, resourceMgr) }
+  def hasTaskType[T <: ModuleTask : ClassTag]: Boolean = {
+    implicitly[ClassTag[T]].runtimeClass == implicitly[ClassTag[TaskType]].runtimeClass
+  }
+
+  def taskType: String = {
+    implicitly[ClassTag[TaskType]].runtimeClass.getName
+  }
 
   /**
    * Retrieves all tasks in this module.
    */
   def tasks: Seq[TaskType] = {
+    loadTasks()
     cachedTasks.values.toSeq
   }
 
@@ -60,10 +67,12 @@ class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: Modul
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
   def task(name: Identifier): TaskType = {
-    cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' not found in ${getClass.getSimpleName}"))
+    loadTasks()
+    cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' not found in ${project.name}"))
   }
 
   def taskOption(name: Identifier): Option[TaskType] = {
+    loadTasks()
     cachedTasks.get(name)
   }
 
@@ -71,6 +80,7 @@ class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: Modul
    * Updates a specific task.
    */
   def update(task : TaskType) {
+    loadTasks()
     cachedTasks += (task.name -> task)
     updatedTasks += (task.name -> task)
     lastUpdateTime = System.currentTimeMillis
@@ -84,6 +94,7 @@ class Module[ConfigType <: ModuleConfig, TaskType <: ModuleTask](provider: Modul
   def remove(taskId : Identifier) {
     provider.removeTask(taskId, resourceMgr)
 
+    loadTasks()
     cachedTasks -= taskId
     updatedTasks -= taskId
 

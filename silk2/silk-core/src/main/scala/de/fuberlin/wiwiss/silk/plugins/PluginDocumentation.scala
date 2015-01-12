@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.util.Table
  */
 object PluginDocumentation extends App {
 
-  Plugins.register()
+  CorePlugins.register()
 
   println("h1. Transformations")
   println()

@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.runtime.task._
@@ -61,9 +61,9 @@ class LinkingCaches() extends HasStatus {
   /**
    * Loads the cache.
    */
-  def load(project : Project, task: LinkingTask) {
-    pathCache.load(project, task)
-    referenceEntitiesCache.load(project, task)
+  def load(project : Project, task: LinkingTask, update: Boolean) {
+    pathCache.load(project, task, update)
+    referenceEntitiesCache.load(project, task, update)
   }
 
   /**
@@ -78,18 +78,22 @@ class LinkingCaches() extends HasStatus {
    * Serializes the caches to XML.
    */
   def toXML(implicit prefixes: Prefixes): Node = {
-    <Cache>
-      {pathCache.toXML}
-      {referenceEntitiesCache.toXML}
-    </Cache>
+    <Caches>
+      <Paths>
+        { pathCache.toXML }
+      </Paths>
+      <Entities>
+        { referenceEntitiesCache.toXML }
+      </Entities>
+    </Caches>
   }
 
   /**
    * Loads the values of the caches from XML.
    */
   def loadFromXML(node: Node) {
-    pathCache.loadFromXML(node)
-    referenceEntitiesCache.loadFromXML(node)
+    pathCache.loadFromXML(node \ "Paths" \ "_" head)
+    referenceEntitiesCache.loadFromXML(node \ "Entities" \ "_" head)
   }
 
   object StatusListener extends (TaskStatus => Unit) {

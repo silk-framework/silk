@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.{Path, Link}
 import methods._
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import io.Source
 import java.util.logging.{Logger, Level}
@@ -34,7 +34,7 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ClasspathResourceLoader
  */
 object GenerateLinksTaskTest {
 
-  Plugins.register()
+  CorePlugins.register()
   Locale.setDefault(Locale.ENGLISH)
 
   private val log = Logger.getLogger(getClass.getName)
@@ -152,8 +152,8 @@ object GenerateLinksTaskTest {
 
       // Execute Matching
       val task =
-        new GenerateLinksTask(
-          sources = config.sources,
+        GenerateLinksTask.fromSources(
+          inputs = config.sources,
           linkSpec = config.linkSpecs.head,
           outputs = config.outputs,
           runtimeConfig = runtimeConfig

@@ -1,12 +1,14 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
+import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Link}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
-import xml.{NodeSeq, NodeBuffer, Node}
-import de.fuberlin.wiwiss.silk.datasource.Source
+import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+
+import scala.xml.{Node, NodeBuffer, NodeSeq}
 
 class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, ReferenceEntities](ReferenceEntities.empty) {
 
@@ -33,12 +35,10 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     entityLoader.load()
   }
 
-  override def toXML: NodeSeq = {
-    val nodes = new NodeBuffer()
-
-    nodes.append(
+  override def serialize: Node = {
+    <Entities>
       <PositiveEntities>
-        {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
+      {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
         <Pair>
           <Source>
             {sourceEntity.toXML}
@@ -49,10 +49,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         </Pair>
       }}
       </PositiveEntities>)
-
-    nodes.append(
       <NegativeEntities>
-        {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
+      {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
         <Pair>
           <Source>
             {sourceEntity.toXML}
@@ -63,16 +61,18 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
         </Pair>
       }}
       </NegativeEntities>)
-
-    NodeSeq.fromSeq(nodes)
+    </Entities>
   }
 
-  override def loadFromXML(node: Node) {
+  override def deserialize(node: Node) {
+    val posNode = node \ "PositiveEntities"
+    val negNode = node \ "NegativeEntities"
+
     val positiveEntities: Traversable[DPair[Entity]] = {
-      if ((node \ "PositiveEntities").isEmpty) {
+      if (posNode.isEmpty) {
         Traversable.empty
       } else {
-        for (pairNode <- (node \ "PositiveEntities" \ "Pair").toList) yield {
+        for (pairNode <- (posNode \ "Pair").toList) yield {
           DPair(
             Entity.fromXML(pairNode \ "Source" \ "Entity" head, pathsCache.value.source),
             Entity.fromXML(pairNode \ "Target" \ "Entity" head, pathsCache.value.target))
@@ -81,10 +81,10 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     }
 
     val negativeEntities: Traversable[DPair[Entity]] = {
-      if ((node \ "NegativeEntities").isEmpty) {
+      if (negNode.isEmpty) {
         Traversable.empty
       } else {
-        for (pairNode <- (node \ "NegativeEntities" \ "Pair").toList) yield {
+        for (pairNode <- (negNode \ "Pair").toList) yield {
           DPair(
             Entity.fromXML(pairNode \ "Source" \ "Entity" head, pathsCache.value.source),
             Entity.fromXML(pairNode \ "Target" \ "Entity" head, pathsCache.value.target))
@@ -97,7 +97,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
 
   private class EntityLoader(project: Project, task: LinkingTask, entityDescs: DPair[EntityDescription]) {
 
-    private val sources = task.linkSpec.datasets.map(ds => project.sourceModule.task(ds.sourceId).source)
+    private val sources = task.linkSpec.datasets.map(ds => project.task[DatasetTask](ds.datasetId).source)
 
     private var updated = false
 
@@ -171,7 +171,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
      * Updates an entity so that it conforms to a new entity description.
      * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: Source) = {
+    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource) = {
       if (entity.desc.paths == entityDesc.paths) {
         //The given entity already contains all paths in the correct order.
         entity

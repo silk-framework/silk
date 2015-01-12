@@ -33,7 +33,14 @@ class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
 
   val restrictionConverter = new SparqlRestrictionParser
 
-  //TODO add empty pattern test
+  "SparqlRestrictionParser" should "parse an empty pattern" in {
+    val sparqlRestriction1 = SparqlRestriction.fromSparql("a", "")
+    val sparqlRestriction2 = SparqlRestriction.fromSparql("a", ". ")
+    val restriction = Restriction(None)
+
+    restrictionConverter(sparqlRestriction1) should equal(restriction)
+    restrictionConverter(sparqlRestriction2) should equal(restriction)
+  }
 
   "SparqlRestrictionParser" should "convert simple patterns" in {
     val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a rdf:type dbpedia:Settlement")

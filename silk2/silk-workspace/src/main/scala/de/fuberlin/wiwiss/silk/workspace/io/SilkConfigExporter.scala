@@ -14,8 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.workspace.io
 
-import de.fuberlin.wiwiss.silk.config.LinkingConfig
+import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkingConfig}
 import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 
 /**
  * Builds a Silk configuration from the current Linking Task.
@@ -27,10 +28,10 @@ object SilkConfigExporter {
 
     LinkingConfig(
       prefixes = project.config.prefixes,
-      runtime = project.linkingModule.config.runtime,
-      sources = linkSpec.datasets.map(ds => project.sourceModule.tasks.find(_.name == ds.sourceId).get.source),
+      runtime = new RuntimeConfig(),
+      sources = linkSpec.datasets.map(ds => project.tasks[DatasetTask].find(_.name == ds.datasetId).get.dataset),
       linkSpecs = linkSpec :: Nil,
-      outputs = project.outputModule.tasks.map(_.output)
+      outputs = project.tasks[DatasetTask].map(_.dataset)
     )
   }
 }

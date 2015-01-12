@@ -150,6 +150,16 @@ object Task {
   }
 
   /**
+   * Creates a task from a delayed value.
+   */
+  def apply[T](f: => T) = new Task[T] { def execute() = { f } }
+
+  /**
+   * Creates an empty task.
+   */
+  def empty = new Task[Unit] { def execute() = { } }
+
+  /**
    * The executor service used to execute link specs in the background.
    */
   private val backgroundExecutor = {

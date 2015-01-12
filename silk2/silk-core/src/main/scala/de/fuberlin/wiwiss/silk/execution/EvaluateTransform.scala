@@ -1,21 +1,21 @@
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.runtime.task.{ValueTask, Task}
-import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.output.Output
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
-import de.fuberlin.wiwiss.silk.config.Dataset
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{DetailedEntity, DetailedEvaluator, TransformedValue, Value}
+
+import de.fuberlin.wiwiss.silk.config.DatasetSelection
+import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{DetailedEntity, DetailedEvaluator}
+import de.fuberlin.wiwiss.silk.runtime.task.Task
 
 /**
  * Evaluates a transformation rule.
  * In contrast to ExecuteTransform, this task generates a detailed output that for each entity
  * contains all intermediate values of the rule evaluation.
  */
-class EvaluateTransform(source: Source,
-                        dataset: Dataset,
+class EvaluateTransform(source: Dataset,
+                        dataSelection: DatasetSelection,
                         rules: Seq[TransformRule],
                         maxEntities: Int = 100) extends Task[Seq[DetailedEntity]] {
 
@@ -30,11 +30,11 @@ class EvaluateTransform(source: Source,
     // Retrieve entities
     val entityDesc =
       new EntityDescription(
-        variable = dataset.variable,
-        restrictions = dataset.restriction,
+        variable = dataSelection.variable,
+        restrictions = dataSelection.restriction,
         paths = rules.flatMap(_.paths).toIndexedSeq
       )
-    val entities = source.retrieve(entityDesc)
+    val entities = source.source.retrieve(entityDesc)
 
     // Read all entities
     for(entity <- entities) {

@@ -1,0 +1,43 @@
+@import plugins.WorkbenchPlugins
+
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+@import controllers.workflow.routes.Assets
+
+@(context: Context[WorkflowTask])
+
+@header = {
+  <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
+
+  <script type="text/javascript" src="@Assets.at("libs/jquery.jsPlumb-1.6.2-min.js")"></script>
+  <script type="text/javascript" src="@Assets.at("editor/editor.js")"></script>
+  <script type="text/javascript" src="@Assets.at("editor/serializeWorkflow.js")"></script>
+  <script type="text/javascript" src="@Assets.at("editor/deserializeWorkflow.js")"></script>
+
+  <script type="text/javascript">
+    var apiUrl = '@config.baseUrl/workflow/workflows/@context.project.name/@context.task.name';
+  </script>
+}
+
+@toolbar = {
+  <ul>
+    <li>
+      <button onclick="commitWorkflow()" >Save</button>
+    </li>
+    <li>
+      <button onclick="executeWorkflow()" >Execute</button>
+    </li>
+    <li>
+      @widgets.taskStatus("editor/statusStream", "status")
+    </li>
+  </ul>
+}
+
+@content = {
+  @toolbox(context.project)
+
+  <div id="editorContent" style="position: relative;">
+  </div>
+}
+
+@main(Some(context))(header)(toolbar)(content)

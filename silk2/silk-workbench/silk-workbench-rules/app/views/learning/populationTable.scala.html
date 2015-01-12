@@ -1,0 +1,114 @@
+@(project: String, task: String,
+  individuals: Seq[de.fuberlin.wiwiss.silk.learning.individual.Individual],
+  referenceEntities: de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities)
+
+@import de.fuberlin.wiwiss.silk.learning.individual.Individual
+@import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator, EvaluationResult}
+@import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity
+@import org.apache.commons.lang3.StringEscapeUtils
+@import controllers.rules.routes.Assets
+
+<div>
+  <div class="individual">
+    <div class="individual-header heading">
+      <div class="individual-desc">Description</div>
+      <div class="individual-score">Score</div>
+      <div class="individual-mcc">MCC</div>
+      <div class="individual-f1">F-Measure</div>
+      <div class="individual-buttons">Actions</div>
+    </div>
+  </div>
+  @for((individual, count) <- individuals.zipWithIndex) {
+    @renderIndividual(individual, referenceEntities, count)
+  }
+</div>
+
+@**
+ * Renders a single individual.
+ *@
+@renderIndividual(individual: Individual, referenceEntities: ReferenceEntities, counter: Int) = {
+  <div class="individual" id="@id(individual)" >
+    @renderIndividualHeader(individual, LinkageRuleEvaluator(individual.node.build, referenceEntities), counter)
+    @renderIndividualContent(individual)
+    <div style="clear:both"></div>
+  </div>
+}
+
+@**
+ * Renders the list header of a single individual.
+ *@
+@renderIndividualHeader(individual: Individual, scores: EvaluationResult, counter: Int) = {
+  <div class="@if(counter % 2==0) {individual-header grey} else {individual-header}"
+       onmouseover="$(this).addClass('individual-over');"
+       onmouseout="$(this).removeClass('individual-over');">
+    <div id="@id(individual, "toggle")"><span class="ui-icon ui-icon ui-icon-triangle-1-e"></span></div>
+    <div class="individual-desc">@renderDescription(individual)</div>
+    <div class="individual-score">@renderScore(individual.fitness)</div>
+    <div class="individual-mcc">@renderScore(scores.mcc)</div>
+    <div class="individual-f1">@renderScore(scores.fMeasure)</div>
+    <div class="individual-buttons">@renderButtons(individual)</div>
+  </div>
+}
+
+@**
+ * Renders the description of an individual.
+ *@
+@renderDescription(individual: Individual) = @{
+  val complexity = LinkageRuleComplexity(individual.node.build)
+
+  complexity.comparisonCount + " Comparisons and " + complexity.transformationCount + " Transformations"
+}
+
+@**
+ * Renders a score between -1.0 and 1.0.
+ *@
+@renderScore(score: Double) = {
+  <div class="confidencebar">
+    <div class="confidence">@{"%.1f".format(score * 100)}%</div>
+  </div>
+}
+
+@**
+ * Renders the action buttons for an individual.
+ *@
+@renderButtons(individual: Individual) = {
+  <a onclick="@{id(individual, "loadIndividual")}()">
+    <img src="@Assets.at("img/learn/load.png")" title="Load this linkage rule in the editor" />
+  </a>
+  <script type="text/javascript">//<![CDATA[
+    function @{id(individual, "loadIndividual")}() {
+      if(confirm("This will overwrite the current linkage rule! ")) {
+        $.ajax({
+          type: 'PUT',
+          url: '@config.baseUrl/api/workspace/@project/linking/@task/rule',
+          data: '@Html(StringEscapeUtils.escapeEcmaScript(individual.node.build.toXML.toString))',
+          contentType: 'text/xml',
+          processData: false,
+          success: function(response) {
+            window.location = '../editor';
+          },
+          error: function(request) {
+            alert(request.responseText);
+          }
+        });
+      }
+    }
+  //]]>
+  </script>
+}
+
+@**
+ * Renders the content of a single indivual.
+ *@
+@renderIndividualContent(individual: Individual) = {
+  <div class="individual-details" id="@id(individual, "details")">
+    @ruleTree(individual.node.build)
+  </div>
+}
+
+@**
+ * Generates a new id based on an individual.
+ *@
+@id(individual : Individual, prefix : String = "") = @{
+  prefix + individual.hashCode.toString.replace('-', '_')
+}

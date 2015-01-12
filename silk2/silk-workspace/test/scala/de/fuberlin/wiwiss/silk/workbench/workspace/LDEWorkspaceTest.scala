@@ -15,17 +15,17 @@
 package de.fuberlin.wiwiss.silk.workspace
 
 import modules.linking.LinkingTask
-import modules.source.SourceTask
+import modules.dataset.DatasetTask
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import java.net.URI
-import de.fuberlin.wiwiss.silk.datasource.{DataSource, Source}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, Source}
 
 class LDEWorkspaceTest extends FlatSpec with ShouldMatchers
 {
-    Plugins.register()
+    CorePlugins.register()
 
     // Test LDE backend on a local TripleStore
 
@@ -51,7 +51,7 @@ class LDEWorkspaceTest extends FlatSpec with ShouldMatchers
 
 
         // test insert SOURCE datasource - user can only insert a datasource which exists in the TS - using/assuming ABA or KEGGGene
-        val newSource = SourceTask(Source("ABA", DataSource("LDEsparqlEndpoint",  Map("endpointURI" -> ""))))
+        val newSource = DatasetTask(Source("ABA", DataSource("LDEsparqlEndpoint",  Map("endpointURI" -> ""))))
         sources.update(newSource)
           // name 'SOURCE' is forced
         evaluating{sources.task("ABA")} should produce [NoSuchElementException]

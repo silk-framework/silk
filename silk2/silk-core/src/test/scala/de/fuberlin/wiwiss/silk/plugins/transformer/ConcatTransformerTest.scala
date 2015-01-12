@@ -16,13 +16,13 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.combine
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ConcatTransformerTest extends FlatSpec with ShouldMatchers {
-  Plugins.register()
+  CorePlugins.register()
 
   val transformer = new ConcatTransformer()
 

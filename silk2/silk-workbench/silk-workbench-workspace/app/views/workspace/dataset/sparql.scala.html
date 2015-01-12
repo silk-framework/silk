@@ -1,0 +1,47 @@
+@(context: plugins.Context[de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask],
+  endpoint: de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint,
+  query: String,
+  queryResults: Option[de.fuberlin.wiwiss.silk.dataset.rdf.ResultSet])
+
+@header = {
+
+}
+
+@toolbar = {
+
+}
+
+@content = {
+<form action="sparql">
+  <textarea name="query" cols="70" rows="25">
+@if(query.isEmpty) {@for((prefix, namespace) <- context.project.config.prefixes.prefixMap) {PREFIX @prefix: &lt;@namespace&gt;
+}
+SELECT * WHERE {
+  ?s ?p ?o
+}
+LIMIT 20} else {@query}
+  </textarea>
+  <br/>
+  <input type="submit" value="Submit">
+</form>
+
+<table>
+  <tr>
+    @for(results <- queryResults.toList;
+         firstBinding <- results.bindings.headOption.toList;
+         variable <- firstBinding.keys) {
+      <th>@variable<th>
+    }
+  </tr>
+
+  @for(results <- queryResults.toList; bindings <- results.bindings) {
+    <tr>
+      @for((variable, node) <- bindings) {
+        <td>@node.value<td>
+      }
+    </tr>
+  }
+</table>
+}
+
+@main(Some(context))(header)(toolbar)(content)

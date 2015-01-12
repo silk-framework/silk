@@ -14,25 +14,25 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
+import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.util.Uri
-import de.fuberlin.wiwiss.silk.output.Output
 import de.fuberlin.wiwiss.silk.runtime.task.Task
 
 /**
  * Writes the links to the output.
  */
-class OutputTask(links: Seq[Link], linkType: Uri, outputs: Traversable[Output]) extends Task[Unit] {
+class OutputTask(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Task[Unit] {
   taskName = "Writing output"
 
   override def execute() {
-    outputs.foreach(_.open)
+    outputs.foreach(_.open())
 
     for (link <- links;
          output <- outputs) {
-      output.write(link, linkType.toString)
+      output.writeLink(link, linkType.toString)
     }
 
-    outputs.foreach(_.close)
+    outputs.foreach(_.close())
   }
 }

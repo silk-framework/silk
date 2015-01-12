@@ -1,0 +1,32 @@
+@import de.fuberlin.wiwiss.silk.entity.Path
+@import de.fuberlin.wiwiss.silk.entity.Entity
+@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import plugins.Context
+
+@(context: plugins.Context[DatasetTask], paths: IndexedSeq[Path], entities: Seq[Entity])
+
+@header = {
+}
+
+@toolbar = {
+}
+
+@content = {
+<table>
+  <tr>
+    @for(path <- paths) {
+      <th>@path.toString<th>
+    }
+  </tr>
+
+  @for(entity <- entities) {
+    <tr>
+      @for(i <- 0 until paths.size) {
+        <td>@entity.evaluate(i)<td>
+      }
+    </tr>
+  }
+</table>
+}
+
+@main(Some(context))(header)(toolbar)(content)

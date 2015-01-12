@@ -1,0 +1,78 @@
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import de.fuberlin.wiwiss.silk.workspace.User
+
+@(project: String, task: String)
+
+@sources = @{ User().workspace.project(project).tasks[DatasetTask].toSeq }
+
+@transformationTask = @{ User().workspace.project(project).tasks[TransformTask].find(_.name == task) }
+
+@dataset = @{ transformationTask.map(_.dataSelection) }
+
+@widgets.dialog(title = "Transformation Task") {
+  <table border="0">
+    @if(task.isEmpty) {
+      <tr>
+        <td>Name</td>
+        <td><input name="name" title="Name" size="60"/></td>
+      </tr>
+    }
+    <tr>
+      <td>Source</td>
+      <td>
+        <select name="source" title="Source dataset">
+          @for(source <- sources) {
+            @if(dataset.isDefined && source.name == dataset.get.datasetId) {
+              <option value="@source.name" selected="selected">@source.name</option>
+            } else {
+              <option value="@source.name">@source.name</option>
+            }
+          }
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Restriction</td>
+      <td>
+        <input name="restriction" title="Restrict dataset using SPARQL clauses" size="50"
+               value="@dataset.map(_.restriction).getOrElse("")"/>
+        @* <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" /> *@
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+}
+
+<div id="restrictionDialog"></div>
+
+<script type="text/javascript">
+  function submit() {
+    var values = {
+      name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
+      source: $("select[name='source']").val(),
+      restriction: $("input[name='restriction']").val(),
+    };
+
+    if(values.name.length === 0) {
+      alert("Task name is empty.");
+      return;
+    }
+
+    $.ajax({
+      type: 'PUT',
+      url: '@config.baseUrl/transform/tasks/@project/' + values.name,
+      data: values,
+      success: function(data) {
+        closeDialog();
+        reloadWorkspace();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+</script>

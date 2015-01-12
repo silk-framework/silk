@@ -1,0 +1,27 @@
+@import de.fuberlin.wiwiss.silk.workspace.Project
+@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import plugins.WorkbenchPlugin.TaskActions
+@import controllers.workflow.routes.Assets
+
+@(project: Project, task: ModuleTask, taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+
+<div class="operator" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
+  <div class="operatorHeader">
+    <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
+      @task.name (@taskActions.name)
+    </div>
+    <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+    @for(path <- taskActions.open(project.name, task.name)) {
+      <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
+    }
+  </div>
+  <div class="operatorContent">
+    name:
+    <span class="label">id</span>
+    <br/>
+      @for(((key, value), index) <- taskActions.properties(task).zipWithIndex) {
+        @if(index != 0) {<br/>}
+        @key: @value
+      }
+  </div>
+</div>

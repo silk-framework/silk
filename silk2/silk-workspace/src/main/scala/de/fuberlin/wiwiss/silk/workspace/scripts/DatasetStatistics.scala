@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
-import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.CorePlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.util.{Table, DPair, Timer}
@@ -13,10 +13,10 @@ import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
  */
 object DatasetStatistics extends App {
   implicit val log = Logger.getLogger(getClass.getName)
-  Plugins.register()
+  CorePlugins.register()
   JenaPlugins.register()
 
-  val datasets = Dataset.fromWorkspace
+  val datasets = Data.fromWorkspace
 
   val measures = SourceEntities :: TargetEntities :: SourceProperties :: TargetProperties :: SourceCoverage :: TargetCoverage :: PosReferenceLinks :: NegReferenceLinks :: Nil
 
@@ -28,7 +28,7 @@ object DatasetStatistics extends App {
 
   println("Finished")
   
-  private def collect(ds: Dataset) = Timer("Collecting statistics for " + ds.name) {
+  private def collect(ds: Data) = Timer("Collecting statistics for " + ds.name) {
     //Retrieve frequent paths
     val entityDescs = ds.task.linkSpec.entityDescriptions
     val paths = for((source, desc) <- ds.sources zip entityDescs) yield source.retrievePaths(restriction = desc.restrictions, depth = 1, limit = None).map(_._1).toIndexedSeq

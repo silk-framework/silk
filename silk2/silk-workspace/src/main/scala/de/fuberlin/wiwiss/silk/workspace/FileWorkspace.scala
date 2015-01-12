@@ -34,7 +34,7 @@ class FileWorkspace(file : File) extends Workspace {
   override def createProject(name : Identifier) = {
     require(!projectList.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
-    val resourceManager = new FileResourceManager(file + "/" + name)
+    val resourceManager = new FileResourceManager(file + ("/" + name))
     val newProject = new Project(name, resourceManager)
     projectList ::= newProject
     newProject
@@ -59,7 +59,7 @@ class FileWorkspace(file : File) extends Workspace {
 
     // Go through all files and create a ZIP entry for each
     for(file <- listFiles(projectDir)) {
-      val relativePath = projectDir.toPath.relativize(file.toPath).toString
+      val relativePath = projectDir.toPath.relativize(file.toPath).toString.replace("\\", "/")
       zip.putNextEntry(new ZipEntry(relativePath))
       val in = new BufferedInputStream(new FileInputStream(file))
       var b = in.read()

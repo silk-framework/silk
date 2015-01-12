@@ -26,17 +26,17 @@ class LowerThanMetricTest extends FlatSpec with ShouldMatchers {
   val metric = new LowerThanMetric()
   val t = 1.0
 
-  "LowerThanMetric" should "return 1.0 if the source number is smaller than the target number and 0.0 otherwise" in {
-    metric.evaluate("1", "2", t) should be(approximatelyEqualTo(1.0))
-    metric.evaluate("2", "1", t) should be(approximatelyEqualTo(0.0))
-    metric.evaluate("0.1", "0.2", t) should be(approximatelyEqualTo(1.0))
-    metric.evaluate("0.2", "0.1", t) should be(approximatelyEqualTo(0.0))
-    metric.evaluate("5", "20", t) should be(approximatelyEqualTo(1.0))
-    metric.evaluate("20", "5", t) should be(approximatelyEqualTo(0.0))
+  "LowerThanMetric" should "return 0.0 if the source number is smaller than the target number and 1.0 otherwise" in {
+    metric.evaluate("1", "2", t) should be(approximatelyEqualTo(0.0))
+    metric.evaluate("2", "1", t) should be(approximatelyEqualTo(1.0))
+    metric.evaluate("0.1", "0.2", t) should be(approximatelyEqualTo(0.0))
+    metric.evaluate("0.2", "0.1", t) should be(approximatelyEqualTo(1.0))
+    metric.evaluate("5", "20", t) should be(approximatelyEqualTo(0.0))
+    metric.evaluate("20", "5", t) should be(approximatelyEqualTo(1.0))
   }
 
-  "LowerThanMetric" should "return 1.0 if the source string is lower than the target string and 0.0 otherwise" in {
-    metric.evaluate("aaa", "aab", t) should be(approximatelyEqualTo(1.0))
-    metric.evaluate("aab", "aaa", t) should be(approximatelyEqualTo(0.0))
+  "LowerThanMetric" should "return 0.0 if the source string is lower than the target string and 1.0 otherwise" in {
+    metric.evaluate("aaa", "aab", t) should be(approximatelyEqualTo(0.0))
+    metric.evaluate("aab", "aaa", t) should be(approximatelyEqualTo(1.0))
   }
 }

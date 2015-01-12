@@ -1,20 +1,19 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
-import de.fuberlin.wiwiss.silk.runtime.task.Task
-import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
-import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
-import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningConfiguration}
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
+import de.fuberlin.wiwiss.silk.learning.individual.Population
+import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
+import de.fuberlin.wiwiss.silk.runtime.task.Task
 import de.fuberlin.wiwiss.silk.util.DPair
-import util.Random
+import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends EvaluationScript {
 
   override protected def run() {
     val experiment = Experiment.default
-    val datasets = Dataset.fromWorkspace
+    val datasets = Data.fromWorkspace
 
     val values =
       for(dataset <- datasets) yield {
@@ -36,7 +35,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
      println(result.toCsv)
   }
 
-  private def execute(config: LearningConfiguration, dataset: Dataset): RunResult = {
+  private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
     val cache = dataset.task.cache
     cache.waitUntilLoaded()
     val task = new ActiveLearningEvaluator(config, dataset)
@@ -45,7 +44,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
 }
 
 class ActiveLearningEvaluator(config: LearningConfiguration,
-                              ds: Dataset) extends Task[RunResult] {
+                              ds: Data) extends Task[RunResult] {
 
   val numRuns = 1
 
@@ -92,7 +91,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
       val task =
         new ActiveLearningTask(
           config = config,
-          sources = ds.sources,
+          datasets = ds.sources,
           linkSpec = ds.task.linkSpec,
           paths = ds.task.cache.entityDescs.map(_.paths),
           referenceEntities = referenceEntities,

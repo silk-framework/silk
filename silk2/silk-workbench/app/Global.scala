@@ -1,18 +1,35 @@
 import java.io.File
 import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
-import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.plugins.jena.JenaPlugins
-import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
-import models.WorkbenchConfig
-import play.api.Play.current
-import play.api.mvc.RequestHeader
-import play.api.mvc.Results._
-import play.api.{Application, GlobalSettings, Play}
-import scala.concurrent.Future
 
-object Global extends GlobalSettings {
+import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
+import play.api.Play.current
+import play.api.{Application, Play}
+import plugins.WorkbenchPlugins
+
+object Global extends WorkbenchGlobal {
 
   override def beforeStart(app: Application) {
+    // Configure logging
+    configureLogging(app)
+
+    // Initialize user manager
+    val user = new FileUser
+    User.userManager = () => user
+
+    // Load Silk plugins
+    Plugins.register()
+
+    // Load Workbench plugins
+    WorkbenchPlugins.register(DatasetPlugin())
+    WorkbenchPlugins.register(TransformPlugin())
+    WorkbenchPlugins.register(LinkingPlugin())
+    // WorkbenchPlugins.register(WorkflowPlugin())
+
+    super.beforeStart(app)
+  }
+
+  private def configureLogging(app: Application) {
     // If the ELDS_HOME variable is set, Silk is run inside the eccenca Linked Data Suite
     val elds_home = System.getenv("ELDS_HOME")
 
@@ -39,28 +56,5 @@ object Global extends GlobalSettings {
 
     val consoleHandler = new ConsoleHandler()
     java.util.logging.Logger.getLogger("").addHandler(consoleHandler)
-
-    //Initialize user manager
-    val user = new FileUser
-    User.userManager = () => user
-
-    //Load plugins
-    Plugins.register()
-    JenaPlugins.register()
   }
-  
-  override def onError(request: RequestHeader, ex: Throwable) = {
-    Future.successful(InternalServerError(ex.getMessage))
-  }
-}
-
-/**
- * Provides the global configuration.
- */
-package object config {
-
-  /* The baseUrl where the application is deployed */
-  lazy val baseUrl = Play.configuration.getString("application.context").getOrElse("").stripSuffix("/")
-
-  def workbench = WorkbenchConfig.get
 }

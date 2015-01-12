@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.util.Identifier
 import java.util.concurrent.atomic.AtomicInteger
 

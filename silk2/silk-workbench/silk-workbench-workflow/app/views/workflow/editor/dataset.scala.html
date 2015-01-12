@@ -1,0 +1,20 @@
+@import de.fuberlin.wiwiss.silk.workspace.Project
+@import plugins.WorkbenchPlugin.TaskActions
+@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import controllers.workflow.routes.Assets
+
+@(project: Project, task: ModuleTask, taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+
+<div class="dataset" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">
+  <div class="dataset-bottom"></div>
+  <div class="dataset-contents">
+    <div class="dataset-buttons">
+      <img src="@Assets.at("img/delete.png")" style="float:right" onclick="removeElement($(this).parent().parent().parent().attr('id'))"/>
+      @for(path <- taskActions.open(project.name, task.name)) {
+        <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="float:right" onclick="window.open('@config.baseUrl/@path', '_blank')" />
+      }
+    </div>
+    <div class="dataset-name">@task.name</div>
+  </div>
+  <div class="dataset-top"></div>
+</div>

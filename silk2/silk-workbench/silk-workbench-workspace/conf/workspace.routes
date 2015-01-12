@@ -1,0 +1,55 @@
+############################################################################################################################################
+# Workspace
+############################################################################################################################################
+
+GET           /                                                controllers.workspace.Workspace.index
+GET           /tree                                            controllers.workspace.Workspace.tree
+
+GET           /dialogs/newproject                              controllers.workspace.Workspace.newProjectDialog()
+GET           /dialogs/importproject                           controllers.workspace.Workspace.importProjectDialog()
+GET           /dialogs/importlinkspec/:project                 controllers.workspace.Workspace.importLinkSpecDialog(project: String)
+GET           /dialogs/prefixes/:project                       controllers.workspace.Workspace.prefixDialog(project: String)
+GET           /dialogs/resources/:project                      controllers.workspace.Workspace.resourcesDialog(project: String)
+GET           /dialogs/editRestriction/:project/:task          controllers.workspace.Workspace.restrictionDialog(project: String, task: String, sourceOrTarget: String, restriction: String)
+POST          /:project/importExample                          controllers.workspace.Workspace.importExample(project: String)
+
+############################################################################################################################################
+# Datasets
+############################################################################################################################################
+
+# Dialogs
+GET           /dialogs/newDataset/:project                     controllers.workspace.Datasets.datasetDialog(project: String, task = "")
+GET           /dialogs/editDataset/:project/:task              controllers.workspace.Datasets.datasetDialog(project: String, task: String)
+
+# Tabs
+GET           /datasets/:project/:task/dataset                 controllers.workspace.Datasets.dataset(project, task)
+GET           /datasets/:project/:task/table                   controllers.workspace.Datasets.table(project, task, maxEntities: Int ?= 20)
+GET           /datasets/:project/:task/sparql                  controllers.workspace.Datasets.sparql(project, task, query ?= "")
+
+# API
+GET           /projects/:project/dataset/:name                 controllers.workspace.Datasets.getDataset(project: String, name: String)
+PUT           /projects/:project/dataset/:name                 controllers.workspace.Datasets.putDataset(project: String, name: String)
+DELETE        /projects/:project/dataset/:name                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
+
+############################################################################################################################################
+# Workspace Api
+############################################################################################################################################
+
+# Projects
+PUT           /projects/:project                               controllers.workspace.WorkspaceApi.newProject(project: String)
+DELETE        /projects/:project                               controllers.workspace.WorkspaceApi.deleteProject(project: String)
+POST          /projects/:project/import                        controllers.workspace.WorkspaceApi.importProject(project: String)
+GET           /projects/:project/export                        controllers.workspace.WorkspaceApi.exportProject(project: String)
+POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
+
+# Prefixes
+PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
+
+# Resources
+GET           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
+PUT           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
+DELETE        /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
+
+# Assests
+GET           /assets/*file                                    controllers.workspace.Assets.at(path="/public", file)
+

@@ -1,0 +1,101 @@
+@import de.fuberlin.wiwiss.silk.entity.ForwardOperator
+
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+@import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
+@import de.fuberlin.wiwiss.silk.entity.Path
+@import controllers.rules.routes.Assets
+
+@(context: Context[TransformTask])
+
+@header = {
+  <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
+  <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
+
+  <script type="text/javascript" src="@Assets.at("js/editor/transformRules.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
+  <script type="text/javascript">
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
+  </script>
+}
+
+@toolbar = {
+  <script type="text/javascript" src="@Assets.at("js/wz_tooltip.js")"></script>
+
+  <ul>
+    <li>
+      <button onclick="addRule()">Add Rule</button>
+    </li>
+  </ul>
+
+  @status()
+}
+
+@content = {
+  <div id="ruleContainer">
+    @for(rule <- context.task.rules) {
+      @renderRule(rule)
+    }
+  </div>
+
+  <div id="ruleTemplate" style="display: none">
+    @renderRule(TransformRule())
+  </div>
+
+  <div id="dialogDelete" title="Confirm">
+    <p>
+      <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+      Delete transformation rule?
+    </p>
+  </div>
+}
+
+@renderRule(rule: TransformRule) = {
+  <div class="transformRule">
+    <div class="ruleTitle">
+      Transformation
+      <img class="button-delete" title="Delete" onclick="deleteRule($(this).parent().parent())" src="@Assets.at("img/delete.png")" style="float: right; cursor: pointer" />
+      <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().parent().find('.name').val())" src="@Assets.at("img/editor/wrench.png")" style="float:right; cursor: pointer" />
+    </div>
+    <div class="ruleContents">
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Source Path</th>
+          <th>Target Property</th>
+        </tr>
+        <tr>
+          <td><input class="name" value="@rule.name" /></td>
+          <td>
+            @rule.operator match {
+              case None => {
+                @* No input path defined so far. *@
+                <input class="source" value="" />
+              }
+              case Some(PathInput(id, Path(v, ForwardOperator(prop) :: Nil))) => {
+                @* An input with a single property defined -> Use simplified syntax. *@
+                <input class="source" value="@prop.toTurtle(prefixes())" />
+              }
+              case Some(PathInput(id, path)) => {
+                @* An input with a property path defined *@
+                <input class="source" value="@path.serialize(prefixes())" />
+              }
+              case _ => {
+                (complex)
+              }
+            }
+          </td>
+          <td><input class="target" value="@rule.targetProperty.toTurtle(prefixes())" /></td>
+        </tr>
+      </table>
+    </div>
+    <script class="ruleXML" type="application/xml">
+      @rule.toXML
+    </script>
+  </div>
+}
+
+@prefixes() = @{ context.project.config.prefixes }
+
+@main(Some(context))(header)(toolbar)(content)

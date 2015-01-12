@@ -1,39 +1,44 @@
 package de.fuberlin.wiwiss.silk.execution
 
+import java.util.logging.{Level, Logger}
+
+import de.fuberlin.wiwiss.silk.config.{TransformSpecification, DatasetSelection}
 import de.fuberlin.wiwiss.silk.runtime.task.Task
-import de.fuberlin.wiwiss.silk.datasource.Source
-import de.fuberlin.wiwiss.silk.output.Output
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, DataSink}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
-import de.fuberlin.wiwiss.silk.config.Dataset
 
 /**
  * Executes a set of transformation rules.
  */
-class ExecuteTransform(source: Source,
-                       dataset: Dataset,
+class ExecuteTransform(input: DataSource,
+                       selection: DatasetSelection,
                        rules: Seq[TransformRule],
-                       outputs: Traversable[Output] = Traversable.empty) extends Task[Any] {
+                       outputs: Seq[DataSink] = Seq.empty) extends Task[Any] {
 
   def execute(): Unit = {
+
+    logger.log(Level.INFO, "Executing transform.")
+
     // Retrieve entities
     val entityDesc =
       new EntityDescription(
-        variable = dataset.variable,
-        restrictions = dataset.restriction,
+        variable = selection.variable,
+        restrictions = selection.restriction,
         paths = rules.flatMap(_.paths).distinct.toIndexedSeq
       )
-    val entities = source.retrieve(entityDesc)
+    val entities = input.retrieve(entityDesc)
 
     // Open outputs
-    for(output <- outputs) output.open()
+    val properties = rules.map(_.targetProperty.uri)
+    for(output <- outputs) output.open(properties)
 
     // Transform all entities and write to outputs
     for { entity <- entities
-          rule <- rules
-          value <- rule(entity)
-          output <- outputs } {
-      output.writeLiteralStatement(entity.uri, rule.targetProperty, value)
+          rule <- rules } {
+      val values = rules.map(_(entity))
+      for(output <- outputs)
+        output.writeEntity(entity.uri, values)
     }
 
     // Close outputs
@@ -43,4 +48,14 @@ class ExecuteTransform(source: Source,
 
 object ExecuteTransform {
   def empty = new ExecuteTransform(null, null, null, null)
+
+  /**
+   * Create an ExecuteTransform task instance with the provided transform specification.
+   *
+   * @since 2.6.1
+   *
+   * @param transform The transform specification.
+   * @return An ExecuteTransform instance.
+   */
+  def apply(transform: TransformSpecification) = new ExecuteTransform(transform.input, transform.selection, transform.rules, transform.outputs)
 }

@@ -1,0 +1,34 @@
+@()
+
+@widgets.dialog(title = "New Project", width = 400) {
+  <table border="0">
+    <tr>
+      <td>Name</td>
+      <td><input name="name" title="Project Name" size="30" value="unnamed"/></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+
+  <script>//<![CDATA[
+    function submit() {
+      var name = $("input[name='name']").val();
+
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/workspace/projects/' + name,
+        data: "",
+        success: function(data) {
+          closeDialog();
+          reloadWorkspace();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  //]]>
+  </script>
+}

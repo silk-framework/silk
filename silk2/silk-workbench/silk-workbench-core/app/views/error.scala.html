@@ -1,0 +1,32 @@
+@(ex: Throwable)
+
+@header = { }
+
+@toolbar = { }
+
+@content = {
+
+  <h2>Error</h2>
+
+  @ex.getMessage
+
+  <h2>Stacktrace</h2>
+
+  @stacktrace(ex)
+}
+
+@stacktrace(ex: Throwable) = {
+  <p>
+  @for(el <- ex.getStackTrace) {
+    @el.toString
+    <br/>
+  }
+  </p>
+  @if(ex.getCause != null) {
+    <strong>Cause:</strong>
+    @ex.getCause.getMessage
+    @stacktrace(ex.getCause)
+  }
+}
+
+@main(None)(header)(toolbar)(content)

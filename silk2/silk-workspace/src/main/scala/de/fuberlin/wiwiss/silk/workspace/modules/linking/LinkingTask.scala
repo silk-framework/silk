@@ -26,11 +26,11 @@ class LinkingTask private(val linkSpec: LinkSpecification, val referenceLinks: R
   val name = linkSpec.id
 
   def updateLinkSpec(linkSpec: LinkSpecification, project: Project) = {
-    LinkingTask(project, linkSpec, referenceLinks, cache)
+    LinkingTask(project, linkSpec, referenceLinks, cache, updateCache = true)
   }
 
   def updateReferenceLinks(referenceLinks: ReferenceLinks, project: Project) = {
-    LinkingTask(project, linkSpec, referenceLinks, cache)
+    LinkingTask(project, linkSpec, referenceLinks, cache, updateCache = true)
   }
 }
 
@@ -38,9 +38,9 @@ object LinkingTask {
   /**
    * Constructs a new linking task and starts loading the cache.
    */
-  def apply(project: Project, linkSpec: LinkSpecification, referenceLinks: ReferenceLinks = ReferenceLinks(), cache: LinkingCaches = new LinkingCaches()) = {
+  def apply(project: Project, linkSpec: LinkSpecification, referenceLinks: ReferenceLinks = ReferenceLinks(), cache: LinkingCaches = new LinkingCaches(), updateCache: Boolean) = {
     val task = new LinkingTask(linkSpec, referenceLinks, cache)
-    task.cache.load(project, task)
+    task.cache.load(project, task, updateCache)
     task
   }
 }

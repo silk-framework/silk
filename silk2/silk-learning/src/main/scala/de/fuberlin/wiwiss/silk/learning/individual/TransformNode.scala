@@ -24,7 +24,7 @@ case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer
       case c: InputNode => c
     }
     val newTransformer = children.collect {
-      case c: FunctionNode[Transformer] => c
+      case c: FunctionNode[Transformer] @unchecked => c
     }.head
 
     TransformNode(isSource, newInputs, newTransformer)

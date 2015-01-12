@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.transform
 
 import java.util.logging.{Logger, Level}
 
-import de.fuberlin.wiwiss.silk.config.{Dataset, Prefixes}
+import de.fuberlin.wiwiss.silk.config.{DatasetSelection, Prefixes}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
@@ -16,19 +16,11 @@ import scala.xml.XML
 /**
  * The transform module, which encapsulates all transform tasks.
  */
-class TransformModuleProvider extends ModuleProvider[TransformConfig, TransformTask] {
+class TransformModuleProvider extends ModuleProvider[TransformTask] {
 
   private val logger = Logger.getLogger(classOf[TransformModuleProvider].getName)
 
-  /**
-   * Loads the configuration for this module.
-   */
-  override def loadConfig(resources: ResourceLoader) = TransformConfig()
-
-  /**
-   * Writes updated configuration for this module.
-   */
-  override def writeConfig(config: TransformConfig, resources: ResourceManager): Unit = { }
+  override def prefix = "transform"
 
   /**
    * Writes an updated task.
@@ -39,7 +31,7 @@ class TransformModuleProvider extends ModuleProvider[TransformConfig, TransformT
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
-    taskResources.put("dataset.xml") { os => task.dataset.toXML(asSource = true).write(os) }
+    taskResources.put("dataset.xml") { os => task.dataSelection.toXML(asSource = true).write(os) }
     taskResources.put("rules.xml") { os =>
       <TransformRules>
       { task.rules.map(_.toXML) }
@@ -58,7 +50,7 @@ class TransformModuleProvider extends ModuleProvider[TransformConfig, TransformT
 
   private def loadTask(name: String, taskResources: ResourceLoader, project: Project) = {
     implicit val prefixes = project.config.prefixes
-    val dataset = Dataset.fromXML(XML.load(taskResources.get("dataset.xml").load))
+    val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(TransformRule.load(project.resources)(project.config.prefixes))
     val cache = new PathsCache()
@@ -72,7 +64,7 @@ class TransformModuleProvider extends ModuleProvider[TransformConfig, TransformT
         new LinkingCaches()
     }
 
-    TransformTask(project, name, dataset, rules, cache)
+    TransformTask(project, name, dataset, rules, cache, updateCache = false)
   }
 
   /**
