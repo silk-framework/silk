@@ -6,6 +6,7 @@ import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.spatial_temporal.SpatialTemporalPlugins
 import de.fuberlin.wiwiss.silk.util.Timer
 ;
 
@@ -28,6 +29,7 @@ object Plugins {
     if(!registered) {
       CorePlugins.register()
       JenaPlugins.register()
+      SpatialTemporalPlugins.register()
       registerExternalPlugins(pluginsDir)
       registered = true
     }
