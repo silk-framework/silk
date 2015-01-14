@@ -19,6 +19,8 @@ import org.scalatest.FlatSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import de.fuberlin.wiwiss.silk.plugins.temporal.distance.DuringMetric;
+
 /**
  * Tests the During Metric.
  * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)

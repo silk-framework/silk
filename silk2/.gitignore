@@ -8,6 +8,7 @@
 *.iws
 #eclipse
 target/
+*/.gitignore
 .classpath
 .project
 .settings
