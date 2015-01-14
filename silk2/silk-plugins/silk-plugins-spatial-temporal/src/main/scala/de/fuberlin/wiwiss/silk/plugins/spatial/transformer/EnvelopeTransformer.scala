@@ -16,24 +16,24 @@ package de.fuberlin.wiwiss.silk.plugins.spatial.transformer
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.getEnvelopeFromGeometry
+import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 
 /**
  * This plugin returns the Envelope (Minimum Bounding Rectangle) of the input geometry (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
  * In case that the literal is not a geometry, it is returned as it is.
  *
- * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
+ * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
 @Plugin(
   id = "EnvelopeTransformer",
   categories = Array("Spatial"),
   label = "Envelope Transformer",
-  description = "Returns the Envelope (Minimum Bounding Rectangle) of the input geometry. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+  description = "Returns the Envelope (Minimum Bounding Rectangle) of the input geometry.")
 case class EnvelopeTransformer() extends SimpleTransformer {
 
   override def evaluate(value: String) = {
-    getEnvelopeFromGeometry(value)
+    Utils.getEnvelopeFromGeometry(value)
   }
 
 }

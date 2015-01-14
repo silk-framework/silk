@@ -18,20 +18,20 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.pointsToCentroidTransformer
+import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 
 /**
  * This plugin transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).
  * In case that the literal is not a geometry, it is returned as it is.
  *
- * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
+ * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
 @Plugin(
   id = "PointsToCentroidCTransformer",
   categories = Array("Spatial"),
   label = "Points-To-Centroid Transformer",
-  description = "Transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude). Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+  description = "Transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).")
 case class PointsToCentroidTransformer() extends Transformer {
 
   override final def apply(values: Seq[Set[String]]): Set[String] = {
@@ -41,7 +41,7 @@ case class PointsToCentroidTransformer() extends Transformer {
     values.length match {
       case 2 =>
         //2 inputs to the Transformer => assumes W3C Geo (lat and long) literals to be transformed.
-        pointsToCentroidTransformer(values)
+        Utils.pointsToCentroidTransformer(values)
       case _ =>
         values.reduce(_ ++ _)
     }

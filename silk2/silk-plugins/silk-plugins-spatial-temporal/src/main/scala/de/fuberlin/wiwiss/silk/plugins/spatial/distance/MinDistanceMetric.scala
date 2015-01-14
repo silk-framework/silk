@@ -17,25 +17,24 @@ package de.fuberlin.wiwiss.silk.plugins.spatial.distance
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.spatial.SpatialExtensionsUtils.{ evaluateDistance, indexGeometriesByEnvelope }
-import de.fuberlin.wiwiss.silk.util.spatial.Constants._
+import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 
 /**
  * Computes the minimum distance between two geometries in meters (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
- * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
+ * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 @Plugin(
   id = "MinDistanceMetric",
   categories = Array("Spatial"),
   label = "Min distance",
-  description = "Computes the minimum distance between two geometries in meters. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+  description = "Computes the minimum distance between two geometries in meters.")
 case class MinDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    evaluateDistance(str1, str2, limit, MIN_DISTANCE)
+    Utils.evaluateDistance(str1, str2, limit, Constants.MIN_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexGeometriesByEnvelope(str, blockingParameter, distance)
+    Utils.indexGeometriesByEnvelope(str, blockingParameter, distance)
   }
 }

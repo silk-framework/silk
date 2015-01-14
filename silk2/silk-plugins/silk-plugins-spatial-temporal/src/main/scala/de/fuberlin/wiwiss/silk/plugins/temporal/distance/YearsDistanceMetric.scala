@@ -17,25 +17,24 @@ package de.fuberlin.wiwiss.silk.plugins.temporal.distance
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.temporal.TemporalExtensionsUtils.{evaluateDistance, indexTimes}
-import de.fuberlin.wiwiss.silk.util.temporal.Constants._
+import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 
 /**
  * Computes the distance in years between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).
- * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
+ * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 @Plugin(
   id = "YearsDistanceMetric",
   categories = Array("Temporal"),
   label = "Years distance",
-  description = "Computes the distance in years between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+  description = "Computes the distance in years between two time periods or instants.")
 case class YearsDistanceMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    evaluateDistance(str1, str2, limit, YEARS_DISTANCE)
+    Utils.evaluateDistance(str1, str2, limit, Constants.YEARS_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexTimes(str, distance*MILLISECS_PER_YEAR)
+    Utils.indexTimes(str, distance*Constants.MILLISECS_PER_YEAR)
   }
 }

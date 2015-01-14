@@ -17,25 +17,24 @@ package de.fuberlin.wiwiss.silk.plugins.temporal.distance
 import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.temporal.TemporalExtensionsUtils.{evaluateDistance, indexTimes}
-import de.fuberlin.wiwiss.silk.util.temporal.Constants._
+import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 
 /**
  * Computes the distance in hours between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).
- * @author Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)
+ * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 @Plugin(
   id = "HoursDistanceMetric",
   categories = Array("Temporal"),
   label = "Hours distance",
-  description = "Computes the distance in hours between two time periods or instants. Author: Panayiotis Smeros (Department of Informatics & Telecommunications, National & Kapodistrian University of Athens)")
+  description = "Computes the distance in hours between two time periods or instants.")
 case class HoursDistanceMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    evaluateDistance(str1, str2, limit, HOURS_DISTANCE)
+    Utils.evaluateDistance(str1, str2, limit, Constants.HOURS_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    indexTimes(str, distance*MILLISECS_PER_HOUR)
+    Utils.indexTimes(str, distance*Constants.MILLISECS_PER_HOUR)
   }
 }
