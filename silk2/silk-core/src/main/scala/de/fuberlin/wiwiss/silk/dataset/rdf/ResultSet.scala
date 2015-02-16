@@ -1,3 +1,5 @@
 package de.fuberlin.wiwiss.silk.dataset.rdf
 
-case class ResultSet(bindings: Traversable[Map[String, RdfNode]])
+import scala.collection.immutable.SortedMap
+
+case class ResultSet(bindings: Traversable[SortedMap[String, RdfNode]])

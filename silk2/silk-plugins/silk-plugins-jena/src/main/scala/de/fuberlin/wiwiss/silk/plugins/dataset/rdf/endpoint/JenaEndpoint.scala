@@ -20,6 +20,7 @@ import com.hp.hpl.jena.query.{QueryExecution, QuerySolution, ResultSet}
 import de.fuberlin.wiwiss.silk.dataset.rdf.{BlankNode, Literal, Resource, SparqlEndpoint, ResultSet => SilkResultSet}
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.SortedMap
 
 /**
  * A SPARQL endpoint which executes all queries using Jena.
@@ -72,7 +73,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
         (varName, toSilkNode(value))
       }
 
-    values.toMap
+    SortedMap(values: _*)
   }
 
   /**
