@@ -3,6 +3,8 @@ package controllers.linking
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 import models.{CurrentTaskStatusListener}
+import play.api.Logger
+import play.api.libs.iteratee.Enumeratee
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -11,6 +13,7 @@ import models.linking._
 import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
+import play.twirl.api.Html
 import plugins.Context
 
 object Learning extends Controller {
