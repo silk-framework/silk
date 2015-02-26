@@ -1,5 +1,0 @@
-<DataSource id="linkedmdb" type="file">
-  <Param name="file" value="target.nt"/>
-  <Param name="format" value="N-TRIPLE"/>
-  <Param name="graph" value=""/>
-</DataSource>
