@@ -28,8 +28,7 @@ LIMIT 20} else {@query}
 <table>
   <tr>
     @for(results <- queryResults.toList;
-         firstBinding <- results.bindings.headOption.toList;
-         variable <- firstBinding.keys) {
+         variable <- results.variables) {
       <th>@variable<th>
     }
   </tr>

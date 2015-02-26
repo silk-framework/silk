@@ -21,6 +21,7 @@ import javax.xml.bind.DatatypeConverter
 
 import de.fuberlin.wiwiss.silk.dataset.rdf._
 
+import scala.collection.immutable.SortedMap
 import scala.io.Source
 import scala.xml.{Elem, XML}
 
@@ -52,8 +53,8 @@ class RemoteSparqlEndpoint(val uri: URI,
     )
   }
 
-  private class ResultTraversable(sparql: String, limit: Int) extends Traversable[Map[String, RdfNode]] {
-    override def foreach[U](f: Map[String, RdfNode] => U): Unit = {
+  private class ResultTraversable(sparql: String, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
+    override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       var blankNodeCount = 0
 
       for (offset <- 0 until limit by pageSize) {
@@ -73,7 +74,7 @@ class RemoteSparqlEndpoint(val uri: URI,
             ((binding \ "@name").text, BlankNode("bnode" + blankNodeCount))
           }
 
-          f((uris ++ literals ++ bnodes).toMap)
+          f(SortedMap(uris ++ literals ++ bnodes: _*))
         }
 
         if (resultsXml.size < pageSize) return
