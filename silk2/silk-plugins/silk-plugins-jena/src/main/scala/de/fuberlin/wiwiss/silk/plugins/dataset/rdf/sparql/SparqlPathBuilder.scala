@@ -52,10 +52,10 @@ object SparqlPathBuilder {
     implicit val prefixes = Prefixes.empty
 
     val operatorSparql = operators.head match {
-      case ForwardOperator(property) => subject + " " + property.toTurtle + " " + vars.newTempVar + " .\n"
-      case BackwardOperator(property) => vars.newTempVar + " " + property.toTurtle + " " + subject + " .\n"
+      case ForwardOperator(property) => subject + " " + property.serialize + " " + vars.newTempVar + " .\n"
+      case BackwardOperator(property) => vars.newTempVar + " " + property.serialize + " " + subject + " .\n"
       case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " " + lang + ") . \n"
-      case PropertyFilter(property, op, value) => subject + " " + property.toTurtle + " " + vars.newFilterVar + " .\n" +
+      case PropertyFilter(property, op, value) => subject + " " + property.serialize + " " + vars.newFilterVar + " .\n" +
         "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
     }
 

@@ -73,13 +73,9 @@
                 @* No input path defined so far. *@
                 <input class="source" value="" />
               }
-              case Some(PathInput(id, Path(v, ForwardOperator(prop) :: Nil))) => {
-                @* An input with a single property defined -> Use simplified syntax. *@
-                <input class="source" value="@prop.toTurtle(prefixes())" />
-              }
               case Some(PathInput(id, path)) => {
                 @* An input with a property path defined *@
-                <input class="source" value="@path.serialize(prefixes())" />
+                <input class="source" value="@path.serializeSimplified(prefixes())" />
               }
               case _ => {
                 (complex)

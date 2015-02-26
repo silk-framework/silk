@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.linkagerule.input
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 

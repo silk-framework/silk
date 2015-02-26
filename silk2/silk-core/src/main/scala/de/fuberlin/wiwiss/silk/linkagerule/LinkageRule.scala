@@ -64,7 +64,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    * Serializes this linkage rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <LinkageRule linkType={linkType.toTurtle}>
+    <LinkageRule linkType={linkType.serialize}>
       {operator.toList.map(_.toXML)}
       {filter.toXML}
     </LinkageRule>

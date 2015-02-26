@@ -105,10 +105,7 @@ function serializeSimpleRule(xmlDoc, name, source, target) {
   // Add simple source
   if(source.trim() != "") {
     var sourceXml = xmlDoc.createElement("Input");
-    if (source.startsWith("?"))
-      sourceXml.setAttribute("path", source);
-    else
-      sourceXml.setAttribute("path", "?a/" + source);
+    sourceXml.setAttribute("path", source);
     ruleXml.appendChild(sourceXml);
   }
 

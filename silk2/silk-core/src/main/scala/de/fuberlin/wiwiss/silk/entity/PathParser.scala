@@ -24,7 +24,15 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
  */
 private class PathParser(prefixes: Prefixes) extends RegexParsers {
   def parse(pathStr: String): Path = {
-    parseAll(path, new CharSequenceReader(pathStr)) match {
+    var completePath = pathStr
+    // The leading '/' is optional
+    if(!completePath.startsWith("/") && !completePath.startsWith("?"))
+      completePath = "/" + completePath
+    // The variable is optional
+    if(!completePath.startsWith("?"))
+      completePath = "?a" + completePath
+    // Parse path
+    parseAll(path, new CharSequenceReader(completePath)) match {
       case Success(parsedPath, _) => parsedPath
       case error: NoSuccess => throw new ValidationException(error.toString)
     }

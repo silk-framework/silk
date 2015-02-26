@@ -18,21 +18,30 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**
  * Represents a URI.
+ *
+ * Three notations are supported for representing URIs
+ * 1. Prefixed notation: prefix:name
+ * 2. Full URI:  <http://dbpedia.org/resource/Berlin>
+ * 3. Plain Identifiers: Name
  */
 class Uri(val uri: String) {
   /**
-   * The turtle representation of this Uri.
+   * A turtle-like representation of this URI.
    *
    * Examples:
    * - dbpedia:Berlin
    * - <http://dbpedia.org/resource/Berlin>
+   * - someName
    */
-  def toTurtle(implicit prefixes: Prefixes): String = {
-    for ((id, namespace) <- prefixes if uri.startsWith(namespace)) {
-      return id + ":" + uri.substring(namespace.length)
+  def serialize(implicit prefixes: Prefixes): String = {
+    if(!uri.contains(':')) {
+      uri
+    } else {
+      for ((id, namespace) <- prefixes if uri.startsWith(namespace)) {
+        return id + ":" + uri.substring(namespace.length)
+      }
+      "<" + uri + ">"
     }
-
-    "<" + uri + ">"
   }
 
   override def toString = uri
@@ -57,17 +66,19 @@ object Uri {
   }
 
   /**
-   * Parses an URI in turtle notation.
+   * Parses an URI in turtle-like notation.
    *
    * Examples:
    * - dbpedia:Berlin
    * - <http://dbpedia.org/resource/Berlin>
+   * - someName
    */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty) = {
     if (str.startsWith("<")) {
       fromURI(str.substring(1, str.length - 1))
-    }
-    else {
+    } else if(!str.contains(':')) {
+      fromURI(str)
+    } else {
       fromQualifiedName(str, prefixes)
     }
   }

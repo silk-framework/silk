@@ -33,14 +33,14 @@ sealed abstract class PathOperator {
  * Moves forward from a subject resource (set) through a property to its object resource (set).
  */
 case class ForwardOperator(property: Uri) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "/" + property.toTurtle
+  override def serialize(implicit prefixes: Prefixes) = "/" + property.serialize
 }
 
 /**
  * Moves backward from an object resource (set) through a property to its subject resource (set).
  */
 case class BackwardOperator(property: Uri) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "\\" + property.toTurtle
+  override def serialize(implicit prefixes: Prefixes) = "\\" + property.serialize
 }
 
 /**
@@ -61,5 +61,5 @@ case class LanguageFilter(operator: String, language: String) extends PathOperat
  * @param value The comparison value.
  */
 case class PropertyFilter(property: Uri, operator: String, value: String) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "[" + property.toTurtle + " " + operator + " " + value + "]"
+  override def serialize(implicit prefixes: Prefixes) = "[" + property.serialize + " " + operator + " " + value + "]"
 }

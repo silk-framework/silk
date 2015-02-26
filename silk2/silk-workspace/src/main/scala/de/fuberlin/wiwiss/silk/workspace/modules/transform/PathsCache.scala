@@ -27,7 +27,7 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
       val source = project.task[DatasetTask](task.dataSelection.datasetId).source
 
       //Retrieve most frequent paths
-      val paths = source.retrievePaths(task.dataSelection.restriction, 1, Some(50)).map(_._1)
+      val paths = source.retrievePaths(task.dataSelection.restriction, 1).map(_._1)
 
       //Add the frequent paths to the entity description
       value = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ paths).distinct)
@@ -41,9 +41,7 @@ class PathsCache() extends Cache[TransformTask, EntityDescription](null) {
 
   override def serialize: Node = {
     if (value != null) {
-      <EntityDescription>
-        {value.toXML}
-      </EntityDescription>
+      value.toXML
     } else {
       <EntityDescription>
       </EntityDescription>

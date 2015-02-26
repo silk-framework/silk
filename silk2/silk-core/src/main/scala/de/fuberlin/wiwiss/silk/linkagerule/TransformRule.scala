@@ -45,7 +45,7 @@ case class TransformRule(name: Identifier = "transformation", operator: Option[I
    * Serializes this transform rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <TransformRule name={name} targetProperty={targetProperty.toTurtle}>
+    <TransformRule name={name} targetProperty={targetProperty.serialize}>
       {operator.toList.map(_.toXML)}
     </TransformRule>
   }

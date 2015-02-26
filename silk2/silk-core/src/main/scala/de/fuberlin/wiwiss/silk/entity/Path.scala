@@ -26,6 +26,13 @@ final class Path private(val variable: String, val operators: List[PathOperator]
    */
   def serialize(implicit prefixes: Prefixes = Prefixes.empty) = "?" + variable + operators.map(_.serialize).mkString
 
+  /**
+   * Serializes this path using the simplified notation.
+   */
+  def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty) = {
+    operators.map(_.serialize).mkString.stripPrefix("/")
+  }
+
   override def toString = serialize(Prefixes.empty)
 
   /**

@@ -173,17 +173,10 @@ object TransformTaskApi extends Controller {
     val task = project.task[TransformTask](taskName)
     var completions = Seq[String]()
 
-    // Add known paths, use short notation for paths that only consist of a single property
+    // Add known paths
     if(task.cache.value != null) {
       val knownPaths = task.cache.value.paths
-      val pathCompletions =
-        for (path <- knownPaths) yield {
-          path.operators match {
-            case ForwardOperator(p) :: Nil => p.toTurtle(project.config.prefixes)
-            case _ => path.serialize(project.config.prefixes)
-          }
-        }
-      completions ++= pathCompletions
+      completions ++= knownPaths.map(_.serializeSimplified(project.config.prefixes)).sorted
     }
 
     // Add known prefixes last
@@ -191,7 +184,7 @@ object TransformTaskApi extends Controller {
     completions ++= prefixCompletions
 
     // Filter all completions that match the search term
-    val matches = completions.filter(_.contains(term)).take(20)
+    val matches = completions.filter(_.contains(term))
 
     // Convert to JSON and return
     Ok(JsArray(matches.map(JsString)))
@@ -205,7 +198,7 @@ object TransformTaskApi extends Controller {
     val prefixCompletions = project.config.prefixes.prefixMap.keys
 
     // Filter all completions that match the search term
-    val matches = prefixCompletions.filter(_.contains(term)).toSeq.sorted.take(20).map(_ + ":")
+    val matches = prefixCompletions.filter(_.contains(term)).toSeq.sorted.map(_ + ":")
 
     // Convert to JSON and return
     Ok(JsArray(matches.map(JsString)))
