@@ -6,3 +6,11 @@
 *.iml
 *.ipr
 *.iws
+#eclipse
+target/
+*/.gitignore
+.classpath
+.project
+.settings
+.cache
+**/project/*
