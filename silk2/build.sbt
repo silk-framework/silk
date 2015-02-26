@@ -14,11 +14,7 @@ lazy val learning = project in file("silk-learning") dependsOn core
 
 // Plugins
 
-lazy val pluginsJena = project in file("silk-plugins/silk-plugins-jena") dependsOn core
-
-lazy val pluginsSpatialTemporal = project in file("silk-plugins/silk-plugins-spatial-temporal") dependsOn core
-
-lazy val plugins = project in file("silk-plugins") dependsOn pluginsJena dependsOn pluginsSpatialTemporal
+lazy val plugins = project in file("silk-plugins")
 
 // Workbench
 
@@ -41,7 +37,7 @@ lazy val singlemachine = project in file("silk-tools/silk-singlemachine") depend
 // Root
 
 lazy val root = project.in(file("."))
-                       .aggregate(core, plugins, pluginsJena, pluginsSpatialTemporal, singlemachine, learning, workspace, workbench)
+                       .aggregate(core, plugins, singlemachine, learning, workspace, workbench)
 
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.1.6" % "test"
 

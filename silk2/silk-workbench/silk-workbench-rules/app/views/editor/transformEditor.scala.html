@@ -92,7 +92,7 @@
 
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty"  value="@rule.targetProperty.toTurtle(context.project.config.prefixes)" />
+        <input type="text" size="40" id="targetproperty"  value="@rule.targetProperty.serialize(context.project.config.prefixes)" />
         <img src="@Assets.at("img/help.png")" title="The target property." />
       </div>
 
