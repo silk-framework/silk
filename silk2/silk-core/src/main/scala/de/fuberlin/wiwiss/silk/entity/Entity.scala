@@ -52,9 +52,10 @@ class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: Ent
     for (valueSet <- values) {
       stream.writeInt(valueSet.size)
       for (value <- valueSet) {
-        stream.writeUTF(value)
+        stream.write(value.getBytes())
       }
     }
+    stream.write(-1)
   }
 }
 
@@ -75,8 +76,14 @@ object Entity {
     //Read URI
     val uri = stream.readUTF()
 
-    //Read Values
-    def readValue = Traversable.fill(stream.readInt)(stream.readUTF).toSet
+   //Read Values
+    val int = stream.readInt
+
+    var value = ""
+    var byte = null.asInstanceOf[Byte]
+    while ({ byte = stream.readByte; byte != -1 }) value += byte.toChar
+
+    def readValue = Traversable.fill(int)(value).toSet
     val values = IndexedSeq.fill(desc.paths.size)(readValue)
 
     new Entity(uri, values, desc)
