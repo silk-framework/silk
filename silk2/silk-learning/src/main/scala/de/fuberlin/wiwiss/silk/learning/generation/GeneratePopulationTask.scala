@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.generation
 
-import de.fuberlin.wiwiss.silk.runtime.task.Task
+import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}

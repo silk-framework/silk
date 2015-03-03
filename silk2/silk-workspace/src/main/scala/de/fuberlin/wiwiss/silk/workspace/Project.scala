@@ -28,7 +28,7 @@ import scala.reflect.ClassTag
 import scala.xml.XML
 
 /**
- * Implementation of a project which is stored on the local file system.
+ * A project.
  */
 class Project(val name: Identifier, resourceManager: ResourceManager) {
 

@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.cleaning
 
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
-import de.fuberlin.wiwiss.silk.runtime.task.Task
+import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import de.fuberlin.wiwiss.silk.learning.individual._
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule

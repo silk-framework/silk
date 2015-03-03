@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.oldtask.ValueTask
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 import de.fuberlin.wiwiss.silk.learning.LinkageRuleLearner.Result
 import de.fuberlin.wiwiss.silk.learning.genlink.GenLink

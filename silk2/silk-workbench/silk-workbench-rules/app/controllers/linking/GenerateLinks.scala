@@ -6,7 +6,7 @@ import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import play.api.mvc.{Controller, Action}
-import models.linking.{LinkSorter, CurrentGenerateLinksTask,EvalLink}
+import models.linking.{CurrentGeneratedLinks, LinkSorter, CurrentGenerateLinksTask, EvalLink}
 import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import plugins.Context
 
@@ -31,7 +31,7 @@ object GenerateLinks extends Controller {
     val linkSorter = LinkSorter.fromId(sorting)
 
     def links =
-      for (link <- models.linking.CurrentGenerateLinksTask().links.view;
+      for (link <- CurrentGeneratedLinks()().view;
            detailedLink <- DetailedEvaluator(task.linkSpec.rule, link.entities.get)) yield {
         if (referenceLinks.positive.contains(link))
           new EvalLink(detailedLink, Correct, Generated)
@@ -45,13 +45,13 @@ object GenerateLinks extends Controller {
   }
 
   def linksStream(projectName: String, taskName: String) = Action {
-    val stream = Stream.currentTaskValue(CurrentGenerateLinksTask)
+    val stream = Stream.currentTaskValue(CurrentGeneratedLinks)
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(project: String, task: String) = Action {
-    val stream = Stream.currentTaskStatus(CurrentGenerateLinksTask)
-    Ok.chunked(Widgets.taskStatus(stream))
+    val stream = Stream.currentStatus(CurrentGenerateLinksTask)
+    Ok.chunked(Widgets.status(stream))
   }
 
 }

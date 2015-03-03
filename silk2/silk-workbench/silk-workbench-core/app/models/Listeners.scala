@@ -1,7 +1,8 @@
 package models
 
 import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.runtime.task._
+import de.fuberlin.wiwiss.silk.runtime.oldtask._
+import de.fuberlin.wiwiss.silk.runtime.task.{ValueHolder, TaskControl, Status}
 
 abstract class TaskStatusListener(task: HasStatus) extends Listener[TaskStatus] {
   task.onUpdate(Listener)
@@ -24,21 +25,57 @@ abstract class TaskDataListener[T](userData: TaskData[T]) extends Listener[T] {
 }
 
 /**
- * Listens to the current value of the current users task.
+ * Listens to the current value of the current linking task.
  */
-abstract class CurrentTaskValueListener[T](taskHolder: TaskData[_ <: ValueTask[T]]) extends Listener[T] {
+abstract class CurrentLinkingTaskValueListener[T](taskHolder: TaskData[ValueHolder[T]]) extends Listener[T] {
   taskHolder.onUpdate(Listener)
-  taskHolder().value.onUpdate(ValueListener)
+  taskHolder().onUpdate(ValueListener)
 
-  private object Listener extends (ValueTask[T] => Unit) {
-    def apply(task: ValueTask[T]) {
-      task.value.onUpdate(ValueListener)
+  private object Listener extends (ValueHolder[T] => Unit) {
+    def apply(valueHolder: ValueHolder[T]) {
+      valueHolder.onUpdate(ValueListener)
     }
   }
 
   private object ValueListener extends (T => Unit) {
     def apply(value: T) {
       update(value)
+    }
+  }
+}
+
+/**
+ * Listens to the current status of the current users task.
+ */
+abstract class CurrentStatusListener(taskHolder: TaskData[TaskControl]) extends Listener[Status] {
+
+  //Deactivate logging
+  //TODO statusLogLevel = Level.FINEST
+  // progressLogLevel = Level.FINEST
+
+  val statusHolder = new ValueHolder[Status](Status.Idle())
+
+  //Listen to changes of the current task
+  taskHolder.onUpdate(Listener)
+
+  //Set current task
+  @volatile protected var task = taskHolder()
+
+  //Listen to changes of the status of the current task.
+  task.onUpdate(StatusListener)
+  statusHolder.update(task.status)
+
+  private object Listener extends (TaskControl => Unit) {
+    def apply(newTask: TaskControl) {
+      task = newTask
+      task.onUpdate(StatusListener)
+    }
+  }
+
+  private object StatusListener extends (Status => Unit) {
+    def apply(status: Status) {
+      update(status)
+      statusHolder.update(status)
     }
   }
 }

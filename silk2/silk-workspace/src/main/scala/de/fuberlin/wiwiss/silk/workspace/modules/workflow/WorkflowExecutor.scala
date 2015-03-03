@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 
 import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.runtime.task.Task
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, Task}
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask.WorkflowOperator
@@ -11,13 +11,13 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
 
   val log = Logger.getLogger(getClass.getName)
 
-  def apply(): Task[Unit] = {
+  def apply(): Task = {
     new ExecutorTask
   }
 
-  class ExecutorTask extends Task[Unit] {
+  class ExecutorTask extends Task {
 
-    override protected def execute() = {
+    override def execute(context: TaskContext) = {
       val inputNames = operators.flatMap(_.inputs).toSet
       val outputNames = operators.flatMap(_.outputs).toSet
 
@@ -29,7 +29,7 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
         // Execute next operator
         pendingOperators.find(!_.inputs.exists(emptyDatasets.contains)) match {
           case Some(op) =>
-            executeOperator(op)
+            executeOperator(op, context)
             emptyDatasets --= op.outputs
             pendingOperators -= op
           case None =>
@@ -37,11 +37,11 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
         }
         // Update status
         val completedTasks = operators.size - pendingOperators.size
-        updateStatus(s"$completedTasks / ${operators.size}", completedTasks.toDouble / operators.size)
+        context.updateStatus(s"$completedTasks / ${operators.size}", completedTasks.toDouble / operators.size)
       }
     }
 
-    def executeOperator(operator: WorkflowOperator) = {
+    def executeOperator(operator: WorkflowOperator, context: TaskContext) = {
       log.info("Executing " + operator.task)
 
       val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset.source)
@@ -52,9 +52,9 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
           .getOrElse(throw new Exception("Cannot execute task " + operator.task))
 
       val job = taskExecutor(inputs, task, outputs)
-      job.statusLogLevel = Level.FINE
-      job.progressLogLevel = Level.FINE
-      job()
+      //TODO job.statusLogLevel = Level.FINE
+      //TODO job.progressLogLevel = Level.FINE
+      context.executeBackground(job, 0.0)
 
       log.info("Finished execution of " + operator.task)
     }

@@ -14,7 +14,7 @@ object Editor extends Controller {
   }
 
   def statusStream(projectName: String, taskName: String) = Action {
-    val stream = Stream.currentTaskStatus(CurrentExecutionTask)
-    Ok.chunked(Widgets.taskStatus(stream, "status"))
+    val stream = Stream.currentStatus(CurrentExecutionTask)
+    Ok.chunked(Widgets.status(stream, "status"))
   }
 }

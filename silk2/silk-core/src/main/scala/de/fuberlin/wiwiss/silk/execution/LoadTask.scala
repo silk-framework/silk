@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.execution
 import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.cache.EntityCache
 import de.fuberlin.wiwiss.silk.dataset.DataSource
-import de.fuberlin.wiwiss.silk.runtime.task.{Future, Task, TaskFinished}
+import de.fuberlin.wiwiss.silk.runtime.oldtask.{Future, Task, TaskFinished}
 import de.fuberlin.wiwiss.silk.util.DPair
 
 /**

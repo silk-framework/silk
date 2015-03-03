@@ -14,23 +14,32 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.runtime.task.Task
-import collection.mutable.{ArrayBuffer, Buffer}
+import java.util.logging.Logger
+
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, Task}
+import collection.mutable.ArrayBuffer
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.linkagerule.LinkFilter
 
 /**
  * Filters the links according to the link limit.
  */
-class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
-  taskName = "Filtering"
+class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task {
 
-  override def execute(): Seq[Link] = {
+  private val log = Logger.getLogger(getClass.getName)
+
+  private val linkBuffer = new ArrayBuffer[Link]()
+
+  def filteredLinks = linkBuffer
+
+  override def taskName = "Filtering"
+
+  override def execute(context: TaskContext): Unit = {
     val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
-        val linkBuffer = new ArrayBuffer[Link]()
-        updateStatus("Filtering output")
+        linkBuffer.clear()
+        context.updateStatus("Filtering output")
 
         for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
           if(filter.unambiguous==Some(true)) {
@@ -42,9 +51,7 @@ class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task[Seq[Link]] {
           }
         }
 
-        logger.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
-
-        linkBuffer
+        log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
       }
       case None => links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
     }

@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier._
 import models.linking._
 import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStatus}
 import play.twirl.api.Html
 import plugins.Context
 

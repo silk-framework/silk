@@ -7,17 +7,17 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{DetailedEntity, DetailedEvaluator}
-import de.fuberlin.wiwiss.silk.runtime.task.Task
+import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 
 /**
  * Evaluates a transformation rule.
  * In contrast to ExecuteTransform, this task generates a detailed output that for each entity
- * contains all intermediate values of the rule evaluation.
+ * containing all intermediate values of the rule evaluation.
  */
 class EvaluateTransform(source: Dataset,
                         dataSelection: DatasetSelection,
                         rules: Seq[TransformRule],
-                        maxEntities: Int = 100) extends Task[Seq[DetailedEntity]] {
+                        maxEntities: Int = 100) {
 
   private val log = Logger.getLogger(getClass.getName)
 

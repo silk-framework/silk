@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.dataset.{DataSource}
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.oldtask.ValueTask
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
@@ -24,6 +24,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, ReproductionTask}
+import de.fuberlin.wiwiss.silk.runtime.task.Executor
 import linkselector.WeightedLinkageRule
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
@@ -74,7 +75,8 @@ class ActiveLearningTask(config: LearningConfiguration,
     //Build unlabeled pool
     if(pool.isEmpty) {
       updateStatus("Loading")
-      pool = executeSubTask(new GeneratePoolTask(datasets, linkSpec, paths), 0.5)
+      // TODO update to new task interface pool = executeSubTask(new GeneratePoolTask(datasets, linkSpec, paths), 0.5)
+      Executor().execute(new GeneratePoolTask(datasets, linkSpec, paths))
     }
 
     //Assert that no reference links are in the pool

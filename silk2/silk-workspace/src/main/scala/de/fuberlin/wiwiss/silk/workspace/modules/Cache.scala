@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 
 import java.util.logging.Level
 
-import de.fuberlin.wiwiss.silk.runtime.task.{HasStatus, TaskFinished, TaskStarted}
+import de.fuberlin.wiwiss.silk.runtime.oldtask.{HasStatus, TaskFinished, TaskStarted}
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask

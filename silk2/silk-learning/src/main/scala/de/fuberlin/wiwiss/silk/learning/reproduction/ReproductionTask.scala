@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import util.Random
-import de.fuberlin.wiwiss.silk.runtime.task.Task
+import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration

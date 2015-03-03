@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.runtime.task
+package de.fuberlin.wiwiss.silk.runtime.oldtask
 
 import scala.concurrent.ExecutionContext
 

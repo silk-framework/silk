@@ -16,12 +16,11 @@ package de.fuberlin.wiwiss.silk.execution
 
 import java.io.File
 import java.util.logging.LogRecord
-
 import de.fuberlin.wiwiss.silk.cache.{FileEntityCache, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.dataset.{Dataset,DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, ValueHolder, Task}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 
@@ -31,10 +30,7 @@ import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 class GenerateLinksTask(inputs: DPair[DataSource],
                         linkSpec: LinkSpecification,
                         outputs: Seq[DataSink] = Seq.empty,
-                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends ValueTask[Seq[Link]](Seq.empty) {
-
-  statusLogLevel = runtimeConfig.logLevel
-  progressLogLevel = runtimeConfig.logLevel
+                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Task {
 
   /** The task used for loading the entities into the cache */
   @volatile private var loadTask: LoadTask = null
@@ -49,7 +45,7 @@ class GenerateLinksTask(inputs: DPair[DataSource],
   def entityDescs = linkSpec.entityDescriptions
 
   /** The links which have been generated so far by this task */
-  def links = value.get
+  val links = new ValueHolder[Seq[Link]](Seq.empty)
 
   /**
    * All warnings which have been generated during executing.
@@ -60,12 +56,15 @@ class GenerateLinksTask(inputs: DPair[DataSource],
    * Stops the tasks and removes all generated links.
    */
   def clear() {
-    cancel()
-    value.update(Seq.empty)
+    cancelExecution()
+    links.update(Seq.empty)
   }
 
-  override protected def execute() = {
-    value.update(Seq.empty)
+  override def execute(context: TaskContext) = {
+    //TODO statusLogLevel = runtimeConfig.logLevel
+    //TODO progressLogLevel = runtimeConfig.logLevel
+
+    links.update(Seq.empty)
 
     warningLog = CollectLogs() {
       //Entity caches
@@ -77,25 +76,24 @@ class GenerateLinksTask(inputs: DPair[DataSource],
 
       //Load entities
       if (runtimeConfig.reloadCache) {
-        loadTask.statusLogLevel = statusLogLevel
-        loadTask.progressLogLevel = progressLogLevel
+        //TODO loadTask.statusLogLevel = statusLogLevel
+        //TODO loadTask.progressLogLevel = progressLogLevel
         loadTask.runInBackground()
       }
 
       //Execute matching
-      val links = executeSubValueTask(matchTask, 0.95)
+      matchTask.links.onUpdate(links.update)
+      context.executeBlocking(matchTask, 0.95)
 
       //Filter links
-      val filterTask = new FilterTask(links, linkSpec.rule.filter)
-      value.update(executeSubTask(filterTask))
+      val filterTask = new FilterTask(matchTask.links(), linkSpec.rule.filter)
+      context.executeBlocking(filterTask)
+      links.update(filterTask.filteredLinks)
 
       //Output links
-      val outputTask = new OutputTask(value.get, linkSpec.rule.linkType, outputs)
-      executeSubTask(outputTask)
+      val outputTask = new OutputTask(filterTask.filteredLinks, linkSpec.rule.linkType, outputs)
+      context.executeBlocking(outputTask)
     }
-
-    //Return generated links
-    value.get
   }
 
   private def createCaches() = {
@@ -114,11 +112,6 @@ class GenerateLinksTask(inputs: DPair[DataSource],
         target = new MemoryEntityCache(entityDescs.target, indexFunction, runtimeConfig)
       )
     }
-  }
-
-  override protected def stopExecution() {
-    if (loadTask != null) loadTask.cancel()
-    if (matchTask != null) matchTask.cancel()
   }
 }
 

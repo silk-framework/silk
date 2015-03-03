@@ -15,7 +15,7 @@ object EvaluateTransform extends Controller {
     Ok(views.html.evaluateTransform.evaluateTransform(context))
   }
 
-  def generatedEntities(projectName: String, taskName: String) = Action.async {
+  def generatedEntities(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformTask](taskName)
 
@@ -27,9 +27,9 @@ object EvaluateTransform extends Controller {
         rules = task.rules
       )
 
-    for(entities <- evaluateTransform.runInBackground()) yield {
-      Ok(views.html.evaluateTransform.generatedEntities(entities))
-    }
+    val entities = evaluateTransform.execute()
+
+    Ok(views.html.evaluateTransform.generatedEntities(entities))
   }
 
 }

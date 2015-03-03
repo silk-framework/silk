@@ -15,15 +15,14 @@
 package de.fuberlin.wiwiss.silk.execution
 
 import java.util.concurrent._
-import java.util.logging.Level
-
+import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.cache.EntityCache
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.task.{ValueHolder, TaskContext, Task}
 import de.fuberlin.wiwiss.silk.util.DPair
-
+import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, Buffer}
 import scala.math.{max, min}
 
@@ -39,25 +38,27 @@ import scala.math.{max, min}
 class MatchTask(linkageRule: LinkageRule,
                 caches: DPair[EntityCache],
                 runtimeConfig: RuntimeConfig = RuntimeConfig(),
-                sourceEqualsTarget: Boolean = false) extends ValueTask[Seq[Link]](Seq.empty) {
+                sourceEqualsTarget: Boolean = false) extends Task {
 
   /** The name of this task. */
-  taskName = "MatchTask"
+  override def taskName = "MatchTask"
 
-  /** The buffer which holds the generated links. */
-  private val linkBuffer = new ArrayBuffer[Link]()
+  private val log = Logger.getLogger(getClass.getName)
 
   /** Indicates if this task has been canceled. */
   @volatile private var cancelled = false
 
+  /** Holds the links generated so far. */
+  val links = new ValueHolder[IndexedSeq[Link]](IndexedSeq.empty)
+
   /**
    * Executes the matching.
    */
-  override def execute(): Buffer[Link] = {
+  override def execute(context: TaskContext) = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
-    linkBuffer.clear()
+    links.update(IndexedSeq.empty)
     cancelled = false
 
     //Create execution service for the matching tasks
@@ -74,15 +75,14 @@ class MatchTask(linkageRule: LinkageRule,
     while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
-        linkBuffer.appendAll(result.get)
-        value.update(linkBuffer)
+        links.update(links() ++ result.get)
         finishedTasks += 1
 
         //Update status
         val statusPrefix = if (scheduler.isAlive) "Matching (loading):" else "Matching:"
         val statusTasks = " " + finishedTasks + " tasks "
-        val statusLinks = " " + linkBuffer.size + " links."
-        updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
+        val statusLinks = " " + links().size + " links."
+        context.updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
       }
     }
 
@@ -95,22 +95,21 @@ class MatchTask(linkageRule: LinkageRule,
     else
       executorService.shutdown()
 
-    //Log result
-    val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
-    if (cancelled)
-      logger.log(statusLogLevel, "Matching cancelled after " + time)
-    else
-      logger.log(statusLogLevel, "Executed matching in " + time)
-
-    linkBuffer
+//TODO
+//    Log result
+//    val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
+//    if (cancelled)
+//      log.log(statusLogLevel, "Matching cancelled after " + time)
+//    else
+//      log.log(statusLogLevel, "Executed matching in " + time)
   }
 
-  override def stopExecution() {
+  override def cancelExecution() {
     cancelled = true
   }
 
   def clear() {
-    linkBuffer.clear()
+    links.update(IndexedSeq.empty)
   }
 
   /**
@@ -222,7 +221,7 @@ class MatchTask(linkageRule: LinkageRule,
         }
       }
       catch {
-        case ex: Exception => logger.log(Level.WARNING, "Could not execute match task", ex)
+        case ex: Exception => log.log(Level.WARNING, "Could not execute match task", ex)
       }
 
       links

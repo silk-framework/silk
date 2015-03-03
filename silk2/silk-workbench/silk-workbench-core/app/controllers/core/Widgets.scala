@@ -1,7 +1,8 @@
 package controllers.core
 
+import de.fuberlin.wiwiss.silk.runtime.task.Status
 import play.api.libs.iteratee.Enumerator
-import de.fuberlin.wiwiss.silk.runtime.task.TaskStatus
+import de.fuberlin.wiwiss.silk.runtime.oldtask.TaskStatus
 import play.api.libs.Comet
 import play.api.libs.json._
 import play.api.libs.concurrent.Execution.Implicits._
@@ -16,6 +17,18 @@ object Widgets {
         ("progress" -> JsNumber(status.progress * 100.0)) ::
         ("message" -> JsString(status.toString)) ::
         ("failed" -> JsBoolean(status.failed)) :: Nil
+      )
+    }
+    stream.map(serializeStatus) &> Comet(callback = "parent.updateStatus")
+  }
+
+  def status(stream: Enumerator[Status], id: String = "progress") = {
+    def serializeStatus(status: Status): JsValue = {
+      JsObject(
+        ("id" -> JsString(id)) ::
+          ("progress" -> JsNumber(status.progress * 100.0)) ::
+          ("message" -> JsString(status.toString)) ::
+          ("failed" -> JsBoolean(status.failed)) :: Nil
       )
     }
     stream.map(serializeStatus) &> Comet(callback = "parent.updateStatus")

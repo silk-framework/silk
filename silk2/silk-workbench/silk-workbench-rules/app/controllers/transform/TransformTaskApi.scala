@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform}
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+import de.fuberlin.wiwiss.silk.runtime.task.Executor
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, ValidationException}
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
@@ -159,8 +160,7 @@ object TransformTaskApi extends Controller {
       )
 
     // Start task in the background
-    CurrentExecuteTransformTask() = executeTransformTask
-    executeTransformTask.runInBackground()
+    CurrentExecuteTransformTask() = Executor().execute(executeTransformTask)
 
     Ok
   }

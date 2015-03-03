@@ -3,15 +3,16 @@ package controllers.linking
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinksTask}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningTask, LearningInput}
+import de.fuberlin.wiwiss.silk.runtime.task.Executor
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import models.{CurrentTaskStatusListener, CurrentTaskValueListener}
+import models.{CurrentTaskStatusListener}
 import models.linking._
 import play.api.mvc.{Action, Controller}
 import play.api.libs.json.{JsString, JsObject, JsArray, JsNumber, JsBoolean}
 import de.fuberlin.wiwiss.silk.workspace.{Constants, Project, User}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, Link}
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskStatus, TaskFinished}
+import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskStatus, TaskFinished}
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, AnyPlugin}
@@ -238,9 +239,9 @@ object LinkingTaskApi extends Controller {
         runtimeConfig = runtimeConfig
       )
 
-    CurrentGenerateLinksTask() = generateLinksTask
-    generateLinksTask.runInBackground()
-
+    CurrentGeneratedLinks() = generateLinksTask.links
+    val taskControl = Executor().execute(generateLinksTask)
+    CurrentGenerateLinksTask() = taskControl
     Ok
   }
 
@@ -305,11 +306,12 @@ object LinkingTaskApi extends Controller {
     Ok
   }
 
-  private val learningTaskListener = new CurrentTaskValueListener(CurrentLearningTask) {
-    override def onUpdate(result: LearningResult) {
-      CurrentPopulation() = result.population
-    }
-  }
+  // TODO
+//  private val learningTaskListener = new CurrentTaskValueListener(CurrentLearningTask) {
+//    override def onUpdate(result: LearningResult) {
+//      CurrentPopulation() = result.population
+//    }
+//  }
 
   private val activeLearningTaskListener = new CurrentTaskStatusListener(CurrentActiveLearningTask) {
     override def onUpdate(status: TaskStatus) {

@@ -1,8 +1,11 @@
 package controllers.core
 
 import java.util.IdentityHashMap
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskControl, ValueHolder, Status}
 import play.api.libs.iteratee.{Concurrent, Enumerator}
-import de.fuberlin.wiwiss.silk.runtime.task.{ValueTask, HasStatus, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.oldtask.{ValueTask, HasStatus, TaskStatus => TaskStatus}
 import models._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -22,10 +25,23 @@ object Stream {
     enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 
-  def currentTaskValue[T](taskHolder: TaskData[_ <: ValueTask[T]]): Enumerator[T] = {
+  def currentStatus(taskControl: TaskData[TaskControl]): Enumerator[Status] = {
+    val (enumerator, channel) = Concurrent.broadcast[Status]
+
+    lazy val listener = new CurrentStatusListener(taskControl) {
+      def onUpdate(status: Status) {
+        channel.push(status)
+      }
+    }
+
+    listeners.put(listener, Unit)
+    enumerator.onDoneEnumerating(() => listeners.remove(listener))
+  }
+
+  def currentTaskValue[T](taskHolder: TaskData[ValueHolder[T]]): Enumerator[T] = {
     val (enumerator, channel) = Concurrent.broadcast[T]
 
-    lazy val listener = new CurrentTaskValueListener(taskHolder) {
+    lazy val listener = new CurrentLinkingTaskValueListener(taskHolder) {
       def onUpdate(value: T) {
         channel.push(value)
       }

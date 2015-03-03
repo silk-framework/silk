@@ -14,12 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.runtime.task.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, ValueHolder, Task}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
 import de.fuberlin.wiwiss.silk.util.RandomUtils._
 import util.Random
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.dataset.{DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Path, Index, Entity, Link}
@@ -30,13 +30,16 @@ import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 
 private class GeneratePoolTask(inputs: Seq[DataSource],
                                linkSpec: LinkSpecification,
-                               paths: DPair[Seq[Path]]) extends ValueTask[Seq[Link]](Seq.empty) {
+                               paths: DPair[Seq[Path]]) extends Task {
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
   private var generateLinksTask: GenerateLinksTask = _
 
-  override protected def execute(): Seq[Link] = {
+  /** The links which have been generated so far by this task */
+  val links = new ValueHolder[Seq[Link]](Seq.empty)
+
+  override def execute(context: TaskContext): Unit = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
                            linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
     val op = new SampleOperator()
@@ -48,19 +51,18 @@ private class GeneratePoolTask(inputs: Seq[DataSource],
       }
 
     val listener = (v: Seq[Link]) =>  {
-      value.update(v)
-      if(v.size > 1000) generateLinksTask.cancel()
+      if(v.size > 1000) generateLinksTask.cancelExecution()
     }
-    generateLinksTask.value.onUpdate(listener)
-    updateStatus(0.0)
-    executeSubTask(generateLinksTask, 0.8, true)
+    generateLinksTask.links.onUpdate(listener)
+    context.updateStatus(0.0)
+    context.executeBlocking(generateLinksTask, 0.8)
 
-    val links = op.getLinks()
-    assert(!links.isEmpty, "Could not load any links")
+    val generatedLinks = op.getLinks()
+    assert(!generatedLinks.isEmpty, "Could not load any links")
 
-    val shuffledLinks = for((s, t) <- links zip (links.tail :+ links.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
+    val shuffledLinks = for((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
 
-    links ++ shuffledLinks
+    links.update(generatedLinks ++ shuffledLinks)
   }
 
   private class SampleOperator() extends SimilarityOperator {
@@ -94,7 +96,7 @@ private class GeneratePoolTask(inputs: Seq[DataSource],
         }
 
         if (size > 1000 && labelLinks > 100)
-          generateLinksTask.cancel()
+          generateLinksTask.cancelExecution()
       }
 
       None

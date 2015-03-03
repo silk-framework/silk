@@ -5,6 +5,6 @@ import de.fuberlin.wiwiss.silk.runtime.task.Task
 
 trait TaskExecutor[T <: ModuleTask] {
 
-  def apply(inputs: Seq[DataSource], task: T, outputs: Seq[DataSink]): Task[_]
+  def apply(inputs: Seq[DataSource], task: T, outputs: Seq[DataSink]): Task
 
 }
