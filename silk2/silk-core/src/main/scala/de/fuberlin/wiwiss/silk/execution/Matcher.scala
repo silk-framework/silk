@@ -38,7 +38,7 @@ import scala.math.{max, min}
 class Matcher(linkageRule: LinkageRule,
                 caches: DPair[EntityCache],
                 runtimeConfig: RuntimeConfig = RuntimeConfig(),
-                sourceEqualsTarget: Boolean = false) extends Activity {
+                sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
 
   /** The name of this task. */
   override def taskName = "MatchTask"
@@ -48,17 +48,14 @@ class Matcher(linkageRule: LinkageRule,
   /** Indicates if this task has been canceled. */
   @volatile private var cancelled = false
 
-  /** Holds the links generated so far. */
-  val links = new ValueHolder[IndexedSeq[Link]](IndexedSeq.empty)
-
   /**
    * Executes the matching.
    */
-  override def run(context: ActivityContext) = {
+  override def run(context: ActivityContext[IndexedSeq[Link]]) = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
-    links.update(IndexedSeq.empty)
+    context.value.update(IndexedSeq.empty)
     cancelled = false
 
     //Create execution service for the matching tasks
@@ -75,14 +72,14 @@ class Matcher(linkageRule: LinkageRule,
     while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
-        links.update(links() ++ result.get)
+        context.value.update(context.value() ++ result.get)
         finishedTasks += 1
 
         //Update status
         val statusPrefix = if (scheduler.isAlive) "Matching (loading):" else "Matching:"
         val statusTasks = " " + finishedTasks + " tasks "
-        val statusLinks = " " + links().size + " links."
-        context.updateStatus(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
+        val statusLinks = " " + context.value().size + " links."
+        context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
       }
     }
 
@@ -95,7 +92,6 @@ class Matcher(linkageRule: LinkageRule,
     else
       executorService.shutdown()
 
-//TODO
 //    Log result
 //    val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
 //    if (cancelled)
@@ -106,10 +102,6 @@ class Matcher(linkageRule: LinkageRule,
 
   override def cancelExecution() {
     cancelled = true
-  }
-
-  def clear() {
-    links.update(IndexedSeq.empty)
   }
 
   /**

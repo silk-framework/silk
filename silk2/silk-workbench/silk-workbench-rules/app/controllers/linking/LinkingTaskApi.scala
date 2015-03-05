@@ -239,9 +239,10 @@ object LinkingTaskApi extends Controller {
         runtimeConfig = runtimeConfig
       )
 
-    CurrentGeneratedLinks() = generateLinksTask.links
     val taskControl = Activity.execute(generateLinksTask)
     CurrentGenerateLinksTask() = taskControl
+    //TODO CurrentGeneratedLinks() = taskControl.value()
+
     Ok
   }
 

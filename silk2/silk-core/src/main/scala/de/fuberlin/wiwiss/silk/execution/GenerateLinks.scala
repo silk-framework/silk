@@ -30,13 +30,13 @@ import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 class GenerateLinks(inputs: DPair[DataSource],
                         linkSpec: LinkSpecification,
                         outputs: Seq[DataSink] = Seq.empty,
-                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity {
+                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Seq[Link]] {
 
   /** The task used for loading the entities into the cache */
-  @volatile private var loadTask: Loader = null
+  @volatile private var loader: Loader = null
 
   /** The task used for matching the entities */
-  @volatile private var matchTask: Matcher = null
+  @volatile private var matcher: Matcher = null
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
@@ -44,54 +44,41 @@ class GenerateLinks(inputs: DPair[DataSource],
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs = linkSpec.entityDescriptions
 
-  /** The links which have been generated so far by this task */
-  val links = new ValueHolder[Seq[Link]](Seq.empty)
-
   /**
    * All warnings which have been generated during executing.
    */
   def warnings = warningLog
 
-  /**
-   * Stops the tasks and removes all generated links.
-   */
-  def clear() {
-    cancelExecution()
-    links.update(Seq.empty)
-  }
-
-  override def run(context: ActivityContext) = {
+  override def run(context: ActivityContext[Seq[Link]]) = {
     //TODO statusLogLevel = runtimeConfig.logLevel
     //TODO progressLogLevel = runtimeConfig.logLevel
 
-    links.update(Seq.empty)
+    context.value.update(Seq.empty)
 
     warningLog = CollectLogs() {
       //Entity caches
       val caches = createCaches()
 
-      //Create tasks
-      loadTask = new Loader(inputs, caches)
-      matchTask = new Matcher(linkSpec.rule, caches, runtimeConfig)
+      //Create activities
+      loader = new Loader(inputs, caches)
+      matcher = new Matcher(linkSpec.rule, caches, runtimeConfig)
 
       //Load entities
       if (runtimeConfig.reloadCache) {
         //TODO loadTask.statusLogLevel = statusLogLevel
         //TODO loadTask.progressLogLevel = progressLogLevel
-        loadTask.runInBackground()
+        Activity.execute(loader)
       }
 
       //Execute matching
-      matchTask.links.onUpdate(links.update)
-      context.executeBlocking(matchTask, 0.95)
+      val links = context.executeBlocking(matcher, 0.95, context.value.update)
 
       //Filter links
-      val filterTask = new Filter(matchTask.links(), linkSpec.rule.filter)
-      context.executeBlocking(filterTask)
-      links.update(filterTask.filteredLinks)
+      val filterTask = new Filter(links, linkSpec.rule.filter)
+      val filteredLinks = context.executeBlocking(filterTask, 0.03, context.value.update)
 
       //Output links
-      val outputTask = new OutputWriter(filterTask.filteredLinks, linkSpec.rule.linkType, outputs)
+      val outputTask = new OutputWriter(filteredLinks, linkSpec.rule.linkType, outputs)
       context.executeBlocking(outputTask)
     }
   }

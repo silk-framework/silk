@@ -54,7 +54,7 @@ object Status {
   /**
    * Status which indicates that the task has not been started yet.
    */
-  case class Idle() extends Status {
+  object Idle extends Status {
     def message = "Idle"
   }
   

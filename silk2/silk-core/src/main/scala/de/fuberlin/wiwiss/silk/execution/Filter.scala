@@ -24,23 +24,16 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkFilter
 /**
  * Filters the links according to the link limit.
  */
-class Filter(links: Seq[Link], filter: LinkFilter) extends Activity {
-
-  private val log = Logger.getLogger(getClass.getName)
-
-  private val linkBuffer = new ArrayBuffer[Link]()
-
-  def filteredLinks = linkBuffer
+class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[IndexedSeq[Link]] {
 
   override def taskName = "Filtering"
 
-  override def run(context: ActivityContext): Unit = {
+  override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
+    val linkBuffer = new ArrayBuffer[Link]()
     val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
-        linkBuffer.clear()
-        context.updateStatus("Filtering output")
-
+        context.status.update("Filtering output")
         for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
           if(filter.unambiguous==Some(true)) {
             if(groupedLinks.distinct.size==1)
@@ -50,10 +43,12 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity {
             linkBuffer.appendAll(bestLinks)
           }
         }
-
-        log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
+        context.log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
       }
-      case None => links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
+      case None => {
+        links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
+      }
     }
+    context.value.update(linkBuffer)
   }
 }

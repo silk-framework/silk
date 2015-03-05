@@ -25,7 +25,7 @@ object Stream {
     enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 
-  def currentStatus(taskControl: TaskData[ActivityControl]): Enumerator[Status] = {
+  def currentStatus(taskControl: TaskData[ActivityControl[_]]): Enumerator[Status] = {
     val (enumerator, channel) = Concurrent.broadcast[Status]
 
     lazy val listener = new CurrentStatusListener(taskControl) {

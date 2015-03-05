@@ -29,7 +29,7 @@ object WorkflowApi extends Controller {
   }
 
   def executeWorkflow(projectName: String, taskName: String) = Action {
-    if(CurrentExecutionTask().status.isRunning)
+    if(CurrentExecutionTask().status().isRunning)
       PreconditionFailed
     else {
       val project = User().workspace.project(projectName)

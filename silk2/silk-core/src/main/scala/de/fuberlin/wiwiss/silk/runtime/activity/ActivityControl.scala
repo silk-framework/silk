@@ -5,17 +5,22 @@ import de.fuberlin.wiwiss.silk.runtime.activity.Observable
 /**
  * Holds the current state of the activity.
  */
-trait ActivityControl extends Observable[Status] {
+trait ActivityControl[T] {
+
+  /**
+   * The current value of this activity.
+   */
+  def value: Observable[T]
 
   /**
    * The current status of this activity.
    */
-  def status: Status
+  def status: Observable[Status]
 
   /**
    * The running child activity.
    */
-  def children(): Seq[ActivityControl]
+  def children(): Seq[ActivityControl[_]]
 
   /**
    * Requests to stop the execution of this activity.

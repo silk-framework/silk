@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.modules.TaskExecutor
 

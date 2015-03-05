@@ -22,11 +22,11 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 /**
  * Writes the links to the output.
  */
-class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Activity {
+class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Activity[Unit] {
 
   override def taskName = "Writing output"
 
-  override def run(context: ActivityContext) {
+  override def run(context: ActivityContext[Unit]) {
     outputs.foreach(_.open())
 
     for (link <- links;

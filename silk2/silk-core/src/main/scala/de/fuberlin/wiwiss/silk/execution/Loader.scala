@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.execution
 import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.cache.EntityCache
 import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.runtime.oldtask.{Future, Task, TaskFinished}
 import de.fuberlin.wiwiss.silk.util.DPair
 
@@ -24,9 +25,9 @@ import de.fuberlin.wiwiss.silk.util.DPair
  * Loads the entity cache
  */
 class Loader(sources: DPair[DataSource],
-               caches: DPair[EntityCache]) extends Task[Unit] {
+             caches: DPair[EntityCache]) extends Activity[Unit] {
 
-  taskName = "Loading"
+  override def taskName = "Loading"
 
   @volatile var exception: Exception = null
 
@@ -35,10 +36,10 @@ class Loader(sources: DPair[DataSource],
 
   @volatile var canceled = false
 
-  override def execute() {
+  override def run(context: ActivityContext[Unit]) {
     canceled = false
-    sourceLoader = new LoadingThread(true)
-    targetLoader = new LoadingThread(false)
+    sourceLoader = new LoadingThread(context, true)
+    targetLoader = new LoadingThread(context, false)
 
     sourceLoader.start()
     targetLoader.start()
@@ -55,47 +56,37 @@ class Loader(sources: DPair[DataSource],
         throw exception
       }
     }
-  }
 
-  /**
-   * Executes this task in the background.
-   * Returns as soon as both caches are being written.
-   */
-  override def runInBackground(): Future[Unit] = {
-    val future = super.runInBackground()
-
-    //Wait until the caches are being written
-    while (!status.isInstanceOf[TaskFinished] && !(caches.source.isWriting && caches.target.isWriting)) {
+    // Wait until the caches are being written
+    while (!context.status().isInstanceOf[TaskFinished] && !(caches.source.isWriting && caches.target.isWriting)) {
       Thread.sleep(100)
     }
-
-    future
   }
 
-  override def stopExecution() {
+  override def cancelExecution() {
     canceled = true
     if(sourceLoader != null) sourceLoader.interrupt()
     if(targetLoader != null) targetLoader.interrupt()
   }
 
-  class LoadingThread(selectSource: Boolean) extends Thread {
+  class LoadingThread(context: ActivityContext[Unit], selectSource: Boolean) extends Thread {
     private val source = sources.select(selectSource)
     private val entityCache = caches.select(selectSource)
 
     override def run() {
 
       try {
-        updateStatus("Loading entities of dataset " + source.toString)
+        context.status.update("Loading entities of dataset " + source.toString)
 
         entityCache.clear()
         entityCache.write(source.retrieve(entityCache.entityDesc))
         entityCache.close()
 
-        updateStatus(s"Entities loaded [ dataset :: ${source.toString} ].")
+        context.status.update(s"Entities loaded [ dataset :: ${source.toString} ].")
 
       } catch {
         case ex: Exception => {
-          logger.log(Level.WARNING, "Error loading resources", ex)
+          context.log.log(Level.WARNING, "Error loading resources", ex)
           exception = ex
           canceled = true
         }

@@ -11,13 +11,13 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
 
   val log = Logger.getLogger(getClass.getName)
 
-  def apply(): Activity = {
+  def apply(): Activity[Unit] = {
     new ExecutorTask
   }
 
-  class ExecutorTask extends Activity {
+  class ExecutorTask extends Activity[Unit] {
 
-    override def run(context: ActivityContext) = {
+    override def run(context: ActivityContext[Unit]) = {
       val inputNames = operators.flatMap(_.inputs).toSet
       val outputNames = operators.flatMap(_.outputs).toSet
 
@@ -37,11 +37,11 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
         }
         // Update status
         val completedTasks = operators.size - pendingOperators.size
-        context.updateStatus(s"$completedTasks / ${operators.size}", completedTasks.toDouble / operators.size)
+        context.status.update(s"$completedTasks / ${operators.size}", completedTasks.toDouble / operators.size)
       }
     }
 
-    def executeOperator(operator: WorkflowOperator, context: ActivityContext) = {
+    def executeOperator(operator: WorkflowOperator, context: ActivityContext[Unit]) = {
       log.info("Executing " + operator.task)
 
       val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset.source)

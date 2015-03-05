@@ -14,104 +14,15 @@
 
 package de.fuberlin.wiwiss.silk.workspace
 
-import de.fuberlin.wiwiss.silk.runtime.activity.Observable
-import modules.linking.LinkingTask
-import modules.ModuleTask
-import modules.dataset.DatasetTask
-import de.fuberlin.wiwiss.silk.workspace.User.{CurrentProjectChanged, CurrentTaskChanged}
-
 /**
  * A user.
  */
-trait User extends Observable[User.Message] {
-
-  @volatile private var currentProject: Option[Project] = None
-
-  @volatile private var currentTask: Option[ModuleTask] = None
+trait User {
 
   /**
    * The current workspace of this user.
    */
   def workspace: Workspace
-
-  def projectOpen = currentProject.isDefined
-
-  /**
-   * The current project of this user.
-   */
-  def project = currentProject.getOrElse(throw new NoSuchElementException("No active project"))
-
-  /**
-   * Sets the current project of this user.
-   */
-  def project_=(project: Project) {
-    val previousProject = currentProject
-    currentProject = Some(project)
-    publish(CurrentProjectChanged(this, previousProject, project))
-  }
-
-  /**
-   * True if a task if open at the moment.
-   */
-  def taskOpen = currentTask.isDefined
-
-  /**
-   * The current task of this user.
-   */
-  def task = currentTask.getOrElse(throw new NoSuchElementException("No active task"))
-
-  /**
-   * Sets the current task of this user.
-   */
-  def task_=(task: ModuleTask) {
-    val previousTask = currentTask
-    currentTask = Some(task)
-    publish(CurrentTaskChanged(this, previousTask, task))
-  }
-
-  /**
-   * Closes the current task.
-   */
-  def closeTask() {
-    currentTask = None
-  }
-
-  /**
-   * True, if a source task is open at the moment.
-   */
-  def sourceTaskOpen = taskOpen && task.isInstanceOf[DatasetTask]
-
-  /**
-   * The current source task of this user.
-   *
-   * @throws java.util.NoSuchElementException If no source task is open
-   */
-  def sourceTask = task match {
-    case t: DatasetTask => t
-    case _ => throw new NoSuchElementException("Active task is no source task")
-  }
-
-  /**
-   * True, if a linking task is open at the moment.
-   */
-  def linkingTaskOpen = taskOpen && task.isInstanceOf[LinkingTask]
-
-  /**
-   * The current linking tasks of this user.
-   *
-   * @throws java.util.NoSuchElementException If no linking task is open
-   */
-  def linkingTask = task match {
-    case t: LinkingTask => t
-    case _ => throw new NoSuchElementException("Active task is no linking task")
-  }
-
-  /**
-   * Called when the user becomes inactive.
-   */
-  def dispose() {
-    //CurrentGenerateLinksTask().cancel()
-  }
 }
 
 object User {
@@ -123,16 +34,4 @@ object User {
    * Retrieves the current user.
    */
   def apply() = userManager()
-
-  sealed trait Message
-
-  /**
-   * Fired if the current project is changed.
-   */
-  case class CurrentProjectChanged(user: User, previousProject: Option[Project], project: Project) extends Message
-
-  /**
-   * Fired if the current task is changed.
-   */
-  case class CurrentTaskChanged(user: User, previousTask: Option[ModuleTask], task: ModuleTask) extends Message
 }

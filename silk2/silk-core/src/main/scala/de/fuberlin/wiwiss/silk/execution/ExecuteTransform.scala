@@ -14,9 +14,9 @@ import de.fuberlin.wiwiss.silk.entity.EntityDescription
 class ExecuteTransform(input: DataSource,
                        selection: DatasetSelection,
                        rules: Seq[TransformRule],
-                       outputs: Seq[DataSink] = Seq.empty) extends Activity {
+                       outputs: Seq[DataSink] = Seq.empty) extends Activity[Unit] {
 
-  def run(context: ActivityContext): Unit = {
+  def run(context: ActivityContext[Unit]): Unit = {
     // Retrieve entities
     val entityDesc =
       new EntityDescription(

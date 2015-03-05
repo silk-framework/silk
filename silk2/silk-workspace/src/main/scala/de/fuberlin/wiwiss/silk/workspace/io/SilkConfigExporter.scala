@@ -15,16 +15,16 @@
 package de.fuberlin.wiwiss.silk.workspace.io
 
 import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkingConfig}
-import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 
 /**
  * Builds a Silk configuration from the current Linking Task.
  */
 object SilkConfigExporter {
-  def build(): LinkingConfig = {
-    val project = User().project
-    val linkSpec = User().linkingTask.linkSpec
+  def build(project: Project, task: LinkingTask): LinkingConfig = {
+    val linkSpec = task.linkSpec
 
     LinkingConfig(
       prefixes = project.config.prefixes,

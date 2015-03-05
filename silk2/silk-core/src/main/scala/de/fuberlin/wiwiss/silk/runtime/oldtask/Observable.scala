@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.runtime.activity
+package de.fuberlin.wiwiss.silk.runtime.oldtask
 
 import scala.collection.mutable
 
@@ -24,11 +24,6 @@ import scala.collection.mutable
 trait Observable[T] {
   
   private val subscribers = new mutable.WeakHashMap[T => _, Unit]()
-
-  /**
-   * Retrieves the current value.
-   */
-  def apply(): T
   
   /**
    * Execute a function on every update.
