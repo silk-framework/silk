@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.runtime.task
+package de.fuberlin.wiwiss.silk.runtime.activity
 
 import java.util.logging.{Logger, Level}
 
@@ -6,18 +6,7 @@ import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStarted, TaskC
 
 import scala.concurrent.ExecutionContext
 
-private class DefaultExecutor extends Executor {
-
-  override def execute(task: Task): TaskControl = {
-    val taskExecution = new TaskExecution(task)
-    ExecutionContext.global.execute(taskExecution)
-    taskExecution
-  }
-
-
-}
-
-private class TaskExecution(task: Task, parent: Option[TaskContext] = None, progressContribution: Double = 0.0) extends Runnable with TaskControl with TaskContext {
+private class ActivityExecution(task: Activity, parent: Option[ActivityContext] = None, progressContribution: Double = 0.0) extends Runnable with ActivityControl with ActivityContext {
 
   // TODO synchronize
 
@@ -43,14 +32,14 @@ private class TaskExecution(task: Task, parent: Option[TaskContext] = None, prog
    */
   @volatile private var currentStatus: Status = Status.Idle()
 
-  private var childControls: Seq[TaskControl] = Seq.empty
+  private var childControls: Seq[ActivityControl] = Seq.empty
 
   override def run(): Unit = synchronized {
     val startTime = System.currentTimeMillis
     updateStatus(Status.Started(task.taskName))
 
     try {
-      task.execute(this)
+      task.run(this)
       updateStatus(Status.Finished(task.taskName, success = true, System.currentTimeMillis - startTime))
     } catch {
       case ex: Throwable =>
@@ -62,7 +51,7 @@ private class TaskExecution(task: Task, parent: Option[TaskContext] = None, prog
 
   override def status: Status = currentStatus
 
-  override def children(): Seq[TaskControl] = {
+  override def children(): Seq[ActivityControl] = {
     removeDoneChildren()
     childControls
   }
@@ -95,19 +84,19 @@ private class TaskExecution(task: Task, parent: Option[TaskContext] = None, prog
     }
   }
 
-  override def executeBlocking(task: Task, progressContribution: Double = 0.0): Unit = {
-    val taskExecution = new TaskExecution(task, Some(this), progressContribution)
+  override def executeBlocking(task: Activity, progressContribution: Double = 0.0): Unit = {
+    val taskExecution = new ActivityExecution(task, Some(this), progressContribution)
     taskExecution.run()
   }
 
-  override def executeBackground(task: Task, progressContribution: Double = 0.0): TaskControl = {
-    val taskExecution = new TaskExecution(task, Some(this), progressContribution)
+  override def executeBackground(task: Activity, progressContribution: Double = 0.0): ActivityControl = {
+    val taskExecution = new ActivityExecution(task, Some(this), progressContribution)
     addChild(taskExecution)
     ExecutionContext.global.execute(taskExecution)
     taskExecution
   }
 
-  private def addChild(control: TaskControl): Unit = {
+  private def addChild(control: ActivityControl): Unit = {
     childControls = childControls :+ control
   }
 

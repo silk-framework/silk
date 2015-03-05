@@ -152,7 +152,7 @@ object GenerateLinksTaskTest {
 
       // Execute Matching
       val task =
-        GenerateLinksTask.fromSources(
+        GenerateLinks.fromSources(
           inputs = config.sources,
           linkSpec = config.linkSpecs.head,
           outputs = config.outputs,

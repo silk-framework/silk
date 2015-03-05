@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.cache.MemoryEntityCache
-import de.fuberlin.wiwiss.silk.execution.{MatchTask, LoadTask}
+import de.fuberlin.wiwiss.silk.execution.{Matcher, Loader}
 
 /**
  * Holds the dataset of a link specification.
@@ -35,7 +35,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
   private val caches = DPair(new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_)),
                              new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_)))
 
-  new LoadTask(sources, caches)()
+  new Loader(sources, caches)()
 
   /**
    * Matches a set of entities with all entities in this dataset.
@@ -72,9 +72,9 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
     var links: Seq[Link] = Seq.empty
     if (entityCache.entityCount > 0) {
       val matcher = if (matchOnlyInProvidedGraph){
-        new MatchTask(linkSpec.rule, DPair(entityCache, targetInstanceCache))
+        new Matcher(linkSpec.rule, DPair(entityCache, targetInstanceCache))
       } else {
-        new MatchTask(linkSpec.rule, DPair(entityCache, caches.target))  
+        new Matcher(linkSpec.rule, DPair(entityCache, caches.target))
       }
       links = matcher()
     }

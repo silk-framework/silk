@@ -1,6 +1,6 @@
 package controllers.workflow
 
-import de.fuberlin.wiwiss.silk.runtime.task.Executor
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.{WorkflowExecutor, WorkflowTask}
 import models.CurrentExecutionTask
@@ -35,7 +35,7 @@ object WorkflowApi extends Controller {
       val project = User().workspace.project(projectName)
       val workflow = project.task[WorkflowTask](taskName)
       val executor = new WorkflowExecutor(workflow.operators, project)
-      val taskControl = Executor().execute(executor())
+      val taskControl = Activity.execute(executor())
       CurrentExecutionTask() = taskControl
       Ok
     }

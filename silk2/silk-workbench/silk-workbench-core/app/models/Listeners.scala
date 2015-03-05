@@ -2,7 +2,7 @@ package models
 
 import java.util.logging.Level
 import de.fuberlin.wiwiss.silk.runtime.oldtask._
-import de.fuberlin.wiwiss.silk.runtime.task.{ValueHolder, TaskControl, Status}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ValueHolder, ActivityControl, Status}
 
 abstract class TaskStatusListener(task: HasStatus) extends Listener[TaskStatus] {
   task.onUpdate(Listener)
@@ -47,7 +47,7 @@ abstract class CurrentLinkingTaskValueListener[T](taskHolder: TaskData[ValueHold
 /**
  * Listens to the current status of the current users task.
  */
-abstract class CurrentStatusListener(taskHolder: TaskData[TaskControl]) extends Listener[Status] {
+abstract class CurrentStatusListener(taskHolder: TaskData[ActivityControl]) extends Listener[Status] {
 
   //Deactivate logging
   //TODO statusLogLevel = Level.FINEST
@@ -65,8 +65,8 @@ abstract class CurrentStatusListener(taskHolder: TaskData[TaskControl]) extends 
   task.onUpdate(StatusListener)
   statusHolder.update(task.status)
 
-  private object Listener extends (TaskControl => Unit) {
-    def apply(newTask: TaskControl) {
+  private object Listener extends (ActivityControl => Unit) {
+    def apply(newTask: ActivityControl) {
       task = newTask
       task.onUpdate(StatusListener)
     }

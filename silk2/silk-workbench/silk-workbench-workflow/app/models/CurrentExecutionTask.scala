@@ -1,7 +1,7 @@
 package models
 
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskControl, TaskContext, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityControl, ActivityContext, Activity}
 
-object CurrentExecutionTask extends TaskData[TaskControl](null) {
+object CurrentExecutionTask extends TaskData[ActivityControl](null) {
 
 }

@@ -1,6 +1,6 @@
 package controllers.core
 
-import de.fuberlin.wiwiss.silk.runtime.task.Status
+import de.fuberlin.wiwiss.silk.runtime.activity.Status
 import play.api.libs.iteratee.Enumerator
 import de.fuberlin.wiwiss.silk.runtime.oldtask.TaskStatus
 import play.api.libs.Comet

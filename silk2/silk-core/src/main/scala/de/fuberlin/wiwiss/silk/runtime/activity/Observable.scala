@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util
+package de.fuberlin.wiwiss.silk.runtime.activity
 
 import scala.collection.mutable
 

@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.execution
 
 import java.util.logging.Logger
 
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import collection.mutable.ArrayBuffer
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.linkagerule.LinkFilter
@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkFilter
 /**
  * Filters the links according to the link limit.
  */
-class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task {
+class Filter(links: Seq[Link], filter: LinkFilter) extends Activity {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -34,7 +34,7 @@ class FilterTask(links: Seq[Link], filter: LinkFilter) extends Task {
 
   override def taskName = "Filtering"
 
-  override def execute(context: TaskContext): Unit = {
+  override def run(context: ActivityContext): Unit = {
     val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {

@@ -14,8 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.runtime.oldtask
 
+import de.fuberlin.wiwiss.silk.runtime.activity.Observable
 import de.fuberlin.wiwiss.silk.runtime.oldtask.ValueTask.ValueHolder
-import de.fuberlin.wiwiss.silk.util.Observable
 
 /**
  * A task where the intermediate results of the computation can be retrieved.

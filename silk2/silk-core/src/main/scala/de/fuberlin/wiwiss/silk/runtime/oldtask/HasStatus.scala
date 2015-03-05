@@ -15,7 +15,8 @@
 package de.fuberlin.wiwiss.silk.runtime.oldtask
 
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.util.Observable
+
+import de.fuberlin.wiwiss.silk.runtime.activity.Observable
 
 trait HasStatus extends Observable[TaskStatus] {
   /**

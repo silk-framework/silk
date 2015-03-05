@@ -17,16 +17,16 @@ package de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.util.Uri
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 
 /**
  * Writes the links to the output.
  */
-class OutputTask(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Task {
+class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Activity {
 
   override def taskName = "Writing output"
 
-  override def execute(context: TaskContext) {
+  override def run(context: ActivityContext) {
     outputs.foreach(_.open())
 
     for (link <- links;

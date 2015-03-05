@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.cache.EntityCache
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.runtime.task.{ValueHolder, TaskContext, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ValueHolder, ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.DPair
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, Buffer}
@@ -35,10 +35,10 @@ import scala.math.{max, min}
  * @param runtimeConfig The runtime configuration
  * @param sourceEqualsTarget Can be set to true if the source and the target cache are equal to enable faster matching in that case.
  */
-class MatchTask(linkageRule: LinkageRule,
+class Matcher(linkageRule: LinkageRule,
                 caches: DPair[EntityCache],
                 runtimeConfig: RuntimeConfig = RuntimeConfig(),
-                sourceEqualsTarget: Boolean = false) extends Task {
+                sourceEqualsTarget: Boolean = false) extends Activity {
 
   /** The name of this task. */
   override def taskName = "MatchTask"
@@ -54,7 +54,7 @@ class MatchTask(linkageRule: LinkageRule,
   /**
    * Executes the matching.
    */
-  override def execute(context: TaskContext) = {
+  override def run(context: ActivityContext) = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties

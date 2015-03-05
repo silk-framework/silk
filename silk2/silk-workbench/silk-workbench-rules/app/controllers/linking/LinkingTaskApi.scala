@@ -1,9 +1,9 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.execution.{GenerateLinksTask}
+import de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningTask, LearningInput}
-import de.fuberlin.wiwiss.silk.runtime.task.Executor
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import models.{CurrentTaskStatusListener}
 import models.linking._
@@ -232,7 +232,7 @@ object LinkingTaskApi extends Controller {
     val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
 
     val generateLinksTask =
-      GenerateLinksTask.fromSources(
+      execution.GenerateLinks.fromSources(
         inputs = project.tasks[DatasetTask].map(_.dataset),
         linkSpec = task.linkSpec,
         outputs = outputs,
@@ -240,7 +240,7 @@ object LinkingTaskApi extends Controller {
       )
 
     CurrentGeneratedLinks() = generateLinksTask.links
-    val taskControl = Executor().execute(generateLinksTask)
+    val taskControl = Activity.execute(generateLinksTask)
     CurrentGenerateLinksTask() = taskControl
     Ok
   }

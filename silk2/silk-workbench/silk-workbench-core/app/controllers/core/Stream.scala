@@ -2,8 +2,8 @@ package controllers.core
 
 import java.util.IdentityHashMap
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskControl, ValueHolder, Status}
+import de.fuberlin.wiwiss.silk.execution.GenerateLinks
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityControl, ValueHolder, Status}
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import de.fuberlin.wiwiss.silk.runtime.oldtask.{ValueTask, HasStatus, TaskStatus => TaskStatus}
 import models._
@@ -25,7 +25,7 @@ object Stream {
     enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 
-  def currentStatus(taskControl: TaskData[TaskControl]): Enumerator[Status] = {
+  def currentStatus(taskControl: TaskData[ActivityControl]): Enumerator[Status] = {
     val (enumerator, channel) = Concurrent.broadcast[Status]
 
     lazy val listener = new CurrentStatusListener(taskControl) {

@@ -18,7 +18,7 @@ import java.io.File
 import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.{TransformSpecification, LinkSpecification, LinkingConfig}
-import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinksTask}
+import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinks}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.util.CollectLogs
@@ -135,7 +135,7 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    GenerateLinksTask.fromSources(
+    GenerateLinks.fromSources(
       inputs = config.sources,
       linkSpec = linkSpec,
       outputs = linkSpec.outputs ++ config.outputs,
@@ -150,7 +150,7 @@ object Silk {
    *
    * @param transform The transform specification.
    */
-  private def executeTransform(transform: TransformSpecification) = ExecuteTransform(transform).execute()
+  private def executeTransform(transform: TransformSpecification) = ExecuteTransform(transform).run()
 
   /**
    * Main method to allow Silk to be started from the command line.

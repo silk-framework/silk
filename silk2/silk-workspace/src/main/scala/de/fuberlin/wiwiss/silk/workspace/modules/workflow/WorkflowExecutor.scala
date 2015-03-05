@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 
 import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask.WorkflowOperator
@@ -11,13 +11,13 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
 
   val log = Logger.getLogger(getClass.getName)
 
-  def apply(): Task = {
+  def apply(): Activity = {
     new ExecutorTask
   }
 
-  class ExecutorTask extends Task {
+  class ExecutorTask extends Activity {
 
-    override def execute(context: TaskContext) = {
+    override def run(context: ActivityContext) = {
       val inputNames = operators.flatMap(_.inputs).toSet
       val outputNames = operators.flatMap(_.outputs).toSet
 
@@ -41,7 +41,7 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
       }
     }
 
-    def executeOperator(operator: WorkflowOperator, context: TaskContext) = {
+    def executeOperator(operator: WorkflowOperator, context: ActivityContext) = {
       log.info("Executing " + operator.task)
 
       val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset.source)

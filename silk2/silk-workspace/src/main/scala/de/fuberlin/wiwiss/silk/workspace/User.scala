@@ -14,10 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.workspace
 
+import de.fuberlin.wiwiss.silk.runtime.activity.Observable
 import modules.linking.LinkingTask
 import modules.ModuleTask
 import modules.dataset.DatasetTask
-import de.fuberlin.wiwiss.silk.util.Observable
 import de.fuberlin.wiwiss.silk.workspace.User.{CurrentProjectChanged, CurrentTaskChanged}
 
 /**

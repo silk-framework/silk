@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulationTask, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.reproduction.{RandomizeTask, ReproductionTask}
-import de.fuberlin.wiwiss.silk.runtime.task.Executor
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity}
 import linkselector.WeightedLinkageRule
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
@@ -76,7 +76,7 @@ class ActiveLearningTask(config: LearningConfiguration,
     if(pool.isEmpty) {
       updateStatus("Loading")
       // TODO update to new task interface pool = executeSubTask(new GeneratePoolTask(datasets, linkSpec, paths), 0.5)
-      Executor().execute(new GeneratePoolTask(datasets, linkSpec, paths))
+      Activity.execute(new GeneratePoolTask(datasets, linkSpec, paths))
     }
 
     //Assert that no reference links are in the pool

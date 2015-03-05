@@ -3,7 +3,6 @@ package models
 import java.util.concurrent.{Executors, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-//TODO write tests and move to its own file
 trait Listener[T]{
 
   /** The minimum number of milliseconds between two successive calls to onUpdate. */

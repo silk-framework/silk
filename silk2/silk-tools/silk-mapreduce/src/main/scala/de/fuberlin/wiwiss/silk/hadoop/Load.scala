@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
-import de.fuberlin.wiwiss.silk.execution.LoadTask
+import de.fuberlin.wiwiss.silk.execution.Loader
 import java.io.File
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 
@@ -104,6 +104,6 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
       new HadoopEntityCache(entityDesc.target, linkSpec.rule.index(_), cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )
 
-    new LoadTask(sources, caches)()
+    new Loader(sources, caches)()
   }
 }

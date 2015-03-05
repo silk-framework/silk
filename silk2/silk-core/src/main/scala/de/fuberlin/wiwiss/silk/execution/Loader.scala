@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 /**
  * Loads the entity cache
  */
-class LoadTask(sources: DPair[DataSource],
+class Loader(sources: DPair[DataSource],
                caches: DPair[EntityCache]) extends Task[Unit] {
 
   taskName = "Loading"

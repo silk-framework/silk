@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, ValueHolder, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, ValueHolder, Activity}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
 import de.fuberlin.wiwiss.silk.util.RandomUtils._
 import util.Random
@@ -25,28 +25,28 @@ import de.fuberlin.wiwiss.silk.dataset.{DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Path, Index, Entity, Link}
 import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
-import de.fuberlin.wiwiss.silk.execution.GenerateLinksTask
+import de.fuberlin.wiwiss.silk.execution.GenerateLinks
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 
 private class GeneratePoolTask(inputs: Seq[DataSource],
                                linkSpec: LinkSpecification,
-                               paths: DPair[Seq[Path]]) extends Task {
+                               paths: DPair[Seq[Path]]) extends Activity {
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-  private var generateLinksTask: GenerateLinksTask = _
+  private var generateLinksTask: GenerateLinks = _
 
   /** The links which have been generated so far by this task */
   val links = new ValueHolder[Seq[Link]](Seq.empty)
 
-  override def execute(context: TaskContext): Unit = {
+  override def run(context: ActivityContext): Unit = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
                            linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
     val op = new SampleOperator()
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
     generateLinksTask =
-      new GenerateLinksTask(inputs, linkSpec2, Seq.empty, runtimeConfig) {
+      new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
         override def entityDescs = entityDesc
       }
 

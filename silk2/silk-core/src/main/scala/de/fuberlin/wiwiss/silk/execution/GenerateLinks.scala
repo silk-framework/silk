@@ -20,23 +20,23 @@ import de.fuberlin.wiwiss.silk.cache.{FileEntityCache, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.dataset.{Dataset,DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
-import de.fuberlin.wiwiss.silk.runtime.task.{TaskContext, ValueHolder, Task}
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, ValueHolder, Activity}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 
 /**
  * Main task to generate links.
  */
-class GenerateLinksTask(inputs: DPair[DataSource],
+class GenerateLinks(inputs: DPair[DataSource],
                         linkSpec: LinkSpecification,
                         outputs: Seq[DataSink] = Seq.empty,
-                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Task {
+                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity {
 
   /** The task used for loading the entities into the cache */
-  @volatile private var loadTask: LoadTask = null
+  @volatile private var loadTask: Loader = null
 
   /** The task used for matching the entities */
-  @volatile private var matchTask: MatchTask = null
+  @volatile private var matchTask: Matcher = null
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
@@ -60,7 +60,7 @@ class GenerateLinksTask(inputs: DPair[DataSource],
     links.update(Seq.empty)
   }
 
-  override def execute(context: TaskContext) = {
+  override def run(context: ActivityContext) = {
     //TODO statusLogLevel = runtimeConfig.logLevel
     //TODO progressLogLevel = runtimeConfig.logLevel
 
@@ -71,8 +71,8 @@ class GenerateLinksTask(inputs: DPair[DataSource],
       val caches = createCaches()
 
       //Create tasks
-      loadTask = new LoadTask(inputs, caches)
-      matchTask = new MatchTask(linkSpec.rule, caches, runtimeConfig)
+      loadTask = new Loader(inputs, caches)
+      matchTask = new Matcher(linkSpec.rule, caches, runtimeConfig)
 
       //Load entities
       if (runtimeConfig.reloadCache) {
@@ -86,12 +86,12 @@ class GenerateLinksTask(inputs: DPair[DataSource],
       context.executeBlocking(matchTask, 0.95)
 
       //Filter links
-      val filterTask = new FilterTask(matchTask.links(), linkSpec.rule.filter)
+      val filterTask = new Filter(matchTask.links(), linkSpec.rule.filter)
       context.executeBlocking(filterTask)
       links.update(filterTask.filteredLinks)
 
       //Output links
-      val outputTask = new OutputTask(filterTask.filteredLinks, linkSpec.rule.linkType, outputs)
+      val outputTask = new OutputWriter(filterTask.filteredLinks, linkSpec.rule.linkType, outputs)
       context.executeBlocking(outputTask)
     }
   }
@@ -115,7 +115,7 @@ class GenerateLinksTask(inputs: DPair[DataSource],
   }
 }
 
-object GenerateLinksTask {
+object GenerateLinks {
 
   def fromSources(inputs: Traversable[Dataset],
                   linkSpec: LinkSpecification,
@@ -123,8 +123,8 @@ object GenerateLinksTask {
                   runtimeConfig: RuntimeConfig = RuntimeConfig()) = {
     val sourcePair = DPair.fromSeq(linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).get.source))
     val sinks = outputs.map(_.sink)
-    new GenerateLinksTask(sourcePair, linkSpec, sinks, runtimeConfig)
+    new GenerateLinks(sourcePair, linkSpec, sinks, runtimeConfig)
   }
 
-  def empty = new GenerateLinksTask(DPair.empty, LinkSpecification())
+  def empty = new GenerateLinks(DPair.empty, LinkSpecification())
 }

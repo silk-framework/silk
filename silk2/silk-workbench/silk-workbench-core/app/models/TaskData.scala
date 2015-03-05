@@ -1,6 +1,6 @@
 package models
 
-import de.fuberlin.wiwiss.silk.util.Observable
+import de.fuberlin.wiwiss.silk.runtime.activity.Observable
 
 class TaskData[T](initialValue: T) extends Observable[T] {
 

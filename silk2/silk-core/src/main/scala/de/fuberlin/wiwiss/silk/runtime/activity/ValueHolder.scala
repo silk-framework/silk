@@ -1,6 +1,6 @@
-package de.fuberlin.wiwiss.silk.runtime.task
+package de.fuberlin.wiwiss.silk.runtime.activity
 
-import de.fuberlin.wiwiss.silk.util.Observable
+import de.fuberlin.wiwiss.silk.runtime.activity.Observable
 
 /**
  * Holds an observable value.
