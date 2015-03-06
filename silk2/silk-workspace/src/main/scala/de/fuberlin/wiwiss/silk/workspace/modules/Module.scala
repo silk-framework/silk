@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.workspace.Project
 
 import scala.reflect.ClassTag
 
-class Module[TaskData: ClassTag](provider: ModulePlugin[TaskData], resourceMgr: ResourceManager, project: Project) {
+class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: ResourceManager, project: Project) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 
@@ -16,7 +16,10 @@ class Module[TaskData: ClassTag](provider: ModulePlugin[TaskData], resourceMgr: 
    * Caches all tasks of this module in memory.
    */
   @volatile
-  private var cachedTasks : Map[Identifier, Task[TaskData]] = null
+  private var cachedTasks: Map[Identifier, Task[TaskData]] = null
+
+//  @volatile
+//  private var updatedTasks: Seq[Task[TaskData]] = Seq.empty
 
   // Start a background writing thread
   //WriteThread.start()
@@ -62,37 +65,37 @@ class Module[TaskData: ClassTag](provider: ModulePlugin[TaskData], resourceMgr: 
   }
 
   def add(name: Identifier, taskData: TaskData) = {
-    provider.createTask(name, taskData, project)
+    plugin.createTask(name, taskData, project)
   }
 
   /**
    * Removes a task from this module.
    */
   def remove(taskId: Identifier) {
-    provider.removeTask(taskId, resourceMgr)
+    plugin.removeTask(taskId, resourceMgr)
     cachedTasks -= taskId
-    logger.info("Removed task '" + taskId + "'")
+    logger.info(s"Removed task '$taskId' from project ${project.name}")
   }
 
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
-      val loadedTasks = provider.loadTasks(resourceMgr, project)
+      val loadedTasks = plugin.loadTasks(resourceMgr, project)
       cachedTasks = loadedTasks.map(task => (task.name, task)).toMap
     }
   }
 
-  /**
-   * Persists a task.
-   */
+//  /**
+//   * Persists a task.
+//   */
 //  private def write() {
 //    val tasksToWrite = updatedTasks.values.toList
 //    updatedTasks --= tasksToWrite.map(_.name)
 //
 //    for(task <- tasksToWrite) Timer("Writing task " + task.name + " to disk") {
-//      provider.writeTask(task, resourceMgr)
+//      plugin.writeTask(task, resourceMgr)
 //    }
 //  }
-
+//
 //  private object WriteThread extends Thread {
 //    override def run() {
 //      while(true) {

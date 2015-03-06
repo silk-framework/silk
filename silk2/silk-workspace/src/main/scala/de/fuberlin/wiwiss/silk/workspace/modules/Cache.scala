@@ -108,13 +108,8 @@ abstract class Cache[TaskType, T](initialValue: T) extends HasStatus {
         updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))
         if(updated) logger.info("Cache updated")
         // Commit to the project
-        //TODO  Make project modules (e.g. the linking module) register a callback
 //        if(updated && !isInterrupted) {
-//          task match {
-//            case transformTask: TransformTask => project.updateTask(transformTask)
-//            case linkingTask: LinkingTask => project.updateTask(linkingTask)
-//            case datasetTask: DatasetTask => project.updateTask(datasetTask)
-//          }
+        // TODO Schedule write
 //        }
       } catch {
         case ex: InterruptedException =>

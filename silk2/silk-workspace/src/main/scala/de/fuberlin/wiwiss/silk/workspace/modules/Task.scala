@@ -14,6 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules
 
+import java.util.concurrent.{ScheduledFuture, TimeUnit, Executors}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
@@ -25,38 +26,52 @@ import scala.reflect.ClassTag
  *
  * @tparam DataType The data type that specifies the properties of this task.
  */
-class Task[DataType](val name: Identifier, initialData: DataType, val caches: Seq[Cache[DataType, _]], project: Project) {
-
-  //TODO add change name function that asserts that the new name is unique
+class Task[DataType](val name: Identifier, initialData: DataType, val caches: Seq[Cache[DataType, _]], plugin: ModulePlugin[DataType], project: Project) {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  @volatile
   private var currentData: DataType = initialData
 
-  /* Do not persist updates more frequently than this (in milliseconds) */
-  private val writeInterval = 5000L
-
-  /**
-   * Remember the time of the last write.
-   */
   @volatile
-  private var lastUpdateTime = 0L
+  private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
   def data = currentData
 
-  def update(newData: DataType) = {
+  def update(newData: DataType) = synchronized {
+    // Update data
     currentData = newData
+    // Update caches
     for(cache <- caches)
       cache.load(project, currentData, update = true)
-    //TODO Schedule write!
+    // (Re)Schedule write
+    for(writer <- scheduledWriter) {
+      writer.cancel(false)
+    }
+    scheduledWriter = Some(Task.scheduledExecutor.schedule(Writer, Task.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + name + "'")
   }
 
   def cache[T: ClassTag]: T = {
     val runtimeClass = implicitly[ClassTag[T]].runtimeClass
     caches.find(_.getClass == runtimeClass)
-          .getOrElse(throw new NoSuchElementException(s"Task $name in project ${project.name} does not contain a cache of type ${runtimeClass.getName}"))
+          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache of type '${runtimeClass.getName}'"))
           .asInstanceOf[T]
   }
+
+  private object Writer extends Runnable {
+    override def run(): Unit = {
+      plugin.writeTask(Task.this, project.resourceManager.child(plugin.prefix))
+      log.info(s"Persisted task '$name' in project '${project.name}'")
+    }
+  }
+}
+
+object Task {
+
+  /* Do not persist updates more frequently than this (in seconds) */
+  private val writeInterval = 5
+
+  private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 
 }

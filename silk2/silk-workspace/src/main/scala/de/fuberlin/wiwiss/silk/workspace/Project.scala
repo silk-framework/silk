@@ -30,7 +30,7 @@ import scala.xml.XML
 /**
  * A project.
  */
-class Project(val name: Identifier, resourceManager: ResourceManager) {
+class Project(val name: Identifier, val resourceManager: ResourceManager) {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 

@@ -15,7 +15,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   override def prefix = "workflow"
 
   def createTask(name: Identifier, taskData: Workflow, project: Project): Task[Workflow] = {
-    new Task(name, taskData, Seq.empty, project)
+    new Task(name, taskData, Seq.empty, this, project)
   }
 
   /**
@@ -26,7 +26,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
     for(name <- names) yield {
       val xml = XML.load(resources.get(name).load)
       val workflow = Workflow.fromXML(xml, project)
-      new Task(name.stripSuffix(".xml"), workflow, Nil, project)
+      new Task(name.stripSuffix(".xml"), workflow, Nil, this, project)
     }
   }
 

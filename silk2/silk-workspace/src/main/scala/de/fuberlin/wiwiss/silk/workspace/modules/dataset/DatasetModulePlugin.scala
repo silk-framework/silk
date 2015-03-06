@@ -36,7 +36,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   override def prefix = "dataset"
 
   def createTask(name: Identifier, taskData: Dataset, project: Project): Task[Dataset] = {
-    new Task(name, taskData, Seq(new TypesCache()), project)
+    new Task(name, taskData, Seq(new TypesCache()), this, project)
   }
 
   /**
@@ -75,7 +75,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
         new LinkingCaches()
     }
 
-    new Task(dataset.id, dataset, Seq(cache), project)
+    new Task(dataset.id, dataset, Seq(cache), this, project)
   }
 
   /**

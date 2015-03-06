@@ -37,7 +37,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
   override def prefix = "linking"
 
   def createTask(name: Identifier, taskData: LinkSpecification, project: Project): Task[LinkSpecification] = {
-    new Task(name, taskData, Seq(new LinkingCaches()), project)
+    new Task(name, taskData, Seq(new LinkingCaches()), this, project)
   }
 
   /**
@@ -65,7 +65,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
       new LinkingCaches()
     }
 
-    new Task(linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks), Seq(cache), project)
+    new Task(linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks), Seq(cache), this, project)
   }
 
   /**

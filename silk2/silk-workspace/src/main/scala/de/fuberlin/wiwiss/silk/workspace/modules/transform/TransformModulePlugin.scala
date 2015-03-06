@@ -23,7 +23,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
   override def prefix = "transform"
 
   def createTask(name: Identifier, taskData: TransformSpecification, project: Project): Task[TransformSpecification] = {
-    new Task(name, taskData, Seq(new PathsCache()), project)
+    new Task(name, taskData, Seq(new PathsCache()), this, project)
   }
 
   /**
@@ -68,7 +68,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
         new LinkingCaches()
     }
 
-    new Task(name, TransformSpecification(name, dataset, rules), Seq(cache), project)
+    new Task(name, TransformSpecification(name, dataset, rules), Seq(cache), this, project)
   }
 
   /**
