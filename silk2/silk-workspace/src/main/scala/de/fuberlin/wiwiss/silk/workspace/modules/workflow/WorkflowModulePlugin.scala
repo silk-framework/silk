@@ -4,11 +4,11 @@ import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
 
 import scala.xml.XML
 
-class WorkflowModuleProvider extends ModuleProvider[WorkflowTask] {
+class WorkflowModulePlugin extends ModulePlugin[WorkflowTask] {
 
   override def prefix = "workflow"
 

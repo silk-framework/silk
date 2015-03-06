@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 import java.util.logging.Level
 
 /**
- * The runtime configuration.
+ * The linking runtime configuration.
  *
  * @param executionMethod The method used to execute the linkage rule.
  * @param blocking The blocking parameters.

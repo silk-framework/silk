@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.execution
 
 import java.util.logging.{Level, Logger}
-
 import de.fuberlin.wiwiss.silk.config.{TransformSpecification, DatasetSelection}
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, DataSink}

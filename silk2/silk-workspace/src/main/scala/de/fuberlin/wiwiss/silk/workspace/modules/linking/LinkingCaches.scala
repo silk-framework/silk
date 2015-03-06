@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 /**
  * Holds all caches.
  */
-class LinkingCaches() extends HasStatus {
+class LinkingCaches() extends Cache[LinkingTask, Unit] {
 
   /** The paths cache. */
   val pathCache = new PathsCache()
@@ -61,7 +61,7 @@ class LinkingCaches() extends HasStatus {
   /**
    * Loads the cache.
    */
-  def load(project : Project, task: LinkingTask, update: Boolean) {
+  override def load(project : Project, task: LinkingTask, update: Boolean) {
     pathCache.load(project, task, update)
     referenceEntitiesCache.load(project, task, update)
   }
@@ -69,7 +69,7 @@ class LinkingCaches() extends HasStatus {
   /**
    * Blocks until all caches have been loaded
    */
-  def waitUntilLoaded() {
+  override def waitUntilLoaded() {
     pathCache.waitUntilLoaded()
     referenceEntitiesCache.waitUntilLoaded()
   }
@@ -77,7 +77,7 @@ class LinkingCaches() extends HasStatus {
   /**
    * Serializes the caches to XML.
    */
-  def toXML(implicit prefixes: Prefixes): Node = {
+  override protected def serialize: Node = {
     <Caches>
       <Paths>
         { pathCache.toXML }
@@ -91,10 +91,13 @@ class LinkingCaches() extends HasStatus {
   /**
    * Loads the values of the caches from XML.
    */
-  def loadFromXML(node: Node) {
+  override protected def deserialize(node: Node) {
     pathCache.loadFromXML(node \ "Paths" \ "_" head)
     referenceEntitiesCache.loadFromXML(node \ "Entities" \ "_" head)
   }
+
+  // Never called as load method is overridden
+  override protected def update(project: Project, task: LinkingTask): Boolean = false
 
   object StatusListener extends (TaskStatus => Unit) {
     def apply(status: TaskStatus) {

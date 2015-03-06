@@ -16,7 +16,7 @@ import scala.xml.Node
  * @tparam TaskType The task type for which values are cached.
  * @tparam T The type of the values that are cached.
  */
-abstract class Cache[TaskType <: ModuleTask, T <: AnyRef](initialValue: T) extends HasStatus {
+abstract class Cache[TaskType <: ModuleTask, T](initialValue: T) extends HasStatus {
 
   /** The current value of this thread. */
   @volatile

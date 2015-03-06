@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.workspace.Project
 
 import scala.reflect.ClassTag
 
-class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskType], resourceMgr: ResourceManager, project: Project) {
+class Module[TaskType <: ModuleTask : ClassTag](provider: ModulePlugin[TaskType], resourceMgr: ResourceManager, project: Project) {
 
   /* Do not write more frequently than this (in milliseconds) */
   private val writeInterval = 5000L
@@ -81,7 +81,7 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
   /**
    * Updates a specific task.
    */
-  def update(task : TaskType) {
+  def update(task: TaskType) {
     loadTasks()
     cachedTasks += (task.name -> task)
     updatedTasks += (task.name -> task)
@@ -93,7 +93,7 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
   /**
    * Removes a task from this module.
    */
-  def remove(taskId : Identifier) {
+  def remove(taskId: Identifier) {
     provider.removeTask(taskId, resourceMgr)
 
     loadTasks()

@@ -15,6 +15,8 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.workspace.Project
+import scala.xml.Node
 
 /**
  * A Module Task.

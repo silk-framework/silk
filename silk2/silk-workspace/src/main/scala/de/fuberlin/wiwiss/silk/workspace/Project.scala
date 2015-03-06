@@ -19,11 +19,11 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTaskExecutor, LinkingModuleProvider}
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTaskExecutor, LinkingModulePlugin}
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModuleProvider
-import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModuleProvider, ModuleTask}
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModulePlugin, ModuleTask}
 import scala.reflect.ClassTag
 import scala.xml.XML
 
@@ -46,10 +46,10 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   private var executors = Map[String, TaskExecutor[_ <: ModuleTask]]()
 
   // Register all default modules
-  registerModule(new DatasetModuleProvider())
-  registerModule(new LinkingModuleProvider())
-  registerModule(new TransformModuleProvider())
-  registerModule(new WorkflowModuleProvider())
+  registerModule(new DatasetModulePlugin())
+  registerModule(new LinkingModulePlugin())
+  registerModule(new TransformModulePlugin())
+  registerModule(new WorkflowModulePlugin())
 
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
@@ -151,7 +151,7 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: ModuleTask : ClassTag](provider: ModuleProvider[T]) = {
+  def registerModule[T <: ModuleTask : ClassTag](provider: ModulePlugin[T]) = {
     modules = modules :+ new Module(provider, resourceManager.child(provider.prefix), this)
   }
 

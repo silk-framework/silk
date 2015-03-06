@@ -22,16 +22,16 @@ import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
 
 import scala.xml.XML
 
 /**
  * The linking module which encapsulates all linking tasks.
  */
-class LinkingModuleProvider extends ModuleProvider[LinkingTask] {
+class LinkingModulePlugin extends ModulePlugin[LinkingTask] {
 
-  private val logger = Logger.getLogger(classOf[LinkingModuleProvider].getName)
+  private val logger = Logger.getLogger(classOf[LinkingModulePlugin].getName)
 
   override def prefix = "linking"
 

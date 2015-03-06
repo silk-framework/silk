@@ -5,10 +5,13 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
 
 /**
- * Overwritten by module implementations.
+ * A plugin that adds a new module to the workspace.
  */
-trait ModuleProvider[TaskType <: ModuleTask] {
+trait ModulePlugin[TaskType <: ModuleTask] {
 
+  /**
+   * A prefix that uniquely identifies this module.
+   */
   def prefix: String
 
   /**

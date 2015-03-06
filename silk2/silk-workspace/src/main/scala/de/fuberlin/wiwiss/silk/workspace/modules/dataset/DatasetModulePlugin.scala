@@ -19,7 +19,7 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleProvider
+import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import scala.xml.XML
@@ -27,9 +27,9 @@ import scala.xml.XML
 /**
  * The source module which encapsulates all data sources.
  */
-class DatasetModuleProvider extends ModuleProvider[DatasetTask] {
+class DatasetModulePlugin extends ModulePlugin[DatasetTask] {
 
-  private val logger = Logger.getLogger(classOf[DatasetModuleProvider].getName)
+  private val logger = Logger.getLogger(classOf[DatasetModulePlugin].getName)
 
   override def prefix = "dataset"
 
