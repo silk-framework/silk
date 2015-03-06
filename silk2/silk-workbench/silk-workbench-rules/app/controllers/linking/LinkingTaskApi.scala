@@ -1,28 +1,26 @@
 package controllers.linking
 
+import java.util.logging.{Level, Logger}
+
+import de.fuberlin.wiwiss.silk.config.{DatasetSelection, LinkSpecification, RuntimeConfig}
+import de.fuberlin.wiwiss.silk.entity.{Link, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
-import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningTask, LearningInput}
-import de.fuberlin.wiwiss.silk.runtime.activity.Activity
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import models.{CurrentTaskStatusListener}
-import models.linking._
-import play.api.mvc.{Action, Controller}
-import play.api.libs.json.{JsString, JsObject, JsArray, JsNumber, JsBoolean}
-import de.fuberlin.wiwiss.silk.workspace.{Constants, Project, User}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, Link}
-import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskStatus, TaskFinished}
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.runtime.plugin.{Parameter, AnyPlugin}
-import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.config.{DatasetSelection, RuntimeConfig, LinkSpecification, Prefixes}
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
+import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.util.{DPair, ValidationException, CollectLogs}
-import java.util.logging.{Logger, Level}
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
+import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
+import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair, ValidationException}
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
+import models.CurrentTaskStatusListener
+import models.linking._
+import play.api.libs.json.{JsArray, JsObject, JsString}
+import play.api.mvc.{Action, Controller}
 
 object LinkingTaskApi extends Controller {
 
@@ -241,7 +239,7 @@ object LinkingTaskApi extends Controller {
 
     val taskControl = Activity.execute(generateLinksTask)
     CurrentGenerateLinksTask() = taskControl
-    //TODO CurrentGeneratedLinks() = taskControl.value()
+    taskControl.value.onUpdate(CurrentGeneratedLinks().update)
 
     Ok
   }

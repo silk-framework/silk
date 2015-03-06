@@ -16,16 +16,18 @@ class Module[TaskType <: ModuleTask : ClassTag](provider: ModuleProvider[TaskTyp
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 
   /**
-   * Cache all tasks of this module in memory.
+   * Caches all tasks of this module in memory.
    */
   @volatile
   private var cachedTasks : Map[Identifier, TaskType] = null
 
   /**
-   * Remember which tasks have been updated, but have not been written yet.
+   * Remembers which tasks have been updated, but have not been written yet.
    */
   @volatile
   private var updatedTasks = Map[Identifier, TaskType]()
+
+
 
   /**
    * Remember the time of the last write.

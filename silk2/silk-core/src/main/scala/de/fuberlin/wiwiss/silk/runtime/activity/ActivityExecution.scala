@@ -6,7 +6,9 @@ import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStarted, TaskC
 
 import scala.concurrent.ExecutionContext
 
-private class ActivityExecution[T](activity: Activity[T], parent: Option[ActivityContext[_]] = None, progressContribution: Double = 0.0) extends Runnable with ActivityControl[T] with ActivityContext[T] {
+private class ActivityExecution[T](@volatile var activity: Activity[T],
+                                   parent: Option[ActivityContext[_]] = None,
+                                   progressContribution: Double = 0.0) extends Runnable with ActivityControl[T] with ActivityContext[T] {
 
   /**
    * The logger used to log status changes.
@@ -32,9 +34,12 @@ private class ActivityExecution[T](activity: Activity[T], parent: Option[Activit
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   override def run(): Unit = synchronized {
+    // Reset
     val startTime = System.currentTimeMillis
+    value.reset()
     status.update(Status.Started(activity.taskName))
 
+    // Run
     try {
       activity.run(this)
       status.update(Status.Finished(activity.taskName, success = true, System.currentTimeMillis - startTime))
@@ -49,6 +54,17 @@ private class ActivityExecution[T](activity: Activity[T], parent: Option[Activit
   override def children(): Seq[ActivityControl[_]] = {
     removeDoneChildren()
     childControls
+  }
+
+  override def start(activity: Option[Activity[T]]): Unit = {
+    // Check if the current activity is still running
+    if(status().isRunning)
+      throw new IllegalStateException(s"Cannot start while activity ${this.activity.taskName} is still running!")
+    // Replace current activity
+    for(a <- activity)
+      this.activity = a
+    // Execute activity
+    ExecutionContext.global.execute(this)
   }
 
   override def cancel() = {

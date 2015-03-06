@@ -18,4 +18,8 @@ class ValueHolder[T]() extends Observable[T] {
     value = Some(v)
     publish(v)
   }
+
+  def reset(): Unit = {
+    value = None
+  }
 }
