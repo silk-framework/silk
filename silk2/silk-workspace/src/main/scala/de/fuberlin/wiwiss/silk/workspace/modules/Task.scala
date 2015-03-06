@@ -36,8 +36,14 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
+  /**
+   * Retrieves the current data of this task.
+   */
   def data = currentData
 
+  /**
+   * Updates the data of this task.
+   */
   def update(newData: DataType) = synchronized {
     // Update data
     currentData = newData
@@ -52,6 +58,11 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
     log.info("Updated task '" + name + "'")
   }
 
+  /**
+   * Retrieves a specific cache by type.
+   *
+   * @tparam T The type of the requested cache.
+   */
   def cache[T: ClassTag]: T = {
     val runtimeClass = implicitly[ClassTag[T]].runtimeClass
     caches.find(_.getClass == runtimeClass)
