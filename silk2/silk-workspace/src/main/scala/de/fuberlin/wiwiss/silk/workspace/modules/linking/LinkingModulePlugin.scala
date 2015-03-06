@@ -23,17 +23,22 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 
 import scala.xml.XML
 
 /**
  * The linking module which encapsulates all linking tasks.
  */
-class LinkingModulePlugin extends ModulePlugin[LinkingTask] {
+class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
 
   private val logger = Logger.getLogger(classOf[LinkingModulePlugin].getName)
 
   override def prefix = "linking"
+
+  def createTask(name: Identifier, taskData: LinkSpecification, project: Project): Task[LinkSpecification] = {
+    new Task(name, taskData, Seq(new LinkingCaches()), project)
+  }
 
   /**
    * Loads all tasks of this module.
@@ -60,7 +65,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkingTask] {
       new LinkingCaches()
     }
 
-    LinkingTask(project, linkSpec, referenceLinks, cache, updateCache = false)
+    new Task(linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks), Seq(cache), project)
   }
 
   /**
@@ -73,15 +78,15 @@ class LinkingModulePlugin extends ModulePlugin[LinkingTask] {
   /**
    * Writes an updated task.
    */
-  def writeTask(task: LinkingTask, resources: ResourceManager) = {
+  def writeTask(task: Task[LinkSpecification], resources: ResourceManager) = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
     // Write resources
     val taskResources = resources.child(task.name)
-    taskResources.put("linkSpec.xml") { os => task.linkSpec.toXML.write(os) }
-    taskResources.put("alignment.xml") { os => task.referenceLinks.toXML.write(os) }
-    taskResources.put("cache.xml") { os => task.cache.toXML.write(os) }
+    taskResources.put("linkSpec.xml") { os => task.data.toXML.write(os) }
+    taskResources.put("alignment.xml") { os => task.data.referenceLinks.toXML.write(os) }
+    taskResources.put("cache.xml") { os => task.caches.head.toXML.write(os) }
   }
   
 }

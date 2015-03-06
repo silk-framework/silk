@@ -1,6 +1,7 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
@@ -14,16 +15,16 @@ import plugins.Context
 object ReferenceLinksManager extends Controller {
 
   def referenceLinksView(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.referenceLinks.referenceLinks(context))
   }
 
   def referenceLinks(projectName: String, taskName: String, linkType: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
-    val referenceLinks = task.referenceLinks
-    def linkageRule = task.linkSpec.rule
-    def entities = task.cache.entities
+    val task = project.task[LinkSpecification](taskName)
+    val referenceLinks = task.data.referenceLinks
+    def linkageRule = task.data.rule
+    def entities = task.cache[LinkingCaches].entities
     val linkSorter = LinkSorter.fromId(sorting)
 
     val links = linkType match {

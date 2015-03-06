@@ -1,8 +1,8 @@
 @import plugins.Context
-@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 @import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
+@import de.fuberlin.wiwiss.silk.dataset.Dataset
 
-@(context: Context[DatasetTask])
+@(context: Context[Dataset])
 
 @header = {
 
@@ -14,7 +14,7 @@
 
 @content = {
 
-@if(context.task.dataset.plugin.isInstanceOf[RdfDatasetPlugin]) {
+@if(context.task.data.plugin.isInstanceOf[RdfDatasetPlugin]) {
   This is an RDF-Dataset that can be queried using the SPARQL query language.
 } else {
   This is not an RDF-Dataset and thus cannot be queried using SPARQL.

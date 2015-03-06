@@ -1,15 +1,15 @@
-@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 @import de.fuberlin.wiwiss.silk.workspace.User
+@import de.fuberlin.wiwiss.silk.config.LinkSpecification
+@import de.fuberlin.wiwiss.silk.dataset.Dataset
 @import controllers.rules.routes.Assets
 
 @(project: String, task: String)
 
-@sources = @{ User().workspace.project(project).tasks[DatasetTask].toSeq }
+@sources = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
-@linkingTask = @{ User().workspace.project(project).tasks[LinkingTask].find(_.name == task) }
+@linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.name == task) }
 
-@datasets = @{ linkingTask.map(_.linkSpec.datasets) }
+@datasets = @{ linkingTask.map(_.data.datasets) }
 
 @widgets.dialog(title = "Linking Task") {
   <table border="0">

@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.dataset.{Dataset, DataSink, DataSource}
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.linkagerule.{LinkageRule, TransformRule}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair, ValidationException}
@@ -14,7 +15,17 @@ import scala.xml.Node
  *
  * @see de.fuberlin.wiwiss.silk.execution.ExecuteTransform
  */
-case class TransformSpecification(id: Identifier = Identifier.random, input: DataSource, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[DataSink] = Seq.empty)
+case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[DataSink] = Seq.empty) {
+
+  def entityDescription = {
+    new EntityDescription(
+      variable = selection.variable,
+      restrictions = selection.restriction,
+      paths = rules.flatMap(_.paths).distinct.toIndexedSeq
+    )
+  }
+
+}
 
 /**
  * Static functions for the TransformSpecification class.
@@ -30,20 +41,18 @@ object TransformSpecification {
    * @param resourceLoader A ResourceLoader instance.
    * @return A TransformSpecification instance.
    */
-  def fromXML(node: Node, resourceLoader: ResourceLoader, sources: Set[Dataset])(implicit prefixes: Prefixes): TransformSpecification = {
+  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): TransformSpecification = {
 
     // Get the Id.
     val id = (node \ "@id").text
 
     // Get the required parameters from the XML configuration.
     val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-    val dataset = sources.filter(datasetSelection.datasetId == _.id).head
-    val dataSource = dataset.source
     val rules = (node \ "TransformRule").map(TransformRule.fromXML(_, resourceLoader))
     val sinks = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader).sink)
 
     // Create and return a TransformSpecification instance.
-    TransformSpecification(id, dataSource, datasetSelection, rules, sinks)
+    TransformSpecification(id, datasetSelection, rules, sinks)
 
   }
 

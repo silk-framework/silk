@@ -1,5 +1,4 @@
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+import de.fuberlin.wiwiss.silk.config.TransformSpecification
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -11,9 +10,9 @@ case class TransformPlugin() extends WorkbenchPlugin {
     Seq(TransformTaskActions)
   }
 
-  override def tabs(context: Context[ModuleTask]) = {
+  override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.isInstanceOf[TransformTask]) {
+    if(context.task.isInstanceOf[TransformSpecification]) {
       val p = context.project.name
       val t = context.task.name
       tabs ::= Tab("Editor", s"transform/$p/$t/editor")
@@ -23,7 +22,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
     tabs.reverse
   }
 
-  object TransformTaskActions extends TaskActions[TransformTask] {
+  object TransformTaskActions extends TaskActions[TransformSpecification] {
 
     /** The name of the task type */
     override def name: String = "Transform Task"
@@ -48,11 +47,11 @@ case class TransformPlugin() extends WorkbenchPlugin {
       Some(s"transform/tasks/$project/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: ModuleTask): Seq[(String, String)] = {
-      val transformTask = task.asInstanceOf[TransformTask]
+    override def properties(task: Any): Seq[(String, String)] = {
+      val transformSpec = task.asInstanceOf[TransformSpecification]
       Seq(
-        ("Source", transformTask.dataSelection.datasetId.toString),
-        ("Dataset", transformTask.dataSelection.restriction.toString)
+        ("Source", transformSpec.selection.datasetId.toString),
+        ("Dataset", transformSpec.selection.restriction.toString)
       )
     }
   }

@@ -1,16 +1,16 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
-import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.dataset.{Dataset, DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Link}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 
 import scala.xml.{Node, NodeBuffer, NodeSeq}
 
-class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, ReferenceEntities](ReferenceEntities.empty) {
+class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecification, ReferenceEntities](ReferenceEntities.empty) {
 
   /** Alias for value to make code more readable */
   private def entities = value
@@ -18,7 +18,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
   /** Alias for value to make code more readable */
   private def entities_=(v: ReferenceEntities) { value = v}
 
-  override def update(project: Project, task: LinkingTask) = {
+  override def update(project: Project, linkSpec: LinkSpecification) = {
     updateStatus("Waiting for paths cache", 0.0)
     pathsCache.waitUntilLoaded()
     if(pathsCache.status.failed)
@@ -31,7 +31,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
       //TODO reset reference entities = ReferenceEntities.empty
 //    }
 
-    val entityLoader = new EntityLoader(project, task, pathsCache.value)
+    val entityLoader = new EntityLoader(project, linkSpec, pathsCache.value)
     entityLoader.load()
   }
 
@@ -95,20 +95,20 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
     entities = ReferenceEntities.fromEntities(positiveEntities, negativeEntities)
   }
 
-  private class EntityLoader(project: Project, task: LinkingTask, entityDescs: DPair[EntityDescription]) {
+  private class EntityLoader(project: Project, linkSpec: LinkSpecification, entityDescs: DPair[EntityDescription]) {
 
-    private val sources = task.linkSpec.datasets.map(ds => project.task[DatasetTask](ds.datasetId).source)
+    private val sources = linkSpec.datasets.map(ds => project.task[Dataset](ds.datasetId).data.source)
 
     private var updated = false
 
     def load() = {
       updateStatus("Loading entities", 0.0)
 
-      val linkCount = task.referenceLinks.positive.size + task.referenceLinks.negative.size
+      val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size
       var loadedLinks = 0
       updated = false
 
-      for (link <- task.referenceLinks.positive) {
+      for (link <- linkSpec.referenceLinks.positive) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         entities = entities.withPositive(loadPositiveLink(link))
         loadedLinks += 1
@@ -116,7 +116,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkingTask, 
           updateStatus(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
-      for (link <- task.referenceLinks.negative) {
+      for (link <- linkSpec.referenceLinks.negative) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         entities = entities.withNegative(loadNegativeLink(link))
         loadedLinks += 1

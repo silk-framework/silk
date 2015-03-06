@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.config
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison, SimilarityOperator}
@@ -31,14 +32,16 @@ import scala.xml.Node
 case class LinkSpecification(id: Identifier = Identifier.random,
                              datasets: DPair[DatasetSelection] = DPair.fill(DatasetSelection.empty),
                              rule: LinkageRule = LinkageRule(),
-                             outputs: Seq[Dataset] = Seq.empty) {
+                             outputs: Seq[Dataset] = Seq.empty,
+                             referenceLinks: ReferenceLinks = ReferenceLinks.empty ) {
   /**
    * Serializes this Link Specification as XML.
+   * Reference links are currently not serialized and need to be serialize separably.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty): Node = {
     <Interlink id={id}>
-      {datasets.source.toXML(true)}
-      {datasets.target.toXML(false)}
+      {datasets.source.toXML(asSource = true)}
+      {datasets.target.toXML(asSource = false)}
       {rule.toXML}
       <Outputs>
       {outputs.map(_.toXML)}
@@ -96,6 +99,7 @@ object LinkSpecification {
 
   /**
    * Reads a Link Specification from XML.
+   * Reference links are currently not read and need to be read separably.
    */
   def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): LinkSpecification = {
     //Read id

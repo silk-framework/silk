@@ -2,10 +2,10 @@ package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 
 import java.util.logging.{Level, Logger}
 
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask.WorkflowOperator
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow.WorkflowOperator
 
 class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
 
@@ -44,17 +44,17 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) {
     def executeOperator(operator: WorkflowOperator, context: ActivityContext[Unit]) = {
       log.info("Executing " + operator.task)
 
-      val inputs = operator.inputs.map(id => project.task[DatasetTask](id).dataset.source)
-      val outputs = operator.outputs.map(id => project.task[DatasetTask](id).dataset.sink)
-      val task = project.anyTask(operator.task)
+      val inputs = operator.inputs.map(id => project.task[Dataset](id).data.source)
+      val outputs = operator.outputs.map(id => project.task[Dataset](id).data.sink)
+      val taskData = project.anyTask(operator.task).data
 
-      val taskExecutor = project.getExecutor(task)
+      val taskExecutor = project.getExecutor(taskData)
           .getOrElse(throw new Exception("Cannot execute task " + operator.task))
 
-      val job = taskExecutor(inputs, task, outputs)
+      val activity = taskExecutor(inputs, taskData, outputs)
       //TODO job.statusLogLevel = Level.FINE
       //TODO job.progressLogLevel = Level.FINE
-      context.executeBackground(job, 0.0)
+      context.executeBackground(activity, 0.0)
 
       log.info("Finished execution of " + operator.task)
     }

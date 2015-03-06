@@ -1,9 +1,9 @@
 @(project: String, task: String)
 
-@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import de.fuberlin.wiwiss.silk.dataset.Dataset
 @import de.fuberlin.wiwiss.silk.workspace.User
 
-@outputs = @{ User().workspace.project(project).tasks[DatasetTask] }
+@outputs = @{ User().workspace.project(project).tasks[Dataset] }
 
 @widgets.dialog(title = "Export Reference Links", width = 600) {
   <table>

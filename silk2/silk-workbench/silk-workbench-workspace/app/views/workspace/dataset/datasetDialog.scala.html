@@ -1,12 +1,12 @@
 @(project: String, task: String)
 
 @import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
-@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import de.fuberlin.wiwiss.silk.dataset.Dataset
 @import de.fuberlin.wiwiss.silk.workspace.User
 
 @widgets.pluginDialog(name = task,
                       plugins = DatasetPlugin.availablePlugins,
-                      currentObj = User().workspace.project(project).tasks[DatasetTask].find(_.name == task).map(_.dataset.plugin),
+                      currentObj = User().workspace.project(project).tasks[Dataset].find(_.name == task).map(_.data.plugin),
                       resources = User().workspace.project(project).resources.list) {
 
   <script type="text/javascript">

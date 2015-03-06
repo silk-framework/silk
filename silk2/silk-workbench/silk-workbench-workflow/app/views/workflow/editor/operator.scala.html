@@ -1,9 +1,10 @@
 @import de.fuberlin.wiwiss.silk.workspace.Project
-@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.Task
+@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
 
-@(project: Project, task: ModuleTask, taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+@(project: Project, task: Task[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
 <div class="operator" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
   <div class="operatorHeader">
@@ -19,7 +20,7 @@
     name:
     <span class="label">id</span>
     <br/>
-      @for(((key, value), index) <- taskActions.properties(task).zipWithIndex) {
+      @for(((key, value), index) <- taskActions.properties(task.data).zipWithIndex) {
         @if(index != 0) {<br/>}
         @key: @value
       }

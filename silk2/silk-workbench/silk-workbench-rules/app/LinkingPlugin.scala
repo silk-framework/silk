@@ -1,5 +1,4 @@
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -14,9 +13,9 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     Seq(LinkingTaskActions)
   }
 
-  override def tabs(context: Context[ModuleTask]) = {
+  override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.isInstanceOf[LinkingTask]) {
+    if(context.task.isInstanceOf[LinkSpecification]) {
       val p = context.project.name
       val t = context.task.name
       if (config.workbench.tabs.editor)
@@ -33,7 +32,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     tabs.reverse
   }
 
-  object LinkingTaskActions extends TaskActions[LinkingTask] {
+  object LinkingTaskActions extends TaskActions[LinkSpecification] {
 
     /** The name of the task type */
     override def name: String = "Linking Task"
@@ -58,13 +57,13 @@ case class LinkingPlugin() extends WorkbenchPlugin {
       Some(s"linking/tasks/$project/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: ModuleTask): Seq[(String, String)] = {
-      val linkingTask = task.asInstanceOf[LinkingTask]
+    override def properties(task: Any): Seq[(String, String)] = {
+      val linkSpec = task.asInstanceOf[LinkSpecification]
       Seq(
-        ("Source", linkingTask.linkSpec.datasets.source.datasetId.toString),
-        ("Target", linkingTask.linkSpec.datasets.target.datasetId.toString),
-        ("Source dataset", linkingTask.linkSpec.datasets.source.restriction.toString),
-        ("Target dataset", linkingTask.linkSpec.datasets.target.restriction.toString)
+        ("Source", linkSpec.datasets.source.datasetId.toString),
+        ("Target", linkSpec.datasets.target.datasetId.toString),
+        ("Source dataset", linkSpec.datasets.source.restriction.toString),
+        ("Target dataset", linkSpec.datasets.target.restriction.toString)
       )
     }
   }

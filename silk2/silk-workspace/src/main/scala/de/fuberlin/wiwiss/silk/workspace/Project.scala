@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTaskExecutor, L
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModulePlugin, ModuleTask}
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModulePlugin, Task}
 import scala.reflect.ClassTag
 import scala.xml.XML
 
@@ -40,10 +40,10 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   private var cachedConfig: Option[ProjectConfig] = None
 
   @volatile
-  private var modules = Seq[Module[_ <: ModuleTask]]()
+  private var modules = Seq[Module[_]]()
 
   @volatile
-  private var executors = Map[String, TaskExecutor[_ <: ModuleTask]]()
+  private var executors = Map[String, TaskExecutor[_]]()
 
   // Register all default modules
   registerModule(new DatasetModulePlugin())
@@ -85,35 +85,46 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   }
 
   /**
-   * Retrieves al tasks of a specific type.
+   * Retrieves all tasks of a specific type.
    */
-  def tasks[T <: ModuleTask : ClassTag]: Seq[T] = {
+  def tasks[T : ClassTag]: Seq[Task[T]] = {
     module[T].tasks
   }
 
   /**
-   * Retrieves a task by name.
+   * Retrieves a task of a specific type by name.
    *
    * @param taskName The name of the task
    * @tparam T The task type
+   * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
-  def task[T <: ModuleTask : ClassTag](taskName: Identifier): T = {
+  def task[T : ClassTag](taskName: Identifier): Task[T] = {
     module[T].task(taskName)
   }
 
-  def anyTask(taskName: Identifier): ModuleTask = {
-     modules.flatMap(_.taskOption(taskName)).head
+  /**
+   * Retrieves a task of any type by name.
+   *
+   * @param taskName The name of the task
+   * @throws java.util.NoSuchElementException If no task with the given name has been found
+   */
+  def anyTask(taskName: Identifier): Task[_] = {
+    for(module <- modules;
+        task <- module.taskOption(taskName)) {
+      return task
+    }
+    throw new NoSuchElementException(s"No task '$taskName' found in project '$name'")
   }
 
-  /**
-   * Updates a task of a specific type.
-   *
-   * @param task The updated task
-   * @tparam T The task type
-   */
-  def updateTask[T <: ModuleTask : ClassTag](task: T): Unit = {
-    // TODO assert that task name is unique
-    module[T].update(task)
+  def addTask[T: ClassTag](name: Identifier, taskData: T) = {
+    module[T].add(name, taskData)
+  }
+
+  def updateTask[T: ClassTag](name: Identifier, taskData: T) = {
+    module[T].taskOption(name) match {
+      case Some(task) => task.update(taskData)
+      case None => module[T].add(name, taskData)
+    }
   }
 
   /**
@@ -122,24 +133,24 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
    * @param taskName The name of the task
    * @tparam T The task type
    */
-  def removeTask[T <: ModuleTask : ClassTag](taskName: Identifier): Unit = {
+  def removeTask[T : ClassTag](taskName: Identifier): Unit = {
     module[T].remove(taskName)
   }
 
   /**
    * Retrieves an executor for a specific task.
    */
-  def getExecutor(task: ModuleTask): Option[TaskExecutor[ModuleTask]] = {
-    executors.get(task.getClass.getName).map(_.asInstanceOf[TaskExecutor[ModuleTask]])
+  def getExecutor[T](taskData: T): Option[TaskExecutor[T]] = {
+    executors.get(taskData.getClass.getName).map(_.asInstanceOf[TaskExecutor[T]])
   }
 
   /**
    * Retrieves a module for a specific task type.
    *
    * @tparam T The task type
-   * @throws NoSuchElementException If no module for the given task type has been registered
+   * @throws java.util.NoSuchElementException If no module for the given task type has been registered
    */
-  private def module[T <: ModuleTask : ClassTag]: Module[T] = {
+  private def module[T : ClassTag]: Module[T] = {
     modules.find(_.hasTaskType[T]) match {
       case Some(m) => m.asInstanceOf[Module[T]]
       case None =>
@@ -151,14 +162,14 @@ class Project(val name: Identifier, resourceManager: ResourceManager) {
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: ModuleTask : ClassTag](provider: ModulePlugin[T]) = {
+  def registerModule[T : ClassTag](provider: ModulePlugin[T]) = {
     modules = modules :+ new Module(provider, resourceManager.child(provider.prefix), this)
   }
 
   /**
    * Registers a new executor for a specific task type.
    */
-  def registerExecutor[T <: ModuleTask : ClassTag](executor: TaskExecutor[T]) = {
+  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]) = {
     val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
     executors = executors.updated(taskClassName, executor)
   }

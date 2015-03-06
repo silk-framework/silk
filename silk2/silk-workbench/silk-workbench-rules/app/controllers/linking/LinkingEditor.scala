@@ -1,6 +1,7 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -11,14 +12,14 @@ import plugins.Context
 object LinkingEditor extends Controller {
 
   def editor(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.editor.linkingEditor(context))
   }
 
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
-    val pathsCache = task.cache.pathCache
+    val task = project.task[LinkSpecification](taskName)
+    val pathsCache = task.cache[LinkingCaches].pathCache
     val prefixes = project.config.prefixes
 
     if(pathsCache.status.isRunning) {
@@ -34,8 +35,8 @@ object LinkingEditor extends Controller {
 
   def score(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
-    val entitiesCache = task.cache.referenceEntitiesCache
+    val task = project.task[LinkSpecification](taskName)
+    val entitiesCache = task.cache[LinkingCaches].referenceEntitiesCache
 
     // If the entity cache is still loading
     if(entitiesCache.status.isRunning) {
@@ -53,7 +54,7 @@ object LinkingEditor extends Controller {
         error = "No score available as this project does not define any reference links."))
     // If everything needed for computing a score is available
     } else {
-      val result = LinkageRuleEvaluator(task.linkSpec.rule, entitiesCache.value)
+      val result = LinkageRuleEvaluator(task.data.rule, entitiesCache.value)
       val score = f"Precision: ${result.precision}%.2f | Recall: ${result.recall}%.2f | F-measure: ${result.fMeasure}%.2f"
       Ok(views.html.editor.score(score))
     }

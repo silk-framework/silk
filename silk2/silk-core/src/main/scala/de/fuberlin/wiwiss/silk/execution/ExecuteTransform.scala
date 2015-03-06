@@ -53,5 +53,5 @@ object ExecuteTransform {
    * @param transform The transform specification.
    * @return An ExecuteTransform instance.
    */
-  def apply(transform: TransformSpecification) = new ExecuteTransform(transform.input, transform.selection, transform.rules, transform.outputs)
+  def apply(input: DataSource, transform: TransformSpecification) = new ExecuteTransform(input, transform.selection, transform.rules, transform.outputs)
 }

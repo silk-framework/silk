@@ -1,7 +1,5 @@
 package plugins
 
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-
 /**
  * Holds all available Workbench plugins.
  */
@@ -17,7 +15,7 @@ object WorkbenchPlugins {
     plugins
   }
 
-  def findTaskActions(task: ModuleTask) = {
-    plugins.flatMap(_.tasks).find(_.isCompatible(task)).get
+  def findTaskActions(taskData: AnyRef) = {
+    plugins.flatMap(_.tasks).find(_.isCompatible(taskData)).get
   }
 }

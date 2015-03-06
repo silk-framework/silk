@@ -1,7 +1,6 @@
 
 @(project: de.fuberlin.wiwiss.silk.workspace.Project)
-
-@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.Task
 @import plugins.WorkbenchPlugins
 @import plugins.WorkbenchPlugin.TaskActions
 @import de.fuberlin.wiwiss.silk.util.Identifier
@@ -33,7 +32,7 @@
 @**
  * A single operator in the toolbox.
  *@
-@toolboxOperator(task: ModuleTask, taskActions: TaskActions[_]) = {
+@toolboxOperator(task: Task[_], taskActions: TaskActions[_]) = {
   <div id="toolbox_@task.name" class="toolboxOperator" title="@task.name">
     @*<img src="@icon">*@
     @task.name

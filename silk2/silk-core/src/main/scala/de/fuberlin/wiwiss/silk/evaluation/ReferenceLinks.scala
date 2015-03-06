@@ -106,4 +106,9 @@ object ReferenceLinks {
    * Reads reference links specified in the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
    */
   def fromXML(node: Node) = ReferenceLinksReader.readReferenceLinks(node)
+
+  /**
+   * Generates an empty reference link set.
+   */
+  def empty = ReferenceLinks(Set.empty, Set.empty)
 }

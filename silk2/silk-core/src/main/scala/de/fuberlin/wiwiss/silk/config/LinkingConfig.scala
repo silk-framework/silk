@@ -122,7 +122,7 @@ object LinkingConfig {
       case None => Blocking()
     }
     val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, resourceLoader))
-    val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resourceLoader, sources))
+    val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resourceLoader))
 
     implicit val globalThreshold = None
     val outputs = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))

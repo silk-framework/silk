@@ -1,9 +1,10 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 import de.fuberlin.wiwiss.silk.util.{Table, DPair, Timer}
 import java.io.FileWriter
 import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
@@ -30,7 +31,7 @@ object DatasetStatistics extends App {
   
   private def collect(ds: Data) = Timer("Collecting statistics for " + ds.name) {
     //Retrieve frequent paths
-    val entityDescs = ds.task.linkSpec.entityDescriptions
+    val entityDescs = ds.task.data.entityDescriptions
     val paths = for((source, desc) <- ds.sources zip entityDescs) yield source.retrievePaths(restriction = desc.restrictions, depth = 1, limit = None).map(_._1).toIndexedSeq
     //Retrieve entities
     val fullEntityDescs = for((desc, p) <- entityDescs zip paths) yield desc.copy(paths = p)
@@ -43,7 +44,7 @@ object DatasetStatistics extends App {
   /**
    * Holds the base information about a task.
    */
-  case class TaskData(task: LinkingTask, paths: DPair[Seq[Path]], entities: DPair[Seq[Entity]])
+  case class TaskData(task: Task[LinkSpecification], paths: DPair[Seq[Path]], entities: DPair[Seq[Entity]])
 
   /**
    * A measure.
@@ -128,7 +129,7 @@ object DatasetStatistics extends App {
    */
   object PosReferenceLinks extends Measure {
     def name = "Pos. Reference links"
-    def apply(data: TaskData) = data.task.referenceLinks.positive.size
+    def apply(data: TaskData) = data.task.data.referenceLinks.positive.size
   }
 
   /**
@@ -136,6 +137,6 @@ object DatasetStatistics extends App {
    */
   object NegReferenceLinks extends Measure {
     def name = "Neg. Reference links"
-    def apply(data: TaskData) = data.task.referenceLinks.negative.size
+    def apply(data: TaskData) = data.task.data.referenceLinks.negative.size
   }
 }

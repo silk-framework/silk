@@ -1,17 +1,17 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
-
 import scala.xml.Node
 
 /**
  * Holds the most frequent classes.
  */
-class TypesCache() extends Cache[DatasetTask, Seq[(String, Double)]](Seq[(String, Double)]()) {
+class TypesCache() extends Cache[Dataset, Seq[(String, Double)]](Seq[(String, Double)]()) {
 
   /** Load the cache value. */
-  override protected def update(project: Project, task: DatasetTask) =  {
+  override protected def update(project: Project, task: Dataset) =  {
     if(value.isEmpty) {
       val dataSource = task.source
       val types = dataSource.retrieveTypes().toSeq

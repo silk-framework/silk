@@ -1,42 +1,38 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
-import models.{CurrentTaskStatusListener}
-import play.api.Logger
-import play.api.libs.iteratee.Enumeratee
-import play.api.mvc.Controller
-import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.util.Identifier._
-import models.linking._
-import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import controllers.core.{Stream, Widgets}
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStatus}
-import play.twirl.api.Html
+import de.fuberlin.wiwiss.silk.util.Identifier._
+import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import models.CurrentTaskStatusListener
+import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
+import models.linking._
+import play.api.mvc.{Action, Controller}
 import plugins.Context
 
 object Learning extends Controller {
 
   def start(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.learning.start(context))
   }
 
   def learn(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.learning.learn(context))
   }
 
   def activeLearn(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.learning.activeLearn(context))
   }
 
   def rule(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
-    val referenceLinks = task.referenceLinks
+    val task = project.task[LinkSpecification](taskName)
+    val referenceLinks = task.data.referenceLinks
     val population = CurrentPopulation()
 
     Ok(views.html.learning.rule(population, referenceLinks))
@@ -49,8 +45,8 @@ object Learning extends Controller {
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
-    def refLinks = task.referenceLinks
+    val task = project.task[LinkSpecification](taskName)
+    def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
     val valLinks = {
@@ -80,20 +76,20 @@ object Learning extends Controller {
   }
 
   def population(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.learning.population(context))
   }
 
   def populationView(projectName: String, taskName: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
+    val task = project.task[LinkSpecification](taskName)
 
     val pageSize = 20
     val individuals = CurrentPopulation().individuals.toSeq
     val sortedIndividuals = individuals.sortBy(-_.fitness)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
-    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.cache.entities))
+    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.cache[LinkingCaches].entities))
   }
 
   /**

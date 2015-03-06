@@ -1,7 +1,7 @@
 package controllers.workflow
 
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
 import models.CurrentExecutionTask
 import play.api.mvc.{Action, Controller}
 import plugins.Context
@@ -9,7 +9,7 @@ import plugins.Context
 object Editor extends Controller {
 
   def editor(project: String, task: String) = Action { request =>
-    val context = Context.get[WorkflowTask](project, task, request.path)
+    val context = Context.get[Workflow](project, task, request.path)
     Ok(views.html.workflow.editor.editor(context))
   }
 

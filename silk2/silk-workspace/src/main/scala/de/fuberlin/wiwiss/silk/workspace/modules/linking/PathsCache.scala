@@ -1,26 +1,27 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 
 import scala.xml.Node
 
 /**
  * Holds the most frequent paths.
  */
-class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
+class PathsCache() extends Cache[LinkSpecification, DPair[EntityDescription]](null) {
 
   /**
    * Loads the most frequent property paths.
    */
-  override def update(project: Project, task: LinkingTask) = {
+  override def update(project: Project, linkSpec: LinkSpecification) = {
     updateStatus("Retrieving frequent property paths", 0.0)
 
     //Create an entity description from the link specification
-    val currentEntityDescs = task.linkSpec.entityDescriptions
+    val currentEntityDescs = linkSpec.entityDescriptions
 
     //Check if the restriction has been changed
     val update =
@@ -30,10 +31,10 @@ class PathsCache() extends Cache[LinkingTask, DPair[EntityDescription]](null) {
 
     if (value == null || update) {
       // Retrieve the data sources
-      val sources = task.linkSpec.datasets.map(ds => project.task[DatasetTask](ds.datasetId).source)
+      val sources = linkSpec.datasets.map(ds => project.task[Dataset](ds.datasetId).data.source)
 
       //Retrieve most frequent paths
-      val paths = for ((source, dataset) <- sources zip task.linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
+      val paths = for ((source, dataset) <- sources zip linkSpec.datasets) yield source.retrievePaths(dataset.restriction, 1, Some(50))
 
       //Add the frequent paths to the entity description
       value = for ((entityDesc, paths) <- currentEntityDescs zip paths) yield entityDesc.copy(paths = (entityDesc.paths ++ paths.map(_._1)).distinct)

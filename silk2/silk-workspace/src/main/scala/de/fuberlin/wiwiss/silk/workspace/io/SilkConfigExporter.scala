@@ -14,24 +14,21 @@
 
 package de.fuberlin.wiwiss.silk.workspace.io
 
-import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkingConfig}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.{Project, User}
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig, LinkingConfig}
+import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.workspace.Project
 
 /**
  * Builds a Silk configuration from the current Linking Task.
  */
 object SilkConfigExporter {
-  def build(project: Project, task: LinkingTask): LinkingConfig = {
-    val linkSpec = task.linkSpec
-
+  def build(project: Project, linkSpec: LinkSpecification): LinkingConfig = {
     LinkingConfig(
       prefixes = project.config.prefixes,
       runtime = new RuntimeConfig(),
-      sources = linkSpec.datasets.map(ds => project.tasks[DatasetTask].find(_.name == ds.datasetId).get.dataset),
+      sources = linkSpec.datasets.map(ds => project.tasks[Dataset].find(_.name == ds.datasetId).get.data).toSeq,
       linkSpecs = linkSpec :: Nil,
-      outputs = project.tasks[DatasetTask].map(_.dataset)
+      outputs = Seq.empty
     )
   }
 }

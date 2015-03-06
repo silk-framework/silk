@@ -1,13 +1,13 @@
 @import de.fuberlin.wiwiss.silk.entity.ForwardOperator
 
 @import plugins.Context
-@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
+@import de.fuberlin.wiwiss.silk.config.TransformSpecification
 @import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 @import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 @import de.fuberlin.wiwiss.silk.entity.Path
 @import controllers.rules.routes.Assets
 
-@(context: Context[TransformTask])
+@(context: Context[TransformSpecification])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
@@ -34,7 +34,7 @@
 
 @content = {
   <div id="ruleContainer">
-    @for(rule <- context.task.rules) {
+    @for(rule <- context.task.data.rules) {
       @renderRule(rule)
     }
   </div>

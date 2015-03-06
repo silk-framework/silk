@@ -1,14 +1,14 @@
-@import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
-@import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+@import de.fuberlin.wiwiss.silk.config.TransformSpecification
+@import de.fuberlin.wiwiss.silk.dataset.Dataset
 @import de.fuberlin.wiwiss.silk.workspace.User
 
 @(project: String, task: String)
 
-@sources = @{ User().workspace.project(project).tasks[DatasetTask].toSeq }
+@sources = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
-@transformationTask = @{ User().workspace.project(project).tasks[TransformTask].find(_.name == task) }
+@transformationTask = @{ User().workspace.project(project).tasks[TransformSpecification].find(_.name == task) }
 
-@dataset = @{ transformationTask.map(_.dataSelection) }
+@dataset = @{ transformationTask.map(_.data.selection) }
 
 @widgets.dialog(title = "Transformation Task") {
   <table border="0">

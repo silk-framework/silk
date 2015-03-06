@@ -4,9 +4,6 @@ import java.util.logging.Level
 
 import de.fuberlin.wiwiss.silk.runtime.oldtask.{HasStatus, TaskFinished, TaskStarted}
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformTask
 
 import scala.xml.Node
 
@@ -16,7 +13,7 @@ import scala.xml.Node
  * @tparam TaskType The task type for which values are cached.
  * @tparam T The type of the values that are cached.
  */
-abstract class Cache[TaskType <: ModuleTask, T](initialValue: T) extends HasStatus {
+abstract class Cache[TaskType, T](initialValue: T) extends HasStatus {
 
   /** The current value of this thread. */
   @volatile
@@ -112,13 +109,13 @@ abstract class Cache[TaskType <: ModuleTask, T](initialValue: T) extends HasStat
         if(updated) logger.info("Cache updated")
         // Commit to the project
         //TODO  Make project modules (e.g. the linking module) register a callback
-        if(updated && !isInterrupted) {
-          task match {
-            case transformTask: TransformTask => project.updateTask(transformTask)
-            case linkingTask: LinkingTask => project.updateTask(linkingTask)
-            case datasetTask: DatasetTask => project.updateTask(datasetTask)
-          }
-        }
+//        if(updated && !isInterrupted) {
+//          task match {
+//            case transformTask: TransformTask => project.updateTask(transformTask)
+//            case linkingTask: LinkingTask => project.updateTask(linkingTask)
+//            case datasetTask: DatasetTask => project.updateTask(datasetTask)
+//          }
+//        }
       } catch {
         case ex: InterruptedException =>
           logger.log(Level.WARNING, "Loading cache stopped")

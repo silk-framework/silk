@@ -1,10 +1,10 @@
 package controllers.linking
 
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 import play.api.mvc.{Controller, Action}
 import models.linking.{CurrentGeneratedLinks, LinkSorter, CurrentGenerateLinksTask, EvalLink}
 import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
@@ -13,26 +13,26 @@ import plugins.Context
 object GenerateLinks extends Controller {
 
   def generateLinks(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.generateLinks.generateLinks(context))
   }
 
   def generateLinksDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[DatasetTask].toSeq.map(_.name.toString())
+    val outputs = project.tasks[Dataset].toSeq.map(_.name.toString())
 
     Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
-    val referenceLinks = task.referenceLinks
+    val task = project.task[LinkSpecification](taskName)
+    val referenceLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
     def links =
       for (link <- CurrentGeneratedLinks()().view;
-           detailedLink <- DetailedEvaluator(task.linkSpec.rule, link.entities.get)) yield {
+           detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
         if (referenceLinks.positive.contains(link))
           new EvalLink(detailedLink, Correct, Generated)
         else if (referenceLinks.negative.contains(link))

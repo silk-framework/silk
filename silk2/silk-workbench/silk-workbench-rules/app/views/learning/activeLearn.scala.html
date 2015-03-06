@@ -1,6 +1,7 @@
-@(context: plugins.Context[de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask])
-
+@import de.fuberlin.wiwiss.silk.config.LinkSpecification
 @import controllers.rules.routes.Assets
+
+@(context: plugins.Context[LinkSpecification])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

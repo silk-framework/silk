@@ -1,9 +1,9 @@
 @(project: String, task: String)
 
-@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
 @import de.fuberlin.wiwiss.silk.workspace.User
 
-@workflowTask = @{ User().workspace.project(project).tasks[WorkflowTask].find(_.name == task) }
+@workflowTask = @{ User().workspace.project(project).tasks[Workflow].find(_.name == task) }
 
 @widgets.dialog(title = "Workflow Task") {
   <table border="0">

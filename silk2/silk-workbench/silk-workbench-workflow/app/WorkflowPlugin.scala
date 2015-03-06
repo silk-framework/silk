@@ -1,6 +1,4 @@
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowTask
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
 import plugins.WorkbenchPlugin.{TaskActions, Tab}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -15,9 +13,9 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     Seq(WorkflowTaskActions)
   }
 
-  override def tabs(context: Context[ModuleTask]) = {
+  override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.isInstanceOf[WorkflowTask]) {
+    if(context.task.isInstanceOf[Workflow]) {
       val p = context.project.name
       val t = context.task.name
       if (config.workbench.tabs.editor)
@@ -26,7 +24,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     tabs.reverse
   }
 
-  object WorkflowTaskActions extends TaskActions[WorkflowTask] {
+  object WorkflowTaskActions extends TaskActions[Workflow] {
 
     /** The name of the task type */
     override def name: String = "Workflow"
@@ -51,7 +49,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
       Some(s"workflow/workflows/$project/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: ModuleTask): Seq[(String, String)] = {
+    override def properties(task: Any): Seq[(String, String)] = {
       Seq()
     }
   }

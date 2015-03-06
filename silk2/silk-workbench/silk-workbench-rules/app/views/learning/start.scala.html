@@ -1,7 +1,7 @@
 @import plugins.Context
-@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import de.fuberlin.wiwiss.silk.config.LinkSpecification
 
-@(context: Context[LinkingTask])
+@(context: Context[LinkSpecification])
 
 @header = {
   <script type="text/javascript">
@@ -41,9 +41,9 @@
 }
 
 @content = {
-  @if(context.task.referenceLinks.isDefined) {
+  @if(context.task.data.referenceLinks.isDefined) {
     <span>
-      There are already @context.task.referenceLinks.positive.size positive and @context.task.referenceLinks.positive.size negative reference links.
+      There are already @context.task.data.referenceLinks.positive.size positive and @context.task.data.referenceLinks.positive.size negative reference links.
       Start learning a linkage rules from existing reference links: 
       <button onClick="startLearning()">Start</button>
       <br/>

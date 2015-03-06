@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.runtime.oldtask._
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 /**
  * Holds all caches.
  */
-class LinkingCaches() extends Cache[LinkingTask, Unit] {
+class LinkingCaches() extends Cache[LinkSpecification, Unit] {
 
   /** The paths cache. */
   val pathCache = new PathsCache()
@@ -35,7 +35,7 @@ class LinkingCaches() extends Cache[LinkingTask, Unit] {
   //val poolCache =
 
   /** All caches. */
-  val caches: Seq[Cache[LinkingTask, _]] = pathCache :: referenceEntitiesCache :: Nil
+  val caches: Seq[Cache[LinkSpecification, _]] = pathCache :: referenceEntitiesCache :: Nil
 
   //Update overall status whenever the status of a cache changes.
   pathCache.onUpdate(StatusListener)
@@ -50,7 +50,7 @@ class LinkingCaches() extends Cache[LinkingTask, Unit] {
   /**
    * Reloads the cache.
    */
-  def reload(project : Project, task: LinkingTask) {
+  def reload(project : Project, task: LinkSpecification) {
     pathCache.clear()
     pathCache.load(project, task)
 
@@ -61,7 +61,7 @@ class LinkingCaches() extends Cache[LinkingTask, Unit] {
   /**
    * Loads the cache.
    */
-  override def load(project : Project, task: LinkingTask, update: Boolean) {
+  override def load(project : Project, task: LinkSpecification, update: Boolean) {
     pathCache.load(project, task, update)
     referenceEntitiesCache.load(project, task, update)
   }
@@ -97,7 +97,7 @@ class LinkingCaches() extends Cache[LinkingTask, Unit] {
   }
 
   // Never called as load method is overridden
-  override protected def update(project: Project, task: LinkingTask): Boolean = false
+  override protected def update(project: Project, task: LinkSpecification): Boolean = false
 
   object StatusListener extends (TaskStatus => Unit) {
     def apply(status: TaskStatus) {

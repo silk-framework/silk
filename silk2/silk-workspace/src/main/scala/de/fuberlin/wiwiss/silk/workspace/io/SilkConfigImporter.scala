@@ -16,8 +16,6 @@ package de.fuberlin.wiwiss.silk.workspace.io
 
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 
 /**
  * Imports a Silk SilkConfig into a project.
@@ -29,12 +27,12 @@ object SilkConfigImporter {
 
     //Add all sources
     for(source <- config.sources) {
-      project.updateTask(DatasetTask(project, source))
+      project.addTask(source.id, source)
     }
 
     //Add all linking tasks
     for(linkSpec <- config.linkSpecs) {
-      project.updateTask(LinkingTask(project, linkSpec, updateCache = true))
+      project.addTask(linkSpec.id, linkSpec)
     }
   }
 }

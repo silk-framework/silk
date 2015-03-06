@@ -1,11 +1,12 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Condition, Operator, Or}
 import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.util.ValidationException
 import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionParser
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.TypesCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, PrefixRegistry, User}
 import play.Logger
 import play.api.mvc.{Action, Controller}
@@ -46,7 +47,7 @@ object Workspace extends Controller {
 
   def restrictionDialog(projectName: String, sourceName: String, sourceOrTarget: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
-    val pathCache = project.task[DatasetTask](sourceName).cache
+    val pathCache = project.task[Dataset](sourceName).cache[TypesCache]
     implicit val prefixes = project.config.prefixes
 
     val variable = sourceOrTarget match {

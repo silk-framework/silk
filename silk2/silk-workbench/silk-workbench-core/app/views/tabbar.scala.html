@@ -1,8 +1,7 @@
 @import plugins.Context
 @import plugins.WorkbenchPlugins
-@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 
-@(context: Option[Context[ModuleTask]], selectedTab: String)
+@(context: Option[Context[_]], selectedTab: String)
 
 <div id="tabbar">
   <div id="title">@config.workbench.title</div>

@@ -1,7 +1,6 @@
 package plugins
 
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
 import play.core.Router.Routes
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import scala.reflect.ClassTag
@@ -16,12 +15,12 @@ trait WorkbenchPlugin {
   /**
    * The task types to be added to the Workspace.
    */
-  def tasks: Seq[TaskActions[ModuleTask]] = Seq.empty
+  def tasks: Seq[TaskActions[_]] = Seq.empty
 
   /**
    * Given a request context, lists the shown tabs.
    */
-  def tabs(context: Context[ModuleTask]): Seq[Tab] = Seq.empty
+  def tabs(context: Context[_]): Seq[Tab] = Seq.empty
 
 }
 
@@ -30,7 +29,7 @@ object WorkbenchPlugin {
   /**
    * A new task in the Workspace
    */
-  abstract class TaskActions[+T <: ModuleTask : ClassTag] {
+  abstract class TaskActions[T : ClassTag] {
 
     /** The name of the task type */
     def name: String
@@ -51,12 +50,12 @@ object WorkbenchPlugin {
     def delete(project: String, task: String): Option[String]
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    def properties(task: ModuleTask): Seq[(String, String)]
+    def properties(taskData: Any): Seq[(String, String)]
 
     /** Retrieves all tasks of this type from a project*/
     def projectTasks(project: Project) = project.tasks[T]
 
-    def isCompatible(task: ModuleTask) = task.getClass == implicitly[ClassTag[T]].runtimeClass
+    def isCompatible(taskData: AnyRef) = taskData.getClass == implicitly[ClassTag[T]].runtimeClass
   }
 
   /**

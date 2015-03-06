@@ -1,6 +1,6 @@
 package plugins
 
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import scala.reflect.ClassTag
 
@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
  * @param path The request url path
  * @tparam T The type of the current task
  */
-case class Context[+T <: ModuleTask](project: Project, task: T, path: String)
+case class Context[T](project: Project, task: Task[T], path: String)
 
 /**
  * Factory for context objects.
@@ -28,7 +28,7 @@ object Context {
    * @tparam T The type of the task
    * @return The generated context
    */
-  def get[T <: ModuleTask : ClassTag](projectName: String, taskName: String, path: String): Context[T] = {
+  def get[T : ClassTag](projectName: String, taskName: String, path: String): Context[T] = {
     val project = User().workspace.project(projectName)
     val task = project.task[T](taskName)
 

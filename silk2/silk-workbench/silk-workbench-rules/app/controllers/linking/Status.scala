@@ -1,7 +1,8 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import controllers.core.{Widgets, Stream}
@@ -11,25 +12,25 @@ import plugins.Context
 object Status extends Controller {
 
   def status(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkingTask](project, task, request.path)
+    val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.status.status(context))
   }
 
   def cacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
+    val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.taskStatus(task.cache)
+    val stream = Stream.taskStatus(task.cache[LinkingCaches])
 
     Ok.chunked(Widgets.taskStatus(stream, "cache"))
   }
   
   def sourceTypesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val linkingTask = project.task[LinkingTask](taskName)
+    val linkingTask = project.task[LinkSpecification](taskName)
 
-    val sourceTaskName = linkingTask.linkSpec.datasets.source.datasetId
-    val sourceTask = project.task[DatasetTask](sourceTaskName)
+    val sourceTaskName = linkingTask.data.datasets.source.datasetId
+    val sourceTask = project.task[Dataset](sourceTaskName)
 
     val stream = Stream.taskStatus(sourceTask.cache)
 
@@ -38,10 +39,10 @@ object Status extends Controller {
 
   def targetTypesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val linkingTask = project.task[LinkingTask](taskName)
+    val linkingTask = project.task[LinkSpecification](taskName)
 
-    val sourceTaskName = linkingTask.linkSpec.datasets.target.datasetId
-    val sourceTask = project.task[DatasetTask](sourceTaskName)
+    val sourceTaskName = linkingTask.data.datasets.target.datasetId
+    val sourceTask = project.task[Dataset](sourceTaskName)
 
     val stream = Stream.taskStatus(sourceTask.cache)
 
@@ -50,18 +51,18 @@ object Status extends Controller {
 
   def pathCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
+    val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.taskStatus(task.cache.pathCache)
+    val stream = Stream.taskStatus(task.cache[LinkingCaches].pathCache)
 
     Ok.chunked(Widgets.taskStatus(stream, "pathCache"))
   }
 
   def referenceEntitiesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkingTask](taskName)
+    val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.taskStatus(task.cache.referenceEntitiesCache)
+    val stream = Stream.taskStatus(task.cache[LinkingCaches].referenceEntitiesCache)
 
     Ok.chunked(Widgets.taskStatus(stream, "referenceEntitiesCache"))
   }

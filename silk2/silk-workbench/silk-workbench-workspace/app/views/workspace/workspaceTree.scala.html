@@ -1,7 +1,7 @@
 @(workspace: de.fuberlin.wiwiss.silk.workspace.Workspace)
 
 @import plugins.WorkbenchPlugins
-@import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
+@import de.fuberlin.wiwiss.silk.workspace.modules.Task
 @import de.fuberlin.wiwiss.silk.workspace.Project
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workspace.routes.Assets
@@ -46,7 +46,7 @@
   </li>
 }
 
-@task(project: Project, task: ModuleTask, taskActions: TaskActions[ModuleTask]) = {
+@task(project: Project, task: Task[_], taskActions: TaskActions[_]) = {
   <li id="task_@{project.name}_@task.name" data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
     @task.name
     @for(path <- taskActions.propertiesDialog(project.name, task.name)) {
@@ -59,7 +59,7 @@
       @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${task.name}', '${config.baseUrl}/$path')")
     }
     <ul>
-      @for((key, value) <- taskActions.properties(task) if !value.isEmpty) {
+      @for((key, value) <- taskActions.properties(task.data) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
           @key: @value
         </li>

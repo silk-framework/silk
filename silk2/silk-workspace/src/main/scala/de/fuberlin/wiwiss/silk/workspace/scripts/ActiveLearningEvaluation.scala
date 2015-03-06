@@ -7,6 +7,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
 import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends EvaluationScript {
@@ -36,7 +37,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
   }
 
   private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
-    val cache = dataset.task.cache
+    val cache = dataset.task.cache[LinkingCaches]
     cache.waitUntilLoaded()
     val task = new ActiveLearningEvaluator(config, dataset)
     task()
@@ -73,7 +74,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     logger.info("Experiment " + config.name + " on data set " + ds.name +  ": run " + run )
 
     var referenceEntities = ReferenceEntities()
-    val validationEntities = ds.task.cache.entities
+    val validationEntities = ds.task.cache[LinkingCaches].entities
 
     val sourceEntities =  validationEntities.positive.values.map(_.source)
     val targetEntities =  validationEntities.positive.values.map(_.target)
@@ -92,8 +93,8 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
         new ActiveLearningTask(
           config = config,
           datasets = ds.sources,
-          linkSpec = ds.task.linkSpec,
-          paths = ds.task.cache.entityDescs.map(_.paths),
+          linkSpec = ds.task.data,
+          paths = ds.task.cache[LinkingCaches].entityDescs.map(_.paths),
           referenceEntities = referenceEntities,
           pool = pool,
           population = population

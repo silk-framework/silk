@@ -17,6 +17,8 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import java.util.logging.Level
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+
 import scala.util.Random
 import de.fuberlin.wiwiss.silk.learning._
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
@@ -54,7 +56,7 @@ object CrossValidation extends EvaluationScript {
   
   private def execute(dataset: Data, config: LearningConfiguration): RunResult = {
     log.info("Running: " + dataset.name)
-    val cache = dataset.task.cache
+    val cache = dataset.task.cache[LinkingCaches]
     cache.waitUntilLoaded()
     val task = new CrossValidation(cache.entities, config)
     task()

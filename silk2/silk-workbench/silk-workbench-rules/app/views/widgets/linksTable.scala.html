@@ -6,11 +6,12 @@
 @import de.fuberlin.wiwiss.silk.util.DPair
 @import de.fuberlin.wiwiss.silk.linkagerule.evaluation._
 @import de.fuberlin.wiwiss.silk.workspace.Project
-@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
+@import de.fuberlin.wiwiss.silk.config.LinkSpecification
+@import de.fuberlin.wiwiss.silk.workspace.modules.Task
 @import controllers.rules.routes.Assets
 
 @(project: Project,
-  task: LinkingTask,
+  task: Task[LinkSpecification],
   links: Seq[EvalLink],
   sorting: LinkSorter,
   filter: String,
@@ -37,7 +38,7 @@
           @sortableHeader(SourceUriSorterAscending, SourceUriSorterDescending) {
             Source:
             <span class="source-value">
-              @task.linkSpec.datasets.source.datasetId
+              @task.data.datasets.source.datasetId
             </span>
           }
         </div>
@@ -46,7 +47,7 @@
           @sortableHeader(TargetUriSorterAscending, TargetUriSorterDescending) {
           Target:
               <span class="source-value">
-                @task.linkSpec.datasets.target.datasetId
+                @task.data.datasets.target.datasetId
               </span>
           }
         </div>

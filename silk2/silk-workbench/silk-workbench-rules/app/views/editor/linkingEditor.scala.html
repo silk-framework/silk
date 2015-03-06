@@ -1,11 +1,11 @@
-@import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTask
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
 @import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+@import de.fuberlin.wiwiss.silk.config.LinkSpecification
 @import controllers.rules.routes.Assets
 
-@(context: Context[LinkingTask])
+@(context: Context[LinkSpecification])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
@@ -74,7 +74,7 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- context.task.linkSpec.rule.operator) {
+        @for(op <- context.task.data.rule.operator) {
           @renderRule(
             rule = op,
             prefixes = context.project.config.prefixes
@@ -102,7 +102,7 @@
 
       <div style="width: 300px; float: left;">
         Link Type:
-        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.linkSpec.rule.linkType.uri)" />
+        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
       </div>
 
     </div>

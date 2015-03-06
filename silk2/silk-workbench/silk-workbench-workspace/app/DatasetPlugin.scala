@@ -1,7 +1,6 @@
 import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
-import de.fuberlin.wiwiss.silk.dataset.{ DatasetPlugin => DataPlugin}
-import de.fuberlin.wiwiss.silk.workspace.modules.ModuleTask
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
+import de.fuberlin.wiwiss.silk.dataset.{DatasetPlugin => DataPlugin, Dataset}
+import de.fuberlin.wiwiss.silk.workspace.scripts.DatasetStatistics.TaskData
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -12,19 +11,19 @@ case class DatasetPlugin() extends WorkbenchPlugin {
   /**
    * The task types to be added to the Workspace.
    */
-  override def tasks: Seq[TaskActions[ModuleTask]] =
+  override def tasks: Seq[TaskActions[_]] =
     Seq(DatasetActions)
 
   /**
    * Given a request context, lists the shown tabs.
    */
-  override def tabs(context: Context[ModuleTask]): Seq[Tab] = {
+  override def tabs(context: Context[_]): Seq[Tab] = {
     val p = context.project.name
     val t = context.task.name
-    context.task match {
-      case task: DatasetTask =>
+    context.task.data match {
+      case dataset: Dataset =>
         var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
-        if (task.dataset.plugin.isInstanceOf[RdfDatasetPlugin] ) {
+        if (dataset.plugin.isInstanceOf[RdfDatasetPlugin] ) {
           tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$p/$t/sparql")
         } else {
           tabs = tabs :+ Tab("Tableview", s"workspace/datasets/$p/$t/table")
@@ -34,7 +33,7 @@ case class DatasetPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[DatasetTask] {
+  object DatasetActions extends TaskActions[Dataset] {
 
     /** The name of the task type */
     override def name: String = "Dataset"
@@ -59,8 +58,8 @@ case class DatasetPlugin() extends WorkbenchPlugin {
       Some(s"workspace/projects/$project/dataset/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: ModuleTask): Seq[(String, String)] = {
-      task.asInstanceOf[DatasetTask].dataset.plugin match {
+    override def properties(taskData: Any): Seq[(String, String)] = {
+      taskData.asInstanceOf[Dataset].plugin match {
         case DataPlugin(_, params) => params.toSeq
       }
     }

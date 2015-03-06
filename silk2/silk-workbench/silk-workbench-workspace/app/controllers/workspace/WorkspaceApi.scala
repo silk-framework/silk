@@ -9,7 +9,6 @@ import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
 import plugins.Context

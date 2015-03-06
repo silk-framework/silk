@@ -4,20 +4,24 @@ import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
 
+import scala.xml.Node
+
 /**
  * A plugin that adds a new module to the workspace.
  */
-trait ModulePlugin[TaskType <: ModuleTask] {
+trait ModulePlugin[DataType] {
 
   /**
    * A prefix that uniquely identifies this module.
    */
   def prefix: String
 
+  def createTask(name: Identifier, taskData: DataType, project: Project): Task[DataType]
+
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, project: Project): Seq[TaskType]
+  def loadTasks(resources: ResourceLoader, project: Project): Seq[Task[DataType]]
 
   /**
    * Removes a specific task.
@@ -27,5 +31,5 @@ trait ModulePlugin[TaskType <: ModuleTask] {
   /**
    * Writes an updated task.
    */
-  def writeTask(task: TaskType, resources: ResourceManager)
+  def writeTask(task: Task[DataType], resources: ResourceManager)
 }

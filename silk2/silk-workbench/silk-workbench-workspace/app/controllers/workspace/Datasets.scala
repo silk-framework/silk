@@ -4,7 +4,6 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, ResultSet}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetTask
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
@@ -16,8 +15,8 @@ object Datasets extends Controller {
 
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[DatasetTask](sourceName)
-    val sourceXml = task.dataset.toXML
+    val task = project.task[Dataset](sourceName)
+    val sourceXml = task.data.toXML
 
     Ok(sourceXml)
   }
@@ -27,8 +26,8 @@ object Datasets extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = DatasetTask(project, Dataset.fromXML(xml.head, project.resources))
-          project.updateTask(sourceTask)
+          val sourceTask = Dataset.fromXML(xml.head, project.resources)
+          project.updateTask(sourceTask.id, sourceTask)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
@@ -38,18 +37,18 @@ object Datasets extends Controller {
   }}
 
   def deleteDataset(project: String, source: String) = Action {
-    User().workspace.project(project).removeTask[DatasetTask](source)
+    User().workspace.project(project).removeTask[Dataset](source)
     Ok
   }
 
   def dataset(project: String, task: String) = Action { request =>
-    val context = Context.get[DatasetTask](project, task, request.path)
+    val context = Context.get[Dataset](project, task, request.path)
     Ok(views.html.workspace.dataset.dataset(context))
   }
 
   def table(project: String, task: String, maxEntities: Int) = Action { request =>
-    val context = Context.get[DatasetTask](project, task, request.path)
-    val source = context.task.source
+    val context = Context.get[Dataset](project, task, request.path)
+    val source = context.task.data.source
 
     val paths = source.retrievePaths().map(_._1).toIndexedSeq
     val entityDesc = EntityDescription("a", SparqlRestriction.empty, paths)
@@ -59,9 +58,9 @@ object Datasets extends Controller {
   }
 
   def sparql(project: String, task: String, query: String = "") = Action { request =>
-    val context = Context.get[DatasetTask](project, task, request.path)
+    val context = Context.get[Dataset](project, task, request.path)
 
-    context.task.dataset.plugin match {
+    context.task.data.plugin match {
       case rdf: RdfDatasetPlugin =>
         val sparqlEndpoint = rdf.sparqlEndpoint
         var queryResults: Option[ResultSet] = None
