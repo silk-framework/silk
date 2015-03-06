@@ -15,7 +15,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
 
   override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.isInstanceOf[LinkSpecification]) {
+    if(context.task.data.isInstanceOf[LinkSpecification]) {
       val p = context.project.name
       val t = context.task.name
       if (config.workbench.tabs.editor)

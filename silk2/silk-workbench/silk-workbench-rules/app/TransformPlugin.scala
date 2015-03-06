@@ -12,7 +12,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
 
   override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.isInstanceOf[TransformSpecification]) {
+    if(context.task.data.isInstanceOf[TransformSpecification]) {
       val p = context.project.name
       val t = context.task.name
       tabs ::= Tab("Editor", s"transform/$p/$t/editor")

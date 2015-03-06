@@ -41,11 +41,8 @@ class Module[TaskData: ClassTag](provider: ModulePlugin[TaskData], resourceMgr: 
   /**
    * Retrieves all tasks in this module.
    */
-  def tasks: Seq[Task[TaskData]] = synchronized {
-    if(cachedTasks == null) {
-      val loadedTasks = provider.loadTasks(resourceMgr, project)
-      cachedTasks = loadedTasks.map(task => (task.name, task)).toMap
-    }
+  def tasks: Seq[Task[TaskData]] = {
+    load()
     cachedTasks.values.toSeq
   }
 
@@ -55,10 +52,12 @@ class Module[TaskData: ClassTag](provider: ModulePlugin[TaskData], resourceMgr: 
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
   def task(name: Identifier): Task[TaskData] = {
+    load()
     cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' not found in ${project.name}"))
   }
 
   def taskOption(name: Identifier): Option[Task[TaskData]] = {
+    load()
     cachedTasks.get(name)
   }
 
@@ -73,6 +72,13 @@ class Module[TaskData: ClassTag](provider: ModulePlugin[TaskData], resourceMgr: 
     provider.removeTask(taskId, resourceMgr)
     cachedTasks -= taskId
     logger.info("Removed task '" + taskId + "'")
+  }
+
+  private def load(): Unit = synchronized {
+    if(cachedTasks == null) {
+      val loadedTasks = provider.loadTasks(resourceMgr, project)
+      cachedTasks = loadedTasks.map(task => (task.name, task)).toMap
+    }
   }
 
   /**

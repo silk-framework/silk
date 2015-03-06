@@ -15,7 +15,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
 
   override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.isInstanceOf[Workflow]) {
+    if(context.task.data.isInstanceOf[Workflow]) {
       val p = context.project.name
       val t = context.task.name
       if (config.workbench.tabs.editor)
