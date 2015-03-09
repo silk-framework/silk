@@ -3,10 +3,10 @@ package models
 import java.util.concurrent.{Executors, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-trait Listener[T]{
+trait Listener[T] extends (T => Unit) {
 
   /** The minimum number of milliseconds between two successive calls to onUpdate. */
-  var maxFrequency = 5000
+  var maxFrequency = 500
 
   /** The time of the last call to onUpdate */
   @volatile private var lastUpdateTime = 0L
@@ -19,7 +19,7 @@ trait Listener[T]{
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  def update(value: T) {
+  def apply(value: T): Unit = {
     if(scheduled) {
       lastMessage = Some(value)
     } else {

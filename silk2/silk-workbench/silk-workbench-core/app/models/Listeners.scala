@@ -9,7 +9,7 @@ abstract class TaskStatusListener(task: HasStatus) extends Listener[TaskStatus] 
 
   private object Listener extends (TaskStatus => Unit) {
     def apply(status: TaskStatus) {
-      update(status)
+      apply(status)
     }
   }
 }
@@ -19,7 +19,7 @@ abstract class TaskDataListener[T](userData: TaskData[T]) extends Listener[T] {
 
   private object Listener extends (T => Unit) {
     def apply(value: T) {
-      update(value)
+      apply(value)
     }
   }
 }
@@ -54,7 +54,7 @@ abstract class CurrentStatusListener(taskHolder: TaskData[ActivityControl[_]]) e
 
   private object StatusListener extends (Status => Unit) {
     def apply(status: Status) {
-      update(status)
+      apply(status)
       statusHolder.update(status)
     }
   }
@@ -88,7 +88,7 @@ abstract class CurrentTaskStatusListener[TaskType <: HasStatus](taskHolder: Task
 
   private object StatusListener extends (TaskStatus => Unit) {
     def apply(status: TaskStatus) {
-      update(status)
+      apply(status)
       updateStatus(status)
     }
   }

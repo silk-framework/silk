@@ -25,20 +25,22 @@ class ExecuteTransform(input: DataSource,
       )
     val entities = input.retrieve(entityDesc)
 
-    // Open outputs
-    val properties = rules.map(_.targetProperty.uri)
-    for(output <- outputs) output.open(properties)
+    try {
+      // Open outputs
+      val properties = rules.map(_.targetProperty.uri)
+      for(output <- outputs) output.open(properties)
 
-    // Transform all entities and write to outputs
-    for { entity <- entities
-          rule <- rules } {
-      val values = rules.map(_(entity))
-      for(output <- outputs)
-        output.writeEntity(entity.uri, values)
+      // Transform all entities and write to outputs
+      for {entity <- entities
+           rule <- rules} {
+        val values = rules.map(_(entity))
+        for (output <- outputs)
+          output.writeEntity(entity.uri, values)
+      }
+    } finally {
+      // Close outputs
+      for (output <- outputs) output.close()
     }
-
-    // Close outputs
-    for(output <- outputs) output.close()
   }
 }
 

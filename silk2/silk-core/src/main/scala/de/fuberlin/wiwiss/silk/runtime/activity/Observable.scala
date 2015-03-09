@@ -22,7 +22,7 @@ import scala.collection.mutable
  * @tparam T The type of the value.
  */
 trait Observable[T] {
-  
+
   private val subscribers = new mutable.WeakHashMap[T => _, Unit]()
 
   /**

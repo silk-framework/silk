@@ -220,7 +220,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
       //Check if the HTTP response code is in the range 2xx
       if (connection.getResponseCode / 100 == 2) {
-        log.info(statements + " statements written to Store.")
+        log.fine(statements + " statements written to Store.")
       }
       else {
         val errorStream = connection.getErrorStream

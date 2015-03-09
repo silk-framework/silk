@@ -56,7 +56,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
         if (!indices.isEmpty) entityCount += 1
       }
 
-      val time = ((System.currentTimeMillis - startTime) / 1000.0)
+      val time = (System.currentTimeMillis - startTime) / 1000.0
       logger.log(runtimeConfig.logLevel, "Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
     } finally {
       writing = false

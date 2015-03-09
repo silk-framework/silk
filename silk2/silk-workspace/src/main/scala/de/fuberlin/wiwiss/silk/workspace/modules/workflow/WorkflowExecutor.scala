@@ -48,7 +48,7 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) exten
     val activity = taskExecutor(inputs, taskData, outputs)
     //TODO job.statusLogLevel = Level.FINE
     //TODO job.progressLogLevel = Level.FINE
-    context.executeBackground(activity, 0.0)
+    context.executeBlocking(activity, 0.0)
 
     log.info("Finished execution of " + operator.task)
   }

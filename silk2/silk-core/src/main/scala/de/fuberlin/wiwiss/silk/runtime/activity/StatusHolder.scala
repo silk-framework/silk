@@ -34,7 +34,7 @@ class StatusHolder(log: Logger, parent: Option[StatusHolder], progressContributi
    * Updates the current status.
    */
   def update(newStatus: Status) {
-    // Log status change
+    // Log status change if there is no parent that will log it in the end
     if(parent.isEmpty) {
       newStatus match {
         case _: Status.Running => log.log(progressLogLevel, status.toString)
@@ -43,7 +43,7 @@ class StatusHolder(log: Logger, parent: Option[StatusHolder], progressContributi
     }
 
     // Advance the progress of the parent task
-    for(p <- parent) {
+    for(p <- parent if progressContribution != 0.0) {
       val progressDiff = newStatus.progress - status.progress
       p.update(newStatus.message, p.status.progress + progressDiff * progressContribution)
     }
