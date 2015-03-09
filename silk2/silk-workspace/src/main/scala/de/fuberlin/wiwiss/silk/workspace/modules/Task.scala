@@ -16,6 +16,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 
 import java.util.concurrent.{ScheduledFuture, TimeUnit, Executors}
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.runtime.activity.{HasValue, Activity, ActivityControl}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
 import scala.reflect.ClassTag
@@ -26,7 +27,8 @@ import scala.reflect.ClassTag
  *
  * @tparam DataType The data type that specifies the properties of this task.
  */
-class Task[DataType](val name: Identifier, initialData: DataType, val caches: Seq[Cache[DataType, _]], plugin: ModulePlugin[DataType], project: Project) {
+class Task[DataType](val name: Identifier, initialData: DataType, val caches: Seq[Cache[DataType, _]],
+                     plugin: ModulePlugin[DataType], project: Project) {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -35,6 +37,10 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
+
+  private val activities: Map[Class[_], ActivityControl[_]] = {
+    plugin.activities(this, project).map(activity => (activity.activityType, Activity.control(activity))).toMap
+  }
 
   /**
    * Retrieves the current data of this task.
@@ -64,10 +70,22 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
    * @tparam T The type of the requested cache.
    */
   def cache[T: ClassTag]: T = {
-    val runtimeClass = implicitly[ClassTag[T]].runtimeClass
-    caches.find(_.getClass == runtimeClass)
-          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache of type '${runtimeClass.getName}'"))
+    val requestedClass = implicitly[ClassTag[T]].runtimeClass
+    caches.find(_.getClass == requestedClass)
+          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache of type '${requestedClass.getName}'"))
           .asInstanceOf[T]
+  }
+
+  /**
+   * Retrieves an activity by type.
+   *
+   * @tparam T The type of the requested activity
+   * @return The activity control for the requested activity
+   */
+  def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
+    val requestedClass = implicitly[ClassTag[T]].runtimeClass
+    activities.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
+              .asInstanceOf[ActivityControl[T#ValueType]]
   }
 
   private object Writer extends Runnable {

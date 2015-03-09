@@ -1,10 +1,9 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
-
-import scala.xml.Node
 
 /**
  * A plugin that adds a new module to the workspace.
@@ -32,4 +31,6 @@ trait ModulePlugin[DataType] {
    * Writes an updated task.
    */
   def writeTask(task: Task[DataType], resources: ResourceManager)
+
+  def activities(task: Task[DataType], project: Project): Seq[TaskActivity[_]] = Seq.empty
 }

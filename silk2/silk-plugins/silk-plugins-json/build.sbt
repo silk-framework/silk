@@ -2,7 +2,7 @@ name := "Silk Json Plugins"
 
 version := "2.6.1-SNAPSHOT"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.7"
 

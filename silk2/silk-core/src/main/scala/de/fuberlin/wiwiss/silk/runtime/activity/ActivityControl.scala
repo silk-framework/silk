@@ -27,7 +27,7 @@ trait ActivityControl[T] {
    *                 If none, the current activity is restarted.
    * @throws IllegalStateException If the activity is still running.
    */
-  def start(activity: Option[Activity[T]]): Unit
+  def start(activity: Option[Activity[T]] = None): Unit
 
   /**
    * Requests to stop the execution of this activity.

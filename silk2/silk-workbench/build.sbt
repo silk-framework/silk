@@ -8,7 +8,7 @@ name := "Silk-Workbench"
 
 version := "2.6.1-SNAPSHOT"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 ////////////////////////////////////////////////
 // War Packaging

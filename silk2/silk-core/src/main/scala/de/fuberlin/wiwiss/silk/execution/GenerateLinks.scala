@@ -28,9 +28,9 @@ import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
  * Main task to generate links.
  */
 class GenerateLinks(inputs: DPair[DataSource],
-                        linkSpec: LinkSpecification,
-                        outputs: Seq[DataSink] = Seq.empty,
-                        runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Seq[Link]] {
+                    linkSpec: LinkSpecification,
+                    outputs: Seq[DataSink] = Seq.empty,
+                    runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Seq[Link]] {
 
   /** The task used for loading the entities into the cache */
   @volatile private var loader: Loader = null

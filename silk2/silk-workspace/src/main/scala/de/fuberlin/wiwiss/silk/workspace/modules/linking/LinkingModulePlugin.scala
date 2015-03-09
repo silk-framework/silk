@@ -16,14 +16,17 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
+import de.fuberlin.wiwiss.silk.execution
+import de.fuberlin.wiwiss.silk.execution.GenerateLinks
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl}
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, ModulePlugin, Task}
 
 import scala.xml.XML
 
@@ -88,5 +91,17 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     taskResources.put("alignment.xml") { os => task.data.referenceLinks.toXML.write(os) }
     taskResources.put("cache.xml") { os => task.caches.head.toXML.write(os) }
   }
-  
+
+  override def activities(task: Task[LinkSpecification], project: Project): Seq[TaskActivity[_]] = {
+    // Generate links
+    def generateLinks =
+      GenerateLinks.fromSources(
+        inputs = project.tasks[Dataset].map(_.data),
+        linkSpec = task.data,
+        outputs = Nil,
+        runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
+      )
+    TaskActivity(generateLinks _) :: Nil
+  }
+
 }

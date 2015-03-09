@@ -109,11 +109,8 @@ class Project(val name: Identifier, val resourceManager: ResourceManager) {
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
   def anyTask(taskName: Identifier): Task[_] = {
-    for(module <- modules;
-        task <- module.taskOption(taskName)) {
-      return task
-    }
-    throw new NoSuchElementException(s"No task '$taskName' found in project '$name'")
+    modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[Task[_]]]).headOption
+           .getOrElse(throw new NoSuchElementException(s"No task '$taskName' found in project '$name'"))
   }
 
   def addTask[T: ClassTag](name: Identifier, taskData: T) = {

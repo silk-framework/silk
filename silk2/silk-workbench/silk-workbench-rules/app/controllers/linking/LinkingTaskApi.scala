@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.config.{DatasetSelection, LinkSpecification, Runt
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.{Link, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
-import de.fuberlin.wiwiss.silk.execution
+import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
 import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
@@ -220,21 +220,8 @@ object LinkingTaskApi extends Controller {
     val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val outputNames = params.get("outputs[]").toSeq.flatten
     val outputs = outputNames.map(name => project.task[Dataset](name).data)
-
-    /** We use a custom runtime config */
-    val runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
-
-    val generateLinksTask =
-      execution.GenerateLinks.fromSources(
-        inputs = project.tasks[Dataset].map(_.data),
-        linkSpec = task.data,
-        outputs = outputs,
-        runtimeConfig = runtimeConfig
-      )
-
-    val taskControl = Activity.execute(generateLinksTask)
-    CurrentGenerateLinksTask() = taskControl
-    taskControl.value.onUpdate(CurrentGeneratedLinks().update)
+    val generateLinksActivity = task.activity[GenerateLinksActivity]
+    generateLinksActivity.start()
 
     Ok
   }

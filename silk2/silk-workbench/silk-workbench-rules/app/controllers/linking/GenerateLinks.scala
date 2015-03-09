@@ -2,6 +2,9 @@ package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import controllers.core.{Stream, Widgets}
@@ -29,9 +32,10 @@ object GenerateLinks extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
+    val generatedLinks = task.activity[GenerateLinksActivity].value()
 
     def links =
-      for (link <- CurrentGeneratedLinks()().view;
+      for (link <- generatedLinks.view;
            detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
         if (referenceLinks.positive.contains(link))
           new EvalLink(detailedLink, Correct, Generated)
@@ -45,12 +49,16 @@ object GenerateLinks extends Controller {
   }
 
   def linksStream(projectName: String, taskName: String) = Action {
-    val stream = Stream.currentTaskValue(CurrentGeneratedLinks)
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val stream = Stream.activityValue(task.activity[GenerateLinksActivity])
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
-  def statusStream(project: String, task: String) = Action {
-    val stream = Stream.currentStatus(CurrentGenerateLinksTask)
+  def statusStream(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val stream = Stream.activityStatus(task.activity[GenerateLinksActivity])
     Ok.chunked(Widgets.status(stream))
   }
 

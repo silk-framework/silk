@@ -2,7 +2,7 @@ name := "Silk Plugins"
 
 version := "2.6.1-SNAPSHOT"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 lazy val core = project in file("../silk-core")
 

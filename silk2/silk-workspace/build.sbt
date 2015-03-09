@@ -2,7 +2,7 @@ name := "Silk Workspace"
 
 version := "2.6.1-SNAPSHOT"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 
 

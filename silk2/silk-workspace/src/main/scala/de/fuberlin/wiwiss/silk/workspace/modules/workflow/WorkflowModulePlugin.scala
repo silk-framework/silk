@@ -15,7 +15,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   override def prefix = "workflow"
 
   def createTask(name: Identifier, taskData: Workflow, project: Project): Task[Workflow] = {
-    new Task(name, taskData, Seq.empty, this, project)
+    new Task(name, taskData, Nil, this, project)
   }
 
   /**
