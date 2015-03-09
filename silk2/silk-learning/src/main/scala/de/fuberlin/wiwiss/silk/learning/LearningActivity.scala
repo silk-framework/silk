@@ -15,18 +15,18 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.runtime.oldtask.ValueTask
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 import de.fuberlin.wiwiss.silk.learning.LinkageRuleLearner.Result
-import de.fuberlin.wiwiss.silk.learning.genlink.GenLink
+import de.fuberlin.wiwiss.silk.learning.genlink.GenLinkLearner
 
 /**
  * Learns a linkage rule from reference links.
  */
-class LearningTask(input: LearningInput = LearningInput.empty,
-                   config: LearningConfiguration = LearningConfiguration.default) extends ValueTask[LearningResult](LearningResult()) {
+class LearningActivity(input: LearningInput = LearningInput.empty,
+                       config: LearningConfiguration = LearningConfiguration.default) extends Activity[LearningResult] {
 
-  private val learner = GenLink(config)
+  private val learner = GenLinkLearner(config)
 
   /** The time when the learning task has been started. */
   @volatile private var startTime = 0L
@@ -34,41 +34,32 @@ class LearningTask(input: LearningInput = LearningInput.empty,
   /** Set if the task has been stopped. */
   @volatile private var stop = false
 
-  /** Don't log progress. */
-  progressLogLevel = Level.FINE
-
-  /** Returns the learning result. */
-  def result = value.get
-
   /** Checks if this task is empty. */
   def isEmpty = input.trainingEntities.isEmpty
+  
+  override def initialValue = LearningResult()
 
   /**
    * Executes this learning task.
    */
-  override def execute(): LearningResult = {
+  override def run(context: ActivityContext[LearningResult]): Unit = {
     // Reset state
     startTime = System.currentTimeMillis
     stop = false
 
     // Execute linkage rule learner
-    val learnerTask = learner.learn(input.trainingEntities, input.seedLinkageRules)
-    learnerTask.onUpdate(updateStatus)
-    learnerTask.value.onUpdate(updateValue)
-    learnerTask()
-
-    // Return the final value
-    value.get
+    val learnerActivity = learner.learn(input.trainingEntities, input.seedLinkageRules)
+    context.executeBlocking(learnerActivity, 1.0, updateValue(context))
   }
 
   /**
    * Stops this learning task.
    */
-  override def stopExecution() {
+  override def cancelExecution() {
     stop = true
   }
 
-  private def updateValue(value: Result): Unit = {
+  private def updateValue(context: ActivityContext[LearningResult])(value: Result): Unit = {
     val bestRule = value.population.bestIndividual.node.build
     // TODO build training and validation result lazily
     val result =
@@ -80,6 +71,6 @@ class LearningTask(input: LearningInput = LearningInput.empty,
         validationResult = LinkageRuleEvaluator(bestRule, input.validationEntities),
         status = value.message
       )
-    LearningTask.this.value.update(result)
+    context.value.update(result)
   }
 }

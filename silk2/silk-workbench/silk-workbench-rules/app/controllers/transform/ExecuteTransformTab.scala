@@ -1,10 +1,10 @@
 package controllers.transform
 
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.config.TransformSpecification
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.workspace.User
-import models.transform.CurrentExecuteTransformTask
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
@@ -22,8 +22,10 @@ object ExecuteTransformTab extends Controller {
     Ok(views.html.executeTransform.executeTransformDialog(projectName, taskName, outputs))
   }
 
-  def statusStream(project: String, task: String) = Action {
-    val stream = Stream.currentStatus(CurrentExecuteTransformTask)
+  def statusStream(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val stream = Stream.status(task.activity[ExecuteTransform].status)
     Ok.chunked(Widgets.status(stream))
   }
 

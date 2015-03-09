@@ -1,18 +1,6 @@
 package models
 
-import java.util.logging.Level
-import de.fuberlin.wiwiss.silk.runtime.oldtask._
 import de.fuberlin.wiwiss.silk.runtime.activity.{ValueHolder, ActivityControl, Status}
-
-abstract class TaskStatusListener(task: HasStatus) extends Listener[TaskStatus] {
-  task.onUpdate(Listener)
-
-  private object Listener extends (TaskStatus => Unit) {
-    def apply(status: TaskStatus) {
-      apply(status)
-    }
-  }
-}
 
 abstract class TaskDataListener[T](userData: TaskData[T]) extends Listener[T] {
   userData.onUpdate(Listener)
@@ -63,33 +51,27 @@ abstract class CurrentStatusListener(taskHolder: TaskData[ActivityControl[_]]) e
 /**
  * Listens to the current status of the current users task.
  */
-abstract class CurrentTaskStatusListener[TaskType <: HasStatus](taskHolder: TaskData[TaskType]) extends Listener[TaskStatus] with HasStatus {
-
-  //Deactivate logging
-  statusLogLevel = Level.FINEST
-  progressLogLevel = Level.FINEST
+abstract class CurrentActivityStatusListener[TaskType <: ActivityControl[_]](taskHolder: TaskData[TaskType]) extends Listener[Status] {
 
   //Listen to changes of the current task
   taskHolder.onUpdate(Listener)
 
   //Set current task
-  @volatile protected var task = taskHolder()
+  @volatile protected var taskData = taskHolder()
 
   //Listen to changes of the status of the current task.
-  task.onUpdate(StatusListener)
-  updateStatus(task.status)
+  taskData.status.onUpdate(StatusListener)
 
   private object Listener extends (TaskType => Unit) {
     def apply(newTask: TaskType) {
-      task = newTask
-      task.onUpdate(StatusListener)
+      taskData = newTask
+      taskData.status.onUpdate(StatusListener)
     }
   }
 
-  private object StatusListener extends (TaskStatus => Unit) {
-    def apply(status: TaskStatus) {
+  private object StatusListener extends (Status => Unit) {
+    def apply(status: Status) {
       apply(status)
-      updateStatus(status)
     }
   }
 }

@@ -5,7 +5,9 @@ import java.util.logging.{Logger, Level}
 /**
  * Holds the current status of an activity.
  */
-class StatusHolder(log: Logger, parent: Option[StatusHolder], progressContribution: Double = 0.0) extends Observable[Status] {
+class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
+                   parent: Option[StatusHolder] = None,
+                   progressContribution: Double = 0.0) extends Observable[Status] {
 
   /**
    * The level at which task status changes should be logged.

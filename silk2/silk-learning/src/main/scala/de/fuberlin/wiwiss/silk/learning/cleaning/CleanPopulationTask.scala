@@ -15,17 +15,17 @@
 package de.fuberlin.wiwiss.silk.learning.cleaning
 
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
-import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.learning.individual._
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Task[Population] {
+class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Activity[Population] {
 
-  /**Maximum difference between two fitness values to be considered equal. */
+  /** Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001
 
-  override def execute(): Population = {
+  override def run(context: ActivityContext[Population]): Unit = {
     val individuals = population.individuals.par.map(cleanIndividual).seq
 
     val distinctIndividuals = removeDuplicates(individuals)
@@ -34,11 +34,10 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
 
     val randomIndividuals = for(i <- (0 until population.individuals.size - distinctIndividuals.size).par) yield {
         val linkageRule = generator()
-
         Individual(linkageRule, fitnessFunction(linkageRule.build))
     }
 
-    Population(distinctIndividuals ++ randomIndividuals)
+    context.value.update(Population(distinctIndividuals ++ randomIndividuals))
   }
 
   private def removeDuplicates(individuals: Traversable[Individual]) = {

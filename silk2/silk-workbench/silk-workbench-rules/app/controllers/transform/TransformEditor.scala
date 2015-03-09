@@ -1,11 +1,10 @@
 package controllers.transform
 
 import de.fuberlin.wiwiss.silk.config.TransformSpecification
+import de.fuberlin.wiwiss.silk.util.DPair
+import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 import play.api.mvc.{Action, Controller}
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
 import plugins.Context
 
 object TransformEditor extends Controller {
@@ -29,11 +28,11 @@ object TransformEditor extends Controller {
     val pathsCache = task.cache[PathsCache]
     val prefixes = project.config.prefixes
 
-    if(pathsCache.status.isRunning) {
-      val loadingMsg = f"Cache loading (${pathsCache.status.progress * 100}%.1f%%)"
+    if(pathsCache.status().isRunning) {
+      val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
       ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, loadingMsg = loadingMsg))
-    } else if(pathsCache.status.failed) {
-      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status.message))
+    } else if(pathsCache.status().failed) {
+      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message))
     } else {
       val paths = DPair(pathsCache.value.paths.map(_.serialize(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(paths, onlySource = true))

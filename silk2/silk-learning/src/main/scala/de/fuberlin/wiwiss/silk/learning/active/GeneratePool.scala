@@ -28,9 +28,9 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 
-private class GeneratePoolTask(inputs: Seq[DataSource],
-                               linkSpec: LinkSpecification,
-                               paths: DPair[Seq[Path]]) extends Activity[Seq[Link]] {
+private class GeneratePool(inputs: Seq[DataSource],
+                           linkSpec: LinkSpecification,
+                           paths: DPair[Seq[Path]]) extends Activity[Seq[Link]] {
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 

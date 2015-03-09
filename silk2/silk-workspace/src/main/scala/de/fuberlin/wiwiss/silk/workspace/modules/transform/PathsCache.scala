@@ -17,7 +17,7 @@ class PathsCache() extends Cache[TransformSpecification, EntityDescription](null
    * Loads the most frequent paths.
    */
   override def update(project: Project, task: TransformSpecification) = {
-    updateStatus("Retrieving frequent paths", 0.0)
+    status.update("Retrieving frequent paths", 0.0)
 
     //Create an entity description from the transformation task
     val currentEntityDesc = task.entityDescription

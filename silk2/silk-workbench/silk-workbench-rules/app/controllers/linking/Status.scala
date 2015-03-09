@@ -20,9 +20,9 @@ object Status extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.taskStatus(task.cache[LinkingCaches])
+    val stream = Stream.status(task.cache[LinkingCaches].status)
 
-    Ok.chunked(Widgets.taskStatus(stream, "cache"))
+    Ok.chunked(Widgets.status(stream, "cache"))
   }
   
   def sourceTypesCacheStream(projectName: String, taskName: String) = Action {
@@ -32,9 +32,9 @@ object Status extends Controller {
     val sourceTaskName = linkingTask.data.datasets.source.datasetId
     val sourceTask = project.task[Dataset](sourceTaskName)
 
-    val stream = Stream.taskStatus(sourceTask.cache)
+    val stream = Stream.status(sourceTask.cache)
 
-    Ok.chunked(Widgets.taskStatus(stream, "sourceTypesCache"))
+    Ok.chunked(Widgets.status(stream, "sourceTypesCache"))
   }
 
   def targetTypesCacheStream(projectName: String, taskName: String) = Action {
@@ -44,26 +44,26 @@ object Status extends Controller {
     val sourceTaskName = linkingTask.data.datasets.target.datasetId
     val sourceTask = project.task[Dataset](sourceTaskName)
 
-    val stream = Stream.taskStatus(sourceTask.cache)
+    val stream = Stream.status(sourceTask.cache)
 
-    Ok.chunked(Widgets.taskStatus(stream, "targetTypesCache"))
+    Ok.chunked(Widgets.status(stream, "targetTypesCache"))
   }
 
   def pathCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.taskStatus(task.cache[LinkingCaches].pathCache)
+    val stream = Stream.status(task.cache[LinkingCaches].pathCache.status)
 
-    Ok.chunked(Widgets.taskStatus(stream, "pathCache"))
+    Ok.chunked(Widgets.status(stream, "pathCache"))
   }
 
   def referenceEntitiesCacheStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.taskStatus(task.cache[LinkingCaches].referenceEntitiesCache)
+    val stream = Stream.status(task.cache[LinkingCaches].referenceEntitiesCache.status)
 
-    Ok.chunked(Widgets.taskStatus(stream, "referenceEntitiesCache"))
+    Ok.chunked(Widgets.status(stream, "referenceEntitiesCache"))
   }
 }

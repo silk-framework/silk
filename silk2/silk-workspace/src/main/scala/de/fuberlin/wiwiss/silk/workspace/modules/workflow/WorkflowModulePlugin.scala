@@ -49,6 +49,6 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   override def activities(task: Task[Workflow], project: Project): Seq[TaskActivity[_]] = {
     def workflowExecutor = new WorkflowExecutor(task.data.operators, project)
 
-    TaskActivity(workflowExecutor _) :: Nil
+    TaskActivity(workflowExecutor) :: Nil
   }
 }

@@ -1,16 +1,14 @@
 package controllers.transform
 
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.config.{TransformSpecification, DatasetSelection}
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform}
+
+import de.fuberlin.wiwiss.silk.config.{DatasetSelection, TransformSpecification}
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, ValidationException}
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
-import models.transform.CurrentExecuteTransformTask
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}
 
@@ -143,23 +141,13 @@ object TransformTaskApi extends Controller {
   def executeTransformTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
+    val activity = task.activity[ExecuteTransform]
+    activity.start()
 
     // Retrieve parameters
-    val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
-    val outputNames = params.get("outputs[]").toSeq.flatten
-    val outputs = outputNames.map(project.task[Dataset](_).data)
-
-    // Create execution task
-    val executeTransformTask =
-      new ExecuteTransform(
-        input = project.task[Dataset](task.data.selection.datasetId).data.source,
-        selection = task.data.selection,
-        rules = task.data.rules,
-        outputs = outputs.map(_.sink)
-      )
-
-    // Start task in the background
-    CurrentExecuteTransformTask() = Activity.execute(executeTransformTask)
+//    val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
+//    val outputNames = params.get("outputs[]").toSeq.flatten
+//    val outputs = outputNames.map(project.task[Dataset](_).data)
 
     Ok
   }

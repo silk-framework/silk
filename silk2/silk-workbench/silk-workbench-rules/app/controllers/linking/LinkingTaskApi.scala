@@ -7,17 +7,16 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.{Link, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
-import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
-import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningTask}
+import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearning}
+import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningActivity}
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.runtime.activity.Activity
-import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStatus}
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair, ValidationException}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
-import models.CurrentTaskStatusListener
+import models.CurrentActivityStatusListener
 import models.linking._
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}
@@ -252,61 +251,17 @@ object LinkingTaskApi extends Controller {
     Ok
   }
 
-  def learningTask(projectName: String, taskName: String) = Action {
+  def learningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-
-    //Start passive learning task
-    val input =
-      LearningInput(
-        trainingEntities = task.cache[LinkingCaches].entities,
-        seedLinkageRules = task.data.rule :: Nil
-      )
-    val learningTask = new LearningTask(input, CurrentConfiguration())
-    CurrentLearningTask() = learningTask
-    learningTask.runInBackground()
+    task.activity[LearningActivity].start()
     Ok
   }
 
-  def activeLearningTask(projectName: String, taskName: String) = Action {
+  def activeLearningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val datasets = project.tasks[Dataset].map(_.data)
-
-    //Start active learning task
-    val activeLearningTask =
-      new ActiveLearningTask(
-        config = CurrentConfiguration(),
-        datasets = DPair.fromSeq(task.data.datasets.map(ds => datasets.find(_.id == ds.datasetId).get.source)),
-        linkSpec = task.data,
-        paths = task.cache[LinkingCaches].entityDescs.map(_.paths),
-        referenceEntities = task.cache[LinkingCaches].entities,
-        pool = CurrentPool(),
-        population = CurrentPopulation()
-      )
-    CurrentValidationLinks() = Nil
-    CurrentActiveLearningTask() = activeLearningTask
-    activeLearningTask.runInBackground()
+    task.activity[ActiveLearning].start()
     Ok
-  }
-
-  // TODO
-//  private val learningTaskListener = new CurrentTaskValueListener(CurrentLearningTask) {
-//    override def onUpdate(result: LearningResult) {
-//      CurrentPopulation() = result.population
-//    }
-//  }
-
-  private val activeLearningTaskListener = new CurrentTaskStatusListener(CurrentActiveLearningTask) {
-    override def onUpdate(status: TaskStatus) {
-      status match {
-        case _: TaskFinished => {
-          CurrentPool() = task.pool
-          CurrentPopulation() = task.population
-          CurrentValidationLinks() = task.links
-        }
-        case _ =>
-      }
-    }
   }
 }

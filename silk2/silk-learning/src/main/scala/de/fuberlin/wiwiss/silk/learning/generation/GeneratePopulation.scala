@@ -14,24 +14,24 @@
 
 package de.fuberlin.wiwiss.silk.learning.generation
 
-import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
-import util.Random
-import de.fuberlin.wiwiss.silk.learning.individual.{LinkageRuleNode, Individual, Population}
-import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningInput}
-import de.fuberlin.wiwiss.silk.linkagerule.{input, LinkageRule}
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
+import de.fuberlin.wiwiss.silk.learning.individual.{Individual, LinkageRuleNode, Population}
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
+
+import scala.util.Random
 
 /**
  * Generates a new population of linkage rules.
  */
-class GeneratePopulationTask(seedLinkageRules: Traversable[LinkageRule], generator: LinkageRuleGenerator, config: LearningConfiguration) extends Task[Population] {
+class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule], generator: LinkageRuleGenerator, config: LearningConfiguration) extends Activity[Population] {
 
-  override def execute(): Population = {
+  override def run(context: ActivityContext[Population]): Unit = {
     val individuals = for(i <- (0 until config.params.populationSize).par) yield {
-      updateStatus(i.toDouble / config.params.populationSize)
+      context.status.update(i.toDouble / config.params.populationSize)
       generateIndividual()
     }
-
-    Population(individuals.seq)
+    context.value.update(Population(individuals.seq))
   }
 
   private def generateIndividual(): Individual = {

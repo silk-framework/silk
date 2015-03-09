@@ -1,16 +1,14 @@
 package controllers.linking
 
+import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
-import de.fuberlin.wiwiss.silk.runtime.activity.Activity
-import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
-import controllers.core.{Stream, Widgets}
-import play.api.mvc.{Controller, Action}
-import models.linking.{LinkSorter, EvalLink}
-import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
+import de.fuberlin.wiwiss.silk.workspace.User
+import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
+import models.linking.{EvalLink, LinkSorter}
+import play.api.mvc.{Action, Controller}
 import plugins.Context
 
 object GenerateLinks extends Controller {
@@ -58,7 +56,7 @@ object GenerateLinks extends Controller {
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val stream = Stream.activityStatus(task.activity[GenerateLinksActivity])
+    val stream = Stream.status(task.activity[GenerateLinksActivity].status)
     Ok.chunked(Widgets.status(stream))
   }
 

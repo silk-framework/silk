@@ -56,5 +56,5 @@ POST          /tasks/:project/:task/reloadCache                                 
 PUT           /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.startGenerateLinksTask(project: String, task: String)
 DELETE        /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.stopGenerateLinksTask(project: String, task: String)
 PUT           /tasks/:project/:task/writeReferenceLinks                             controllers.linking.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
-PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningTask(project: String, task: String)
-PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningTask(project: String, task: String)
+PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningActivity(project: String, task: String)
+PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningActivity(project: String, task: String)

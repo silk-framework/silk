@@ -3,11 +3,13 @@ package de.fuberlin.wiwiss.silk.workspace.modules.transform
 import java.util.logging.{Logger, Level}
 
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification, DatasetSelection, Prefixes}
+import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{Task, ModulePlugin}
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, Task, ModulePlugin}
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 
@@ -76,5 +78,18 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
    */
   override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {
     resources.delete(taskId)
+  }
+
+  override def activities(task: Task[TransformSpecification], project: Project): Seq[TaskActivity[_]] = {
+    // Execute transform
+    def executeTransform() =
+      new ExecuteTransform(
+        input = project.task[Dataset](task.data.selection.datasetId).data.source,
+        selection = task.data.selection,
+        rules = task.data.rules,
+        outputs = Seq.empty // TODO
+      )
+    // Create task activities
+    TaskActivity(executeTransform) :: Nil
   }
 }

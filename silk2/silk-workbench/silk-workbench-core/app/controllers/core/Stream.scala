@@ -1,7 +1,6 @@
 package controllers.core
 
-import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityControl, Status}
-import de.fuberlin.wiwiss.silk.runtime.oldtask.{HasStatus, TaskStatus}
+import de.fuberlin.wiwiss.silk.runtime.activity.{Observable, ActivityControl, Status}
 import models._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import scala.collection.mutable
@@ -22,55 +21,16 @@ object Stream {
     enumerator
   }
 
-  def activityStatus(activity: ActivityControl[_]): Enumerator[Status] = {
+  def status(status: Observable[Status]): Enumerator[Status] = {
     val (enumerator, channel) = Concurrent.broadcast[Status]
     val listener = new Listener[Status] {
       override def onUpdate(value: Status) {
         channel.push(value)
       }
     }
-    activity.status.onUpdate(listener)
+    status.onUpdate(listener)
     listeners.put(enumerator, listener)
     enumerator
-  }
-
-  def currentTaskStatus[T <: HasStatus](taskHolder: TaskData[T]): Enumerator[TaskStatus] = {
-    val (enumerator, channel) = Concurrent.broadcast[TaskStatus]
-
-    lazy val listener = new CurrentTaskStatusListener(taskHolder) {
-      def onUpdate(status: TaskStatus) {
-        channel.push(status)
-      }
-    }
-
-    listeners.put(enumerator, listener)
-    enumerator
-  }
-
-  def currentStatus(taskControl: TaskData[ActivityControl[_]]): Enumerator[Status] = {
-    val (enumerator, channel) = Concurrent.broadcast[Status]
-
-    lazy val listener = new CurrentStatusListener(taskControl) {
-      def onUpdate(status: Status) {
-        channel.push(status)
-      }
-    }
-
-    listeners.put(enumerator, listener)
-    enumerator
-  }
-
-  def taskStatus(task: HasStatus) = {
-    val (enumerator, channel) = Concurrent.broadcast[TaskStatus]
-
-    lazy val listener = new TaskStatusListener(task) {
-      def onUpdate(status: TaskStatus) {
-        channel.push(status)
-      }
-    }
-
-    listeners.put(enumerator, listener)
-    Enumerator(task.status) andThen enumerator
   }
 
   def taskData[T](userData: TaskData[T]): Enumerator[T] = {

@@ -2,11 +2,11 @@ package controllers.linking
 
 import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStatus}
+import de.fuberlin.wiwiss.silk.learning.LearningActivity
+import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
-import models.CurrentTaskStatusListener
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import play.api.mvc.{Action, Controller}
@@ -68,11 +68,14 @@ object Learning extends Controller {
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
-  def statusStream(project: String, task: String) = Action {
-    val stream1 = Stream.currentTaskStatus(CurrentLearningTask)
-    val stream2 = Stream.currentTaskStatus(CurrentActiveLearningTask)
+  def statusStream(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
 
-    Ok.chunked(Widgets.taskStatus(stream1 interleave stream2))
+    val stream1 = Stream.status(task.activity[LearningActivity].status)
+    val stream2 = Stream.status(task.activity[ActiveLearning].status)
+
+    Ok.chunked(Widgets.status(stream1 interleave stream2))
   }
 
   def population(project: String, task: String) = Action { request =>
@@ -90,21 +93,5 @@ object Learning extends Controller {
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
     Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.cache[LinkingCaches].entities))
-  }
-
-  /**
-   * Listens to changes of the current active learning task.
-   */
-  private val activeLearningTaskListener = new CurrentTaskStatusListener(CurrentActiveLearningTask) {
-    override def onUpdate(status: TaskStatus) {
-      status match {
-        case _: TaskFinished => {
-          CurrentPool() = task.pool
-          CurrentPopulation() = task.population
-          CurrentValidationLinks() = task.links
-        }
-        case _ =>
-      }
-    }
   }
 }

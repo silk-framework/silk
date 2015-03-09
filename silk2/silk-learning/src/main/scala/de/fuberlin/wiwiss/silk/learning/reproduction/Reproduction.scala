@@ -14,17 +14,18 @@
 
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
+
 import util.Random
-import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 
-class ReproductionTask(population: Population,
-                       fitnessFunction: (LinkageRule => Double),
-                       generator: LinkageRuleGenerator,
-                       config: LearningConfiguration) extends Task[Population] {
+class Reproduction(population: Population,
+                   fitnessFunction: (LinkageRule => Double),
+                   generator: LinkageRuleGenerator,
+                   config: LearningConfiguration) extends Activity[Population] {
 
   private val individuals = population.individuals.toArray
 
@@ -32,7 +33,7 @@ class ReproductionTask(population: Population,
 
   private val mutation = new MutationFunction(crossover, generator)
 
-  override def execute(): Population = {
+  override def run(context: ActivityContext[Population]): Unit = {
     //Get the best individuals and recompute their fitness as the reference links may have changed
     val elite = individuals.sortBy(-_.fitness)
                            .take(config.reproduction.elitismCount)
@@ -42,10 +43,10 @@ class ReproductionTask(population: Population,
     val count = individuals.size - config.reproduction.elitismCount
 
     val offspring = for(i <- (0 until count).par) yield {
-      updateStatus(i.toDouble / count); reproduce()
+      context.status.update(i.toDouble / count); reproduce()
     }
 
-    Population(elite ++ offspring)
+    context.value.update(Population(elite ++ offspring))
   }
 
   private def reproduce(): Individual = {

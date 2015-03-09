@@ -22,11 +22,11 @@ object LinkingEditor extends Controller {
     val pathsCache = task.cache[LinkingCaches].pathCache
     val prefixes = project.config.prefixes
 
-    if(pathsCache.status.isRunning) {
-      val loadingMsg = f"Cache loading (${pathsCache.status.progress * 100}%.1f%%)"
+    if(pathsCache.status().isRunning) {
+      val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
       ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg))
-    } else if(pathsCache.status.failed) {
-      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status.message + " Try reloading the paths."))
+    } else if(pathsCache.status().failed) {
+      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
     } else {
       val paths = pathsCache.value.map(_.paths.map(_.serialize(prefixes)))
       Ok(views.html.editor.paths(paths, onlySource = false))
@@ -39,14 +39,14 @@ object LinkingEditor extends Controller {
     val entitiesCache = task.cache[LinkingCaches].referenceEntitiesCache
 
     // If the entity cache is still loading
-    if(entitiesCache.status.isRunning) {
-      ServiceUnavailable(f"Cache loading (${entitiesCache.status.progress * 100}%.1f%%)")
+    if(entitiesCache.status().isRunning) {
+      ServiceUnavailable(f"Cache loading (${entitiesCache.status().progress * 100}%.1f%%)")
     // If the cache loading failed
-    } else if(entitiesCache.status.failed) {
+    } else if(entitiesCache.status().failed) {
       Ok(views.html.editor.score(
         info = "No score available",
         error = "No score available as loading the entities that are referenced by the reference links failed. " +
-                "Reason: " + entitiesCache.status.message))
+                "Reason: " + entitiesCache.status().message))
     // If there are no reference links
     } else if (entitiesCache.value.positive.isEmpty || entitiesCache.value.negative.isEmpty) {
       Ok(views.html.editor.score(

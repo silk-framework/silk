@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
-import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
@@ -23,14 +23,14 @@ import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 /**
  * Randomizes the population by mutating its individuals.
  */
-class RandomizeTask(population: Population,
-                    fitnessFunction: (LinkageRule => Double),
-                    generator: LinkageRuleGenerator,
-                    config: LearningConfiguration) extends Task[Population] {
+class Randomize(population: Population,
+                fitnessFunction: (LinkageRule => Double),
+                generator: LinkageRuleGenerator,
+                config: LearningConfiguration) extends Activity[Population] {
 
   private val mutation = new MutationFunction(new CrossoverFunction(fitnessFunction, config.components), generator)
 
-  override def execute(): Population = {
-    Population(population.individuals.par.map(mutation).seq)
+  override def run(context: ActivityContext[Population]): Unit = {
+    context.value.update(Population(population.individuals.par.map(mutation).seq))
   }
 }

@@ -1,11 +1,13 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
+import java.util.logging.Logger
+
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.learning.active.ActiveLearningTask
+import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearningState, ActiveLearning}
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
-import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
@@ -39,13 +41,12 @@ object ActiveLearningEvaluation extends EvaluationScript {
   private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
     val cache = dataset.task.cache[LinkingCaches]
     cache.waitUntilLoaded()
-    val task = new ActiveLearningEvaluator(config, dataset)
-    task()
+    Activity.executeBlocking(new ActiveLearningEvaluator(config, dataset))
   }
 }
 
 class ActiveLearningEvaluator(config: LearningConfiguration,
-                              ds: Data) extends Task[RunResult] {
+                              ds: Data) extends Activity[RunResult] {
 
   val numRuns = 1
 
@@ -55,7 +56,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
 
   val maxNegRefLinks = 3000
 
-  protected override def execute() = {
+  override def run(context: ActivityContext[RunResult]): Unit = {
     //Execute the active learning runs
     val results = for(run <- 1 to numRuns) yield runActiveLearning(run)
 
@@ -67,11 +68,11 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     println()
     println(AggregatedLearningResult.format(aggregatedResults, includeStandardDeviation = false, includeComplexity = false).toCsv)
 
-    RunResult(results.map(Run(_)))
+    context.value.update(RunResult(results.map(Run)))
   }
 
   private def runActiveLearning(run: Int): Seq[LearningResult] = {
-    logger.info("Experiment " + config.name + " on data set " + ds.name +  ": run " + run )
+    Logger.getLogger(getClass.getName).info("Experiment " + config.name + " on data set " + ds.name +  ": run " + run )
 
     var referenceEntities = ReferenceEntities()
     val validationEntities = ds.task.cache[LinkingCaches].entities
@@ -89,21 +90,19 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     var learningResults = List[LearningResult]()
 
     for(i <- 0 to maxLinks) {
-      val task =
-        new ActiveLearningTask(
+      val activity =
+        new ActiveLearning(
           config = config,
           datasets = ds.sources,
           linkSpec = ds.task.data,
           paths = ds.task.cache[LinkingCaches].entityDescs.map(_.paths),
           referenceEntities = referenceEntities,
-          pool = pool,
-          population = population
+          state = ActiveLearningState(pool, population, Seq.empty)
         )
 
-      task()
-
-      pool = task.pool
-      population = task.population
+      val result = Activity.executeBlocking(activity)
+      pool = result.pool
+      population = result.population
 
       //Evaluate performance of learned linkage rule
       val rule = population.bestIndividual.node.build
@@ -127,7 +126,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
 //      }
 
       //Evaluate new link
-      val link = task.links.head
+      val link = result.links.head
       if(validationEntities.positive.contains(link)) {
         println(link + " added to positive")
         referenceEntities = referenceEntities.withPositive(link.entities.get)

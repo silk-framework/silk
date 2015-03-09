@@ -1,8 +1,8 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
-import java.util.logging.Level
+import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.runtime.oldtask.{HasStatus, TaskFinished, TaskStarted}
+import de.fuberlin.wiwiss.silk.runtime.activity.{Status, StatusHolder}
 import de.fuberlin.wiwiss.silk.workspace.Project
 
 import scala.xml.Node
@@ -13,7 +13,7 @@ import scala.xml.Node
  * @tparam TaskType The task type for which values are cached.
  * @tparam T The type of the values that are cached.
  */
-abstract class Cache[TaskType, T](initialValue: T) extends HasStatus {
+abstract class Cache[TaskType, T](initialValue: T) {
 
   /** The current value of this thread. */
   @volatile
@@ -25,6 +25,10 @@ abstract class Cache[TaskType, T](initialValue: T) extends HasStatus {
 
   /** The thread used to load the current value. May be None if no thread has been created yet. */
   @volatile private var loadingThread: Option[Thread] = None
+
+  private val log = Logger.getLogger(getClass.getName)
+
+  val status = new StatusHolder()
 
   /** Retrieves the current value of this cache */
   def value = currentValue
@@ -49,16 +53,16 @@ abstract class Cache[TaskType, T](initialValue: T) extends HasStatus {
   }
 
   /** Start loading this cache. */
-  def load(project: Project, task: TaskType, update: Boolean = true) {
+  def load(project: Project, task: TaskType, updateCache: Boolean = true) {
     //Stop current loading thread
     for(thread <- loadingThread) {
       thread.interrupt()
       thread.join()
     }
 
-    if(update || !loaded) {
+    if(updateCache || !loaded) {
       //Set the task status
-      updateStatus(TaskStarted("Loading cache"))
+      status.update(Status.Started("Loading cache"))
       //Create new loading thread
       loadingThread = Some(new LoadingThread(project, task))
       //Start loading thread
@@ -105,19 +109,19 @@ abstract class Cache[TaskType, T](initialValue: T) extends HasStatus {
       try {
         val updated = update(project, task)
         loaded = true
-        updateStatus(TaskFinished("Loading cache", true, System.currentTimeMillis - startTime, None))
-        if(updated) logger.info("Cache updated")
+        status.update(Status.Finished("Loading cache", true, System.currentTimeMillis - startTime, None))
+        if(updated) log.info("Cache updated")
         // Commit to the project
 //        if(updated && !isInterrupted) {
         // TODO Schedule write
 //        }
       } catch {
         case ex: InterruptedException =>
-          logger.log(Level.WARNING, "Loading cache stopped")
-          updateStatus(TaskFinished("Loading stopped", false, System.currentTimeMillis - startTime, None))
+          log.log(Level.WARNING, "Loading cache stopped")
+          status.update(Status.Finished("Loading stopped", false, System.currentTimeMillis - startTime, None))
         case ex: Exception =>
-          logger.log(Level.WARNING, "Loading cache failed", ex)
-          updateStatus(TaskFinished("Loading cache", false, System.currentTimeMillis - startTime, Some(ex)))
+          log.log(Level.WARNING, "Loading cache failed", ex)
+          status.update(Status.Finished("Loading cache", false, System.currentTimeMillis - startTime, Some(ex)))
       }
       loadingThread = None
     }

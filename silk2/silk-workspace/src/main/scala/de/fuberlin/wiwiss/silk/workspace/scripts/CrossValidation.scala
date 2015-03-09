@@ -14,14 +14,13 @@
 
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
-import de.fuberlin.wiwiss.silk.runtime.oldtask.Task
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import java.util.logging.Level
+import de.fuberlin.wiwiss.silk.learning._
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 import scala.util.Random
-import de.fuberlin.wiwiss.silk.learning._
-import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object CrossValidation extends EvaluationScript {
 
@@ -58,15 +57,14 @@ object CrossValidation extends EvaluationScript {
     log.info("Running: " + dataset.name)
     val cache = dataset.task.cache[LinkingCaches]
     cache.waitUntilLoaded()
-    val task = new CrossValidation(cache.entities, config)
-    task()
+    Activity.executeBlocking(new CrossValidation(cache.entities, config))
   }
 }
 
 /**
  * Performs multiple cross validation runs and outputs the statistics.
  */
-class CrossValidation(entities : ReferenceEntities, config: LearningConfiguration) extends Task[RunResult] {
+class CrossValidation(entities : ReferenceEntities, config: LearningConfiguration) extends Activity[RunResult] {
   require(entities.isDefined, "Reference Entities are required")
   
   /** The number of cross validation runs. */
@@ -75,15 +73,12 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
   /** The number of splits used for cross-validation. */
   private val numFolds = 2
 
-  /** Don't log progress. */
-  progressLogLevel = Level.FINE
-
   /**
    * Executes all cross validation runs.
    */
-  override def execute() = {
+  override def run(context: ActivityContext[RunResult]) = {
     //Execute the cross validation runs
-    val results = for(run <- 0 until numRuns; result <- crossValidation(run)) yield result
+    val results = for(run <- 0 until numRuns; result <- crossValidation(run, context)) yield result
     //Make sure that all runs have the same number of results
     val paddedResults = results.map(r => r.padTo(config.params.maxIterations + 1, r.last))
 
@@ -100,25 +95,20 @@ class CrossValidation(entities : ReferenceEntities, config: LearningConfiguratio
   /**
    * Executes one cross validation run.
    */
-  private def crossValidation(run: Int): Seq[Seq[LearningResult]] = {
-    logger.info("Cross validation run " + run)
+  private def crossValidation(run: Int, context: ActivityContext[RunResult]): Seq[Seq[LearningResult]] = {
+    context.log.info("Cross validation run " + run)
     
     val splits = splitReferenceEntities()
 
     for((split, index) <- splits.zipWithIndex) yield {
-      val learningTask = new LearningTask(split, config)
+      val learningActivity = new LearningActivity(split, config)
 
       var results = List[LearningResult]()
       val addResult = (result: LearningResult) => {
         if (result.iterations > results.view.map(_.iterations).headOption.getOrElse(0))
           results ::= result
       }
-      learningTask.value.onUpdate(addResult)
-
-      executeSubTask(learningTask, (run.toDouble + index.toDouble / splits.size) / numRuns)
-
-      //Add the learning result to the list
-      results = learningTask.value.get :: results.tail
+      results = context.executeBlocking(learningActivity, index.toDouble / splits.size / numRuns, addResult) :: results.tail
 
       results.reverse
     }

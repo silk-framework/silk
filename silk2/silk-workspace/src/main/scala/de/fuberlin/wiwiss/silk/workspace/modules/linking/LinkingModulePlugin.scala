@@ -18,12 +18,16 @@ import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
 import de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
+import de.fuberlin.wiwiss.silk.learning.{LearningResult, LearningActivity, LearningInput, LearningConfiguration}
+import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearningState, ActiveLearning}
+import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl}
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
-import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, ModulePlugin, Task}
@@ -94,14 +98,36 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
 
   override def activities(task: Task[LinkSpecification], project: Project): Seq[TaskActivity[_]] = {
     // Generate links
-    def generateLinks =
+    def generateLinks(links: Seq[Link]) =
       GenerateLinks.fromSources(
         inputs = project.tasks[Dataset].map(_.data),
         linkSpec = task.data,
         outputs = Nil,
         runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
       )
-    TaskActivity(generateLinks _) :: Nil
+    // Supervised learning
+    def learning(population: LearningResult) = {
+      val input =
+        LearningInput(
+          trainingEntities = task.cache[LinkingCaches].entities,
+          seedLinkageRules = task.data.rule :: Nil
+        )
+      new LearningActivity(input, LearningConfiguration.default)
+    }
+    // Active learning
+    def activeLearning(state: ActiveLearningState) =
+      new ActiveLearning(
+        config = LearningConfiguration.default,
+        datasets = DPair.fromSeq(task.data.datasets.map(ds => project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).get.source)),
+        linkSpec = task.data,
+        paths = task.cache[LinkingCaches].entityDescs.map(_.paths),
+        referenceEntities = task.cache[LinkingCaches].entities,
+        state = state
+      )
+    // Create task activities
+    TaskActivity(Seq.empty, generateLinks) ::
+    TaskActivity(LearningResult(), learning) ::
+    TaskActivity(ActiveLearningState.initial, activeLearning) :: Nil
   }
 
 }

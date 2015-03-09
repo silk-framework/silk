@@ -58,6 +58,12 @@ object Activity {
     execution
   }
 
+  def executeBlocking[T](activity: Activity[T]): T = {
+    val execution = new ActivityExecution[T](activity)
+    execution.run()
+    execution.value()
+  }
+
   def control[T](activity: Activity[T]): ActivityControl[T] = {
     new ActivityExecution[T](activity)
   }

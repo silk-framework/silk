@@ -19,9 +19,9 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
   private def entities_=(v: ReferenceEntities) { value = v}
 
   override def update(project: Project, linkSpec: LinkSpecification) = {
-    updateStatus("Waiting for paths cache", 0.0)
+    status.update("Waiting for paths cache", 0.0)
     pathsCache.waitUntilLoaded()
-    if(pathsCache.status.failed)
+    if(pathsCache.status().failed)
      throw new Exception("Cannot load reference entities cache, because the paths cache could not be loaded.")
 
 //    if(value == null ||
@@ -102,7 +102,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
     private var updated = false
 
     def load() = {
-      updateStatus("Loading entities", 0.0)
+      status.update("Loading entities", 0.0)
 
       val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size
       var loadedLinks = 0
@@ -113,7 +113,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
         entities = entities.withPositive(loadPositiveLink(link))
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
-          updateStatus(0.5 * (loadedLinks.toDouble / linkCount))
+          status.update(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- linkSpec.referenceLinks.negative) {
@@ -121,7 +121,7 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
         entities = entities.withNegative(loadNegativeLink(link))
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
-          updateStatus(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
+          status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       updated

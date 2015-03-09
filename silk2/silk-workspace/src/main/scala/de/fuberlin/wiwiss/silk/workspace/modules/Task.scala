@@ -55,7 +55,7 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
     currentData = newData
     // Update caches
     for(cache <- caches)
-      cache.load(project, currentData, update = true)
+      cache.load(project, currentData, updateCache = true)
     // (Re)Schedule write
     for(writer <- scheduledWriter) {
       writer.cancel(false)

@@ -14,11 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
-import scala.xml.Node
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes}
+import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.runtime.activity.Status
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.runtime.oldtask._
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
+
+import scala.xml.Node
 
 /**
  * Holds all caches.
@@ -38,8 +39,8 @@ class LinkingCaches() extends Cache[LinkSpecification, Unit] {
   val caches: Seq[Cache[LinkSpecification, _]] = pathCache :: referenceEntitiesCache :: Nil
 
   //Update overall status whenever the status of a cache changes.
-  pathCache.onUpdate(StatusListener)
-  referenceEntitiesCache.onUpdate(StatusListener)
+  pathCache.status.onUpdate(StatusListener)
+  referenceEntitiesCache.status.onUpdate(StatusListener)
 
   /** The cached entity descriptions containing the most frequent paths. */
   def entityDescs = pathCache.value
@@ -99,27 +100,27 @@ class LinkingCaches() extends Cache[LinkSpecification, Unit] {
   // Never called as load method is overridden
   override protected def update(project: Project, task: LinkSpecification): Boolean = false
 
-  object StatusListener extends (TaskStatus => Unit) {
-    def apply(status: TaskStatus) {
+  object StatusListener extends (Status => Unit) {
+    def apply(newStatus: Status) {
       //Collect the statuses of all caches
-      val statuses = caches.map(_.status)
+      val statuses = caches.map(_.status())
 
       //Check if all tasks are idle
-      if(statuses.forall(_.isInstanceOf[TaskIdle])) {
-        updateStatus(TaskIdle())
+      if(statuses.forall(_ == Status.Idle)) {
+        status.update(Status.Idle)
       }
       //Check if a task has failed
       else if (statuses.exists(_.failed)) {
-        for(failedStatus <- statuses.find(_.failed)) updateStatus(failedStatus)
+        for(failedStatus <- statuses.find(_.failed)) status.update(failedStatus)
       }
       //Check if all tasks are finished
-      else if(statuses.forall(_.isInstanceOf[TaskFinished])) {
-        updateStatus(status)
+      else if(statuses.forall(_.isInstanceOf[Status.Finished])) {
+        status.update(newStatus)
       }
       //If we get here, at least one task is still running
       else {
         val overallProgress = statuses.map(_.progress).sum / caches.size
-        updateStatus(status.message, overallProgress)
+        status.update(newStatus.message, overallProgress)
       }
     }
   }

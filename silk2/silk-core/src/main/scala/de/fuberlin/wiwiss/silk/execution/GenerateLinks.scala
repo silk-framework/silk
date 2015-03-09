@@ -20,8 +20,7 @@ import de.fuberlin.wiwiss.silk.cache.{FileEntityCache, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.dataset.{Dataset,DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
-import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, ValueHolder, Activity}
-import de.fuberlin.wiwiss.silk.runtime.oldtask.TaskFinished
+import de.fuberlin.wiwiss.silk.runtime.activity.{Status, ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 
@@ -70,7 +69,7 @@ class GenerateLinks(inputs: DPair[DataSource],
       if (runtimeConfig.reloadCache) {
         val loaderControl = context.executeBackground(loader)
         // Wait until the caches are being written
-        while (!loaderControl.status().isInstanceOf[TaskFinished] && !(caches.source.isWriting && caches.target.isWriting)) {
+        while (!loaderControl.status().isInstanceOf[Status.Finished] && !(caches.source.isWriting && caches.target.isWriting)) {
           Thread.sleep(100)
         }
       }

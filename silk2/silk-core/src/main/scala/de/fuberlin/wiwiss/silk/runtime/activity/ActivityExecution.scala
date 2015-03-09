@@ -1,9 +1,6 @@
 package de.fuberlin.wiwiss.silk.runtime.activity
 
 import java.util.logging.{Logger, Level}
-
-import de.fuberlin.wiwiss.silk.runtime.oldtask.{TaskFinished, TaskStarted, TaskCanceling}
-
 import scala.concurrent.ExecutionContext
 
 private class ActivityExecution[T](@volatile var activity: Activity[T],
@@ -67,7 +64,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   }
 
   override def cancel() = {
-    if(status().isRunning && !status().isInstanceOf[TaskCanceling]) {
+    if(status().isRunning && !status().isInstanceOf[Status.Canceling]) {
       status.update(Status.Canceling(activity.name, status().progress))
       childControls.foreach(_.cancel())
       activity.cancelExecution()

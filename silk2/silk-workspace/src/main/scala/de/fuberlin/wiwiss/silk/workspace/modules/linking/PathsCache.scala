@@ -18,7 +18,7 @@ class PathsCache() extends Cache[LinkSpecification, DPair[EntityDescription]](nu
    * Loads the most frequent property paths.
    */
   override def update(project: Project, linkSpec: LinkSpecification) = {
-    updateStatus("Retrieving frequent property paths", 0.0)
+    status.update("Retrieving frequent property paths", 0.0)
 
     //Create an entity description from the link specification
     val currentEntityDescs = linkSpec.entityDescriptions
