@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.runtime.activity
 
 import de.fuberlin.wiwiss.silk.util.StringUtils._
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import scala.concurrent.ExecutionContext
 
 /**
@@ -30,6 +31,8 @@ trait Activity[T] extends HasValue {
    *  Can be overridden in implementing classes to allow cancellation of the activity.
    */
   def cancelExecution(): Unit = { }
+
+  def initialValue: T = throw new NotImplementedError()
 
   /**
    * Captures the bound value type.

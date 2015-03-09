@@ -49,6 +49,8 @@ class GenerateLinks(inputs: DPair[DataSource],
    */
   def warnings = warningLog
 
+  override def initialValue = Seq.empty
+
   override def run(context: ActivityContext[Seq[Link]]) = {
     //TODO statusLogLevel = runtimeConfig.logLevel
     //TODO progressLogLevel = runtimeConfig.logLevel

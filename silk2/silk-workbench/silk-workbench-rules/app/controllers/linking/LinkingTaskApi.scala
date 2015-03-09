@@ -227,7 +227,10 @@ object LinkingTaskApi extends Controller {
   }
 
   def stopGenerateLinksTask(projectName: String, taskName: String) = Action {
-    CurrentGenerateLinksTask().cancel()
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val generateLinksActivity = task.activity[GenerateLinksActivity]
+    generateLinksActivity.cancel()
     Ok
   }
 

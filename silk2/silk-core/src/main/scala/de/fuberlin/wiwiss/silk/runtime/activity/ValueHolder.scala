@@ -3,23 +3,16 @@ package de.fuberlin.wiwiss.silk.runtime.activity
 /**
  * Holds the current value of an activity.
  */
-class ValueHolder[T]() extends Observable[T] {
+class ValueHolder[T](initialValue: => T) extends Observable[T] {
 
   @volatile
-  private var value: Option[T] = None
+  private var value: T = _
+  try { value = initialValue } catch { case _: NotImplementedError => }
 
-  def get = value
-
-  def hasValue = value.isDefined
-
-  override def apply(): T = value.getOrElse(throw new NoSuchElementException("Tried to request a value from an activity which did not generate a value yet."))
+  override def apply(): T = value
 
   def update(v: T) {
-    value = Some(v)
+    value = v
     publish(v)
-  }
-
-  def reset(): Unit = {
-    value = None
   }
 }

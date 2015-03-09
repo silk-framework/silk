@@ -9,6 +9,8 @@ case class TaskActivity[T](create: () => Activity[T]) extends Activity[T] {
 
   val activityType = create().getClass
 
+  override def initialValue = create().initialValue
+
   /**
    * Executes this activity.
    *

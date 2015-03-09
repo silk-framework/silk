@@ -25,26 +25,6 @@ abstract class TaskDataListener[T](userData: TaskData[T]) extends Listener[T] {
 }
 
 /**
- * Listens to the current value of the current linking task.
- */
-abstract class CurrentLinkingTaskValueListener[T](taskHolder: TaskData[ValueHolder[T]]) extends Listener[T] {
-  taskHolder.onUpdate(Listener)
-  taskHolder().onUpdate(ValueListener)
-
-  private object Listener extends (ValueHolder[T] => Unit) {
-    def apply(valueHolder: ValueHolder[T]) {
-      valueHolder.onUpdate(ValueListener)
-    }
-  }
-
-  private object ValueListener extends (T => Unit) {
-    def apply(value: T) {
-      update(value)
-    }
-  }
-}
-
-/**
  * Listens to the current status of the current users task.
  */
 abstract class CurrentStatusListener(taskHolder: TaskData[ActivityControl[_]]) extends Listener[Status] {
@@ -53,7 +33,7 @@ abstract class CurrentStatusListener(taskHolder: TaskData[ActivityControl[_]]) e
   //TODO statusLogLevel = Level.FINEST
   // progressLogLevel = Level.FINEST
 
-  val statusHolder = new ValueHolder[Status]
+  val statusHolder = new ValueHolder[Status](Status.Idle)
 
   //Listen to changes of the current task
   taskHolder.onUpdate(Listener)

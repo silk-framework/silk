@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
 import controllers.core.{Stream, Widgets}
 import play.api.mvc.{Controller, Action}
-import models.linking.{CurrentGeneratedLinks, LinkSorter, CurrentGenerateLinksTask, EvalLink}
+import models.linking.{LinkSorter, EvalLink}
 import models.linking.EvalLink.{Unknown, Incorrect, Generated, Correct}
 import plugins.Context
 

@@ -18,7 +18,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   /**
    * Holds the current value.
    */
-  override val value = new ValueHolder[T]()
+  override val value = new ValueHolder[T](activity.initialValue)
 
   /**
    * Retrieves the logger to be used by the activity.
@@ -36,7 +36,6 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   override def run(): Unit = synchronized {
     // Reset
     val startTime = System.currentTimeMillis
-    value.reset()
     status.update(Status.Started(activity.taskName))
 
     // Run

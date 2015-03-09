@@ -63,19 +63,6 @@ object Stream {
     enumerator.onDoneEnumerating(() => listeners.remove(listener))
   }
 
-  def currentTaskValue[T](taskHolder: TaskData[ValueHolder[T]]): Enumerator[T] = {
-    val (enumerator, channel) = Concurrent.broadcast[T]
-
-    lazy val listener = new CurrentLinkingTaskValueListener(taskHolder) {
-      def onUpdate(value: T) {
-        channel.push(value)
-      }
-    }
-
-    listeners.put(listener, Unit)
-    enumerator.onDoneEnumerating(() => listeners.remove(listener))
-  }
-
   def taskStatus(task: HasStatus) = {
     val (enumerator, channel) = Concurrent.broadcast[TaskStatus]
 
