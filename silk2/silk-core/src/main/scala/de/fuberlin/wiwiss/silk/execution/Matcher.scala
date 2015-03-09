@@ -41,7 +41,7 @@ class Matcher(linkageRule: LinkageRule,
                 sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
 
   /** The name of this task. */
-  override def taskName = "MatchTask"
+  override def name = "MatchTask"
 
   private val log = Logger.getLogger(getClass.getName)
 

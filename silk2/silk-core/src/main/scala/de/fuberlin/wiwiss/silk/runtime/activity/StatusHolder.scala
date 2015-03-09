@@ -33,22 +33,24 @@ class StatusHolder(log: Logger, parent: Option[StatusHolder], progressContributi
   /**
    * Updates the current status.
    */
-  def update(s: Status) {
+  def update(newStatus: Status) {
     // Log status change
-    status match {
-      case _: Status.Running => log.log(progressLogLevel, status.toString)
-      case _ => log.log(statusLogLevel, status.toString)
+    if(parent.isEmpty) {
+      newStatus match {
+        case _: Status.Running => log.log(progressLogLevel, status.toString)
+        case _ => log.log(statusLogLevel, status.toString)
+      }
     }
 
     // Advance the progress of the parent task
     for(p <- parent) {
-      val progressDiff = status.progress - this.status.progress
-      p.update(p.status.progress + progressDiff * progressContribution)
+      val progressDiff = newStatus.progress - status.progress
+      p.update(newStatus.message, p.status.progress + progressDiff * progressContribution)
     }
 
     // Publish status change
-    if(!status.isInstanceOf[Status.Canceling]) {
-      status = status
+    if(!newStatus.isInstanceOf[Status.Canceling]) {
+      status = newStatus
       publish(status)
     }
   }

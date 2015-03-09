@@ -27,7 +27,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 class Loader(sources: DPair[DataSource],
              caches: DPair[EntityCache]) extends Activity[Unit] {
 
-  override def taskName = "Loading"
+  override def name = "Loading"
 
   @volatile var exception: Exception = null
 
@@ -55,11 +55,6 @@ class Loader(sources: DPair[DataSource],
       if (exception != null) {
         throw exception
       }
-    }
-
-    // Wait until the caches are being written
-    while (!context.status().isInstanceOf[TaskFinished] && !(caches.source.isWriting && caches.target.isWriting)) {
-      Thread.sleep(100)
     }
   }
 

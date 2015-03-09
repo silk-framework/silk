@@ -23,7 +23,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   /**
    * Retrieves the logger to be used by the activity.
    */
-  override val log = Logger.getLogger(getClass.getName)
+  override val log = Logger.getLogger(activity.getClass.getName)
 
   /**
    * Holds the current status.
@@ -36,16 +36,16 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   override def run(): Unit = synchronized {
     // Reset
     val startTime = System.currentTimeMillis
-    status.update(Status.Started(activity.taskName))
+    status.update(Status.Started(activity.name))
 
     // Run
     try {
       activity.run(this)
-      status.update(Status.Finished(activity.taskName, success = true, System.currentTimeMillis - startTime))
+      status.update(Status.Finished(activity.name, success = true, System.currentTimeMillis - startTime))
     } catch {
       case ex: Throwable =>
-        logger.log(Level.WARNING, activity.taskName + " failed", ex)
-        status.update(Status.Finished(activity.taskName, success = false, System.currentTimeMillis - startTime, Some(ex)))
+        logger.log(Level.WARNING, activity.name + " failed", ex)
+        status.update(Status.Finished(activity.name, success = false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex
     }
   }
@@ -58,7 +58,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   override def start(activity: Option[Activity[T]]): Unit = {
     // Check if the current activity is still running
     if(status().isRunning)
-      throw new IllegalStateException(s"Cannot start while activity ${this.activity.taskName} is still running!")
+      throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     // Replace current activity
     for(a <- activity)
       this.activity = a
@@ -68,7 +68,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
 
   override def cancel() = {
     if(status().isRunning && !status().isInstanceOf[TaskCanceling]) {
-      status.update(Status.Canceling(activity.taskName, status().progress))
+      status.update(Status.Canceling(activity.name, status().progress))
       childControls.foreach(_.cancel())
       activity.cancelExecution()
     }

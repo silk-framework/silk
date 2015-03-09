@@ -18,7 +18,7 @@ trait Activity[T] extends HasValue {
    * By default, the name is generated from the name of the implementing class.
    * Can be overridden in implementing classes.
    */
-  def taskName: String = getClass.getSimpleName.undoCamelCase
+  def name: String = getClass.getSimpleName.undoCamelCase
 
   /**
    * Executes this activity.

@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkFilter
  */
 class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[IndexedSeq[Link]] {
 
-  override def taskName = "Filtering"
+  override def name = "Filtering"
 
   override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
     val linkBuffer = new ArrayBuffer[Link]()

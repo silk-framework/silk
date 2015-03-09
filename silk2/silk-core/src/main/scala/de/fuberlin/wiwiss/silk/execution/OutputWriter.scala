@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
  */
 class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Activity[Unit] {
 
-  override def taskName = "Writing output"
+  override def name = "Writing output"
 
   override def run(context: ActivityContext[Unit]) {
     outputs.foreach(_.open())

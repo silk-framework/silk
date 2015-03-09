@@ -2,12 +2,11 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 
-import scala.reflect.ClassTag
-
-
 case class TaskActivity[T](create: () => Activity[T]) extends Activity[T] {
 
   val activityType = create().getClass
+
+  override def name = create().name
 
   override def initialValue = create().initialValue
 
