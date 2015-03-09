@@ -76,14 +76,14 @@ class GenerateLinks(inputs: DPair[DataSource],
       }
 
       //Execute matching
-      val links = context.executeBlocking(matcher, 0.95, context.value.update)
+      context.executeBlocking(matcher, 0.95, context.value.update)
 
       //Filter links
-      val filterTask = new Filter(links, linkSpec.rule.filter)
-      val filteredLinks = context.executeBlocking(filterTask, 0.03, context.value.update)
+      val filterTask = new Filter(context.value(), linkSpec.rule.filter)
+      context.executeBlocking(filterTask, 0.03, context.value.update)
 
       //Output links
-      val outputTask = new OutputWriter(filteredLinks, linkSpec.rule.linkType, outputs)
+      val outputTask = new OutputWriter(context.value(), linkSpec.rule.linkType, outputs)
       context.executeBlocking(outputTask)
     }
   }

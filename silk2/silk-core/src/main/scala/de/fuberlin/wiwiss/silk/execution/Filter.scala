@@ -43,12 +43,12 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[IndexedSeq[L
             linkBuffer.appendAll(bestLinks)
           }
         }
+        context.value.update(linkBuffer)
         context.log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
       }
       case None => {
         links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
       }
     }
-    context.value.update(linkBuffer)
   }
 }
