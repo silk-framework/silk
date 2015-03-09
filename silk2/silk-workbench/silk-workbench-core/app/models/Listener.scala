@@ -20,7 +20,6 @@ trait Listener[T]{
   private val logger = Logger.getLogger(getClass.getName)
 
   def update(value: T) {
-    println("NEW VLAUE")
     if(scheduled) {
       lastMessage = Some(value)
     } else {

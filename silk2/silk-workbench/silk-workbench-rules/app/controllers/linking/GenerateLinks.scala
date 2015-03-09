@@ -34,8 +34,6 @@ object GenerateLinks extends Controller {
     val linkSorter = LinkSorter.fromId(sorting)
     val generatedLinks = task.activity[GenerateLinksActivity].value()
 
-    println("LINKS LINKS LINKS: " + generatedLinks.size)
-
     def links =
       for (link <- generatedLinks.view;
            detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
