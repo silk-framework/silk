@@ -45,7 +45,7 @@ class LinkingCaches() extends Cache[LinkSpecification, Unit] {
   referenceEntitiesCache.status.onUpdate(StatusListener)
 
   /** The cached entity descriptions containing the most frequent paths. */
-  def entityDescs: DPair[EntityDescription] = Option(pathCache.value).getOrElse(DPair.fill(EntityDescription.empty))
+  def entityDescs: DPair[EntityDescription] = pathCache.entityDescs
 
   /** The cached entities. */
   def entities = referenceEntitiesCache.value

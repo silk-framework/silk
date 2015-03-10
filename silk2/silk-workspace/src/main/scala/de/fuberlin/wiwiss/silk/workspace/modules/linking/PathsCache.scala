@@ -14,6 +14,8 @@ import scala.xml.Node
  */
 class PathsCache() extends Cache[LinkSpecification, DPair[EntityDescription]](null) {
 
+  def entityDescs = Option(value).getOrElse(DPair.fill(EntityDescription.empty))
+
   /**
    * Loads the most frequent property paths.
    */

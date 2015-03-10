@@ -28,7 +28,7 @@ object LinkingEditor extends Controller {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
     } else {
-      val paths = pathsCache.value.map(_.paths.map(_.serialize(prefixes)))
+      val paths = pathsCache.entityDescs.map(_.paths.map(_.serialize(prefixes)))
       Ok(views.html.editor.paths(paths, onlySource = false))
     }
   }
