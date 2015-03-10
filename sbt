@@ -61,8 +61,8 @@ cygwinpath() {
 
 declare -r noshare_opts="-Dsbt.global.base=project/.sbtboot -Dsbt.boot.directory=project/.boot -Dsbt.ivy.home=project/.ivy"
 declare -r sbt_opts_file=".sbtopts"
-declare -r etc_sbt_opts_file="${sbt_home}/conf/sbtopts"
-declare -r win_sbt_opts_file="${sbt_home}/conf/sbtconfig.txt"
+declare -r etc_sbt_opts_file="${sbt_home}/project/sbtopts"
+declare -r win_sbt_opts_file="${sbt_home}/project/sbtconfig.txt"
 
 usage() {
  cat <<EOM
