@@ -16,10 +16,11 @@ package de.fuberlin.wiwiss.silk.execution
 
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.{Path, Link}
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import methods._
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
-import io.Source
+import scala.io.Source
 import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import methods.Blocking
@@ -151,7 +152,7 @@ object GenerateLinksTaskTest {
       val config = dataset.config
 
       // Execute Matching
-      val task =
+      val activity =
         GenerateLinks.fromSources(
           inputs = config.sources,
           linkSpec = config.linkSpecs.head,
@@ -159,7 +160,7 @@ object GenerateLinksTaskTest {
           runtimeConfig = runtimeConfig
         )
 
-      val links = task()
+      val links = Activity.executeBlocking(activity)
       links.toSet
     }
   }

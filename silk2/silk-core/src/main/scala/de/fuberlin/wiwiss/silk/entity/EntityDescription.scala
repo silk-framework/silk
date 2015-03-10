@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
@@ -62,6 +62,9 @@ case class EntityDescription(variable: String, restrictions: SparqlRestriction, 
 }
 
 object EntityDescription {
+
+  def empty = EntityDescription("a", SparqlRestriction.empty, IndexedSeq.empty)
+
   def fromXML(node: Node) = {
     val variable = (node \ "Variable").text.trim
     new EntityDescription(

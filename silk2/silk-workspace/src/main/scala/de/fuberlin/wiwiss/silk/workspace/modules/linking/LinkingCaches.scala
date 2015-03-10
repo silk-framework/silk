@@ -15,7 +15,9 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.runtime.activity.Status
+import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 
@@ -43,7 +45,7 @@ class LinkingCaches() extends Cache[LinkSpecification, Unit] {
   referenceEntitiesCache.status.onUpdate(StatusListener)
 
   /** The cached entity descriptions containing the most frequent paths. */
-  def entityDescs = pathCache.value
+  def entityDescs: DPair[EntityDescription] = Option(pathCache.value).getOrElse(DPair.fill(EntityDescription.empty))
 
   /** The cached entities. */
   def entities = referenceEntitiesCache.value
