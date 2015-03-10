@@ -1,7 +1,7 @@
 # Silk Link Discovery Framework
 
 The Silk Link Discovery Framework is a tool for discovering relationships between data items
-within different Linked Data sources. More information about Silk can be found on http://silk.wbsg.de.
+within different Linked Data sources. More information about Silk can be found on http://silk-framework.com.
 
 ## Requirements
 
