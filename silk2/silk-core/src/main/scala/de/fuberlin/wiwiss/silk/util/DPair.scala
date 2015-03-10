@@ -14,6 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.util
 
+import language.implicitConversions
+
 /**
  * Represents a pair of source and target values.
  */
@@ -35,22 +37,22 @@ object DPair {
   /**
    * Creates a DPair from a Scala Pair.
    */
-  implicit def fromPair[T](pair: (T, T)) = DPair(pair._1, pair._2)
+  implicit def fromPair[T](pair: (T, T)): DPair[T] = DPair(pair._1, pair._2)
 
   /**
    * Converts a DPair to a Scala Pair.
    */
-  implicit def toPair[T](p: DPair[T]) = (p.source, p.target)
+  implicit def toPair[T](p: DPair[T]): (T, T) = (p.source, p.target)
 
   /**
    * Creates a Pair from a Sequence of 2 values.
    */
-  implicit def fromSeq[T](seq: Seq[T]) = DPair(seq(0), seq(1))
+  implicit def fromSeq[T](seq: Seq[T]): DPair[T] = DPair(seq(0), seq(1))
 
   /**
    * Converts a Pair to a Sequence of 2 values.
    */
-  implicit def toSeq[T](st: DPair[T]) = Seq(st.source, st.target)
+  implicit def toSeq[T](st: DPair[T]): Seq[T] = Seq(st.source, st.target)
 
   def fill[T](f: => T) = DPair(f, f)
 

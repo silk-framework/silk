@@ -6,7 +6,7 @@ name := "Silk Spatial-Temporal Plugins"
 
 version := "2.6.1-SNAPSHOT"
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.6"
 
 
 //Testing dependencies

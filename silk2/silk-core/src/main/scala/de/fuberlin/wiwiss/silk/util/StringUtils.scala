@@ -15,9 +15,10 @@
 package de.fuberlin.wiwiss.silk.util
 
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
+import language.implicitConversions
 
 object StringUtils {
-  implicit def toStringUtils(str: String) = new StringUtils(str)
+  implicit def toStringUtils(str: String): StringUtils = new StringUtils(str)
 
   object IntLiteral {
     def apply(x: Int) = x.toString

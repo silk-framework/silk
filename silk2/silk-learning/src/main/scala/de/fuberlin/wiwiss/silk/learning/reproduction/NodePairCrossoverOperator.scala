@@ -15,18 +15,20 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.util.DPair
+import scala.reflect.ClassTag
 import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{NodeTraverser, Node, LinkageRuleNode}
 
-abstract class NodePairCrossoverOperator[NodeType <: Node : Manifest] extends CrossoverOperator {
+abstract class NodePairCrossoverOperator[NodeType <: Node : ClassTag] extends CrossoverOperator {
 
   override def apply(nodePair: DPair[LinkageRuleNode]): Option[LinkageRuleNode] = {
     //Generate all pairs of compatible nodes
     val sourceNodes = NodeTraverser(nodePair.source).iterateAll.toIndexedSeq
     val targetNodes = NodeTraverser(nodePair.target).iterateAll.toIndexedSeq
+    val nodeClass = implicitly[ClassTag[NodeType]].runtimeClass
 
-    val filteredSourceNodes = sourceNodes.filter(pos => manifest.erasure.isAssignableFrom(pos.node.getClass))
-    val filteredTargetNodes = targetNodes.filter(pos => manifest.erasure.isAssignableFrom(pos.node.getClass))
+    val filteredSourceNodes = sourceNodes.filter(pos => nodeClass.isAssignableFrom(pos.node.getClass))
+    val filteredTargetNodes = targetNodes.filter(pos => nodeClass.isAssignableFrom(pos.node.getClass))
 
     val nodePairs = for (sourceNode <- filteredSourceNodes; targetNode <- filteredTargetNodes) yield DPair(sourceNode, targetNode)
 

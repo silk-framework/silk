@@ -26,7 +26,7 @@ import scala.xml.Node
 /**
  * Holds all caches.
  */
-class LinkingCaches() extends Cache[LinkSpecification, Unit] {
+class LinkingCaches() extends Cache[LinkSpecification, Unit](Unit) {
 
   /** The paths cache. */
   val pathCache = new PathsCache()
@@ -95,8 +95,8 @@ class LinkingCaches() extends Cache[LinkSpecification, Unit] {
    * Loads the values of the caches from XML.
    */
   override protected def deserialize(node: Node) {
-    pathCache.loadFromXML(node \ "Paths" \ "_" head)
-    referenceEntitiesCache.loadFromXML(node \ "Entities" \ "_" head)
+    pathCache.loadFromXML((node \ "Paths" \ "_").head)
+    referenceEntitiesCache.loadFromXML((node \ "Entities" \ "_").head)
   }
 
   // Never called as load method is overridden

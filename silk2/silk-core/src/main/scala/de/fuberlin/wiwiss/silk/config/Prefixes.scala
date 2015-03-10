@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.util.ValidationException
 import scala.language.implicitConversions
 
@@ -95,9 +95,9 @@ class Prefixes(val prefixMap: Map[String, String]) {
 object Prefixes {
   val empty = new Prefixes(Map.empty)
 
-  implicit def fromMap(map: Map[String, String]) = new Prefixes(map)
+  implicit def fromMap(map: Map[String, String]): Prefixes = new Prefixes(map)
 
-  implicit def toMap(prefixes: Prefixes) = prefixes.prefixMap
+  implicit def toMap(prefixes: Prefixes): Map[String, String] = prefixes.prefixMap
 
   def apply(map: Map[String, String]) = new Prefixes(map)
 

@@ -74,8 +74,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       } else {
         for (pairNode <- (posNode \ "Pair").toList) yield {
           DPair(
-            Entity.fromXML(pairNode \ "Source" \ "Entity" head, pathsCache.value.source),
-            Entity.fromXML(pairNode \ "Target" \ "Entity" head, pathsCache.value.target))
+            Entity.fromXML((pairNode \ "Source" \ "Entity").head, pathsCache.value.source),
+            Entity.fromXML((pairNode \ "Target" \ "Entity").head, pathsCache.value.target))
         }
       }
     }
@@ -86,8 +86,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       } else {
         for (pairNode <- (negNode \ "Pair").toList) yield {
           DPair(
-            Entity.fromXML(pairNode \ "Source" \ "Entity" head, pathsCache.value.source),
-            Entity.fromXML(pairNode \ "Target" \ "Entity" head, pathsCache.value.target))
+            Entity.fromXML((pairNode \ "Source" \ "Entity").head, pathsCache.value.source),
+            Entity.fromXML((pairNode \ "Target" \ "Entity").head, pathsCache.value.target))
         }
       }
     }

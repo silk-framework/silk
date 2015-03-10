@@ -21,7 +21,7 @@ import scala.language.implicitConversions
  * Defines additional methods on Files, which are not in the standard library.
  */
 object FileUtils {
-  implicit def toFileUtils(file: File) = new FileUtils(file)
+  implicit def toFileUtils(file: File): FileUtils = new FileUtils(file)
 }
 
 /**

@@ -15,13 +15,14 @@
 package de.fuberlin.wiwiss.silk.util
 
 import java.io._
-import xml.{PrettyPrinter, NodeSeq}
+import scala.xml.{PrettyPrinter, NodeSeq}
+import language.implicitConversions
 
 /**
  * Defines additional methods on XML, which are missing in the standard library.
  */
 object XMLUtils {
-  implicit def toXMLUtils(xml: NodeSeq) = new XMLUtils(xml)
+  implicit def toXMLUtils(xml: NodeSeq): XMLUtils = new XMLUtils(xml)
 }
 
 /**

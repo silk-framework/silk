@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
-import xml.Node
+import scala.xml.Node
 import java.io.{DataOutput, DataInput}
 
 /**

@@ -61,7 +61,7 @@ class Project(val name: Identifier, val resourceManager: ResourceManager) {
     if(cachedConfig.isEmpty) {
       if(resourceManager.list.contains("config.xml")) {
         val configXML = XML.load(resourceManager.get("config.xml").load)
-        val prefixes = Prefixes.fromXML(configXML \ "Prefixes" head)
+        val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
         cachedConfig = Some(ProjectConfig(prefixes))
       } else {
         cachedConfig = Some(ProjectConfig.default)

@@ -69,8 +69,8 @@ class PathsCache() extends Cache[LinkSpecification, DPair[EntityDescription]](nu
       if ((node \ "_").isEmpty) {
         null
       } else {
-        val sourceSpec = EntityDescription.fromXML(node \ "Source" \ "_" head)
-        val targetSpec = EntityDescription.fromXML(node \ "Target" \ "_" head)
+        val sourceSpec = EntityDescription.fromXML((node \ "Source" \ "_").head)
+        val targetSpec = EntityDescription.fromXML((node \ "Target" \ "_").head)
         new DPair(sourceSpec, targetSpec)
       }
   }

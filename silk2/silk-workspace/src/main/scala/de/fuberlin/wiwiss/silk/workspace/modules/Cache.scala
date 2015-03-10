@@ -87,7 +87,7 @@ abstract class Cache[TaskType, T](initialValue: T) {
   /** Reads the cache value from an XML node and updates the current value of this cache. */
   final def loadFromXML(node: Node) = {
     loaded = (node \ "@loaded").head.text.toBoolean
-    deserialize(node \ "_" head)
+    deserialize((node \ "_").head)
   }
 
   /** Writes the current value of this cache to an XML node. */
@@ -109,7 +109,7 @@ abstract class Cache[TaskType, T](initialValue: T) {
       try {
         val updated = update(project, task)
         loaded = true
-        status.update(Status.Finished("Loading cache", true, System.currentTimeMillis - startTime, None))
+        status.update(Status.Finished("Loading cache", success = true, System.currentTimeMillis - startTime, None))
         if(updated) log.info("Cache updated")
         // Commit to the project
 //        if(updated && !isInterrupted) {
@@ -118,10 +118,10 @@ abstract class Cache[TaskType, T](initialValue: T) {
       } catch {
         case ex: InterruptedException =>
           log.log(Level.WARNING, "Loading cache stopped")
-          status.update(Status.Finished("Loading stopped", false, System.currentTimeMillis - startTime, None))
+          status.update(Status.Finished("Loading stopped", success = false, System.currentTimeMillis - startTime, None))
         case ex: Exception =>
           log.log(Level.WARNING, "Loading cache failed", ex)
-          status.update(Status.Finished("Loading cache", false, System.currentTimeMillis - startTime, Some(ex)))
+          status.update(Status.Finished("Loading cache", success = false, System.currentTimeMillis - startTime, Some(ex)))
       }
       loadingThread = None
     }
