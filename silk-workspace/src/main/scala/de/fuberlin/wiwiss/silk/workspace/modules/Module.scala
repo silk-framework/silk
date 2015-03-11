@@ -50,7 +50,9 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
   }
 
   def add(name: Identifier, taskData: TaskData) = {
-    plugin.createTask(name, taskData, project)
+    val task = plugin.createTask(name, taskData, project)
+    plugin.writeTask(task, resourceMgr)
+    cachedTasks += ((name, task))
   }
 
   /**
