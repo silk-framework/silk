@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair, ValidationException}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
-import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
+import de.fuberlin.wiwiss.silk.workspace.{Project, Constants, User}
 import models.CurrentActivityStatusListener
 import models.linking._
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -28,11 +28,13 @@ object LinkingTaskApi extends Controller {
   def putLinkingTask(project: String, task: String) = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
-    val proj = User().workspace.project(project)
+    val proj: Project = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val datasets = DPair(DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
-      DatasetSelection(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
+    val datasets =
+      DPair(DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
+            DatasetSelection(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
+    val outputs = values.get("output").map(proj.task[Dataset](_).data).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {
       //Update existing task
@@ -47,7 +49,7 @@ object LinkingTaskApi extends Controller {
             id = task,
             datasets = datasets,
             rule = LinkageRule(None),
-            outputs = Nil
+            outputs = outputs
           )
 
         proj.updateTask(task, linkSpec)
@@ -214,14 +216,8 @@ object LinkingTaskApi extends Controller {
   def startGenerateLinksTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-
-    //Retrieve parameters
-    val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
-    val outputNames = params.get("outputs[]").toSeq.flatten
-    val outputs = outputNames.map(name => project.task[Dataset](name).data)
     val generateLinksActivity = task.activity[GenerateLinksActivity]
     generateLinksActivity.start()
-
     Ok
   }
 

@@ -25,7 +25,7 @@
 @toolbar = {
   <ul>
     <li>
-      <button name="start" onclick="showDialog('generateLinksDialog')" >Start</button>
+      <button name="start" onclick="startTask()" >Start</button>
       <button name="stop" onclick="stopTask()" disabled="disabled" >Stop</button>
     </li>
     <li>
@@ -71,8 +71,21 @@
   </div>
 
   <script type="application/javascript">
-    function stopTask() {
+    function startTask() {
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/generateLinks',
+        success: function(response) {
+          $("button[name='start']").button("option", "disabled", true);
+          $("button[name='stop']").button("option", "disabled", false);
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
 
+    function stopTask() {
       $.ajax({
         type: 'DELETE',
         url: '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/generateLinks',

@@ -5,11 +5,13 @@
 
 @(project: String, task: String)
 
-@sources = @{ User().workspace.project(project).tasks[Dataset].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
 @linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.name == task) }
 
-@datasets = @{ linkingTask.map(_.data.datasets) }
+@currentInputs = @{ linkingTask.map(_.data.datasets) }
+
+@currentOutput = @{ linkingTask.flatMap(_.data.outputs.headOption) }
 
 @widgets.dialog(title = "Linking Task") {
   <table border="0">
@@ -23,11 +25,11 @@
       <td>Source</td>
       <td>
         <select name="source" title="Source dataset">
-          @for(source <- sources) {
-            @if(datasets.isDefined && source.name == datasets.get.source.datasetId) {
-              <option value="@source.name" selected="selected">@source.name</option>
+          @for(dataset <- datasets) {
+            @if(currentInputs.isDefined && dataset.name == currentInputs.get.source.datasetId) {
+              <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
-              <option value="@source.name">@source.name</option>
+              <option value="@dataset.name">@dataset.name</option>
             }
           }
         </select>
@@ -37,7 +39,7 @@
       <td>Source restriction</td>
       <td>
         <input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="50"
-               value="@datasets.map(_.source.restriction).getOrElse("")"/>
+               value="@currentInputs.map(_.source.restriction).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
     </tr>
@@ -45,11 +47,11 @@
       <td>Target</td>
       <td>
         <select name="target" title="Target dataset">
-          @for(source <- sources) {
-            @if(datasets.isDefined && source.name == datasets.get.target.datasetId.toString) {
-              <option value="@source.name" selected="selected">@source.name</option>
+          @for(dataset <- datasets) {
+            @if(currentInputs.isDefined && dataset.name == currentInputs.get.target.datasetId.toString) {
+              <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
-              <option value="@source.name">@source.name</option>
+              <option value="@dataset.name">@dataset.name</option>
             }
           }
         </select>
@@ -59,8 +61,23 @@
       <td>Target restriction</td>
       <td>
         <input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="50"
-               value="@datasets.map(_.target.restriction).getOrElse("")"/>
+               value="@currentInputs.map(_.target.restriction).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@Assets.at("img/wrench-screwdriver.png")" />
+      </td>
+    </tr>
+    <tr>
+      <td>Output</td>
+      <td>
+        <select name="output" title="Output">
+          <option value="" @if(currentOutput.isEmpty) {selected="selected"}></option>
+          @for(dataset <- datasets) {
+            @if(currentOutput.isDefined && dataset.name == currentOutput.get.id.toString) {
+              <option value="@dataset.name" selected="selected">@dataset.name</option>
+            } else {
+              <option value="@dataset.name">@dataset.name</option>
+            }
+          }
+        </select>
       </td>
     </tr>
     <tr>
@@ -106,7 +123,8 @@
       source: $("select[name='source']").val(),
       sourcerestriction: $("input[name='sourcerestriction']").val(),
       target: $("select[name='target']").val(),
-      targetrestriction: $("input[name='targetrestriction']").val()
+      targetrestriction: $("input[name='targetrestriction']").val(),
+      output: $("select[name='output']").val()
     };
 
     if(values.name.length === 0) {

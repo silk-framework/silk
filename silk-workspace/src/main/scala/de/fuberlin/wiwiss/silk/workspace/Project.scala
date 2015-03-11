@@ -102,6 +102,10 @@ class Project(val name: Identifier, val resourceManager: ResourceManager) {
     module[T].task(taskName)
   }
 
+  def taskOption[T : ClassTag](taskName: Identifier): Option[Task[T]] = {
+    module[T].taskOption(taskName)
+  }
+
   /**
    * Retrieves a task of any type by name.
    *
