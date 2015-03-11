@@ -18,21 +18,6 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
   @volatile
   private var cachedTasks: Map[Identifier, Task[TaskData]] = null
 
-//  @volatile
-//  private var updatedTasks: Seq[Task[TaskData]] = Seq.empty
-
-  // Start a background writing thread
-  //WriteThread.start()
-
-//  def loadTasks() = {
-//    if(cachedTasks == null) {
-//      cachedTasks = {
-//        val tasks = provider.loadTasks(resourceMgr, project)
-//        tasks.map(task => (task.name, task)).toMap
-//      }
-//    }
-//  }
-
   def hasTaskType[T : ClassTag]: Boolean = {
     implicitly[ClassTag[T]].runtimeClass == implicitly[ClassTag[TaskData]].runtimeClass
   }
@@ -83,39 +68,4 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
       cachedTasks = loadedTasks.map(task => (task.name, task)).toMap
     }
   }
-
-//  /**
-//   * Persists a task.
-//   */
-//  private def write() {
-//    val tasksToWrite = updatedTasks.values.toList
-//    updatedTasks --= tasksToWrite.map(_.name)
-//
-//    for(task <- tasksToWrite) Timer("Writing task " + task.name + " to disk") {
-//      plugin.writeTask(task, resourceMgr)
-//    }
-//  }
-//
-//  private object WriteThread extends Thread {
-//    override def run() {
-//      while(true) {
-//        val time = System.currentTimeMillis - lastUpdateTime
-//
-//        if(updatedTasks.isEmpty) {
-//          Thread.sleep(writeInterval)
-//        }
-//        else if(time >= writeInterval) {
-//          try {
-//            Module.this.write()
-//          }
-//          catch {
-//            case ex : Exception => logger.log(Level.WARNING, "Error writing tasks", ex)
-//          }
-//        }
-//        else {
-//          Thread.sleep(writeInterval - time)
-//        }
-//      }
-//    }
-//  }
 }
