@@ -16,13 +16,14 @@ package de.fuberlin.wiwiss.silk
 
 import java.io.File
 import java.util.logging.{Level, Logger}
-
 import de.fuberlin.wiwiss.silk.config.{TransformSpecification, LinkSpecification, LinkingConfig}
 import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinks}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.util.CollectLogs
 import de.fuberlin.wiwiss.silk.util.StringUtils._
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
+import de.fuberlin.wiwiss.silk.dataset.DataSource
 
 /**
  * Executes the complete Silk workflow.
@@ -110,7 +111,7 @@ object Silk {
       config.interlink(linkSpecID).foreach(executeLinkSpec(config, _, numThreads, reload))
 
       // Execute each transform with the provided id.
-      config.transform(linkSpecID).foreach(executeTransform)
+      config.transform(linkSpecID).foreach(executeTransform(config, _))
 
     } else {
 
@@ -122,7 +123,7 @@ object Silk {
       }
 
       // Execute all transforms.
-      config.transforms.foreach(executeTransform)
+      config.transforms.foreach(executeTransform(config, _))
     }
   }
 
@@ -134,13 +135,15 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    GenerateLinks.fromSources(
-      inputs = config.sources,
-      linkSpec = linkSpec,
-      outputs = linkSpec.outputs ++ config.outputs,
-      runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
-    ).apply()
+  private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true): Unit = {
+    Activity.executeBlocking(
+      GenerateLinks.fromSources(
+        inputs = config.sources,
+        linkSpec = linkSpec,
+        outputs = linkSpec.outputs ++ config.outputs,
+        runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
+      )
+    )
   }
 
   /**
@@ -150,7 +153,10 @@ object Silk {
    *
    * @param transform The transform specification.
    */
-  private def executeTransform(transform: TransformSpecification) = ExecuteTransform(transform).run()
+  private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {
+    val input = config.source(transform.selection.datasetId).source
+    Activity.executeBlocking(ExecuteTransform(input, transform))
+  }
 
   /**
    * Main method to allow Silk to be started from the command line.
