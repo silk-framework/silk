@@ -116,11 +116,12 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
     override def open(properties: Seq[String]) {
       this.properties = properties
-      beginSparul(true)
     }
 
     override def writeLink(link: Link, predicateUri: String) {
-      if (statements + 1 > StatementsPerRequest) {
+      if(connection == null) {
+        beginSparul(true)
+      } else if (statements + 1 > StatementsPerRequest) {
         endSparql()
         beginSparul(false)
       }
@@ -130,7 +131,9 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
     }
 
     override def writeEntity(subject: String, values: Seq[Set[String]]) {
-      if (statements + 1 > StatementsPerRequest) {
+      if(connection == null) {
+        beginSparul(true)
+      } else if (statements + 1 > StatementsPerRequest) {
         endSparql()
         beginSparul(false)
       }
@@ -211,7 +214,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
       writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
       statements = 0
 
-      writer.write( updateParameter + "=")
+      writer.write(updateParameter + "=")
     }
 
     private def closeConnection() {
