@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification}
+import de.fuberlin.wiwiss.silk.config.TransformSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -18,13 +18,12 @@ object ExecuteTransformTab extends Controller {
   def executeDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val outputs = project.tasks[Dataset].toSeq.map(_.name.toString())
-
     Ok(views.html.executeTransform.executeTransformDialog(projectName, taskName, outputs))
   }
 
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[TransformSpecification](taskName)
     val stream = Stream.status(task.activity[ExecuteTransform].status)
     Ok.chunked(Widgets.status(stream))
   }

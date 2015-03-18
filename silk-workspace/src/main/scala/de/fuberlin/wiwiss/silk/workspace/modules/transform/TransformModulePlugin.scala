@@ -1,17 +1,17 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.transform
 
-import java.util.logging.{Logger, Level}
+import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification, DatasetSelection, Prefixes}
+import de.fuberlin.wiwiss.silk.config.{DatasetSelection, Prefixes, TransformSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, Task, ModulePlugin}
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
+import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
 
 import scala.xml.XML
 
@@ -39,9 +39,10 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
 
     taskResources.put("dataset.xml") { os => task.data.selection.toXML(asSource = true).write(os) }
     taskResources.put("rules.xml") { os =>
-      <TransformRules>
+      <TransformSpec>
       { task.data.rules.map(_.toXML) }
-      </TransformRules>.write(os)
+      { task.data.outputs.map(_.toXML) }
+      </TransformSpec>.write(os)
     }
     taskResources.put("cache.xml") { os => task.caches.head.toXML.write(os) }
   }
@@ -59,6 +60,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(TransformRule.load(project.resources)(project.config.prefixes))
+    val outputs = (rulesXml \ "Dataset").map(Dataset.fromXML(_, taskResources))
     val cache = new PathsCache()
 
     //Load the cache
@@ -70,7 +72,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
         new LinkingCaches()
     }
 
-    new Task(name, TransformSpecification(name, dataset, rules), Seq(cache), this, project)
+    new Task(name, TransformSpecification(name, dataset, rules, outputs), Seq(cache), this, project)
   }
 
   /**
@@ -82,12 +84,12 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
 
   override def activities(task: Task[TransformSpecification], project: Project): Seq[TaskActivity[_]] = {
     // Execute transform
-    def executeTransform() =
+    def executeTransform =
       new ExecuteTransform(
         input = project.task[Dataset](task.data.selection.datasetId).data.source,
         selection = task.data.selection,
         rules = task.data.rules,
-        outputs = Seq.empty // TODO
+        outputs = task.data.outputs.map(_.sink)
       )
     // Create task activities
     TaskActivity(executeTransform) :: Nil

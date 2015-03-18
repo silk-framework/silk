@@ -117,7 +117,7 @@ object LinkSpecification {
       datasets = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
                            DatasetSelection.fromXML((node \ "TargetDataset").head)),
       rule = LinkageRule.fromXML(linkageRuleNode, resourceLoader),
-      outputs = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))
+      outputs = (node \ "Outputs" \ "Dataset").map(Dataset.fromXML(_, resourceLoader))
     )
   }
 }

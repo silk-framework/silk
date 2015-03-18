@@ -118,7 +118,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     def activeLearning(state: ActiveLearningState) =
       new ActiveLearning(
         config = LearningConfiguration.default,
-        datasets = DPair.fromSeq(task.data.datasets.map(ds => project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).get.source)),
+        datasets = DPair.fromSeq(task.data.datasets.map(ds => project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).getOrElse(Dataset.empty).source)),
         linkSpec = task.data,
         paths = task.cache[LinkingCaches].entityDescs.map(_.paths),
         referenceEntities = task.cache[LinkingCaches].entities,

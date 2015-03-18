@@ -3,6 +3,7 @@ package controllers.transform
 import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, TransformSpecification}
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
@@ -22,17 +23,18 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val dataset = DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+    val input = DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+    val outputs = values.get("output").filter(_.nonEmpty).map(proj.task[Dataset](_).data).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
-        val updatedTransformSpec = oldTask.data.copy(selection = dataset)
+        val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs)
         proj.updateTask(task, updatedTransformSpec)
       }
       //Create new task with no rule
       case None => {
-        val transformSpec = TransformSpecification(task, dataset, Seq.empty)
+        val transformSpec = TransformSpecification(task, input, Seq.empty, outputs)
         proj.updateTask(task, transformSpec)
       }
     }
@@ -112,7 +114,7 @@ object TransformTaskApi extends Controller {
             BadRequest(statusJson(errors = ex.errors))
           case ex: Exception =>
             log.log(Level.INFO, "Failed to save transformation rule", ex)
-            InternalServerError(statusJson(errors =ValidationException.ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+            InternalServerError(statusJson(errors = ValidationException.ValidationError("Error in back end: " + ex.getMessage) :: Nil))
         }
       case None =>
         BadRequest("Expecting text/xml request body")
@@ -143,12 +145,6 @@ object TransformTaskApi extends Controller {
     val task = project.task[TransformSpecification](taskName)
     val activity = task.activity[ExecuteTransform]
     activity.start()
-
-    // Retrieve parameters
-//    val params = request.body.asFormUrlEncoded.getOrElse(Map.empty)
-//    val outputNames = params.get("outputs[]").toSeq.flatten
-//    val outputs = outputNames.map(project.task[Dataset](_).data)
-
     Ok
   }
 

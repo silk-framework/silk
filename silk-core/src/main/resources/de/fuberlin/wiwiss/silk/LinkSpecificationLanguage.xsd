@@ -15,7 +15,6 @@
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>
         </xs:complexType>
-
     </xs:element>
 
     <!-- DataSource elements have been replaced by Datasets but are still supported -->
@@ -123,7 +122,8 @@
     <xs:element name="Outputs">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="Output" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="Output" minOccurs="0" maxOccurs="unbounded"/> <!-- old-syntax -->
+                <xs:element ref="Dataset" minOccurs="0" maxOccurs="unbounded"/> <!-- new-syntax -->
             </xs:sequence>
         </xs:complexType>
     </xs:element>

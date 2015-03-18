@@ -34,12 +34,12 @@ object LinkingTaskApi extends Controller {
     val datasets =
       DPair(DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
             DatasetSelection(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
-    val outputs = values.get("output").map(proj.task[Dataset](_).data).toSeq
+    val outputs = values.get("output").filter(_.nonEmpty).map(proj.task[Dataset](_).data).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
-        val updatedLinkSpec = oldTask.data.copy(datasets = datasets)
+        val updatedLinkSpec = oldTask.data.copy(datasets = datasets, outputs = outputs)
         proj.updateTask(task, updatedLinkSpec)
       }
       //Create new task

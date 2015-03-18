@@ -108,6 +108,10 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin) {
 object Dataset {
   private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
+  def empty = {
+    Dataset("empty", EmptyDataset)
+  }
+
   def load(resourceLoader: ResourceLoader) = {
     new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
   }

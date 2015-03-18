@@ -1,9 +1,9 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
-import de.fuberlin.wiwiss.silk.util.{Identifier, Timer}
+import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
 
 import scala.reflect.ClassTag

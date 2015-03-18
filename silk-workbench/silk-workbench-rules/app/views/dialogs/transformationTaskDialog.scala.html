@@ -4,11 +4,13 @@
 
 @(project: String, task: String)
 
-@sources = @{ User().workspace.project(project).tasks[Dataset].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
 @transformationTask = @{ User().workspace.project(project).tasks[TransformSpecification].find(_.name == task) }
 
-@dataset = @{ transformationTask.map(_.data.selection) }
+@currentInput = @{ transformationTask.map(_.data.selection) }
+
+@currentOutput = @{ transformationTask.flatMap(_.data.outputs.headOption) }
 
 @widgets.dialog(title = "Transformation Task") {
   <table border="0">
@@ -22,11 +24,11 @@
       <td>Source</td>
       <td>
         <select name="source" title="Source dataset">
-          @for(source <- sources) {
-            @if(dataset.isDefined && source.name == dataset.get.datasetId) {
-              <option value="@source.name" selected="selected">@source.name</option>
+          @for(dataset <- datasets) {
+            @if(currentInput.isDefined && dataset.name == currentInput.get.datasetId) {
+              <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
-              <option value="@source.name">@source.name</option>
+              <option value="@dataset.name">@dataset.name</option>
             }
           }
         </select>
@@ -36,8 +38,22 @@
       <td>Restriction</td>
       <td>
         <input name="restriction" title="Restrict dataset using SPARQL clauses" size="50"
-               value="@dataset.map(_.restriction).getOrElse("")"/>
+               value="@currentInput.map(_.restriction).getOrElse("")"/>
         @* <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" /> *@
+      </td>
+    </tr>
+    <tr>
+      <td>Output</td>
+      <td>
+        <select name="output" title="Output dataset">
+          @for(dataset <- datasets) {
+            @if(currentOutput.isDefined && dataset.name == currentOutput.get.id) {
+              <option value="@dataset.name" selected="selected">@dataset.name</option>
+            } else {
+              <option value="@dataset.name">@dataset.name</option>
+            }
+          }
+        </select>
       </td>
     </tr>
     <tr>
@@ -55,6 +71,7 @@
       name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
       source: $("select[name='source']").val(),
       restriction: $("input[name='restriction']").val(),
+      output: $("select[name='output']").val()
     };
 
     if(values.name.length === 0) {

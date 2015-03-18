@@ -112,7 +112,7 @@ object GenerateLinks {
                   linkSpec: LinkSpecification,
                   outputs: Seq[Dataset] = Seq.empty,
                   runtimeConfig: RuntimeConfig = RuntimeConfig()) = {
-    val sourcePair = DPair.fromSeq(linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).get.source))
+    val sourcePair = DPair.fromSeq(linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).getOrElse(Dataset.empty).source))
     val sinks = outputs.map(_.sink)
     new GenerateLinks(sourcePair, linkSpec, sinks, runtimeConfig)
   }
