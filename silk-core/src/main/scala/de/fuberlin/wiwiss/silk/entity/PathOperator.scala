@@ -46,7 +46,7 @@ case class BackwardOperator(property: Uri) extends PathOperator {
 /**
  * Reduces the currently selected set of resources to the ones with a specific language.
  *
- * @param operator Comparison operator. May be one of >, <, >=, <=, =, !=.
+ * @param operator Comparison operator. May be one of =, !=.
  * @param language The language.
  */
 case class LanguageFilter(operator: String, language: String) extends PathOperator {
@@ -62,4 +62,15 @@ case class LanguageFilter(operator: String, language: String) extends PathOperat
  */
 case class PropertyFilter(property: Uri, operator: String, value: String) extends PathOperator {
   override def serialize(implicit prefixes: Prefixes) = "[" + property.serialize + " " + operator + " " + value + "]"
+
+  def evaluate(v: String): Boolean = {
+    operator match {
+      case "=" => v == value
+      case "!=" => v != value
+      case ">" => v > value
+      case "<" => v < value
+      case ">=" => v >= value
+      case "<=" => v <= value
+    }
+  }
 }

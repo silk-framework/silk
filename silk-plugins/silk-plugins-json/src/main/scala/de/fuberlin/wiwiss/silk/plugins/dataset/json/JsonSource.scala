@@ -76,9 +76,11 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
           if (uriPattern.isEmpty)
             index.toString
           else
-            uriRegex.replaceAllIn(uriPattern, m =>
-              URLEncoder.encode(evaluate(node, m.group(1).stripPrefix("/").split('/')).mkString, "UTF8")
-            )
+            uriRegex.replaceAllIn(uriPattern, m => {
+              val path = Path.parse(m.group(1)).operators
+              val string = evaluate(node, path).mkString
+              URLEncoder.encode(string, "UTF8")
+            })
 
         val values = for (path <- entityDesc.paths) yield evaluateSilkPath(node, path)
         f(new Entity(uri, values, entityDesc))
@@ -86,27 +88,40 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
     }
 
     private def evaluateSilkPath(json: JsValue, path: Path) = {
-      assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "For JSON only forward operators are supported in paths.")
-      evaluate(json, path.operators.map(_.asInstanceOf[ForwardOperator].property.uri)).toSet // TODO toSet can be removed as soon as the Entity class uses Seq instead of Set for storing values
+      evaluate(json, path.operators).toSet // TODO toSet can be removed as soon as the Entity class uses Seq instead of Set for storing values
     }
 
-    private def evaluate(json: JsValue, path: Seq[String]): Seq[String] = {
-      if(path.nonEmpty) {
-        json match {
-          case obj: JsObject if path.nonEmpty =>
-            obj.value.get(path.head).toSeq.flatMap(value => evaluate(value, path.tail))
-          case array: JsArray if array.value.nonEmpty =>
-            array.value.flatMap(value => evaluate(value, path))
-          case _ =>
-            Nil
-        }
-      } else {
-        json match {
-          case JsBoolean(value) => Seq(value.toString)
-          case JsNumber(value) => Seq(value.toString)
-          case JsString(value) => Seq(value.toString)
-          case _ => Seq(json.toString ())
-        }
+    private def evaluate(json: JsValue, path: Seq[PathOperator]): Seq[String] = {
+      path match {
+        case ForwardOperator(prop) :: tail =>
+          json match {
+            case obj: JsObject =>
+              obj.value.get(prop.uri).toSeq.flatMap(value => evaluate(value, tail))
+            case array: JsArray if array.value.nonEmpty =>
+              array.value.flatMap(value => evaluate(value, path))
+            case _ =>
+              Nil
+          }
+        case (p @ PropertyFilter(prop, op, value)) :: tail =>
+          json match {
+            case obj: JsObject if p.evaluate(toString(obj.value(prop.uri))) =>
+              evaluate(obj, tail)
+            case _ =>
+              Nil
+          }
+        case Nil =>
+          Seq(toString(json))
+        case _ =>
+          throw new IllegalArgumentException("For JSON only forward and filter operators are supported in paths.")
+      }
+    }
+
+    private def toString(json: JsValue): String = {
+      json match {
+        case JsBoolean(value) => value.toString
+        case JsNumber(value) => value.toString
+        case JsString(value) => value.toString
+        case _ => json.toString()
       }
     }
   }
