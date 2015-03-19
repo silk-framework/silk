@@ -59,6 +59,8 @@ case class LanguageFilter(operator: String, language: String) extends PathOperat
  * @param property The property which has the values which should be use for filtering
  * @param operator Comparison operator. May be one of >, <, >=, <=, =, !=.
  * @param value The comparison value.
+ *              URIs must be enclosed in angle brackets, e.g., <URI>.
+ *              String values must be enclosed in quotes, e.g., "Value"
  */
 case class PropertyFilter(property: Uri, operator: String, value: String) extends PathOperator {
   override def serialize(implicit prefixes: Prefixes) = "[" + property.serialize + " " + operator + " " + value + "]"
