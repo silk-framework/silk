@@ -30,12 +30,13 @@ class PathParserTest extends FlatSpec with Matchers {
   }
 
   it should "parse property filters with literal values" in {
-    val path1 = Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car\"") :: Nil)
-    val path2 = Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car \"") :: Nil)
-    p.parse( """?a\ex:prop[rdfs:label = "Car"]""") should equal(path1)
-    p.parse( """?a\ex:prop[rdfs:label = "Car "]""") should equal(path2)
-    p.parse( """?a\ex:prop[rdfs:label="Car"]""") should equal(path1)
-    p.parse( """?a\ex:prop[rdfs:label="Car "]""") should equal(path2)
+    val path1 = Path("a", ForwardOperator("prop") :: PropertyFilter("key", "=", "\"Car\"") :: ForwardOperator("value") :: Nil)
+    val path2 = Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car\"") :: Nil)
+    val path3 = Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car \"") :: Nil)
+    p.parse( """prop[key = "Car"]/value""") should equal(path1)
+    p.parse( """?a\ex:prop[rdfs:label = "Car "]""") should equal(path3)
+    p.parse( """?a\ex:prop[rdfs:label="Car"]""") should equal(path2)
+    p.parse( """?a\ex:prop[rdfs:label="Car "]""") should equal(path3)
   }
 
   it should "parse property filters with URIs" in {
