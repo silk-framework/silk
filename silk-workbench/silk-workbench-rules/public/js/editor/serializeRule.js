@@ -60,7 +60,7 @@ function parseOperator(xmlDoc, elementId, connections) {
   if (elType == "Source" || elType == "Target") {
     xml = xmlDoc.createElement("Input");
     var path = $(elementIdName+" > div.content > input").val();
-    xml.setAttribute("path", encodeHtml(path));
+    xml.setAttribute("path", path);
   } else if (elType == "Transform") {
     xml = xmlDoc.createElement("TransformInput");
     xml.setAttribute("function", elName);
