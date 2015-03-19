@@ -29,10 +29,18 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse("?a\\ex:p2/ex:p1\\ex:p2") should equal(Path("a", BackwardOperator("http://www.example.org/p2") :: ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil))
   }
 
-  it should "parse property filters" in {
-    p.parse("""?a\ex:prop[rdfs:label = "Car"]""") should equal(Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car\"") :: Nil))
-    p.parse("""?a\ex:prop[rdf:type = ex:Car]""") should equal(Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
-    p.parse("""?a\ex:prop[rdf:type = <http://www.example.org/Car>]""") should equal(Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
+  it should "parse property filters with literal values" in {
+    val path1 = Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car\"") :: Nil)
+    val path2 = Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"Car \"") :: Nil)
+    p.parse( """?a\ex:prop[rdfs:label = "Car"]""") should equal(path1)
+    p.parse( """?a\ex:prop[rdfs:label = "Car "]""") should equal(path2)
+    p.parse( """?a\ex:prop[rdfs:label="Car"]""") should equal(path1)
+    p.parse( """?a\ex:prop[rdfs:label="Car "]""") should equal(path2)
+  }
+
+  it should "parse property filters with URIs" in {
+    p.parse( """?a\ex:prop[rdf:type = ex:Car]""") should equal(Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
+    p.parse( """?a\ex:prop[rdf:type = <http://www.example.org/Car>]""") should equal(Path("a", BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
   }
 }
 

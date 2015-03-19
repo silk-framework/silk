@@ -42,23 +42,23 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
     case variable ~ operators => Path(variable, operators)
   }
 
-  private def variable = "?" ~> literal
+  private def variable = "?" ~> identifier
 
-  private def forwardOperator = "/" ~> literal ^^ {
+  private def forwardOperator = "/" ~> identifier ^^ {
     s => ForwardOperator(Uri.parse(s, prefixes))
   }
 
-  private def backwardOperator = "\\" ~> literal ^^ {
+  private def backwardOperator = "\\" ~> identifier ^^ {
     s => BackwardOperator(Uri.parse(s, prefixes))
   }
 
   private def filterOperator = "[" ~> (langFilter | propFilter) <~ "]"
 
-  private def langFilter = "@lang" ~> compOperator ~ literal ^^ {
+  private def langFilter = "@lang" ~> compOperator ~ identifier ^^ {
     case op ~ lang => LanguageFilter(op, lang)
   }
 
-  private def propFilter = literal ~ compOperator ~ literal ^^ {
+  private def propFilter = identifier ~ compOperator ~ value ^^ {
     case prop ~ op ~ value =>
       PropertyFilter(
         property = Uri.parse(prop, prefixes),
@@ -66,7 +66,12 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
         value = if(value.startsWith("\"")) value else "<" + Uri.parse(value, prefixes).uri + ">")
   }
 
-  private def literal = """<[^>]+>|[^\\/\[\] ]+""".r
+  // An identifier that is either a URI enclosed in angle brackets (e.g., <URI>) or a plain identifier (e.g., name or prefix:name)
+  private def identifier = """<[^>]+>|[^\\/\[\]<>=!" ]+""".r
 
+  // A value that is either an identifier or a literal value enclosed in quotes (e.g., "literal").
+  private def value = identifier | "\"[^\"]+\"".r
+
+  // A comparison operator
   private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
 }
