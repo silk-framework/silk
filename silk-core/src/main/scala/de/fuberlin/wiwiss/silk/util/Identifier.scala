@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.util
 
 import java.util.UUID
+
 import scala.language.implicitConversions
 
 /**
@@ -58,10 +59,10 @@ object Identifier {
    * Converts a String to an Identifier.
    * Will throw an exception if the given String is no valid Identifier.
    */
-  implicit def fromString(str: String) = new Identifier(str)
+  implicit def fromString(str: String): Identifier = new Identifier(str)
 
   /**
    * Converts an identifier to a String.
    */
-  implicit def toString(id: Identifier) = id.toString
+  implicit def toString(id: Identifier): String = id.toString
 }
