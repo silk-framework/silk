@@ -144,7 +144,9 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
     }
 
     override def close() {
-      endSparql()
+      if(connection != null) {
+        endSparql()
+      }
     }
 
     private def writeStatement(subject: String, property: String, value: String): Unit = {
@@ -196,7 +198,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
     private def openConnection() {
       //Preconditions
-      //require(connection == null, "Connection already opened")
+      require(connection == null, "Connection already opened")
 
       //Set authentication
       for ((user, password) <- loginComplete) {
@@ -218,26 +220,26 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
     }
 
     private def closeConnection() {
-      //Close connection
+      // Close connection
+      val con = connection
       writer.close()
+      writer = null
+      connection = null
 
       //Check if the HTTP response code is in the range 2xx
-      if (connection.getResponseCode / 100 == 2) {
+      if (con.getResponseCode / 100 == 2) {
         log.info(statements + " statements written to Store.")
       }
       else {
-        val errorStream = connection.getErrorStream
+        val errorStream = con.getErrorStream
         if (errorStream != null) {
           val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
           throw new IOException("SPARQL/Update query on " + endpointURI + " failed. Error Message: '" + errorMessage + "'.")
         }
         else {
-          throw new IOException("SPARQL/Update query on " + endpointURI + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ".")
+          throw new IOException("SPARQL/Update query on " + endpointURI + " failed. Server response: " + con.getResponseCode + " " + con.getResponseMessage + ".")
         }
       }
-
-      connection = null
-      writer = null
     }
   }
 
