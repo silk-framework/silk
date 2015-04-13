@@ -154,7 +154,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
       if (value.startsWith("http:"))
         writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> <" + value + "> .\n", "UTF-8"))
       // Check if value is a number
-      else if (value.forall(c => c.isDigit || c == '.'))
+      else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.'))
         writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n", "UTF-8"))
       // Write string values
       else {
