@@ -83,7 +83,12 @@ object JsonReader {
             Nil
         }
       case Nil =>
-        Seq(nodeToString(json))
+        json match {
+          case array: JsArray =>
+            array.value.map(nodeToString)
+          case _ =>
+            Seq(nodeToString(json))
+        }
       case _ =>
         throw new IllegalArgumentException("For JSON only forward and filter operators are supported in paths.")
     }
