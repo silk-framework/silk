@@ -14,19 +14,20 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, ValueHolder, Activity}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
-import de.fuberlin.wiwiss.silk.util.RandomUtils._
-import util.Random
-import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
-import scala.xml.Node
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.dataset.{DataSource}
-import de.fuberlin.wiwiss.silk.entity.{Path, Index, Entity, Link}
-import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification, Prefixes}
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes, RuntimeConfig}
+import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.entity.{Entity, Index, Link, Path}
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
+import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
+import de.fuberlin.wiwiss.silk.util.RandomUtils._
+import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
+
+import scala.util.Random
+import scala.xml.Node
 
 private class GeneratePool(inputs: Seq[DataSource],
                            linkSpec: LinkSpecification,
@@ -43,7 +44,7 @@ private class GeneratePool(inputs: Seq[DataSource],
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
     generateLinksTask =
-      new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
+      new GenerateLinks(inputs, linkSpec2, runtimeConfig) {
         override def entityDescs = entityDesc
       }
 

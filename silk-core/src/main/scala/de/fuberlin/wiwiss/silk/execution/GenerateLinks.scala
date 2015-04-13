@@ -16,11 +16,12 @@ package de.fuberlin.wiwiss.silk.execution
 
 import java.io.File
 import java.util.logging.LogRecord
+
 import de.fuberlin.wiwiss.silk.cache.{FileEntityCache, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
-import de.fuberlin.wiwiss.silk.dataset.{Dataset,DataSink, DataSource}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, Dataset}
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
-import de.fuberlin.wiwiss.silk.runtime.activity.{Status, ActivityContext, Activity}
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext, Status}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 
@@ -29,7 +30,6 @@ import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
  */
 class GenerateLinks(inputs: DPair[DataSource],
                     linkSpec: LinkSpecification,
-                    outputs: Seq[DataSink] = Seq.empty,
                     runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Seq[Link]] {
 
   /** The task used for loading the entities into the cache */
@@ -82,7 +82,7 @@ class GenerateLinks(inputs: DPair[DataSource],
       context.executeBlocking(filterTask, 0.03, context.value.update)
 
       //Output links
-      val outputTask = new OutputWriter(context.value(), linkSpec.rule.linkType, outputs)
+      val outputTask = new OutputWriter(context.value(), linkSpec.rule.linkType, linkSpec.outputs.map(_.sink))
       context.executeBlocking(outputTask)
     }
   }
@@ -113,8 +113,7 @@ object GenerateLinks {
                   outputs: Seq[Dataset] = Seq.empty,
                   runtimeConfig: RuntimeConfig = RuntimeConfig()) = {
     val sourcePair = DPair.fromSeq(linkSpec.datasets.map(_.datasetId).map(id => inputs.find(_.id == id).getOrElse(Dataset.empty).source))
-    val sinks = outputs.map(_.sink)
-    new GenerateLinks(sourcePair, linkSpec, sinks, runtimeConfig)
+    new GenerateLinks(sourcePair, linkSpec, runtimeConfig)
   }
 
   def empty = new GenerateLinks(DPair.empty, LinkSpecification())

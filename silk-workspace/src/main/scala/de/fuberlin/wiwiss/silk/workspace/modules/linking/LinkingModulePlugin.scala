@@ -102,7 +102,6 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
       GenerateLinks.fromSources(
         inputs = project.tasks[Dataset].map(_.data),
         linkSpec = task.data,
-        outputs = Nil,
         runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
       )
     // Supervised learning
