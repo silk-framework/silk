@@ -19,9 +19,9 @@ import javax.xml.parsers.SAXParserFactory
 import javax.xml.validation.SchemaFactory
 import javax.xml.transform.stream.StreamSource
 import java.io._
-import xml.parsing.NoBindingFactoryAdapter
+import scala.xml.parsing.NoBindingFactoryAdapter
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
-import xml._
+import scala.xml._
 import org.xml.sax.{Attributes, SAXParseException, ErrorHandler, InputSource}
 
 /**
