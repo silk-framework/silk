@@ -21,12 +21,12 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
   id = "removeValues",
   categories = Array("Filter"),
   label = "Remove values",
-  description = "Removes values."
+  description = "Removes values. Values are separated with ,"
 )
 case class RemoveValues(blacklist: String) extends Transformer {
-  val filterValues = blacklist.split(",").map(_.trim.toLowerCase).toSet
+  val filterValues = blacklist.split(",").map(_.toLowerCase).toSet
 
   override def apply(values: Seq[Set[String]]) = {
-    values.head.map(_.toLowerCase).filterNot(filterValues.contains)
+    values.head.filterNot(v => filterValues.contains(v.toLowerCase))
   }
 }
