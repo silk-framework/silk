@@ -29,6 +29,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.numeric._
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased._
 import de.fuberlin.wiwiss.silk.plugins.transformer.ConstantTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.conditional.IfContains
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.date._
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{FilterByLength, FilterByRegex, RemoveEmptyValues, RemoveValues}
@@ -88,6 +89,8 @@ object CorePlugins {
     Transformer.register(classOf[NysiisTransformer])
     Transformer.register(classOf[MetaphoneTransformer])
     Transformer.register(classOf[ConstantTransformer])
+    // Conditional
+    Transformer.register(classOf[IfContains])
     // Numeric
     Transformer.register(classOf[NumReduceTransformer])
     Transformer.register(classOf[NumOperationTransformer])
