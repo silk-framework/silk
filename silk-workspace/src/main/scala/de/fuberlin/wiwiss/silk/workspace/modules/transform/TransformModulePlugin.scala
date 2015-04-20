@@ -60,7 +60,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(TransformRule.load(project.resources)(project.config.prefixes))
-    val outputs = (rulesXml \ "Dataset").map(Dataset.fromXML(_, taskResources))
+    val outputs = (rulesXml \ "Dataset").map(Dataset.fromXML(_, project.resources))
     val cache = new PathsCache()
 
     //Load the cache
