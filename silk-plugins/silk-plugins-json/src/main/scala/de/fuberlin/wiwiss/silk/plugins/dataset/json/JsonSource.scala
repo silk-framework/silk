@@ -29,7 +29,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val json = load(file)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
-    new Entities(selectedElements, entityDesc)
+    new Entities(selectedElements, entityDesc, entities.toSet)
 
   }
 
@@ -45,10 +45,11 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
     }
   }
 
-  private class Entities(elements: Seq[JsValue], entityDesc: EntityDescription) extends Traversable[Entity] {
+  private class Entities(elements: Seq[JsValue], entityDesc: EntityDescription, allowedUris: Set[String]) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((node, index) <- elements.zipWithIndex) {
+        // Generate URI
         val uri =
           if (uriPattern.isEmpty)
             index.toString
@@ -59,8 +60,12 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
               URLEncoder.encode(string, "UTF8")
             })
 
-        val values = for (path <- entityDesc.paths) yield evaluate(node, path).toSet // TODO toSet can be removed as soon as the Entity class uses Seq instead of Set for storing values
-        f(new Entity(uri, values, entityDesc))
+        // Check if this URI should be extracted
+        if(allowedUris.isEmpty || allowedUris.contains(uri)) {
+          // Extract values
+          val values = for (path <- entityDesc.paths) yield evaluate(node, path).toSet // TODO toSet can be removed as soon as the Entity class uses Seq instead of Set for storing values
+          f(new Entity(uri, values, entityDesc))
+        }
       }
     }
   }
