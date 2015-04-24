@@ -86,16 +86,9 @@
         Link Limit:
         <select id="linklimit" onchange="modifyLinkSpec()">
           <option>unlimited</option>
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
-          <option>6</option>
-          <option>7</option>
-          <option>8</option>
-          <option>9</option>
-          <option>10</option>
+          @for(i <- 1 to 10) {
+            <option @if(context.task.data.rule.filter.limit == Some(i)) {selected="selected"}>@i</option>
+          }
         </select>
         <img src="@Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
       </div>
