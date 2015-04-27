@@ -1,0 +1,53 @@
+@(project: String, task: String)
+
+@widgets.dialog(title = "Add Reference Links", width = 500) {
+  <table border="0">
+    <tr>
+      <td>Source</td>
+      <td>
+        <input name="source" title="Source" size="40"/>
+      </td>
+    </tr>
+    <tr>
+      <td>Target</td>
+      <td>
+        <input name="target" title="Target" size="40"/>
+      </td>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>
+        <select name="linktype" title="Reference link type">
+          <option value="positive">Positive</option>
+          <option value="negative">Negative</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Ok</button></td>
+    </tr>
+  </table>
+
+  <script>
+  function submit() {
+    var values = {
+      source: $("input[name='source']").val(),
+      target: $("input[name='target']").val(),
+      type: $("select[name='linktype']").val()
+    };
+
+    $.ajax({
+      type: 'PUT',
+      url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks/' + values.type + '/' + encodeURIComponent(values.source) + '/' + encodeURIComponent(values.target),
+      data: values,
+      success: function(data) {
+        window.location.reload();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+  </script>
+}

@@ -77,6 +77,10 @@ object ReferenceLinksManager extends Controller {
     Ok(views.html.widgets.linksTable(project, task, links, linkSorter, filter, page, showStatus = true, showDetails = true, showEntities = false, rateButtons = false))
   }
 
+  def addLinkDialog(project: String, task: String) = Action {
+    Ok(views.html.referenceLinks.addLinkDialog(project, task))
+  }
+
   def importDialog(project: String, task: String) = Action {
     Ok(views.html.referenceLinks.importDialog(project, task))
   }

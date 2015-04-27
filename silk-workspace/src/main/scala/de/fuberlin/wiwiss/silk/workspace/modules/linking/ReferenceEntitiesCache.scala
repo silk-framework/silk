@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
 
-import scala.xml.{Node, NodeBuffer, NodeSeq}
+import scala.xml.Node
 
 class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecification, ReferenceEntities](ReferenceEntities.empty) {
 
@@ -110,7 +110,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
 
       for (link <- linkSpec.referenceLinks.positive) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        entities = entities.withPositive(loadPositiveLink(link))
+        for(l <- loadPositiveLink(link))
+          entities = entities.withPositive(l)
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
           status.update(0.5 * (loadedLinks.toDouble / linkCount))
@@ -118,7 +119,8 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
 
       for (link <- linkSpec.referenceLinks.negative) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        entities = entities.withNegative(loadNegativeLink(link))
+        for(l <- loadNegativeLink(link))
+          entities = entities.withNegative(l)
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
           status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
@@ -127,9 +129,9 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       updated
     }
 
-    private def loadPositiveLink(link: Link) = {
+    private def loadPositiveLink(link: Link): Option[DPair[Entity]] = {
       link.entities match {
-        case Some(entities) => entities
+        case Some(entities) => Some(entities)
         case None => {
           updated = true
           entities.positive.get(link) match {
@@ -140,9 +142,9 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       }
     }
 
-    private def loadNegativeLink(link: Link) = {
+    private def loadNegativeLink(link: Link): Option[DPair[Entity]] = {
       link.entities match {
-        case Some(entities) => entities
+        case Some(entities) => Some(entities)
         case None => {
           updated = true
           entities.negative.get(link) match {
@@ -153,18 +155,18 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       }
     }
 
-    private def retrieveEntityPair(uris: DPair[String]) = {
-      DPair(
-        source = sources.source.retrieve(entityDescs.source, uris.source :: Nil).head,
-        target = sources.target.retrieve(entityDescs.target, uris.target :: Nil).head
-      )
+    private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]]  = {
+       for(source <- sources.source.retrieve(entityDescs.source, uris.source :: Nil).headOption;
+           target <-  sources.target.retrieve(entityDescs.target, uris.target :: Nil).headOption) yield {
+         DPair(source, target)
+       }
     }
 
-    private def updateEntityPair(entities: DPair[Entity]) = {
-      DPair(
+    private def updateEntityPair(entities: DPair[Entity]): Option[DPair[Entity]] = {
+      Some(DPair(
         source = updateEntity(entities.source, entityDescs.source, sources.source),
         target = updateEntity(entities.target, entityDescs.target, sources.target)
-      )
+      ))
     }
 
     /**
