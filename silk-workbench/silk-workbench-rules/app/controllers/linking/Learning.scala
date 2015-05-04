@@ -39,18 +39,21 @@ object Learning extends Controller {
   }
 
   def ruleStream(projectName: String, taskName: String) = Action {
-    val stream = Stream.taskData(CurrentPopulation)
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val stream = Stream.activityValue(task.activity[ActiveLearning])
     Ok.chunked(Widgets.autoReload("reload", stream))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
+    val validLinks = task.activity[ActiveLearning].value().links
     def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
     val valLinks = {
-      for (link <- CurrentValidationLinks().view) yield {
+      for (link <- validLinks.view) yield {
         if (refLinks.positive.contains(link))
           new EvalLink(link, Correct, Generated)
         else if (refLinks.negative.contains(link))
@@ -64,7 +67,9 @@ object Learning extends Controller {
   }
 
   def linksStream(projectName: String, taskName: String) = Action {
-    val stream = Stream.taskData(CurrentValidationLinks)
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val stream = Stream.activityValue(task.activity[ActiveLearning])
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 

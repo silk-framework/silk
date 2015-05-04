@@ -32,7 +32,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.combine.{ConcatMultipleValues
 import de.fuberlin.wiwiss.silk.plugins.transformer.conditional.{IfExists, IfContains}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.date._
-import de.fuberlin.wiwiss.silk.plugins.transformer.filter.{FilterByLength, FilterByRegex, RemoveEmptyValues, RemoveValues}
+import de.fuberlin.wiwiss.silk.plugins.transformer.filter._
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic._
 import de.fuberlin.wiwiss.silk.plugins.transformer.normalize._
 import de.fuberlin.wiwiss.silk.plugins.transformer.numeric._
@@ -72,6 +72,7 @@ object CorePlugins {
     Transformer.register(classOf[RemoveSpecialCharsTransformer])
     Transformer.register(classOf[ConvertCharsetTransformer])
     Transformer.register(classOf[RemoveValues])
+    Transformer.register(classOf[RemoveStopwords])
     Transformer.register(classOf[RemoveEmptyValues])
     Transformer.register(classOf[RemoveParentheses])
     Transformer.register(classOf[TrimTransformer])

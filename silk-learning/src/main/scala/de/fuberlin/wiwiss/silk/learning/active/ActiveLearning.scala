@@ -14,20 +14,20 @@
 
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.dataset.{DataSource}
-import de.fuberlin.wiwiss.silk.entity.{Link, Path}
-import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
-import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
-import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.learning.reproduction.{Randomize, Reproduction}
-import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
-import linkselector.WeightedLinkageRule
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.util.{Timer, DPair}
-import math.max
+import de.fuberlin.wiwiss.silk.dataset.DataSource
+import de.fuberlin.wiwiss.silk.entity.Path
+import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
+import de.fuberlin.wiwiss.silk.learning.active.linkselector.WeightedLinkageRule
+import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
+import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
+import de.fuberlin.wiwiss.silk.learning.reproduction.{Randomize, Reproduction}
+import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
+import de.fuberlin.wiwiss.silk.util.{DPair, Timer}
+
+import scala.math.max
 
 //TODO support canceling
 class ActiveLearning(config: LearningConfiguration,
@@ -51,13 +51,13 @@ class ActiveLearning(config: LearningConfiguration,
     updatePool(context)
 
     val generator = Timer("LinkageRuleGenerator") {
-      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(state.pool.map(_.entities.get), Nil), config.components)
+      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
     }
-    val targetFitness = if(state.population.isEmpty) 1.0 else state.population.bestIndividual.fitness
+    val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
     
     buildPopulation(generator, context)
 
-    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, state.pool, state.population) }
+    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool, population) }
     val fitnessFunction = config.fitnessFunction(completeEntities)
     
     updatePopulation(generator, targetFitness, completeEntities, fitnessFunction, context)
