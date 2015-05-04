@@ -14,16 +14,15 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
-import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import java.util.logging.{Level, Logger}
+
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
-import de.fuberlin.wiwiss.silk.workspace.modules.{Task, ModulePlugin}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
+import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task}
+
 import scala.xml.XML
 
 /**
@@ -72,7 +71,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
     } catch {
       case ex : Exception =>
         logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-        new LinkingCaches()
+        cache.load(project, dataset, updateCache = true)
     }
 
     new Task(dataset.id, dataset, Seq(cache), this, project)
