@@ -41,7 +41,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
   private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
     val cache = dataset.task.cache[LinkingCaches]
     cache.waitUntilLoaded()
-    Activity.executeBlocking(new ActiveLearningEvaluator(config, dataset))
+    Activity(new ActiveLearningEvaluator(config, dataset)).startBlocking()
   }
 }
 
@@ -100,7 +100,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           state = ActiveLearningState(pool, population, Seq.empty)
         )
 
-      val result = Activity.executeBlocking(activity)
+      val result = Activity(activity).startBlocking()
       pool = result.pool
       population = result.population
 

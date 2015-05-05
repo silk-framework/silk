@@ -22,12 +22,20 @@ trait ActivityControl[T] {
 
   /**
    * (Re-)starts this activity.
+   * The activity is executed in the background, i.e, the method call returns after the activity has been started.
    *
    * @param activity A new activity that should replace the current one before being started.
    *                 If none, the current activity is restarted.
    * @throws IllegalStateException If the activity is still running.
    */
   def start(activity: Option[Activity[T]] = None): Unit
+
+  /**
+   * Starts this activity in the current thread and returns after the activity has been finished.
+   *
+   * @return The final value of the activity
+   */
+  def startBlocking(): T
 
   /**
    * Requests to stop the execution of this activity.

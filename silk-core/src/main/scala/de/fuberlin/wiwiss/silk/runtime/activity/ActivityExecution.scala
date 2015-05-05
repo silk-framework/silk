@@ -63,6 +63,11 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     ExecutionContext.global.execute(this)
   }
 
+  override def startBlocking(): T = {
+    run()
+    value()
+  }
+
   override def cancel() = {
     if(status().isRunning && !status().isInstanceOf[Status.Canceling]) {
       status.update(Status.Canceling(activity.name, status().progress))

@@ -39,7 +39,7 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
   private val activities: Map[Class[_], ActivityControl[_]] = {
-    plugin.activities(this, project).map(activity => (activity.activityType, Activity.control(activity))).toMap
+    plugin.activities(this, project).map(activity => (activity.activityType, Activity(activity))).toMap
   }
 
   /**

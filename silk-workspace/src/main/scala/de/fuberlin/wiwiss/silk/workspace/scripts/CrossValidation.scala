@@ -57,7 +57,7 @@ object CrossValidation extends EvaluationScript {
     log.info("Running: " + dataset.name)
     val cache = dataset.task.cache[LinkingCaches]
     cache.waitUntilLoaded()
-    Activity.executeBlocking(new CrossValidation(cache.entities, config))
+    Activity(new CrossValidation(cache.entities, config)).startBlocking()
   }
 }
 

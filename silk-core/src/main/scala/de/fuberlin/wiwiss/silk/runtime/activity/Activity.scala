@@ -32,6 +32,9 @@ trait Activity[T] extends HasValue {
    */
   def cancelExecution(): Unit = { }
 
+  /**
+   * The initial value of this activity.
+   */
   def initialValue: T = throw new NotImplementedError()
 
   /**
@@ -44,35 +47,14 @@ trait Activity[T] extends HasValue {
  * Executes activities.
  */
 object Activity {
-
   /**
-   * Executes an activity in the background.
-   *
-   * @param activity The activity to be executed.
-   * @return An [ActivityControl] instance that can be used to monitor the execution status as well as the current value
-   *         and allows to request the cancellation of the execution.
+   * Retrieves a control for an activity without executing it.
+   * The [ActivityControl] instance can be used to start the execution of the activity.
+   * After that it can be used to monitor the execution status as well as the current value and allows to request the cancellation of the execution.
    */
-  def execute[T](activity: Activity[T]): ActivityControl[T] = {
-    val execution = new ActivityExecution[T](activity)
-    ExecutionContext.global.execute(execution)
-    execution
-  }
-
-  def executeBlocking[T](activity: Activity[T]): T = {
-    val execution = new ActivityExecution[T](activity)
-    execution.run()
-    execution.value()
-  }
-
-  def control[T](activity: Activity[T]): ActivityControl[T] = {
+  def apply[T](activity: Activity[T]): ActivityControl[T] = {
     new ActivityExecution[T](activity)
   }
-
-  /**
-   * Creates an empty activity control.
-   */
-  def empty[T] = execute(new Activity[T] { def run(context: ActivityContext[T]) = { } })
-
 }
 
 
