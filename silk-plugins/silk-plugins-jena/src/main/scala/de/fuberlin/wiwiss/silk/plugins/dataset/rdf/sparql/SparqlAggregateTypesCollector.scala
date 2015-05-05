@@ -33,12 +33,7 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
         "GROUP BY ?t\n" +
         "ORDER BY DESC (?count)"
 
-      println("QUERY: " + sparql)
-
       val results = endpoint.query(sparql, limit.getOrElse(defaultLimit)).bindings.toList
-
-      println("RESUTL" + results)
-
       if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("t")) yield {
