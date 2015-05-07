@@ -69,7 +69,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     } catch {
     case ex: Exception =>
       logger.log(Level.WARNING, s"Cache for task ${linkSpec.id} in project ${project.name} corrupted. Rebuilding Cache.", ex)
-      cache.load(project, linkSpec, update = true)
+      cache.load(project, linkSpec)
     }
 
     new Task(linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks), Seq(cache), this, project)

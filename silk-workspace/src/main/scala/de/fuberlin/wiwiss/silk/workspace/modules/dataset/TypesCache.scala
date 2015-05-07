@@ -1,38 +1,16 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.Cache
-import scala.xml.Node
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 
 /**
- * Holds the most frequent classes.
+ * Holds the most frequent types.
  */
-class TypesCache() extends Cache[Dataset, Seq[(String, Double)]](Seq[(String, Double)]()) {
+class TypesCache(dataset: Dataset) extends Activity[Types] {
 
-  /** Load the cache value. */
-  override protected def update(project: Project, task: Dataset) =  {
-    if(value.isEmpty) {
-      val dataSource = task.source
-      val types = dataSource.retrieveTypes().toSeq
-      value = types
-      true
-    } else {
-      false
-    }
-  }
-
-  /** Writes the current value of this cache to an XML node. */
-  override def serialize: Node = {
-    <Types>
-      { for((uri, frequency) <- value) yield <Type frequency={frequency.toString}>{uri}</Type> }
-    </Types>
-  }
-
-  /** Reads the cache value from an XML node and updates the current value of this cache. */
-  override def deserialize(node: Node) {
-    for(typeNode <- node \ "Type";
-        frequencyNode <- typeNode \ "@frequency")
-        yield (typeNode.text, frequencyNode.text.toDouble)
+  override def run(context: ActivityContext[Types]): Unit = {
+    val dataSource = dataset.source
+    val types = Types(dataSource.retrieveTypes().toSeq)
+    context.value() = types
   }
 }

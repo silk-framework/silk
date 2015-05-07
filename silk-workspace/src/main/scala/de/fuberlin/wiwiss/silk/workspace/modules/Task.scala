@@ -55,7 +55,7 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
     currentData = newData
     // Update caches
     for(cache <- caches)
-      cache.load(project, currentData, updateCache = true)
+      cache.load(project, currentData)
     // (Re)Schedule write
     for(writer <- scheduledWriter) {
       writer.cancel(false)
@@ -77,6 +77,16 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   }
 
   /**
+   * Retrieves a specific cache by name.
+   *
+   * @param name The name of the cache
+   */
+  def cache(name: String): Cache[DataType, _] = {
+    caches.find(_.name == name)
+          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache named '$name'. Available caches: ${caches.mkString(", ")}."))
+  }
+
+  /**
    * Retrieves an activity by type.
    *
    * @tparam T The type of the requested activity
@@ -90,8 +100,12 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
 
   private object Writer extends Runnable {
     override def run(): Unit = {
+      // Write task
       plugin.writeTask(Task.this, project.resourceManager.child(plugin.prefix))
       log.info(s"Persisted task '$name' in project '${project.name}'")
+      // Update caches
+      // TODO stop previous cache update
+      // TODO update cache
     }
   }
 }

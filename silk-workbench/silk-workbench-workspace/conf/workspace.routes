@@ -32,7 +32,7 @@ PUT           /projects/:project/dataset/:name                 controllers.works
 DELETE        /projects/:project/dataset/:name                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
 
 ############################################################################################################################################
-# Workspace Api
+# Workspace API
 ############################################################################################################################################
 
 # Projects
@@ -41,9 +41,10 @@ DELETE        /projects/:project                               controllers.works
 POST          /projects/:project/import                        controllers.workspace.WorkspaceApi.importProject(project: String)
 GET           /projects/:project/export                        controllers.workspace.WorkspaceApi.exportProject(project: String)
 POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
-
-# Prefixes
 PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
+
+# Tasks
+# GET           /projects/:project/tasks/:task/caches/:cache
 
 # Resources
 GET           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.getResource(project: String, name: String)

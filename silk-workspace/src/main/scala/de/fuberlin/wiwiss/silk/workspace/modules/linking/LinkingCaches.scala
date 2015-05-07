@@ -64,9 +64,9 @@ class LinkingCaches() extends Cache[LinkSpecification, Unit](Unit) {
   /**
    * Loads the cache.
    */
-  override def load(project : Project, task: LinkSpecification, update: Boolean) {
-    pathCache.load(project, task, update)
-    referenceEntitiesCache.load(project, task, update)
+  override def load(project : Project, task: LinkSpecification) {
+    pathCache.load(project, task)
+    referenceEntitiesCache.load(project, task)
   }
 
   /**

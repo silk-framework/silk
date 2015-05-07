@@ -14,16 +14,13 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
-import java.util.logging.{Level, Logger}
-
+import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task}
-
-import scala.xml.XML
+import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
 
 /**
  * The source module which encapsulates all data sources.
@@ -35,7 +32,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   override def prefix = "dataset"
 
   def createTask(name: Identifier, taskData: Dataset, project: Project): Task[Dataset] = {
-    new Task(name, taskData, Seq(new TypesCache()), this, project)
+    new Task(name, taskData, Seq(), this, project)
   }
 
   /**
@@ -63,18 +60,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   private def loadTask(name: String, resources: ResourceLoader, project: Project) = {
     // Load the data set
     val dataset = Dataset.load(project.resources)(resources.get(name).load)
-
-    // Load the cache
-    val cache = new TypesCache()
-    try {
-      cache.loadFromXML(XML.load(resources.get(dataset.id + "_cache.xml").load))
-    } catch {
-      case ex : Exception =>
-        logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-        cache.load(project, dataset, updateCache = true)
-    }
-
-    new Task(dataset.id, dataset, Seq(cache), this, project)
+    new Task(dataset.id, dataset, Seq(), this, project)
   }
 
   /**
@@ -82,7 +68,9 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
    */
   override def writeTask(task: Task[Dataset], resources: ResourceManager): Unit = {
     resources.put(task.name + ".xml"){ os => task.data.toXML.write(os) }
-    resources.put(task.name + "_cache.xml") { os => task.caches.head.toXML.write(os) }
+    val cache = task.activity[TypesCache]
+    cache.cancel()
+    cache.start()
   }
 
   /**
@@ -91,5 +79,12 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {
     resources.delete(taskId + ".xml")
     resources.delete(taskId + "_cache.xml")
+  }
+
+  override def activities(task: Task[Dataset], project: Project): Seq[TaskActivity[_]] = {
+    // Types cache
+    def typesCache() = new TypesCache(task.data)
+    // Create task activities
+    TaskActivity(s"${task.name}_cache.xml", Types.empty, typesCache, project.resourceManager.child(prefix)) :: Nil
   }
 }
