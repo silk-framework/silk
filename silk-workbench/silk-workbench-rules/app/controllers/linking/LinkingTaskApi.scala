@@ -1,11 +1,10 @@
 package controllers.linking
 
 import java.util.logging.{Level, Logger}
-
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, LinkSpecification, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.{Link, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
+import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, ReferenceLinks}
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
 import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearning}
 import de.fuberlin.wiwiss.silk.learning.{LearningInput, LearningActivity}
@@ -14,7 +13,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
 import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair, ValidationException}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache, PathsCache}
 import de.fuberlin.wiwiss.silk.workspace.{Project, Constants, User}
 import models.CurrentActivityStatusListener
 import models.linking._
@@ -209,7 +208,10 @@ object LinkingTaskApi extends Controller {
   def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    task.cache[LinkingCaches].reload(project, task.data)
+    task.activity[PathsCache].reset()
+    task.activity[PathsCache].start()
+    task.activity[ReferenceEntitiesCache].reset()
+    task.activity[ReferenceEntitiesCache].start()
     Ok
   }
 

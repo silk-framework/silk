@@ -2,7 +2,8 @@ package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.TypesCache
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{PathsCache, ReferenceEntitiesCache}
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import controllers.core.{Widgets, Stream}
@@ -20,7 +21,7 @@ object Status extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.status(task.cache[LinkingCaches].status)
+    val stream = Stream.status(task.activity[ReferenceEntitiesCache].status)
 
     Ok.chunked(Widgets.status(stream, "cache"))
   }
@@ -32,7 +33,7 @@ object Status extends Controller {
     val sourceTaskName = linkingTask.data.datasets.source.datasetId
     val sourceTask = project.task[Dataset](sourceTaskName)
 
-    val stream = Stream.status(sourceTask.cache)
+    val stream = Stream.status(sourceTask.activity[TypesCache].status)
 
     Ok.chunked(Widgets.status(stream, "sourceTypesCache"))
   }
@@ -44,7 +45,7 @@ object Status extends Controller {
     val sourceTaskName = linkingTask.data.datasets.target.datasetId
     val sourceTask = project.task[Dataset](sourceTaskName)
 
-    val stream = Stream.status(sourceTask.cache)
+    val stream = Stream.status(sourceTask.activity[TypesCache].status)
 
     Ok.chunked(Widgets.status(stream, "targetTypesCache"))
   }
@@ -53,7 +54,7 @@ object Status extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.status(task.cache[LinkingCaches].pathCache.status)
+    val stream = Stream.status(task.activity[PathsCache].status)
 
     Ok.chunked(Widgets.status(stream, "pathCache"))
   }
@@ -62,7 +63,7 @@ object Status extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream = Stream.status(task.cache[LinkingCaches].referenceEntitiesCache.status)
+    val stream = Stream.status(task.activity[ReferenceEntitiesCache].status)
 
     Ok.chunked(Widgets.status(stream, "referenceEntitiesCache"))
   }

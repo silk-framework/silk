@@ -1,16 +1,16 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.transform
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, Prefixes, TransformSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
 
 import scala.xml.XML
@@ -25,7 +25,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
   override def prefix = "transform"
 
   def createTask(name: Identifier, taskData: TransformSpecification, project: Project): Task[TransformSpecification] = {
-    new Task(name, taskData, Seq(), this, project)
+    new Task(name, taskData, this, project)
   }
 
   /**
@@ -61,7 +61,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     val rules = (rulesXml \ "TransformRule").map(TransformRule.load(project.resources)(project.config.prefixes))
     val outputs = (rulesXml \ "Dataset").map(Dataset.fromXML(_, project.resources))
 
-    new Task(name, TransformSpecification(name, dataset, rules, outputs), Seq(), this, project)
+    new Task(name, TransformSpecification(name, dataset, rules, outputs), this, project)
   }
 
   /**
@@ -71,7 +71,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     resources.delete(taskId)
   }
 
-  override def activities(task: Task[TransformSpecification], project: Project): Seq[TaskActivity[_]] = {
+  override def activities(task: Task[TransformSpecification], project: Project): Seq[TaskActivity[_,_]] = {
     // Execute transform
     def executeTransform =
       new ExecuteTransform(
@@ -87,6 +87,6 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
       )
     // Create task activities
     TaskActivity(executeTransform) ::
-    TaskActivity("cache.xml", null, pathsCache, project.resourceManager.child(prefix).child(task.name))  :: Nil
+    TaskActivity("cache.xml", null: EntityDescription, pathsCache, project.resourceManager.child(prefix).child(task.name))  :: Nil
   }
 }

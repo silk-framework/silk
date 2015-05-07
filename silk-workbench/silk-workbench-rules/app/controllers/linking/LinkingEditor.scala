@@ -1,7 +1,7 @@
 package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache, PathsCache}
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -19,7 +19,7 @@ object LinkingEditor extends Controller {
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val pathsCache = task.cache[LinkingCaches].pathCache
+    val pathsCache = task.activity[PathsCache]
     val prefixes = project.config.prefixes
 
     if(pathsCache.status().isRunning) {
@@ -28,7 +28,7 @@ object LinkingEditor extends Controller {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
     } else {
-      val paths = pathsCache.entityDescs.map(_.paths.map(_.serialize(prefixes)))
+      val paths = pathsCache.value().map(_.paths.map(_.serialize(prefixes)))
       Ok(views.html.editor.paths(paths, onlySource = false))
     }
   }
@@ -36,7 +36,7 @@ object LinkingEditor extends Controller {
   def score(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val entitiesCache = task.cache[LinkingCaches].referenceEntitiesCache
+    val entitiesCache = task.activity[ReferenceEntitiesCache]
 
     // If the entity cache is still loading
     if(entitiesCache.status().isRunning) {
@@ -48,13 +48,13 @@ object LinkingEditor extends Controller {
         error = "No score available as loading the entities that are referenced by the reference links failed. " +
                 "Reason: " + entitiesCache.status().message))
     // If there are no reference links
-    } else if (entitiesCache.value.positive.isEmpty || entitiesCache.value.negative.isEmpty) {
+    } else if (entitiesCache.value().positive.isEmpty || entitiesCache.value().negative.isEmpty) {
       Ok(views.html.editor.score(
         info = "No score available",
         error = "No score available as this project does not define any reference links."))
     // If everything needed for computing a score is available
     } else {
-      val result = LinkageRuleEvaluator(task.data.rule, entitiesCache.value)
+      val result = LinkageRuleEvaluator(task.data.rule, entitiesCache.value())
       val score = f"Precision: ${result.precision}%.2f | Recall: ${result.recall}%.2f | F-measure: ${result.fMeasure}%.2f"
       Ok(views.html.editor.score(score))
     }

@@ -32,7 +32,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   override def prefix = "dataset"
 
   def createTask(name: Identifier, taskData: Dataset, project: Project): Task[Dataset] = {
-    new Task(name, taskData, Seq(), this, project)
+    new Task(name, taskData, this, project)
   }
 
   /**
@@ -60,7 +60,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   private def loadTask(name: String, resources: ResourceLoader, project: Project) = {
     // Load the data set
     val dataset = Dataset.load(project.resources)(resources.get(name).load)
-    new Task(dataset.id, dataset, Seq(), this, project)
+    new Task(dataset.id, dataset, this, project)
   }
 
   /**
@@ -78,7 +78,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
     resources.delete(taskId + "_cache.xml")
   }
 
-  override def activities(task: Task[Dataset], project: Project): Seq[TaskActivity[_]] = {
+  override def activities(task: Task[Dataset], project: Project): Seq[TaskActivity[_,_]] = {
     // Types cache
     def typesCache() = new TypesCache(task.data)
     // Create task activities

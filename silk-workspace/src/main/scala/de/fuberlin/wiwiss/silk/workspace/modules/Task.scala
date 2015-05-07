@@ -27,7 +27,7 @@ import scala.reflect.ClassTag
  *
  * @tparam DataType The data type that specifies the properties of this task.
  */
-class Task[DataType](val name: Identifier, initialData: DataType, val caches: Seq[Cache[DataType, _]],
+class Task[DataType](val name: Identifier, initialData: DataType,
                      plugin: ModulePlugin[DataType], project: Project) {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -40,9 +40,9 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
 
   private val activities = plugin.activities(this, project)
 
-  private val activityControls: Map[Class[_], ActivityControl[_]] = {
-    activities.map(activity => (activity.activityType, Activity(activity))).toMap
-  }
+  private var activityControls = Map[Class[_], ActivityControl[_]]()
+  for(activity <- activities)
+    activityControls += ((activity.activityType, Activity(activity)))
 
   /**
    * Retrieves the current data of this task.
@@ -55,37 +55,12 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   def update(newData: DataType) = synchronized {
     // Update data
     currentData = newData
-    // Update caches
-    for(cache <- caches)
-      cache.load(project, currentData)
     // (Re)Schedule write
     for(writer <- scheduledWriter) {
       writer.cancel(false)
     }
     scheduledWriter = Some(Task.scheduledExecutor.schedule(Writer, Task.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + name + "'")
-  }
-
-  /**
-   * Retrieves a specific cache by type.
-   *
-   * @tparam T The type of the requested cache.
-   */
-  def cache[T: ClassTag]: T = {
-    val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    caches.find(_.getClass == requestedClass)
-          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache of type '${requestedClass.getName}'"))
-          .asInstanceOf[T]
-  }
-
-  /**
-   * Retrieves a specific cache by name.
-   *
-   * @param name The name of the cache
-   */
-  def cache(name: String): Cache[DataType, _] = {
-    caches.find(_.name == name)
-          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache named '$name'. Available caches: ${caches.mkString(", ")}."))
   }
 
   /**

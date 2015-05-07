@@ -1,14 +1,10 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 
-import de.fuberlin.wiwiss.silk.config.{RuntimeConfig, LinkSpecification}
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.execution.GenerateLinks
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
-import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, Task, ModulePlugin}
+import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
 
 import scala.xml.XML
 
@@ -17,7 +13,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   override def prefix = "workflow"
 
   def createTask(name: Identifier, taskData: Workflow, project: Project): Task[Workflow] = {
-    new Task(name, taskData, Nil, this, project)
+    new Task(name, taskData, this, project)
   }
 
   /**
@@ -28,7 +24,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
     for(name <- names) yield {
       val xml = XML.load(resources.get(name).load)
       val workflow = Workflow.fromXML(xml, project)
-      new Task(name.stripSuffix(".xml"), workflow, Nil, this, project)
+      new Task(name.stripSuffix(".xml"), workflow, this, project)
     }
   }
 
@@ -46,7 +42,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
     resources.delete(taskId + ".xml")
   }
 
-  override def activities(task: Task[Workflow], project: Project): Seq[TaskActivity[_]] = {
+  override def activities(task: Task[Workflow], project: Project): Seq[TaskActivity[_,_]] = {
     def workflowExecutor = new WorkflowExecutor(task.data.operators, project)
 
     TaskActivity(workflowExecutor) :: Nil

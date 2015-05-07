@@ -14,8 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
-import java.net.URI
 import java.util.logging.Logger
+
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlParams
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Timer
 
@@ -44,7 +45,7 @@ object SparqlTypesCollectorTest {
     def execute() {
       logger.info("Executing on " + uri + " test")
 
-      val endpoint = new RemoteSparqlEndpoint(uri = new URI(uri), retryCount = 100)
+      val endpoint = new RemoteSparqlEndpoint(SparqlParams(uri = uri, retryCount = 100))
 
       val types = Timer("SparqlAggregateTypesCollector") {
         SparqlAggregateTypesCollector(endpoint, limit = None).toList
