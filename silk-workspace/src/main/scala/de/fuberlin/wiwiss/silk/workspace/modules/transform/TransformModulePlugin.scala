@@ -25,7 +25,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
   override def prefix = "transform"
 
   def createTask(name: Identifier, taskData: TransformSpecification, project: Project): Task[TransformSpecification] = {
-    new Task(name, taskData, Seq(new PathsCache()), this, project)
+    new Task(name, taskData, Seq(), this, project)
   }
 
   /**
@@ -44,7 +44,6 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
       { task.data.outputs.map(_.toXML) }
       </TransformSpec>.write(os)
     }
-    taskResources.put("cache.xml") { os => task.caches.head.toXML.write(os) }
   }
 
   /**
@@ -61,18 +60,8 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(TransformRule.load(project.resources)(project.config.prefixes))
     val outputs = (rulesXml \ "Dataset").map(Dataset.fromXML(_, project.resources))
-    val cache = new PathsCache()
 
-    //Load the cache
-    try {
-      cache.loadFromXML(XML.load(taskResources.get("cache.xml").load))
-    } catch {
-      case ex : Exception =>
-        logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-        new LinkingCaches()
-    }
-
-    new Task(name, TransformSpecification(name, dataset, rules, outputs), Seq(cache), this, project)
+    new Task(name, TransformSpecification(name, dataset, rules, outputs), Seq(), this, project)
   }
 
   /**
@@ -91,7 +80,13 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
         rules = task.data.rules,
         outputs = task.data.outputs.map(_.sink)
       )
+    def pathsCache() =
+      new PathsCache(
+        dataset = project.task[Dataset](task.data.selection.datasetId).data,
+        transform = task.data
+      )
     // Create task activities
-    TaskActivity(executeTransform) :: Nil
+    TaskActivity(executeTransform) ::
+    TaskActivity("cache.xml", null, pathsCache, project.resourceManager.child(prefix).child(task.name))  :: Nil
   }
 }

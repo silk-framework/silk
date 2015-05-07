@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Cache
@@ -52,10 +53,10 @@ class PathsCache() extends Cache[LinkSpecification, DPair[EntityDescription]](nu
     if (value != null) {
         <EntityDescriptions>
           <Source>
-            {value.source.toXML}
+            {Serialization.toXml(value.source)}
           </Source>
           <Target>
-            {value.target.toXML}
+            {Serialization.toXml(value.target)}
           </Target>
         </EntityDescriptions>
     } else {
@@ -69,8 +70,8 @@ class PathsCache() extends Cache[LinkSpecification, DPair[EntityDescription]](nu
       if ((node \ "_").isEmpty) {
         null
       } else {
-        val sourceSpec = EntityDescription.fromXML((node \ "Source" \ "_").head)
-        val targetSpec = EntityDescription.fromXML((node \ "Target" \ "_").head)
+        val sourceSpec = Serialization.fromXml[EntityDescription]((node \ "Source" \ "_").head)
+        val targetSpec = Serialization.fromXml[EntityDescription]((node \ "Target" \ "_").head)
         new DPair(sourceSpec, targetSpec)
       }
   }

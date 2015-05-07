@@ -135,8 +135,8 @@ object TransformTaskApi extends Controller {
   def reloadTransformCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
-    task.cache[PathsCache].clear()
-    task.cache[PathsCache].load(project, task.data)
+    task.activity[PathsCache].reset()
+    task.activity[PathsCache].start()
     Ok
   }
 
@@ -157,8 +157,8 @@ object TransformTaskApi extends Controller {
     var completions = Seq[String]()
 
     // Add known paths
-    if(task.cache[PathsCache].value != null) {
-      val knownPaths = task.cache[PathsCache].value.paths
+    if(task.activity[PathsCache].value() != null) {
+      val knownPaths = task.activity[PathsCache].value().paths
       completions ++= knownPaths.map(_.serializeSimplified(project.config.prefixes)).sorted
     }
 

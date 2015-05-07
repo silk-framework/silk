@@ -25,7 +25,7 @@ object TransformEditor extends Controller {
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
-    val pathsCache = task.cache[PathsCache]
+    val pathsCache = task.activity[PathsCache]
     val prefixes = project.config.prefixes
 
     if(pathsCache.status().isRunning) {
@@ -34,7 +34,7 @@ object TransformEditor extends Controller {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message))
     } else {
-      val paths = DPair(pathsCache.value.paths.map(_.serialize(prefixes)), Seq.empty)
+      val paths = DPair(pathsCache.value().paths.map(_.serialize(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(paths, onlySource = true))
     }
   }

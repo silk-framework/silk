@@ -38,8 +38,10 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val activities: Map[Class[_], ActivityControl[_]] = {
-    plugin.activities(this, project).map(activity => (activity.activityType, Activity(activity))).toMap
+  private val activities = plugin.activities(this, project)
+
+  private val activityControls: Map[Class[_], ActivityControl[_]] = {
+    activities.map(activity => (activity.activityType, Activity(activity))).toMap
   }
 
   /**
@@ -94,7 +96,7 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
    */
   def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    activities.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
+    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
               .asInstanceOf[ActivityControl[T#ValueType]]
   }
 
@@ -104,8 +106,11 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
       plugin.writeTask(Task.this, project.resourceManager.child(plugin.prefix))
       log.info(s"Persisted task '$name' in project '${project.name}'")
       // Update caches
-      // TODO stop previous cache update
-      // TODO update cache
+      for(activity <- activities if activity.autoRun) {
+        val activityControl = activityControls(activity.activityType)
+        activityControl.cancel()
+        activityControl.start()
+      }
     }
   }
 }

@@ -68,9 +68,6 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
    */
   override def writeTask(task: Task[Dataset], resources: ResourceManager): Unit = {
     resources.put(task.name + ".xml"){ os => task.data.toXML.write(os) }
-    val cache = task.activity[TypesCache]
-    cache.cancel()
-    cache.start()
   }
 
   /**
