@@ -52,13 +52,10 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     childControls
   }
 
-  override def start(activity: Option[Activity[T]]): Unit = {
+  override def start(): Unit = {
     // Check if the current activity is still running
     if(status().isRunning)
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
-    // Replace current activity
-    for(a <- activity)
-      this.activity = a
     // Execute activity
     ExecutionContext.global.execute(this)
   }
@@ -76,6 +73,10 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
       childControls.foreach(_.cancel())
       activity.cancelExecution()
     }
+  }
+
+  override def reset() = {
+    activity.initialValue.foreach(value.update)
   }
 
   override def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R] = {

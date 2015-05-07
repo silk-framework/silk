@@ -37,7 +37,7 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /** Checks if this task is empty. */
   def isEmpty = input.trainingEntities.isEmpty
   
-  override def initialValue = LearningResult()
+  override def initialValue = Some(LearningResult())
 
   /**
    * Executes this learning task.

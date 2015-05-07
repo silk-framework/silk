@@ -14,6 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
+import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 import scala.xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
@@ -46,31 +47,44 @@ case class EntityDescription(variable: String, restrictions: SparqlRestriction, 
 
     copy(paths = (paths ++ other.paths).distinct)
   }
-
-  def toXML = {
-    <EntityDescription>
-      <Variable>{variable}</Variable>
-      <Restrictions>{restrictions.toSparql}</Restrictions>
-      <Paths> {
-        for (path <- paths) yield {
-          <Path>{path.serialize(Prefixes.empty)}</Path>
-        }
-      }
-      </Paths>
-    </EntityDescription>
-  }
 }
 
 object EntityDescription {
 
+  /**
+   * Creates an empty entity description.
+   */
   def empty = EntityDescription("a", SparqlRestriction.empty, IndexedSeq.empty)
 
-  def fromXML(node: Node) = {
-    val variable = (node \ "Variable").text.trim
-    new EntityDescription(
-      variable = variable,
-      restrictions = SparqlRestriction.fromSparql(variable, (node \ "Restrictions").text),
-      paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield Path.parse(pathNode.text.trim)
-    )
+  /**
+   * XML serialization format.
+   */
+  implicit object EntityDescriptionFormat extends XmlFormat[EntityDescription] {
+    /**
+     * Deserialize a value from XML.
+     */
+    def read(node: Node) = {
+      val variable = (node \ "Variable").text.trim
+      new EntityDescription(
+        variable = variable,
+        restrictions = SparqlRestriction.fromSparql(variable, (node \ "Restrictions").text),
+        paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield Path.parse(pathNode.text.trim)
+      )
+    }
+
+    /**
+     * Serialize a value to XML.
+     */
+    def write(desc: EntityDescription): Node =
+      <EntityDescription>
+        <Variable>{desc.variable}</Variable>
+        <Restrictions>{desc.restrictions.toSparql}</Restrictions>
+        <Paths> {
+          for (path <- desc.paths) yield {
+            <Path>{path.serialize(Prefixes.empty)}</Path>
+          }
+          }
+        </Paths>
+      </EntityDescription>
   }
 }

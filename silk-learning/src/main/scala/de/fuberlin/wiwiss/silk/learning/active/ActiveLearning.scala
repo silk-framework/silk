@@ -45,7 +45,7 @@ class ActiveLearning(config: LearningConfiguration,
 
   def isEmpty = datasets.isEmpty
 
-  override def initialValue = state
+  override def initialValue = Some(state)
 
   override def run(context: ActivityContext[ActiveLearningState]): Unit = {
     updatePool(context)

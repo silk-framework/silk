@@ -21,7 +21,7 @@ abstract class CurrentStatusListener(taskHolder: TaskData[ActivityControl[_]]) e
   //TODO statusLogLevel = Level.FINEST
   // progressLogLevel = Level.FINEST
 
-  val statusHolder = new ValueHolder[Status](Status.Idle)
+  val statusHolder = new ValueHolder[Status](Some(Status.Idle))
 
   //Listen to changes of the current task
   taskHolder.onUpdate(Listener)
