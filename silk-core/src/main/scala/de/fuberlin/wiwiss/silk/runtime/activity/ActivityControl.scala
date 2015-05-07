@@ -35,7 +35,7 @@ trait ActivityControl[T] {
    *
    * @return The final value of the activity
    */
-  def startBlocking(): T
+  def startBlocking(initialValue: Option[T] = None): T
 
   /**
    * Requests to stop the execution of this activity.

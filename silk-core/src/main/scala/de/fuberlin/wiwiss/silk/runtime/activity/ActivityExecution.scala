@@ -63,7 +63,9 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     ExecutionContext.global.execute(this)
   }
 
-  override def startBlocking(): T = {
+  override def startBlocking(initialValue: Option[T]): T = {
+    for(v <- initialValue)
+      value.update(v)
     run()
     value()
   }
@@ -75,18 +77,10 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
       activity.cancelExecution()
     }
   }
-  
-  override def executeBlocking[R](activity: Activity[R], progressContribution: Double = 0.0, onUpdate: R => Unit): R = {
-    val execution = new ActivityExecution(activity, Some(this), progressContribution)
-    execution.value.onUpdate(onUpdate)
-    execution.run()
-    execution.value()
-  }
 
-  override def executeBackground[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R] = {
+  override def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R] = {
     val execution = new ActivityExecution(activity, Some(this), progressContribution)
     addChild(execution)
-    ExecutionContext.global.execute(execution)
     execution
   }
 
