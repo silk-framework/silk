@@ -13,6 +13,11 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   private val logger = Logger.getLogger(getClass.getName)
 
   /**
+   * The name of the activity.
+   */
+  override val name: String = activity.name
+
+  /**
    * Holds the current value.
    */
   override val value = new ValueHolder[T](activity.initialValue)

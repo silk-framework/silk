@@ -25,10 +25,18 @@ trait Observable[T] {
 
   private val subscribers = new mutable.WeakHashMap[T => _, Unit]()
 
+  @volatile
+  private var updatePublished = false
+
   /**
    * Retrieves the current value.
    */
   def apply(): T
+
+  /**
+   * True, if an update has been published.
+   */
+  def updated = updatePublished
   
   /**
    * Execute a function on every update.
@@ -54,6 +62,7 @@ trait Observable[T] {
    * @param newValue The new value.
    */
   protected def publish(newValue: T) = {
+    updatePublished = true
     for(subscriber <- subscribers.keys)
       subscriber(newValue)
   }

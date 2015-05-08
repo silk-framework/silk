@@ -6,6 +6,11 @@ package de.fuberlin.wiwiss.silk.runtime.activity
 trait ActivityControl[T] {
 
   /**
+   * The name of the activity.
+   */
+  def name: String
+
+  /**
    * The current value of this activity.
    */
   def value: Observable[T]
