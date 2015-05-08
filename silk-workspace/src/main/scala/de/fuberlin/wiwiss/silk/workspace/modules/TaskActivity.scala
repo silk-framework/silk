@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceNotFoundException, ResourceManager}
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
@@ -100,15 +100,12 @@ object TaskActivity {
       // Create a new child activity
       val child = context.child(create(), 1.0)
       // Update value of this task when child value changes
-      var updated = false
-      child.value.onUpdate{ v =>
-        context.value.update(v)
-        updated = true
-      }
+      val updateFunc: T => Unit = context.value.update
+      child.value.onUpdate(updateFunc)
       // Execute activity
       val result = child.startBlocking(Some(context.value()))
       // Persist value
-      if(updated)
+      if(child.value.updated)
         writeValue(result)
     }
 
@@ -119,8 +116,11 @@ object TaskActivity {
         log.info(s"Cache read from $resourceName")
         value
       } catch {
+        case ex: ResourceNotFoundException =>
+          log.log(Level.INFO, s"Cache $resourceName not found")
+          defaultValue
         case ex: Exception =>
-          log.log(Level.WARNING, s"Could not load cache from $resourceName", ex)
+          log.log(Level.WARNING, s"Loading cache from $resourceName failed", ex)
           defaultValue
       }
     }
