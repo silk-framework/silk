@@ -50,8 +50,8 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
   }
 
   def add(name: Identifier, taskData: TaskData) = {
-    val task = plugin.createTask(name, taskData, project)
-    plugin.writeTask(task, resourceMgr)
+    val task = new Task(name, taskData, plugin, project)
+    plugin.writeTask(name, taskData, resourceMgr)
     cachedTasks += ((name, task))
   }
 
@@ -67,7 +67,7 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
       val loadedTasks = plugin.loadTasks(resourceMgr, project)
-      cachedTasks = loadedTasks.map(task => (task.name, task)).toMap
+      cachedTasks = for((name, data) <- loadedTasks) yield (name, new Task(name, data, plugin, project))
     }
   }
 }

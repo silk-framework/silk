@@ -31,51 +31,48 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
 
   override def prefix = "dataset"
 
-  def createTask(name: Identifier, taskData: Dataset, project: Project): Task[Dataset] = {
-    new Task(name, taskData, this, project)
-  }
-
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, project: Project): Seq[Task[Dataset]] = {
+  override def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, Dataset] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-    val tasks = for (name <- names) yield {
+    var tasks = for (name <- names) yield {
       loadTask(name, resources, project)
     }
 
+    // Also read dataset tasks from the old source folder
     if (tasks.isEmpty) {
-      // Also read dataset tasks from the old source folder
       val oldResources = resources.parent.get.child("source")
       val oldNames = oldResources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-      for (name <- oldNames) yield {
-        loadTask(name, oldResources, project)
-      }
-    } else {
-      tasks
+      tasks =
+        for (name <- oldNames) yield {
+          loadTask(name, oldResources, project)
+        }
     }
+
+    tasks.toMap
   }
 
   private def loadTask(name: String, resources: ResourceLoader, project: Project) = {
     // Load the data set
     val dataset = Dataset.load(project.resources)(resources.get(name).load)
-    new Task(dataset.id, dataset, this, project)
+    (dataset.id, dataset)
   }
 
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[Dataset], resources: ResourceManager): Unit = {
-    resources.put(task.name + ".xml"){ os => task.data.toXML.write(os) }
+  override def writeTask(name: Identifier, data: Dataset, resources: ResourceManager): Unit = {
+    resources.put(name + ".xml"){ os => data.toXML.write(os) }
   }
 
   /**
    * Removes a specific task.
    */
-  override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {
-    resources.delete(taskId + ".xml")
-    resources.delete(taskId + "_cache.xml")
+  override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
+    resources.delete(name + ".xml")
+    resources.delete(name + "_cache.xml")
   }
 
   override def activities(task: Task[Dataset], project: Project): Seq[TaskActivity[_,_]] = {

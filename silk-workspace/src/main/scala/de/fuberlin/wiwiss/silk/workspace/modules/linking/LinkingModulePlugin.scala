@@ -37,16 +37,14 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
 
   override def prefix = "linking"
 
-  def createTask(name: Identifier, taskData: LinkSpecification, project: Project): Task[LinkSpecification] = {
-    new Task(name, taskData, this, project)
-  }
-
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, project: Project) = {
-    for(name <- resources.listChildren) yield
-      loadTask(resources.child(name), project)
+  def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, LinkSpecification] = {
+    val tasks =
+      for(name <- resources.listChildren) yield
+        loadTask(resources.child(name), project)
+    tasks.toMap
   }
 
   /**
@@ -55,28 +53,27 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
   private def loadTask(taskResources: ResourceLoader, project: Project) = {
     val linkSpec = LinkSpecification.load(project.resources)(project.config.prefixes)(taskResources.get("linkSpec.xml").load)
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
-
-    new Task(linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks), this, project)
+    (linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks))
   }
 
   /**
    * Removes a specific task.
    */
-  def removeTask(taskId: Identifier, resources: ResourceManager) = {
-    resources.delete(taskId)
+  def removeTask(name: Identifier, resources: ResourceManager) = {
+    resources.delete(name)
   }
 
   /**
    * Writes an updated task.
    */
-  def writeTask(task: Task[LinkSpecification], resources: ResourceManager) = {
+  def writeTask(name: Identifier, data: LinkSpecification, resources: ResourceManager) = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
     // Write resources
-    val taskResources = resources.child(task.name)
-    taskResources.put("linkSpec.xml") { os => task.data.toXML.write(os) }
-    taskResources.put("alignment.xml") { os => task.data.referenceLinks.toXML.write(os) }
+    val taskResources = resources.child(name)
+    taskResources.put("linkSpec.xml") { os => data.toXML.write(os) }
+    taskResources.put("alignment.xml") { os => data.referenceLinks.toXML.write(os) }
   }
 
   override def activities(task: Task[LinkSpecification], project: Project): Seq[TaskActivity[_,_]] = {
