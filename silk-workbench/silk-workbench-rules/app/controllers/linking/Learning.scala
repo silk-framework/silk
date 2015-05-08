@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.learning.LearningActivity
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache}
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import play.api.mvc.{Action, Controller}
@@ -33,7 +33,7 @@ object Learning extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
-    val population = CurrentPopulation()
+    val population = task.activity[LearningActivity].value().population
 
     Ok(views.html.learning.rule(population, referenceLinks))
   }
@@ -91,9 +91,10 @@ object Learning extends Controller {
   def populationView(projectName: String, taskName: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
+    val population = task.activity[LearningActivity].value().population
 
     val pageSize = 20
-    val individuals = CurrentPopulation().individuals.toSeq
+    val individuals = population.individuals.toSeq
     val sortedIndividuals = individuals.sortBy(-_.fitness)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 

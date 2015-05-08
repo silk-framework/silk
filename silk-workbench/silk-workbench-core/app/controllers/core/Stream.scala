@@ -32,17 +32,4 @@ object Stream {
     listeners.put(enumerator, listener)
     enumerator
   }
-
-  def taskData[T](userData: TaskData[T]): Enumerator[T] = {
-    val (enumerator, channel) = Concurrent.broadcast[T]
-
-    lazy val listener = new TaskDataListener(userData) {
-      def onUpdate(value: T) {
-        channel.push(value)
-      }
-    }
-
-    listeners.put(enumerator, listener)
-    enumerator
-  }
 }
