@@ -23,7 +23,7 @@ object Status extends Controller {
 
     val stream = Stream.status(task.activity[ReferenceEntitiesCache].status)
 
-    Ok.chunked(Widgets.status(stream, "cache"))
+    Ok.chunked(Widgets.statusStream(stream, "cache"))
   }
   
   def sourceTypesCacheStream(projectName: String, taskName: String) = Action {
@@ -35,7 +35,7 @@ object Status extends Controller {
 
     val stream = Stream.status(sourceTask.activity[TypesCache].status)
 
-    Ok.chunked(Widgets.status(stream, "sourceTypesCache"))
+    Ok.chunked(Widgets.statusStream(stream, "sourceTypesCache"))
   }
 
   def targetTypesCacheStream(projectName: String, taskName: String) = Action {
@@ -47,7 +47,7 @@ object Status extends Controller {
 
     val stream = Stream.status(sourceTask.activity[TypesCache].status)
 
-    Ok.chunked(Widgets.status(stream, "targetTypesCache"))
+    Ok.chunked(Widgets.statusStream(stream, "targetTypesCache"))
   }
 
   def pathCacheStream(projectName: String, taskName: String) = Action {
@@ -56,7 +56,7 @@ object Status extends Controller {
 
     val stream = Stream.status(task.activity[PathsCache].status)
 
-    Ok.chunked(Widgets.status(stream, "pathCache"))
+    Ok.chunked(Widgets.statusStream(stream, "pathCache"))
   }
 
   def referenceEntitiesCacheStream(projectName: String, taskName: String) = Action {
@@ -65,6 +65,6 @@ object Status extends Controller {
 
     val stream = Stream.status(task.activity[ReferenceEntitiesCache].status)
 
-    Ok.chunked(Widgets.status(stream, "referenceEntitiesCache"))
+    Ok.chunked(Widgets.statusStream(stream, "referenceEntitiesCache"))
   }
 }

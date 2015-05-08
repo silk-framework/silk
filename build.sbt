@@ -26,7 +26,7 @@ lazy val workbenchWorkspace = project in file("silk-workbench/silk-workbench-wor
 
 lazy val workbenchWorkflow = project in file("silk-workbench/silk-workbench-workflow") enablePlugins PlayScala dependsOn workbenchCore aggregate workbenchCore
 
-lazy val workbenchRules = project in file("silk-workbench/silk-workbench-rules") enablePlugins PlayScala dependsOn workbenchCore aggregate workbenchCore
+lazy val workbenchRules = project in file("silk-workbench/silk-workbench-rules") enablePlugins PlayScala dependsOn workbenchWorkspace aggregate workbenchWorkspace
 
 lazy val workbench = project in file("silk-workbench") enablePlugins PlayScala dependsOn (workbenchWorkspace, workbenchRules) aggregate (workbenchWorkspace, workbenchRules)
 

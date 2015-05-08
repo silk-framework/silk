@@ -116,7 +116,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     val taskResources = project.resourceManager.child(prefix).child(task.name)
     TaskActivity(Seq[Link](), generateLinks) ::
     TaskActivity("pathsCache.xml", null: DPair[EntityDescription], pathsCache, taskResources) ::
-    TaskActivity("referenceEntitiesCache.xml", null: ReferenceEntities, referenceEntitiesCache, taskResources) ::
+    TaskActivity("referenceEntitiesCache.xml", ReferenceEntities.empty, referenceEntitiesCache, taskResources) ::
     TaskActivity(LearningResult(), learning) ::
     TaskActivity(ActiveLearningState.initial, activeLearning) :: Nil
   }

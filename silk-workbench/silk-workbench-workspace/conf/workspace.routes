@@ -43,8 +43,8 @@ GET           /projects/:project/export                        controllers.works
 POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
 PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 
-# Tasks
-# GET           /projects/:project/tasks/:task/caches/:cache
+# Activities
+GET           /activities/updates                              controllers.workspace.WorkspaceApi.activityUpdates(projectName: String, taskName: String, activityName: String)
 
 # Resources
 GET           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.getResource(project: String, name: String)

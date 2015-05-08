@@ -80,7 +80,7 @@ object Learning extends Controller {
     val stream1 = Stream.status(task.activity[LearningActivity].status)
     val stream2 = Stream.status(task.activity[ActiveLearning].status)
 
-    Ok.chunked(Widgets.status(stream1 interleave stream2))
+    Ok.chunked(Widgets.statusStream(stream1 interleave stream2))
   }
 
   def population(project: String, task: String) = Action { request =>

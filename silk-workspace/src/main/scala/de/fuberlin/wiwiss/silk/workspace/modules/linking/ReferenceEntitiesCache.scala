@@ -1,15 +1,13 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.dataset.{Dataset, DataSource}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, Dataset}
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Link}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{Task, Cache}
-
-import scala.xml.Node
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 
 class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) extends Activity[ReferenceEntities] {
 
@@ -33,15 +31,11 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
 
     private val linkSpec = task.data
 
-    private var updated = false
-
     def load() = {
       context.status.update("Loading entities", 0.0)
 
       val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size
       var loadedLinks = 0
-      updated = false
-
       for (link <- linkSpec.referenceLinks.positive) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         for(l <- loadPositiveLink(link))
@@ -59,15 +53,12 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
         if(loadedLinks % 10 == 0)
           context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
-
-      updated
     }
 
     private def loadPositiveLink(link: Link): Option[DPair[Entity]] = {
       link.entities match {
         case Some(entities) => Some(entities)
         case None => {
-          updated = true
           context.value().positive.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
@@ -80,7 +71,6 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
       link.entities match {
         case Some(entities) => Some(entities)
         case None => {
-          updated = true
           context.value().negative.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)

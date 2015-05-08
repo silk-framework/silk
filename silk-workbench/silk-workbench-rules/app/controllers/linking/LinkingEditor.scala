@@ -1,6 +1,7 @@
 package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache, PathsCache}
 import play.api.mvc.Controller
 import play.api.mvc.Action
@@ -28,7 +29,8 @@ object LinkingEditor extends Controller {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
     } else {
-      val paths = pathsCache.value().map(_.paths.map(_.serialize(prefixes)))
+      val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntityDescription.empty))
+      val paths = entityDescs.map(_.paths.map(_.serialize(prefixes)))
       Ok(views.html.editor.paths(paths, onlySource = false))
     }
   }

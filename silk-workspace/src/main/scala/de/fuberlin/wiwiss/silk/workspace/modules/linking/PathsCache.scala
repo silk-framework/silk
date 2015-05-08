@@ -11,10 +11,6 @@ import de.fuberlin.wiwiss.silk.util.DPair
  */
 class PathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[EntityDescription]] {
 
-  //TODO remove def entityDescs = Option(value).getOrElse(DPair.fill(EntityDescription.empty))
-
-  override def initialValue = Some(null)
-
   /**
    * Loads the most frequent property paths.
    */
@@ -27,10 +23,10 @@ class PathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends 
     //Check if the restriction has been changed
     val update =
       context.value() == null ||
-      currentEntityDescs.source.restrictions != context.value().source.restrictions &&
-      currentEntityDescs.target.restrictions != context.value().target.restrictions
+        (currentEntityDescs.source.restrictions != context.value().source.restrictions &&
+         currentEntityDescs.target.restrictions != context.value().target.restrictions)
 
-    if (context.value() == null || update) {
+    if (update) {
       // Retrieve the data sources
       val sources = datasets.map(_.source)
       //Retrieve most frequent paths

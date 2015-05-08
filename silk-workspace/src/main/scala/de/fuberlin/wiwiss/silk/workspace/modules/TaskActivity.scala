@@ -80,7 +80,8 @@ object TaskActivity {
      */
     override def run(context: ActivityContext[A#ValueType]): Unit = {
       val child = context.child(create(context.value()), 1.0)
-      child.value.onUpdate(context.value.update)
+      val updateFunc: T => Unit = context.value.update
+      child.value.onUpdate(updateFunc)
       child.startBlocking()
     }
   }

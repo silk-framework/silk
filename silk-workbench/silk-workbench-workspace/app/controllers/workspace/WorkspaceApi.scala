@@ -2,16 +2,13 @@ package controllers.workspace
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
-import controllers.workspace.Workspace._
+import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config._
-import de.fuberlin.wiwiss.silk.dataset.rdf.{ResultSet, RdfDatasetPlugin}
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
 import de.fuberlin.wiwiss.silk.workspace.User
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
-import plugins.Context
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -103,5 +100,12 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
+  def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val activity = task.activity(activityName)
+
+    Ok.chunked(Widgets.statusStream(Stream.status(activity.status)))
+  }
 
 }

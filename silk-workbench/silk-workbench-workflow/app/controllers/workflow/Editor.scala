@@ -16,6 +16,6 @@ object Editor extends Controller {
     val context = Context.get[Workflow](projectName, taskName, request.path)
     val activity = context.task.activity[WorkflowExecutor]
     val stream = Stream.status(activity.status)
-    Ok.chunked(Widgets.status(stream, "status"))
+    Ok.chunked(Widgets.statusStream(stream, "status"))
   }
 }
