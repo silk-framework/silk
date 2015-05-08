@@ -72,7 +72,18 @@ class Task[DataType](val name: Identifier, initialData: DataType,
   def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
     activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
-              .asInstanceOf[ActivityControl[T#ValueType]]
+                    .asInstanceOf[ActivityControl[T#ValueType]]
+  }
+
+  /**
+   * Retrieves an activity by name.
+   *
+   * @param name The name of the requested activity
+   * @return The activity control for the requested activity
+   */
+  def activity(name: String): ActivityControl[_] = {
+    activityControls.values.find(_.name == name)
+      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$name'"))
   }
 
   private object Writer extends Runnable {
