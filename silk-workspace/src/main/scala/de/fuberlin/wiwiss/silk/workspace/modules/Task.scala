@@ -40,9 +40,14 @@ class Task[DataType](val name: Identifier, initialData: DataType,
 
   private val activityList = plugin.activities(this, project)
 
+  // Activity controls for all activities
   private var activityControls = Map[Class[_], ActivityControl[_]]()
   for(activity <- activityList)
     activityControls += ((activity.activityType, Activity(activity)))
+
+  // Start autorun activities
+  for(activity <- activityList if activity.autoRun)
+    activityControls(activity.activityType).start()
 
   /**
    * Retrieves the current data of this task.

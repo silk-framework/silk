@@ -89,25 +89,33 @@ object TaskActivity {
   /**
    * A task activity that executes in the background and caches its value.
    */
-  private class CachedActivity[A <: Activity[T] : ClassTag, T](resourceName: String, defaultValue: T, create: () => A, resourceMgr: ResourceManager)(implicit xmlFormat: XmlFormat[T]) extends TaskActivity[A, T] {
+  private class CachedActivity[A <: Activity[T] : ClassTag, T](resourceName: String, initial: T, create: () => A, resourceMgr: ResourceManager)(implicit xmlFormat: XmlFormat[T]) extends TaskActivity[A, T] {
 
     private val log = Logger.getLogger(classOf[CachedActivity[_,_]].getName)
 
+    @volatile
+    private var initialized = false
+
     override def autoRun = true
 
-    override lazy val initialValue = Some(readValue())
+    override def initialValue = Some(initial)
 
     override def run(context: ActivityContext[T]): Unit = {
-      // Create a new child activity
-      val child = context.child(create(), 1.0)
-      // Update value of this task when child value changes
-      val updateFunc: T => Unit = context.value.update
-      child.value.onUpdate(updateFunc)
-      // Execute activity
-      val result = child.startBlocking(Some(context.value()))
-      // Persist value
-      if(child.value.updated)
-        writeValue(result)
+      if(!initialized) {
+        context.value() = readValue()
+        initialized = true
+      } else {
+        // Create a new child activity
+        val child = context.child(create(), 1.0)
+        // Update value of this task when child value changes
+        val updateFunc: T => Unit = context.value.update
+        child.value.onUpdate(updateFunc)
+        // Execute activity
+        val result = child.startBlocking(Some(context.value()))
+        // Persist value
+        if (child.value.updated)
+          writeValue(result)
+      }
     }
 
     private def readValue(): T = {
@@ -119,10 +127,10 @@ object TaskActivity {
       } catch {
         case ex: ResourceNotFoundException =>
           log.log(Level.INFO, s"Cache $resourceName not found")
-          defaultValue
+          initial
         case ex: Exception =>
           log.log(Level.WARNING, s"Loading cache from $resourceName failed", ex)
-          defaultValue
+          initial
       }
     }
 
