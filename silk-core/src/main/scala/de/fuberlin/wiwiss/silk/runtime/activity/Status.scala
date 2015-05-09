@@ -56,6 +56,7 @@ object Status {
    */
   object Idle extends Status {
     def message = "Idle"
+    override def toString = "Idle"
   }
   
   /**

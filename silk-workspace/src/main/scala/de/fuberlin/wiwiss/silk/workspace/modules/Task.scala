@@ -38,10 +38,10 @@ class Task[DataType](val name: Identifier, initialData: DataType,
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val activities = plugin.activities(this, project)
+  private val activityList = plugin.activities(this, project)
 
   private var activityControls = Map[Class[_], ActivityControl[_]]()
-  for(activity <- activities)
+  for(activity <- activityList)
     activityControls += ((activity.activityType, Activity(activity)))
 
   /**
@@ -62,6 +62,11 @@ class Task[DataType](val name: Identifier, initialData: DataType,
     scheduledWriter = Some(Task.scheduledExecutor.schedule(Writer, Task.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + name + "'")
   }
+
+  /**
+   * All activities that belong to this task.
+   */
+  def activities: Traversable[ActivityControl[_]] = activityControls.valuesIterator.toSeq
 
   /**
    * Retrieves an activity by type.
@@ -92,7 +97,7 @@ class Task[DataType](val name: Identifier, initialData: DataType,
       plugin.writeTask(name, data, project.resourceManager.child(plugin.prefix))
       log.info(s"Persisted task '$name' in project '${project.name}'")
       // Update caches
-      for(activity <- activities if activity.autoRun) {
+      for(activity <- activityList if activity.autoRun) {
         val activityControl = activityControls(activity.activityType)
         activityControl.cancel()
         activityControl.start()
