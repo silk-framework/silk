@@ -9,13 +9,16 @@ import play.api.libs.concurrent.Execution.Implicits._
 object Widgets {
   val log = java.util.logging.Logger.getLogger(getClass.getName)
 
-  def statusStream(stream: Enumerator[Status], id: String = "progress") = {
+  def statusStream(stream: Enumerator[Status], id: String = "progress", project: String = "", task: String = "", activity: String = "") = {
     def serializeStatus(status: Status): JsValue = {
       JsObject(
-        ("id" -> JsString(id)) ::
-          ("progress" -> JsNumber(status.progress * 100.0)) ::
-          ("message" -> JsString(status.toString)) ::
-          ("failed" -> JsBoolean(status.failed)) :: Nil
+        ("id" -> JsString(id)) :: // TODO id can be deleted
+        ("project" -> JsString(project)) ::
+        ("task" -> JsString(task)) ::
+        ("activity" -> JsString(activity)) ::
+        ("progress" -> JsNumber(status.progress * 100.0)) ::
+        ("message" -> JsString(status.toString)) ::
+        ("failed" -> JsBoolean(status.failed)) :: Nil
       )
     }
     stream.map(serializeStatus) &> Comet(callback = "parent.updateStatus")
