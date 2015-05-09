@@ -104,6 +104,6 @@ class StringUtils(str: String) {
    * e.g. helloWorld is converted to "Hello World"
    */
   def undoCamelCase = {
-    str.flatMap(c => if(c.isUpper) " " + c else c.toString).capitalize
+    str.flatMap(c => if(c.isUpper) " " + c else c.toString).capitalize.trim
   }
 }
