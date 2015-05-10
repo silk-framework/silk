@@ -100,12 +100,38 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
-  def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
+  def startActivity(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val activity = task.activity(activityName)
+    activity.start()
+    Ok
+  }
 
-    Ok.chunked(Widgets.statusStream(Stream.status(activity.status)))
+  def cancelActivity(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val activity = task.activity(activityName)
+    activity.cancel()
+    Ok
+  }
+
+  def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
+    val projects =
+      if(projectName.nonEmpty) User().workspace.project(projectName) :: Nil
+      else User().workspace.projects
+
+    val tasks =
+      if(taskName.nonEmpty) projects.map(_.anyTask(taskName))
+      else projects.flatMap(_.allTasks)
+
+    val activities =
+      if(activityName.nonEmpty) tasks.map(_.activity(activityName))
+      else tasks.flatMap(_.activities)
+
+    val activityStreams = Stream.status(activities.map(_.status))
+
+    Ok.chunked(Widgets.statusStream(activityStreams))
   }
 
 }

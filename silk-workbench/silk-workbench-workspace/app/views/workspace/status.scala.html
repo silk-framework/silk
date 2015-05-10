@@ -2,6 +2,7 @@
 @import de.fuberlin.wiwiss.silk.workspace.{User, Workspace, Project}
 @import de.fuberlin.wiwiss.silk.workspace.modules.Task
 @import de.fuberlin.wiwiss.silk.runtime.activity.ActivityControl
+@import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Assets
 
 @()
@@ -51,6 +52,10 @@
         select("-text").html(status.message);
       }
     }
+
+    function post(url) {
+      $.get(url).fail(function(request) { alert(request.responseText); })
+    }
   </script>
 }
 
@@ -59,6 +64,8 @@
 
 @content = {
   @workspaceActivities(User().workspace)
+
+  <iframe src="@WorkspaceApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>
 }
 
 @workspaceActivities(workspace: Workspace) = {
@@ -87,21 +94,20 @@
     @task.name
     <ul>
     @for(activity <- task.activities) {
-      @activityStatus(id(project.name, task.name, activity.name), activity)
+      @activityStatus(id(project.name, task.name, activity.name), project, task, activity)
     }
     </ul>
   </li>
 }
 
-@activityStatus(id: String, activity: ActivityControl[_]) = {
+@activityStatus(id: String, project: Project, task: Task[_], activity: ActivityControl[_]) = {
   <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
-    <a href="#">
-      @activity.name
-      <div id="@id" class="activity-progress-small">
-        <div id="@id-text" class="activity-progress-small-text"></div>
-        @*<img id="@id-help" src="@Assets.at("img/help.png")"/>*@
-      </div>
-    </a>
+    @activity.name
+    <div id="@id" class="activity-progress-small">
+      <div id="@id-text" class="activity-progress-small-text"></div>
+      @*<img id="@id-help" src="@Assets.at("img/help.png")"/>*@
+    </div>
+    <button class="activity-button" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')">Start</button>
   </li>
 }
 

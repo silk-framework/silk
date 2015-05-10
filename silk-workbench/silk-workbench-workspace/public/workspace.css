@@ -53,3 +53,10 @@
   margin-left: 10px;
   position: absolute;
 }
+
+.activity-button {
+  left: 480px;
+  top: -41px;
+  height: 18px;
+  font-size: 9px;
+}

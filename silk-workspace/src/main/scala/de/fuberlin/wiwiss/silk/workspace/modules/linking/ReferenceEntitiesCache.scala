@@ -19,10 +19,13 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
     while(pathsCache.status().isRunning)
       Thread.sleep(1000)
     if(pathsCache.status().failed)
-     throw new Exception("Cannot load reference entities cache, because the paths cache could not be loaded.")
-
-    val entityLoader = new EntityLoader(context, pathsCache.value())
-    entityLoader.load()
+     throw new Exception(s"Cannot load reference entities cache for ${task.name}, because the paths cache could not be loaded.")
+    if(!Option(pathsCache.value()).exists(ed => ed.source.paths.nonEmpty || ed.target.paths.nonEmpty))
+      context.log.info(s"Could not load reference entities cache for ${task.name} as that paths cache does not define paths.")
+    else {
+      val entityLoader = new EntityLoader(context, pathsCache.value())
+      entityLoader.load()
+    }
   }
 
   private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntityDescription]) {
@@ -80,6 +83,9 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
     }
 
     private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]]  = {
+      println("XXX" + sources)
+      println("YYY" + uris)
+      println("ZZZ" + entityDescs)
        for(source <- sources.source.retrieve(entityDescs.source, uris.source :: Nil).headOption;
            target <-  sources.target.retrieve(entityDescs.target, uris.target :: Nil).headOption) yield {
          DPair(source, target)
