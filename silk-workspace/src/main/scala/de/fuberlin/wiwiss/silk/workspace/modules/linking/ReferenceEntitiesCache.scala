@@ -83,9 +83,6 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
     }
 
     private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]]  = {
-      println("XXX" + sources)
-      println("YYY" + uris)
-      println("ZZZ" + entityDescs)
        for(source <- sources.source.retrieve(entityDescs.source, uris.source :: Nil).headOption;
            target <-  sources.target.retrieve(entityDescs.target, uris.target :: Nil).headOption) yield {
          DPair(source, target)

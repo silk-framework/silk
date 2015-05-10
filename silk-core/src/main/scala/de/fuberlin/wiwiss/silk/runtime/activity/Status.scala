@@ -45,9 +45,9 @@ sealed trait Status {
   def succeeded = !isRunning && !failed
 
   /**
-   * The complete status message including the progress.
+   * The complete status message including the progress (if running).
    */
-  override def toString = message + " (" + "%3.1f".format(progress * 100.0) + "%)"
+  override def toString = message
 }
 
 object Status {
@@ -56,7 +56,6 @@ object Status {
    */
   object Idle extends Status {
     def message = "Idle"
-    override def toString = "Idle"
   }
   
   /**
@@ -75,6 +74,7 @@ object Status {
    */
   case class Running(message: String, override val progress: Double) extends Status {
     override def isRunning = true
+    override def toString = message + " (" + "%3.1f".format(progress * 100.0) + "%)"
   }
   
   /**

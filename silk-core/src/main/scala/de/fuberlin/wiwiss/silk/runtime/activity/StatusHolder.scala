@@ -13,13 +13,13 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    * The level at which task status changes should be logged.
    * Examples are status updates when the task is started and stopped.
    */
-  private var statusLogLevel = Level.INFO
+  private val statusLogLevel = Level.INFO
 
   /**
    * The level at which updates to the running status logged.
    * Examples are updates to the current progress or the current status message.
    */
-  private var progressLogLevel = Level.INFO
+  private val progressLogLevel = Level.INFO
 
   /**
    * Holds the current status.
@@ -39,8 +39,8 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
     // Log status change if there is no parent that will log it in the end
     if(parent.isEmpty) {
       newStatus match {
-        case _: Status.Running => log.log(progressLogLevel, status.toString)
-        case _ => log.log(statusLogLevel, status.toString)
+        case s: Status.Running => log.log(progressLogLevel, s.toString)
+        case s => log.log(statusLogLevel, s.toString)
       }
     }
 

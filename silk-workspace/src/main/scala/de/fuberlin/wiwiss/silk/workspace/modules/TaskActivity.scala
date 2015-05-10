@@ -79,10 +79,8 @@ object TaskActivity {
      * @param context Holds the context in which the activity is executed.
      */
     override def run(context: ActivityContext[A#ValueType]): Unit = {
-      val child = context.child(create(context.value()), 1.0)
-      val updateFunc: T => Unit = context.value.update
-      child.value.onUpdate(updateFunc)
-      child.startBlocking()
+      val activity = create(context.value())
+      activity.run(context)
     }
   }
 
@@ -102,35 +100,42 @@ object TaskActivity {
 
     override def run(context: ActivityContext[T]): Unit = {
       if(!initialized) {
-        context.value() = readValue()
         initialized = true
+        readValue() match {
+          case Some(value) => context.value() = value
+          case None => update(context)
+        }
       } else {
-        // Create a new child activity
-        val child = context.child(create(), 1.0)
-        // Update value of this task when child value changes
-        val updateFunc: T => Unit = context.value.update
-        child.value.onUpdate(updateFunc)
-        // Execute activity
-        val result = child.startBlocking(Some(context.value()))
-        // Persist value
-        if (child.value.updated)
-          writeValue(result)
+        update(context)
       }
     }
 
-    private def readValue(): T = {
+    private def update(context: ActivityContext[T]) = {
+      // Listen for value updates
+      var updated = false
+      val updateFunc = (value: T) => { updated = true }
+      context.value.onUpdate(updateFunc)
+      // Run activity
+      val activity = create()
+      activity.run(context)
+      // Persist value (if updated)
+      if (updated)
+        writeValue(context.value())
+    }
+
+    private def readValue(): Option[T] = {
       try {
         val xml = XML.load(resourceMgr.get(resourceName).load)
         val value = fromXml[T](xml)
         log.info(s"Cache read from $resourceName")
-        value
+        Some(value)
       } catch {
         case ex: ResourceNotFoundException =>
           log.log(Level.INFO, s"Cache $resourceName not found")
-          initial
+          None
         case ex: Exception =>
           log.log(Level.WARNING, s"Loading cache from $resourceName failed", ex)
-          initial
+          None
       }
     }
 
