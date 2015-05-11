@@ -14,11 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.util
 
-import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 
-import language.implicitConversions
+import scala.language.implicitConversions
 import scala.xml.Node
 
 /**
@@ -81,8 +79,8 @@ object DPair {
      */
     def read(node: Node) =
       DPair(
-        Serialization.fromXml[T]((node \ "Source").head),
-        Serialization.fromXml[T]((node \ "Target").head)
+        Serialization.fromXml[T]((node \ "Source" \ "_").head),
+        Serialization.fromXml[T]((node \ "Target" \ "_").head)
       )
 
     /**
