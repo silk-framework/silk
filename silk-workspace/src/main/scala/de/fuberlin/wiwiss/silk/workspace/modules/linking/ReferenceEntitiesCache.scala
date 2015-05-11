@@ -90,20 +90,27 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
     }
 
     private def updateEntityPair(entities: DPair[Entity]): Option[DPair[Entity]] = {
-      Some(DPair(
-        source = updateEntity(entities.source, entityDescs.source, sources.source),
-        target = updateEntity(entities.target, entityDescs.target, sources.target)
-      ))
+      val source = updateEntity(entities.source, entityDescs.source, sources.source)
+      val target = updateEntity(entities.target, entityDescs.target, sources.target)
+      // If either source or target has been updated, we need to update the whole pair
+      if(source.isDefined || target.isDefined) {
+        Some(DPair(
+          source = source.getOrElse(entities.source),
+          target = target.getOrElse(entities.target)
+        ))
+      } else {
+        None
+      }
     }
 
     /**
      * Updates an entity so that it conforms to a new entity description.
      * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource) = {
+    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource): Option[Entity] = {
       if (entity.desc.paths == entityDesc.paths) {
-        //The given entity already contains all paths in the correct order.
-        entity
+        // No updated needed as the given entity already contains all paths in the correct order.
+        None
       } else {
         //Compute the paths which are missing on the given entity
         val existingPaths = entity.desc.paths.toSet
@@ -127,11 +134,11 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
           }
 
         //Return the updated entity
-        new Entity(
+        Some(new Entity(
           uri = entity.uri,
           values = completeValues,
           desc = entityDesc
-        )
+        ))
       }
     }
   }
