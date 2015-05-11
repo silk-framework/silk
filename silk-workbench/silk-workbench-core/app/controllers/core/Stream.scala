@@ -32,8 +32,12 @@ object Stream {
         channel.push(value)
       }
     }
-    for(status <- statusObservables)
+    for(status <- statusObservables) {
+      // Push initial value
+      channel.push(status())
+      // Push updates
       status.onUpdate(listener)
+    }
     listeners.put(enumerator, listener)
     enumerator
   }

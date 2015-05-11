@@ -54,6 +54,11 @@
   position: absolute;
 }
 
+.activity-progress-small-help {
+  left: 230px;
+  position: absolute;
+}
+
 .activity-button {
   left: 480px;
   top: -41px;

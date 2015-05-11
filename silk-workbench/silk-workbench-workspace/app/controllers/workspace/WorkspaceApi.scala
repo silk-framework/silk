@@ -5,7 +5,8 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config._
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
-import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
@@ -104,6 +105,8 @@ object WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val activity = task.activity(activityName)
+    activity.cancel()
+    activity.reset()
     activity.start()
     Ok
   }
@@ -119,19 +122,23 @@ object WorkspaceApi extends Controller {
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
     val projects =
       if(projectName.nonEmpty) User().workspace.project(projectName) :: Nil
-      else User().workspace.projects
+      else User().workspace.projects.toSeq
 
-    val tasks =
-      if(taskName.nonEmpty) projects.map(_.anyTask(taskName))
-      else projects.flatMap(_.allTasks)
+    def tasks(project: Project) =
+      if(taskName.nonEmpty) project.anyTask(taskName) :: Nil
+      else project.allTasks
 
-    val activities =
-      if(activityName.nonEmpty) tasks.map(_.activity(activityName))
-      else tasks.flatMap(_.activities)
+    def activities(task: Task[_]) =
+      if(activityName.nonEmpty) task.activity(activityName) :: Nil
+      else task.activities
 
-    val activityStreams = Stream.status(activities.map(_.status))
+    val activityStreams =
+      for(project <- projects;
+          task <- tasks(project);
+          activity <- activities(task)) yield
+        Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = task.name, activity = activity.name)
 
-    Ok.chunked(Widgets.statusStream(activityStreams))
+    Ok.chunked(Enumerator.interleave(activityStreams))
   }
 
 }

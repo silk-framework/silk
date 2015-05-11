@@ -14,42 +14,39 @@
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $(function () {
-      @for(project <- User().workspace.projects;
-           task <- project.allTasks;
-           activity <- task.activities) {
-        updateStatus({
-          "project": "@project.name",
-          "task": "@task.name",
-          "activity": "@activity.name",
-          "progress": @{activity.status().progress * 100.0},
-          "message": "@activity.status().toString",
-          "failed": @activity.status().failed,
-        });
-      }
-
       $('#workspace_root').jstree();
     });
 
     function updateStatus(status) {
-      function select(suffix) {
-        var id = "progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+') + suffix;
-        return $(document.getElementById(id))
+      // Get progress bar node
+      var progressbar = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+
+      // Initialize progress bar
+      if(progressbar.find(".ui-progressbar-value").length == 0) {
+        progressbar.progressbar();
       }
 
+      // Get child nodes
+      var progressbarValue = progressbar.find(".ui-progressbar-value");
+      var progressbarText = progressbar.find(".activity-progress-small-text");
+      var progressbarHelp = progressbar.find(".activity-progress-small-help");
+
+      // Update values
+      progressbar.attr('title', status.message);
       if(status.failed) {
-        select("").progressbar({
-          value: 0
+        progressbar.progressbar("option", {value: 100});
+        progressbarValue.css({
+          "background": '#FF5050'
         });
-        select("-text").html("Failed ");
-        select("-help").show();
-        select("").attr('title', status.message);
+        progressbarText.text("Failed ");
+        progressbarHelp.show();
       } else {
-        select("").attr('title', status.message);
-        select("").progressbar({
-          value: parseFloat(status.progress)
+        progressbar.progressbar("option", {value: parseFloat(status.progress)});
+        progressbarValue.css({
+          "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
         });
-        //select("-help").hide();
-        select("-text").html(status.message);
+        progressbarText.text(status.message);
+        progressbarHelp.hide();
       }
     }
 
@@ -94,18 +91,18 @@
     @task.name
     <ul>
     @for(activity <- task.activities) {
-      @activityStatus(id(project.name, task.name, activity.name), project, task, activity)
+      @activityStatus(project, task, activity)
     }
     </ul>
   </li>
 }
 
-@activityStatus(id: String, project: Project, task: Task[_], activity: ActivityControl[_]) = {
+@activityStatus(project: Project, task: Task[_], activity: ActivityControl[_]) = {
   <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
-    <div id="@id" class="activity-progress-small">
-      <div id="@id-text" class="activity-progress-small-text"></div>
-      @*<img id="@id-help" src="@Assets.at("img/help.png")"/>*@
+    <div id="@id(project.name, task.name, activity.name)" class="activity-progress-small">
+      <div class="activity-progress-small-text"></div>
+      <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <button class="activity-button" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')">Start</button>
   </li>
