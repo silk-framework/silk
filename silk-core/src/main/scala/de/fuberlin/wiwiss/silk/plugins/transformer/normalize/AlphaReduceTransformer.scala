@@ -21,6 +21,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransform
   id = "alphaReduce",
   categories = Array("Normalize"),
   label = "Alpha reduce",
-  description = "Strips all non-alphabetic characters from a string."
+  description = "Strips all non-alphabetic characters from a string. Spaces are retained."
 )
-case class AlphaReduceTransformer() extends RegexReplaceTransformer("[^\\pL]+", "")
+case class AlphaReduceTransformer() extends RegexReplaceTransformer("[^\\s\\pL]+", "")

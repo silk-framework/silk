@@ -1,138 +1,68 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.dataset.{Dataset, DataSource}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, Dataset}
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Link}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.Cache
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 
-import scala.xml.{Node, NodeBuffer, NodeSeq}
+class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) extends Activity[ReferenceEntities] {
 
-class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecification, ReferenceEntities](ReferenceEntities.empty) {
+  override def initialValue = Some(ReferenceEntities.empty)
 
-  /** Alias for value to make code more readable */
-  private def entities = value
-
-  /** Alias for value to make code more readable */
-  private def entities_=(v: ReferenceEntities) { value = v}
-
-  override def update(project: Project, linkSpec: LinkSpecification) = {
-    status.update("Waiting for paths cache", 0.0)
-    pathsCache.waitUntilLoaded()
+  override def run(context: ActivityContext[ReferenceEntities]) = {
+    context.status.update("Waiting for paths cache", 0.0)
+    val pathsCache = task.activity[PathsCache]
+    while(pathsCache.status().isRunning)
+      Thread.sleep(1000)
     if(pathsCache.status().failed)
-     throw new Exception("Cannot load reference entities cache, because the paths cache could not be loaded.")
-
-//    if(value == null ||
-//       currentEntityDescs.source.restrictions != value.source.restrictions &&
-//       currentEntityDescs.target.restrictions != value.target.restrictions) {
-//      update = true
-      //TODO reset reference entities = ReferenceEntities.empty
-//    }
-
-    val entityLoader = new EntityLoader(project, linkSpec, pathsCache.value)
-    entityLoader.load()
-  }
-
-  override def serialize: Node = {
-    <Entities>
-      <PositiveEntities>
-      {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
-        <Pair>
-          <Source>
-            {sourceEntity.toXML}
-          </Source>
-          <Target>
-            {targetEntity.toXML}
-          </Target>
-        </Pair>
-      }}
-      </PositiveEntities>)
-      <NegativeEntities>
-      {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
-        <Pair>
-          <Source>
-            {sourceEntity.toXML}
-          </Source>
-          <Target>
-            {targetEntity.toXML}
-          </Target>
-        </Pair>
-      }}
-      </NegativeEntities>)
-    </Entities>
-  }
-
-  override def deserialize(node: Node) {
-    val posNode = node \ "PositiveEntities"
-    val negNode = node \ "NegativeEntities"
-
-    val positiveEntities: Traversable[DPair[Entity]] = {
-      if (posNode.isEmpty) {
-        Traversable.empty
-      } else {
-        for (pairNode <- (posNode \ "Pair").toList) yield {
-          DPair(
-            Entity.fromXML((pairNode \ "Source" \ "Entity").head, pathsCache.value.source),
-            Entity.fromXML((pairNode \ "Target" \ "Entity").head, pathsCache.value.target))
-        }
-      }
+     throw new Exception(s"Cannot load reference entities cache for ${task.name}, because the paths cache could not be loaded.")
+    if(!Option(pathsCache.value()).exists(ed => ed.source.paths.nonEmpty || ed.target.paths.nonEmpty))
+      context.log.info(s"Could not load reference entities cache for ${task.name} as that paths cache does not define paths.")
+    else {
+      val entityLoader = new EntityLoader(context, pathsCache.value())
+      entityLoader.load()
     }
-
-    val negativeEntities: Traversable[DPair[Entity]] = {
-      if (negNode.isEmpty) {
-        Traversable.empty
-      } else {
-        for (pairNode <- (negNode \ "Pair").toList) yield {
-          DPair(
-            Entity.fromXML((pairNode \ "Source" \ "Entity").head, pathsCache.value.source),
-            Entity.fromXML((pairNode \ "Target" \ "Entity").head, pathsCache.value.target))
-        }
-      }
-    }
-
-    entities = ReferenceEntities.fromEntities(positiveEntities, negativeEntities)
   }
 
-  private class EntityLoader(project: Project, linkSpec: LinkSpecification, entityDescs: DPair[EntityDescription]) {
+  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntityDescription]) {
 
-    private val sources = linkSpec.datasets.map(ds => project.task[Dataset](ds.datasetId).data.source)
+    private val sources = task.data.datasets.map(ds => project.task[Dataset](ds.datasetId).data.source)
 
-    private var updated = false
+    private val linkSpec = task.data
 
     def load() = {
-      status.update("Loading entities", 0.0)
+      context.status.update("Loading entities", 0.0)
 
       val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size
       var loadedLinks = 0
-      updated = false
-
       for (link <- linkSpec.referenceLinks.positive) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        entities = entities.withPositive(loadPositiveLink(link))
+        for(l <- loadPositiveLink(link))
+          context.value() = context.value().withPositive(l)
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
-          status.update(0.5 * (loadedLinks.toDouble / linkCount))
+          context.status.update(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- linkSpec.referenceLinks.negative) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        entities = entities.withNegative(loadNegativeLink(link))
+        for(l <- loadNegativeLink(link))
+          context.value() = context.value().withNegative(l)
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
-          status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
+          context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
-
-      updated
     }
 
-    private def loadPositiveLink(link: Link) = {
+    private def loadPositiveLink(link: Link): Option[DPair[Entity]] = {
       link.entities match {
-        case Some(entities) => entities
+        case Some(entities) => Some(entities)
         case None => {
-          updated = true
-          entities.positive.get(link) match {
+          context.value().positive.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
           }
@@ -140,12 +70,11 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       }
     }
 
-    private def loadNegativeLink(link: Link) = {
+    private def loadNegativeLink(link: Link): Option[DPair[Entity]] = {
       link.entities match {
-        case Some(entities) => entities
+        case Some(entities) => Some(entities)
         case None => {
-          updated = true
-          entities.negative.get(link) match {
+          context.value().negative.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
           }
@@ -153,28 +82,35 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
       }
     }
 
-    private def retrieveEntityPair(uris: DPair[String]) = {
-      DPair(
-        source = sources.source.retrieve(entityDescs.source, uris.source :: Nil).head,
-        target = sources.target.retrieve(entityDescs.target, uris.target :: Nil).head
-      )
+    private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]]  = {
+       for(source <- sources.source.retrieve(entityDescs.source, uris.source :: Nil).headOption;
+           target <-  sources.target.retrieve(entityDescs.target, uris.target :: Nil).headOption) yield {
+         DPair(source, target)
+       }
     }
 
-    private def updateEntityPair(entities: DPair[Entity]) = {
-      DPair(
-        source = updateEntity(entities.source, entityDescs.source, sources.source),
-        target = updateEntity(entities.target, entityDescs.target, sources.target)
-      )
+    private def updateEntityPair(entities: DPair[Entity]): Option[DPair[Entity]] = {
+      val source = updateEntity(entities.source, entityDescs.source, sources.source)
+      val target = updateEntity(entities.target, entityDescs.target, sources.target)
+      // If either source or target has been updated, we need to update the whole pair
+      if(source.isDefined || target.isDefined) {
+        Some(DPair(
+          source = source.getOrElse(entities.source),
+          target = target.getOrElse(entities.target)
+        ))
+      } else {
+        None
+      }
     }
 
     /**
      * Updates an entity so that it conforms to a new entity description.
      * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource) = {
+    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource): Option[Entity] = {
       if (entity.desc.paths == entityDesc.paths) {
-        //The given entity already contains all paths in the correct order.
-        entity
+        // No updated needed as the given entity already contains all paths in the correct order.
+        None
       } else {
         //Compute the paths which are missing on the given entity
         val existingPaths = entity.desc.paths.toSet
@@ -198,11 +134,11 @@ class ReferenceEntitiesCache(pathsCache: PathsCache) extends Cache[LinkSpecifica
           }
 
         //Return the updated entity
-        new Entity(
+        Some(new Entity(
           uri = entity.uri,
           values = completeValues,
           desc = entityDesc
-        )
+        ))
       }
     }
   }

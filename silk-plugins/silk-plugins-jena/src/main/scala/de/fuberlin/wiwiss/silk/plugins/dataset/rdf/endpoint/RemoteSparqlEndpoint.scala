@@ -20,6 +20,7 @@ import java.util.logging.{Level, Logger}
 import javax.xml.bind.DatatypeConverter
 
 import de.fuberlin.wiwiss.silk.dataset.rdf._
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlParams
 
 import scala.collection.immutable.SortedMap
 import scala.io.Source
@@ -27,25 +28,14 @@ import scala.xml.{Elem, XML}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
- *
- * @param uri The URI of the endpoint
- * @param login The login required by the endpoint for authentication
- * @param pageSize The number of solutions to be retrieved per SPARQL query (default: 1000)
- * @param pauseTime The minimum number of milliseconds between two queries
- * @param retryCount The number of retries if a query fails
- * @param initialRetryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  */
-class RemoteSparqlEndpoint(val uri: URI,
-                           login: Option[(String, String)] = None,
-                           val pageSize: Int = 1000, val pauseTime: Int = 0,
-                           val retryCount: Int = 3, val initialRetryPause: Int = 1000,
-                           val queryParameters: String = "") extends SparqlEndpoint {
+class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
   private var lastQueryTime = 0L
 
-  override def toString = "SparqlEndpoint(" + uri + ")"
+  override def toString = "SparqlEndpoint(" + params.uri + ")"
 
   override def query(sparql: String, limit: Int) = {
     ResultSet(
@@ -57,8 +47,8 @@ class RemoteSparqlEndpoint(val uri: URI,
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       var blankNodeCount = 0
 
-      for (offset <- 0 until limit by pageSize) {
-        val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(pageSize, limit - offset))
+      for (offset <- 0 until limit by params.pageSize) {
+        val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(params.pageSize, limit - offset))
 
         val resultsXml = xml \ "results" \ "result"
 
@@ -77,7 +67,7 @@ class RemoteSparqlEndpoint(val uri: URI,
           f(SortedMap(uris ++ literals ++ bnodes: _*))
         }
 
-        if (resultsXml.size < pageSize) return
+        if (resultsXml.size < params.pageSize) return
       }
     }
 
@@ -90,21 +80,21 @@ class RemoteSparqlEndpoint(val uri: URI,
     private def executeQuery(query: String): Elem = {
       //Wait until pause time is elapsed since last query
       synchronized {
-        while (System.currentTimeMillis < lastQueryTime + pauseTime) Thread.sleep(pauseTime / 10)
+        while (System.currentTimeMillis < lastQueryTime + params.pauseTime) Thread.sleep(params.pauseTime / 10)
         lastQueryTime = System.currentTimeMillis
       }
 
       //Execute query
       if (logger.isLoggable(Level.FINE))
-        logger.info("Executing query on " + uri + "\n" + query)
+        logger.info("Executing query on " + params.uri + "\n" + query)
 
-      val url = new URL(uri + "?query=" + URLEncoder.encode(query, "UTF-8") + queryParameters)
+      val url = new URL(params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters)
 
       var result: Elem = null
       var retries = 0
-      var retryPause = initialRetryPause
+      var retryPause = params.retryPause
       while (result == null) {
-        val httpConnection = RemoteSparqlEndpoint.openConnection(url, login)
+        val httpConnection = RemoteSparqlEndpoint.openConnection(url, params.login)
 
         try {
           val inputStream = httpConnection.getInputStream
@@ -115,7 +105,7 @@ class RemoteSparqlEndpoint(val uri: URI,
         catch {
           case ex: IOException => {
             retries += 1
-            if (retries > retryCount) {
+            if (retries > params.retryCount) {
               throw ex
             }
 
@@ -123,10 +113,10 @@ class RemoteSparqlEndpoint(val uri: URI,
               val errorStream = httpConnection.getErrorStream
               if (errorStream != null) {
                 val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-                logger.info("Query on " + uri + " failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
+                logger.info("Query on " + params.uri + " failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
               }
               else {
-                logger.info("Query on " + uri + " failed:\n" + query + "\nRetrying in " + retryPause + " ms. (" + retries + "/" + retryCount + ")")
+                logger.info("Query on " + params.uri + " failed:\n" + query + "\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
               }
             }
 
@@ -135,7 +125,7 @@ class RemoteSparqlEndpoint(val uri: URI,
             //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
           }
           case ex: Exception => {
-            logger.log(Level.SEVERE, "Could not execute query on " + uri + ":\n" + query, ex)
+            logger.log(Level.SEVERE, "Could not execute query on " + params.uri + ":\n" + query, ex)
             throw ex
           }
         }

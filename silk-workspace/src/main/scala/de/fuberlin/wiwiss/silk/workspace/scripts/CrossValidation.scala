@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.learning._
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 import scala.util.Random
@@ -55,9 +55,10 @@ object CrossValidation extends EvaluationScript {
   
   private def execute(dataset: Data, config: LearningConfiguration): RunResult = {
     log.info("Running: " + dataset.name)
-    val cache = dataset.task.cache[LinkingCaches]
-    cache.waitUntilLoaded()
-    Activity.executeBlocking(new CrossValidation(cache.entities, config))
+    val cache = dataset.task.activity[ReferenceEntitiesCache]
+    while(cache.status().isRunning)
+      Thread.sleep(200)
+    Activity(new CrossValidation(cache.value(), config)).startBlocking()
   }
 }
 

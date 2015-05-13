@@ -1,7 +1,7 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project,
   restriction: String,
   types: Set[String],
-  cache: de.fuberlin.wiwiss.silk.workspace.modules.dataset.TypesCache)
+  typesCache: Seq[(String, Double)])
 
 @import de.fuberlin.wiwiss.silk.workspace.Constants
 @import controllers.workspace.routes.Assets
@@ -29,7 +29,7 @@
    </div>
 
    <div id="typelist">
-     @for((uri, frequency) <- cache.value;
+     @for((uri, frequency) <- typesCache;
           name = project.config.prefixes.shorten(uri)) {
        <div class="type @if(types.contains(uri)) {selected}"
             title="@name"

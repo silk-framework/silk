@@ -16,9 +16,9 @@
 
 package de.fuberlin.wiwiss.silk.evaluation
 
-import io.Source
+import scala.io.Source
 import java.io.{InputStream, File}
-import xml.{Node, XML}
+import scala.xml.{Node, XML}
 import de.fuberlin.wiwiss.silk.entity.Link
 
 /**

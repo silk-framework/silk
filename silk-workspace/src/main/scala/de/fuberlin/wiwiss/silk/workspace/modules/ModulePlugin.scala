@@ -1,6 +1,5 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
-import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
@@ -15,22 +14,23 @@ trait ModulePlugin[DataType] {
    */
   def prefix: String
 
-  def createTask(name: Identifier, taskData: DataType, project: Project): Task[DataType]
-
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, project: Project): Seq[Task[DataType]]
+  def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, DataType]
 
   /**
    * Removes a specific task.
    */
-  def removeTask(taskId: Identifier, resources: ResourceManager)
+  def removeTask(name: Identifier, resources: ResourceManager)
 
   /**
    * Writes an updated task.
    */
-  def writeTask(task: Task[DataType], resources: ResourceManager)
+  def writeTask(name: Identifier, data: DataType, resources: ResourceManager)
 
-  def activities(task: Task[DataType], project: Project): Seq[TaskActivity[_]] = Seq.empty
+  /**
+   * The activities that belong to a given task.
+   */
+  def activities(task: Task[DataType], project: Project): Seq[TaskActivity[_,_]] = Seq.empty
 }

@@ -14,11 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
+import java.util.logging.Logger
+
+import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlParams
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Timer
-import java.net.URI
-import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 
 /**
  * Compares the performance of the different path collectors.
@@ -47,7 +48,7 @@ object SparqlPathsCollectorTest {
     def execute() {
       logger.info("Executing " + name + " test")
 
-      val endpoint = new RemoteSparqlEndpoint(uri = new URI(uri), retryCount = 100)
+      val endpoint = new RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
       val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
       val limit = Some(50)
 

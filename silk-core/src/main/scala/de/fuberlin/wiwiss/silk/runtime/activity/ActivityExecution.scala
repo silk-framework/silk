@@ -13,6 +13,11 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   private val logger = Logger.getLogger(getClass.getName)
 
   /**
+   * The name of the activity.
+   */
+  override val name: String = activity.name
+
+  /**
    * Holds the current value.
    */
   override val value = new ValueHolder[T](activity.initialValue)
@@ -52,15 +57,19 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     childControls
   }
 
-  override def start(activity: Option[Activity[T]]): Unit = {
+  override def start(): Unit = {
     // Check if the current activity is still running
     if(status().isRunning)
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
-    // Replace current activity
-    for(a <- activity)
-      this.activity = a
     // Execute activity
     ExecutionContext.global.execute(this)
+  }
+
+  override def startBlocking(initialValue: Option[T]): T = {
+    for(v <- initialValue)
+      value.update(v)
+    run()
+    value()
   }
 
   override def cancel() = {
@@ -70,18 +79,14 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
       activity.cancelExecution()
     }
   }
-  
-  override def executeBlocking[R](activity: Activity[R], progressContribution: Double = 0.0, onUpdate: R => Unit): R = {
-    val execution = new ActivityExecution(activity, Some(this), progressContribution)
-    execution.value.onUpdate(onUpdate)
-    execution.run()
-    execution.value()
+
+  override def reset() = {
+    activity.initialValue.foreach(value.update)
   }
 
-  override def executeBackground[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R] = {
+  override def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R] = {
     val execution = new ActivityExecution(activity, Some(this), progressContribution)
     addChild(execution)
-    ExecutionContext.global.execute(execution)
     execution
   }
 

@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.dataset
 import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
- * Represents an abstraction over an sink of data.
+ * Represents an abstraction over a data sink.
  *
  * Implementing classes of this trait must override the write methods.
  */

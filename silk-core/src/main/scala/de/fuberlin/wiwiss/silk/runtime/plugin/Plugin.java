@@ -14,19 +14,19 @@
 
 package de.fuberlin.wiwiss.silk.runtime.plugin;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Documented
 public @interface Plugin {
-    String id();
 
-    String[] categories() default { "Uncategorized" };
+  /** The unique id of the annotated plugin */
+  String id();
 
-    String label();
+  String label();
 
-    String description() default "No description";
+  String[] categories() default { "Uncategorized" };
+
+  String description() default "No description";
 }

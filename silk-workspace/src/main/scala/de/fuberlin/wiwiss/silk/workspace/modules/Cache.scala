@@ -1,10 +1,9 @@
 package de.fuberlin.wiwiss.silk.workspace.modules
 
 import java.util.logging.{Level, Logger}
-
+import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.runtime.activity.{Status, StatusHolder}
 import de.fuberlin.wiwiss.silk.workspace.Project
-
 import scala.xml.Node
 
 /**
@@ -14,6 +13,13 @@ import scala.xml.Node
  * @tparam T The type of the values that are cached.
  */
 abstract class Cache[TaskType, T](initialValue: T) {
+
+  /**
+   * The name of this cache.
+   * By default, the name is generated from the name of the implementing class.
+   * Can be overridden in implementing classes.
+   */
+  def name: String = getClass.getSimpleName.undoCamelCase
 
   /** The current value of this thread. */
   @volatile
@@ -53,21 +59,19 @@ abstract class Cache[TaskType, T](initialValue: T) {
   }
 
   /** Start loading this cache. */
-  def load(project: Project, task: TaskType, updateCache: Boolean = true) {
+  def load(project: Project, task: TaskType) {
     //Stop current loading thread
     for(thread <- loadingThread) {
       thread.interrupt()
       thread.join()
     }
 
-    if(updateCache || !loaded) {
-      //Set the task status
-      status.update(Status.Started("Loading cache"))
-      //Create new loading thread
-      loadingThread = Some(new LoadingThread(project, task))
-      //Start loading thread
-      loadingThread.map(_.start())
-    }
+    //Set the task status
+    status.update(Status.Started("Loading cache"))
+    //Create new loading thread
+    loadingThread = Some(new LoadingThread(project, task))
+    //Start loading thread
+    loadingThread.foreach(_.start())
   }
 
   /** Blocks until this cache has been loaded */

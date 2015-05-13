@@ -16,8 +16,10 @@
 
 package de.fuberlin.wiwiss.silk.evaluation
 
+import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.entity.{Link, Entity}
+import scala.xml.Node
 
 /**
  * Holds the entities which correspond to a set of reference links.
@@ -29,7 +31,7 @@ case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
   def isEmpty = positive.isEmpty && negative.isEmpty
 
   /** True, if positive and negative entities are available. */
-  def isDefined = !positive.isEmpty && !negative.isEmpty
+  def isDefined = positive.nonEmpty && negative.nonEmpty
 
   /** Merges this reference set with another reference set. */
   def merge(ref: ReferenceEntities) =  ReferenceEntities(positive ++ ref.positive, negative ++ ref.negative)
@@ -41,6 +43,14 @@ case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
   def withNegative(entityPair: DPair[Entity]) = {
     copy(negative = negative + (new Link(entityPair.source.uri, entityPair.target.uri) -> entityPair))
   }
+
+  /** Retrieves the pair of entity descriptions for the contained entity pairs. */
+  def entitiyDescs: DPair[EntityDescription] = {
+    (positive ++ negative).values.headOption match {
+      case Some(entityPair) => entityPair.map(_.desc)
+      case None => DPair.fill(EntityDescription.empty)
+    }
+  }
 }
 
 object ReferenceEntities {
@@ -51,5 +61,78 @@ object ReferenceEntities {
       positive = positiveEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap,
       negative = negativeEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap
     )
+  }
+
+  /**
+   * XML serialization format.
+   */
+  implicit object ReferenceEntitiesFormat extends XmlFormat[ReferenceEntities] {
+    /**
+     * Deserialize a value from XML.
+     */
+    def read(node: Node) = {
+      val entityDescs = Serialization.fromXml[DPair[EntityDescription]]((node \ "Pair").head)
+      val posNode = node \ "PositiveEntities"
+      val negNode = node \ "NegativeEntities"
+
+      val positiveEntities: Traversable[DPair[Entity]] = {
+        if (posNode.isEmpty) {
+          Traversable.empty
+        } else {
+          for (pairNode <- (posNode \ "Pair").toList) yield {
+            DPair(
+              Entity.fromXML((pairNode \ "Source" \ "Entity").head, entityDescs.source),
+              Entity.fromXML((pairNode \ "Target" \ "Entity").head, entityDescs.target))
+          }
+        }
+      }
+
+      val negativeEntities: Traversable[DPair[Entity]] = {
+        if (negNode.isEmpty) {
+          Traversable.empty
+        } else {
+          for (pairNode <- (negNode \ "Pair").toList) yield {
+            DPair(
+              Entity.fromXML((pairNode \ "Source" \ "Entity").head, entityDescs.source),
+              Entity.fromXML((pairNode \ "Target" \ "Entity").head, entityDescs.target))
+          }
+        }
+      }
+
+      ReferenceEntities.fromEntities(positiveEntities, negativeEntities)
+    }
+
+    /**
+     * Serialize a value to XML.
+     */
+    def write(entities: ReferenceEntities): Node = {
+      <Entities>
+        { Serialization.toXml(entities.entitiyDescs) }
+        <PositiveEntities>
+          {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
+          <Pair>
+            <Source>
+              {sourceEntity.toXML}
+            </Source>
+            <Target>
+              {targetEntity.toXML}
+            </Target>
+          </Pair>
+        }}
+        </PositiveEntities>)
+        <NegativeEntities>
+          {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
+          <Pair>
+            <Source>
+              {sourceEntity.toXML}
+            </Source>
+            <Target>
+              {targetEntity.toXML}
+            </Target>
+          </Pair>
+        }}
+        </NegativeEntities>)
+      </Entities>
+    }
   }
 }

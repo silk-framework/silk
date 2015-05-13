@@ -1,5 +1,7 @@
 @import plugins.Context
 @import controllers.rules.routes.Assets
+@import controllers.workspace.routes.WorkspaceApi
+@import de.fuberlin.wiwiss.silk.execution.GenerateLinks
 @import de.fuberlin.wiwiss.silk.config.LinkSpecification
 
 @(context: Context[LinkSpecification])
@@ -29,7 +31,7 @@
       <button name="stop" onclick="stopTask()" disabled="disabled" >Stop</button>
     </li>
     <li>
-      @widgets.taskStatus("generateLinks/statusStream")
+      @widgets.activityStatus(WorkspaceApi.activityUpdates(context.project.name, context.task.name, context.task.activity[GenerateLinks].name).url)
     </li>
     <li>
     </li>

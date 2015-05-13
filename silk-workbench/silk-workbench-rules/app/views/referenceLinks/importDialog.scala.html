@@ -34,7 +34,7 @@
         processData: false,
         success: function(data) {
           $('.dialog').dialog('close');
-          reload();
+          window.location.reload();
         },
         error: function(request) {
           alert(request.responseText);

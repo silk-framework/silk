@@ -20,7 +20,7 @@ object GenerateLinks extends Controller {
 
   def generateLinksDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[Dataset].toSeq.map(_.name.toString())
+    val outputs = project.tasks[Dataset].map(_.name.toString())
 
     Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }
@@ -57,7 +57,7 @@ object GenerateLinks extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val stream = Stream.status(task.activity[GenerateLinksActivity].status)
-    Ok.chunked(Widgets.status(stream))
+    Ok.chunked(Widgets.statusStream(stream))
   }
 
 }

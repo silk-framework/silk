@@ -14,7 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.util
 
-import language.implicitConversions
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
+
+import scala.language.implicitConversions
+import scala.xml.Node
 
 /**
  * Represents a pair of source and target values.
@@ -59,4 +62,34 @@ object DPair {
   def generate[T](f: Boolean => T) = DPair(f(true), f(false))
 
   def empty = DPair[Null](null, null)
+
+  /**
+   * Returns the xml serialization format for a pair of values of a specific type T.
+   *
+   * @param xmlFormat The xml serialization format for type T.
+   */
+  implicit def dPairFormat[T](implicit xmlFormat: XmlFormat[T]): XmlFormat[DPair[T]] = new PairFormat[T]
+
+  /**
+   * XML serialization format.
+   */
+  private class PairFormat[T](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[DPair[T]] {
+    /**
+     * Deserialize a value from XML.
+     */
+    def read(node: Node) =
+      DPair(
+        Serialization.fromXml[T]((node \ "Source" \ "_").head),
+        Serialization.fromXml[T]((node \ "Target" \ "_").head)
+      )
+
+    /**
+     * Serialize a value to XML.
+     */
+    def write(pair: DPair[T]): Node =
+      <Pair>
+        <Source>{Serialization.toXml(pair.source)}</Source>
+        <Target>{Serialization.toXml(pair.target)}</Target>
+      </Pair>
+  }
 }

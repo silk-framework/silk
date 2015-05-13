@@ -35,3 +35,33 @@
   font-size: 0.8em;
   color: #575757;
 }
+
+.ui-progressbar {
+  position: relative;
+}
+
+.activity-progress-small {
+  left: 220px;
+  top: -20px;
+  width: 250px;
+  height: 15px;
+}
+
+.activity-progress-small-text {
+  line-height: 15px;
+  font-size: 10px;
+  margin-left: 10px;
+  position: absolute;
+}
+
+.activity-progress-small-help {
+  left: 230px;
+  position: absolute;
+}
+
+.activity-button {
+  left: 480px;
+  top: -41px;
+  height: 18px;
+  font-size: 9px;
+}

@@ -160,7 +160,7 @@ object GenerateLinksTaskTest {
           runtimeConfig = runtimeConfig
         )
 
-      val links = Activity.executeBlocking(activity)
+      val links = Activity(activity).startBlocking()
       links.toSet
     }
   }

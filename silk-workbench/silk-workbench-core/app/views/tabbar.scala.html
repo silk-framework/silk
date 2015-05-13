@@ -8,6 +8,7 @@
   <span>
     <div class="tab @if(selectedTab == "start") {selected}"><a href="@config.baseUrl/">Start</a></div>
     <div class="tab @if(selectedTab == "workspace") {selected}"><a href="@config.baseUrl/workspace">Workspace</a></div>
+    <div class="tab @if(selectedTab == "status") {selected}"><a href="@config.baseUrl/workspace/status">Status</a></div>
     @pluginTabs
     <div class="tab"><a onclick="showDialog('@config.baseUrl/core/aboutDialog')">About</a></div>
   </span>

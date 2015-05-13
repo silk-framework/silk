@@ -1,7 +1,6 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
 import java.util.logging.Logger
-
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearningState, ActiveLearning}
@@ -9,7 +8,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{PathsCache, ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends EvaluationScript {
@@ -39,9 +38,10 @@ object ActiveLearningEvaluation extends EvaluationScript {
   }
 
   private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
-    val cache = dataset.task.cache[LinkingCaches]
-    cache.waitUntilLoaded()
-    Activity.executeBlocking(new ActiveLearningEvaluator(config, dataset))
+    val cache = dataset.task.activity[ReferenceEntitiesCache]
+    while(cache.status().isRunning)
+      Thread.sleep(200)
+    Activity(new ActiveLearningEvaluator(config, dataset)).startBlocking()
   }
 }
 
@@ -75,7 +75,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     Logger.getLogger(getClass.getName).info("Experiment " + config.name + " on data set " + ds.name +  ": run " + run )
 
     var referenceEntities = ReferenceEntities()
-    val validationEntities = ds.task.cache[LinkingCaches].entities
+    val validationEntities = ds.task.activity[ReferenceEntitiesCache].value()
 
     val sourceEntities =  validationEntities.positive.values.map(_.source)
     val targetEntities =  validationEntities.positive.values.map(_.target)
@@ -95,12 +95,12 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           config = config,
           datasets = ds.sources,
           linkSpec = ds.task.data,
-          paths = ds.task.cache[LinkingCaches].entityDescs.map(_.paths),
+          paths = ds.task.activity[PathsCache].value().map(_.paths),
           referenceEntities = referenceEntities,
           state = ActiveLearningState(pool, population, Seq.empty)
         )
 
-      val result = Activity.executeBlocking(activity)
+      val result = Activity(activity).startBlocking()
       pool = result.pool
       population = result.population
 

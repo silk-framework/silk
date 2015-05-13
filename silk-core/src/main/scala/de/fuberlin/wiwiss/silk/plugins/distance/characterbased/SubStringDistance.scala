@@ -1,9 +1,8 @@
 package de.fuberlin.wiwiss.silk.plugins.distance.characterbased
 
+import de.fuberlin.wiwiss.silk.entity.Index
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin._
-import de.fuberlin.wiwiss.silk.entity.Index
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,7 +16,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
   id = "substring",
   categories = Array("Characterbased"),
   label = "SubString",
-  description = "Return 0 to 1 for strong similarity to weak similarity"
+  description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
 )
 case class SubStringDistance(granularity: String = "3") extends SimpleDistanceMeasure {
   private val n = granularity.toInt

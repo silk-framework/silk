@@ -27,7 +27,7 @@ import scala.reflect.ClassTag
  *
  * @tparam DataType The data type that specifies the properties of this task.
  */
-class Task[DataType](val name: Identifier, initialData: DataType, val caches: Seq[Cache[DataType, _]],
+class Task[DataType](val name: Identifier, initialData: DataType,
                      plugin: ModulePlugin[DataType], project: Project) {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -38,9 +38,16 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val activities: Map[Class[_], ActivityControl[_]] = {
-    plugin.activities(this, project).map(activity => (activity.activityType, Activity.control(activity))).toMap
-  }
+  private val activityList = plugin.activities(this, project)
+
+  // Activity controls for all activities
+  private var activityControls = Map[Class[_], ActivityControl[_]]()
+  for(activity <- activityList)
+    activityControls += ((activity.activityType, Activity(activity)))
+
+  // Start autorun activities
+  for(activity <- activityList if activity.autoRun)
+    activityControls(activity.activityType).start()
 
   /**
    * Retrieves the current data of this task.
@@ -53,9 +60,6 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   def update(newData: DataType) = synchronized {
     // Update data
     currentData = newData
-    // Update caches
-    for(cache <- caches)
-      cache.load(project, currentData, updateCache = true)
     // (Re)Schedule write
     for(writer <- scheduledWriter) {
       writer.cancel(false)
@@ -65,16 +69,9 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
   }
 
   /**
-   * Retrieves a specific cache by type.
-   *
-   * @tparam T The type of the requested cache.
+   * All activities that belong to this task.
    */
-  def cache[T: ClassTag]: T = {
-    val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    caches.find(_.getClass == requestedClass)
-          .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain a cache of type '${requestedClass.getName}'"))
-          .asInstanceOf[T]
-  }
+  def activities: Traversable[ActivityControl[_]] = activityControls.valuesIterator.toSeq
 
   /**
    * Retrieves an activity by type.
@@ -84,14 +81,32 @@ class Task[DataType](val name: Identifier, initialData: DataType, val caches: Se
    */
   def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    activities.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
-              .asInstanceOf[ActivityControl[T#ValueType]]
+    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
+                    .asInstanceOf[ActivityControl[T#ValueType]]
+  }
+
+  /**
+   * Retrieves an activity by name.
+   *
+   * @param name The name of the requested activity
+   * @return The activity control for the requested activity
+   */
+  def activity(name: String): ActivityControl[_] = {
+    activityControls.values.find(_.name == name)
+      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$name'"))
   }
 
   private object Writer extends Runnable {
     override def run(): Unit = {
-      plugin.writeTask(Task.this, project.resourceManager.child(plugin.prefix))
+      // Write task
+      plugin.writeTask(name, data, project.resourceManager.child(plugin.prefix))
       log.info(s"Persisted task '$name' in project '${project.name}'")
+      // Update caches
+      for(activity <- activityList if activity.autoRun) {
+        val activityControl = activityControls(activity.activityType)
+        activityControl.cancel()
+        activityControl.start()
+      }
     }
   }
 }

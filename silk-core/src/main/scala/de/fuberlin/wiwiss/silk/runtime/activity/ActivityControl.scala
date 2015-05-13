@@ -6,6 +6,11 @@ package de.fuberlin.wiwiss.silk.runtime.activity
 trait ActivityControl[T] {
 
   /**
+   * The name of the activity.
+   */
+  def name: String
+
+  /**
    * The current value of this activity.
    */
   def value: Observable[T]
@@ -22,12 +27,18 @@ trait ActivityControl[T] {
 
   /**
    * (Re-)starts this activity.
+   * The activity is executed in the background, i.e, the method call returns after the activity has been started.
    *
-   * @param activity A new activity that should replace the current one before being started.
-   *                 If none, the current activity is restarted.
    * @throws IllegalStateException If the activity is still running.
    */
-  def start(activity: Option[Activity[T]] = None): Unit
+  def start(): Unit
+
+  /**
+   * Starts this activity in the current thread and returns after the activity has been finished.
+   *
+   * @return The final value of the activity
+   */
+  def startBlocking(initialValue: Option[T] = None): T
 
   /**
    * Requests to stop the execution of this activity.
@@ -35,4 +46,9 @@ trait ActivityControl[T] {
    * Activities need to override cancelExecution() to allow cancellation.
    */
   def cancel()
+
+  /**
+   * Resets the value of this activity to its initial value.
+   */
+  def reset()
 }

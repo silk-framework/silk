@@ -21,6 +21,10 @@ object Workspace extends Controller {
     Ok(views.html.workspace.workspaceTree(User().workspace))
   }
 
+  def status = Action {
+    Ok(views.html.workspace.status())
+  }
+
   def newProjectDialog() = Action {
     Ok(views.html.workspace.newProjectDialog())
   }
@@ -47,7 +51,7 @@ object Workspace extends Controller {
 
   def restrictionDialog(projectName: String, sourceName: String, sourceOrTarget: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
-    val pathCache = project.task[Dataset](sourceName).cache[TypesCache]
+    val typesCache = project.task[Dataset](sourceName).activity[TypesCache].value().typesByFrequency
     implicit val prefixes = project.config.prefixes
 
     val variable = sourceOrTarget match {
@@ -80,7 +84,7 @@ object Workspace extends Controller {
       case None => Set.empty[String]
     }
 
-    Ok(views.html.workspace.restrictionDialog(project, restriction, types, pathCache))
+    Ok(views.html.workspace.restrictionDialog(project, restriction, types, typesCache))
   }
 
   def importExample(project: String) = Action {

@@ -85,6 +85,11 @@ class Project(val name: Identifier, val resourceManager: ResourceManager) {
   }
 
   /**
+   * Retrieves all tasks in this project.
+   */
+  def allTasks: Seq[Task[_]] = for(module <- modules; task <- module.tasks) yield task.asInstanceOf[Task[_]]
+
+  /**
    * Retrieves all tasks of a specific type.
    */
   def tasks[T : ClassTag]: Seq[Task[T]] = {

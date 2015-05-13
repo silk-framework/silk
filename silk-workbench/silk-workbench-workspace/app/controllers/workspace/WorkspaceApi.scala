@@ -2,16 +2,14 @@ package controllers.workspace
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
-import controllers.workspace.Workspace._
+import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config._
-import de.fuberlin.wiwiss.silk.dataset.rdf.{ResultSet, RdfDatasetPlugin}
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
 import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
-import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
-import plugins.Context
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -103,5 +101,44 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
+  def startActivity(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val activity = task.activity(activityName)
+    activity.cancel()
+    activity.reset()
+    activity.start()
+    Ok
+  }
+
+  def cancelActivity(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val activity = task.activity(activityName)
+    activity.cancel()
+    Ok
+  }
+
+  def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
+    val projects =
+      if(projectName.nonEmpty) User().workspace.project(projectName) :: Nil
+      else User().workspace.projects.toSeq
+
+    def tasks(project: Project) =
+      if(taskName.nonEmpty) project.anyTask(taskName) :: Nil
+      else project.allTasks
+
+    def activities(task: Task[_]) =
+      if(activityName.nonEmpty) task.activity(activityName) :: Nil
+      else task.activities
+
+    val activityStreams =
+      for(project <- projects;
+          task <- tasks(project);
+          activity <- activities(task)) yield
+        Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = task.name, activity = activity.name)
+
+    Ok.chunked(Enumerator.interleave(activityStreams))
+  }
 
 }

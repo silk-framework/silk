@@ -14,17 +14,13 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
-import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
-import de.fuberlin.wiwiss.silk.workspace.modules.{Task, ModulePlugin}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingCaches
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import scala.xml.XML
+import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
 
 /**
  * The source module which encapsulates all data sources.
@@ -35,62 +31,54 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
 
   override def prefix = "dataset"
 
-  def createTask(name: Identifier, taskData: Dataset, project: Project): Task[Dataset] = {
-    new Task(name, taskData, Seq(new TypesCache()), this, project)
-  }
-
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, project: Project): Seq[Task[Dataset]] = {
+  override def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, Dataset] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-    val tasks = for (name <- names) yield {
+    var tasks = for (name <- names) yield {
       loadTask(name, resources, project)
     }
 
+    // Also read dataset tasks from the old source folder
     if (tasks.isEmpty) {
-      // Also read dataset tasks from the old source folder
       val oldResources = resources.parent.get.child("source")
       val oldNames = oldResources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-      for (name <- oldNames) yield {
-        loadTask(name, oldResources, project)
-      }
-    } else {
-      tasks
+      tasks =
+        for (name <- oldNames) yield {
+          loadTask(name, oldResources, project)
+        }
     }
+
+    tasks.toMap
   }
 
   private def loadTask(name: String, resources: ResourceLoader, project: Project) = {
     // Load the data set
     val dataset = Dataset.load(project.resources)(resources.get(name).load)
-
-    // Load the cache
-    val cache = new TypesCache()
-    try {
-      cache.loadFromXML(XML.load(resources.get(dataset.id + "_cache.xml").load))
-    } catch {
-      case ex : Exception =>
-        logger.log(Level.WARNING, "Cache corrupted. Rebuilding Cache.", ex)
-        new LinkingCaches()
-    }
-
-    new Task(dataset.id, dataset, Seq(cache), this, project)
+    (dataset.id, dataset)
   }
 
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[Dataset], resources: ResourceManager): Unit = {
-    resources.put(task.name + ".xml"){ os => task.data.toXML.write(os) }
-    resources.put(task.name + "_cache.xml") { os => task.caches.head.toXML.write(os) }
+  override def writeTask(name: Identifier, data: Dataset, resources: ResourceManager): Unit = {
+    resources.put(name + ".xml"){ os => data.toXML.write(os) }
   }
 
   /**
    * Removes a specific task.
    */
-  override def removeTask(taskId: Identifier, resources: ResourceManager): Unit = {
-    resources.delete(taskId + ".xml")
-    resources.delete(taskId + "_cache.xml")
+  override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
+    resources.delete(name + ".xml")
+    resources.delete(name + "_cache.xml")
+  }
+
+  override def activities(task: Task[Dataset], project: Project): Seq[TaskActivity[_,_]] = {
+    // Types cache
+    def typesCache() = new TypesCache(task.data)
+    // Create task activities
+    TaskActivity(s"${task.name}_cache.xml", Types.empty, typesCache, project.resourceManager.child(prefix)) :: Nil
   }
 }

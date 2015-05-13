@@ -1,0 +1,115 @@
+@import plugins.Context
+@import de.fuberlin.wiwiss.silk.workspace.{User, Workspace, Project}
+@import de.fuberlin.wiwiss.silk.workspace.modules.Task
+@import de.fuberlin.wiwiss.silk.runtime.activity.ActivityControl
+@import controllers.workspace.routes.WorkspaceApi
+@import controllers.workspace.routes.Assets
+
+@()
+
+@header = {
+  <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />
+  <link rel="stylesheet" href="@Assets.at("workspace.css")" type="text/css" />
+  <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
+  <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
+  <script type="text/javascript">
+    $(function () {
+      $('#workspace_root').jstree();
+    });
+
+    function updateStatus(status) {
+      // Get progress bar node
+      var progressbar = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+
+      // Initialize progress bar
+      if(progressbar.find(".ui-progressbar-value").length == 0) {
+        progressbar.progressbar();
+      }
+
+      // Get child nodes
+      var progressbarValue = progressbar.find(".ui-progressbar-value");
+      var progressbarText = progressbar.find(".activity-progress-small-text");
+      var progressbarHelp = progressbar.find(".activity-progress-small-help");
+
+      // Update values
+      progressbar.attr('title', status.message);
+      if(status.failed) {
+        progressbar.progressbar("option", {value: 100});
+        progressbarValue.css({
+          "background": '#FF5050'
+        });
+        progressbarText.text("Failed ");
+        progressbarHelp.show();
+      } else {
+        progressbar.progressbar("option", {value: parseFloat(status.progress)});
+        progressbarValue.css({
+          "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
+        });
+        progressbarText.text(status.message);
+        progressbarHelp.hide();
+      }
+    }
+
+    function post(url) {
+      $.get(url).fail(function(request) { alert(request.responseText); })
+    }
+  </script>
+}
+
+@toolbar = {
+}
+
+@content = {
+  @workspaceActivities(User().workspace)
+
+  <iframe src="@WorkspaceApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>
+}
+
+@workspaceActivities(workspace: Workspace) = {
+  <div id="workspace_root">
+    <ul class="filetree">
+    @for(project <- workspace.projects) {
+      @projectActivities(project)
+    }
+    </ul>
+  </div>
+}
+
+@projectActivities(project: Project) = {
+  <li id="project_@project.name" class="jstree-open" >
+    @project.name
+    <ul>
+    @for(task <- project.allTasks) {
+      @taskActivities(project, task)
+    }
+    </ul>
+  </li>
+}
+
+@taskActivities(project: Project, task: Task[_]) = {
+  <li id="task_@{project.name}_@task.name" class="jstree-open">
+    @task.name
+    <ul>
+    @for(activity <- task.activities) {
+      @activityStatus(project, task, activity)
+    }
+    </ul>
+  </li>
+}
+
+@activityStatus(project: Project, task: Task[_], activity: ActivityControl[_]) = {
+  <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
+    @activity.name
+    <div id="@id(project.name, task.name, activity.name)" class="activity-progress-small">
+      <div class="activity-progress-small-text"></div>
+      <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
+    </div>
+    <button class="activity-button" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')">Start</button>
+  </li>
+}
+
+@id(project: String, task: String, activity: String) = @{
+  "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
+}
+
+@main(None, "status")(header)(toolbar)(content)

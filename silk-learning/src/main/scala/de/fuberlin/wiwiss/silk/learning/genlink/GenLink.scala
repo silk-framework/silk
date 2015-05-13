@@ -31,7 +31,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
   /** The number of ineffective iterations, i.e., iterations that did not improve the fitness significantly. */
   @volatile private var ineffectiveIterations = 0
   
-  override def initialValue = Result(Population.empty, 0, "")
+  override def initialValue = Some(Result(Population.empty, 0, ""))
 
   override def run(context: ActivityContext[Result]) = {
     //Reset state

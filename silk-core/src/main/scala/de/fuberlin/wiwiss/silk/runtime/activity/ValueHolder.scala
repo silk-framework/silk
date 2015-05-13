@@ -3,11 +3,12 @@ package de.fuberlin.wiwiss.silk.runtime.activity
 /**
  * Holds the current value of an activity.
  */
-class ValueHolder[T](initialValue: => T) extends Observable[T] {
+class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
 
   @volatile
   private var value: T = _
-  try { value = initialValue } catch { case _: NotImplementedError => }
+  for(v <- initialValue)
+    value = v
 
   override def apply(): T = value
 

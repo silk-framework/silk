@@ -196,7 +196,7 @@ class FileEntityCache(val entityDesc: EntityDescription,
         stream.close()
       }
 
-      logger.log(runtimeConfig.logLevel, "Written partition " + (partitionCount - 1) + " of block " + block)
+      logger.log(Level.FINE, "Written partition " + (partitionCount - 1) + " of block " + block)
     }
   }
 
