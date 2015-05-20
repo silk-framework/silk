@@ -31,9 +31,7 @@
       <button name="stop" onclick="stopTask()" disabled="disabled" >Stop</button>
     </li>
     <li>
-      @widgets.activityStatus(WorkspaceApi.activityUpdates(context.project.name, context.task.name, context.task.activity[GenerateLinks].name).url)
-    </li>
-    <li>
+      @widgets.activityControl(context, context.task.activity[GenerateLinks].name)
     </li>
   </ul>
 }

@@ -33,14 +33,6 @@ GET           /:project/:task/learn/statusStream                                
 GET           /:project/:task/learn/population                                              controllers.linking.Learning.population(project: String, task: String)
 GET           /:project/:task/learn/populationView/:page                                    controllers.linking.Learning.populationView(project: String, task: String, page: Int)
 
-# Status
-GET           /:project/:task/status                                                        controllers.linking.Status.status(project: String, task: String)
-GET           /:project/:task/status/cacheStream                                            controllers.linking.Status.cacheStream(project: String, task: String)
-GET           /:project/:task/status/sourceTypesCacheStream                                 controllers.linking.Status.sourceTypesCacheStream(project: String, task: String)
-GET           /:project/:task/status/targetTypesCacheStream                                 controllers.linking.Status.targetTypesCacheStream(project: String, task: String)
-GET           /:project/:task/status/pathCacheStream                                        controllers.linking.Status.pathCacheStream(project: String, task: String)
-GET           /:project/:task/status/referenceEntitiesCacheStream                           controllers.linking.Status.referenceEntitiesCacheStream(project: String, task: String)
-
 # API
 PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.putLinkingTask(project: String, task: String)
 DELETE        /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.deleteLinkingTask(project: String, task: String)

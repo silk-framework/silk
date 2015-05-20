@@ -1,5 +1,6 @@
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.config.LinkSpecification
+@import de.fuberlin.wiwiss.silk.learning.LearningActivity
 @import controllers.rules.routes.Assets
 
 @(context: Context[LinkSpecification])
@@ -37,7 +38,7 @@
       <button onclick="next()">Next</button>
     </li>
     <li>
-      @widgets.activityStatus("learn/statusStream")
+      @widgets.activityControl(context, context.task.activity[LearningActivity].name)
     </li>
   </ul>
 }

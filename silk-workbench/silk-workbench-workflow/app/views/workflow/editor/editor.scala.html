@@ -3,6 +3,7 @@
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
 @import controllers.workflow.routes.Assets
+@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowExecutor
 
 @(context: Context[Workflow])
 
@@ -28,7 +29,7 @@
       <button onclick="executeWorkflow()" >Execute</button>
     </li>
     <li>
-      @widgets.activityStatus("editor/statusStream", "status")
+      @widgets.activityControl(context, context.task.activity[WorkflowExecutor].name))
     </li>
   </ul>
 }

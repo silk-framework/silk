@@ -1,5 +1,6 @@
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.config.TransformSpecification
+@import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 
 @(context: Context[TransformSpecification])
 
@@ -12,7 +13,7 @@
       <button onclick="execute()" >Start</button>
     </li>
     <li>
-      @widgets.activityStatus("execute/statusStream")
+      @widgets.activityControl(context, context.task.activity[ExecuteTransform].name)
     </li>
     <li>
     </li>

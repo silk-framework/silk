@@ -131,6 +131,7 @@ button
 {
   margin-top: 0;
   width: 300px;
+  position: relative;
 }
 
 .ui-progressbar-value
@@ -138,23 +139,22 @@ button
   background-image: url(img/progressbar.gif);
 }
 
-.progresstext
-{
-  height: 0;
-  color: gray;
-  font-weight: bold;
-  position: relative;
-  left: 10px;
-  top: -22px;
-  z-index: 1;
+.activity-progress {
+  width: 250px;
+  height: 15px;
 }
 
-.progresshelp {
-  position: relative;
-  left: 280px;
-  top: -22px;
-  cursor: help;
-  display: none;
+.activity-progress-text {
+  top: 5px;
+  line-height: 15px;
+  font-size: 12px;
+  margin-left: 10px;
+  position: absolute;
+}
+
+.activity-progress-help {
+  left: 230px;
+  position: absolute;
 }
 
 #about_dialog p {

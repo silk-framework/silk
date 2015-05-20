@@ -1,0 +1,49 @@
+@(context: plugins.Context[_], activity: String)
+
+@import controllers.core.routes.Assets
+
+<script type="text/javascript">
+  function updateStatus(status) {
+    // Get progress bar node
+    var progressbar = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+
+    // Initialize progress bar
+    if(progressbar.find(".ui-progressbar-value").length == 0) {
+      progressbar.progressbar();
+    }
+
+    // Get child nodes
+    var progressbarValue = progressbar.find(".ui-progressbar-value");
+    var progressbarText = progressbar.find(".activity-progress-text");
+    var progressbarHelp = progressbar.find(".activity-progress-help");
+
+    // Update values
+    progressbar.attr('title', status.message);
+    if(status.failed) {
+      progressbar.progressbar("option", {value: 100});
+      progressbarValue.css({
+        "background": '#FF5050'
+      });
+      progressbarText.text("Failed ");
+      progressbarHelp.show();
+    } else {
+      progressbar.progressbar("option", {value: parseFloat(status.progress)});
+      progressbarValue.css({
+        "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
+      });
+      progressbarText.text(status.message);
+      progressbarHelp.hide();
+    }
+  }
+</script>
+
+<div id="@id(context.project.name, context.task.name, activity)" class="activity-progress">
+  <div class="activity-progress-text"></div>
+  <img class="activity-progress-help" src="@Assets.at("img/help.png")"/>
+</div>
+
+<iframe src="@config.baseUrl/workspace/activities/updates?project=@context.project.name&task=@context.task.name&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
+
+@id(project: String, task: String, activity: String) = @{
+  "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
+}

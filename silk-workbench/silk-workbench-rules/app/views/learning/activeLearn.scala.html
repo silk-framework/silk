@@ -1,5 +1,6 @@
 @import de.fuberlin.wiwiss.silk.config.LinkSpecification
 @import controllers.rules.routes.Assets
+@import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
 
 @(context: plugins.Context[LinkSpecification])
 
@@ -51,7 +52,7 @@
 @toolbar = {
     <ul>
     <li>
-      @widgets.activityStatus("learn/statusStream")
+      @widgets.activityControl(context, context.task.activity[ActiveLearning].name)
     </li>
     <li>
       <button onclick="back()">Back</button>

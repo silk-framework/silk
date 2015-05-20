@@ -26,8 +26,6 @@ case class LinkingPlugin() extends WorkbenchPlugin {
         tabs ::= Tab("Learn", s"linking/$p/$t/learnStart")
       if (config.workbench.tabs.referenceLinks)
         tabs ::= Tab("Reference Links", s"linking/$p/$t/referenceLinks")
-      if (config.workbench.tabs.status)
-        tabs ::= Tab("Status", s"linking/$p/$t/status")
     }
     tabs.reverse
   }
