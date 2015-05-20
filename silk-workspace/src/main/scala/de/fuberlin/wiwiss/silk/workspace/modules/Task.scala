@@ -88,12 +88,13 @@ class Task[DataType](val name: Identifier, initialData: DataType,
   /**
    * Retrieves an activity by name.
    *
-   * @param name The name of the requested activity
+   * @param activityName The name of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity(name: String): ActivityControl[_] = {
-    activityControls.values.find(_.name == name)
-      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$name'"))
+  def activity(activityName: String): ActivityControl[_] = {
+    activityControls.values.find(_.name == activityName)
+      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
+                                                  s"Available activities: ${activityControls.values.map(_.name).mkString(", ")}"))
   }
 
   private object Writer extends Runnable {
