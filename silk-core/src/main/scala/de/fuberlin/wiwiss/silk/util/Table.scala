@@ -46,6 +46,21 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
   }
 
   /**
+   * Formats this table as markdown.
+   */
+  def toMarkdown = {
+    val sb = new StringBuilder()
+
+    sb.append("| Function and parameters | Name | Description |\n")
+    sb.append("| --- | --- | --- |\n")
+    for((label, row) <- rows zip values) {
+      sb.append("| " + label + " | " + row.map(_.toString.replace("\n", "<br/>")).mkString(" | ") + " |\n")
+    }
+
+    sb.toString
+  }
+
+  /**
    * Formats this table as latex.
    */
   def toLatex = {
