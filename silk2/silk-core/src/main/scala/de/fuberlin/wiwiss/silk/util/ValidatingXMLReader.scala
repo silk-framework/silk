@@ -149,7 +149,7 @@ class ValidatingXMLReader[T](deserializer: Node => T, schemaPath: String) extend
       val ids = elements.map(_ \ "@id").map(_.text).filterNot(_.isEmpty)
       if (ids.distinct.size < ids.size) {
         val duplicatedIds = ids diff ids.distinct
-        val errors = duplicatedIds.map(id => ValidationError("Duplicated identifier", Some(Identifier(id))))
+        val errors = duplicatedIds.map(id => ValidationError(s"Duplicated identifier [ id :: $id ]", Some(Identifier(id))))
         throw new ValidationException(errors)
       }
     }

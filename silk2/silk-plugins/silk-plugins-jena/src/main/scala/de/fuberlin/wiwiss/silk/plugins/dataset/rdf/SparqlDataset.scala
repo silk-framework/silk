@@ -94,7 +94,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
   object SparqlSink extends DataSink {
 
-    private val logger = Logger.getLogger(SparqlSink.getClass.getName)
+    private val logger = Logger.getLogger("SparqlSink")
 
     /**Maximum number of statements per request. */
     private val StatementsPerRequest = 200

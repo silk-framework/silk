@@ -14,10 +14,14 @@
 
 package de.fuberlin.wiwiss.silk.util
 
+import java.util.logging.{Level, Logger}
+
 import scala.collection.mutable
 
 trait Observable[T] {
-  
+
+  private val logger = Logger.getLogger(getClass.getName)
+
   private val subscribers = new mutable.WeakHashMap[T => _, Unit]()
 
   /**
@@ -31,9 +35,13 @@ trait Observable[T] {
     f
   }
 
-  protected def publish(event: T) = synchronized {
-    for(subscriber <- subscribers.keys)
-      subscriber(event)
+  protected def publish(event: T) = {
+
+    logger.log(Level.FINER, s"Publishing an event [ subscribers :: ${subscribers.keys.size} ].")
+
+    for (subscriber <- subscribers.keys)
+      synchronized(subscriber(event))
+
   }
 
   def removeSubscriptions() = synchronized {
