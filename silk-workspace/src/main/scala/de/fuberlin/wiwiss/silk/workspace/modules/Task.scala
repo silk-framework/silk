@@ -81,7 +81,8 @@ class Task[DataType](val name: Identifier, initialData: DataType,
    */
   def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'"))
+    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
+                                                                                s"Available activities:\n${activityControls.keys.map(_.getName).mkString("\n ")}"))
                     .asInstanceOf[ActivityControl[T#ValueType]]
   }
 

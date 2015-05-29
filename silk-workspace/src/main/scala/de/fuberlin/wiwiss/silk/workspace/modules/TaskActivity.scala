@@ -38,7 +38,7 @@ object TaskActivity {
    * @param create Given the previous value, a function to create a new activity that updates the value.
    * @return The task activity.
    */
-  def apply(create: => Activity[Unit]): TaskActivity[Activity[Unit], Unit] = new BackgroundActivity[Activity[Unit], Unit](Unit, (Unit) => create)
+  def apply[A <: Activity[Unit] : ClassTag](create: => A): TaskActivity[A, Unit] = new BackgroundActivity[A, Unit](Unit, (Unit) => create)
 
   /**
    * Creates a task activity that updates a value.
