@@ -1,5 +1,6 @@
 @import plugins.Context
 @import de.fuberlin.wiwiss.silk.config.LinkSpecification
+@import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
 @import controllers.rules.routes.Assets
 
 @(context: Context[LinkSpecification])
@@ -41,6 +42,9 @@
     </li>
     <li>
       <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Managing_Reference_Links" target="_help">Help</a>
+    </li>
+    <li>
+      @widgets.activityControl(context, context.task.activity[ReferenceEntitiesCache].name)
     </li>
   </ul>
 }

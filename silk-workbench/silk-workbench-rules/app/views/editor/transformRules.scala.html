@@ -5,6 +5,7 @@
 @import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 @import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
 @import de.fuberlin.wiwiss.silk.entity.Path
+@import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 @import controllers.rules.routes.Assets
 
 @(context: Context[TransformSpecification])
@@ -26,6 +27,9 @@
   <ul>
     <li>
       <button onclick="addRule()">Add Rule</button>
+    </li>
+    <li>
+      @widgets.activityControl(context, context.task.activity[PathsCache].name)
     </li>
   </ul>
 
