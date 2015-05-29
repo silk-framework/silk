@@ -16,14 +16,14 @@ package de.fuberlin.wiwiss.silk
 
 import java.io.File
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.config.{TransformSpecification, LinkSpecification, LinkingConfig}
+
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, LinkingConfig, TransformSpecification}
 import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinks}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.util.CollectLogs
 import de.fuberlin.wiwiss.silk.util.StringUtils._
-import de.fuberlin.wiwiss.silk.runtime.activity.Activity
-import de.fuberlin.wiwiss.silk.dataset.DataSource
 
 /**
  * Executes the complete Silk workflow.
@@ -136,14 +136,14 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true): Unit = {
-    Activity.executeBlocking(
+    val generateLinks =
       GenerateLinks.fromSources(
         inputs = config.sources,
         linkSpec = linkSpec,
         outputs = linkSpec.outputs ++ config.outputs,
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
-    )
+    Activity(generateLinks).startBlocking()
   }
 
   /**
@@ -155,7 +155,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {
     val input = config.source(transform.selection.datasetId).source
-    Activity.executeBlocking(ExecuteTransform(input, transform))
+    Activity(ExecuteTransform(input, transform)).startBlocking()
   }
 
   /**
