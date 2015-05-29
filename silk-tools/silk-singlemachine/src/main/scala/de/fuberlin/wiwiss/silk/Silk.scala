@@ -53,7 +53,7 @@ object Silk {
   def execute() {
     System.getProperty("logQueries") match {
       case BooleanLiteral(b) if b =>
-        Logger.getLogger("de.fuberlin.wiwiss.silk.util.sparql").setLevel(Level.FINE)
+        Logger.getLogger("de.fuberlin.wiwiss.silk.plugins.dataset.rdf").setLevel(Level.FINE)
         Logger.getLogger("").getHandlers.foreach(_.setLevel(Level.FINE))
       case _ =>
     }
