@@ -30,7 +30,7 @@ class AlphaReduceTransformerTest extends FlatSpec with ShouldMatchers {
     transformer.evaluate("a1b0c") should equal("abc")
   }
 
-  "AlphaReduceTransformer" should "remove punctuation" in {
-    transformer.evaluate("-.def ,-") should equal("def")
+  "AlphaReduceTransformer" should "remove punctuation, but retain spaces" in {
+    transformer.evaluate("-.def ,-") should equal("def ")
   }
 }
