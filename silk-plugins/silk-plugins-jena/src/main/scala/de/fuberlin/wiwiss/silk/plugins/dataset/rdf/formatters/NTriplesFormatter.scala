@@ -30,7 +30,7 @@ class NTriplesFormatter() extends Formatter {
     if (value.startsWith("http:")) {
       "<" + subject + "> <" + predicate + "> <" + value + "> .\n"
     // Check if value  a number
-    } else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.')) {
+    } else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E')) {
       "<" + subject + "> <" + predicate + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n"
       // Write string values
     } else {
