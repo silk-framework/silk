@@ -31,8 +31,7 @@ class ExecuteTransform(input: DataSource,
 
       // Transform all entities and write to outputs
       var count = 0
-      for {entity <- entities
-           rule <- rules} {
+      for(entity <- entities) {
         val values = rules.map(_(entity))
         for (output <- outputs)
           output.writeEntity(entity.uri, values)
