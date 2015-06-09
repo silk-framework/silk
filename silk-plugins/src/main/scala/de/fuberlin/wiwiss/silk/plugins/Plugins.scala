@@ -2,13 +2,13 @@ package de.fuberlin.wiwiss.silk.plugins
 
 import java.io.File
 import java.util.logging.{Level, Logger}
+
 import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
+import de.fuberlin.wiwiss.silk.plugins.dataset.{JenaPlugins, JsonPlugins}
 import de.fuberlin.wiwiss.silk.plugins.spatial.SpatialPlugins
 import de.fuberlin.wiwiss.silk.plugins.temporal.TemporalPlugins
-import de.fuberlin.wiwiss.silk.plugins.dataset.{JsonPlugins, JenaPlugins}
 import de.fuberlin.wiwiss.silk.util.Timer
 ;
 

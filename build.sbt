@@ -32,12 +32,13 @@ lazy val workbench = project in file("silk-workbench") enablePlugins PlayScala d
 
 // Tools
 
-lazy val singlemachine = project in file("silk-tools/silk-singlemachine") dependsOn core dependsOn plugins
+lazy val singlemachine = project in file("silk-tools/silk-singlemachine") dependsOn core dependsOn plugins settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
 
 // Root
 
 lazy val root = project.in(file("."))
                        .aggregate(core, plugins, singlemachine, learning, workspace, workbench)
+                       .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
 
-libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.1.6" % "test"
+libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
 
