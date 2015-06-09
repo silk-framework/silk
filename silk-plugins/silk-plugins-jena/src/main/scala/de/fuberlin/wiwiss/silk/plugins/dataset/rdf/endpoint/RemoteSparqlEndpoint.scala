@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlParams
 
 import scala.collection.immutable.SortedMap
 import scala.io.Source
-import scala.xml.{Elem, XML}
+import scala.xml.{NodeSeq, Elem, XML}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -44,31 +44,40 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
   }
 
   private class ResultTraversable(sparql: String, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
+    @volatile var blankNodeCount = 0
+
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
-      var blankNodeCount = 0
-
-      for (offset <- 0 until limit by params.pageSize) {
-        val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(params.pageSize, limit - offset))
-
+      if(sparql.toLowerCase.contains("limit ") || sparql.toLowerCase.contains("offset ")) {
+        val xml = executeQuery(sparql)
         val resultsXml = xml \ "results" \ "result"
-
         for (resultXml <- resultsXml) {
-          val bindings = resultXml \ "binding"
-
-          val uris = for (binding <- bindings; node <- binding \ "uri") yield ((binding \ "@name").text, Resource(node.text))
-
-          val literals = for (binding <- bindings; node <- binding \ "literal") yield ((binding \ "@name").text, Literal(node.text))
-
-          val bnodes = for (binding <- bindings; node <- binding \ "bnode") yield {
-            blankNodeCount += 1
-            ((binding \ "@name").text, BlankNode("bnode" + blankNodeCount))
-          }
-
-          f(SortedMap(uris ++ literals ++ bnodes: _*))
+          f(parseResult(resultXml))
         }
-
-        if (resultsXml.size < params.pageSize) return
+      } else {
+        for (offset <- 0 until limit by params.pageSize) {
+          val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(params.pageSize, limit - offset))
+          val resultsXml = xml \ "results" \ "result"
+          for (resultXml <- resultsXml) {
+            f(parseResult(resultXml))
+          }
+          if (resultsXml.size < params.pageSize) return
+        }
       }
+    }
+
+    private def parseResult(resultXml: NodeSeq): SortedMap[String, RdfNode] = {
+      val bindings = resultXml \ "binding"
+
+      val uris = for (binding <- bindings; node <- binding \ "uri") yield ((binding \ "@name").text, Resource(node.text))
+
+      val literals = for (binding <- bindings; node <- binding \ "literal") yield ((binding \ "@name").text, Literal(node.text))
+
+      val bnodes = for (binding <- bindings; node <- binding \ "bnode") yield {
+        blankNodeCount += 1
+        ((binding \ "@name").text, BlankNode("bnode" + blankNodeCount))
+      }
+
+      SortedMap(uris ++ literals ++ bnodes: _*)
     }
 
     /**
@@ -98,6 +107,8 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
 
         try {
           val inputStream = httpConnection.getInputStream
+          println("RESULT")
+          for(line <- Source.fromInputStream(inputStream).getLines()) println(line)
           result = XML.load(inputStream)
           inputStream.close()
           httpConnection.disconnect()
@@ -146,7 +157,7 @@ private object RemoteSparqlEndpoint {
   private def openConnection(url: URL, login: Option[(String, String)]): HttpURLConnection = {
     //Open connection
     val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
-    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
+    httpConnection.setRequestProperty("ACCEPT", "sparql-results+xml")
     //Set authentication
     for ((user, password) <- login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
