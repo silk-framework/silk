@@ -107,8 +107,6 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
 
         try {
           val inputStream = httpConnection.getInputStream
-          println("RESULT")
-          for(line <- Source.fromInputStream(inputStream).getLines()) println(line)
           result = XML.load(inputStream)
           inputStream.close()
           httpConnection.disconnect()
@@ -157,7 +155,7 @@ private object RemoteSparqlEndpoint {
   private def openConnection(url: URL, login: Option[(String, String)]): HttpURLConnection = {
     //Open connection
     val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
-    httpConnection.setRequestProperty("ACCEPT", "sparql-results+xml")
+    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
     //Set authentication
     for ((user, password) <- login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
