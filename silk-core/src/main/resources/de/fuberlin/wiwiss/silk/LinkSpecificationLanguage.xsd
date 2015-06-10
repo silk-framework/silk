@@ -240,7 +240,7 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="Interlinks">
+                <xs:element name="Interlinks" minOccurs="0">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element ref="Interlink" maxOccurs="unbounded"/>
@@ -248,7 +248,7 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="Transforms">
+                <xs:element name="Transforms" minOccurs="0">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element ref="Transform" minOccurs="0" maxOccurs="unbounded"/>
