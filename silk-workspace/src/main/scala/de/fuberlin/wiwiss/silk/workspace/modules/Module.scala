@@ -6,6 +6,7 @@ import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.Project
 
+import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
 
 class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: ResourceManager, project: Project) {
@@ -16,7 +17,7 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
    * Caches all tasks of this module in memory.
    */
   @volatile
-  private var cachedTasks: Map[Identifier, Task[TaskData]] = null
+  private var cachedTasks: TreeMap[Identifier, Task[TaskData]] = null
 
   def hasTaskType[T : ClassTag]: Boolean = {
     implicitly[ClassTag[T]].runtimeClass == implicitly[ClassTag[TaskData]].runtimeClass
@@ -67,7 +68,14 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
       val loadedTasks = plugin.loadTasks(resourceMgr, project)
-      cachedTasks = for((name, data) <- loadedTasks) yield (name, new Task(name, data, plugin, project))
+      cachedTasks = TreeMap()(TaskOrdering) ++ { for((name, data) <- loadedTasks) yield (name, new Task(name, data, plugin, project)) }
     }
+  }
+
+  /**
+   * Defines how tasks are sorted based on their identifier.
+   */
+  private object TaskOrdering extends Ordering[Identifier] {
+    def compare(a:Identifier, b:Identifier) = a.toString.compareTo(b.toString)
   }
 }
