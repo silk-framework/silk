@@ -27,7 +27,6 @@ import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._
 import de.fuberlin.wiwiss.silk.plugins.distance.equality._
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric._
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased._
-import de.fuberlin.wiwiss.silk.plugins.transformer.ConstantTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conditional.{IfExists, IfContains}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
@@ -39,6 +38,7 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.numeric._
 import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformer, ReplaceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.value.{RandomNumberTransformer, ConstantTransformer}
 
 /**
  * Registers all default plugins.
@@ -90,6 +90,7 @@ object CorePlugins {
     Transformer.register(classOf[NysiisTransformer])
     Transformer.register(classOf[MetaphoneTransformer])
     Transformer.register(classOf[ConstantTransformer])
+    Transformer.register(classOf[RandomNumberTransformer])
     // Conditional
     Transformer.register(classOf[IfContains])
     Transformer.register(classOf[IfExists])

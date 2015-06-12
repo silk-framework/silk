@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.plugins.transformer
+package de.fuberlin.wiwiss.silk.plugins.transformer.value
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 @Plugin(
   id = "constant",
   label = "Constant",
-  categories = Array("Recommended"),
+  categories = Array("Recommended", "Value"),
   description = "Generates a constant value."
 )
 case class ConstantTransformer(value: String = "") extends Transformer {
