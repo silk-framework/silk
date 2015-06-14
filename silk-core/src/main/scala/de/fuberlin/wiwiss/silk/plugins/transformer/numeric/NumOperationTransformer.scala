@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.numeric
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
 
@@ -29,27 +29,35 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
   categories = Array("Numeric"),
   label = "Numeric Operation",
   description =
-    """ | Applies a numeric operation to all values of the input operator.
+    """ | Applies a numeric operation to the values of multiple input operators.
+        | Each input operator is expected to provide one numeric value.
+        | If an input operator provides multiple values, all of its values are summed up before the operation.
         | Accepts two paramters:
         |   operator: One of '+', '-', '*', '/'
-        |   operand: The operand. """
+        |   operand: Final operand that is added/subtracted/etc. after all inputs. """
 )
-class NumOperationTransformer(operator: String, operand: Double) extends SimpleTransformer {
+class NumOperationTransformer(operator: String, operand: Double) extends Transformer {
+
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
-  override def evaluate(value: String) = {
+  def apply(values: Seq[Set[String]]): Set[String] = {
+    val operands = values.map(_.map(parse).sum) :+ operand
+    Set(operands.reduce(operation).toString)
+  }
+
+  def parse(value: String): Double = {
     value match {
-      case DoubleLiteral(d) => operation(d).toString
-      case str => str
+      case DoubleLiteral(d) => d
+      case str => 0.0
     }
   }
 
-  private def operation(value: Double): Double = {
+  private def operation(value1: Double, value2: Double): Double = {
     operator match {
-      case "+" => value + operand
-      case "-" => value - operand
-      case "*" => value * operand
-      case "/" => value / operand
+      case "+" => value1 + value2
+      case "-" => value1 - value2
+      case "*" => value1 * value2
+      case "/" => value1 / value2
     }
   }
 }
