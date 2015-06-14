@@ -46,9 +46,13 @@ object DetailedEvaluator {
    * Evaluates a set of transform rules.
    */
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
-    val values = for(rule <- rules; op <- rule.operator) yield evaluateInput(op, DPair.fill(entity))
-    val nonEmptyRules = rules.filter(_.operator.isDefined)
-    DetailedEntity(entity.uri, values, nonEmptyRules)
+    val subjectRule = rules.find(_.targetProperty.isEmpty)
+    val propertyRules = rules.filter(_.targetProperty.isDefined)
+
+    val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
+    val values = for(rule <- propertyRules; op <- rule.operator) yield evaluateInput(op, DPair.fill(entity))
+    val nonEmptyRules = propertyRules.filter(_.operator.isDefined)
+    DetailedEntity(uri, values, nonEmptyRules)
   }
 
   /**

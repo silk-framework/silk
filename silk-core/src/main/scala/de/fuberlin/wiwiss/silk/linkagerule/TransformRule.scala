@@ -11,7 +11,7 @@ import scala.xml.Node
 /**
  * A transform rule.
  */
-case class TransformRule(name: Identifier = "transformation", operator: Option[Input] = None, targetProperty: Uri = "http://silk.wbsg.de/transformed") {
+case class TransformRule(name: Identifier = "transformation", operator: Option[Input] = None, targetProperty: Option[Uri] = None) {
   /**
    * Generates the transformed values.
    *
@@ -31,6 +31,7 @@ case class TransformRule(name: Identifier = "transformation", operator: Option[I
    */
   def paths: Set[Path] = {
     def collectPaths(param: Input): Set[Path] = param match {
+      case p: PathInput if p.path.operators.isEmpty => Set()
       case p: PathInput => Set(p.path)
       case p: TransformInput => p.inputs.flatMap(collectPaths).toSet
     }
@@ -45,7 +46,7 @@ case class TransformRule(name: Identifier = "transformation", operator: Option[I
    * Serializes this transform rule as XML.
    */
   def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <TransformRule name={name} targetProperty={targetProperty.serialize}>
+    <TransformRule name={name} targetProperty={targetProperty.map(_.uri).getOrElse("")}>
       {operator.toList.map(_.toXML)}
     </TransformRule>
   }
@@ -55,10 +56,6 @@ case class TransformRule(name: Identifier = "transformation", operator: Option[I
  * Creates new transform rules.
  */
 object TransformRule {
-  /**
-   * Creates a new transform rule with one root operator.
-   */
-  def apply(name: Identifier, operator: Input, targetProperty: String): TransformRule = TransformRule(name, Some(operator), targetProperty)
 
   def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
@@ -68,10 +65,11 @@ object TransformRule {
    * Reads a transform rule from xml.
    */
   def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
+    val target = (node \ "@targetProperty").text
     TransformRule(
       name = (node \ "@name").text,
       operator = Input.fromXML(node.child, resourceLoader).headOption,
-      targetProperty = prefixes.resolve((node \ "@targetProperty").text)
+      targetProperty = if(target.isEmpty) None else Some(prefixes.resolve(target))
     )
   }
 }

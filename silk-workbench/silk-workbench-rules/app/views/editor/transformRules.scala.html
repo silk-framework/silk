@@ -86,7 +86,7 @@
               }
             }
           </td>
-          <td><input class="target" value="@rule.targetProperty.serialize(prefixes())" /></td>
+          <td><input class="target" value="@rule.targetProperty.map(_.serialize(prefixes())).getOrElse("")" /></td>
         </tr>
       </table>
     </div>
