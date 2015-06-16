@@ -65,7 +65,7 @@ class SparqlSink(params: SparqlParams) extends DataSink {
     if (value.startsWith("http:"))
       writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> <" + value + "> .\n", "UTF-8"))
     // Check if value is a number
-    else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.'))
+    else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E'))
       writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n", "UTF-8"))
     // Write string values
     else {
