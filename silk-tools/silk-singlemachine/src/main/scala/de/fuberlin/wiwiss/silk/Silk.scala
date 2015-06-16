@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk
 
-import java.io.File
+import java.io.{File, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, LinkingConfig, TransformSpecification}
@@ -24,6 +24,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.util.CollectLogs
 import de.fuberlin.wiwiss.silk.util.StringUtils._
+import org.apache.log4j.{ConsoleAppender, PatternLayout}
 
 /**
  * Executes the complete Silk workflow.
@@ -41,6 +42,13 @@ object Silk {
 
   //Register all available plugins
   Plugins.register()
+
+  // Initialize Log4j
+  val ca = new ConsoleAppender()
+  ca.setWriter(new OutputStreamWriter(System.out))
+  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
+  ca.setThreshold(org.apache.log4j.Level.WARN)
+  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
 
   /**
    * Executes Silk.
