@@ -23,8 +23,7 @@ import scala.xml.Node
 /**
  * A dataset of entities.
  */
-// TODO add min and max confidence?
-case class Dataset(id: Identifier, plugin: DatasetPlugin) {
+case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[Double] = None, maxConfidence: Option[Double] = None) {
 
   private val log = Logger.getLogger(Dataset.getClass.getName)
 
@@ -78,14 +77,13 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin) {
      * Writes a new link to this writer.
      */
     override def writeLink(link: Link, predicateUri: String) {
-      require(isOpen, "Output must be opened befored writing statements to it")
+      require(isOpen, "Output must be opened before writing statements to it")
 
-      //        if ((minConfidence.isEmpty || link.confidence.getOrElse(-1.0) >= minConfidence.get) &&
-      //            (maxConfidence.isEmpty || link.confidence.getOrElse(-1.0) < maxConfidence.get)) {
-      writer.writeLink(link, predicateUri)
-      linkCount += 1
-      //        }
-
+      if ((minConfidence.isEmpty || link.confidence.getOrElse(-1.0) >= minConfidence.get) &&
+          (maxConfidence.isEmpty || link.confidence.getOrElse(-1.0) < maxConfidence.get)) {
+        writer.writeLink(link, predicateUri)
+        linkCount += 1
+      }
     }
 
     override def writeEntity(subject: String, values: Seq[Set[String]]) {
@@ -123,7 +121,9 @@ object Dataset {
       val id = (node \ "@id").text
       new Dataset(
         id = if(id.nonEmpty) id else Identifier.random,
-        plugin = DatasetPlugin((node \ "@type").text, readParams(node), resourceLoader)
+        plugin = DatasetPlugin((node \ "@type").text, readParams(node), resourceLoader),
+        minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
+        maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
       )
     } else {
       // Read new format
@@ -131,7 +131,9 @@ object Dataset {
       val sourceNode = (node \ "DatasetPlugin").head
       new Dataset(
         id = if(id.nonEmpty) id else Identifier.random,
-        plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resourceLoader)
+        plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resourceLoader),
+        minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
+        maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
       )
     }
   }
