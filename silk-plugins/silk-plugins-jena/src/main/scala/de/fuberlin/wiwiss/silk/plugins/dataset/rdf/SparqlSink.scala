@@ -103,7 +103,8 @@ class SparqlSink(params: SparqlParams) extends DataSink {
    * @throws IOException
    */
   private def endSparql() {
-    writer.write("%7D")
+    if(writer != null)
+      writer.write("%7D")
     closeConnection()
   }
 
@@ -133,7 +134,8 @@ class SparqlSink(params: SparqlParams) extends DataSink {
   private def closeConnection() {
     // Close connection
     val con = connection
-    writer.close()
+    if(writer != null)
+      writer.close()
     writer = null
     connection = null
 
