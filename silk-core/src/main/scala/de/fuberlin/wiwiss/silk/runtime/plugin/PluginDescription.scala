@@ -53,7 +53,7 @@ class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[Str
               case Parameter.Type.Int => Int.box(v.toInt)
               case Parameter.Type.Double => Double.box(v.toDouble)
               case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
-              case Parameter.Type.Resource => resourceLoader.get(v)
+              case Parameter.Type.Resource => resourceLoader.get(v, mustExist = false)
             }
           }
           catch {

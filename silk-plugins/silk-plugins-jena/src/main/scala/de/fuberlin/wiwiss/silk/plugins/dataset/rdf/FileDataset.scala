@@ -27,7 +27,7 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
 
   // Try to parse the format
   private val lang = RDFLanguages.nameToLang(format)
-  require(lang != null, "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
+  require(lang != null || format.toLowerCase == "alignment", "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\", \"Alignment\"")
 
   override def sparqlEndpoint = {
     // Load data set

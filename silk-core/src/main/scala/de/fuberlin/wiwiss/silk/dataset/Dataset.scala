@@ -120,15 +120,17 @@ object Dataset {
     // Check if the data source still uses the old outdated XML format
     if(node.label == "DataSource" || node.label == "Output") {
       // Read old format
+      val id = (node \ "@id").text
       new Dataset(
-        id = (node \ "@id").text,
+        id = if(id.nonEmpty) id else Identifier.random,
         plugin = DatasetPlugin((node \ "@type").text, readParams(node), resourceLoader)
       )
     } else {
       // Read new format
+      val id = (node \ "@id").text
       val sourceNode = (node \ "DatasetPlugin").head
       new Dataset(
-        id = (node \ "@id").text,
+        id = if(id.nonEmpty) id else Identifier.random,
         plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resourceLoader)
       )
     }

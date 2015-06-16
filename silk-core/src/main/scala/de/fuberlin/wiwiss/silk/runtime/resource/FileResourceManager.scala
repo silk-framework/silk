@@ -25,7 +25,7 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
    * @return The file resource.
    * @throws ResourceNotFoundException If no resource with the given name has been found in the base directory.
    */
-  override def get(name: String): Resource = {
+  override def get(name: String, mustExist: Boolean): Resource = {
     // We still need to support the deprecated method of using absolute paths
     val oldAbsoluteFile = new File(name)
     // We still need to support the deprecated method of putting files in a dataset directory in the user home
@@ -41,8 +41,10 @@ class FileResourceManager(baseDir: File) extends ResourceManager {
         oldAbsoluteFile
       else if(oldLocalFile.exists)
         oldLocalFile
-      else
+      else if(mustExist)
         throw new ResourceNotFoundException(s"Resource $name not found in directory $baseDir")
+      else
+        newFile
 
     new FileResource(name, file)
   }

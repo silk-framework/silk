@@ -9,7 +9,7 @@ class EmptyResourceManager extends ResourceManager {
 
   override def list = Nil
 
-  override def get(name: String) = {
+  override def get(name: String, mustExist: Boolean) = {
     throw new ResourceNotFoundException("Tried to retrieve a resource from an empty resource loader.")
   }
 

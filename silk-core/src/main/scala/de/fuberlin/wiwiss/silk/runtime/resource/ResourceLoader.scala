@@ -14,10 +14,11 @@ trait ResourceLoader {
    * Retrieves a name resource.
    *
    * @param name The name of the resource.
+   * @param mustExist If true, an ResourceNotFoundException is thrown if the resource does not exist
    * @return The resource.
    * @throws ResourceNotFoundException If no resource with the given name has been found.
    */
-  def get(name: String): Resource
+  def get(name: String, mustExist: Boolean = true): Resource
 
   def listChildren: List[String]
 
