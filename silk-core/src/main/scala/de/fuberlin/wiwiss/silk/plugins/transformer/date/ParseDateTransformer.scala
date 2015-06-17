@@ -1,0 +1,65 @@
+/*
+ * Copyright 2013 dmdp9553.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.fuberlin.wiwiss.silk.plugins.transformer.date
+
+import java.text.{ParseException, SimpleDateFormat}
+import java.util.GregorianCalendar
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
+
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
+
+/**
+ * Parses a date, returning an xsd:date.
+ */
+@Plugin(
+  id = "parseDate",
+  categories = Array("Date"),
+  label = "Parse date",
+  description = "Parses a date, returning an xsd:date"
+)
+class ParseDateTransformer(format: String = "dd-mm-yyyy") extends Transformer {
+
+  private val datatypeFactory = DatatypeFactory.newInstance()
+
+  def apply(values: Seq[Set[String]]): Set[String] = {
+    values.flatten.toSet.flatMap(parse)
+  }
+
+  def parse(value: String): Set[String] = {
+    try {
+      // Parse date
+      val dateFormat = new SimpleDateFormat(format)
+      val date = dateFormat.parse(value)
+
+      // Convert to XSD date
+      val gc = new GregorianCalendar()
+      gc.setTime(date)
+      val xsdDate = datatypeFactory.newXMLGregorianCalendar(gc)
+      xsdDate.setMillisecond(DatatypeConstants.FIELD_UNDEFINED)
+      xsdDate.setSecond(DatatypeConstants.FIELD_UNDEFINED)
+      xsdDate.setMinute(DatatypeConstants.FIELD_UNDEFINED)
+      xsdDate.setHour(DatatypeConstants.FIELD_UNDEFINED)
+      xsdDate.setTimezone(DatatypeConstants.FIELD_UNDEFINED)
+
+      Set(xsdDate.toXMLFormat)
+    }
+    catch {
+      case ex: ParseException => Set.empty
+    }
+  }
+}
