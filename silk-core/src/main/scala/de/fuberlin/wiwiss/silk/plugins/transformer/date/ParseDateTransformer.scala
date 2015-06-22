@@ -17,8 +17,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.date
 
 import java.text.{ParseException, SimpleDateFormat}
-import java.util.GregorianCalendar
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
+import javax.xml.datatype.DatatypeFactory
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
@@ -46,17 +45,11 @@ class ParseDateTransformer(format: String = "dd-mm-yyyy") extends Transformer {
       val dateFormat = new SimpleDateFormat(format)
       val date = dateFormat.parse(value)
 
-      // Convert to XSD date
-      val gc = new GregorianCalendar()
-      gc.setTime(date)
-      val xsdDate = datatypeFactory.newXMLGregorianCalendar(gc)
-      xsdDate.setMillisecond(DatatypeConstants.FIELD_UNDEFINED)
-      xsdDate.setSecond(DatatypeConstants.FIELD_UNDEFINED)
-      xsdDate.setMinute(DatatypeConstants.FIELD_UNDEFINED)
-      xsdDate.setHour(DatatypeConstants.FIELD_UNDEFINED)
-      xsdDate.setTimezone(DatatypeConstants.FIELD_UNDEFINED)
+      // Format as XSD date
+      val xsdFormat = new SimpleDateFormat("yyyy-mm-dd")
+      val xsdDate = xsdFormat.format(date.getTime)
 
-      Set(xsdDate.toXMLFormat)
+      Set(xsdDate)
     }
     catch {
       case ex: ParseException => Set.empty
