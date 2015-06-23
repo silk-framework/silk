@@ -32,7 +32,7 @@ lazy val workbench = project in file("silk-workbench") enablePlugins PlayScala d
 
 // Tools
 
-lazy val singlemachine = project in file("silk-tools/silk-singlemachine") dependsOn core dependsOn plugins settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
+lazy val singlemachine = project in file("silk-tools/silk-singlemachine") dependsOn core dependsOn plugins
 
 // Root
 
