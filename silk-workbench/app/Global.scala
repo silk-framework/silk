@@ -36,14 +36,14 @@ object Global extends WorkbenchGlobal {
     // Configure workbench logging
     // The 'workbench.logDir' variable will be read in application.logger.xml
     if (elds_home != null)
-      System.setProperty("workbench.logDir", elds_home + "/var/log/data_integration")
+      System.setProperty("workbench.logDir", elds_home + "/var/log/dataintegration")
     else
       System.setProperty("workbench.logDir", Play.configuration.getString("application.home") + "logs")
 
     // Configure engine logging
     val logFile =
       if (elds_home != null)
-        new File(elds_home + "/var/log/data_integration/engine.log")
+        new File(elds_home + "/var/log/dataintegration/engine.log")
       else if(app.getFile("/logs/").exists)
         app.getFile("/logs/engine.log")
       else
