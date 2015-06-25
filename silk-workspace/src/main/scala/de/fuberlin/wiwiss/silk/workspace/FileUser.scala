@@ -25,7 +25,7 @@ object FileUser {
   private lazy val workspaceDir = {
     val elds_home = System.getenv("ELDS_HOME")
     if(elds_home != null)
-      new File(elds_home + "/srv/data_integration/workspace/")
+      new File(elds_home + "/var/dataintegration/workspace/")
     else
       new File(System.getProperty("user.home") + "/.silk/workspace/")
   }
