@@ -45,8 +45,8 @@ POST          /projects/:project/importLinkSpec                controllers.works
 PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 
 # Activities
-GET           /activities/start                                controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
-GET           /activities/cancel                               controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
+POST          /activities/start                                controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
+POST          /activities/cancel                               controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
 GET           /activities/updates                              controllers.workspace.WorkspaceApi.activityUpdates(project: String, task: String, activity: String)
 
 # Resources
