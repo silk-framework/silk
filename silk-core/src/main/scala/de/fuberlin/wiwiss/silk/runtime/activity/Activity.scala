@@ -2,6 +2,8 @@ package de.fuberlin.wiwiss.silk.runtime.activity
 
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 
+import scala.concurrent.ExecutionContext
+
 /**
  * An activity is a unit of work that can be executed in the background.
  * Implementing classes need to override the run method.
@@ -45,6 +47,13 @@ trait Activity[T] extends HasValue {
  * Executes activities.
  */
 object Activity {
+
+  /**
+   * The execution context used to run activities.
+   */
+  @volatile
+  var executionContext: ExecutionContext = ExecutionContext.global
+
   /**
    * Retrieves a control for an activity without executing it.
    * The [ActivityControl] instance can be used to start the execution of the activity.
