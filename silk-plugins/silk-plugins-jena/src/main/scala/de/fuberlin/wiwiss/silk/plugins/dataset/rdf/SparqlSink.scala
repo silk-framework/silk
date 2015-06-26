@@ -147,7 +147,7 @@ class SparqlSink(params: SparqlParams) extends DataSink {
       val errorStream = con.getErrorStream
       if (errorStream != null) {
         val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-        throw new IOException("SPARQL/Update query on " + params.uri + " failed. Error Message: '" + errorMessage + "'.")
+        throw new IOException("SPARQL/Update query on " + params.uri + " failed with error code " + con.getResponseCode + ". Error Message: '" + errorMessage + "'.")
       }
       else {
         throw new IOException("SPARQL/Update query on " + params.uri + " failed. Server response: " + con.getResponseCode + " " + con.getResponseMessage + ".")
