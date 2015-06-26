@@ -12,27 +12,10 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) exten
   val log = Logger.getLogger(getClass.getName)
 
   override def run(context: ActivityContext[Unit]) = {
-    val inputNames = operators.flatMap(_.inputs).toSet
-    val outputNames = operators.flatMap(_.outputs).toSet
-
-    // Determine all datasets that are filled by an operator
-    var emptyDatasets = outputNames
-    var pendingOperators = operators.toSet
-
-    while (pendingOperators.nonEmpty) {
-      // Execute next operator
-      pendingOperators.find(!_.inputs.exists(emptyDatasets.contains)) match {
-        case Some(op) =>
-          // Update status
-          val completedTasks = operators.size - pendingOperators.size
-          context.status.update(s"${op.task} (${completedTasks + 1} / ${operators.size})", completedTasks.toDouble / operators.size)
-          // Execute
-          executeOperator(op, context)
-          emptyDatasets --= op.outputs
-          pendingOperators -= op
-        case None =>
-          throw new RuntimeException("Deadlock in workflow execution")
-      }
+    // Preliminary: Just execute the operators from left to right
+    for((op, index) <- operators.sortBy(_.position.x).zipWithIndex) {
+      context.status.update(s"${op.task} (${index + 1} / ${operators.size})", index.toDouble / operators.size)
+      executeOperator(op, context)
     }
   }
 
