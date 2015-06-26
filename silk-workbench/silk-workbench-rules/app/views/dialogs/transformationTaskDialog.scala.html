@@ -1,6 +1,8 @@
 @import de.fuberlin.wiwiss.silk.config.TransformSpecification
 @import de.fuberlin.wiwiss.silk.dataset.Dataset
 @import de.fuberlin.wiwiss.silk.workspace.User
+@import de.fuberlin.wiwiss.silk.workspace.Constants
+@import controllers.rules.routes.Assets
 
 @(project: String, task: String)
 
@@ -39,7 +41,7 @@
       <td>
         <input name="restriction" title="Restrict dataset using SPARQL clauses" size="50"
                value="@currentInput.map(_.restriction).getOrElse("")"/>
-        @* <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@routes.Assets.at("img/workspace/wrench-screwdriver.png")" /> *@
+        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog()" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
     </tr>
     <tr>
@@ -66,6 +68,33 @@
 <div id="restrictionDialog"></div>
 
 <script type="text/javascript">
+  // The variable name.
+  var varName;
+  // The name of the currently edited datasource.
+  var sourceName;
+  // The currently edited sparql restriction.
+  var sparqlRestriction;
+
+  function openRestrictionDialog() {
+    // Set variables
+    varName = '@Constants.SourceVariable';
+    sourceName = $("select[name='source']").val();
+    sparqlRestriction = $("input[name='restriction']").val();
+
+    $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName,
+          { varName: varName, restriction: sparqlRestriction },
+          function(data) {
+            $('#restrictionDialog').html(data);
+          }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )
+  }
+
+  function closeRestrictionDialog(newRestriction) {
+    $("input[name='restriction']").val(newRestriction);
+    $('#restrictionDialog').dialog('close');
+    $('#restrictionDialog').empty();
+    $('#restrictionDialog').dialog('destroy');
+  }
+
   function submit() {
     var values = {
       name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},

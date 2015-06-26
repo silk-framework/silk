@@ -1,4 +1,5 @@
 @(project: de.fuberlin.wiwiss.silk.workspace.Project,
+  varName: String,
   restriction: String,
   types: Set[String],
   typesCache: Seq[(String, Double)])
@@ -39,7 +40,7 @@
      }
    </div>
 
-   <button onclick="commitSimpleRestriction('@Constants.SourceVariable', '@Constants.TargetVariable')" style="float:right">Ok</button>
+   <button onclick="commitSimpleRestriction('@varName')" style="float:right">Ok</button>
 }
 
 @sparqlEditor() = {

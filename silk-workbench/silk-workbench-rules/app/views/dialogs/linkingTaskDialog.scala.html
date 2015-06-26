@@ -1,6 +1,7 @@
 @import de.fuberlin.wiwiss.silk.workspace.User
 @import de.fuberlin.wiwiss.silk.config.LinkSpecification
 @import de.fuberlin.wiwiss.silk.dataset.Dataset
+@import de.fuberlin.wiwiss.silk.workspace.Constants
 @import controllers.rules.routes.Assets
 
 @(project: String, task: String)
@@ -90,21 +91,27 @@
 <div id="restrictionDialog"></div>
 
 <script type="text/javascript">
-  // The currently edited datasource. Either 'source' or 'target'.
-  var sourceOrTarget;
+  // The variable name.
+  var varName;
   // The name of the currently edited datasource.
   var sourceName;
   // The currently edited sparql restriction.
   var sparqlRestriction;
 
+  var sourceOrTarget;
+
   function openRestrictionDialog(openSourceOrTarget) {
     // Set variables
     sourceOrTarget = openSourceOrTarget;
-    sourceName = $("select[name='" + sourceOrTarget + "']").val()
+    if(sourceOrTarget == 'source')
+     varName = '@Constants.SourceVariable';
+    else
+     varName = '@Constants.TargetVariable';
+    sourceName = $("select[name='" + sourceOrTarget + "']").val();
     sparqlRestriction = $("input[name='" + sourceOrTarget + "restriction']").val();
 
     $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName,
-          { sourceOrTarget: sourceOrTarget, restriction: sparqlRestriction },
+          { varName: varName, restriction: sparqlRestriction },
           function(data) {
             $('#restrictionDialog').html(data);
           }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )
