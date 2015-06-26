@@ -17,9 +17,6 @@
     }
   </div>
   <div class="operatorContent">
-    name:
-    <span class="label">id</span>
-    <br/>
       @for(((key, value), index) <- taskActions.properties(task.data).zipWithIndex) {
         @if(index != 0) {<br/>}
         @key: @value
