@@ -15,18 +15,12 @@
   transition: background-color 0.25s ease-in;
 }
 
-.transformRule:hover {
-  background-color: #d6eeff;
-  box-shadow: 1px 1px 6px #1484d4;
-}
-
 .ruleTitle {
   font-style: italic;
   padding: 4px;
   height: 15px;
   cursor: move;
   border-radius: 5px 5px 0 0;
-  background-color: #1484d4;
 }
 
 .ruleContents {
@@ -43,6 +37,46 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Set colors for different mapping types. */
+
+.complexMapping .ruleTitle {
+  background-color: #1484d4;
+}
+
+.complexMapping:hover {
+  background-color: #d6eeff;
+  box-shadow: 1px 1px 6px #1484d4;
+}
+
+.directMapping .ruleTitle {
+  background-color: #0cc481;
+}
+
+.directMapping:hover {
+  background-color: #d6fff0;
+  box-shadow: 1px 1px 6px #0cc481;
+}
+
+.uriMapping .ruleTitle {
+  background-color: #582271;
+}
+
+.uriMapping:hover {
+  background-color: #f2d7ff;
+  box-shadow: 1px 1px 6px #582271;
+}
+
+.typeMapping .ruleTitle {
+  background-color: #e59829;
+}
+
+.typeMapping:hover {
+  background-color: #ffeed6;
+  box-shadow: 1px 1px 6px #e59829;
+}
+
+/* General Properties */
 
 .ui-autocomplete {
   max-height: 250px;

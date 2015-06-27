@@ -33,7 +33,6 @@ class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[Str
     try {
       val obj = constructor.newInstance(parsedParameters: _*)
 
-      obj.pluginDescription = this
       obj.pluginParameters = parameterValues
 
       obj

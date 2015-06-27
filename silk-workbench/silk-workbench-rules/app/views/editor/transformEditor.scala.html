@@ -92,7 +92,7 @@
 
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty"  value="@rule.targetProperty.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
+        <input type="text" size="40" id="targetproperty"  value="@rule.target.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
         <img src="@Assets.at("img/help.png")" title="The target property." />
       </div>
 

@@ -18,13 +18,14 @@ package de.fuberlin.wiwiss.silk.runtime.plugin
  * Plugin interface.
  */
 trait AnyPlugin {
-  private[plugin] var pluginDescription: PluginDescription[AnyPlugin] = _
+
+  // TODO should be cleaner
   private[plugin] var pluginParameters = Map[String, String]()
 
   /**
    * The description for this plugin.
    */
-  def plugin = pluginDescription
+  lazy val plugin = PluginDescription(getClass)
 
   /**
    * The parameters for this plugin as Map.
