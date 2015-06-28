@@ -11,7 +11,9 @@ import de.fuberlin.wiwiss.silk.util._
 import scala.xml.Node
 
 /**
- * A transform rule.
+ * A transformation rule.
+ * A transformations rule generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
+ * Sub classes are defined for special cases, such as direct mappings.
  */
 sealed trait TransformRule {
 
@@ -61,6 +63,13 @@ sealed trait TransformRule {
   }
 }
 
+/**
+ * A direct mapping between two properties.
+ *
+ * @param name The name of this mapping
+ * @param sourcePath The source path
+ * @param targetProperty The target property
+ */
 case class DirectMapping(name: Identifier = "transformation", sourcePath: Path = Path("a", Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
 
   override val operator = Some(PathInput(path = sourcePath))
@@ -68,6 +77,12 @@ case class DirectMapping(name: Identifier = "transformation", sourcePath: Path =
   override val target = Some(targetProperty)
 }
 
+/**
+ * Assigns a new URI to each mapped entity.
+ *
+ * @param name The name of this mapping
+ * @param pattern A template pattern for generating the URIs based on the entitity properties
+ */
 case class UriMapping(name: Identifier = "transformation", pattern: String = "http://example.org/{ID}") extends TransformRule {
 
   override val operator = {
@@ -84,6 +99,12 @@ case class UriMapping(name: Identifier = "transformation", pattern: String = "ht
   override val target = None
 }
 
+/**
+ * A type mapping, which assigns a type to each entitity.
+ *
+ * @param name The name of this mapping
+ * @param typeUri The type URI.
+ */
 case class TypeMapping(name: Identifier, typeUri: Uri) extends TransformRule {
 
   override val operator = Some(TransformInput(transformer = ConstantTransformer(typeUri.uri)))
@@ -91,6 +112,13 @@ case class TypeMapping(name: Identifier, typeUri: Uri) extends TransformRule {
   override val target = Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
 }
 
+/**
+ * A complex mapping, which generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
+ *
+ * @param name The name of this mapping
+ * @param operator The input operator tree
+ * @param target The target property URI
+ */
 case class ComplexMapping(name: Identifier, operator: Option[Input] = None, target: Option[Uri] = None) extends TransformRule
 
 /**
@@ -127,8 +155,8 @@ object TransformRule {
 //    case ComplexMapping(id, Some(TransformInput(_, ConcatTransformer(""), inputs)), None) if isPattern(inputs) =>
 //      UriMapping(id, buildPattern(inputs))
     // Type Mapping
-//    case ComplexMapping(id, Some(TransformInput(_, ConstantTransformer(typeUri), Nil)), Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))) =>
-//      TypeMapping(id, typeUri)
+    case ComplexMapping(id, Some(TransformInput(_, ConstantTransformer(typeUri), Nil)), Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))) =>
+      TypeMapping(id, typeUri)
     // Complex Mapping
     case _ => complexMapping
   }
