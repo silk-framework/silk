@@ -29,13 +29,8 @@ class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[Str
    */
   def apply(parameterValues: Map[String, String], resourceLoader: ResourceLoader): T = {
     val parsedParameters = parseParameters(parameterValues, resourceLoader)
-
     try {
-      val obj = constructor.newInstance(parsedParameters: _*)
-
-      obj.pluginParameters = parameterValues
-
-      obj
+      constructor.newInstance(parsedParameters: _*)
     } catch {
       case ex: InvocationTargetException => throw ex.getCause
     }
