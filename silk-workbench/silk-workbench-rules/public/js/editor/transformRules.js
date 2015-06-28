@@ -82,6 +82,8 @@ function serializeRules() {
       serializeDirectMapping(xmlDoc, name, source, target)
     } else if($(this).hasClass("uriMapping")) {
       serializeUriMapping(xmlDoc, name, source)
+    } else if($(this).hasClass("typeMapping")) {
+      serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
       serializeComplexRule(xmlDoc, ruleXml, name, target)
@@ -129,6 +131,30 @@ function serializeUriMapping(xmlDoc, name, source) {
     sourceXml.setAttribute("path", source);
     ruleXml.appendChild(sourceXml);
   }
+
+  // Add to document
+  xmlDoc.documentElement.appendChild(ruleXml);
+}
+
+/**
+ * Serializes a type mapping.
+ */
+function serializeTypeMapping(xmlDoc, name, type) {
+  // Create new rule
+  var ruleXml = xmlDoc.createElement("TransformRule");
+  ruleXml.setAttribute("name", name);
+  ruleXml.setAttribute("targetProperty", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+
+  // Input is the constant type URI
+  var transformXml = xmlDoc.createElement("TransformInput");
+  transformXml.setAttribute("function", "constant");
+
+  var paramXml = xmlDoc.createElement("Param");
+  paramXml.setAttribute("name", "value");
+  paramXml.setAttribute("value", type);
+
+  transformXml.appendChild(paramXml);
+  ruleXml.appendChild(transformXml);
 
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
