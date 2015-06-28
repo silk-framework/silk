@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
    label = "Number to Duration",
    description = "Converts a number to an xsd:duration. The base unit may be one of the following: 'day', 'month', 'year'."
  )
-class NumberToDurationTransformer(unit: String = "day") extends SimpleTransformer {
+case class NumberToDurationTransformer(unit: String = "day") extends SimpleTransformer {
 
    private val datatypeFactory = DatatypeFactory.newInstance()
 

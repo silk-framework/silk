@@ -17,7 +17,7 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
   label = "normalizeChars",
   description = "Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss."
 )
-class NormalizeCharsTransformer extends SimpleTransformer {
+case class NormalizeCharsTransformer() extends SimpleTransformer {
 
   /*
  special regexp char ranges relevant for simplification -> see http://docstore.mik.ua/orelly/perl/prog3/ch05_04.htm

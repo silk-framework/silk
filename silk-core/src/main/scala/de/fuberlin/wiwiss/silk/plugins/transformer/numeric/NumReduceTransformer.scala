@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.numeric
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformerBase, RegexReplaceTransformer}
 
 @Plugin(
   id = "numReduce",
@@ -23,4 +23,4 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransform
   label = "Numeric reduce",
   description = "Strip all non-numeric characters from a string."
 )
-case class NumReduceTransformer() extends RegexReplaceTransformer("[^0-9]+", "")
+case class NumReduceTransformer() extends RegexReplaceTransformerBase("[^0-9]+", "")

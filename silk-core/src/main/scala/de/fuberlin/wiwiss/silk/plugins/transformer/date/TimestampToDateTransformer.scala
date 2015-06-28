@@ -33,7 +33,7 @@ import scala.math.BigInt;
   label = "Timestamp to date",
   description = "convert Unix timestamp to xsd:date"
 )
-class TimestampToDateTransformer extends SimpleTransformer {
+case class TimestampToDateTransformer() extends SimpleTransformer {
   override def evaluate(value: String) = {
     val cal = new GregorianCalendar()
     cal.setTimeInMillis((BigInt.apply(value) * 1000).longValue())

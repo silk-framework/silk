@@ -32,7 +32,7 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
   label = "Date to timestamp",
   description = "Convert an xsd:date to a Unix timestamp"
 )
-class DateToTimestampTransformer extends SimpleTransformer {
+case class DateToTimestampTransformer() extends SimpleTransformer {
 
   private val datatypeFactory = DatatypeFactory.newInstance()
 

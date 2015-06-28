@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformerBase, RegexReplaceTransformer}
 
 @Plugin(
   id = "removeSpecialChars",
@@ -23,4 +23,4 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransform
   label = "Remove special chars",
   description = "Remove special characters (including punctuation) from a string."
 )
-class RemoveSpecialCharsTransformer() extends RegexReplaceTransformer("[^\\d\\pL\\w]+", "")
+case class RemoveSpecialCharsTransformer() extends RegexReplaceTransformerBase("[^\\d\\pL\\w]+", "")

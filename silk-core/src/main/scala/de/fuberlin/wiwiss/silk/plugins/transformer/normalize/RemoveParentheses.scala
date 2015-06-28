@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformerBase, RegexReplaceTransformer}
 
 @Plugin(
   id = "removeParentheses",
@@ -9,4 +9,4 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransform
   label = "Remove Parentheses",
   description = "Remove all parentheses including their content, e.g., transforms 'Berlin (City)' -> 'Berlin'."
 )
-case class RemoveParentheses() extends RegexReplaceTransformer("""\s*\([^\)]*\)\s*""", "")
+case class RemoveParentheses() extends RegexReplaceTransformerBase("""\s*\([^\)]*\)\s*""", "")

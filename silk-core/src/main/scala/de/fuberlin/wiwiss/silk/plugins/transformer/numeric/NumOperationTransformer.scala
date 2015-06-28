@@ -36,7 +36,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
         |   operator: One of '+', '-', '*', '/'
         |   operand: Final operand that is added/subtracted/etc. after all inputs. """
 )
-class NumOperationTransformer(operator: String, operand: Double) extends Transformer {
+case class NumOperationTransformer(operator: String, operand: Double) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 

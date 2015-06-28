@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.XSDDateLiteral
       | Accepts one parameter:
       |   comparator: One of '<', '<=', '=', '>=', '>' """
 )
-class CompareDatesTransformer(comparator: String = "<") extends Transformer {
+case class CompareDatesTransformer(comparator: String = "<") extends Transformer {
   private val datatypeFactory = DatatypeFactory.newInstance()
 
   override def apply(values: Seq[Set[String]]): Set[String] = {

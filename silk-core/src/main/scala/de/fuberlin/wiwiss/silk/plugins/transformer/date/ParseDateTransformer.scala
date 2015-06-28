@@ -31,7 +31,7 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
   label = "Parse date",
   description = "Parses a date, returning an xsd:date"
 )
-class ParseDateTransformer(format: String = "dd-mm-yyyy") extends Transformer {
+case class ParseDateTransformer(format: String = "dd-mm-yyyy") extends Transformer {
 
   private val datatypeFactory = DatatypeFactory.newInstance()
 

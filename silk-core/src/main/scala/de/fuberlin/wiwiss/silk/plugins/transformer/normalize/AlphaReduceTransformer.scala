@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransformer
+import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformerBase, RegexReplaceTransformer}
 
 @Plugin(
   id = "alphaReduce",
@@ -23,4 +23,4 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransform
   label = "Alpha reduce",
   description = "Strips all non-alphabetic characters from a string. Spaces are retained."
 )
-case class AlphaReduceTransformer() extends RegexReplaceTransformer("[^\\s\\pL]+", "")
+case class AlphaReduceTransformer() extends RegexReplaceTransformerBase("[^\\s\\pL]+", "")

@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
       | Accepts one parameter:
       |   comparator: One of '<', '<=', '=', '>=', '>' """
 )
-class CompareNumbersTransformer(comparator: String = "<") extends Transformer {
+case class CompareNumbersTransformer(comparator: String = "<") extends Transformer {
   require(Set("<", "<=", "=", ">=", ">") contains comparator, "Comparator must be one of '<', '<=', '=', '>=', '>'")
 
   def apply(values: Seq[Set[String]]): Set[String] = {
