@@ -17,17 +17,19 @@ import scala.xml.Node
  */
 sealed trait TransformRule {
 
+  /** The name of this rule. */
   def name: Identifier
 
+  /** The input operator tree. */
   def operator: Option[Input]
 
+  /** The target property URI. */
   def target: Option[Uri]
 
   /**
    * Generates the transformed values.
    *
    * @param entity The source entity.
-   *
    * @return The transformed values.
    */
   def apply(entity: Entity): Set[String] = {
@@ -126,6 +128,9 @@ case class ComplexMapping(name: Identifier, operator: Option[Input] = None, targ
  */
 object TransformRule {
 
+  /**
+   * Reads a transform rule a resource.
+   */
   def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
     new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
   }
