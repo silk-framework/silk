@@ -28,11 +28,14 @@
 
   <ul>
     <li>
-      <button onclick="addRule('#directMappingTemplate')">Add Mapping</button>
+      <button onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
     </li>
-    @*<li>*@
-      @*<button onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>*@
-    @*</li>*@
+    <li>
+      <button onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
+    </li>
+    <li>
+      <button onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
+    </li>
     <li>
       @* widgets.activityControl(context, context.task.activity[PathsCache].name) *@
     </li>
@@ -54,6 +57,10 @@
 
   <div id="uriMappingTemplate" style="display: none">
     @renderRule(UriMapping())
+  </div>
+
+  <div id="typeMappingTemplate" style="display: none">
+    @renderRule(TypeMapping())
   </div>
 
   <div id="dialogDelete" title="Confirm">
@@ -120,7 +127,7 @@
             <input class="name" value="@rule.name" />
           </td>
           <td>
-            <input class="source" value="@rule.pattern" />
+            <input class="pattern" value="@rule.pattern" size="45" />
           </td>
         </tr>
       </table>
@@ -148,7 +155,7 @@
             <input class="name" value="@rule.name" />
           </td>
           <td>
-            <input class="type" value="@rule.typeUri" />
+            <input class="type" value="@rule.typeUri" size="45" />
           </td>
         </tr>
       </table>
@@ -162,7 +169,7 @@
 @renderComplexRule(rule: ComplexMapping) = {
   <div class="transformRule complexMapping">
     <div class="ruleTitle">
-      Transformation
+      Complex Mapping
       @renderRuleButtons()
     </div>
     <div class="ruleContents">

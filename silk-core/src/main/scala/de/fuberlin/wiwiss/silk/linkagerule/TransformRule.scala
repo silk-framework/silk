@@ -70,7 +70,7 @@ sealed trait TransformRule {
  * @param sourcePath The source path
  * @param targetProperty The target property
  */
-case class DirectMapping(name: Identifier = "transformation", sourcePath: Path = Path("a", Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
+case class DirectMapping(name: Identifier = "transform", sourcePath: Path = Path("a", Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
 
   override val operator = Some(PathInput(path = sourcePath))
 
@@ -83,7 +83,7 @@ case class DirectMapping(name: Identifier = "transformation", sourcePath: Path =
  * @param name The name of this mapping
  * @param pattern A template pattern for generating the URIs based on the entitity properties
  */
-case class UriMapping(name: Identifier = "transformation", pattern: String = "http://example.org/{ID}") extends TransformRule {
+case class UriMapping(name: Identifier = "uri", pattern: String = "http://example.org/{ID}") extends TransformRule {
 
   override val operator = {
     val inputs =
@@ -105,7 +105,7 @@ case class UriMapping(name: Identifier = "transformation", pattern: String = "ht
  * @param name The name of this mapping
  * @param typeUri The type URI.
  */
-case class TypeMapping(name: Identifier, typeUri: Uri) extends TransformRule {
+case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing") extends TransformRule {
 
   override val operator = Some(TransformInput(transformer = ConstantTransformer(typeUri.uri)))
 
@@ -152,8 +152,8 @@ object TransformRule {
     case ComplexMapping(id, Some(PathInput(_, path)), Some(target)) =>
       DirectMapping(id, path, target)
     // URI Mapping
-//    case ComplexMapping(id, Some(TransformInput(_, ConcatTransformer(""), inputs)), None) if isPattern(inputs) =>
-//      UriMapping(id, buildPattern(inputs))
+    case ComplexMapping(id, Some(TransformInput(_, ConcatTransformer(""), inputs)), None) if isPattern(inputs) =>
+      UriMapping(id, buildPattern(inputs))
     // Type Mapping
     case ComplexMapping(id, Some(TransformInput(_, ConstantTransformer(typeUri), Nil)), Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))) =>
       TypeMapping(id, typeUri)

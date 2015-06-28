@@ -81,7 +81,7 @@ function serializeRules() {
     if($(this).hasClass("directMapping") || $(this).find(".source").lenght > 0) {
       serializeDirectMapping(xmlDoc, name, source, target)
     } else if($(this).hasClass("uriMapping")) {
-      serializeUriMapping(xmlDoc, name, source)
+      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
     } else if($(this).hasClass("typeMapping")) {
       serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
     } else {
@@ -119,17 +119,35 @@ function serializeDirectMapping(xmlDoc, name, source, target) {
 /**
  * Serializes a URI mapping.
  */
-function serializeUriMapping(xmlDoc, name, source) {
+function serializeUriMapping(xmlDoc, name, pattern) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);
-  ruleXml.setAttribute("targetProperty", target);
+  ruleXml.setAttribute("targetProperty", "");
 
-  // Add simple source
-  if(source.trim() != "") {
-    var sourceXml = xmlDoc.createElement("Input");
-    sourceXml.setAttribute("path", source);
-    ruleXml.appendChild(sourceXml);
+  // Create concat transformer
+  var concatXml = xmlDoc.createElement("TransformInput");
+  concatXml.setAttribute("function", "concat");
+  ruleXml.appendChild(concatXml);
+
+  // Parse pattern
+  var parts = pattern.split(/[\{\}]/);
+  for (i = 0; i < parts.length; i++) {
+    if (i % 2 == 0) {
+      // Add constant
+      var transformXml = xmlDoc.createElement("TransformInput");
+      transformXml.setAttribute("function", "constant");
+      var paramXml = xmlDoc.createElement("Param");
+      paramXml.setAttribute("name", "value");
+      paramXml.setAttribute("value", parts[i]);
+      transformXml.appendChild(paramXml);
+      concatXml.appendChild(transformXml);
+    } else {
+      // Add path
+      var inputXml = xmlDoc.createElement("Input");
+      inputXml.setAttribute("path", parts[i]);
+      concatXml.appendChild(inputXml);
+    }
   }
 
   // Add to document

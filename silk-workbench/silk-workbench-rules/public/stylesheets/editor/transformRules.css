@@ -40,15 +40,6 @@
 
 /* Set colors for different mapping types. */
 
-.complexMapping .ruleTitle {
-  background-color: #1484d4;
-}
-
-.complexMapping:hover {
-  background-color: #d6eeff;
-  box-shadow: 1px 1px 6px #1484d4;
-}
-
 .directMapping .ruleTitle {
   background-color: #0cc481;
 }
@@ -59,12 +50,12 @@
 }
 
 .uriMapping .ruleTitle {
-  background-color: #582271;
+  background-color: #1484d4;
 }
 
 .uriMapping:hover {
-  background-color: #f2d7ff;
-  box-shadow: 1px 1px 6px #582271;
+  background-color: #d6eeff;
+  box-shadow: 1px 1px 6px #1484d4;
 }
 
 .typeMapping .ruleTitle {
@@ -74,6 +65,15 @@
 .typeMapping:hover {
   background-color: #ffeed6;
   box-shadow: 1px 1px 6px #e59829;
+}
+
+.complexMapping .ruleTitle {
+  background-color: #c35454;
+}
+
+.complexMapping:hover {
+  background-color: #ffd7d7;
+  box-shadow: 1px 1px 6px #c35454;
 }
 
 /* General Properties */
