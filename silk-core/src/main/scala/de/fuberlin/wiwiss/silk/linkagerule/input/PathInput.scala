@@ -60,9 +60,6 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
 object PathInput {
   def fromXML(node: Node)(implicit prefixes: Prefixes) = {
     val id = Operator.readId(node)
-
-    println("NODE: " + (node \ "@path").text)
-
     try {
       val pathStr = (node \ "@path").text
       val path = Path.parse(pathStr)
