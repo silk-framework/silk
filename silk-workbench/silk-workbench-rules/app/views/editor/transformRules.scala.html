@@ -180,23 +180,15 @@
           <th>Target Property</th>
         </tr>
         <tr>
-          <td><input class="name" value="@rule.name" /></td>
           <td>
-          @rule.operator match {
-            case None => {
-              @* No input path defined so far. *@
-              <input class="source" value="" />
-            }
-            case Some(PathInput(id, path)) => {
-              @* An input with a property path defined *@
-              <input class="source" value="@path.serializeSimplified(prefixes())" />
-            }
-            case _ => {
-              (complex)
-            }
-          }
+            <input class="name" value="@rule.name" />
           </td>
-          <td><input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" /></td>
+          <td>
+            (complex)
+          </td>
+          <td>
+            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" />
+          </td>
         </tr>
       </table>
     </div>

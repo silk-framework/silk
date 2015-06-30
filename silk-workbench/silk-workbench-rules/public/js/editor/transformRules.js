@@ -78,7 +78,7 @@ function serializeRules() {
     // Read source and target
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
-    if($(this).hasClass("directMapping") || $(this).find(".source").lenght > 0) {
+    if($(this).hasClass("directMapping")) {
       serializeDirectMapping(xmlDoc, name, source, target)
     } else if($(this).hasClass("uriMapping")) {
       serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
@@ -106,11 +106,9 @@ function serializeDirectMapping(xmlDoc, name, source, target) {
   ruleXml.setAttribute("targetProperty", target);
 
   // Add simple source
-  if(source.trim() != "") {
-    var sourceXml = xmlDoc.createElement("Input");
-    sourceXml.setAttribute("path", source);
-    ruleXml.appendChild(sourceXml);
-  }
+  var sourceXml = xmlDoc.createElement("Input");
+  sourceXml.setAttribute("path", source);
+  ruleXml.appendChild(sourceXml);
 
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);

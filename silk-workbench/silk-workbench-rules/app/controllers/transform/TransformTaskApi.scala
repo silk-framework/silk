@@ -70,8 +70,10 @@ object TransformTaskApi extends Controller {
           Ok
         } catch {
           case ex: ValidationException =>
+            log.log(Level.INFO, "Invalid transformation rule", ex)
             BadRequest(ex.toString)
           case ex: Exception =>
+            log.log(Level.WARNING, "Failed to parse transformation rule", ex)
             InternalServerError("Error in back end: " + ex.getMessage)
         }
       case None =>
@@ -110,10 +112,10 @@ object TransformTaskApi extends Controller {
           Ok(statusJson(warnings = warnings.map(_.getMessage)))
         } catch {
           case ex: ValidationException =>
-            log.log(Level.INFO, "Invalid transformation rule")
+            log.log(Level.INFO, "Invalid transformation rule", ex)
             BadRequest(statusJson(errors = ex.errors))
           case ex: Exception =>
-            log.log(Level.INFO, "Failed to save transformation rule", ex)
+            log.log(Level.WARNING, "Failed to save transformation rule", ex)
             InternalServerError(statusJson(errors = ValidationException.ValidationError("Error in back end: " + ex.getMessage) :: Nil))
         }
       case None =>

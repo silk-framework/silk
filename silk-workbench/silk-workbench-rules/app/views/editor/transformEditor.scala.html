@@ -76,12 +76,10 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- rule.operator) {
-          @renderRule(
-            rule = op,
-            prefixes = context.project.config.prefixes
-          )
-        }
+        @renderRule(
+          rule = rule.operator,
+          prefixes = context.project.config.prefixes
+        )
       </div>
 
       <div style="float: left; margin-right: 20px">
