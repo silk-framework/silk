@@ -42,8 +42,8 @@ GET           /tasks/:project/:task/linkSpec                                    
 PUT           /tasks/:project/:task/linkSpec                                        controllers.linking.LinkingTaskApi.putLinkSpec(project: String, task: String)
 GET           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.getReferenceLinks(project: String, task: String)
 PUT           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.putReferenceLinks(project: String, task: String)
-PUT           /tasks/:project/:task/referenceLinks/:linkType/:source/:target        controllers.linking.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
-DELETE        /tasks/:project/:task/referenceLinks/:source/:target                  controllers.linking.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
+PUT           /tasks/:project/:task/referenceLink                                   controllers.linking.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
+DELETE        /tasks/:project/:task/referenceLink                                   controllers.linking.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
 
 POST          /tasks/:project/:task/reloadCache                                     controllers.linking.LinkingTaskApi.reloadLinkingCache(project: String, task: String)
 PUT           /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.startGenerateLinksTask(project: String, task: String)

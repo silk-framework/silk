@@ -39,7 +39,7 @@
 
     $.ajax({
       type: 'PUT',
-      url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks/' + values.type + '/' + encodeURIComponent(values.source) + '/' + encodeURIComponent(values.target),
+      url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks?linkType=' + values.type + '&source=' + encodeURIComponent(values.source) + '&target=' + encodeURIComponent(values.target),
       data: values,
       success: function(data) {
         window.location.reload();

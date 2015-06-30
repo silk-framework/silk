@@ -163,7 +163,7 @@ $(function() {
 function deleteLink(id, source, target) {
   $.ajax({
     type: 'DELETE',
-    url: apiUrl + '/' + source + '/' + target,
+    url: apiUrl + '?source=' + source + '&target=' + target,
     data: '',
     success: function(response) {
       $('#' + id).remove();
@@ -175,7 +175,7 @@ function deleteLink(id, source, target) {
 function resetLink(id, source, target) {
   $.ajax({
     type: 'DELETE',
-    url: apiUrl + '/' + source + '/' + target,
+    url: apiUrl + '?source=' + source + '&target=' + target,
     data: '',
     success: function(response) {
       $('#confirmedLink' + id).hide();
@@ -189,7 +189,7 @@ function resetLink(id, source, target) {
 function addPositiveLink(id, source, target) {
   $.ajax({
     type: 'PUT',
-    url: apiUrl + '/positive/' + source + '/' + target,
+    url: apiUrl + '?linkType=positive&source=' + source + '&target=' + target,
     data: '',
     success: function(response) {
       $('#confirmedLink' + id).show();
@@ -205,7 +205,7 @@ function addPositiveLink(id, source, target) {
 function addNegativeLink(id, source, target) {
   $.ajax({
     type: 'PUT',
-    url: apiUrl + '/negative/' + source + '/' + target,
+    url: apiUrl + '?linkType=negative&source=' + source + '&target=' + target,
     data: '',
     success: function(response) {
       $('#confirmedLink' + id).hide();
