@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.linkagerule.input
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 
 /**
@@ -60,7 +60,6 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
 object PathInput {
   def fromXML(node: Node)(implicit prefixes: Prefixes) = {
     val id = Operator.readId(node)
-
     try {
       val pathStr = (node \ "@path").text
       val path = Path.parse(pathStr)

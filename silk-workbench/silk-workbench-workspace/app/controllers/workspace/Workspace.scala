@@ -49,21 +49,16 @@ object Workspace extends Controller {
     Ok(views.html.workspace.resourcesDialog(project, resourceManager))
   }
 
-  def restrictionDialog(projectName: String, sourceName: String, sourceOrTarget: String, restriction: String) = Action {
+  def restrictionDialog(projectName: String, sourceName: String, varName: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
     val typesCache = project.task[Dataset](sourceName).activity[TypesCache].value().typesByFrequency
     implicit val prefixes = project.config.prefixes
-
-    val variable = sourceOrTarget match {
-      case "source" => Constants.SourceVariable
-      case "target" => Constants.TargetVariable
-    }
 
     // Try to parse the SPARQL restriction
     val restrictionParser = new SparqlRestrictionParser()
     val restrictionTree =
       try {
-        restrictionParser(SparqlRestriction.fromSparql(variable, restriction))
+        restrictionParser(SparqlRestriction.fromSparql(varName, restriction))
       } catch {
         case ex: ValidationException =>
           Logger.info(s"Could not parse SPARQL restriction '$restriction'.")
@@ -84,7 +79,7 @@ object Workspace extends Controller {
       case None => Set.empty[String]
     }
 
-    Ok(views.html.workspace.restrictionDialog(project, restriction, types, typesCache))
+    Ok(views.html.workspace.restrictionDialog(project, varName, restriction, types, typesCache))
   }
 
   def importExample(project: String) = Action {

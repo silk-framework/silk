@@ -32,7 +32,7 @@ import de.fuberlin.wiwiss.silk.util.StringUtils.DoubleLiteral
       | Accepts one paramter:
       |   operator: One of '+', '*', 'min', 'max', 'average'"""
 )
-class AggregateNumbersTransformer(operator: String) extends Transformer {
+case class AggregateNumbersTransformer(operator: String) extends Transformer {
   require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
   def apply(values: Seq[Set[String]]): Set[String] = {

@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
  * 2. Full URI:  <http://dbpedia.org/resource/Berlin>
  * 3. Plain Identifiers: Name
  */
-class Uri(val uri: String) {
+case class Uri(uri: String) {
   /**
    * A turtle-like representation of this URI.
    *

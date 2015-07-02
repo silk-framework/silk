@@ -23,17 +23,24 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
  * Parser for the Silk RDF path language.
  */
 private class PathParser(prefixes: Prefixes) extends RegexParsers {
+
+  private val defaultVar = "a"
+
   def parse(pathStr: String): Path = {
-    // Complete path if a simplified syntax is used
-    val completePath = pathStr.head match {
-      case '?' => pathStr // Path is already complete
-      case '/' | '\\' => "?a" + pathStr // Variable has been left out
-      case _ => "?a/" + pathStr  // Variable and leading '/' have been left out
-    }
-    // Parse path
-    parseAll(path, new CharSequenceReader(completePath)) match {
-      case Success(parsedPath, _) => parsedPath
-      case error: NoSuccess => throw new ValidationException(error.toString)
+    if(pathStr.isEmpty) {
+      Path(defaultVar, Nil)
+    } else {
+      // Complete path if a simplified syntax is used
+      val completePath = pathStr.head match {
+        case '?' => pathStr // Path is already complete
+        case '/' | '\\' => "?" + defaultVar + pathStr // Variable has been left out
+        case _ => "?a/" + pathStr // Variable and leading '/' have been left out
+      }
+      // Parse path
+      parseAll(path, new CharSequenceReader(completePath)) match {
+        case Success(parsedPath, _) => parsedPath
+        case error: NoSuccess => throw new ValidationException(error.toString)
+      }
     }
   }
 

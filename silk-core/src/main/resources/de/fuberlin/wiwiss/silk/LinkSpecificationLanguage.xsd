@@ -110,7 +110,7 @@
 
     <xs:element name="TransformRule">
         <xs:complexType>
-            <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:choice minOccurs="1" maxOccurs="1">
                 <xs:element ref="Input"/>
                 <xs:element ref="TransformInput"/>
             </xs:choice>

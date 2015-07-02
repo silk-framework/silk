@@ -18,18 +18,16 @@ package de.fuberlin.wiwiss.silk.runtime.plugin
  * Plugin interface.
  */
 trait AnyPlugin {
-  private[plugin] var pluginDescription: PluginDescription[AnyPlugin] = _
-  private[plugin] var pluginParameters = Map[String, String]()
 
   /**
    * The description for this plugin.
    */
-  def plugin = pluginDescription
+  lazy val plugin = PluginDescription(getClass)
 
   /**
    * The parameters for this plugin as Map.
    */
-  def parameters = pluginParameters
+  lazy val parameters: Map[String, String] = plugin.parameters.map(param => (param.name, param(this).toString)).toMap
 
   override def toString = {
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"

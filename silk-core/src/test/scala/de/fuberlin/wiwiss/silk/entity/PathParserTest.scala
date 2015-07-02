@@ -30,6 +30,10 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse("\\ex:prop") should equal(Path("a", BackwardOperator("http://www.example.org/prop") :: Nil))
   }
 
+  "PathParser" should " parse empty paths" in {
+    p.parse("") should equal(Path("a", Nil))
+  }
+
   it should "parse chained forward paths" in {
     p.parse("?a/ex:p1\\ex:p2") should equal(Path("a", ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil))
     p.parse("?a\\ex:p2/ex:p1\\ex:p2") should equal(Path("a", BackwardOperator("http://www.example.org/p2") :: ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil))

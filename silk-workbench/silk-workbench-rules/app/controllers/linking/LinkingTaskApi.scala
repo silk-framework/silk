@@ -173,10 +173,11 @@ object LinkingTaskApi extends Controller {
   }}
   
   def putReferenceLink(projectName: String, taskName: String, linkType: String, source: String, target: String) = Action {
+    log.info(s"Adding $linkType reference link: $source - $target")
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val link = new Link(source, target)
-    
+
     linkType match {
       case "positive" => {
         val updatedRefLinks = task.data.copy(referenceLinks = task.data.referenceLinks.withPositive(link))

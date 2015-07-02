@@ -50,7 +50,7 @@
       <ul class="entity-tree">
         @for((value, rule) <- entity.values zip entity.rules) {
           <li>
-            <span class="property">@rule.targetProperty</span>
+            <span class="property">@rule.target</span>
             <ul>
               @renderValue(value)
             </ul>

@@ -75,13 +75,16 @@ function serializeRules() {
   $("#ruleContainer").children(".transformRule").each(function() {
     // Read name
     var name = $(this).find(".name").val();
-    // Read target
+    // Read source and target
+    var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
-    // Check if the source path is set
-    var sourceInput = $(this).find(".source");
-    if(sourceInput.length > 0) { // Source path is set => Create a simple rule
-      serializeSimpleRule(xmlDoc, name, sourceInput.val(), target)
-    } else { // Source path is not set => Keep complex rule
+    if($(this).hasClass("directMapping")) {
+      serializeDirectMapping(xmlDoc, name, source, target)
+    } else if($(this).hasClass("uriMapping")) {
+      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
+    } else if($(this).hasClass("typeMapping")) {
+      serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
+    } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
       serializeComplexRule(xmlDoc, ruleXml, name, target)
     }
@@ -93,21 +96,81 @@ function serializeRules() {
 }
 
 /**
- * Serializes a simple rule.
- * A simple rule is a 1-to-1 mapping between two properties
+ * Serializes a direct mapping.
+ * A direct mapping is a 1-to-1 mapping between two properties
  */
-function serializeSimpleRule(xmlDoc, name, source, target) {
+function serializeDirectMapping(xmlDoc, name, source, target) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);
   ruleXml.setAttribute("targetProperty", target);
 
   // Add simple source
-  if(source.trim() != "") {
-    var sourceXml = xmlDoc.createElement("Input");
-    sourceXml.setAttribute("path", source);
-    ruleXml.appendChild(sourceXml);
+  var sourceXml = xmlDoc.createElement("Input");
+  sourceXml.setAttribute("path", source);
+  ruleXml.appendChild(sourceXml);
+
+  // Add to document
+  xmlDoc.documentElement.appendChild(ruleXml);
+}
+
+/**
+ * Serializes a URI mapping.
+ */
+function serializeUriMapping(xmlDoc, name, pattern) {
+  // Create new rule
+  var ruleXml = xmlDoc.createElement("TransformRule");
+  ruleXml.setAttribute("name", name);
+  ruleXml.setAttribute("targetProperty", "");
+
+  // Create concat transformer
+  var concatXml = xmlDoc.createElement("TransformInput");
+  concatXml.setAttribute("function", "concat");
+  ruleXml.appendChild(concatXml);
+
+  // Parse pattern
+  var parts = pattern.split(/[\{\}]/);
+  for (i = 0; i < parts.length; i++) {
+    if (i % 2 == 0) {
+      // Add constant
+      var transformXml = xmlDoc.createElement("TransformInput");
+      transformXml.setAttribute("function", "constant");
+      var paramXml = xmlDoc.createElement("Param");
+      paramXml.setAttribute("name", "value");
+      paramXml.setAttribute("value", parts[i]);
+      transformXml.appendChild(paramXml);
+      concatXml.appendChild(transformXml);
+    } else {
+      // Add path
+      var inputXml = xmlDoc.createElement("Input");
+      inputXml.setAttribute("path", parts[i]);
+      concatXml.appendChild(inputXml);
+    }
   }
+
+  // Add to document
+  xmlDoc.documentElement.appendChild(ruleXml);
+}
+
+/**
+ * Serializes a type mapping.
+ */
+function serializeTypeMapping(xmlDoc, name, type) {
+  // Create new rule
+  var ruleXml = xmlDoc.createElement("TransformRule");
+  ruleXml.setAttribute("name", name);
+  ruleXml.setAttribute("targetProperty", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+
+  // Input is the constant type URI
+  var transformXml = xmlDoc.createElement("TransformInput");
+  transformXml.setAttribute("function", "constant");
+
+  var paramXml = xmlDoc.createElement("Param");
+  paramXml.setAttribute("name", "value");
+  paramXml.setAttribute("value", type);
+
+  transformXml.appendChild(paramXml);
+  ruleXml.appendChild(transformXml);
 
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
@@ -127,9 +190,9 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
   xmlDoc.documentElement.appendChild(ruleXml);
 }
 
-function addRule() {
+function addRule(template) {
   // Clone rule template
-  var newRule = $("#ruleTemplate").children().clone();
+  var newRule = $(template).children().clone();
   newRule.appendTo("#ruleContainer");
 
   // Add autocompletion

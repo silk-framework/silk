@@ -108,6 +108,7 @@ object CorePlugins {
     Transformer.register(classOf[DurationInDaysTransformer])
     Transformer.register(classOf[CompareDatesTransformer])
     Transformer.register(classOf[NumberToDurationTransformer])
+    Transformer.register(classOf[ParseDateTransformer])
     
     DistanceMeasure.register(classOf[LevenshteinMetric])
     DistanceMeasure.register(classOf[LevenshteinDistance])

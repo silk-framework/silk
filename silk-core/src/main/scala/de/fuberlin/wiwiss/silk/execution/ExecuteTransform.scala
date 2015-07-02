@@ -14,11 +14,11 @@ class ExecuteTransform(input: DataSource,
                        rules: Seq[TransformRule],
                        outputs: Seq[DataSink] = Seq.empty) extends Activity[Unit] {
 
-  require(rules.count(_.targetProperty.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
+  require(rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
-  private val subjectRule = rules.find(_.targetProperty.isEmpty)
+  private val subjectRule = rules.find(_.target.isEmpty)
 
-  private val propertyRules = rules.filter(_.targetProperty.isDefined)
+  private val propertyRules = rules.filter(_.target.isDefined)
 
   def run(context: ActivityContext[Unit]): Unit = {
     // Retrieve entities
@@ -32,7 +32,7 @@ class ExecuteTransform(input: DataSource,
 
     try {
       // Open outputs
-      val properties = propertyRules.map(_.targetProperty.get.uri)
+      val properties = propertyRules.map(_.target.get.uri)
       for(output <- outputs) output.open(properties)
 
       // Transform all entities and write to outputs

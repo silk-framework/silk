@@ -7,7 +7,9 @@
 @import de.fuberlin.wiwiss.silk.entity.Path
 @import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 @import controllers.rules.routes.Assets
+@import de.fuberlin.wiwiss.silk.linkagerule.{DirectMapping, TypeMapping, UriMapping}
 
+@import de.fuberlin.wiwiss.silk.linkagerule.ComplexMapping
 @(context: Context[TransformSpecification])
 
 @header = {
@@ -26,7 +28,13 @@
 
   <ul>
     <li>
-      <button onclick="addRule()">Add Rule</button>
+      <button onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
+    </li>
+    <li>
+      <button onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
+    </li>
+    <li>
+      <button onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
     </li>
     <li>
       @* widgets.activityControl(context, context.task.activity[PathsCache].name) *@
@@ -43,8 +51,16 @@
     }
   </div>
 
-  <div id="ruleTemplate" style="display: none">
-    @renderRule(TransformRule())
+  <div id="directMappingTemplate" style="display: none">
+    @renderRule(DirectMapping())
+  </div>
+
+  <div id="uriMappingTemplate" style="display: none">
+    @renderRule(UriMapping())
+  </div>
+
+  <div id="typeMappingTemplate" style="display: none">
+    @renderRule(TypeMapping())
   </div>
 
   <div id="dialogDelete" title="Confirm">
@@ -55,12 +71,18 @@
   </div>
 }
 
-@renderRule(rule: TransformRule) = {
-  <div class="transformRule">
+@renderRule(rule: TransformRule) = @{ rule match {
+  case r: DirectMapping => renderDirectRule(r)
+  case r: UriMapping => renderUriRule(r)
+  case r: TypeMapping => renderTypeRule(r)
+  case r: ComplexMapping => renderComplexRule(r)
+}}
+
+@renderDirectRule(rule: DirectMapping) = {
+  <div class="transformRule directMapping">
     <div class="ruleTitle">
-      Transformation
-      <img class="button-delete" title="Delete" onclick="deleteRule($(this).parent().parent())" src="@Assets.at("img/delete.png")" style="float: right; cursor: pointer" />
-      <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().parent().find('.name').val())" src="@Assets.at("img/editor/wrench.png")" style="float:right; cursor: pointer" />
+      Direct Mapping
+      @renderRuleButtons()
     </div>
     <div class="ruleContents">
       <table>
@@ -70,23 +92,15 @@
           <th>Target Property</th>
         </tr>
         <tr>
-          <td><input class="name" value="@rule.name" /></td>
           <td>
-            @rule.operator match {
-              case None => {
-                @* No input path defined so far. *@
-                <input class="source" value="" />
-              }
-              case Some(PathInput(id, path)) => {
-                @* An input with a property path defined *@
-                <input class="source" value="@path.serializeSimplified(prefixes())" />
-              }
-              case _ => {
-                (complex)
-              }
-            }
+            <input class="name" value="@rule.name" />
           </td>
-          <td><input class="target" value="@rule.targetProperty.map(_.serialize(prefixes())).getOrElse("")" /></td>
+          <td>
+            <input class="source" value="@rule.sourcePath.serializeSimplified(prefixes())" />
+          </td>
+          <td>
+            <input class="target" value="@rule.targetProperty.serialize(prefixes())" />
+          </td>
         </tr>
       </table>
     </div>
@@ -94,6 +108,99 @@
       @rule.toXML
     </script>
   </div>
+}
+
+@renderUriRule(rule: UriMapping) = {
+  <div class="transformRule uriMapping">
+    <div class="ruleTitle">
+      URI Mapping
+      @renderRuleButtons()
+    </div>
+    <div class="ruleContents">
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Pattern</th>
+        </tr>
+        <tr>
+          <td>
+            <input class="name" value="@rule.name" />
+          </td>
+          <td>
+            <input class="pattern" value="@rule.pattern" size="45" />
+          </td>
+        </tr>
+      </table>
+    </div>
+    <script class="ruleXML" type="application/xml">
+      @rule.toXML
+    </script>
+  </div>
+}
+
+@renderTypeRule(rule: TypeMapping) = {
+  <div class="transformRule typeMapping">
+    <div class="ruleTitle">
+      Type Mapping
+      @renderRuleButtons()
+    </div>
+    <div class="ruleContents">
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+        </tr>
+        <tr>
+          <td>
+            <input class="name" value="@rule.name" />
+          </td>
+          <td>
+            <input class="type" value="@rule.typeUri" size="45" />
+          </td>
+        </tr>
+      </table>
+    </div>
+    <script class="ruleXML" type="application/xml">
+      @rule.toXML
+    </script>
+  </div>
+}
+
+@renderComplexRule(rule: ComplexMapping) = {
+  <div class="transformRule complexMapping">
+    <div class="ruleTitle">
+      Complex Mapping
+      @renderRuleButtons()
+    </div>
+    <div class="ruleContents">
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Source Path</th>
+          <th>Target Property</th>
+        </tr>
+        <tr>
+          <td>
+            <input class="name" value="@rule.name" />
+          </td>
+          <td>
+            (complex)
+          </td>
+          <td>
+            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" />
+          </td>
+        </tr>
+      </table>
+    </div>
+    <script class="ruleXML" type="application/xml">
+      @rule.toXML
+    </script>
+  </div>
+}
+
+@renderRuleButtons() = {
+  <img class="button-delete" title="Delete" onclick="deleteRule($(this).parent().parent())" src="@Assets.at("img/delete.png")" style="float: right; cursor: pointer" />
+  <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().parent().find('.name').val())" src="@Assets.at("img/editor/wrench.png")" style="float:right; cursor: pointer" />
 }
 
 @prefixes() = @{ context.project.config.prefixes }

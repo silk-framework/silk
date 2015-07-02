@@ -11,7 +11,7 @@ import java.util.Date
    label = "Duration in Days",
    description = "Converts an xsd:duration to days."
  )
-class DurationInDaysTransformer extends SimpleTransformer {
+case class DurationInDaysTransformer() extends SimpleTransformer {
 
    private val datatypeFactory = DatatypeFactory.newInstance()
 

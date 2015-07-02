@@ -8,11 +8,6 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
                                    progressContribution: Double = 0.0) extends Runnable with ActivityControl[T] with ActivityContext[T] {
 
   /**
-   * The logger used to log status changes.
-   */
-  private val logger = Logger.getLogger(getClass.getName)
-
-  /**
    * The name of the activity.
    */
   override val name: String = activity.name
@@ -46,7 +41,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
       status.update(Status.Finished(activity.name, success = true, System.currentTimeMillis - startTime))
     } catch {
       case ex: Throwable =>
-        logger.log(Level.WARNING, activity.name + " failed", ex)
+        log.log(Level.WARNING, activity.name + " failed", ex)
         status.update(Status.Finished(activity.name, success = false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex
     }
@@ -62,7 +57,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     if(status().isRunning)
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     // Execute activity
-    ExecutionContext.global.execute(this)
+    Activity.executionContext.execute(this)
   }
 
   override def startBlocking(initialValue: Option[T]): T = {

@@ -9,6 +9,6 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
   label = "Trim",
   description = "Remove leading and trailing whitespaces."
 )
-class TrimTransformer extends SimpleTransformer {
+case class TrimTransformer() extends SimpleTransformer {
   override def evaluate(value: String) = value.trim
 }

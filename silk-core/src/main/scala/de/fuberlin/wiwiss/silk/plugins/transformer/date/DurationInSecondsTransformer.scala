@@ -11,7 +11,7 @@ import java.util.{Date, Calendar}
   label = "Duration in Seconds",
   description = "Converts an xsd:duration to seconds."
 )
-class DurationInSecondsTransformer extends SimpleTransformer {
+case class DurationInSecondsTransformer() extends SimpleTransformer {
 
   private val datatypeFactory = DatatypeFactory.newInstance()
 

@@ -16,28 +16,43 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.date
 
+import java.text.{ParseException, SimpleDateFormat}
 import javax.xml.datatype.DatatypeFactory
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
 
 /**
- * Convert an xsd:date to a Unix timestamp.
- *
- * @author Robert Isele
+ * Parses a date, returning an xsd:date.
  */
 @Plugin(
-  id = "datetoTimestamp",
+  id = "parseDate",
   categories = Array("Date"),
-  label = "Date to timestamp",
-  description = "Convert an xsd:date to a Unix timestamp"
+  label = "Parse date",
+  description = "Parses a date, returning an xsd:date"
 )
-case class DateToTimestampTransformer() extends SimpleTransformer {
+case class ParseDateTransformer(format: String = "dd-mm-yyyy") extends Transformer {
 
   private val datatypeFactory = DatatypeFactory.newInstance()
 
-  override def evaluate(value: String) = {
-    val millis = datatypeFactory.newXMLGregorianCalendar(value).toGregorianCalendar.getTimeInMillis
-    millis.toString
+  def apply(values: Seq[Set[String]]): Set[String] = {
+    values.flatten.toSet.flatMap(parse)
+  }
+
+  def parse(value: String): Set[String] = {
+    try {
+      // Parse date
+      val dateFormat = new SimpleDateFormat(format)
+      val date = dateFormat.parse(value)
+
+      // Format as XSD date
+      val xsdFormat = new SimpleDateFormat("yyyy-mm-dd")
+      val xsdDate = xsdFormat.format(date.getTime)
+
+      Set(xsdDate)
+    }
+    catch {
+      case ex: ParseException => Set.empty
+    }
   }
 }

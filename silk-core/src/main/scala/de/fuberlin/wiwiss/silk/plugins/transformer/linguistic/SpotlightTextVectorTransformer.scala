@@ -22,7 +22,7 @@ import scala.xml.{Elem, XML}
   label = "Spotlight",
   description = "Concatenates all values to a string and gets a weighted entity vector from the Spotlight service."
 )
-class SpotlightTextVectorTransformer extends Transformer {
+case class SpotlightTextVectorTransformer() extends Transformer {
   def apply(values: Seq[Set[String]]): Set[String] = {
     val stringSet = values.reduce(_ union _)
     if(stringSet.size==0)

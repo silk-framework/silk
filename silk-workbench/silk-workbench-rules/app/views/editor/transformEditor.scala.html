@@ -76,12 +76,10 @@
     <div class="droppable_outer">
 
       <div id="droppable">
-        @for(op <- rule.operator) {
-          @renderRule(
-            rule = op,
-            prefixes = context.project.config.prefixes
-          )
-        }
+        @renderRule(
+          rule = rule.operator,
+          prefixes = context.project.config.prefixes
+        )
       </div>
 
       <div style="float: left; margin-right: 20px">
@@ -92,7 +90,7 @@
 
       <div style="float: left;">
         Target Property:
-        <input type="text" size="40" id="targetproperty"  value="@rule.targetProperty.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
+        <input type="text" size="40" id="targetproperty"  value="@rule.target.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
         <img src="@Assets.at("img/help.png")" title="The target property." />
       </div>
 

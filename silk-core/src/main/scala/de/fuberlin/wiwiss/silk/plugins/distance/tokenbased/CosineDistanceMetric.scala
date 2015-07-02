@@ -22,7 +22,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
   label = "Cosine",
   description = "Cosine Distance Measure."
 )
-class CosineDistanceMetric(k: Int = 3) extends SimpleDistanceMeasure {
+case class CosineDistanceMetric(k: Int = 3) extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     val items1 = str1.split(";")
     val items2 = str2.split(";")

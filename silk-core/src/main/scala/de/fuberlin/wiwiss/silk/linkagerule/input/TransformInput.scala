@@ -17,14 +17,14 @@ package de.fuberlin.wiwiss.silk.linkagerule.input
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 
 /**
  * A TransformInput applies a transform to input values.
  */
-case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: Seq[Input]) extends Input {
+case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: List[Input] = Nil) extends Input {
 
   def apply(entities: DPair[Entity]): Set[String] = {
     val values = for (input <- inputs) yield input(entities)
@@ -54,7 +54,7 @@ object TransformInput {
 
     try {
       val transformer = Transformer((node \ "@function").text, Operator.readParams(node), resourceLoader)
-      TransformInput(id, transformer, inputs)
+      TransformInput(id, transformer, inputs.toList)
     } catch {
       case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")
     }

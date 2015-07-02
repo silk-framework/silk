@@ -65,7 +65,7 @@ class SparqlSink(params: SparqlParams) extends DataSink {
     if (value.startsWith("http:"))
       writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> <" + value + "> .\n", "UTF-8"))
     // Check if value is a number
-    else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.'))
+    else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E'))
       writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n", "UTF-8"))
     // Write string values
     else {
@@ -103,7 +103,8 @@ class SparqlSink(params: SparqlParams) extends DataSink {
    * @throws IOException
    */
   private def endSparql() {
-    writer.write("%7D")
+    if(writer != null)
+      writer.write("%7D")
     closeConnection()
   }
 
@@ -133,7 +134,8 @@ class SparqlSink(params: SparqlParams) extends DataSink {
   private def closeConnection() {
     // Close connection
     val con = connection
-    writer.close()
+    if(writer != null)
+      writer.close()
     writer = null
     connection = null
 
@@ -145,7 +147,7 @@ class SparqlSink(params: SparqlParams) extends DataSink {
       val errorStream = con.getErrorStream
       if (errorStream != null) {
         val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-        throw new IOException("SPARQL/Update query on " + params.uri + " failed. Error Message: '" + errorMessage + "'.")
+        throw new IOException("SPARQL/Update query on " + params.uri + " failed with error code " + con.getResponseCode + ". Error Message: '" + errorMessage + "'.")
       }
       else {
         throw new IOException("SPARQL/Update query on " + params.uri + " failed. Server response: " + con.getResponseCode + " " + con.getResponseMessage + ".")

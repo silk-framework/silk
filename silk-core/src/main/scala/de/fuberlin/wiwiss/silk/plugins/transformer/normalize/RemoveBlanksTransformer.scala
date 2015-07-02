@@ -14,8 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
 
+import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.transformer.replace.ReplaceTransformer
 
 @Plugin(
   id = "removeBlanks",
@@ -23,4 +23,8 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.ReplaceTransformer
   label = "Remove blanks",
   description = "Remove whitespace from a string."
 )
-case class RemoveBlanksTransformer() extends ReplaceTransformer(" ", "")
+case class RemoveBlanksTransformer() extends SimpleTransformer {
+  override def evaluate(value: String) = {
+    value.replace(" ", "")
+  }
+}

@@ -64,7 +64,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
       sparql += "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
 
     sparql += SparqlPathBuilder(entityDesc.paths, "?" + entityDesc.variable, "?" + varPrefix)
-    sparql += "}"
+    sparql += "} ORDER BY ?" + entityDesc.variable
 
     val sparqlResults = endpoint.query(sparql)
 
