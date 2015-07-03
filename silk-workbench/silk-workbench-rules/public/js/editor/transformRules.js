@@ -50,6 +50,18 @@ function modified() {
 
 function save() {
   clearTimeout(modificationTimer);
+
+  // Check if rule names are unique
+  // TODO set id and implement highlightElement
+  var names = $("#ruleContainer").find(".name").map(function() { return $(this).val() } ).toArray();
+  var duplicateNames = $.grep(names, function(v, i) { return $.inArray(v, names) != i });
+  if(duplicateNames.length > 0) {
+    var errors = duplicateNames.map(function(name) { return { message: "The following name is not unique: " + name }; } );
+    updateStatus(errors, null, null);
+    return;
+  }
+
+  // Commit rules
   $.ajax({
     type: 'PUT',
     url: apiUrl + '/rules',
@@ -193,6 +205,8 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
 function addRule(template) {
   // Clone rule template
   var newRule = $(template).children().clone();
+  var nameInput = newRule.find(".name");
+  nameInput.val(generateRuleName(nameInput.val()));
   newRule.appendTo("#ruleContainer");
 
   // Add autocompletion
@@ -233,4 +247,14 @@ function openRule(name) {
       alert(req.responseText);
     }
   });
+}
+
+function generateRuleName(prefix) {
+  var count = 0;
+  do {
+    count = count + 1;
+    if($("#ruleContainer").find(".name").filter(function() { return $(this).val() == prefix + count } ).length == 0) {
+      return prefix + count;
+    }
+  } while (count < 1000);
 }
