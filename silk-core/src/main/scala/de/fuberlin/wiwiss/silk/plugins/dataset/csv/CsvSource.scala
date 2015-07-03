@@ -8,9 +8,9 @@ import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
-class CsvSource(file: Resource, properties: String, separator: String, arraySeparator: String, prefix: String = "", uri: String = "", regexFilter: String = "") extends DataSource {
+class CsvSource(file: Resource, properties: String, separator: String, arraySeparator: String, prefix: String = "", uri: String = "", regexFilter: String = "", codec: Codec) extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -18,7 +18,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
     if (!properties.trim.isEmpty)
       properties.split(',')
     else {
-      val source = Source.fromInputStream(file.load)
+      val source = Source.fromInputStream(file.load)(codec)
       val firstLine = source.getLines().next()
       source.close()
       firstLine.split(separator).map(s => URLEncoder.encode(s, "UTF8"))
@@ -49,7 +49,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
         val inputStream = file.load
-        val source = Source.fromInputStream(inputStream)//(Codec.UTF8)
+        val source = Source.fromInputStream(inputStream)(codec)
 
         // Compile the line regex.
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
