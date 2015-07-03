@@ -81,7 +81,7 @@ function serializeRules() {
     if($(this).hasClass("directMapping")) {
       serializeDirectMapping(xmlDoc, name, source, target)
     } else if($(this).hasClass("uriMapping")) {
-      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
+      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
     } else if($(this).hasClass("typeMapping")) {
       serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
     } else {
@@ -117,11 +117,11 @@ function serializeDirectMapping(xmlDoc, name, source, target) {
 /**
  * Serializes a URI mapping.
  */
-function serializeUriMapping(xmlDoc, name, pattern) {
+function serializeUriMapping(xmlDoc, name, pattern, target) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);
-  ruleXml.setAttribute("targetProperty", "");
+  ruleXml.setAttribute("targetProperty", target);
 
   // Create concat transformer
   var concatXml = xmlDoc.createElement("TransformInput");

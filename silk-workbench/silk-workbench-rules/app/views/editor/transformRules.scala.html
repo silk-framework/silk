@@ -121,13 +121,17 @@
         <tr>
           <th>Name</th>
           <th>Pattern</th>
+          <th>Target</th>
         </tr>
         <tr>
           <td>
             <input class="name" value="@rule.name" />
           </td>
           <td>
-            <input class="pattern" value="@rule.pattern" size="45" />
+            <input class="pattern" value="@rule.pattern" />
+          </td>
+          <td>
+            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" />
           </td>
         </tr>
       </table>
