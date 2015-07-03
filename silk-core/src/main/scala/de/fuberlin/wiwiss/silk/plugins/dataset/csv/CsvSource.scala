@@ -67,7 +67,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
 
               //Split the line into values
               val allValues = line.split(separator, -1)
-              assert(propertyList.size == allValues.size, s"Invalid line ${number + 1}: '$line' in resource '${file.name}' with ${allValues.size} elements. Expected number of elements ${propertyList.size}.")
+              assert(propertyList.size >= allValues.size, s"Invalid line ${number + 1}: '$line' in resource '${file.name}' with ${allValues.size} elements. Expected number of elements ${propertyList.size}.")
               //Extract requested values
               val values = indices.map(allValues(_))
 
@@ -96,7 +96,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
 
                 f(new Entity(
                   uri = entityURI,
-                  values = entityValues,
+                  values = entityValues.padTo(propertyList.size, Set.empty),
                   desc = entityDesc
                 ))
               }
