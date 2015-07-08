@@ -58,6 +58,15 @@
   box-shadow: 1px 1px 6px #1484d4;
 }
 
+.objectMapping .ruleTitle {
+  background-color: #C354BF;
+}
+
+.objectMapping:hover {
+  background-color: #f2d7ff;
+  box-shadow: 1px 1px 6px #C354BF;
+}
+
 .typeMapping .ruleTitle {
   background-color: #e59829;
 }

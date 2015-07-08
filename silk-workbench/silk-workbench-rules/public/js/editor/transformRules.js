@@ -93,7 +93,9 @@ function serializeRules() {
     if($(this).hasClass("directMapping")) {
       serializeDirectMapping(xmlDoc, name, source, target)
     } else if($(this).hasClass("uriMapping")) {
-      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
+      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
+    } else if($(this).hasClass("objectMapping")) {
+      serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
     } else if($(this).hasClass("typeMapping")) {
       serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
     } else {
@@ -129,7 +131,45 @@ function serializeDirectMapping(xmlDoc, name, source, target) {
 /**
  * Serializes a URI mapping.
  */
-function serializeUriMapping(xmlDoc, name, pattern, target) {
+function serializeUriMapping(xmlDoc, name, pattern) {
+  // Create new rule
+  var ruleXml = xmlDoc.createElement("TransformRule");
+  ruleXml.setAttribute("name", name);
+  ruleXml.setAttribute("targetProperty", "");
+
+  // Create concat transformer
+  var concatXml = xmlDoc.createElement("TransformInput");
+  concatXml.setAttribute("function", "concat");
+  ruleXml.appendChild(concatXml);
+
+  // Parse pattern
+  var parts = pattern.split(/[\{\}]/);
+  for (i = 0; i < parts.length; i++) {
+    if (i % 2 == 0) {
+      // Add constant
+      var transformXml = xmlDoc.createElement("TransformInput");
+      transformXml.setAttribute("function", "constant");
+      var paramXml = xmlDoc.createElement("Param");
+      paramXml.setAttribute("name", "value");
+      paramXml.setAttribute("value", parts[i]);
+      transformXml.appendChild(paramXml);
+      concatXml.appendChild(transformXml);
+    } else {
+      // Add path
+      var inputXml = xmlDoc.createElement("Input");
+      inputXml.setAttribute("path", parts[i]);
+      concatXml.appendChild(inputXml);
+    }
+  }
+
+  // Add to document
+  xmlDoc.documentElement.appendChild(ruleXml);
+}
+
+/**
+ * Serializes a Object mapping.
+ */
+function serializeObjectMapping(xmlDoc, name, pattern, target) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);

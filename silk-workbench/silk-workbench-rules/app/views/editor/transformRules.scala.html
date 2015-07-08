@@ -7,7 +7,7 @@
 @import de.fuberlin.wiwiss.silk.entity.Path
 @import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 @import controllers.rules.routes.Assets
-@import de.fuberlin.wiwiss.silk.linkagerule.{DirectMapping, TypeMapping, UriMapping}
+@import de.fuberlin.wiwiss.silk.linkagerule.{DirectMapping, TypeMapping, UriMapping, ObjectMapping}
 
 @import de.fuberlin.wiwiss.silk.linkagerule.ComplexMapping
 @(context: Context[TransformSpecification])
@@ -28,13 +28,16 @@
 
   <ul>
     <li>
-      <button onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
-    </li>
-    <li>
       <button onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
     </li>
     <li>
       <button onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
+    </li>
+    <li>
+      <button onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
+    </li>
+    <li>
+      <button onclick="addRule('#objectMappingTemplate')">Add Object Mapping</button>
     </li>
     <li>
       @* widgets.activityControl(context, context.task.activity[PathsCache].name) *@
@@ -51,16 +54,20 @@
     }
   </div>
 
-  <div id="directMappingTemplate" style="display: none">
-    @renderRule(DirectMapping())
-  </div>
-
   <div id="uriMappingTemplate" style="display: none">
     @renderRule(UriMapping())
   </div>
 
   <div id="typeMappingTemplate" style="display: none">
     @renderRule(TypeMapping())
+  </div>
+
+  <div id="directMappingTemplate" style="display: none">
+  @renderRule(DirectMapping())
+  </div>
+
+  <div id="objectMappingTemplate" style="display: none">
+  @renderRule(ObjectMapping())
   </div>
 
   <div id="dialogDelete" title="Confirm">
@@ -74,6 +81,7 @@
 @renderRule(rule: TransformRule) = @{ rule match {
   case r: DirectMapping => renderDirectRule(r)
   case r: UriMapping => renderUriRule(r)
+  case r: ObjectMapping => renderObjectRule(r)
   case r: TypeMapping => renderTypeRule(r)
   case r: ComplexMapping => renderComplexRule(r)
 }}
@@ -121,6 +129,34 @@
         <tr>
           <th>Name</th>
           <th>Pattern</th>
+        </tr>
+        <tr>
+          <td>
+            <input class="name" value="@rule.name" />
+          </td>
+          <td>
+            <input class="pattern" value="@rule.pattern" size="45" />
+          </td>
+        </tr>
+      </table>
+    </div>
+    <script class="ruleXML" type="application/xml">
+      @rule.toXML
+    </script>
+  </div>
+}
+
+@renderObjectRule(rule: ObjectMapping) = {
+  <div class="transformRule objectMapping">
+    <div class="ruleTitle">
+      Object Mapping
+      @renderRuleButtons()
+    </div>
+    <div class="ruleContents">
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Pattern</th>
           <th>Target</th>
         </tr>
         <tr>
@@ -131,7 +167,7 @@
             <input class="pattern" value="@rule.pattern" />
           </td>
           <td>
-            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" />
+            <input class="target" value="@rule.targetProperty.serialize(prefixes())" />
           </td>
         </tr>
       </table>
