@@ -19,11 +19,13 @@ class XmlDatasetTest extends FlatSpec with Matchers {
 
   val personDeath = Path.parse("?a/<Events>/<Death>")
 
+  val personValue = Path.parse("Properties/Property[Key = \"2\"]/Value")
+
   val entityDesc =
     EntityDescription(
       variable = "a",
       restrictions = SparqlRestriction.empty,
-      paths = IndexedSeq(personId, personName, personBirth, personDeath)
+      paths = IndexedSeq(personId, personName, personBirth, personDeath, personValue)
     )
 
   "XmlDatasetTest" should "read direct children of the root element, if the base path is empty." in {
@@ -53,6 +55,9 @@ class XmlDatasetTest extends FlatSpec with Matchers {
     entities()(1).uri should equal("http://example.org/2")
   }
 
+  "XmlDatasetTest" should "support property filters" in {
+    entities().head.evaluate(personValue) should equal(Set("V2"))
+  }
 
   private def entities(basePath: String = "") = {
     val source = new XmlDataset(resourceLoader.get("persons.xml"), basePath, "http://example.org/{ID}").source

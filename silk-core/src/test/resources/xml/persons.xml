@@ -6,6 +6,20 @@
       <Birth>May 1900</Birth>
       <Death>June 1990</Death>
     </Events>
+    <Properties>
+      <Property>
+        <Key>1</Key>
+        <Value>V1</Value>
+      </Property>
+      <Property>
+        <Key>2</Key>
+        <Value>V2</Value>
+      </Property>
+      <Property>
+        <Key>3</Key>
+        <Value>V3</Value>
+      </Property>
+    </Properties>
   </Person>
   <Person>
     <ID>2</ID>

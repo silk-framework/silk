@@ -101,6 +101,8 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
     private def evaluateOperator(node: NodeSeq, op: PathOperator): NodeSeq = op match {
       case ForwardOperator(p) => node \ p.uri
+      case p @ PropertyFilter(prop, cmp, value) =>
+        node.filter(n => p.evaluate("\"" + (n \ prop.uri).text + "\""))
       case _ => throw new UnsupportedOperationException("Unsupported path operator: " + op.getClass.getSimpleName)
     }
   }
