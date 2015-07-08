@@ -16,8 +16,11 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.json
 
 import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.runtime.resource.ClasspathResourceLoader
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
+@RunWith(classOf[JUnitRunner])
 class JsonReaderTest extends FlatSpec with Matchers {
 
   private val json = {

@@ -21,7 +21,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
 class ParseDataTransformerTest extends FlatSpec with ShouldMatchers {
-  val transformer = new ParseDateTransformer("dd.mm.yyyy")
+  val transformer = new ParseDateTransformer("dd.MM.yyyy")
 
   "ParseDataTransformer" should "parse dates" in {
     transformer(Seq(Set("03.04.2015"))) should equal(Set("2015-04-03"))
