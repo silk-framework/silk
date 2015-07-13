@@ -9,12 +9,12 @@ import plugins.Context
 
 object EvaluateTransform extends Controller {
 
-  def evaluate(project: String, task: String) = Action { request =>
+  def evaluate(project: String, task: String, offset: Int, limit: Int) = Action { request =>
     val context = Context.get[TransformSpecification](project, task, request.path)
-    Ok(views.html.evaluateTransform.evaluateTransform(context))
+    Ok(views.html.evaluateTransform.evaluateTransform(context, offset, limit))
   }
 
-  def generatedEntities(projectName: String, taskName: String) = Action {
+  def generatedEntities(projectName: String, taskName: String, offset: Int, limit: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
 
@@ -23,10 +23,10 @@ object EvaluateTransform extends Controller {
       new EvaluateTransformTask(
         source = project.task[Dataset](task.data.selection.datasetId).data,
         dataSelection = task.data.selection,
-        rules = task.data.rules
+        rules = task.data.rules,
+        maxEntities = offset + limit
       )
-
-    val entities = evaluateTransform.execute()
+    val entities = evaluateTransform.execute().drop(offset)
 
     Ok(views.html.evaluateTransform.generatedEntities(entities))
   }

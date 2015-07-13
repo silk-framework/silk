@@ -9,8 +9,8 @@ GET           /:project/:task/editor/widgets/paths               controllers.tra
 GET           /:project/:task/editor/widgets/score               controllers.transform.TransformEditor.score(project: String, task: String)
 
 # Evaluate Transformation
-GET           /:project/:task/evaluate                           controllers.transform.EvaluateTransform.evaluate(project: String, task: String)
-GET           /:project/:task/evaluate/generatedEntities         controllers.transform.EvaluateTransform.generatedEntities(project: String, task: String)
+GET           /:project/:task/evaluate                           controllers.transform.EvaluateTransform.evaluate(project: String, task: String, offset: Int ?= 0, limit: Int ?= 100)
+GET           /:project/:task/evaluate/generatedEntities         controllers.transform.EvaluateTransform.generatedEntities(project: String, task: String, offset: Int ?= 0, limit: Int ?= 100)
 
 # Execute Transformation
 GET           /:project/:task/execute                            controllers.transform.ExecuteTransformTab.execute(project: String, task: String)
