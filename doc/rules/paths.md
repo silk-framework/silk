@@ -9,35 +9,35 @@ The following operators can be used to traverse the graph:
 |----------|------------------|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 | /        | forward operator | `<path_segment>/<property>`                                       | Moves forward from a subject resource (set) through a property to its object resource (set).                                                       |
 |          | reverse operator | `<path_segment>\<property>`                                       | Moves backward from an object resource (set) through a property to its subject resource (set).                                                     |
-| \[ \]    | filter operator  | <code><path_segment>\[<property> <comp_operator> <value>\]</code> 
-                               <code><path_segment>\[@lang <comp_operator> <value>\]</code>       | Reduces the currently selected set of resources to the ones matching the filter expression. comp\_operator may be one of &gt;, <, >=, &lt;=, =, != |
+| \[ \]    | filter operator  | `<code><path_segment>\[<property> <comp_operator> <value>\]</code> 
+                               <code><path_segment>\[@lang <comp_operator> <value>\]</code>`       | Reduces the currently selected set of resources to the ones matching the filter expression. comp\_operator may be one of &gt;, <, >=, &lt;=, =, != |
 
 # Examples
 
-## XML**
+## XML
 
 ### Select the English label of a movie
 
-<Input path="?movie/rdfs:label[@lang = 'en']" />
+    <Input path="?movie/rdfs:label[@lang = 'en']" />
 
 ### Select the label (set) of the director(s) of a movie
 
-<Input path="?movie/dbpedia:director/rdfs:label" />
+    <Input path="?movie/dbpedia:director/rdfs:label" />
 
 ### Select the albums of a given artist (albums have an dbpedia:artist property)
 
-<Input path="?artist\dbpedia:artist[rdf:type = dbpedia:Album]" />
+    <Input path="?artist\dbpedia:artist[rdf:type = dbpedia:Album]" />
 
 ## Scala API
 
 ### Select the English label of a movie
 
-Path.parse("?movie/rdfs:label[@lang = 'en']")
+    Path.parse("?movie/rdfs:label[@lang = 'en']")
 
 ### Select the label (set) of the director(s) of a movie
 
-Path.parse("?movie/dbpedia:director/rdfs:label")
+    Path.parse("?movie/dbpedia:director/rdfs:label")
 
 ### Select the albums of a given artist (albums have an dbpedia:artist property)
 
-Path.parse("?artist\dbpedia:artist[rdf:type = dbpedia:Album]")
+    Path.parse("?artist\dbpedia:artist[rdf:type = dbpedia:Album]")

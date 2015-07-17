@@ -29,7 +29,7 @@ Linking tasks consist of the following elements:
 
 Linking Tasks can be added to an existing project and removed from it. Clicking on <code>Metadata</code> opens a dialog to edit the meta data of a linking task:
 
-![Linking Task](workspace_linking.png)
+![Linking Task](img/workspace_linking.png)
 
 The following properties can be edited:
 
