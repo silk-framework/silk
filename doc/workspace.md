@@ -1,10 +1,12 @@
+# Workspace
+
 The Workspace allows users to manage data sources and linking tasks defined for each project.
 
 The Workspace Browser shows a tree view of all Projects in the current Workspace:
 
 ![Workspace](img/workspace.png)
 
-# Projects
+## Projects
 
 A project holds the following information:
 
@@ -14,12 +16,12 @@ A project holds the following information:
 
 Users are able to create new projects or import existing ones. Existing projects can be deleted or exported to a single file.
 
-# Data Sets
+## Data Sets
 
 A data set holds all information that is needed to retrieve entities from it as well as to store entities.
 Users can add new data sets and edit their properties.
 
-# Linking Tasks
+## Linking Tasks
 
 Linking tasks consist of the following elements:
 

@@ -1,3 +1,5 @@
+# Workbench
+
 The Workbench is a web application which guides the user through the process of creating a link specification for interlinking two data sources.
 It provides the following components:
 
