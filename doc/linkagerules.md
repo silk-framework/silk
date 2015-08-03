@@ -78,7 +78,7 @@ The following default parameters can be set for each comparison:
 
 The threshold is used to convert the computed distance to a confidence between -1.0 and 1.0. Links will be generated for confidences above 0 while higher confidence values imply a higher similarity between the compared entities.
 
-![Threshold](../img/linking_threshold.png)
+![Threshold](img/linking_threshold.png)
 
 ### Character-Based Distance Measures
 
