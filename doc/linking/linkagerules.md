@@ -146,3 +146,52 @@ A number of distance measures are available that are designed to compare specifi
       <Param name="unit" value="km"/>
     </Compare>
     
+## Aggregations
+
+An aggregation combines multiple confidence values into a single value. In order to determine if two entities are duplicates it is usually not sufficient to compare a single property. For instance, when comparing geographic entities, an aggregation may aggregate the similarities between the names of the entities and the similarities based on the distance between the entities.
+
+### Parameters
+
+**Required (Optional)**
+
+The required attribute can be set if the aggregation only should generate a result if a specific suboperator returns a value
+
+**Weights (Optional)**
+Some comparison operators might be more relevant for the correct establishment of a link between two resources than others. For example, depending on data formats/quality, matching labels might be considered less important than matching geocoordinates when linking cities. If this modifier is not supplied, a default weight of 1 will be assumed. The weight is only considered in the aggregation types average, quadraticMean and geometricMean.
+
+**Type**
+The function according to the similarity values are aggregated. The following functions are included:
+
+| Id            | Name                    | Description                                                            |
+|---------------|-------------------------|------------------------------------------------------------------------|
+| average       | AverageAggregator       | Evaluate to the (weighted) average of confidence values.               |
+| max           | MaximumAggregator       | Evaluate to the highest confidence in the group.                       |
+| min           | MinimumAggregator       | Evaluate to the lowest confidence in the group.                        |
+| quadraticMean | QuadraticMeanAggregator | Apply Euclidian distance aggregation.                                  |
+| geometricMean | GeometricMeanAggregator | Compute the (weighted) geometric mean of a group of confidence values. |
+
+### Examples
+
+**XML**
+
+    <Aggregate type="average">
+        <Compare metric="jaro" required="true">
+          <Input path="?a/rdfs:label" />
+          <Input path="?b/gn:name" />
+        </Compare>
+        <Compare metric="num">
+          <Input path="?a/dbpedia:populationTotal" />
+          <Input path="?b/gn:population" />
+        </Compare>
+      </Aggregate>
+
+**Scala API**
+
+    Aggregation(
+      id = "id1",
+      required = false,
+      weight = 1,
+      operators = operators,
+      aggregator = MaximumAggregator()
+    )
+    
