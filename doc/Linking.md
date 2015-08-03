@@ -9,7 +9,7 @@ It provides the following components:
 
 The typical workflow of creating a new linking task consists of:
 
-![Linking Workflow](img/linking_workflow.png)
+![Linking Workflow](media/linking_workflow.png)
 
 1. Before executing the actual matching, a linkage rule needs to be built, which specifies how two entities are compared for equivalence. Linkage Rules can be created by a human expert based on the data sources that are to be matched.
 2. The linkage rule is executed, resulting in a set of links.

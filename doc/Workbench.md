@@ -3,7 +3,7 @@
 The Workbench is a web application for creating and executing data integration tasks.
 All data integration tasks are hold in the workspace, which shows a tree view of all current projects.
 
-![Workspace](img/workspace.png)
+![Workspace](media/workspace.png)
 
 ## Projects
 
@@ -87,7 +87,7 @@ Linking tasks consist of the following elements:
 
 Linking Tasks can be added to an existing project and removed from it. Clicking on <code>Metadata</code> opens a dialog to edit the meta data of a linking task:
 
-![Linking Task](img/workspace_linking.png)
+![Linking Task](media/workspace_linking.png)
 
 The following properties can be edited:
 
