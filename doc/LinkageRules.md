@@ -89,7 +89,7 @@ Character-based distance measures compare strings on the character level. They a
 | levenshteinDistance | Levenshtein distance. The minimum number of edits needed to transform one string into the other, with the allowable edit operations being insertion, deletion, or substitution of a single character | No         |
 | levenshtein         | The levensthein distance normalized to the interval \[0,1\]                                                                                                                                          | Yes        |
 | jaro                | Jaro distance metric. Simple distance metric originally developed to compare person names.                                                                                                           | Yes        |
-| jaroWinkler         | Jaro-Winkler distance measure. The JaroñWinkler distance metric is designed and best suited for short strings such as person names                                                                   | Yes        |
+| jaroWinkler         | Jaro-Winkler distance measure. The Jaro‚ÄìWinkler distance metric is designed and best suited for short strings such as person names                                                                   | Yes        |
 | equality            | 0 if strings are equal, 1 otherwise.                                                                                                                                                                 | Yes        |
 | inequality          | 1 if strings are equal, 0 otherwise.                                                                                                                                                                 | Yes        |
 
@@ -105,14 +105,14 @@ Example:
 While character-based distance measures work well for typographical
 errors, there are a number of tasks where token-base distance measures are better suited:
 
--   Strings where parts are reordered e.g. ìJohn Doeî and ìDoe, Johnî
+-   Strings where parts are reordered e.g. ‚ÄúJohn Doe‚Äù and ‚ÄúDoe, John‚Äù
 -   Texts consisting of multiple words
 
 | Measure     | Description                                                                                                                                         | Normalized |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | jaccard     | Jaccard distance coefficient.                                                                                                                       | Yes        |
 | dice        | Dice distance coefficient.                                                                                                                          | Yes        |
-| softjaccard | Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of ëmaxDistanceí are considered equivalent. | Yes        |
+| softjaccard | Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of ‚ÄòmaxDistance‚Äô are considered equivalent. | Yes        |
 
 **Example:**
 
@@ -134,9 +134,9 @@ A number of distance measures are available that are designed to compare specifi
 | num(float minValue, float maxValue)   | Computes the numeric difference between two numbers                                                               
                                          Parameters:                                                                                                        
                                          `minValue`, `maxValue` The minimum and maximum values which occur in the datasource                                | No         |
-| date                                  | Computes the distance between two dates (ìYYYY-MM-DDî format). Returns the difference in days                     | No         |
+| date                                  | Computes the distance between two dates (‚ÄúYYYY-MM-DD‚Äù format). Returns the difference in days                     | No         |
 | dateTime                              | Computes the distance between two date time values (xsd:dateTime format). Returns the difference in seconds       | No         |
-| wgs84(string unit, string curveStyle) | Computes the geographical distance between two points.  Parameters: `unit` The unit in which the distance is measured. Allowed values: ìmeterî or ìmî (default) , ìkilometerî or ìkmî. Author: Konrad Hˆffner (MOLE subgroup of Research Group AKSW, University of Leipzig)                               | No         |
+| wgs84(string unit, string curveStyle) | Computes the geographical distance between two points.  Parameters: `unit` The unit in which the distance is measured. Allowed values: ‚Äúmeter‚Äù or ‚Äúm‚Äù (default) , ‚Äúkilometer‚Äù or ‚Äúkm‚Äù. Author: Konrad H√∂ffner (MOLE subgroup of Research Group AKSW, University of Leipzig)                               | No         |
 
 **Example:**
 

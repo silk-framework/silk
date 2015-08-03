@@ -56,7 +56,7 @@ For RDF files (type: `file`) the following parameters exist:
 | Parameter          | Description                                                                              | Default |
 |--------------------|------------------------------------------------------------------------------------------|---------|
 | file (mandatory)   | The location of the RDF file.                                                            |         |
-| format (mandatory) | The format of the RDF file. Allowed values: “RDF/XML”, “N-TRIPLE”, “TURTLE”, “TTL”, “N3” |         |
+| format (mandatory) | The format of the RDF file. Allowed values: "RDF/XML", "N-TRIPLE", "TURTLE", "TTL", "N3" |         |
 
 Currently the data set is held in memory.    
 

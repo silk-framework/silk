@@ -1,6 +1,6 @@
 # Linking
 
-The Workbench guides the user through the process of creating a link specification for interlinking two data sources.
+The Workbench guides the user through the process of creating linking tasks for interlinking two data sources.
 It provides the following components:
 
 -  **Workspace Browser:** Enables the user to browse the projects in the workspace. Linking Tasks can be loaded from a project and comitted back to it later.
