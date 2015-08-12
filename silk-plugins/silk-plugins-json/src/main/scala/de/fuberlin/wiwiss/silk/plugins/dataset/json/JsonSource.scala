@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
-import JsonReader._
+import JsonParser._
 import play.api.libs.json._
 
 /**

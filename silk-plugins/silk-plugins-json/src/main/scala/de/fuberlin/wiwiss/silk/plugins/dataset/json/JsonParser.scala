@@ -7,7 +7,7 @@ import play.api.libs.json._
 /**
  * Implementation of JSON access functions.
  */
-object JsonReader {
+object JsonParser {
 
   /**
    * Loads JSON from a resource.

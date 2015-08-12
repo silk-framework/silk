@@ -25,10 +25,10 @@ class JsonReaderTest extends FlatSpec with Matchers {
 
   private val json = {
     val resources = new ClasspathResourceLoader("de/fuberlin/wiwiss/silk/plugins/dataset/json")
-    JsonReader.load(resources.get("example.json"))
+    JsonParser.load(resources.get("example.json"))
   }
 
-  private val persons = JsonReader.select(json, "persons" :: Nil)
+  private val persons = JsonParser.select(json, "persons" :: Nil)
 
   "On example.json, JsonReader" should "return 2 persons" in {
     persons.size should equal (2)
@@ -47,6 +47,6 @@ class JsonReaderTest extends FlatSpec with Matchers {
   }
 
   private def evaluate(path: String): Seq[String] = {
-    persons.flatMap(person => JsonReader.evaluate(person, Path.parse(path)))
+    persons.flatMap(person => JsonParser.evaluate(person, Path.parse(path)))
   }
 }
