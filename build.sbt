@@ -9,7 +9,7 @@ lazy val commonSettings = Seq(
   organization := "com.silk-framework",
   version := "2.6.1-SNAPSHOT",
   // Building
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.7",
   javacOptions := Seq("-source", "1.7", "-target", "1.7"),
   scalacOptions += "-target:jvm-1.7",
   // Testing
@@ -29,7 +29,7 @@ lazy val core = (project in file("silk-core"))
       libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
       libraryDependencies += "org.clapper" % "classutil_2.11" % "1.0.5" exclude("org.slf4j", "slf4j-log4j12"),
       // Additional scala standard libraries
-      libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.4",
+      libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
       libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
     )
 
