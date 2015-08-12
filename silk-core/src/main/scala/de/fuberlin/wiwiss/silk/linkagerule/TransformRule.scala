@@ -137,7 +137,7 @@ case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.
  * @param operator The input operator tree
  * @param target The target property URI
  */
-case class ComplexMapping(name: Identifier, operator: Input, target: Option[Uri] = None) extends TransformRule
+case class ComplexMapping(name: Identifier = "mapping", operator: Input, target: Option[Uri] = None) extends TransformRule
 
 /**
  * Creates new transform rules.

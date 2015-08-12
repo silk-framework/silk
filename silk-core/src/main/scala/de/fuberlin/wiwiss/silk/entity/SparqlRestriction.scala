@@ -20,7 +20,7 @@ import util.matching.Regex
 /**
  * Represents a SPARQL restriction.
  */
-class SparqlRestriction private(val variable: String, restrictionsFull: String, restrictionsQualified: String) {
+class SparqlRestriction private(val variable: String, restrictionsFull: String, restrictionsQualified: String) extends Serializable {
 
   def toSparql = restrictionsFull
 

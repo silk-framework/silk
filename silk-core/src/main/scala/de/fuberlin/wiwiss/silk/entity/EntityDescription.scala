@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 import scala.xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
-case class EntityDescription(variable: String, restrictions: SparqlRestriction, paths: IndexedSeq[Path]) {
+case class EntityDescription(variable: String = "a", restrictions: SparqlRestriction = SparqlRestriction.empty, paths: IndexedSeq[Path]) {
   require(paths.forall(!_.operators.isEmpty), "Entity description must not contain an empty path")
 
   /**
@@ -29,7 +29,7 @@ case class EntityDescription(variable: String, restrictions: SparqlRestriction, 
     while(path != paths(index)) {
       index += 1
       if(index >= paths.size)
-        throw new NoSuchElementException("Path " + path + " not found on entity.")
+        throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${paths.mkString(", ")}.")
     }
     index
   }

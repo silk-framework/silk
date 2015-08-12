@@ -22,7 +22,7 @@ import scala.language.implicitConversions
  * An identifier.
  * May only contain the following characters: (a - z, A - Z, 0 - 9, _, -)
  */
-class Identifier(private val name: String) {
+class Identifier(private val name: String) extends Serializable {
   require(!name.isEmpty, "Identifier must not be empty.")
   require(name.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_') || (c == '-')),
     "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + name + "'.")
