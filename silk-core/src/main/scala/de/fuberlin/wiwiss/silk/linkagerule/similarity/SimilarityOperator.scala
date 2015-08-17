@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import de.fuberlin.wiwiss.silk.util.DPair
