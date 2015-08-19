@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import scala.xml.Node
+import scala.xml.{Text, Node}
 import java.util.logging.Logger
 
 /**
@@ -28,17 +28,17 @@ case class LinkFilter(limit: Option[Int] = None, threshold: Option[Double] = Non
    * Serializes this Link Filter as XML.
    */
   def toXML: Node = {
-    val limitXML: Option[xml.Text] = limit match {
+    val limitXML: Option[Text] = limit match {
       case None => None
-      case Some(l) => Some(xml.Text(l.toString))
+      case Some(l) => Some(Text(l.toString))
     }
-    val thresholdXML: Option[xml.Text] = threshold match {
+    val thresholdXML: Option[Text] = threshold match {
       case None => None
-      case Some(t) => Some(xml.Text(t.toString))
+      case Some(t) => Some(Text(t.toString))
     }
-    val unambiguousXML: Option[xml.Text] = unambiguous match {
+    val unambiguousXML: Option[Text] = unambiguous match {
       case None => None
-      case Some(u) => Some(xml.Text(u.toString))
+      case Some(u) => Some(Text(u.toString))
     }
     <Filter limit={limitXML} threshold={thresholdXML} unambiguous={unambiguousXML} />
   }
