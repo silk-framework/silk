@@ -16,7 +16,7 @@
 
 package de.fuberlin.wiwiss.silk.evaluation
 
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.entity.Link
 
 /**
@@ -67,7 +67,7 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
   /**
    * True, if there are positive as well as negative reference links.
    */
-  def isDefined = !positive.isEmpty && !negative.isEmpty
+  def isDefined = positive.nonEmpty && negative.nonEmpty
 
   /**
    * Serializes reference links as XML using the alignment format specified at http://alignapi.gforge.inria.fr/format.html.

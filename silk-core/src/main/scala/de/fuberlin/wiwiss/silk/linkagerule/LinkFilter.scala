@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.linkagerule
 
-import xml.Node
+import scala.xml.Node
 import java.util.logging.Logger
 
 /**
