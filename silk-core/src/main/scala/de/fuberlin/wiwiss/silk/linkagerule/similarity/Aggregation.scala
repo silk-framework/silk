@@ -15,8 +15,9 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
-import xml.Node
+import scala.xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
@@ -86,32 +87,41 @@ case class Aggregation(id: Identifier = Operator.generateId,
     if (indexSets.isEmpty)
       Index.empty
     else
-      indexSets.reduceLeft[Index](aggregator.combineIndexes(_, _))
-  }
-
-  override def toXML(implicit prefixes: Prefixes) = aggregator match {
-    case Aggregator(plugin, params) => {
-      <Aggregate id={id} required={required.toString} weight={weight.toString} type={plugin.id}>
-        {operators.map(_.toXML)}
-      </Aggregate>
-    }
+      indexSets.reduceLeft[Index](aggregator.combineIndexes)
   }
 }
 
 object Aggregation {
 
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Aggregation = {
-    val requiredStr = (node \ "@required").text
-    val weightStr = (node \ "@weight").text
+  /**
+   * XML serialization format.
+   */
+  implicit object AggregationFormat extends XmlFormat[Aggregation] {
 
-    val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node), resourceLoader)
+    import Serialization._
 
-    Aggregation(
-      id = Operator.readId(node),
-      required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
-      weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-      operators = SimilarityOperator.fromXML(node.child, resourceLoader),
-      aggregator = aggregator
-    )
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Aggregation = {
+      val requiredStr = (node \ "@required").text
+      val weightStr = (node \ "@weight").text
+
+      val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node), resourceLoader)
+
+      Aggregation(
+        id = Operator.readId(node),
+        required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
+        weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
+        operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]),
+        aggregator = aggregator
+      )
+    }
+
+    def write(value: Aggregation)(implicit prefixes: Prefixes): Node = {
+      value.aggregator match {
+        case Aggregator(plugin, params) =>
+          <Aggregate id={value.id} required={value.required.toString} weight={value.weight.toString} type={plugin.id}>
+            {value.operators.map(toXml[SimilarityOperator])}
+          </Aggregate>
+      }
+    }
   }
 }

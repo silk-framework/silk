@@ -8,8 +8,9 @@
 @import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 @import controllers.rules.routes.Assets
 @import de.fuberlin.wiwiss.silk.linkagerule.{DirectMapping, TypeMapping, UriMapping, ObjectMapping}
-
 @import de.fuberlin.wiwiss.silk.linkagerule.ComplexMapping
+@import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
+
 @(context: Context[TransformSpecification])
 
 @header = {
@@ -113,7 +114,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @rule.toXML
+      @Serialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -141,7 +142,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @rule.toXML
+      @Serialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -173,7 +174,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @rule.toXML
+      @Serialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -201,7 +202,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @rule.toXML
+      @Serialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -233,7 +234,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @rule.toXML
+      @Serialization.toXml[TransformRule](rule)
     </script>
   </div>
 }

@@ -16,8 +16,9 @@ package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import de.fuberlin.wiwiss.silk.linkagerule.input.Input
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat, ValidationException}
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
+import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
@@ -81,43 +82,52 @@ case class Comparison(id: Identifier = Operator.generateId,
 
     metric.index(values, distanceLimit)
   }
-
-  override def toXML(implicit prefixes: Prefixes) = metric match {
-    case DistanceMeasure(plugin, params) => {
-      <Compare id={id} required={required.toString} weight={weight.toString} metric={plugin.id} threshold={threshold.toString} indexing={indexing.toString}>
-        {inputs.source.toXML}{inputs.target.toXML}{params.map {
-        case (name, value) => <Param name={name} value={value}/>
-      }}
-      </Compare>
-    }
-  }
 }
 
 object Comparison {
 
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Comparison = {
-    val id = Operator.readId(node)
-    val inputs = Input.fromXML(node.child, resourceLoader)
-    if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
+  /**
+   * XML serialization format.
+   */
+  implicit object ComparisonFormat extends XmlFormat[Comparison] {
 
-    try {
-      val requiredStr = (node \ "@required").text
-      val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
-      val weightStr = (node \ "@weight").text
-      val indexingStr = (node \ "@indexing").text
-      val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node), resourceLoader)
+    import Serialization._
 
-      Comparison(
-        id = id,
-        required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
-        threshold = threshold,
-        weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-        indexing = if (indexingStr.isEmpty) true else indexingStr.toBoolean,
-        inputs = DPair(inputs(0), inputs(1)),
-        metric = metric
-      )
-    } catch {
-      case ex: Exception => throw new ValidationException(ex.getMessage, id, "Comparison")
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Comparison = {
+      val id = Operator.readId(node)
+      val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
+      if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
+
+      try {
+        val requiredStr = (node \ "@required").text
+        val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
+        val weightStr = (node \ "@weight").text
+        val indexingStr = (node \ "@indexing").text
+        val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node), resourceLoader)
+
+        Comparison(
+          id = id,
+          required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
+          threshold = threshold,
+          weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
+          indexing = if (indexingStr.isEmpty) true else indexingStr.toBoolean,
+          inputs = DPair(inputs(0), inputs(1)),
+          metric = metric
+        )
+      } catch {
+        case ex: Exception => throw new ValidationException(ex.getMessage, id, "Comparison")
+      }
+    }
+
+    def write(value: Comparison)(implicit prefixes: Prefixes): Node = {
+      value.metric match {
+        case DistanceMeasure(plugin, params) =>
+          <Compare id={value.id} required={value.required.toString} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>
+            {toXml(value.inputs.source)}{toXml(value.inputs.target)}{params.map {
+            case (name, v) => <Param name={name} value={v}/>
+          }}
+          </Compare>
+      }
     }
   }
 }

@@ -1,5 +1,7 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 import scala.xml.Node
 
@@ -21,13 +23,13 @@ object Types {
    */
   implicit object TypesFormat extends XmlFormat[Types] {
 
-    def read(node: Node) = Types(
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = Types(
       for (typeNode <- node \ "Type";
            frequencyNode <- typeNode \ "@frequency")
         yield (typeNode.text, frequencyNode.text.toDouble)
     )
 
-    def write(value: Types): Node =
+    def write(value: Types)(implicit prefixes: Prefixes): Node =
       <Types>
       { for((uri, frequency) <- value.typesByFrequency) yield <Type frequency={frequency.toString}>{uri}</Type> }
       </Types>

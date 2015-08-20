@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.preprocessing.config
 
+import de.fuberlin.wiwiss.silk.runtime.serialization.ValidatingXMLReader
 
-import de.fuberlin.wiwiss.silk.util.ValidatingXMLReader
 import scala.xml.Node
 
 import scala.Some

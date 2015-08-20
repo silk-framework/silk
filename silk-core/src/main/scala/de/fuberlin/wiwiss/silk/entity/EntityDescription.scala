@@ -14,9 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
-import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
-import scala.xml.Node
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
+
+import scala.xml.Node
 
 case class EntityDescription(variable: String = "a", restrictions: SparqlRestriction = SparqlRestriction.empty, paths: IndexedSeq[Path]) {
   require(paths.forall(!_.operators.isEmpty), "Entity description must not contain an empty path")
@@ -61,9 +63,9 @@ object EntityDescription {
    */
   implicit object EntityDescriptionFormat extends XmlFormat[EntityDescription] {
     /**
-     * Deserialize a value from XML.
+     * Deserialize an EntityDescription from XML.
      */
-    def read(node: Node) = {
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = {
       val variable = (node \ "Variable").text.trim
       new EntityDescription(
         variable = variable,
@@ -73,9 +75,9 @@ object EntityDescription {
     }
 
     /**
-     * Serialize a value to XML.
+     * Serialize an EntityDescription to XML.
      */
-    def write(desc: EntityDescription): Node =
+    def write(desc: EntityDescription)(implicit prefixes: Prefixes): Node =
       <EntityDescription>
         <Variable>{desc.variable}</Variable>
         <Restrictions>{desc.restrictions.toSparql}</Restrictions>

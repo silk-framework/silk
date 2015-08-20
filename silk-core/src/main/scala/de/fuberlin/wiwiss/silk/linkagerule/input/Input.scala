@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.linkagerule.input
 
 import de.fuberlin.wiwiss.silk.entity.Entity
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import scala.xml.Node
@@ -32,16 +33,29 @@ trait Input extends Operator {
    * @return The values.
    */
   def apply(entities: DPair[Entity]): Set[String]
-
-  def toXML(implicit prefixes: Prefixes): Node
 }
 
 object Input {
 
-  def fromXML(nodes: Seq[Node], resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Seq[Input] = {
-    nodes.collect {
-      case node @ <Input/> => PathInput.fromXML(node)
-      case node @ <TransformInput>{_*}</TransformInput> => TransformInput.fromXML(node, resourceLoader)
+  /**
+   * XML serialization format.
+   */
+  implicit object InputFormat extends XmlFormat[Input] {
+
+    import Serialization._
+
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Input = {
+      node match {
+        case node @ <Input/> => fromXml[PathInput](node)
+        case node @ <TransformInput>{_*}</TransformInput> => fromXml[TransformInput](node)
+      }
+    }
+
+    def write(value: Input)(implicit prefixes: Prefixes): Node = {
+      value match {
+        case path: PathInput => toXml(path)
+        case transform: TransformInput => toXml(transform)
+      }
     }
   }
 }

@@ -17,8 +17,10 @@ package de.fuberlin.wiwiss.silk.linkagerule.input
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.serialization.{XmlFormat, ValidationException}
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.util.{ValidationException, Identifier, DPair}
+import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 
 /**
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.
@@ -53,19 +55,28 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
       entity.evaluate(index)
     }
   }
-
-  override def toXML(implicit prefixes: Prefixes) = <Input id={id} path={path.serialize}/>
 }
 
 object PathInput {
-  def fromXML(node: Node)(implicit prefixes: Prefixes) = {
-    val id = Operator.readId(node)
-    try {
-      val pathStr = (node \ "@path").text
-      val path = Path.parse(pathStr)
-      PathInput(id, path)
-    } catch {
-      case ex: Exception => throw new ValidationException(ex.getMessage, id, "Path")
+
+  /**
+   * XML serialization format.
+   */
+  implicit object PathInputFormat extends XmlFormat[PathInput] {
+
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): PathInput = {
+      val id = Operator.readId(node)
+      try {
+        val pathStr = (node \ "@path").text
+        val path = Path.parse(pathStr)
+        PathInput(id, path)
+      } catch {
+        case ex: Exception => throw new ValidationException(ex.getMessage, id, "Path")
+      }
+    }
+
+    def write(value: PathInput)(implicit prefixes: Prefixes): Node = {
+      <Input id={value.id} path={value.path.serialize}/>
     }
   }
 }

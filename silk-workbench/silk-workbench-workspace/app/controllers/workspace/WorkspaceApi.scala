@@ -4,10 +4,10 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
 import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config._
-import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
+import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import de.fuberlin.wiwiss.silk.workspace.modules.Task
 import de.fuberlin.wiwiss.silk.workspace.{Project, User}
-import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
 
@@ -51,7 +51,7 @@ object WorkspaceApi extends Controller {
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      val config = LinkingConfig.fromXML(scala.xml.XML.loadFile(file.ref.file), new EmptyResourceManager())
+      val config = Serialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
       SilkConfigImporter(config, project)
     }
     Ok
@@ -77,7 +77,7 @@ object WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
 
     request.body.asMultipartFormData match {
-      case Some(formData) if !formData.files.isEmpty =>
+      case Some(formData) if formData.files.nonEmpty =>
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)

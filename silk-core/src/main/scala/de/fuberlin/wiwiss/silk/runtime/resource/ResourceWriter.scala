@@ -19,5 +19,9 @@ trait ResourceWriter {
     }
   }
 
+  def put(name: String, content: String): Unit = {
+    put(name)(os => os.write(content.getBytes))
+  }
+
   def delete(name: String)
 }

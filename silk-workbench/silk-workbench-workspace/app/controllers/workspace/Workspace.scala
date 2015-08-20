@@ -4,7 +4,7 @@ import config.WorkbenchConfig
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Condition, Operator, Or}
 import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.util.ValidationException
+import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
 import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionParser
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.TypesCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, PrefixRegistry, User}

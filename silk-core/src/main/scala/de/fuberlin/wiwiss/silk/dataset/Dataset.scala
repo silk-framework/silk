@@ -15,9 +15,13 @@
 package de.fuberlin.wiwiss.silk.dataset
 
 import java.util.logging.Logger
+
+import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
-import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
+import de.fuberlin.wiwiss.silk.util.Identifier
+
 import scala.xml.Node
 
 /**
@@ -30,27 +34,6 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
   def source = plugin.source
 
   lazy val sink = new DataSinkWrapper
-
-  def toXML: Node = {
-    val datasetXML = plugin match {
-      case DatasetPlugin(pluginDesc, params) =>
-        <DatasetPlugin type={pluginDesc.id}>
-        { params.map {
-            case (name, value) => <Param name={name} value={value}/>
-        }}
-        </DatasetPlugin>
-    }
-
-//    val selectionXML = {
-//      <DataSelection type="sparql" var={selection.variable}>
-//        { selection.toSparql }
-//      </DataSelection>
-//    }
-
-    <Dataset id={id}>
-      { datasetXML }
-    </Dataset>
-  }
 
   class DataSinkWrapper extends DataSink {
 
@@ -104,41 +87,63 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 }
 
 object Dataset {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   def empty = {
     Dataset("empty", EmptyDataset)
   }
 
-  def load(resourceLoader: ResourceLoader) = {
-    new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
-  }
+  /**
+   * XML serialization format.
+   */
+  implicit object DatasetFormat extends XmlFormat[Dataset] {
 
-  def fromXML(node: Node, resourceLoader: ResourceLoader): Dataset = {
-    // Check if the data source still uses the old outdated XML format
-    if(node.label == "DataSource" || node.label == "Output") {
-      // Read old format
-      val id = (node \ "@id").text
-      new Dataset(
-        id = if(id.nonEmpty) id else Identifier.random,
-        plugin = DatasetPlugin((node \ "@type").text, readParams(node), resourceLoader),
-        minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
-        maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
-      )
-    } else {
-      // Read new format
-      val id = (node \ "@id").text
-      val sourceNode = (node \ "DatasetPlugin").head
-      new Dataset(
-        id = if(id.nonEmpty) id else Identifier.random,
-        plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resourceLoader),
-        minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
-        maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
-      )
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Dataset = {
+      // Check if the data source still uses the old outdated XML format
+      if(node.label == "DataSource" || node.label == "Output") {
+        // Read old format
+        val id = (node \ "@id").text
+        new Dataset(
+          id = if(id.nonEmpty) id else Identifier.random,
+          plugin = DatasetPlugin((node \ "@type").text, readParams(node), resourceLoader),
+          minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
+          maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
+        )
+      } else {
+        // Read new format
+        val id = (node \ "@id").text
+        val sourceNode = (node \ "DatasetPlugin").head
+        new Dataset(
+          id = if(id.nonEmpty) id else Identifier.random,
+          plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resourceLoader),
+          minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
+          maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
+        )
+      }
     }
-  }
 
-  private def readParams(element: Node): Map[String, String] = {
-    (element \ "Param" map (p => ((p \ "@name").text, (p \ "@value").text))).toMap
+    private def readParams(element: Node): Map[String, String] = {
+      (element \ "Param" map (p => ((p \ "@name").text, (p \ "@value").text))).toMap
+    }
+
+    def write(value: Dataset)(implicit prefixes: Prefixes): Node = {
+      val datasetXML = value.plugin match {
+        case DatasetPlugin(pluginDesc, params) =>
+          <DatasetPlugin type={pluginDesc.id}>
+            { params.map {
+            case (name, v) => <Param name={name} value={v}/>
+          }}
+          </DatasetPlugin>
+      }
+
+      //    val selectionXML = {
+      //      <DataSelection type="sparql" var={selection.variable}>
+      //        { selection.toSparql }
+      //      </DataSelection>
+      //    }
+
+      <Dataset id={value.id}>
+        { datasetXML }
+      </Dataset>
+    }
   }
 }

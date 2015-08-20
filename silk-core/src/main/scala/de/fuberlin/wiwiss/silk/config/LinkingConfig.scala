@@ -16,8 +16,9 @@ package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
-import de.fuberlin.wiwiss.silk.util.{Identifier, ValidatingXMLReader}
-
+import de.fuberlin.wiwiss.silk.runtime.serialization.{XmlFormat, Serialization, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import scala.xml.Node
 
 /**
@@ -90,43 +91,57 @@ case class LinkingConfig(prefixes: Prefixes,
       transforms = transforms ++ config.transforms
     )
   }
-
-  def toXML: Node = {
-    <Silk>
-      {prefixes.toXML}<DataSources>
-      {sources.map(_.toXML)}
-    </DataSources>
-      <Interlinks>
-        {linkSpecs.map(_.toXML(prefixes))}
-      </Interlinks>
-    </Silk>
-
-    // TODO: add support for serializing the transforms.
-  }
 }
 
 object LinkingConfig {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   def empty = LinkingConfig(Prefixes.empty, RuntimeConfig(), Nil, Nil, Nil)
 
-  def load(resourceLoader: ResourceLoader) = {
-    new ValidatingXMLReader(fromXML(_, resourceLoader), schemaLocation)
-  }
+  /**
+   * XML serialization format.
+   * Reference links are currently not serialized and need to be serialize separably.
+   */
+  implicit object LinkingConfigFormat extends XmlFormat[LinkingConfig] {
 
-  def fromXML(node: Node, resourceLoader: ResourceLoader) = {
-    implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
-    val sources = (node \ "DataSources" \ "DataSource").map(Dataset.fromXML(_, resourceLoader)).toSet
-    val blocking = (node \ "Blocking").headOption match {
-      case Some(blockingNode) => Blocking.fromXML(blockingNode)
-      case None => Blocking()
+    private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
+
+    /**
+     * Deserializes a LinkingConfig from XML.
+     */
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): LinkingConfig = {
+      // Validate against XSD Schema
+      ValidatingXMLReader.validate(node, schemaLocation)
+
+      implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
+      val sources = (node \ "DataSources" \ "DataSource").map(fromXml[Dataset]).toSet
+      val blocking = (node \ "Blocking").headOption match {
+        case Some(blockingNode) => Blocking.fromXML(blockingNode)
+        case None => Blocking()
+      }
+      val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[LinkSpecification](p))
+      val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resourceLoader))
+
+      implicit val globalThreshold = None
+      val outputs = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
+
+      LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
     }
-    val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => LinkSpecification.fromXML(p, resourceLoader))
-    val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resourceLoader))
 
-    implicit val globalThreshold = None
-    val outputs = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))
 
-    LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
+    /**
+     * Serializes a LinkingConfig to XML.
+     */
+    def write(value: LinkingConfig)(implicit prefixes: Prefixes): Node = {
+      <Silk>
+        {value.prefixes.toXML}<DataSources>
+        {value.sources.map(toXml[Dataset])}
+      </DataSources>
+        <Interlinks>
+          {value.linkSpecs.map(spec => Serialization.toXml(spec))}
+        </Interlinks>
+      </Silk>
+
+      // TODO: add support for serializing the transforms.
+    }
   }
 }

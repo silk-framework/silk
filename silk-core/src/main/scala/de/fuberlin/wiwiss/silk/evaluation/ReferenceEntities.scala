@@ -16,7 +16,9 @@
 
 package de.fuberlin.wiwiss.silk.evaluation
 
+import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.DPair
 import scala.xml.Node
@@ -70,7 +72,7 @@ object ReferenceEntities {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node) = {
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = {
       val entityDescs = Serialization.fromXml[DPair[EntityDescription]]((node \ "Pair").head)
       val posNode = node \ "PositiveEntities"
       val negNode = node \ "NegativeEntities"
@@ -105,7 +107,7 @@ object ReferenceEntities {
     /**
      * Serialize a value to XML.
      */
-    def write(entities: ReferenceEntities): Node = {
+    def write(entities: ReferenceEntities)(implicit prefixes: Prefixes): Node = {
       <Entities>
         { Serialization.toXml(entities.entitiyDescs) }
         <PositiveEntities>

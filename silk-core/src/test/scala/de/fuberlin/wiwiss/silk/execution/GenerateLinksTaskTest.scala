@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.config.LinkingConfig
 import de.fuberlin.wiwiss.silk.entity.{Path, Link}
 import de.fuberlin.wiwiss.silk.runtime.activity.Activity
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import methods._
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinksReader
@@ -29,6 +30,8 @@ import methods.SortedBlocks
 import java.util.Locale
 import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
 import de.fuberlin.wiwiss.silk.runtime.resource.ClasspathResourceLoader
+
+import scala.xml.XML
 
 /**
  * This test evaluates the GenerateLinksTask with different execution methods.
@@ -80,8 +83,8 @@ object GenerateLinksTaskTest {
    */
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
-      val stream = resourceLoader.get(configFile).load
-      LinkingConfig.load(resourceLoader)(stream)
+      val xml = XML.load(resourceLoader.get(configFile).load)
+      Serialization.fromXml[LinkingConfig](xml)
     }
 
     lazy val referenceLinks: Set[Link] = {

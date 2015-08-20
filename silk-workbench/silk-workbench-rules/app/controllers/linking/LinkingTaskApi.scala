@@ -9,9 +9,10 @@ import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity
 import de.fuberlin.wiwiss.silk.learning.LearningActivity
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
 import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.util.ValidationException.ValidationError
-import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair, ValidationException}
+import ValidationException.ValidationError
+import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.{PathsCache, ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.{Constants, Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -64,7 +65,7 @@ object LinkingTaskApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
-    val ruleXml = task.data.rule.toXML
+    val ruleXml = Serialization.toXml(task.data.rule)
 
     Ok(ruleXml)
   }
@@ -73,6 +74,7 @@ object LinkingTaskApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
 
     request.body.asXml match {
       case Some(xml) =>
@@ -80,7 +82,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing linkage rule
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load linkage rule
-            val updatedRule = LinkageRule.load(project.resources)(prefixes)(xml.head)
+            val updatedRule = Serialization.fromXml[LinkageRule](xml.head)
             //Update linking task
             val updatedLinkSpec = task.data.copy(rule = updatedRule)
             project.updateTask(taskName, updatedLinkSpec)
@@ -104,7 +106,7 @@ object LinkingTaskApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
-    val linkSpecXml = task.data.toXML
+    val linkSpecXml = Serialization.toXml(task.data)
 
     Ok(linkSpecXml)
   }
@@ -112,7 +114,8 @@ object LinkingTaskApi extends Controller {
   def putLinkSpec(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val prefixes = project.config.prefixes
+    implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
 
     request.body.asXml match {
       case Some(xml) => {
@@ -120,7 +123,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing link spec
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
             //Load link specification
-            val newLinkSpec = LinkSpecification.load(project.resources)(prefixes)(xml.head)
+            val newLinkSpec = Serialization.fromXml[LinkSpecification](xml.head)
             //Update linking task
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           }

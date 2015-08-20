@@ -14,8 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.util.convert
 
+import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
+
 import util.parsing.combinator.RegexParsers
-import de.fuberlin.wiwiss.silk.util.ValidationException
 import de.fuberlin.wiwiss.silk.entity.Path
 import util.parsing.input.CharSequenceReader
 

@@ -15,9 +15,9 @@
 package de.fuberlin.wiwiss.silk.runtime.plugin
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
-import de.fuberlin.wiwiss.silk.util.ValidationException
 import java.lang.reflect.{InvocationTargetException, Constructor}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
 
 /**
  * Describes a plugin.

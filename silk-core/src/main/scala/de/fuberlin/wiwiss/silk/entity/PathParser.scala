@@ -14,9 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
+import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
+
 import util.parsing.input.CharSequenceReader
 import util.parsing.combinator.RegexParsers
-import de.fuberlin.wiwiss.silk.util.{ValidationException, Uri}
+import de.fuberlin.wiwiss.silk.util.Uri
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 /**

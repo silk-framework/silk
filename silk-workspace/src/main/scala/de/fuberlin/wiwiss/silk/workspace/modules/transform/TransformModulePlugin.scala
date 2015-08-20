@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
-
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import scala.xml.XML
 
 /**
@@ -36,8 +36,8 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     taskResources.put("dataset.xml") { os => data.selection.toXML(asSource = true).write(os) }
     taskResources.put("rules.xml") { os =>
       <TransformSpec>
-      { data.rules.map(_.toXML) }
-      { data.outputs.map(_.toXML) }
+      { data.rules.map(toXml[TransformRule]) }
+      { data.outputs.map(toXml[Dataset]) }
       </TransformSpec>.write(os)
     }
   }
@@ -54,10 +54,11 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
 
   private def loadTask(name: Identifier, taskResources: ResourceLoader, project: Project) = {
     implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
-    val rules = (rulesXml \ "TransformRule").map(TransformRule.load(project.resources)(project.config.prefixes))
-    val outputs = (rulesXml \ "Dataset").map(Dataset.fromXML(_, project.resources))
+    val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
+    val outputs = (rulesXml \ "Dataset").map(fromXml[Dataset])
     (name, TransformSpecification(name, dataset, rules, outputs))
   }
 

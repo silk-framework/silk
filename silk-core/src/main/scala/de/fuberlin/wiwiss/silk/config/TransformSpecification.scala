@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import scala.xml.Node
 
 /**
@@ -47,8 +48,8 @@ object TransformSpecification {
 
     // Get the required parameters from the XML configuration.
     val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-    val rules = (node \ "TransformRule").map(TransformRule.fromXML(_, resourceLoader))
-    val sinks = (node \ "Outputs" \ "Output").map(Dataset.fromXML(_, resourceLoader))
+    val rules = (node \ "TransformRule").map(fromXml[TransformRule])
+    val sinks = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
 
     // Create and return a TransformSpecification instance.
     TransformSpecification(id, datasetSelection, rules, sinks)

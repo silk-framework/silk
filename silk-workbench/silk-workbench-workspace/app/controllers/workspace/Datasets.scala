@@ -3,6 +3,7 @@ package controllers.workspace
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, ResultSet}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.workspace.User
 import play.api.mvc.{Action, Controller}
 import plugins.Context
@@ -16,17 +17,18 @@ object Datasets extends Controller {
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    val sourceXml = task.data.toXML
+    val sourceXml = Serialization.toXml(task.data)
 
     Ok(sourceXml)
   }
 
   def putDataset(projectName: String, sourceName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
+    implicit val resources = project.resources
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = Dataset.fromXML(xml.head, project.resources)
+          val sourceTask = Serialization.fromXml[Dataset](xml.head)
           project.updateTask(sourceTask.id, sourceTask)
           Ok
         } catch {

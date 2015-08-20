@@ -1,5 +1,8 @@
 package de.fuberlin.wiwiss.silk.runtime.serialization
 
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+
 import scala.xml.Node
 
 /**
@@ -8,11 +11,11 @@ import scala.xml.Node
  */
 object Serialization {
 
-  def toXml[T](value: T)(implicit format: XmlFormat[T]): Node = {
+  def toXml[T](value: T)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty): Node = {
     format.write(value)
   }
 
-  def fromXml[T](node: Node)(implicit format: XmlFormat[T]): T = {
+  def fromXml[T](node: Node)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T = {
     format.read(node)
   }
 }

@@ -14,6 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.util
 
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 
 import scala.language.implicitConversions
@@ -57,6 +59,10 @@ object DPair {
    */
   implicit def toSeq[T](st: DPair[T]): Seq[T] = Seq(st.source, st.target)
 
+  /**
+   * Fills a pair with a given value.
+   * The value is evaluated non-strict and thus may yield different values for both evaluations.
+   */
   def fill[T](f: => T) = DPair(f, f)
 
   def generate[T](f: Boolean => T) = DPair(f(true), f(false))
@@ -77,7 +83,7 @@ object DPair {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node) =
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) =
       DPair(
         Serialization.fromXml[T]((node \ "Source" \ "_").head),
         Serialization.fromXml[T]((node \ "Target" \ "_").head)
@@ -86,7 +92,7 @@ object DPair {
     /**
      * Serialize a value to XML.
      */
-    def write(pair: DPair[T]): Node =
+    def write(pair: DPair[T])(implicit prefixes: Prefixes): Node =
       <Pair>
         <Source>{Serialization.toXml(pair.source)}</Source>
         <Target>{Serialization.toXml(pair.target)}</Target>

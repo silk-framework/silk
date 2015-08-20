@@ -5,7 +5,7 @@ import java.io.OutputStream
 /**
  * A resource manager that does not provide any resources.
  */
-class EmptyResourceManager extends ResourceManager {
+object EmptyResourceManager extends ResourceManager {
 
   override def list = Nil
 

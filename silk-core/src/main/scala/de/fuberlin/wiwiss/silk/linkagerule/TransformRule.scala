@@ -6,6 +6,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInp
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.value.ConstantTransformer
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.util._
 
 import scala.xml.Node
@@ -47,15 +48,6 @@ sealed trait TransformRule {
     }
 
     collectPaths(operator)
-  }
-
-  /**
-   * Serializes this transform rule as XML.
-   */
-  def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <TransformRule name={name} targetProperty={target.map(_.uri).getOrElse("")}>
-      { operator.toXML }
-    </TransformRule>
   }
 }
 
@@ -145,24 +137,29 @@ case class ComplexMapping(name: Identifier = "mapping", operator: Input, target:
 object TransformRule {
 
   /**
-   * Reads a transform rule a resource.
+   * XML serialization format.
    */
-  def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
-  }
+  implicit object TransformRuleFormat extends XmlFormat[TransformRule] {
 
-  /**
-   * Reads a transform rule from xml.
-   */
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    val target = (node \ "@targetProperty").text
-    val complex =
-      ComplexMapping(
-        name = (node \ "@name").text,
-        operator = Input.fromXML(node.child, resourceLoader).head,
-        target = if(target.isEmpty) None else Some(prefixes.resolve(target))
-      )
-    simplify(complex)
+    import Serialization._
+
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): TransformRule = {
+      ValidatingXMLReader.validate(node, "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
+      val target = (node \ "@targetProperty").text
+      val complex =
+        ComplexMapping(
+          name = (node \ "@name").text,
+          operator = fromXml[Input]((node \ "_").head),
+          target = if(target.isEmpty) None else Some(prefixes.resolve(target))
+        )
+      simplify(complex)
+    }
+
+    def write(value: TransformRule)(implicit prefixes: Prefixes): Node = {
+      <TransformRule name={value.name} targetProperty={value.target.map(_.uri).getOrElse("")}>
+        { toXml(value.operator) }
+      </TransformRule>
+    }
   }
 
   /**

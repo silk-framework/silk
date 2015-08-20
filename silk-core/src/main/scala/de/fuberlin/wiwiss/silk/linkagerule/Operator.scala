@@ -32,7 +32,8 @@ trait Operator {
  * Operator companion object.
  */
 object Operator {
-  /**Counter used to generate unique identifiers. */
+
+  /** Counter used to generate unique identifiers. */
   private val lastId = new AtomicInteger(0)
 
   /**

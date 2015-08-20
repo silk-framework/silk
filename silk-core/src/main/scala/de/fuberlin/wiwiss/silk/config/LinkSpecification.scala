@@ -15,13 +15,16 @@
 package de.fuberlin.wiwiss.silk.config
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.dataset.{Dataset}
+
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.serialization.{ValidationException, ValidatingXMLReader, XmlFormat}
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import de.fuberlin.wiwiss.silk.util._
 
 import scala.xml.Node
@@ -34,20 +37,6 @@ case class LinkSpecification(id: Identifier = Identifier.random,
                              rule: LinkageRule = LinkageRule(),
                              outputs: Seq[Dataset] = Seq.empty,
                              referenceLinks: ReferenceLinks = ReferenceLinks.empty ) {
-  /**
-   * Serializes this Link Specification as XML.
-   * Reference links are currently not serialized and need to be serialize separably.
-   */
-  def toXML(implicit prefixes: Prefixes = Prefixes.empty): Node = {
-    <Interlink id={id}>
-      {datasets.source.toXML(asSource = true)}
-      {datasets.target.toXML(asSource = false)}
-      {rule.toXML}
-      <Outputs>
-      {outputs.map(_.toXML)}
-      </Outputs>
-    </Interlink>
-  }
 
   def entityDescriptions: DPair[EntityDescription] = {
     val sourceVar = datasets.source.variable
@@ -82,42 +71,61 @@ case class LinkSpecification(id: Identifier = Identifier.random,
   }
 
   private def collectPathsFromInput(variable: String)(param: Input): Set[Path] = param match {
-    case p: PathInput if p.path.variable == variable && !p.path.operators.isEmpty => Set(p.path)
+    case p: PathInput if p.path.variable == variable && p.path.operators.nonEmpty => Set(p.path)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
     case _ => Set()
   }
 }
 
 object LinkSpecification {
-  private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
   private val logger = Logger.getLogger(LinkSpecification.getClass.getName)
 
-  def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node, resourceLoader), schemaLocation)
-  }
-
   /**
-   * Reads a Link Specification from XML.
-   * Reference links are currently not read and need to be read separably.
+   * XML serialization format.
+   * Reference links are currently not serialized and need to be serialize separably.
    */
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): LinkSpecification = {
-    //Read id
-    val id = (node \ "@id").text
+  implicit object LinkSpecificationFormat extends XmlFormat[LinkSpecification] {
 
-    //Read linkage rule node
-    val linkConditionNode = (node \ "LinkCondition").headOption
-    val linkageRuleNode = (node \ "LinkageRule").headOption.getOrElse(linkConditionNode.get)
+    private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
 
-    if(linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
-    if(linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
+    /**
+     * Deserialize a value from XML.
+     */
+    def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceLoader = EmptyResourceManager): LinkSpecification = {
+      // Validate against XSD Schema
+      ValidatingXMLReader.validate(node, schemaLocation)
 
-    LinkSpecification(
-      id = id,
-      datasets = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
-                           DatasetSelection.fromXML((node \ "TargetDataset").head)),
-      rule = LinkageRule.fromXML(linkageRuleNode, resourceLoader),
-      outputs = (node \ "Outputs" \ "_").map(Dataset.fromXML(_, resourceLoader))
-    )
+      //Read id
+      val id = (node \ "@id").text
+
+      //Read linkage rule node
+      val linkConditionNode = (node \ "LinkCondition").headOption
+      val linkageRuleNode = (node \ "LinkageRule").headOption.getOrElse(linkConditionNode.get)
+
+      if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
+      if (linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
+
+      LinkSpecification(
+        id = id,
+        datasets = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
+          DatasetSelection.fromXML((node \ "TargetDataset").head)),
+        rule = fromXml[LinkageRule](linkageRuleNode),
+        outputs = (node \ "Outputs" \ "_").map(fromXml[Dataset])
+      )
+    }
+
+    /**
+     * Serialize a value to XML.
+     */
+    def write(spec: LinkSpecification)(implicit prefixes: Prefixes = Prefixes.empty): Node =
+      <Interlink id={spec.id}>
+        {spec.datasets.source.toXML(asSource = true)}
+        {spec.datasets.target.toXML(asSource = false)}
+        {toXml(spec.rule)}
+        <Outputs>
+          {spec.outputs.map(toXml[Dataset])}
+        </Outputs>
+      </Interlink>
   }
 }

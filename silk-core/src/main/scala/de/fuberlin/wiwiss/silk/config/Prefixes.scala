@@ -14,8 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.config
 
+import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
+
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.util.ValidationException
 import scala.language.implicitConversions
 
 /**

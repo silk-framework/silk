@@ -27,6 +27,9 @@ import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
+
+import scala.xml.XML
 
 /**
  * The linking module which encapsulates all linking tasks.
@@ -51,7 +54,9 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
    * Loads a specific task in this module.
    */
   private def loadTask(taskResources: ResourceLoader, project: Project) = {
-    val linkSpec = LinkSpecification.load(project.resources)(project.config.prefixes)(taskResources.get("linkSpec.xml").load)
+    implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
+    val linkSpec = fromXml[LinkSpecification](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
     (linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks))
   }
@@ -72,7 +77,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
 
     // Write resources
     val taskResources = resources.child(name)
-    taskResources.put("linkSpec.xml") { os => data.toXML.write(os) }
+    taskResources.put("linkSpec.xml", toXml(data).toString())
     taskResources.put("alignment.xml") { os => data.referenceLinks.toXML.write(os) }
   }
 

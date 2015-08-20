@@ -6,6 +6,7 @@
 @import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator, EvaluationResult}
 @import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity
 @import org.apache.commons.lang3.StringEscapeUtils
+@import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 @import controllers.rules.routes.Assets
 
 <div>
@@ -81,7 +82,7 @@
         $.ajax({
           type: 'PUT',
           url: '@config.baseUrl/api/workspace/@project/linking/@task/rule',
-          data: '@Html(StringEscapeUtils.escapeEcmaScript(individual.node.build.toXML.toString))',
+          data: '@Html(StringEscapeUtils.escapeEcmaScript(Serialization.toXml(individual.node.build).toString))',
           contentType: 'text/xml',
           processData: false,
           success: function(response) {

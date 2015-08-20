@@ -18,7 +18,8 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.{Entity, Index}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
-import de.fuberlin.wiwiss.silk.util.{DPair, Uri, ValidatingXMLReader}
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
+import de.fuberlin.wiwiss.silk.util.{DPair, Uri}
 
 import scala.xml.Node
 
@@ -59,16 +60,6 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
       case None => Index.empty
     }
   }
-
-  /**
-   * Serializes this linkage rule as XML.
-   */
-  def toXML(implicit prefixes: Prefixes = Prefixes.empty) = {
-    <LinkageRule linkType={linkType.serialize}>
-      {operator.toList.map(_.toXML)}
-      {filter.toXML}
-    </LinkageRule>
-  }
 }
 
 /**
@@ -80,19 +71,27 @@ object LinkageRule {
    */
   def apply(operator: SimilarityOperator): LinkageRule = LinkageRule(Some(operator))
 
-  def load(resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    new ValidatingXMLReader(node => fromXML(node, resourceLoader)(prefixes), "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
-  }
-
   /**
-   * Reads a linkage rule from xml.
+   * XML serialization format.
    */
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes) = {
-    val link = (node \ "@linkType").text.trim
-    LinkageRule(
-      operator = SimilarityOperator.fromXML(node.child, resourceLoader).headOption,
-      filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
-      linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else prefixes.resolve(link)
-    )
+  implicit object LinkageRuleFormat extends XmlFormat[LinkageRule] {
+
+    import Serialization._
+
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): LinkageRule = {
+      val link = (node \ "@linkType").text.trim
+      LinkageRule(
+        operator = (node \ "_").headOption.map(fromXml[SimilarityOperator]),
+        filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
+        linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else prefixes.resolve(link)
+      )
+    }
+
+    def write(value: LinkageRule)(implicit prefixes: Prefixes): Node = {
+      <LinkageRule linkType={value.linkType.serialize}>
+        {value.operator.toList.map(toXml[SimilarityOperator])}
+        {value.filter.toXML}
+      </LinkageRule>
+    }
   }
 }

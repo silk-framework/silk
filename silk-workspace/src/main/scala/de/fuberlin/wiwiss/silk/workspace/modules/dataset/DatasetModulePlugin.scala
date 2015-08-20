@@ -17,10 +17,13 @@ package de.fuberlin.wiwiss.silk.workspace.modules.dataset
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
+
+import scala.xml.XML
 
 /**
  * The source module which encapsulates all data sources.
@@ -56,7 +59,8 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
 
   private def loadTask(name: String, resources: ResourceLoader, project: Project) = {
     // Load the data set
-    val dataset = Dataset.load(project.resources)(resources.get(name).load)
+    implicit val projectResources = project.resources
+    val dataset = Serialization.fromXml[Dataset](XML.load(resources.get(name).load))
     (dataset.id, dataset)
   }
 
@@ -64,7 +68,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
    * Writes an updated task.
    */
   override def writeTask(name: Identifier, data: Dataset, resources: ResourceManager): Unit = {
-    resources.put(name + ".xml"){ os => data.toXML.write(os) }
+    resources.put(name + ".xml"){ os => Serialization.toXml(data).write(os) }
   }
 
   /**

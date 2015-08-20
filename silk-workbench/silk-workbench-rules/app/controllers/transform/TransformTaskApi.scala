@@ -7,7 +7,8 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.util.{CollectLogs, ValidationException}
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
+import de.fuberlin.wiwiss.silk.util.CollectLogs
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -51,19 +52,20 @@ object TransformTaskApi extends Controller {
     val task = project.task[TransformSpecification](taskName)
     implicit val prefixes = project.config.prefixes
 
-    Ok(<TransformRules>{ task.data.rules.map(_.toXML) }</TransformRules>)
+    Ok(<TransformRules>{ task.data.rules.map(Serialization.toXml[TransformRule]) }</TransformRules>)
   }
 
   def putRules(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
     implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
 
     request.body.asXml match {
       case Some(xml) =>
         try {
           //Parse transformation rules
-          val updatedRules = (xml \ "TransformRule").map(TransformRule.load(project.resources)(prefixes))
+          val updatedRules = (xml \ "TransformRule").map(Serialization.fromXml[TransformRule])
           //Update transformation task
           val updatedTask = task.data.copy(rules = updatedRules)
           project.updateTask(taskName, updatedTask)
@@ -87,7 +89,7 @@ object TransformTaskApi extends Controller {
     implicit val prefixes = project.config.prefixes
 
     task.data.rules.find(_.name == rule) match {
-      case Some(r) => Ok(r.toXML)
+      case Some(r) => Ok(Serialization.toXml(r))
       case None => NotFound(s"No rule named '$rule' found!")
     }
   }
@@ -96,6 +98,7 @@ object TransformTaskApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
     implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
 
     request.body.asXml match {
       case Some(xml) =>
@@ -103,7 +106,7 @@ object TransformTaskApi extends Controller {
           //Collect warnings while parsing transformation rule
           val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
             //Load transformation rule
-            val updatedRule = TransformRule.load(project.resources)(prefixes)(xml.head)
+            val updatedRule = Serialization.fromXml[TransformRule](xml.head)
             val updatedRules = task.data.rules.updated(ruleIndex, updatedRule)
             val updatedTask = task.data.copy(rules = updatedRules)
             project.updateTask(taskName, updatedTask)
@@ -129,8 +132,8 @@ object TransformTaskApi extends Controller {
 
     JsObject(
       ("error", JsArray(errors.map(errorToJsExp))) ::
-          ("warning", JsArray(warnings.map(JsString))) ::
-          ("info", JsArray(infos.map(JsString))) :: Nil
+      ("warning", JsArray(warnings.map(JsString))) ::
+      ("info", JsArray(infos.map(JsString))) :: Nil
     )
   }
 

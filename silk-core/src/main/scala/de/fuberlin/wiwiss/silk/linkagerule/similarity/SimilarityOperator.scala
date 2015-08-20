@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.linkagerule.similarity
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import scala.xml.Node
 import de.fuberlin.wiwiss.silk.linkagerule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
@@ -53,19 +54,29 @@ trait SimilarityOperator extends Operator {
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, limit: Double): Index
-
-  /**
-   * Serializes this operator as XML.
-   */
-  def toXML(implicit prefixes: Prefixes): Node
 }
 
 object SimilarityOperator {
 
-  def fromXML(nodes: Seq[Node], resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): Seq[SimilarityOperator] = {
-    nodes.collect {
-      case node@ <Aggregate>{_*}</Aggregate> => Aggregation.fromXML(node, resourceLoader)
-      case node@ <Compare>{_*}</Compare> => Comparison.fromXML(node, resourceLoader)
+  /**
+   * XML serialization format.
+   */
+  implicit object SimilarityOperatorFormat extends XmlFormat[SimilarityOperator] {
+
+    import Serialization._
+
+    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): SimilarityOperator = {
+      node match {
+        case node@ <Aggregate>{_*}</Aggregate> => fromXml[Aggregation](node)
+        case node@ <Compare>{_*}</Compare> => fromXml[Comparison](node)
+      }
+    }
+
+    def write(value: SimilarityOperator)(implicit prefixes: Prefixes): Node = {
+      value match {
+        case c: Comparison => toXml(c)
+        case a: Aggregation => toXml(a)
+      }
     }
   }
 }
