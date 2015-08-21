@@ -53,7 +53,7 @@ object Identifier {
   /**
    * Generates a new random identifier.
    */
-  def random = new Identifier(UUID.randomUUID.toString)
+  def random = new Identifier("r" + UUID.randomUUID.toString)
 
   /**
    * Converts a String to an Identifier.

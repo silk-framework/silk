@@ -66,5 +66,5 @@ object DatasetSelection {
     )
   }
 
-  def empty = DatasetSelection(Identifier.random, "x", SparqlRestriction.empty)
+  def empty = DatasetSelection("EmptyDatasetSelection", "x", SparqlRestriction.empty)
 }
