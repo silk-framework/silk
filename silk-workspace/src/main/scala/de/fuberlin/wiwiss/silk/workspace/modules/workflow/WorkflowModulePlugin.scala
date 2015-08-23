@@ -15,13 +15,13 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, Workflow] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, Workflow] = {
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {
         val xml = XML.load(resources.get(name).load)
         val identifier = Identifier(name.stripSuffix(".xml"))
-        val workflow = Workflow.fromXML(xml, project)
+        val workflow = Workflow.fromXML(xml)
         (identifier, workflow)
       }
     tasks.toMap
@@ -30,8 +30,8 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(name: Identifier, data: Workflow, resources: ResourceManager): Unit = {
-    resources.put(name + ".xml"){ os => data.toXML.write(os) }
+  override def writeTask(data: Workflow, resources: ResourceManager): Unit = {
+    resources.put(data.id + ".xml"){ os => data.toXML.write(os) }
   }
 
   /**

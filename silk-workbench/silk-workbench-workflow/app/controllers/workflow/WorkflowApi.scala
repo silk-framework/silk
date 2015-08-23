@@ -15,7 +15,7 @@ object WorkflowApi extends Controller {
 
   def putWorkflow(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val workflow = Workflow.fromXML(request.body.asXml.get.head, project)
+    val workflow = Workflow.fromXML(request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
     Ok

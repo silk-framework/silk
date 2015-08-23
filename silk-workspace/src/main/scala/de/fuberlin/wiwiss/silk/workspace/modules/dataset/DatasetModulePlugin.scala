@@ -37,11 +37,11 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, Dataset] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, Dataset] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     var tasks = for (name <- names) yield {
-      loadTask(name, resources, project)
+      loadTask(name, resources, projectResources)
     }
 
     // Also read dataset tasks from the old source folder
@@ -50,16 +50,16 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
       val oldNames = oldResources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
       tasks =
         for (name <- oldNames) yield {
-          loadTask(name, oldResources, project)
+          loadTask(name, oldResources, projectResources)
         }
     }
 
     tasks.toMap
   }
 
-  private def loadTask(name: String, resources: ResourceLoader, project: Project) = {
+  private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceLoader) = {
     // Load the data set
-    implicit val projectResources = project.resources
+    implicit val res = projectResources
     val dataset = Serialization.fromXml[Dataset](XML.load(resources.get(name).load))
     (dataset.id, dataset)
   }
@@ -67,8 +67,8 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(name: Identifier, data: Dataset, resources: ResourceManager): Unit = {
-    resources.put(name + ".xml"){ os => Serialization.toXml(data).write(os) }
+  override def writeTask(data: Dataset, resources: ResourceManager): Unit = {
+    resources.put(data.id + ".xml"){ os => Serialization.toXml(data).write(os) }
   }
 
   /**

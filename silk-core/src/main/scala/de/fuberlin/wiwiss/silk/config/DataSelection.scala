@@ -56,7 +56,7 @@ object DatasetSelection {
   /**
    * Creates a DatasetSpecification from XML.
    */
-  def fromXML(node: Node)(implicit prefixes: Prefixes): DatasetSelection = {
+  def fromXML(node: Node)(implicit prefixes: Prefixes = Prefixes.empty): DatasetSelection = {
     val variable = (node \ "@var").text
 
     DatasetSelection(

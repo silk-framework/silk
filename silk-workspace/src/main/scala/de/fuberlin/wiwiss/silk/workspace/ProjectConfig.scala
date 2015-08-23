@@ -15,18 +15,16 @@
 package de.fuberlin.wiwiss.silk.workspace
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.util.Identifier
 
-case class ProjectConfig(prefixes : Prefixes = Prefixes.empty)
+case class ProjectConfig(id: Identifier, prefixes: Prefixes = ProjectConfig.defaultPrefixes)
 
-object ProjectConfig
-{
-  lazy val default =
-  {
-    val prefixes = new Prefixes(Map(
+object ProjectConfig {
+
+  private val defaultPrefixes = {
+    new Prefixes(Map(
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
       "owl" -> "http://www.w3.org/2002/07/owl#" ))
-
-    ProjectConfig(prefixes)
   }
 }

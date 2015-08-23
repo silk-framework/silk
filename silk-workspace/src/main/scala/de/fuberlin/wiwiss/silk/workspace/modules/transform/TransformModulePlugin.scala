@@ -27,8 +27,8 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(name: Identifier, data: TransformSpecification, resources: ResourceManager): Unit = {
-    val taskResources = resources.child(name)
+  override def writeTask(data: TransformSpecification, resources: ResourceManager): Unit = {
+    val taskResources = resources.child(data.id)
 
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
@@ -45,16 +45,15 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, TransformSpecification] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, TransformSpecification] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        loadTask(name, resources.child(name), project)
+        loadTask(name, resources.child(name), projectResources)
     tasks.toMap
   }
 
-  private def loadTask(name: Identifier, taskResources: ResourceLoader, project: Project) = {
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
+  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceLoader) = {
+    implicit val resources = projectResources
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])

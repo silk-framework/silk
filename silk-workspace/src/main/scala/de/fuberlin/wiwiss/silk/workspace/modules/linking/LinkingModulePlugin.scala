@@ -43,19 +43,18 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, LinkSpecification] = {
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, LinkSpecification] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        loadTask(resources.child(name), project)
+        loadTask(resources.child(name), projectResources)
     tasks.toMap
   }
 
   /**
    * Loads a specific task in this module.
    */
-  private def loadTask(taskResources: ResourceLoader, project: Project) = {
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
+  private def loadTask(taskResources: ResourceLoader, projectResources: ResourceLoader) = {
+    implicit val resources = projectResources
     val linkSpec = fromXml[LinkSpecification](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
     (linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks))
@@ -71,12 +70,12 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
   /**
    * Writes an updated task.
    */
-  def writeTask(name: Identifier, data: LinkSpecification, resources: ResourceManager) = {
+  def writeTask(data: LinkSpecification, resources: ResourceManager) = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
     // Write resources
-    val taskResources = resources.child(name)
+    val taskResources = resources.child(data.id)
     taskResources.put("linkSpec.xml", toXml(data).toString())
     taskResources.put("alignment.xml") { os => data.referenceLinks.toXML.write(os) }
   }

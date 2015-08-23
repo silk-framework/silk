@@ -17,7 +17,7 @@ trait ModulePlugin[DataType] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, project: Project): Map[Identifier, DataType]
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, DataType]
 
   /**
    * Removes a specific task.
@@ -27,7 +27,7 @@ trait ModulePlugin[DataType] {
   /**
    * Writes an updated task.
    */
-  def writeTask(name: Identifier, data: DataType, resources: ResourceManager)
+  def writeTask(data: DataType, resources: ResourceManager)
 
   /**
    * The activities that belong to a given task.

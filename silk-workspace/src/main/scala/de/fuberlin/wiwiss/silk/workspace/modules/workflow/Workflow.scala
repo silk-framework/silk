@@ -1,15 +1,14 @@
 package de.fuberlin.wiwiss.silk.workspace.modules.workflow
 
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow.{WorkflowDataset, WorkflowOperator}
 
 import scala.xml.Node
 
-case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) {
+case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) {
 
   def toXML = {
-    <Workflow>{
+    <Workflow id={id.toString} >{
       for(op <- operators) yield {
         <Operator
           posX={op.position._1.toString}
@@ -32,7 +31,9 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
 
 object Workflow {
 
-  def fromXML(xml: Node, project: Project) = {
+  def fromXML(xml: Node) = {
+    val id = (xml \ "@id").text
+
     val operators =
       for(op <- xml \ "Operator") yield {
         WorkflowOperator(
@@ -51,7 +52,7 @@ object Workflow {
         )
       }
 
-    new Workflow(operators, datasets)
+    new Workflow(id, operators, datasets)
   }
 
   case class WorkflowOperator(inputs: Seq[String], task: String, outputs: Seq[String], position: (Int, Int))

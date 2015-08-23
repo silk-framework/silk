@@ -101,7 +101,7 @@ class Task[DataType](val name: Identifier, initialData: DataType,
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      plugin.writeTask(name, data, project.resourceManager.child(plugin.prefix))
+      plugin.writeTask(data, project.resourceManager.child(plugin.prefix))
       log.info(s"Persisted task '$name' in project '${project.name}'")
       // Update caches
       for(activity <- activityList if activity.autoRun) {
