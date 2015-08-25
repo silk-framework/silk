@@ -16,10 +16,8 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.Logger
-
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl, HasValue}
 import de.fuberlin.wiwiss.silk.util.Identifier
-
 import scala.reflect.ClassTag
 
 

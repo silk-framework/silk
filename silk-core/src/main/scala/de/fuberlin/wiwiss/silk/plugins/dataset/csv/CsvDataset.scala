@@ -21,7 +21,7 @@ Parameters:
   uri: A pattern used to construct the entity URI. If not provided the prefix + the line number is used.
        An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.
   regexFilter: A regex filter used to match rows from the CSV file. If not set all the rows are used.
-  charset: The file encoding, e.g., UTF8, US-ASCII, ISO-LATIN-1"""
+  charset: The file encoding, e.g., UTF8, ISO-8859-1"""
 )
 case class CsvDataset(file: Resource, properties: String, separator: String = ",", arraySeparator: String = "",
                       prefix: String = "", uri: String = "", regexFilter: String = "", charset: String = "UTF8") extends DatasetPlugin {

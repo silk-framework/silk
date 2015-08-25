@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path}
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve the entities.
  */
-class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None) extends EntityRetriever {
+class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true) extends EntityRetriever {
   private val varPrefix = "v"
 
   /**
@@ -64,7 +64,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
       sparql += "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
 
     sparql += SparqlPathBuilder(entityDesc.paths, "?" + entityDesc.variable, "?" + varPrefix)
-    sparql += "} ORDER BY ?" + entityDesc.variable
+    sparql += "}"
+    if(useOrderBy) sparql +=" ORDER BY ?" + entityDesc.variable
 
     val sparqlResults = endpoint.query(sparql)
 

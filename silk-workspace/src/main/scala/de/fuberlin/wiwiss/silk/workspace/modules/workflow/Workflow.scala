@@ -52,7 +52,7 @@ object Workflow {
         )
       }
 
-    new Workflow(id, operators, datasets)
+    new Workflow(if(id.nonEmpty) Identifier(id) else Identifier.random, operators, datasets)
   }
 
   case class WorkflowOperator(inputs: Seq[String], task: String, outputs: Seq[String], position: (Int, Int))
