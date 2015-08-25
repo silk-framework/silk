@@ -15,29 +15,28 @@
 package de.fuberlin.wiwiss.silk.workspace
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.config.Prefixes
+
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingTaskExecutor, LinkingModulePlugin}
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingModulePlugin, LinkingTaskExecutor}
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.{TaskExecutor, Module, ModulePlugin, Task}
+import de.fuberlin.wiwiss.silk.workspace.modules.{Module, ModulePlugin, Task, TaskExecutor}
+
 import scala.reflect.ClassTag
-import scala.xml.XML
 
 /**
  * A project.
  */
-class Project(val name: Identifier, val resourceManager: ResourceManager) {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resourceManager: ResourceManager) {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
   val resources = resourceManager.child("resources")
 
   @volatile
-  private var cachedConfig: Option[ProjectConfig] = None
+  private var cachedConfig: ProjectConfig = initialConfig
 
   @volatile
   private var modules = Seq[Module[_]]()
@@ -54,34 +53,19 @@ class Project(val name: Identifier, val resourceManager: ResourceManager) {
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
 
+  def name = cachedConfig.id
+  
   /**
    * Reads the project configuration.
    */
-  def config = {
-    if(cachedConfig.isEmpty) {
-      if(resourceManager.list.contains("config.xml")) {
-        val configXML = XML.load(resourceManager.get("config.xml").load)
-        val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
-        cachedConfig = Some(ProjectConfig(name, prefixes))
-      } else {
-        cachedConfig = Some(ProjectConfig(name))
-      }
-    }
-
-    cachedConfig.get
-  }
+  def config = cachedConfig
 
   /**
    * Writes the updated project configuration.
    */
-  def config_=(config : ProjectConfig) {
-    val configXMl =
-      <ProjectConfig>
-      { config.prefixes.toXML }
-      </ProjectConfig>
-
-    resourceManager.put("config.xml") { os => configXMl.write(os) }
-    cachedConfig = Some(config)
+  def config_=(project : ProjectConfig) {
+    provider.putProject(project)
+    cachedConfig = project
   }
 
   /**
@@ -168,8 +152,8 @@ class Project(val name: Identifier, val resourceManager: ResourceManager) {
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T : ClassTag](provider: ModulePlugin[T]) = {
-    modules = modules :+ new Module(provider, resourceManager.child(provider.prefix), this)
+  def registerModule[T : ClassTag](plugin: ModulePlugin[T]) = {
+    modules = modules :+ new Module(plugin, provider, this)
   }
 
   /**

@@ -7,11 +7,11 @@ trait WorkspaceProvider {
 
   def readProjects(): Seq[ProjectConfig]
 
-  def putProject(name: Identifier, config: ProjectConfig): Unit
+  def putProject(project: ProjectConfig): Unit
 
   def deleteProject(name: Identifier): Unit
 
-  def readTasks[T: ClassTag](project: Identifier): Seq[T]
+  def readTasks[T: ClassTag](project: Identifier): Seq[(Identifier, T)]
 
   def putTask[T: ClassTag](project: Identifier, data: T): Unit
 

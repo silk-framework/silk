@@ -14,11 +14,12 @@
 
 package de.fuberlin.wiwiss.silk.workspace.modules
 
-import java.util.concurrent.{ScheduledFuture, TimeUnit, Executors}
+import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.runtime.activity.{HasValue, Activity, ActivityControl}
+
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl, HasValue}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
+
 import scala.reflect.ClassTag
 
 
@@ -27,10 +28,12 @@ import scala.reflect.ClassTag
  *
  * @tparam DataType The data type that specifies the properties of this task.
  */
-class Task[DataType](val name: Identifier, initialData: DataType,
-                     plugin: ModulePlugin[DataType], project: Project) {
+class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
+                               module: Module[DataType]) {
 
   private val log = Logger.getLogger(getClass.getName)
+
+  private def projectName: String = module.project.name
 
   @volatile
   private var currentData: DataType = initialData
@@ -38,7 +41,7 @@ class Task[DataType](val name: Identifier, initialData: DataType,
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val activityList = plugin.activities(this, project)
+  private val activityList = module.plugin.activities(this, module.project)
 
   // Activity controls for all activities
   private var activityControls = Map[Class[_], ActivityControl[_]]()
@@ -81,7 +84,7 @@ class Task[DataType](val name: Identifier, initialData: DataType,
    */
   def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
+    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '$projectName' does not contain an activity of type '${requestedClass.getName}'. " +
                                                                                 s"Available activities:\n${activityControls.keys.map(_.getName).mkString("\n ")}"))
                     .asInstanceOf[ActivityControl[T#ValueType]]
   }
@@ -94,15 +97,15 @@ class Task[DataType](val name: Identifier, initialData: DataType,
    */
   def activity(activityName: String): ActivityControl[_] = {
     activityControls.values.find(_.name == activityName)
-      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
+      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '$projectName' does not contain an activity named '$activityName'. " +
                                                   s"Available activities: ${activityControls.values.map(_.name).mkString(", ")}"))
   }
 
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      plugin.writeTask(data, project.resourceManager.child(plugin.prefix))
-      log.info(s"Persisted task '$name' in project '${project.name}'")
+      module.provider.putTask(projectName, data)
+      log.info(s"Persisted task '$name' in project '$projectName'")
       // Update caches
       for(activity <- activityList if activity.autoRun) {
         val activityControl = activityControls(activity.activityType)

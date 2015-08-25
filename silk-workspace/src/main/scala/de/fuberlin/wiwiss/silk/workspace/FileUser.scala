@@ -30,11 +30,11 @@ object FileUser {
       new File(System.getProperty("user.home") + "/.silk/workspace/")
   }
 
-  lazy val workspace = {
+  lazy val workspace: Workspace = {
     try {
       if(!workspaceDir.exists && !workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
 
-      new FileWorkspace(workspaceDir)
+      new Workspace(workspaceDir)
     }
     catch {
       case ex: Exception => {

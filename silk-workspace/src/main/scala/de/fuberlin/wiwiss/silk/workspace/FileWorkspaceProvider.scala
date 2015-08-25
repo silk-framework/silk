@@ -1,68 +1,53 @@
 package de.fuberlin.wiwiss.silk.workspace
 
-import java.io.File
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
-import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
 import scala.reflect.ClassTag
 import scala.xml.XML
-import de.fuberlin.wiwiss.silk.util.XMLUtils._
 
-class FileWorkspaceProvider(basePath: String) extends WorkspaceProvider {
-
-  private val file = new File(basePath)
-
-  private val res = new FileResourceManager(file)
-
-  @volatile
-  private var formatters = Map[Class[_], XmlFormat[_]]()
+class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
 
   @volatile
   private var plugins = Map[Class[_], ModulePlugin[_]]()
 
-  def registerModule[T: ClassTag](plugin: ModulePlugin[_])(implicit format: XmlFormat[T]) = {
+  def registerModule[T: ClassTag](plugin: ModulePlugin[T]) = {
     val clazz = implicitly[ClassTag[T]].runtimeClass
-    formatters += (clazz -> format)
     plugins += (clazz -> plugin)
   }
 
   override def readProjects(): Seq[ProjectConfig] = {
-    for(projectDir <- file.listFiles.filter(_.isDirectory).toList) yield {
-      val name = projectDir.getName
-      val configXML = XML.load(res.child(name).get("config.xml").load)
+    for(projectName <- res.listChildren) yield {
+      val configXML = XML.load(res.child(projectName).get("config.xml").load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
-      ProjectConfig(name, prefixes)
+      ProjectConfig(projectName, prefixes)
     }
   }
 
-  override def putProject(name: Identifier, config: ProjectConfig): Unit = {
+  override def putProject(config: ProjectConfig): Unit = {
     val configXMl =
       <ProjectConfig>
         { config.prefixes.toXML }
       </ProjectConfig>
-    res.child(name).put("config.xml") { os => configXMl.write(os) }
+    res.child(config.id).put("config.xml") { os => configXMl.write(os) }
   }
 
   override def deleteProject(name: Identifier): Unit = {
     res.delete(name)
   }
 
-  override def readTasks[T: ClassTag](project: Identifier): Seq[T] = {
-    plugin[T].loadTasks(res.child(project), res.child(project).child("resources")).values.toSeq
+  override def readTasks[T: ClassTag](project: Identifier): Seq[(Identifier, T)] = {
+    plugin[T].loadTasks(res.child(project).child(plugin[T].prefix), res.child(project).child("resources")).toSeq
   }
 
   override def putTask[T: ClassTag](project: Identifier, data: T): Unit = {
-    plugin[T].writeTask(data, res.child(project))
+    plugin[T].writeTask(data, res.child(project).child(plugin[T].prefix))
   }
 
   override def deleteTask[T: ClassTag](project: Identifier, task: Identifier): Unit = {
-    plugin[T].removeTask(task, res.child(project))
-  }
-
-  private def formatter[T: ClassTag] = {
-    formatters(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlFormat[T]]
+    plugin[T].removeTask(task, res.child(project).child(plugin[T].prefix))
   }
 
   private def plugin[T: ClassTag] = {

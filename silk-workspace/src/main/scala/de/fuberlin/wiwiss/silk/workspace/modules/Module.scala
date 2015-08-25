@@ -2,14 +2,15 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 
 import java.util.logging.Logger
 
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.workspace.{Project, WorkspaceProvider}
 
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
 
-class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: ResourceManager, project: Project) {
+class Module[TaskData: ClassTag](private[modules] val plugin: ModulePlugin[TaskData],
+                                 private[modules] val provider: WorkspaceProvider,
+                                 private[modules] val project: Project) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 
@@ -51,8 +52,8 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
   }
 
   def add(name: Identifier, taskData: TaskData) = {
-    val task = new Task(name, taskData, plugin, project)
-    plugin.writeTask(taskData, resourceMgr)
+    val task = new Task(name, taskData, this)
+    provider.putTask(project.name, taskData)
     cachedTasks += ((name, task))
   }
 
@@ -60,15 +61,15 @@ class Module[TaskData: ClassTag](plugin: ModulePlugin[TaskData], resourceMgr: Re
    * Removes a task from this module.
    */
   def remove(taskId: Identifier) {
-    plugin.removeTask(taskId, resourceMgr)
+    provider.deleteTask(project.name, taskId)
     cachedTasks -= taskId
     logger.info(s"Removed task '$taskId' from project ${project.name}")
   }
 
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
-      val loadedTasks = plugin.loadTasks(resourceMgr, project.resources)
-      cachedTasks = TreeMap()(TaskOrdering) ++ { for((name, data) <- loadedTasks) yield (name, new Task(name, data, plugin, project)) }
+      val tasks = provider.readTasks(project.name)
+      cachedTasks = TreeMap()(TaskOrdering) ++ { for((name, data) <- tasks) yield (name, new Task(name, data, this)) }
     }
   }
 
