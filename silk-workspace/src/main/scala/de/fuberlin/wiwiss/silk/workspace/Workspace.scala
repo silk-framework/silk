@@ -16,7 +16,6 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.io._
 import java.util.logging.Logger
-
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 
@@ -56,7 +55,6 @@ class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
     provider.exportProject(name, outputStream)
   }
 
-  //TODO if an import fails, delete all already created files!
   def importProject(name: Identifier, inputStream: InputStream) {
     provider.importProject(name, inputStream)
     reload()

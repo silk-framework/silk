@@ -19,7 +19,11 @@ trait WorkspaceProvider {
 
   def deleteTask[T: ClassTag](project: Identifier, task: Identifier): Unit
 
-  def exportProject(project: Identifier, outputStream: OutputStream)
+  def exportProject(project: Identifier, outputStream: OutputStream): Unit = {
+    throw new UnsupportedOperationException("The configured workspace provider does not support exporting projects!")
+  }
   
-  def importProject(project: Identifier, inputStream: InputStream)
+  def importProject(project: Identifier, inputStream: InputStream): Unit = {
+    throw new UnsupportedOperationException("The configured workspace provider does not support importing projects!")
+  }
 }

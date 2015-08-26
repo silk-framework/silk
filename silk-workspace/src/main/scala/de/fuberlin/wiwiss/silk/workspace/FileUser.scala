@@ -25,10 +25,12 @@ import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
 
 class FileUser extends User {
   override def workspace = FileUser.workspace
+
+  def workspace_=(w: Workspace): Unit = FileUser.workspace = w
 }
 
 object FileUser {
-  private lazy val workspaceDir = {
+  lazy val workspaceDir = {
     val elds_home = System.getenv("ELDS_HOME")
     if(elds_home != null)
       new File(elds_home + "/var/dataintegration/workspace/")
@@ -36,7 +38,7 @@ object FileUser {
       new File(System.getProperty("user.home") + "/.silk/workspace/")
   }
 
-  lazy val workspace: Workspace = {
+  var workspace: Workspace = {
     try {
       if(!workspaceDir.exists && !workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
 
