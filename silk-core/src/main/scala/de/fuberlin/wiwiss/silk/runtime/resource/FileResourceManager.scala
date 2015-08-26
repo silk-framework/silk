@@ -5,7 +5,7 @@ import java.io._
 /**
  * A resource manager that loads files from a base directory.
  */
-class FileResourceManager(baseDir: File) extends ResourceManager {
+class FileResourceManager(val baseDir: File) extends ResourceManager {
 
   /**
    * Lists all files in the resources directory.

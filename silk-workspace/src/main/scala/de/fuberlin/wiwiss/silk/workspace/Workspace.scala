@@ -16,26 +16,13 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.io._
 import java.util.logging.Logger
-import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
-import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
-import de.fuberlin.wiwiss.silk.util.FileUtils._
-import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
 
-class Workspace(file : File) {
+import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
+import de.fuberlin.wiwiss.silk.util.Identifier
+
+class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
-
-  val resourceManager = new FileResourceManager(file)
-
-  private val provider = new FileWorkspaceProvider(resourceManager)
-  provider.registerModule(new DatasetModulePlugin())
-  provider.registerModule(new LinkingModulePlugin())
-  provider.registerModule(new TransformModulePlugin())
-  provider.registerModule(new WorkflowModulePlugin())
 
   private var cacbedProjects = loadProjects()
 
@@ -61,67 +48,17 @@ class Workspace(file : File) {
   }
 
   def removeProject(name: Identifier) = {
-    (file + ("/" + name)).deleteRecursive()
+    provider.deleteProject(name)
     cacbedProjects = cacbedProjects.filterNot(_.name == name)
   }
 
   def exportProject(name: Identifier, outputStream: OutputStream) {
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
-    val projectDir = file + ("/" + name)
-    require(projectDir.exists, s"Project $name does not exist.")
-
-    // Recursively lists all files in the given directory
-    def listFiles(file: File): List[File] = {
-      if(file.isFile) file :: Nil
-      else file.listFiles.toList.flatMap(listFiles)
-    }
-
-    // Go through all files and create a ZIP entry for each
-    for(file <- listFiles(projectDir)) {
-      val relativePath = projectDir.toPath.relativize(file.toPath).toString.replace("\\", "/")
-      zip.putNextEntry(new ZipEntry(relativePath))
-      val in = new BufferedInputStream(new FileInputStream(file))
-      var b = in.read()
-      while (b > -1) {
-        zip.write(b)
-        b = in.read()
-      }
-      in.close()
-      zip.closeEntry()
-    }
-
-    // Close ZIP
-    zip.close()
+    provider.exportProject(name, outputStream)
   }
 
   //TODO if an import fails, delete all already created files!
   def importProject(name: Identifier, inputStream: InputStream) {
-    // Open ZIP
-    val zip = new ZipInputStream(inputStream)
-    val projectDir = file + ("/" + name)
-    require(!projectDir.exists, s"Project $name already exists.")
-
-    // Read all ZIP entries
-    var entry = zip.getNextEntry
-    while(entry != null) {
-      if(!entry.isDirectory) {
-        val file = projectDir + ("/" + entry.getName)
-        file.getParentFile.mkdirs()
-        val out = new BufferedOutputStream(new FileOutputStream(file))
-        var b = zip.read()
-        while (b > -1) {
-          out.write(b)
-          b = zip.read()
-        }
-        out.close()
-      }
-      zip.closeEntry()
-      entry = zip.getNextEntry
-    }
-
-    // Close ZIP and reload
-    zip.close()
+    provider.importProject(name, inputStream)
     reload()
   }
 
