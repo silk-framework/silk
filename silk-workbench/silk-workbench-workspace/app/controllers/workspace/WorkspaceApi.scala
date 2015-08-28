@@ -39,12 +39,11 @@ object WorkspaceApi extends Controller {
   def exportProject(project: String) = Action {
     // Export the project into a byte array
     val outputStream = new ByteArrayOutputStream()
-    User().workspace.exportProject(project, outputStream)
+    val fileName = User().workspace.exportProject(project, outputStream)
     val bytes = outputStream.toByteArray
     outputStream.close()
 
-    //Ok(bytes).as("application/zip").withHeaders("Content-Disposition" -> "attachment; filename=project.zip")
-    Ok(bytes).withHeaders("Content-Disposition" -> "attachment; filename=project.ttl")
+    Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
   }
 
   def importLinkSpec(projectName: String) = Action { implicit request => {

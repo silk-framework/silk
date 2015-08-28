@@ -53,7 +53,7 @@ class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     plugin[T].removeTask(task, res.child(project).child(plugin[T].prefix))
   }
 
-  override def exportProject(project: Identifier, outputStream: OutputStream): Unit = {
+  override def exportProject(project: Identifier, outputStream: OutputStream): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
     val projectDir = res.child(project).asInstanceOf[FileResourceManager].baseDir // TODO allow exporting non file-based workspaces
@@ -81,6 +81,9 @@ class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
 
     // Close ZIP
     zip.close()
+
+    //Return proposed file name
+    project + ".xml"
   }
 
   //TODO if an import fails, delete all already created files!

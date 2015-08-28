@@ -51,7 +51,7 @@ class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
     cacbedProjects = cacbedProjects.filterNot(_.name == name)
   }
 
-  def exportProject(name: Identifier, outputStream: OutputStream) {
+  def exportProject(name: Identifier, outputStream: OutputStream): String = {
     provider.exportProject(name, outputStream)
   }
 
