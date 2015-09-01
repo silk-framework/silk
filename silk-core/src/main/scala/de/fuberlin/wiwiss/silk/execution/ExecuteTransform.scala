@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.config.{DatasetSelection, TransformSpecification}
+import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
@@ -50,16 +50,4 @@ class ExecuteTransform(input: DataSource,
       for (output <- outputs) output.close()
     }
   }
-}
-
-object ExecuteTransform {
-  /**
-   * Create an ExecuteTransform task instance with the provided transform specification.
-   *
-   * @since 2.6.1
-   *
-   * @param transform The transform specification.
-   * @return An ExecuteTransform instance.
-   */
-  def apply(input: DataSource, transform: TransformSpecification) = new ExecuteTransform(input, transform.selection, transform.rules, transform.outputs.map(_.sink))
 }

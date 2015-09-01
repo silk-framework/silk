@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
-import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
+import de.fuberlin.wiwiss.silk.util.Identifier
+
 import scala.xml.Node
 
 /**
@@ -15,7 +15,7 @@ import scala.xml.Node
  *
  * @see de.fuberlin.wiwiss.silk.execution.ExecuteTransform
  */
-case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Dataset] = Seq.empty) {
+case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty) {
 
   def entityDescription = {
     new EntityDescription(
@@ -49,7 +49,7 @@ object TransformSpecification {
     // Get the required parameters from the XML configuration.
     val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
     val rules = (node \ "TransformRule").map(fromXml[TransformRule])
-    val sinks = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
+    val sinks = (node \ "Outputs" \ "Output").map(_.text).map(Identifier(_))
 
     // Create and return a TransformSpecification instance.
     TransformSpecification(id, datasetSelection, rules, sinks)

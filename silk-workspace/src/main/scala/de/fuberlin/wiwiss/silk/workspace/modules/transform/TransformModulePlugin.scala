@@ -36,8 +36,10 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     taskResources.put("dataset.xml") { os => data.selection.toXML(asSource = true).write(os) }
     taskResources.put("rules.xml") { os =>
       <TransformSpec>
-      { data.rules.map(toXml[TransformRule]) }
-      { data.outputs.map(toXml[Dataset]) }
+        { data.rules.map(toXml[TransformRule]) }
+        <Outputs>
+        { data.outputs.map(o => <Output>{o}</Output>) }
+        </Outputs>
       </TransformSpec>.write(os)
     }
   }
@@ -57,7 +59,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
-    val outputs = (rulesXml \ "Dataset").map(fromXml[Dataset])
+    val outputs = (rulesXml \ "Outputs" \ "Output").map(_.text).map(Identifier(_))
     (name, TransformSpecification(name, dataset, rules, outputs))
   }
 
@@ -75,7 +77,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
         input = project.task[Dataset](task.data.selection.datasetId).data.source,
         selection = task.data.selection,
         rules = task.data.rules,
-        outputs = task.data.outputs.map(_.sink)
+        outputs = task.data.outputs.map(id => project.task[Dataset](id).data.sink)
       )
     def pathsCache() =
       new PathsCache(

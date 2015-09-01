@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
-import de.fuberlin.wiwiss.silk.util.CollectLogs
+import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs}
 import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -25,7 +25,7 @@ object TransformTaskApi extends Controller {
     implicit val prefixes = proj.config.prefixes
 
     val input = DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
-    val outputs = values.get("output").filter(_.nonEmpty).map(proj.task[Dataset](_).data).toSeq
+    val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
       //Update existing task

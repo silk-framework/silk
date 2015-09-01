@@ -49,7 +49,7 @@
       <td>
         <select name="output" title="Output dataset">
           @for(dataset <- datasets) {
-            @if(currentOutput.isDefined && dataset.name == currentOutput.get.id) {
+            @if(currentOutput.isDefined && dataset.name == currentOutput.get) {
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>
