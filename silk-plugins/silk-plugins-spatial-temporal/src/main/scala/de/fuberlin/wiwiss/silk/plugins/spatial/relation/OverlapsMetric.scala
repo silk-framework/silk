@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 @Plugin(
   id = "SOverlapsMetric",
   categories = Array("Spatial"),
-  label = "Overlaps",
+  label = "Spatial Overlaps",
   description = "Computes the relation \"overlaps\" between two geometries.")
 case class OverlapsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

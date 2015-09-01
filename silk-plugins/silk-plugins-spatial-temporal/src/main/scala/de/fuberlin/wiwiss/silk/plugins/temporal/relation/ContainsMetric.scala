@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 @Plugin(
   id = "TContainsMetric",
   categories = Array("Temporal"),
-  label = "Contains",
+  label = "Temporal Contains",
   description = "Computes the relation \"contains\" between two time periods or instants.")
 case class ContainsMetric() extends SimpleDistanceMeasure {
 

@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 @Plugin(
   id = "SEqualsMetric",
   categories = Array("Spatial"),
-  label = "Equals",
+  label = "Spatial Equals",
   description = "Computes the relation \"equals\" between two geometries.")
 case class EqualsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

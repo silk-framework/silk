@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 @Plugin(
   id = "TEqualsMetric",
   categories = Array("Temporal"),
-  label = "Equals",
+  label = "Temporal Equals",
   description = "Computes the relation \"equals\" between two time periods or instants.")
 case class EqualsMetric() extends SimpleDistanceMeasure {
 

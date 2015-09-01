@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 @Plugin(
   id = "SContainsMetric",
   categories = Array("Spatial"),
-  label = "Contains",
+  label = "Spatial Contains",
   description = "Computes the relation \"contains\" between two geometries.")
 case class ContainsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

@@ -26,7 +26,7 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 @Plugin(
   id = "TOverlapsMetric",
   categories = Array("Temporal"),
-  label = "Overlaps",
+  label = "Temporal Overlaps",
   description = "Computes the relation \"overlaps\" between two time periods or instants.")
 case class OverlapsMetric() extends SimpleDistanceMeasure {
 
