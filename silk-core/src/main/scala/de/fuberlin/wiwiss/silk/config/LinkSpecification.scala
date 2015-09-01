@@ -16,15 +16,14 @@ package de.fuberlin.wiwiss.silk.config
 
 import java.util.logging.Logger
 
-import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
-import de.fuberlin.wiwiss.silk.runtime.serialization.{ValidationException, ValidatingXMLReader, XmlFormat}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
+import de.fuberlin.wiwiss.silk.runtime.serialization.{ValidatingXMLReader, ValidationException, XmlFormat}
 import de.fuberlin.wiwiss.silk.util._
 
 import scala.xml.Node
@@ -33,9 +32,9 @@ import scala.xml.Node
  * Represents a Silk Link Specification.
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
-                             datasets: DPair[DatasetSelection] = DPair.fill(DatasetSelection.empty),
+                             datasets: DPair[DatasetSelection] = DatasetSelection.emptyPair,
                              rule: LinkageRule = LinkageRule(),
-                             outputs: Seq[Dataset] = Seq.empty,
+                             outputs: Seq[Identifier] = Seq.empty,
                              referenceLinks: ReferenceLinks = ReferenceLinks.empty ) {
 
   def entityDescriptions: DPair[EntityDescription] = {
@@ -111,7 +110,7 @@ object LinkSpecification {
         datasets = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
           DatasetSelection.fromXML((node \ "TargetDataset").head)),
         rule = fromXml[LinkageRule](linkageRuleNode),
-        outputs = (node \ "Outputs" \ "_").map(fromXml[Dataset])
+        outputs = (node \ "Outputs" \ "Output").map(_.text).map(Identifier(_))
       )
     }
 
@@ -124,7 +123,7 @@ object LinkSpecification {
         {spec.datasets.target.toXML(asSource = false)}
         {toXml(spec.rule)}
         <Outputs>
-          {spec.outputs.map(toXml[Dataset])}
+          {spec.outputs.map(o => <Output>{o}</Output>)}
         </Outputs>
       </Interlink>
   }

@@ -21,7 +21,7 @@ class WorkflowExecutor(operators: Seq[WorkflowOperator], project: Project) exten
 
   def executeOperator(operator: WorkflowOperator, context: ActivityContext[Unit]) = {
     val inputs = operator.inputs.map(id => project.task[Dataset](id).data.source)
-    val outputs = operator.outputs.map(id => project.task[Dataset](id).data)
+    val outputs = operator.outputs.map(id => project.task[Dataset](id).data.sink)
     val taskData = project.anyTask(operator.task).data
 
     val taskExecutor = project.getExecutor(taskData)

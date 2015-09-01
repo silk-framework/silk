@@ -72,7 +72,7 @@
         <select name="output" title="Output">
           <option value="" @if(currentOutput.isEmpty) {selected="selected"}></option>
           @for(dataset <- datasets) {
-            @if(currentOutput.isDefined && dataset.name == currentOutput.get.id.toString) {
+            @if(currentOutput.isDefined && dataset.name == currentOutput.get) {
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>

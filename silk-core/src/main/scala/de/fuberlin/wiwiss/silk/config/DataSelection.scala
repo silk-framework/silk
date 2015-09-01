@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
-import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 
 import scala.xml.Node
 
@@ -66,5 +66,11 @@ object DatasetSelection {
     )
   }
 
-  def empty = DatasetSelection("EmptyDatasetSelection", "x", SparqlRestriction.empty)
+  def empty = DatasetSelection("EmptyDatasetSelection", "a", SparqlRestriction.empty)
+
+  def emptyPair =
+    DPair(
+      DatasetSelection("SourceDatasetSelection", "a", SparqlRestriction.empty),
+      DatasetSelection("TargetDatasetSelection", "b", SparqlRestriction.empty)
+    )
 }

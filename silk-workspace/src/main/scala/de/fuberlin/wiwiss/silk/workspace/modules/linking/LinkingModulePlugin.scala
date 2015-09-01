@@ -84,7 +84,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     // Generate links
     def generateLinks(links: Seq[Link]) =
       GenerateLinks.fromSources(
-        inputs = project.tasks[Dataset].map(_.data),
+        datasets = project.tasks[Dataset].map(_.data),
         linkSpec = task.data,
         runtimeConfig = RuntimeConfig(useFileCache = false, partitionSize = 300, generateLinksWithEntities = true)
       )

@@ -157,9 +157,8 @@ object GenerateLinksTaskTest {
       // Execute Matching
       val activity =
         GenerateLinks.fromSources(
-          inputs = config.sources,
+          datasets = config.sources,
           linkSpec = config.linkSpecs.head,
-          outputs = config.outputs,
           runtimeConfig = runtimeConfig
         )
 

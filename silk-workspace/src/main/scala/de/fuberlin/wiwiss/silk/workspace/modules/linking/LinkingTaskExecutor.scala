@@ -8,10 +8,10 @@ import de.fuberlin.wiwiss.silk.workspace.modules.TaskExecutor
 
 class LinkingTaskExecutor extends TaskExecutor[LinkSpecification] {
 
-  def apply(inputs: Seq[DataSource], linkSpec: LinkSpecification, outputs: Seq[Dataset]) = {
+  def apply(inputs: Seq[DataSource], linkSpec: LinkSpecification, outputs: Seq[DataSink]) = {
     require(inputs.size == 1 || inputs.size == 2, "Linking tasks expect one or two input datasets.")
 
     val inputPair = if(inputs.size == 1) DPair.fill(inputs.head) else DPair.fromSeq(inputs)
-    new GenerateLinks(inputPair, linkSpec.copy(outputs = outputs))
+    new GenerateLinks(inputPair, linkSpec, outputs)
   }
 }

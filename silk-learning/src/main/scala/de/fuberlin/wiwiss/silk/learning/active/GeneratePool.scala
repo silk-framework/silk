@@ -44,7 +44,7 @@ private class GeneratePool(inputs: Seq[DataSource],
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
     generateLinksTask =
-      new GenerateLinks(inputs, linkSpec2, runtimeConfig) {
+      new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
         override def entityDescs = entityDesc
       }
 

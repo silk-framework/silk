@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import ValidationException.ValidationError
-import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
+import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs, DPair}
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.{PathsCache, ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.{Constants, Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -31,7 +31,7 @@ object LinkingTaskApi extends Controller {
     val datasets =
       DPair(DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
             DatasetSelection(values("target"), Constants.TargetVariable, SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
-    val outputs = values.get("output").filter(_.nonEmpty).map(proj.task[Dataset](_).data).toSeq
+    val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {
       //Update existing task

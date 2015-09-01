@@ -58,7 +58,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
    * Reads the project configuration.
    */
-  def config = cachedConfig
+  def config: ProjectConfig = cachedConfig
 
   /**
    * Writes the updated project configuration.
