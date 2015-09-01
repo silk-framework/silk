@@ -18,11 +18,12 @@ import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import java.lang.reflect.{InvocationTargetException, Constructor}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
+import de.fuberlin.wiwiss.silk.util.Identifier
 
 /**
  * Describes a plugin.
  */
-class PluginDescription[+T <: AnyPlugin](val id: String, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+class PluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
    * Creates a new instance of this plugin.

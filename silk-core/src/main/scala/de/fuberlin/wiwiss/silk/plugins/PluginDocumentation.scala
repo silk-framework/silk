@@ -43,7 +43,7 @@ object PluginDocumentation extends App {
   }
 
   def pluginTable(pluginFactory: PluginFactory[_ <: AnyPlugin], category: String) = {
-    val plugins = pluginFactory.availablePlugins.filter(_.categories.contains(category)).sortBy(_.id)
+    val plugins = pluginFactory.availablePlugins.filter(_.categories.contains(category)).sortBy(_.id.toString)
     Table(
       name = pluginFactory.getClass.getSimpleName,
       header = Seq("Function and parameters", "Name", "Description"),

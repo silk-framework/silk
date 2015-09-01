@@ -22,7 +22,7 @@ import Array._
 import scala.util.control._
 
 @Plugin(
-  id = "korean TranslitDistance",
+  id = "koreanTranslitDistance",
   categories = Array("Asian"),
   label = "Korean translit distance",
   description = "Transliterated Korean distance."
