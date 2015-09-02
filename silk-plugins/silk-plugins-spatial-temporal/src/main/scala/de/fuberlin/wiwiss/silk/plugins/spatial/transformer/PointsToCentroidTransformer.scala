@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.spatial.transformer
 
 import java.util.logging.Logger
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.rule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
 

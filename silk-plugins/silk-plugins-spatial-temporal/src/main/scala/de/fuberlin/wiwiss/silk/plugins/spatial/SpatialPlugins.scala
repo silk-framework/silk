@@ -15,8 +15,8 @@
 package de.fuberlin.wiwiss.silk.plugins.spatial
 
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure}
+import de.fuberlin.wiwiss.silk.rule.input.Transformer
+import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure}
 
 import de.fuberlin.wiwiss.silk.plugins.spatial.transformer._
 import de.fuberlin.wiwiss.silk.plugins.spatial.distance._

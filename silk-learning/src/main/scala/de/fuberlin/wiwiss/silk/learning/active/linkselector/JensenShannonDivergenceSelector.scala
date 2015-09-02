@@ -18,7 +18,7 @@ import math.log
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 /**
  * Selects links based on the Jensen-Shannon divergence from the closest reference link.

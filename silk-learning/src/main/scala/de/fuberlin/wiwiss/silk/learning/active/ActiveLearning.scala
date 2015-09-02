@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.learning.active.linkselector.WeightedLinkageRule
 import de.fuberlin.wiwiss.silk.learning.cleaning.CleanPopulationTask
 import de.fuberlin.wiwiss.silk.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import de.fuberlin.wiwiss.silk.learning.reproduction.{Randomize, Reproduction}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.{DPair, Timer}
 

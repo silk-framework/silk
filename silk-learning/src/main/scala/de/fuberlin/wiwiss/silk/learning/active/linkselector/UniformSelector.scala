@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.learning.active.linkselector
 import de.fuberlin.wiwiss.silk.entity.Link
 import math.{pow, sqrt, abs, log}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 /**
  * Link Selector which distributes the links uniformly.

@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.transformer.linguistic
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import com.rockymadden.stringmetric.phonetic.{RefinedNysiisAlgorithm, NysiisAlgorithm}
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.rule.input.SimpleTransformer
 
 @Plugin(
   id = "NYSIIS",

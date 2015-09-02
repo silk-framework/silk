@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
 import de.fuberlin.wiwiss.silk.learning.LearningActivity
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import ValidationException.ValidationError

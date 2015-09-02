@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import collection.mutable.ArrayBuffer
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.linkagerule.LinkFilter
+import de.fuberlin.wiwiss.silk.rule.LinkFilter
 
 /**
  * Filters the links according to the link limit.

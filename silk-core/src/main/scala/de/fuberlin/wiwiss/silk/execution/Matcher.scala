@@ -19,7 +19,7 @@ import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.cache.EntityCache
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.runtime.activity.{ValueHolder, ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.DPair
 import scala.collection.mutable

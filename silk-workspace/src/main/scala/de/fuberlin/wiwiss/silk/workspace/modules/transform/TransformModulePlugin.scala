@@ -6,7 +6,7 @@ import de.fuberlin.wiwiss.silk.config.{DatasetSelection, Prefixes, TransformSpec
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._

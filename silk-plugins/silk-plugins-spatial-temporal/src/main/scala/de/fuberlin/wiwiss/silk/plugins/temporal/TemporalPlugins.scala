@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.temporal
 
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure}
+import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure}
 
 import de.fuberlin.wiwiss.silk.plugins.temporal.distance._
 import de.fuberlin.wiwiss.silk.plugins.temporal.relation._

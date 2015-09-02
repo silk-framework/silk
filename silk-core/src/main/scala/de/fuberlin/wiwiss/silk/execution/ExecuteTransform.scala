@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.execution
 import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 
 /**

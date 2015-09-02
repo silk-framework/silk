@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.execution
 
 import de.fuberlin.wiwiss.silk.entity.{Path, Link, Index, Entity}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.cache.Partition
 import de.fuberlin.wiwiss.silk.util.DPair
 import methods.MultiBlock

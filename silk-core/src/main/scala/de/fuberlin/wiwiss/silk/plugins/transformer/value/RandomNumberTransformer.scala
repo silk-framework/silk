@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.value
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.rule.input.Transformer
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 import scala.util.Random

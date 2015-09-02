@@ -15,6 +15,6 @@
 package de.fuberlin.wiwiss.silk.learning.individual.fitness
 
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 trait FitnessFunction extends (ReferenceEntities => LinkageRule => Double)

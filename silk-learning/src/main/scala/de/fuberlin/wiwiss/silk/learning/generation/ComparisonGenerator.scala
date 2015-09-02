@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.learning.generation
 
 import de.fuberlin.wiwiss.silk.util.DPair
 import util.Random
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.individual._
 
 /**

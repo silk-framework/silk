@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 import de.fuberlin.wiwiss.silk.util.DPair
 import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, LinkageRuleNode}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 /**
  * Combines two linkage rules into a new one.

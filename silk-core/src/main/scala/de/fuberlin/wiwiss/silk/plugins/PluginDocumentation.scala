@@ -2,8 +2,8 @@ package de.fuberlin.wiwiss.silk.plugins
 
 import java.io.{OutputStreamWriter, FileOutputStream}
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.input.Transformer
+import de.fuberlin.wiwiss.silk.rule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, Parameter, PluginDescription, PluginFactory}
 import de.fuberlin.wiwiss.silk.util.Table
 

@@ -15,10 +15,10 @@
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity._
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison}
+import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregation, Comparison}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.input.PathInput
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.MinimumAggregator

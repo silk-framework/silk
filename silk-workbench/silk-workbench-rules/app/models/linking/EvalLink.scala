@@ -16,7 +16,7 @@ package models.linking
 
 import EvalLink.{LinkType, Correctness}
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedLink
+import de.fuberlin.wiwiss.silk.rule.evaluation.DetailedLink
 
 /**
  * An evaluation link.

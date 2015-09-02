@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.date
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.input.SimpleTransformer
+import de.fuberlin.wiwiss.silk.rule.input.SimpleTransformer
 import javax.xml.datatype.DatatypeFactory
 import java.util.{Date, Calendar}
 

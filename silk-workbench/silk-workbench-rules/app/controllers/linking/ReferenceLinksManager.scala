@@ -4,7 +4,7 @@ import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
 import play.api.mvc.Controller
 import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
+import de.fuberlin.wiwiss.silk.rule.evaluation.DetailedEvaluator
 import models.linking.EvalLink
 import de.fuberlin.wiwiss.silk.entity.Link
 import models.linking.EvalLink._

@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.individual
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, PathInput, Input}
+import de.fuberlin.wiwiss.silk.rule.input.{TransformInput, PathInput, Input}
 
 trait InputNode extends Node {
   def isSource: Boolean

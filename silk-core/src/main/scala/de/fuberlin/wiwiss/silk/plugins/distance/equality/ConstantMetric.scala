@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.distance.equality
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 @Plugin(

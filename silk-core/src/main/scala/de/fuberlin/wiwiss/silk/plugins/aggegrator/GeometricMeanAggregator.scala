@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.aggegrator
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.Aggregator
+import de.fuberlin.wiwiss.silk.rule.similarity.Aggregator
 import scala.math._
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.entity.Index

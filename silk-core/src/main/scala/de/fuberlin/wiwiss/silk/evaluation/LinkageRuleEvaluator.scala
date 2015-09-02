@@ -16,7 +16,7 @@
 
 package de.fuberlin.wiwiss.silk.evaluation
 
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 object LinkageRuleEvaluator {
   def apply(rule: LinkageRule, entity: ReferenceEntities, threshold: Double = 0.0): EvaluationResult = {

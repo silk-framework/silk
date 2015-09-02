@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.numeric
 import scala.math._
 import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.SimpleDistanceMeasure
 
 @Plugin(
   id = "dateTime",

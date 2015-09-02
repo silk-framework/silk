@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.learning.generation
 
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, LinkageRuleNode, Population}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 
 import scala.util.Random

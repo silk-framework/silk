@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.execution.methods
 
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity, Path}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 
 /**

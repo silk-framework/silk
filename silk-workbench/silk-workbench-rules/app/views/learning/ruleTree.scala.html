@@ -2,12 +2,12 @@
  * Renders a linkage rule as a tree.
  * jQuery.treeview.js and linkageRuleTree.css must be in the header.
  *@
-@(rule: de.fuberlin.wiwiss.silk.linkagerule.LinkageRule)
+@(rule: de.fuberlin.wiwiss.silk.rule.LinkageRule)
 
-@import de.fuberlin.wiwiss.silk.linkagerule.Operator
-@import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
+@import de.fuberlin.wiwiss.silk.rule.Operator
+@import de.fuberlin.wiwiss.silk.rule.similarity.{Comparison, Aggregation}
 @import de.fuberlin.wiwiss.silk.util.DPair
-@import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
+@import de.fuberlin.wiwiss.silk.rule.input.{PathInput, TransformInput}
 
 <ul class="details-tree">
   @for(aggregation <- rule.operator.toList) {

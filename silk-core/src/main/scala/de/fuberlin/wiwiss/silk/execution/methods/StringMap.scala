@@ -1,11 +1,11 @@
 package de.fuberlin.wiwiss.silk.execution.methods
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.execution.ExecutionMethod
 import de.fuberlin.wiwiss.silk.cache.Partition
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.{Index, Path, Entity}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.execution.methods.StringMap.Mapper
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased.LevenshteinDistance
 

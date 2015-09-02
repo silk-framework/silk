@@ -18,9 +18,9 @@ import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.entity.Path
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.DistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.DistanceMeasure
 import de.fuberlin.wiwiss.silk.learning.individual._
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.rule.input.Transformer
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration.Components
 
 class PatternGenerator(components: Components) {

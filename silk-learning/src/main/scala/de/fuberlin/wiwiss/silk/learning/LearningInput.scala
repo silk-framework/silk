@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning
 
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 /**
  * The input of the learning algorithm.

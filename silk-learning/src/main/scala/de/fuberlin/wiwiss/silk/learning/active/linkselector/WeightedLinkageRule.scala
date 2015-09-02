@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.similarity.SimilarityOperator
 
 class WeightedLinkageRule(operator: Option[SimilarityOperator], val weight: Double) extends LinkageRule(operator)

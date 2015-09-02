@@ -16,9 +16,9 @@ package de.fuberlin.wiwiss.silk.learning.active
 
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.util.DPair._
-import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.rule.{Operator, LinkageRule}
+import de.fuberlin.wiwiss.silk.rule.similarity.{Comparison, Aggregation}
+import de.fuberlin.wiwiss.silk.rule.input.{PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.entity.{Link, Path}
 import de.fuberlin.wiwiss.silk.util.DPair
 

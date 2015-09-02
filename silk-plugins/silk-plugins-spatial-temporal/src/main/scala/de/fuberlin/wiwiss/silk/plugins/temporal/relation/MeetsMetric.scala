@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.temporal.relation
 
 import de.fuberlin.wiwiss.silk.entity.Index
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 

@@ -5,8 +5,8 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.{DetailedEntity, DetailedEvaluator}
+import de.fuberlin.wiwiss.silk.rule.TransformRule
+import de.fuberlin.wiwiss.silk.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 
 /**
  * Evaluates a transformation rule.

@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.entity.EntityDescription
-import de.fuberlin.wiwiss.silk.linkagerule.TransformRule
+import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import de.fuberlin.wiwiss.silk.util.Identifier

@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.individual
 
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{DistanceMeasure, Comparison}
+import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure, Comparison}
 
 case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, required: Boolean, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
   require(inputs.source.isSource && !inputs.target.isSource, "inputs.source.isSource && !inputs.target.isSource")

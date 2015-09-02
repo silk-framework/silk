@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.individual.fitness
 
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 
 case class FMeasureFitness() extends FitnessFunction {

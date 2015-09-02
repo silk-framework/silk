@@ -18,7 +18,7 @@ import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluat
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.learning.individual._
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Activity[Population] {
 

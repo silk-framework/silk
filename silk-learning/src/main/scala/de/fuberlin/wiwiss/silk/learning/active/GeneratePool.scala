@@ -18,9 +18,9 @@ import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes, RuntimeConfi
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity.{Entity, Index, Link, Path}
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.linkagerule.input.PathInput
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimilarityOperator
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.input.PathInput
+import de.fuberlin.wiwiss.silk.rule.similarity.SimilarityOperator
 import de.fuberlin.wiwiss.silk.plugins.distance.equality.EqualityMetric
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.RandomUtils._

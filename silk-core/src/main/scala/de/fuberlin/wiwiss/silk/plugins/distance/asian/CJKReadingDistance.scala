@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.distance.asian
 
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.SimpleDistanceMeasure
+import de.fuberlin.wiwiss.silk.rule.similarity.SimpleDistanceMeasure
 import de.fuberlin.wiwiss.silk.entity.Index
 
 import java.util.StringTokenizer

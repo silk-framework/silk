@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.individual
 
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregator, Aggregation}
+import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregator, Aggregation}
 
 case class AggregationNode(aggregation: String, weight: Int, required: Boolean, operators: List[OperatorNode]) extends OperatorNode {
   override val children = operators

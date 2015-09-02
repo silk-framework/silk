@@ -17,9 +17,9 @@
 package de.fuberlin.wiwiss.silk.evaluation.statistics
 
 
-import de.fuberlin.wiwiss.silk.linkagerule.{Operator, LinkageRule}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Comparison, Aggregation}
-import de.fuberlin.wiwiss.silk.linkagerule.input.{PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.rule.{Operator, LinkageRule}
+import de.fuberlin.wiwiss.silk.rule.similarity.{Comparison, Aggregation}
+import de.fuberlin.wiwiss.silk.rule.input.{PathInput, TransformInput}
 
 /**
  * Complexity measures of a linkage rule.

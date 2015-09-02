@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.learning.individual
 
-import de.fuberlin.wiwiss.silk.linkagerule.input.{TransformInput, Transformer}
+import de.fuberlin.wiwiss.silk.rule.input.{TransformInput, Transformer}
 
 case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer: FunctionNode[Transformer]) extends InputNode {
   override val children = transformer :: inputs

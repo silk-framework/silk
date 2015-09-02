@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 

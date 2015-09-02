@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.learning.genlink
 
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.learning.LinkageRuleLearner.Result

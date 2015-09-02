@@ -18,9 +18,9 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
-import de.fuberlin.wiwiss.silk.linkagerule.input.{Input, PathInput, TransformInput}
-import de.fuberlin.wiwiss.silk.linkagerule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.input.{Input, PathInput, TransformInput}
+import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import de.fuberlin.wiwiss.silk.runtime.serialization.{ValidatingXMLReader, ValidationException, XmlFormat}

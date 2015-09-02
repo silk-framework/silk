@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.transformer.filter
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.linkagerule.input.Transformer
+import de.fuberlin.wiwiss.silk.rule.input.Transformer
 
 /**
  * Removes all strings that do NOT match a regex.

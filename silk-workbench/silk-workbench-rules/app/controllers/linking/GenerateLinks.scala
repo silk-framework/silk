@@ -4,7 +4,7 @@ import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
-import de.fuberlin.wiwiss.silk.linkagerule.evaluation.DetailedEvaluator
+import de.fuberlin.wiwiss.silk.rule.evaluation.DetailedEvaluator
 import de.fuberlin.wiwiss.silk.workspace.User
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}

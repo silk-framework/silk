@@ -20,7 +20,7 @@ import util.Random
 import de.fuberlin.wiwiss.silk.learning.individual.{Individual, Population}
 import de.fuberlin.wiwiss.silk.learning.generation.LinkageRuleGenerator
 import de.fuberlin.wiwiss.silk.learning.LearningConfiguration
-import de.fuberlin.wiwiss.silk.linkagerule.LinkageRule
+import de.fuberlin.wiwiss.silk.rule.LinkageRule
 
 class Reproduction(population: Population,
                    fitnessFunction: (LinkageRule => Double),
