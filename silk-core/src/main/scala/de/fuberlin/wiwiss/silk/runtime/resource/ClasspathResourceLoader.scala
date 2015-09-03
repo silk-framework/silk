@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.runtime.resource
 /**
  * A resource loader that loads resources from the classpath.
  */
-class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
+class ClasspathResourceLoader(val basePath: String) extends ResourceLoader {
 
   override def list = {
     throw new UnsupportedOperationException("ClasspathResourceLoader does not support listing resources")
@@ -39,7 +39,7 @@ class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
   }
 }
 
-private class ClasspathResource(val name: String, path: String) extends Resource {
+private class ClasspathResource(val name: String, val path: String) extends Resource {
 
   override def load = {
     getClass.getClassLoader.getResourceAsStream(path)

@@ -14,6 +14,11 @@ trait Resource {
   def name: String
 
   /**
+   * The path of this resource.
+   */
+  def path: String
+
+  /**
    * Loads the resource.
    *
    * @return An input stream for reading the resource.

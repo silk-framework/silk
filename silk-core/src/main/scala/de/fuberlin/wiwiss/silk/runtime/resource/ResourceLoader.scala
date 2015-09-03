@@ -6,6 +6,11 @@ package de.fuberlin.wiwiss.silk.runtime.resource
 trait ResourceLoader {
 
   /**
+   * The full path of this resource loader.
+   */
+  def basePath: String
+
+  /**
    * Lists all available resources.
    */
   def list: List[String]

@@ -23,7 +23,7 @@ Parameters:
   regexFilter: A regex filter used to match rows from the CSV file. If not set all the rows are used.
   charset: The file encoding, e.g., UTF8, ISO-8859-1"""
 )
-case class CsvDataset(file: Resource, properties: String, separator: String = ",", arraySeparator: String = "",
+case class CsvDataset(file: Resource, properties: String = "", separator: String = ",", arraySeparator: String = "",
                       prefix: String = "", uri: String = "", regexFilter: String = "", charset: String = "UTF8") extends DatasetPlugin {
 
   private val codec = Codec(charset)

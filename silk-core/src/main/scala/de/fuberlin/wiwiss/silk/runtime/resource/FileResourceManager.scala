@@ -7,6 +7,10 @@ import java.io._
  */
 class FileResourceManager(val baseDir: File) extends ResourceManager {
 
+  val basePath = baseDir.getAbsolutePath
+
+  def this(baseDir: String) = this(new File(baseDir))
+
   /**
    * Lists all files in the resources directory.
    */
@@ -85,6 +89,8 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
 }
 
 class FileResource(val name: String, val file: File) extends Resource {
+
+  val path = file.getAbsolutePath
 
   override def load = {
     new BufferedInputStream(new FileInputStream(file))

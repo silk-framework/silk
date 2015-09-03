@@ -7,6 +7,8 @@ import java.io.OutputStream
  */
 object EmptyResourceManager extends ResourceManager {
 
+  override def basePath = ""
+
   override def list = Nil
 
   override def get(name: String, mustExist: Boolean) = {
