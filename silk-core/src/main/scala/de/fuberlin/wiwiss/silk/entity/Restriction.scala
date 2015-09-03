@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
-import xml.Elem
+import scala.xml.Elem
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class Restriction(operator: Option[Restriction.Operator]) {
@@ -46,7 +46,7 @@ object Restriction {
   object Condition {
     def resolve(path: Path, value: String)(implicit prefixes: Prefixes) = {
       if(value.startsWith("<"))
-        Condition(path, value)
+        Condition(path, value.substring(1, value.length - 1))
       else
         Condition(path, prefixes.resolve(value))
     }

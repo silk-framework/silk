@@ -37,7 +37,7 @@ class SparqlRestriction private(val variable: String, restrictionsFull: String, 
 }
 
 object SparqlRestriction {
-  def empty = new SparqlRestriction("x", "", "")
+  def empty = new SparqlRestriction("a", "", "")
 
   def fromSparql(variable: String, restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
