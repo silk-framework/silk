@@ -36,6 +36,15 @@ final class Path private(val variable: String, val operators: List[PathOperator]
     operators.map(_.serialize).mkString.stripPrefix("/")
   }
 
+  /**
+   * Returns the property URI, if this is a simple forward path of length 1.
+   * Otherwise, returns none.
+   */
+  def propertyUri: Option[String] = operators match {
+    case ForwardOperator(prop) :: Nil => Some(prop.uri)
+    case _ => None
+  }
+
   override def toString = serializedFull
 
   /**
