@@ -30,7 +30,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
 
   private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntityDescription]) {
 
-    private val sources = task.data.datasets.map(ds => project.task[Dataset](ds.datasetId).data.source)
+    private val sources = task.data.dataSelections.map(ds => project.task[Dataset](ds.datasetId).data.source)
 
     private val linkSpec = task.data
 

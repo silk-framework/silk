@@ -28,7 +28,7 @@ import de.fuberlin.wiwiss.silk.execution.{Matcher, Loader}
 class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean,
               matchOnlyInProvidedGraph: Boolean) {
 
-  private val sources = linkSpec.datasets.map(_.sourceId).map(config.source)
+  private val sources = linkSpec.dataSelections.map(_.sourceId).map(config.source)
 
   private val entityDescs = linkSpec.entityDescriptions
 

@@ -49,6 +49,13 @@ lazy val pluginsJena = (project in file("silk-plugins/silk-plugins-jena"))
       libraryDependencies += "org.apache.jena" % "jena-arq" % "2.13.0" // exclude("org.slf4j", "slf4j-log4j12")
     )
 
+lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "1.5.6"
+  )
+
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
     .dependsOn(core)
     .settings(commonSettings: _*)
@@ -71,7 +78,8 @@ lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-sp
     )
 
 lazy val plugins = (project in file("silk-plugins"))
-    .dependsOn(pluginsJena, pluginsJson, pluginsSpatialTemporal)
+    .dependsOn(pluginsJena, pluginsCsv, pluginsJson, pluginsSpatialTemporal)
+    .aggregate(pluginsJena, pluginsCsv, pluginsJson, pluginsSpatialTemporal)
     .settings(commonSettings: _*)
 
 //////////////////////////////////////////////////////////////////////////////

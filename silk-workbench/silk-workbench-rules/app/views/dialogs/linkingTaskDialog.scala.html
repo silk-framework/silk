@@ -10,7 +10,7 @@
 
 @linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.name == task) }
 
-@currentInputs = @{ linkingTask.map(_.data.datasets) }
+@currentInputs = @{ linkingTask.map(_.data.dataSelections) }
 
 @currentOutput = @{ linkingTask.flatMap(_.data.outputs.headOption) }
 

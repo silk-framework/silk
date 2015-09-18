@@ -18,7 +18,7 @@ object Data {
       Data(
         name = project.name,
         task = task,
-        sources = task.data.datasets.map(ds => project.task[Dataset](ds.datasetId).data.source)
+        sources = task.data.dataSelections.map(ds => project.task[Dataset](ds.datasetId).data.source)
       )
     }
   }

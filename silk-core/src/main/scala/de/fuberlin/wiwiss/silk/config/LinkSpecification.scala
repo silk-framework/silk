@@ -16,6 +16,7 @@ package de.fuberlin.wiwiss.silk.config
 
 import java.util.logging.Logger
 
+import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, Dataset}
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.rule.LinkageRule
@@ -32,17 +33,25 @@ import scala.xml.Node
  * Represents a Silk Link Specification.
  */
 case class LinkSpecification(id: Identifier = Identifier.random,
-                             datasets: DPair[DatasetSelection] = DatasetSelection.emptyPair,
+                             dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
                              rule: LinkageRule = LinkageRule(),
                              outputs: Seq[Identifier] = Seq.empty,
                              referenceLinks: ReferenceLinks = ReferenceLinks.empty ) {
 
-  def entityDescriptions: DPair[EntityDescription] = {
-    val sourceVar = datasets.source.variable
-    val targetVar = datasets.target.variable
+  def findSources(datasets: Traversable[Dataset]): DPair[DataSource] = {
+    DPair.fromSeq(dataSelections.map(_.datasetId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
+  }
 
-    val sourceRestriction = datasets.source.restriction
-    val targetRestriction = datasets.target.restriction
+  def findOutputs(datasets: Traversable[Dataset]): Seq[DataSink] = {
+    outputs.flatMap(id => datasets.find(_.id == id)).map(_.sink)
+  }
+  
+  def entityDescriptions: DPair[EntityDescription] = {
+    val sourceVar = dataSelections.source.variable
+    val targetVar = dataSelections.target.variable
+
+    val sourceRestriction = dataSelections.source.restriction
+    val targetRestriction = dataSelections.target.restriction
 
     val sourcePaths = rule.operator match {
       case Some(operator) => collectPaths(sourceVar)(operator)
@@ -107,7 +116,7 @@ object LinkSpecification {
 
       LinkSpecification(
         id = id,
-        datasets = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
+        dataSelections = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
           DatasetSelection.fromXML((node \ "TargetDataset").head)),
         rule = fromXml[LinkageRule](linkageRuleNode),
         outputs = (node \ "Outputs" \ "Output").map(_.text).map(Identifier(_))
@@ -119,8 +128,8 @@ object LinkSpecification {
      */
     def write(spec: LinkSpecification)(implicit prefixes: Prefixes = Prefixes.empty): Node =
       <Interlink id={spec.id}>
-        {spec.datasets.source.toXML(asSource = true)}
-        {spec.datasets.target.toXML(asSource = false)}
+        {spec.dataSelections.source.toXML(asSource = true)}
+        {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}
         <Outputs>
           {spec.outputs.map(o => <Output>{o}</Output>)}

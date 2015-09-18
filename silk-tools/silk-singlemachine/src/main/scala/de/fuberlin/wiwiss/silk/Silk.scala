@@ -22,9 +22,11 @@ import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinks}
 import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.util.CollectLogs
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
+import scala.xml.XML
 
 /**
  * Executes the complete Silk workflow.
@@ -97,8 +99,9 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    val resourceLoader = new FileResourceManager(configFile.getParentFile)
-    executeConfig(LinkingConfig.load(resourceLoader)(configFile), linkSpecID, numThreads, reload)
+    implicit val resourceLoader = new FileResourceManager(configFile.getParentFile)
+    val config = Serialization.fromXml[LinkingConfig](XML.loadFile(configFile))
+    executeConfig(config, linkSpecID, numThreads, reload)
   }
 
   /**
@@ -145,10 +148,10 @@ object Silk {
    */
   private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true): Unit = {
     val generateLinks =
-      GenerateLinks.fromSources(
-        inputs = config.sources,
+      new GenerateLinks(
+        inputs = linkSpec.findSources(config.sources),
         linkSpec = linkSpec,
-        outputs = linkSpec.outputs ++ config.outputs,
+        outputs = config.outputs.map(_.sink),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
     Activity(generateLinks).startBlocking()
@@ -163,7 +166,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {
     val input = config.source(transform.selection.datasetId).source
-    Activity(ExecuteTransform(input, transform)).startBlocking()
+    Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.sink))).startBlocking()
   }
 
   /**

@@ -112,7 +112,7 @@ object GenerateLinks {
   def fromSources(datasets: Traversable[Dataset],
                   linkSpec: LinkSpecification,
                   runtimeConfig: RuntimeConfig = RuntimeConfig()) = {
-    val sourcePair = DPair.fromSeq(linkSpec.datasets.map(_.datasetId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
+    val sourcePair = linkSpec.findSources(datasets)
     val outputs = linkSpec.outputs.flatMap(o => datasets.find(_.id == o)).map(_.sink)
     new GenerateLinks(sourcePair, linkSpec, outputs, runtimeConfig)
   }

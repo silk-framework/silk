@@ -36,7 +36,7 @@ object LinkingTaskApi extends Controller {
     proj.tasks[LinkSpecification].find(_.name == task) match {
       //Update existing task
       case Some(oldTask) => {
-        val updatedLinkSpec = oldTask.data.copy(datasets = datasets, outputs = outputs)
+        val updatedLinkSpec = oldTask.data.copy(dataSelections = datasets, outputs = outputs)
         proj.updateTask(task, updatedLinkSpec)
       }
       //Create new task
@@ -44,7 +44,7 @@ object LinkingTaskApi extends Controller {
         val linkSpec =
           LinkSpecification(
             id = task,
-            datasets = datasets,
+            dataSelections = datasets,
             rule = LinkageRule(None),
             outputs = outputs
           )

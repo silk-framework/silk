@@ -1,9 +1,11 @@
 package de.fuberlin.wiwiss.silk.runtime.serialization
 
+import java.io.File
+
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 
-import scala.xml.Node
+import scala.xml.{XML, Node}
 
 /**
  * Serializes between classes and XML.
