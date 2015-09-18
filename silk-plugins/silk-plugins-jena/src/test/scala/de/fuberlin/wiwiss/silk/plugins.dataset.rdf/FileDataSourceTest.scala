@@ -12,9 +12,8 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.dataset
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.FileDataset
 import org.scalatest.{Matchers, FlatSpec}
 import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
 import de.fuberlin.wiwiss.silk.config.Prefixes
@@ -31,7 +30,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val fileName = "test.nt"
 
-  val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/jena/datasource").getFile))
+  val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/dataset/rdf").getFile))
 
   val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
