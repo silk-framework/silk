@@ -20,7 +20,6 @@ import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.rule.input.Transformer
 import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregator, DistanceMeasure}
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
-import de.fuberlin.wiwiss.silk.plugins.dataset.csv.CsvDataset
 import de.fuberlin.wiwiss.silk.plugins.dataset.xml.XmlDataset
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._
@@ -54,7 +53,6 @@ object CorePlugins {
   def register() {
     logger.log(Level.FINE, "Registering core plugins.")
 
-    DatasetPlugin.register(classOf[CsvDataset])
     DatasetPlugin.register(classOf[XmlDataset])
 
     Transformer.register(classOf[ReplaceTransformer])

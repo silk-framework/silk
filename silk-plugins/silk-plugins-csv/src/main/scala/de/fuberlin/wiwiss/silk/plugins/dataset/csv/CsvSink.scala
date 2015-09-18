@@ -1,12 +1,12 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
-import java.io.{FileOutputStream, OutputStreamWriter, BufferedWriter, Writer}
+import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter, Writer}
 
 import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.runtime.resource.{FileResource, Resource}
 
-class CsvSink(file: Resource, separator: String = ",", arraySeparator: String = " ") extends DataSink {
+class CsvSink(file: Resource, settings: CsvSettings) extends DataSink {
 
   private val javaFile = file match {
     case f: FileResource => f.file
@@ -21,15 +21,15 @@ class CsvSink(file: Resource, separator: String = ",", arraySeparator: String = 
     out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
     //Write header
     if(properties.nonEmpty)
-      out.write(properties.mkString(separator) + "\n")
+      out.write(properties.mkString(settings.separator.toString) + "\n")
   }
 
   override def writeLink(link: Link, predicateUri: String) {
-    out.write(link.source + separator + link.target + "\n")
+    out.write(link.source + settings.separator + link.target + "\n")
   }
 
   override def writeEntity(subject: String, values: Seq[Set[String]]) {
-    out.write(values.map(_.mkString(arraySeparator)).mkString(separator) + "\n")
+    out.write(values.map(_.mkString(settings.arraySeparator)).mkString(settings.separator.toString) + "\n")
   }
 
   override def close() {

@@ -12,8 +12,6 @@ import scala.io.{Codec, Source}
 
 class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", prefix: String = "", uri: String = "", regexFilter: String = "", codec: Codec = Codec.UTF8) extends DataSource {
 
-  //require(settings.separator.length == 1, "Separator must be a single character.")
-
   private val logger = Logger.getLogger(getClass.getName)
 
   private lazy val propertyList: Seq[String] = {

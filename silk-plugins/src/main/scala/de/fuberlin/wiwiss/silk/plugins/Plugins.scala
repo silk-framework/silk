@@ -6,7 +6,7 @@ import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.DatasetPlugin
 import de.fuberlin.wiwiss.silk.rule.input.Transformer
 import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregator, DistanceMeasure}
-import de.fuberlin.wiwiss.silk.plugins.dataset.{JenaPlugins, JsonPlugins}
+import de.fuberlin.wiwiss.silk.plugins.dataset.{CsvPlugins, JenaPlugins, JsonPlugins}
 import de.fuberlin.wiwiss.silk.plugins.spatial.SpatialPlugins
 import de.fuberlin.wiwiss.silk.plugins.temporal.TemporalPlugins
 import de.fuberlin.wiwiss.silk.util.Timer
@@ -31,6 +31,7 @@ object Plugins {
     if(!registered) {
       CorePlugins.register()
       JenaPlugins.register()
+      CsvPlugins.register()
       JsonPlugins.register()
       SpatialPlugins.register()
       TemporalPlugins.register()

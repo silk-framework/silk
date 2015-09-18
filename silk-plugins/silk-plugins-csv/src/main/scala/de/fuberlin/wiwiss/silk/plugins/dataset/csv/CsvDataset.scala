@@ -26,9 +26,13 @@ Parameters:
 case class CsvDataset(file: Resource, properties: String = "", separator: String = ",", arraySeparator: String = "",
                       prefix: String = "", uri: String = "", regexFilter: String = "", charset: String = "UTF8") extends DatasetPlugin {
 
+  require(separator.length == 1, "Separator must be a single character.")
+
   private val codec = Codec(charset)
 
-  override def source: DataSource = new CsvSource(file, properties, separator, arraySeparator, prefix, uri, regexFilter, codec)
+  private val settings = CsvSettings(separator.head, arraySeparator)
 
-  override def sink: DataSink = new CsvSink(file, separator, arraySeparator)
+  override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec)
+
+  override def sink: DataSink = new CsvSink(file, settings)
 }
