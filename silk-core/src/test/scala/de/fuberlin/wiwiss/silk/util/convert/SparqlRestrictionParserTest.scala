@@ -51,7 +51,7 @@ class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
 
   "SparqlRestrictionParser" should "convert simple patterns with full URIs" in {
     val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a rdf:type <http://unknown.org/Settlement>")
-    val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), "<http://unknown.org/Settlement>")))
+    val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), "http://unknown.org/Settlement")))
 
     restrictionConverter(sparqlRestriction) should equal(restriction)
   }
