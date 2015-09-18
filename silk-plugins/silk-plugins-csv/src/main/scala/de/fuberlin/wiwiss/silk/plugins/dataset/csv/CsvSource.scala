@@ -10,18 +10,21 @@ import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 import scala.io.{Codec, Source}
 
-class CsvSource(file: Resource, properties: String, separator: String, arraySeparator: String, prefix: String = "", uri: String = "", regexFilter: String = "", codec: Codec) extends DataSource {
+class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", prefix: String = "", uri: String = "", regexFilter: String = "", codec: Codec = Codec.UTF8) extends DataSource {
+
+  //require(settings.separator.length == 1, "Separator must be a single character.")
 
   private val logger = Logger.getLogger(getClass.getName)
 
   private lazy val propertyList: Seq[String] = {
+    val parser = new CsvParser(Seq.empty, settings)
     if (!properties.trim.isEmpty)
-      properties.split(',')
+      parser.parseLine(properties)
     else {
       val source = Source.fromInputStream(file.load)(codec)
       val firstLine = source.getLines().next()
       source.close()
-      firstLine.split(separator).map(s => URLEncoder.encode(s, "UTF8"))
+      parser.parseLine(firstLine).map(s => URLEncoder.encode(s, "UTF8"))
     }
   }
 
@@ -41,7 +44,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
         val propertyIndex = propertyList.indexOf(property)
         if (propertyIndex == -1)
-          throw new Exception(s"Property '$property' not found in CSV. Available properties: ${propertyList.mkString("'", "', '", "'")}")
+          throw new Exception("Property " + path.toString + " not found in CSV")
         propertyIndex
       }
 
@@ -50,6 +53,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
       def foreach[U](f: Entity => U) {
         val inputStream = file.load
         val source = Source.fromInputStream(inputStream)(codec)
+        val parser = new CsvParser(indices, settings)
 
         // Compile the line regex.
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
@@ -66,7 +70,7 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
               logger.log(Level.FINER, s"Retrieving data from CSV [ line number :: ${number + 1} ].")
 
               //Split the line into values
-              val allValues = line.split(separator, -1)
+              val allValues = parser.parseLine(line)
               assert(propertyList.size >= allValues.size, s"Invalid line ${number + 1}: '$line' in resource '${file.name}' with ${allValues.size} elements. Expected number of elements ${propertyList.size}.")
               //Extract requested values
               val values = indices.map(allValues(_))
@@ -89,10 +93,10 @@ class CsvSource(file: Resource, properties: String, separator: String, arraySepa
               //Build entity
               if (entities.isEmpty || entities.contains(entityURI)) {
                 val entityValues =
-                  if (arraySeparator.isEmpty)
+                  if (settings.arraySeparator.isEmpty)
                     values.map(Set(_))
                   else
-                    values.map(_.split(arraySeparator, -1).toSet)
+                    values.map(_.split(settings.arraySeparator, -1).toSet)
 
                 f(new Entity(
                   uri = entityURI,
