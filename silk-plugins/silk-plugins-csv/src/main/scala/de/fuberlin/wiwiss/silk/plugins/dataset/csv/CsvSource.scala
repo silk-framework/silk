@@ -1,5 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
+import java.io.{BufferedReader, InputStreamReader}
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
@@ -50,8 +51,8 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
         val inputStream = file.load
-        val source = Source.fromInputStream(inputStream)(codec)
-        val parser = new CsvParser(indices, settings)
+        val reader = new BufferedReader(new InputStreamReader(inputStream, codec.decoder))
+        val parser = new CsvParser(Seq.empty, settings) // Here we could only load the required indices as a performance improvement
 
         // Compile the line regex.
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
@@ -60,16 +61,15 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
           // the rows.
 
-          source.getLines().zipWithIndex
-            .withFilter(l => !(properties.trim.isEmpty && 0 == l._2) && (regexFilter.isEmpty || regex.matcher(l._1).matches()))
-            .foreach {
-
-            case (line, number) =>
-              logger.log(Level.FINER, s"Retrieving data from CSV [ line number :: ${number + 1} ].")
+          var line = reader.readLine()
+          var index = 0
+          while(line != null) {
+            if(!(properties.trim.isEmpty && 0 == index) && (regexFilter.isEmpty || regex.matcher(line).matches())) {
+              logger.log(Level.FINER, s"Retrieving data from CSV [ line number :: ${index + 1} ].")
 
               //Split the line into values
               val allValues = parser.parseLine(line)
-              assert(propertyList.size >= allValues.size, s"Invalid line ${number + 1}: '$line' in resource '${file.name}' with ${allValues.size} elements. Expected number of elements ${propertyList.size}.")
+              assert(propertyList.size >= allValues.size, s"Invalid line ${index + 1}: '$line' in resource '${file.name}' with ${allValues.size} elements. Expected number of elements ${propertyList.size}.")
               //Extract requested values
               val values = indices.map(allValues(_))
 
@@ -78,7 +78,7 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
               // build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
               // as defined in the *properties* field.
               val entityURI = if (uri.isEmpty)
-                prefix + (number + 1)
+                prefix + (index + 1)
               else
                 "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
                   val propName = m.group(1)
@@ -98,15 +98,16 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
 
                 f(new Entity(
                   uri = entityURI,
-                  values = entityValues.padTo(propertyList.size, Set.empty),
+                  values = entityValues,
                   desc = entityDesc
                 ))
               }
+            }
+            index += 1
+            line = reader.readLine()
           }
-
         } finally {
-          source.close()
-          inputStream.close()
+          reader.close()
         }
       }
     }
