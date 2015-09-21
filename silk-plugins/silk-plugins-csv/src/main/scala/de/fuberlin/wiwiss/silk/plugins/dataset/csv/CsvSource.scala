@@ -90,11 +90,12 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
 
               //Build entity
               if (entities.isEmpty || entities.contains(entityURI)) {
-                val entityValues =
-                  if (settings.arraySeparator.isEmpty)
+                val entityValues = settings.arraySeparator match {
+                  case None =>
                     values.map(Set(_))
-                  else
-                    values.map(_.split(settings.arraySeparator, -1).toSet)
+                  case Some(c) =>
+                    values.map(_.split(c.toString, -1).toSet)
+                  }
 
                 f(new Entity(
                   uri = entityURI,

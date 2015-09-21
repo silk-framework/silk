@@ -29,7 +29,7 @@ class CsvSink(file: Resource, settings: CsvSettings) extends DataSink {
   }
 
   override def writeEntity(subject: String, values: Seq[Set[String]]) {
-    out.write(values.map(_.mkString(settings.arraySeparator)).mkString(settings.separator.toString) + "\n")
+    out.write(values.map(_.mkString(settings.arraySeparator.getOrElse(' ').toString)).mkString(settings.separator.toString) + "\n")
   }
 
   override def close() {

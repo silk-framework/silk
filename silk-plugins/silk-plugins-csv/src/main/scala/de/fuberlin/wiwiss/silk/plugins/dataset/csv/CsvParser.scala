@@ -6,6 +6,8 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
 
   private val parserSettings = new CsvParserSettings()
   parserSettings.getFormat.setDelimiter(settings.separator)
+  for(quoteChar <- settings.quote)
+    parserSettings.getFormat.setQuote(quoteChar)
   if(selectedIndices.nonEmpty)
     parserSettings.selectIndexes(selectedIndices.map(new Integer(_)): _*)
 
