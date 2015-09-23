@@ -11,7 +11,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val settings =
     CsvSettings(
       separator = ',',
-      arraySeparator = ""
+      quote = None,
+      arraySeparator = None
     )
 
   val source = new CsvSource(resources.get("persons.csv"), settings)

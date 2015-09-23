@@ -92,9 +92,9 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
               if (entities.isEmpty || entities.contains(entityURI)) {
                 val entityValues = settings.arraySeparator match {
                   case None =>
-                    values.map(Set(_))
+                    values.map(v => if(v != null) Set(v) else Set.empty[String])
                   case Some(c) =>
-                    values.map(_.split(c.toString, -1).toSet)
+                    values.map(v => if(v != null) v.split(c.toString, -1).toSet else Set.empty[String])
                   }
 
                 f(new Entity(
