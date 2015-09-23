@@ -31,7 +31,7 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 case class IsFinishedByMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    Utils.evaluateRelation(str1, str2, limit, Constants.IS_FINISHED_BY)
+    Utils.evaluateRelation(str1, str2, Constants.IS_FINISHED_BY)
   }
 
   override def indexValue(str: String, distance: Double): Index = {

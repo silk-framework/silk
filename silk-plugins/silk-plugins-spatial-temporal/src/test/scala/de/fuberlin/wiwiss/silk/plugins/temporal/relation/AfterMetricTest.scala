@@ -29,8 +29,14 @@ class AfterMetricTest extends FlatSpec with Matchers {
 
   val metric = new AfterMetric()
 
-  //After evaluation.
-  "AfterMetric test 1" should "return '1.0'" in {
-    metric.evaluate("[2000-01-01T00:00:02, 2000-01-01T00:00:03)", "[2000-01-01T00:00:00, 2000-01-01T00:00:01)", 1.0) should equal(1.0)
+  "AfterMetric" should "compare data time intervals" in {
+    metric.evaluate("[2000-01-01T00:00:02, 2000-01-01T00:00:03)", "[2000-01-01T00:00:00, 2000-01-01T00:00:01)") should equal(0.0)
+  }
+
+  "AfterMetric" should "compare data times" in {
+    metric.evaluate("2000-01-05T00:00:00", "2000-01-01T00:00:00") should equal(0.0)
+    metric.evaluate("2000-01-01T00:00:00", "2000-01-02T00:00:00") should equal(1.0)
+    metric.evaluate("2000-01-01T00:00:01", "2000-01-01T00:00:00") should equal(0.0)
+    metric.evaluate("2000-01-01T00:00:00", "2000-01-01T00:00:01") should equal(1.0)
   }
 }

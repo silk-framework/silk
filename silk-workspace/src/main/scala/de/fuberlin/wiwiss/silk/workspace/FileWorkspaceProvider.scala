@@ -83,7 +83,7 @@ class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     zip.close()
 
     //Return proposed file name
-    project + ".xml"
+    project + ".zip"
   }
 
   //TODO if an import fails, delete all already created files!

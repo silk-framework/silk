@@ -125,28 +125,27 @@ object Utils {
    *
    * @param timeString1 : String
    * @param timeString2 : String
-   * @param limit: Double
    * @param relation: String
-   * @return Double
+   * @return 0.0, if the relation is true. 1.0, otherwise.
    */
-  def evaluateRelation(timeString1: String, timeString2: String, limit: Double, relation: String): Double = {
+  def evaluateRelation(timeString1: String, timeString2: String, relation: String): Double = {
     try {
       val period1 = Parser.parseTime(timeString1)
       val period2 = Parser.parseTime(timeString2)
 
       //Ensure that periods are well-defined.
       if (period1 == null || period2 == null)
-        return Double.PositiveInfinity
+        return 1.0
 
       //Compute the temporal relation.
       if (relate(period1, period2, relation))
-        return limit
+        return 0.0
       else
-        return Double.PositiveInfinity
+        return 1.0
 
     } catch {
       case e: Exception =>
-        Double.PositiveInfinity
+        1.0
     }
   }
 

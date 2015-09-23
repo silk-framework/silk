@@ -31,7 +31,7 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
 case class DuringMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
-    Utils.evaluateRelation(str1, str2, limit, Constants.DURING)
+    Utils.evaluateRelation(str1, str2, Constants.DURING)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
