@@ -13,3 +13,14 @@ case class ScoringRule(name: Identifier = "score", operator: Input, target: Uri)
     )
   }
 }
+
+object ScoringRule {
+
+  def fromTransform(rule: TransformRule) =
+    ScoringRule(
+      name = rule.name,
+      operator = rule.operator,
+      target = rule.target.getOrElse(throw new IllegalArgumentException("Cannot convert transform rule with empty target to scoring rule."))
+    )
+
+}

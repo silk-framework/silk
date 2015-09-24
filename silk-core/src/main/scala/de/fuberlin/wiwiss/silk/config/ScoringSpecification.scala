@@ -18,3 +18,15 @@ case class ScoringSpecification(id: Identifier = Identifier.random, selection: D
   }
 
 }
+
+object ScoringSpecification {
+
+  def fromTransform(task: TransformSpecification) =
+    ScoringSpecification(
+      id = task.id,
+      selection = task.selection,
+      rules = task.rules.map(ScoringRule.fromTransform),
+      outputs = task.outputs
+    )
+
+}
