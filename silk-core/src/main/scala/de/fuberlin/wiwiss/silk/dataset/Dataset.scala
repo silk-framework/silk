@@ -47,14 +47,15 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
      * Initializes this writer.
      */
     override def open(properties: Seq[String]) {
-      require(!isOpen, "Output already open")
+      if (isOpen) {
+        writer.close()
+        isOpen = false
+      }
 
       writer.open(properties)
       linkCount = 0
       isOpen = true
     }
-
-
 
     /**
      * Writes a new link to this writer.
