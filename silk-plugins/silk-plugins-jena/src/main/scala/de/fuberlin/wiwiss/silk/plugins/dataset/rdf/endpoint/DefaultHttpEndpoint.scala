@@ -37,14 +37,15 @@ class DefaultHttpEndpoint extends HttpEndpoint {
     }
   }
 
-  def update(url: String, body: String): Unit = {
+  def update(url: String, query: String): Unit = {
     //Open a new HTTP connection
     val connection = new URL(url).openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
     connection.setDoOutput(true)
     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
     val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
-    writer.write(body)
+    // TODO url encode
+    writer.write(query)
     writer.close()
 
     //Check if the HTTP response code is in the range 2xx

@@ -7,5 +7,5 @@ import scala.xml.Elem
  */
 trait HttpEndpoint {
   def select(url: String, login: Option[(String, String)]): Elem
-  def update(url: String, body: String): Unit
+  def update(url: String, query: String): Unit
 }
