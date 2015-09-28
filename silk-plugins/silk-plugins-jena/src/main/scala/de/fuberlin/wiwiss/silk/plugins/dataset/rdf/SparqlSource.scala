@@ -4,17 +4,17 @@ import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{DefaultHttpEndpoint, HttpEndpoint, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql._
 
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams) extends DataSource {
+class SparqlSource(params: SparqlParams, client: HttpEndpoint = new DefaultHttpEndpoint) extends DataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
-  private val graphUri = if (params.graph == null) None else Some(params.graph)
+  private val graphUri = Option(params.graph)
 
   private val entityUris = Option(params.entityList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 

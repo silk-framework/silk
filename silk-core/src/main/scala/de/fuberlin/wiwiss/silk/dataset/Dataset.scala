@@ -39,6 +39,8 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
     private var linkCount: Int = 0
 
+    private var entityCount: Int = 0
+
     private var isOpen = false
 
     private val writer = plugin.sink
@@ -54,6 +56,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
       writer.open(properties)
       linkCount = 0
+      entityCount = 0
       isOpen = true
     }
 
@@ -73,6 +76,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
     override def writeEntity(subject: String, values: Seq[Set[String]]) {
       require(isOpen, "Output must be opened befored writing statements to it")
       writer.writeEntity(subject, values)
+      entityCount += 1
     }
 
     /**
@@ -81,8 +85,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
     override def close() {
       if (isOpen) writer.close()
       isOpen = false
-
-      log.info("Wrote " + linkCount + " links")
+      log.info(s"Wrote $entityCount entities and $linkCount links.")
     }
   }
 }

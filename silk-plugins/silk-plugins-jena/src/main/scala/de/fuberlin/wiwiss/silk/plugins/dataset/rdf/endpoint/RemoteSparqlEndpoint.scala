@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 
-import java.io.IOException
+import java.io.{OutputStreamWriter, IOException}
 import java.net._
 import java.util.logging.{Level, Logger}
 import javax.xml.bind.DatatypeConverter
@@ -29,7 +29,7 @@ import scala.xml.{NodeSeq, Elem, XML}
 /**
  * Executes queries on a remote SPARQL endpoint.
  */
-class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
+class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint = new DefaultHttpEndpoint) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
@@ -97,19 +97,13 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
       if (logger.isLoggable(Level.FINE))
         logger.info("Executing query on " + params.uri + "\n" + query)
 
-      val url = new URL(params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters)
-
+      val url = params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters
       var result: Elem = null
       var retries = 0
       var retryPause = params.retryPause
       while (result == null) {
-        val httpConnection = RemoteSparqlEndpoint.openConnection(url, params.login)
-
         try {
-          val inputStream = httpConnection.getInputStream
-          result = XML.load(inputStream)
-          inputStream.close()
-          httpConnection.disconnect()
+          result = httpEndpoint.select(url, params.login)
         }
         catch {
           case ex: IOException => {
@@ -117,17 +111,7 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
             if (retries > params.retryCount) {
               throw ex
             }
-
-            if (logger.isLoggable(Level.INFO)) {
-              val errorStream = httpConnection.getErrorStream
-              if (errorStream != null) {
-                val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-                logger.info("Query on " + params.uri + " failed:\n" + query + "\nError Message: '" + errorMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
-              }
-              else {
-                logger.info("Query on " + params.uri + " failed:\n" + query + "\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
-              }
-            }
+            logger.info("Query on " + params.uri + " failed:\n" + query + "\nError Message: '" + ex.getMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
 
             Thread.sleep(retryPause)
             //Double the retry pause up to a maximum of 1 hour
@@ -164,3 +148,7 @@ private object RemoteSparqlEndpoint {
     httpConnection
   }
 }
+
+
+
+

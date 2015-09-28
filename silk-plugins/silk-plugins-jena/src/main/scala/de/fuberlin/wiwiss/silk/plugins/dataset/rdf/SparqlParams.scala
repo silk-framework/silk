@@ -30,4 +30,9 @@ case class SparqlParams(uri: String, user: String = null, password: String = nul
     }
   }
 
+  /**
+   * The full URI including the query parameters
+   */
+  val fullUri = uri + "?" + queryParameters.stripPrefix("&")
+
 }
