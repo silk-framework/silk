@@ -150,7 +150,7 @@ object TransformRule {
         ComplexMapping(
           name = (node \ "@name").text,
           operator = fromXml[Input]((node \ "_").head),
-          target = if(target.isEmpty) None else Some(prefixes.resolve(target))
+          target = if(target.isEmpty) None else Some(Uri.parse(target, prefixes))
         )
       simplify(complex)
     }

@@ -38,7 +38,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
       <TransformSpec>
         { data.rules.map(toXml[TransformRule]) }
         <Outputs>
-        { data.outputs.map(o => <Output>{o}</Output>) }
+        { data.outputs.map(o => <Output id={o}></Output>) }
         </Outputs>
       </TransformSpec>.write(os)
     }
@@ -59,7 +59,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
     val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
-    val outputs = (rulesXml \ "Outputs" \ "Output").map(_.text).map(Identifier(_))
+    val outputs = (rulesXml \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
     (name, TransformSpecification(name, dataset, rules, outputs))
   }
 

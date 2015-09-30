@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql._
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams, client: HttpEndpoint = new DefaultHttpEndpoint) extends DataSource {
+class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new DefaultHttpEndpoint) extends DataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -20,7 +20,7 @@ class SparqlSource(params: SparqlParams, client: HttpEndpoint = new DefaultHttpE
 
   def sparqlEndpoint = {
     //new JenaRemoteEndpoint(endpointURI)
-    new RemoteSparqlEndpoint(params)
+    new RemoteSparqlEndpoint(params, httpEndpoint)
   }
 
   override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {

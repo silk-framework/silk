@@ -119,7 +119,7 @@ object LinkSpecification {
         dataSelections = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
           DatasetSelection.fromXML((node \ "TargetDataset").head)),
         rule = fromXml[LinkageRule](linkageRuleNode),
-        outputs = (node \ "Outputs" \ "Output").map(_.text).map(Identifier(_))
+        outputs = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
       )
     }
 
@@ -132,7 +132,7 @@ object LinkSpecification {
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}
         <Outputs>
-          {spec.outputs.map(o => <Output>{o}</Output>)}
+          {spec.outputs.map(o => <Output id={o}></Output>)}
         </Outputs>
       </Interlink>
   }
