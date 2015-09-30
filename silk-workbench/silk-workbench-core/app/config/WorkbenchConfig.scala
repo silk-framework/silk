@@ -15,6 +15,7 @@ import WorkbenchConfig.Tabs
  * @param tabs The shown tabs.
  */
 case class WorkbenchConfig(title: String = "Silk Workbench",
+                           version: String,
                            logo: Resource,
                            welcome: Resource,
                            about: Resource,
@@ -31,6 +32,7 @@ object WorkbenchConfig {
 
     WorkbenchConfig(
       title = config.getString("workbench.title").getOrElse("Silk Workbench"),
+      version = config.getString("workbench.version").getOrElse(""),
       logo = resourceLoader.get(config.getString("workbench.logo").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getString("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getString("workbench.about").getOrElse("about.html")),
