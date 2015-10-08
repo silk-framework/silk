@@ -98,6 +98,7 @@ object CorePlugins {
     Transformer.register(classOf[LogarithmTransformer])
     Transformer.register(classOf[AggregateNumbersTransformer])
     Transformer.register(classOf[CompareNumbersTransformer])
+    Transformer.register(classOf[CountTransformer])
     // Date
     Transformer.register(classOf[TimestampToDateTransformer])
     Transformer.register(classOf[DateToTimestampTransformer])

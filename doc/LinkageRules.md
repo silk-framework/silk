@@ -19,11 +19,23 @@ Every path statement begins with a variable (as defined in the datasets), which 
 
 The following operators can be used to traverse the graph:
 
-| Operator | Name             | Use                                                               | Description                                                                                                                                        |
-|----------|------------------|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| /        | forward operator | `<path_segment>/<property>`                                       | Moves forward from a subject resource (set) through a property to its object resource (set).                                                       |
-| \\       | reverse operator | `<path_segment>\<property>`                                       | Moves backward from an object resource (set) through a property to its subject resource (set).                                                     |
-| [ ]      | filter operator  | `<code><path_segment>\[<property> <comp_operator> <value>\]</code> <code><path_segment>\[@lang <comp_operator> <value>\]</code>` | Reduces the currently selected set of resources to the ones matching the filter expression. comp\_operator may be one of &gt;, <, >=, &lt;=, =, != |
+----------------------------------------------------------------------------------------------------------------------
+Operator Name              Use                             Description
+-------- ----------------- ------------------------------- -----------------------------------------------------------
+/        forward operator | `<path_segment>/<property>`    Moves forward from a subject resource (set) through a 
+                                                           property to its object resource (set).
+
+\\       reverse operator | `<path_segment>\<property>`    Moves backward from an object resource (set) through a
+                                                           property to its subject resource (set).
+
+[ ]      filter operator  | `<code><path_segment>\         Reduces the currently selected set of resources to the ones 
+                            [<property> <comp_operator>    matching the filter expression. comp\_operator may be one of
+                            <value>\]</code> <code>         &gt;, <, >=, &lt;=, =, !=
+                            <path_segment>\[@lang
+                            <comp_operator> <value>\]
+                            </code>`
+
+------------------------------------------------------------------------------------------------------------------------
 
 ### Examples
 
@@ -69,12 +81,22 @@ The *distance measure* always outputs 0 for a perfect match, and a higher value 
 
 The following default parameters can be set for each comparison:
 
-|_. Parameter |_. Description |
-| required (optional) | If required is true, the parent aggregation only yields a confidence value if the given inputs have values for both instances.  |
-| weight (optional) | Weight of this comparison. The weight is used by some aggregations such as the weighted average aggregation.  |
-| threshold | The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.  |
-| distanceMeasure | The used distance measure. For a list of available distance measures see below. |
-| Inputs | The 2 inputs for the comparison. |    
+----------------------------------------------------------------------------------------------------------------------
+Parameter            Description
+-------------------- -------------------------------------------------------------------------------------------------
+required (optional)  If required is true, the parent aggregation only yields a confidence value if the given inputs
+                     have values for both instances.
+
+weight (optional)    Weight of this comparison. The weight is used by some aggregations such as the weighted average
+                     aggregation.
+
+threshold            The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.
+
+distanceMeasure      The used distance measure. For a list of available distance measures see below.
+
+Inputs               The 2 inputs for the comparison.
+
+----------------------------------------------------------------------------------------------------------------------
 
 The threshold is used to convert the computed distance to a confidence between -1.0 and 1.0. Links will be generated for confidences above 0 while higher confidence values imply a higher similarity between the compared entities.
 
@@ -84,14 +106,26 @@ The threshold is used to convert the computed distance to a confidence between -
 
 Character-based distance measures compare strings on the character level. They are well suited for handling typographical errors.
 
-| Measure             | Description                                                                                                                                                                                          | Normalized |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| levenshteinDistance | Levenshtein distance. The minimum number of edits needed to transform one string into the other, with the allowable edit operations being insertion, deletion, or substitution of a single character | No         |
-| levenshtein         | The levensthein distance normalized to the interval \[0,1\]                                                                                                                                          | Yes        |
-| jaro                | Jaro distance metric. Simple distance metric originally developed to compare person names.                                                                                                           | Yes        |
-| jaroWinkler         | Jaro-Winkler distance measure. The Jaro–Winkler distance metric is designed and best suited for short strings such as person names                                                                   | Yes        |
-| equality            | 0 if strings are equal, 1 otherwise.                                                                                                                                                                 | Yes        |
-| inequality          | 1 if strings are equal, 0 otherwise.                                                                                                                                                                 | Yes        |
+----------------------------------------------------------------------------------------------------------------------
+Measure                 Normalized    Description
+----------------------- ------------- --------------------------------------------------------------------------------
+levenshteinDistance     No            Levenshtein distance. The minimum number of edits needed to transform one string
+                                      into the other, with the allowable edit operations being insertion, deletion, or
+                                      substitution of a single character (Normalized: No)
+
+levenshtein             Yes           The levensthein distance normalized to the interval \[0,1\] (Normalized: Yes)
+
+jaro                    Yes           Jaro distance metric. Simple distance metric originally developed to compare person
+                                      names
+
+jaroWinkler             Yes           Jaro-Winkler distance measure. The Jaro–Winkler distance metric is designed and best
+                                      suited for short strings such as person names
+
+equality                Yes           0 if strings are equal, 1 otherwise
+
+inequality              Yes           1 if strings are equal, 0 otherwise
+
+----------------------------------------------------------------------------------------------------------------------
 
 Example:
 
@@ -108,13 +142,19 @@ errors, there are a number of tasks where token-base distance measures are bette
 -   Strings where parts are reordered e.g. “John Doe” and “Doe, John”
 -   Texts consisting of multiple words
 
-| Measure     | Description                                                                                                                                         | Normalized |
-|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| jaccard     | Jaccard distance coefficient.                                                                                                                       | Yes        |
-| dice        | Dice distance coefficient.                                                                                                                          | Yes        |
-| softjaccard | Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of ‘maxDistance’ are considered equivalent. | Yes        |
+----------------------------------------------------------------------------------------------------------------------
+Measure                 Normalized    Description
+----------------------- ------------- --------------------------------------------------------------------------------
+jaccard                 Yes           Jaccard distance coefficient
 
-**Example:**
+dice                    Yes           Dice distance coefficient
+
+softjaccard             Yes           Soft Jaccard similarity coefficient. Same as Jaccard distance but values within
+                                      an levenhstein distance of `maxDistance` are considered equivalent
+
+----------------------------------------------------------------------------------------------------------------------
+
+Example:
 
     <Compare metric="jaccard" threshold="0.2">
       <TransformInput function="tokenize">
@@ -129,14 +169,25 @@ errors, there are a number of tasks where token-base distance measures are bette
 
 A number of distance measures are available that are designed to compare specific types of data, e.g., numeric values.
 
-| Measure                               | Description                                                                                                       | Normalized |
-|---------------------------------------|-------------------------------------------------------------------------------------------------------------------|------------|
-| num(float minValue, float maxValue)   | Computes the numeric difference between two numbers                                                               
-                                         Parameters:                                                                                                        
-                                         `minValue`, `maxValue` The minimum and maximum values which occur in the datasource                                | No         |
-| date                                  | Computes the distance between two dates (“YYYY-MM-DD” format). Returns the difference in days                     | No         |
-| dateTime                              | Computes the distance between two date time values (xsd:dateTime format). Returns the difference in seconds       | No         |
-| wgs84(string unit, string curveStyle) | Computes the geographical distance between two points.  Parameters: `unit` The unit in which the distance is measured. Allowed values: “meter” or “m” (default) , “kilometer” or “km”. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)                               | No         |
+----------------------------------------------------------------------------------------------------------------------
+Measure                 Normalized    Description
+----------------------- ------------- --------------------------------------------------------------------------------
+num(float minValue,     No            Computes the numeric difference between two numbers. Parameters:
+float maxValue)                       `minValue` and `maxValue` The minimum and maximum values which occur in the datasource
+                                         
+date                    No            Computes the distance between two dates (`YYYY-MM-DD` format).
+                                      Returns the difference in days
+
+dateTime                No            Computes the distance between two date time values (`xsd:dateTime` format).
+                                      Returns the difference in seconds
+
+wgs84(string unit,
+string curveStyle)      No            Computes the geographical distance between two points. Parameters: `unit` The unit
+                                      in which the distance is measured. Allowed values: `meter` or `m` (default), 
+                                      `kilometer` or `km`. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW,
+                                      University of Leipzig)
+
+----------------------------------------------------------------------------------------------------------------------
 
 **Example:**
 
@@ -162,13 +213,20 @@ Some comparison operators might be more relevant for the correct establishment o
 **Type**
 The function according to the similarity values are aggregated. The following functions are included:
 
-| Id            | Name                    | Description                                                            |
-|---------------|-------------------------|------------------------------------------------------------------------|
-| average       | AverageAggregator       | Evaluate to the (weighted) average of confidence values.               |
-| max           | MaximumAggregator       | Evaluate to the highest confidence in the group.                       |
-| min           | MinimumAggregator       | Evaluate to the lowest confidence in the group.                        |
-| quadraticMean | QuadraticMeanAggregator | Apply Euclidian distance aggregation.                                  |
-| geometricMean | GeometricMeanAggregator | Compute the (weighted) geometric mean of a group of confidence values. |
+----------------------------------------------------------------------------------------------------------------------
+Name (Id)                                  Description
+------------------------------------------ ---------------------------------------------------------------------------
+AverageAggregator (`average`)              Evaluate to the (weighted) average of confidence values
+                        
+MaximumAggregator (`max`)                  Evaluate to the highest confidence in the group
+                        
+MinimumAggregator (`min`)                  Evaluate to the lowest confidence in the group
+                        
+QuadraticMeanAggregator (`quadraticMean`)  Apply Euclidian distance aggregation
+                        
+GeometricMeanAggregator (`geometricMean`)  Compute the (weighted) geometric mean of a group of confidence values
+
+----------------------------------------------------------------------------------------------------------------------
 
 ### Examples
 
