@@ -81,7 +81,7 @@ object LinkageRule {
     def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): LinkageRule = {
       val link = (node \ "@linkType").text.trim
       LinkageRule(
-        operator = (node \ "_").headOption.map(fromXml[SimilarityOperator]),
+        operator = (node \ "_").find(_.label != "Filter").map(fromXml[SimilarityOperator]),
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
         linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else prefixes.resolve(link)
       )
