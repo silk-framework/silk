@@ -1,7 +1,11 @@
 package de.fuberlin.wiwiss.silk.runtime.plugin
 
+import java.io.File
+import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
+import java.util.logging.{Logger, Level}
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import org.clapper.classutil.{ClassFinder, ClassInfo}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
@@ -10,11 +14,14 @@ import scala.reflect.ClassTag
  */
 object PluginRegistry {
 
+  private val log = Logger.getLogger(getClass.getName)
+  
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   private var pluginTypes = Map[String, PluginType]()
 
   // Register all plugins at instantiation of this singleton object.
-  registerAll()
+  registerFromClasspath()
+  registerJars(new File(System.getProperty("user.home") + "/.silk/plugins/"))
 
   /**
    * Creates a new instance of a specific plugin.
@@ -47,8 +54,29 @@ object PluginRegistry {
    * Finds and registers all plugins in the classpath.
    */
   //TODO also register plugins from jars in plugin directory
-  def registerAll(): Unit = {
+  def registerFromClasspath(): Unit = {
     val loader = ServiceLoader.load(classOf[PluginModule])
+    val iter = loader.iterator()
+    while(iter.hasNext) {
+      iter.next().pluginClasses.foreach(registerPlugin)
+    }
+  }
+
+  /**
+   * Registers all plugins from a directory of jar files.
+   */
+  def registerJars(jarDir: File) {
+    //Collect all jar file in the specified directory
+    val jarFiles = Option(jarDir.listFiles())
+      .getOrElse(Array.empty)
+      .filter(_.getName.endsWith(".jar"))
+
+    //Load all found classes
+    val jarClassLoader = URLClassLoader.newInstance(jarFiles.map(
+      f => new URL("jar:file:" + f.getAbsolutePath + "!/")
+    ), getClass.getClassLoader)
+
+    val loader = ServiceLoader.load(classOf[PluginModule], jarClassLoader)
     val iter = loader.iterator()
     while(iter.hasNext) {
       iter.next().pluginClasses.foreach(registerPlugin)
