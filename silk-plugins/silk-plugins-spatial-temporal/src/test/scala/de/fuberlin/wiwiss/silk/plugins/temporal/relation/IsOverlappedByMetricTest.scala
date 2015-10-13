@@ -30,7 +30,7 @@ class IsOverlappedByMetricTest extends FlatSpec with Matchers {
   val metric = new IsOverlappedByMetric()
 
   //IsOverlappedBy evaluation.
-  "IsOverlappedByMetric test 1" should "return '1.0'" in {
-    metric.evaluate("[2000-01-01T00:00:02, 2000-01-01T00:00:04)", "[2000-01-01T00:00:01, 2000-01-01T00:00:03)", 1.0) should equal(1.0)
+  "IsOverlappedByMetric test 1" should "return '0.0'" in {
+    metric.evaluate("[2000-01-01T00:00:02, 2000-01-01T00:00:04)", "[2000-01-01T00:00:01, 2000-01-01T00:00:03)") should equal(0.0)
   }
 }

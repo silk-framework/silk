@@ -30,7 +30,7 @@ class EqualsMetricTest extends FlatSpec with Matchers {
   val metric = new EqualsMetric()
 
   //Equals evaluation.
-  "EqualsMetric test 1" should "return '1.0'" in {
-    metric.evaluate("[2000-01-01T00:00:00, 2000-01-01T00:00:01)", "[2000-01-01T00:00:00, 2000-01-01T00:00:01)", 1.0) should equal(1.0)
+  "EqualsMetric test 1" should "return '0.0'" in {
+    metric.evaluate("[2000-01-01T00:00:00, 2000-01-01T00:00:01)", "[2000-01-01T00:00:00, 2000-01-01T00:00:01)") should equal(0.0)
   }
 }

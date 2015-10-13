@@ -30,7 +30,7 @@ class StartsMetricTest extends FlatSpec with Matchers {
   val metric = new StartsMetric()
 
   //Starts evaluation.
-  "StartsMetric test 1" should "return '1.0'" in {
-    metric.evaluate("[2000-01-01T00:00:00, 2000-01-01T00:00:01)", "[2000-01-01T00:00:00, 2000-01-01T00:00:02)", 1.0) should equal(1.0)
+  "StartsMetric test 1" should "return '0.0'" in {
+    metric.evaluate("[2000-01-01T00:00:00, 2000-01-01T00:00:01)", "[2000-01-01T00:00:00, 2000-01-01T00:00:02)") should equal(0.0)
   }
 }
