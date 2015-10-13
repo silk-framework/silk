@@ -14,10 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins
 
-import java.util.logging.{Logger, Level}
-
-import de.fuberlin.wiwiss.silk.rule.input.Transformer
-import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregator, DistanceMeasure}
+import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
 import de.fuberlin.wiwiss.silk.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import de.fuberlin.wiwiss.silk.plugins.distance.characterbased._
@@ -25,7 +22,7 @@ import de.fuberlin.wiwiss.silk.plugins.distance.equality._
 import de.fuberlin.wiwiss.silk.plugins.distance.numeric._
 import de.fuberlin.wiwiss.silk.plugins.distance.tokenbased._
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
-import de.fuberlin.wiwiss.silk.plugins.transformer.conditional.{IfExists, IfContains}
+import de.fuberlin.wiwiss.silk.plugins.transformer.conditional.{IfContains, IfExists}
 import de.fuberlin.wiwiss.silk.plugins.transformer.conversion.ConvertCharsetTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.date._
 import de.fuberlin.wiwiss.silk.plugins.transformer.filter._
@@ -35,105 +32,101 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.numeric._
 import de.fuberlin.wiwiss.silk.plugins.transformer.replace.{RegexReplaceTransformer, ReplaceTransformer}
 import de.fuberlin.wiwiss.silk.plugins.transformer.substring._
 import de.fuberlin.wiwiss.silk.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import de.fuberlin.wiwiss.silk.plugins.transformer.value.{RandomNumberTransformer, ConstantTransformer}
+import de.fuberlin.wiwiss.silk.plugins.transformer.value.{ConstantTransformer, RandomNumberTransformer}
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginModule
 
 /**
  * Registers all default plugins.
  */
-object CorePlugins {
+class CorePlugins extends PluginModule {
 
-  private val logger = Logger.getLogger("CorePlugins")
+  override def pluginClasses = transformers ++ measures ++ aggregators
 
-  /**
-   * Registers all default plugins.
-   * For performance reasons, this is done manually instead of using automatic classpath lookup.
-   */
-  def register() {
-    logger.log(Level.FINE, "Registering core plugins.")
-
-    Transformer.register(classOf[ReplaceTransformer])
-    Transformer.register(classOf[RegexReplaceTransformer])
-    Transformer.register(classOf[ConcatTransformer])
-    Transformer.register(classOf[RemoveBlanksTransformer])
-    Transformer.register(classOf[LowerCaseTransformer])
-    Transformer.register(classOf[UpperCaseTransformer])
-    Transformer.register(classOf[CapitalizeTransformer])
-    Transformer.register(classOf[StemmerTransformer])
-    Transformer.register(classOf[StripPrefixTransformer])
-    Transformer.register(classOf[StripPostfixTransformer])
-    Transformer.register(classOf[StripUriPrefixTransformer])
-    Transformer.register(classOf[AlphaReduceTransformer])
-    Transformer.register(classOf[RemoveSpecialCharsTransformer])
-    Transformer.register(classOf[ConvertCharsetTransformer])
-    Transformer.register(classOf[RemoveValues])
-    Transformer.register(classOf[RemoveStopwords])
-    Transformer.register(classOf[RemoveEmptyValues])
-    Transformer.register(classOf[RemoveParentheses])
-    Transformer.register(classOf[TrimTransformer])
-    Transformer.register(classOf[Tokenizer])
-    Transformer.register(classOf[ConcatMultipleValuesTransformer])
-    Transformer.register(classOf[MergeTransformer])
-    Transformer.register(classOf[SpotlightTextVectorTransformer])
-    Transformer.register(classOf[CamelCaseTokenizer])
-    Transformer.register(classOf[NormalizeCharsTransformer])
-    Transformer.register(classOf[FilterByLength])
-    Transformer.register(classOf[FilterByRegex])
-    Transformer.register(classOf[UntilCharacterTransformer])
-    Transformer.register(classOf[SubstringTransformer])
-    Transformer.register(classOf[SoundexTransformer])
-    Transformer.register(classOf[NysiisTransformer])
-    Transformer.register(classOf[MetaphoneTransformer])
-    Transformer.register(classOf[ConstantTransformer])
-    Transformer.register(classOf[RandomNumberTransformer])
+  private def transformers =
+    classOf[ReplaceTransformer] ::
+    classOf[RegexReplaceTransformer] ::
+    classOf[ConcatTransformer] ::
+    classOf[RemoveBlanksTransformer] ::
+    classOf[LowerCaseTransformer] ::
+    classOf[UpperCaseTransformer] ::
+    classOf[CapitalizeTransformer] ::
+    classOf[StemmerTransformer] ::
+    classOf[StripPrefixTransformer] ::
+    classOf[StripPostfixTransformer] ::
+    classOf[StripUriPrefixTransformer] ::
+    classOf[AlphaReduceTransformer] ::
+    classOf[RemoveSpecialCharsTransformer] ::
+    classOf[ConvertCharsetTransformer] ::
+    classOf[RemoveValues] ::
+    classOf[RemoveStopwords] ::
+    classOf[RemoveEmptyValues] ::
+    classOf[RemoveParentheses] ::
+    classOf[TrimTransformer] ::
+    classOf[Tokenizer] ::
+    classOf[ConcatMultipleValuesTransformer] ::
+    classOf[MergeTransformer] ::
+    classOf[SpotlightTextVectorTransformer] ::
+    classOf[CamelCaseTokenizer] ::
+    classOf[NormalizeCharsTransformer] ::
+    classOf[FilterByLength] ::
+    classOf[FilterByRegex] ::
+    classOf[UntilCharacterTransformer] ::
+    classOf[SubstringTransformer] ::
+    classOf[SoundexTransformer] ::
+    classOf[NysiisTransformer] ::
+    classOf[MetaphoneTransformer] ::
+    classOf[ConstantTransformer] ::
+    classOf[RandomNumberTransformer] ::
     // Conditional
-    Transformer.register(classOf[IfContains])
-    Transformer.register(classOf[IfExists])
+    classOf[IfContains] ::
+    classOf[IfExists] ::
     // Numeric
-    Transformer.register(classOf[NumReduceTransformer])
-    Transformer.register(classOf[NumOperationTransformer])
-    Transformer.register(classOf[LogarithmTransformer])
-    Transformer.register(classOf[AggregateNumbersTransformer])
-    Transformer.register(classOf[CompareNumbersTransformer])
-    Transformer.register(classOf[CountTransformer])
+    classOf[NumReduceTransformer] ::
+    classOf[NumOperationTransformer] ::
+    classOf[LogarithmTransformer] ::
+    classOf[AggregateNumbersTransformer] ::
+    classOf[CompareNumbersTransformer] ::
+    classOf[CountTransformer] ::
     // Date
-    Transformer.register(classOf[TimestampToDateTransformer])
-    Transformer.register(classOf[DateToTimestampTransformer])
-    Transformer.register(classOf[DurationTransformer])
-    Transformer.register(classOf[DurationInSecondsTransformer])
-    Transformer.register(classOf[DurationInDaysTransformer])
-    Transformer.register(classOf[CompareDatesTransformer])
-    Transformer.register(classOf[NumberToDurationTransformer])
-    Transformer.register(classOf[ParseDateTransformer])
-    
-    DistanceMeasure.register(classOf[LevenshteinMetric])
-    DistanceMeasure.register(classOf[LevenshteinDistance])
-    DistanceMeasure.register(classOf[JaroDistanceMetric])
-    DistanceMeasure.register(classOf[JaroWinklerDistance])
-    DistanceMeasure.register(classOf[InsideNumericInterval])
-    DistanceMeasure.register(classOf[QGramsMetric])
-    DistanceMeasure.register(classOf[SubStringDistance])
-    DistanceMeasure.register(classOf[EqualityMetric])
-    DistanceMeasure.register(classOf[InequalityMetric])
-    DistanceMeasure.register(classOf[LowerThanMetric])
-    DistanceMeasure.register(classOf[NumMetric])
-    DistanceMeasure.register(classOf[DateMetric])
-    DistanceMeasure.register(classOf[DateTimeMetric])
-    DistanceMeasure.register(classOf[GeographicDistanceMetric])
-    DistanceMeasure.register(classOf[JaccardDistance])
-    DistanceMeasure.register(classOf[DiceCoefficient])
-    DistanceMeasure.register(classOf[SoftJaccardDistance])
-    DistanceMeasure.register(classOf[TokenwiseStringDistance])
-    DistanceMeasure.register(classOf[RelaxedEqualityMetric])
-    DistanceMeasure.register(classOf[CosineDistanceMetric])
-    DistanceMeasure.register(classOf[KoreanPhonemeDistance])
-    DistanceMeasure.register(classOf[KoreanTranslitDistance])
-    DistanceMeasure.register(classOf[CJKReadingDistance])
-    DistanceMeasure.register(classOf[ConstantMetric])
+    classOf[TimestampToDateTransformer] ::
+    classOf[DateToTimestampTransformer] ::
+    classOf[DurationTransformer] ::
+    classOf[DurationInSecondsTransformer] ::
+    classOf[DurationInDaysTransformer] ::
+    classOf[CompareDatesTransformer] ::
+    classOf[NumberToDurationTransformer] ::
+    classOf[ParseDateTransformer] :: Nil
 
-    Aggregator.register(classOf[AverageAggregator])
-    Aggregator.register(classOf[MaximumAggregator])
-    Aggregator.register(classOf[MinimumAggregator])
-    Aggregator.register(classOf[QuadraticMeanAggregator])
-    Aggregator.register(classOf[GeometricMeanAggregator])
-  }
+  private def measures =
+    classOf[LevenshteinMetric] ::
+    classOf[LevenshteinDistance] ::
+    classOf[JaroDistanceMetric] ::
+    classOf[JaroWinklerDistance] ::
+    classOf[InsideNumericInterval] ::
+    classOf[QGramsMetric] ::
+    classOf[SubStringDistance] ::
+    classOf[EqualityMetric] ::
+    classOf[InequalityMetric] ::
+    classOf[LowerThanMetric] ::
+    classOf[NumMetric] ::
+    classOf[DateMetric] ::
+    classOf[DateTimeMetric] ::
+    classOf[GeographicDistanceMetric] ::
+    classOf[JaccardDistance] ::
+    classOf[DiceCoefficient] ::
+    classOf[SoftJaccardDistance] ::
+    classOf[TokenwiseStringDistance] ::
+    classOf[RelaxedEqualityMetric] ::
+    classOf[CosineDistanceMetric] ::
+    classOf[KoreanPhonemeDistance] ::
+    classOf[KoreanTranslitDistance] ::
+    classOf[CJKReadingDistance] ::
+    classOf[ConstantMetric] :: Nil
+
+  private def aggregators =
+    classOf[AverageAggregator] ::
+    classOf[MaximumAggregator] ::
+    classOf[MinimumAggregator] ::
+    classOf[QuadraticMeanAggregator] ::
+    classOf[GeometricMeanAggregator] :: Nil
 }

@@ -13,7 +13,6 @@ import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
  */
 object DatasetStatistics extends App {
   implicit val log = Logger.getLogger(getClass.getName)
-  CorePlugins.register()
 
   val datasets = Data.fromWorkspace
 

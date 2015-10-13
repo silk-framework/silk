@@ -19,41 +19,37 @@ import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure}
 
 import de.fuberlin.wiwiss.silk.plugins.temporal.distance._
 import de.fuberlin.wiwiss.silk.plugins.temporal.relation._
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginModule
 
 /**
  * Register Temporal Plugins.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
+class TemporalPlugins extends PluginModule {
 
-object TemporalPlugins {
+  override def pluginClasses = temporalDistanceMetrics ::: temporalRelations
 
-  private val logger = Logger.getLogger("TemporalPlugins")
-
-  def register() {
-    logger.log(Level.FINE, "Registering Temporal plugins.")
-
-    //Temporal Distance Metrics
-    DistanceMeasure.register(classOf[MillisecsDistanceMetric])
-    DistanceMeasure.register(classOf[SecsDistanceMetric])
-    DistanceMeasure.register(classOf[MinsDistanceMetric])
-    DistanceMeasure.register(classOf[HoursDistanceMetric])
-    DistanceMeasure.register(classOf[DaysDistanceMetric])
-    DistanceMeasure.register(classOf[MonthsDistanceMetric])
-    DistanceMeasure.register(classOf[YearsDistanceMetric])
+  private def temporalDistanceMetrics =
+    classOf[MillisecsDistanceMetric] ::
+    classOf[SecsDistanceMetric] ::
+    classOf[MinsDistanceMetric] ::
+    classOf[HoursDistanceMetric] ::
+    classOf[DaysDistanceMetric] ::
+    classOf[MonthsDistanceMetric] ::
+    classOf[YearsDistanceMetric] :: Nil
     
-    //Temporal Relations
-    DistanceMeasure.register(classOf[BeforeMetric])
-    DistanceMeasure.register(classOf[AfterMetric])
-    DistanceMeasure.register(classOf[MeetsMetric])
-    DistanceMeasure.register(classOf[IsMetByMetric])
-    DistanceMeasure.register(classOf[OverlapsMetric])
-    DistanceMeasure.register(classOf[IsOverlappedByMetric])
-    DistanceMeasure.register(classOf[FinishesMetric])
-    DistanceMeasure.register(classOf[IsFinishedByMetric])
-    DistanceMeasure.register(classOf[ContainsMetric])
-    DistanceMeasure.register(classOf[DuringMetric])
-    DistanceMeasure.register(classOf[StartsMetric])
-    DistanceMeasure.register(classOf[IsStartedByMetric])
-    DistanceMeasure.register(classOf[EqualsMetric])   
-  }
+  private def temporalRelations =
+    classOf[BeforeMetric] ::
+    classOf[AfterMetric] ::
+    classOf[MeetsMetric] ::
+    classOf[IsMetByMetric] ::
+    classOf[OverlapsMetric] ::
+    classOf[IsOverlappedByMetric] ::
+    classOf[FinishesMetric] ::
+    classOf[IsFinishedByMetric] ::
+    classOf[ContainsMetric] ::
+    classOf[DuringMetric] ::
+    classOf[StartsMetric] ::
+    classOf[IsStartedByMetric] ::
+    classOf[EqualsMetric] :: Nil
 }

@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.replace.RegexReplaceTransform
 
 @RunWith(classOf[JUnitRunner])
 class RegexReplaceTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
 

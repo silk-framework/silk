@@ -23,8 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByRegex
 
 @RunWith(classOf[JUnitRunner])
 class FilterByRegexTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
-
   // Filters all strings consisting of three letters
   val threeLettersFilter = new FilterByRegex(regex = "\\w\\w\\w")
 

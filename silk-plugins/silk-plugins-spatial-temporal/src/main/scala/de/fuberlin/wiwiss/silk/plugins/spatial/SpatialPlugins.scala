@@ -21,40 +21,37 @@ import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure}
 import de.fuberlin.wiwiss.silk.plugins.spatial.transformer._
 import de.fuberlin.wiwiss.silk.plugins.spatial.distance._
 import de.fuberlin.wiwiss.silk.plugins.spatial.relation._
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginModule
 
 /**
  * Register Spatial Plugins.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-object SpatialPlugins {
+class SpatialPlugins extends PluginModule {
 
-  private val logger = Logger.getLogger("SpatialPlugins")
+  override def pluginClasses = spatialTransformers ::: spatialDistanceMetrics ::: spatialRelations
 
-  def register() {
-    logger.log(Level.FINE, "Registering Spatial plugins.")
+  private def spatialTransformers =
+    classOf[GeometryTransformer] ::
+    classOf[PointsToCentroidTransformer] ::
+    classOf[SimplifyTransformer] ::
+    classOf[EnvelopeTransformer] ::
+    classOf[AreaTransformer] ::
+    classOf[BufferTransformer] :: Nil
 
-    //Spatial Transformers
-    Transformer.register(classOf[GeometryTransformer])
-    Transformer.register(classOf[PointsToCentroidTransformer])
-    Transformer.register(classOf[SimplifyTransformer])
-    Transformer.register(classOf[EnvelopeTransformer])
-    Transformer.register(classOf[AreaTransformer])
-    Transformer.register(classOf[BufferTransformer])
-
-    //Spatial Distance Metrics
-    DistanceMeasure.register(classOf[CentroidDistanceMetric])
-    DistanceMeasure.register(classOf[MinDistanceMetric])
+  private def spatialDistanceMetrics =
+    classOf[CentroidDistanceMetric] ::
+    classOf[MinDistanceMetric] :: Nil
     
-    //Spatial Relations
-    DistanceMeasure.register(classOf[ContainsMetric])
-    DistanceMeasure.register(classOf[CrossesMetric])
-    DistanceMeasure.register(classOf[DisjointMetric])
-    DistanceMeasure.register(classOf[EqualsMetric])
-    DistanceMeasure.register(classOf[IntersectsMetric])
-    DistanceMeasure.register(classOf[OverlapsMetric])
-    DistanceMeasure.register(classOf[TouchesMetric])
-    DistanceMeasure.register(classOf[WithinMetric])
-    DistanceMeasure.register(classOf[RelateMetric])  
-  }
+  private def spatialRelations =
+    classOf[ContainsMetric] ::
+    classOf[CrossesMetric] ::
+    classOf[DisjointMetric] ::
+    classOf[EqualsMetric] ::
+    classOf[IntersectsMetric] ::
+    classOf[OverlapsMetric] ::
+    classOf[TouchesMetric] ::
+    classOf[WithinMetric] ::
+    classOf[RelateMetric] :: Nil
 }

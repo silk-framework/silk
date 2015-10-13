@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.rule.input
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.{LegacyPluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 
 /**
  * Transforms values.
@@ -23,4 +23,4 @@ trait Transformer extends AnyPlugin {
   def apply(values: Seq[Set[String]]): Set[String]
 }
 
-object Transformer extends LegacyPluginFactory[Transformer]
+object Transformer extends PluginFactory[Transformer]

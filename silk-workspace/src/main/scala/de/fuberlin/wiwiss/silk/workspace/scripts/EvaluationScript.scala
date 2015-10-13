@@ -21,7 +21,6 @@ trait EvaluationScript extends App {
 
   protected val log = Logger.getLogger(getClass.getName)
 
-  CorePlugins.register()
   run()
 
   protected def run()

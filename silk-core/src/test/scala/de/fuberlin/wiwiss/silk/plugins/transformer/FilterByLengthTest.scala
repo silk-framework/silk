@@ -23,8 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.filter.FilterByLength
 
 @RunWith(classOf[JUnitRunner])
 class FilterByLengthTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
-
   val transformer = new FilterByLength(min = 3, max = 5)
 
   "FilterByLength" should "retain strings inside the range" in {

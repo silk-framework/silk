@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.rule.similarity
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, LegacyPluginFactory}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.Index
 
 trait DistanceMeasure extends AnyPlugin {
@@ -34,4 +34,4 @@ trait DistanceMeasure extends AnyPlugin {
   def index(values: Set[String], limit: Double): Index = Index.default
 }
 
-object DistanceMeasure extends LegacyPluginFactory[DistanceMeasure]
+object DistanceMeasure extends PluginFactory[DistanceMeasure]

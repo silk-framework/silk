@@ -12,17 +12,16 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.transformer.normalize
+package de.fuberlin.wiwiss.silk.plugins.transformer
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.CorePlugins
+import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.AlphaReduceTransformer
 import org.junit.runner.RunWith
+import org.scalatest.FlatSpec
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
 
 @RunWith(classOf[JUnitRunner])
 class AlphaReduceTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new AlphaReduceTransformer()
 

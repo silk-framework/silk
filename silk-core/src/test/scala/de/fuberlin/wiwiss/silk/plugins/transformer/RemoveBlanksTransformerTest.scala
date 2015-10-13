@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveBlanksTransfo
 
 @RunWith(classOf[JUnitRunner])
 class RemoveBlanksTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new RemoveBlanksTransformer()
 

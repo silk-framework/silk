@@ -1,10 +1,9 @@
 package de.fuberlin.wiwiss.silk.plugins
 
 import java.io.{OutputStreamWriter, FileOutputStream}
-
 import de.fuberlin.wiwiss.silk.rule.input.Transformer
 import de.fuberlin.wiwiss.silk.rule.similarity.DistanceMeasure
-import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, Parameter, PluginDescription, LegacyPluginFactory}
+import de.fuberlin.wiwiss.silk.runtime.plugin._
 import de.fuberlin.wiwiss.silk.util.Table
 
 /**
@@ -12,8 +11,6 @@ import de.fuberlin.wiwiss.silk.util.Table
  * Currently generates textile documentation for transformations.
  */
 object PluginDocumentation extends App {
-
-  CorePlugins.register()
 
   val sb = new StringBuilder
 
@@ -33,7 +30,7 @@ object PluginDocumentation extends App {
   writer.write(sb.toString())
   writer.close()
 
-  def printPlugins(title: String, description: String, pluginFactory: LegacyPluginFactory[_ <: AnyPlugin]) = {
+  def printPlugins(title: String, description: String, pluginFactory: PluginFactory[_ <: AnyPlugin]) = {
     sb ++= "# " + title + "\n\n"
     sb ++= description + "\n"
     for(category <- pluginFactory.availablePlugins.flatMap(_.categories).distinct if category != "Recommended") {
@@ -42,7 +39,7 @@ object PluginDocumentation extends App {
     }
   }
 
-  def pluginTable(pluginFactory: LegacyPluginFactory[_ <: AnyPlugin], category: String) = {
+  def pluginTable(pluginFactory: PluginFactory[_ <: AnyPlugin], category: String) = {
     val plugins = pluginFactory.availablePlugins.filter(_.categories.contains(category)).sortBy(_.id.toString)
     Table(
       name = pluginFactory.getClass.getSimpleName,

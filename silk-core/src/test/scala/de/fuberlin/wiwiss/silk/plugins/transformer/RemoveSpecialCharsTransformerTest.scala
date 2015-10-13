@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveSpecialCharsT
 
 @RunWith(classOf[JUnitRunner])
 class RemoveSpecialCharsTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new RemoveSpecialCharsTransformer()
 

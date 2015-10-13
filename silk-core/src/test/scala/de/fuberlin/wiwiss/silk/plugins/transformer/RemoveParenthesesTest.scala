@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.RemoveParentheses
 
 @RunWith(classOf[JUnitRunner])
 class RemoveParenthesesTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new RemoveParentheses()
 

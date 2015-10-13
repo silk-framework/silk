@@ -38,7 +38,6 @@ import scala.xml.XML
  */
 object GenerateLinksTaskTest {
 
-  CorePlugins.register()
   Locale.setDefault(Locale.ENGLISH)
 
   private val log = Logger.getLogger(getClass.getName)
