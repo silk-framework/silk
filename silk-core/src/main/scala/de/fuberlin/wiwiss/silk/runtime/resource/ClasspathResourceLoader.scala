@@ -2,6 +2,8 @@ package de.fuberlin.wiwiss.silk.runtime.resource
 
 /**
  * A resource loader that loads resources from the classpath.
+ *
+ * @param basePath A base path of the form '''com/example/library'''. Note the use of '/' instead of '.'
  */
 class ClasspathResourceLoader(val basePath: String) extends ResourceLoader {
 

@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 @RunWith(classOf[JUnitRunner])
 class XmlDatasetTest extends FlatSpec with Matchers {
 
-  val resourceLoader = new ClasspathResourceLoader("de.fuberlin.wiwiss.silk.plugins.dataset.xml")
+  val resourceLoader = new ClasspathResourceLoader("de/fuberlin/wiwiss/silk/plugins/dataset/xml")
 
   val personId = Path.parse("?a/<ID>")
 
