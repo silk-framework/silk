@@ -25,7 +25,7 @@ import java.util.logging.{Level, Logger}
  * An abstract Factory.
  */
 @Deprecated
-class LegacyPluginFactory[T : Manifest] {
+class LegacyPluginFactory[T <: AnyPlugin : Manifest] {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -50,8 +50,8 @@ class LegacyPluginFactory[T : Manifest] {
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
   def unapply(t: T): Option[(PluginDescription[_], Map[String, String])] = {
-    val desc = PluginDescription(getClass)
-    val parameters = desc.parameters.map(param => (param.name, param(this).toString)).toMap
+    val desc = PluginDescription(t.getClass)
+    val parameters = desc.parameters.map(param => (param.name, param(t).toString)).toMap
     Some((desc, parameters))
   }
 
