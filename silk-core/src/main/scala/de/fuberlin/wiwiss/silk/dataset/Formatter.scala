@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.dataset
 
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, LegacyPluginFactory}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
 
 /**
  * Serializes a link.
@@ -33,4 +33,4 @@ trait Formatter extends AnyPlugin {
 /**
  * Formatter factory
  */
-object Formatter extends LegacyPluginFactory[Formatter]
+object Formatter extends PluginFactory[Formatter]

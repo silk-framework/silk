@@ -37,11 +37,6 @@ class PluginFactory[T: ClassTag] {
   }
 
   /**
-   * Retrieves a specific plugin.
-   */
-  //def plugin(id: String) = PluginRegistry.
-
-  /**
    * List of all registered plugins.
    */
   def availablePlugins: Seq[PluginDescription[_]] = PluginRegistry.availablePlugins[T]
@@ -51,5 +46,12 @@ class PluginFactory[T: ClassTag] {
    */
   def pluginsByCategory: Map[String, Seq[PluginDescription[_]]] = {
     PluginRegistry.pluginsByCategoty[T]
+  }
+
+  /**
+   * Registers a single plugin.
+   */
+  def register(implementationClass: Class[_ <: T]) {
+    PluginRegistry.registerPlugin(implementationClass)
   }
 }
