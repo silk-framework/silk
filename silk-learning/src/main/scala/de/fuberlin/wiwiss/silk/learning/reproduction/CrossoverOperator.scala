@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.reproduction
 
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, PluginFactory}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{AnyPlugin, LegacyPluginFactory}
 import de.fuberlin.wiwiss.silk.learning.individual.LinkageRuleNode
 
 //TODO implement operators: toggle required, change plugin
@@ -32,7 +32,7 @@ trait CrossoverOperator extends (DPair[LinkageRuleNode] => Option[LinkageRuleNod
   override def toString = getClass.getSimpleName
 }
 
-object CrossoverOperator extends PluginFactory[CrossoverOperator] {
+object CrossoverOperator extends LegacyPluginFactory[CrossoverOperator] {
   register(classOf[ThresholdCrossover])
   register(classOf[WeightCrossover])
   register(classOf[AggregationOperatorsCrossover])

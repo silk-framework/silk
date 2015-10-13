@@ -41,7 +41,7 @@ lazy val learning = (project in file("silk-learning"))
 // Plugins
 //////////////////////////////////////////////////////////////////////////////
 
-lazy val pluginsJena = (project in file("silk-plugins/silk-plugins-jena"))
+lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
     .dependsOn(core)
     .settings(commonSettings: _*)
     .settings(
@@ -55,6 +55,10 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(
     libraryDependencies += "com.univocity" % "univocity-parsers" % "1.5.6"
   )
+
+lazy val pluginsXml = (project in file("silk/silk-plugins/silk-plugins-xml"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
     .dependsOn(core)
@@ -78,8 +82,8 @@ lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-sp
     )
 
 lazy val plugins = (project in file("silk-plugins"))
-    .dependsOn(pluginsJena, pluginsCsv, pluginsJson, pluginsSpatialTemporal)
-    .aggregate(pluginsJena, pluginsCsv, pluginsJson, pluginsSpatialTemporal)
+    .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal)
+    .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal)
     .settings(commonSettings: _*)
 
 //////////////////////////////////////////////////////////////////////////////

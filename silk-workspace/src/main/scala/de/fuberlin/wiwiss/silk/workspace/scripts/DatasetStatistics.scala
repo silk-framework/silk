@@ -2,7 +2,6 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
-import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.workspace.modules.Task
 import de.fuberlin.wiwiss.silk.util.{Table, DPair, Timer}
@@ -15,7 +14,6 @@ import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
 object DatasetStatistics extends App {
   implicit val log = Logger.getLogger(getClass.getName)
   CorePlugins.register()
-  JenaPlugins.register()
 
   val datasets = Data.fromWorkspace
 

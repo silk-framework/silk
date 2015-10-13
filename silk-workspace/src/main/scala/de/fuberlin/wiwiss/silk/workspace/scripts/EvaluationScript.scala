@@ -15,7 +15,6 @@
 package de.fuberlin.wiwiss.silk.workspace.scripts
 
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
-import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
 import java.util.logging.Logger
 
 trait EvaluationScript extends App {
@@ -23,7 +22,6 @@ trait EvaluationScript extends App {
   protected val log = Logger.getLogger(getClass.getName)
 
   CorePlugins.register()
-  JenaPlugins.register()
   run()
 
   protected def run()

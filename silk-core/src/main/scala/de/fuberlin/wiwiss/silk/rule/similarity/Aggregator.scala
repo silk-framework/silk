@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.rule.similarity
 
-import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.{LegacyPluginFactory, AnyPlugin}
 import de.fuberlin.wiwiss.silk.entity.Index
 
 trait Aggregator extends AnyPlugin {
@@ -30,4 +30,4 @@ trait Aggregator extends AnyPlugin {
   }
 }
 
-object Aggregator extends PluginFactory[Aggregator]
+object Aggregator extends LegacyPluginFactory[Aggregator]

@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 /**
  * Describes a plugin.
  */
-class PluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
    * Creates a new instance of this plugin.
@@ -71,18 +71,18 @@ object PluginDescription {
   /**
    * Creates a new plugin description from a class.
    */
-  def apply[T <: AnyPlugin](pluginClass: Class[T]): PluginDescription[T] = {
+  def apply[T](pluginClass: Class[T]): PluginDescription[T] = {
     getAnnotation(pluginClass) match {
       case Some(annotation) => createFromAnnotation(pluginClass, annotation)
       case None => createFromClass(pluginClass)
     }
   }
 
-  private def getAnnotation[T <: AnyPlugin](pluginClass: Class[T]): Option[Plugin] = {
+  private def getAnnotation[T](pluginClass: Class[T]): Option[Plugin] = {
     Option(pluginClass.getAnnotation(classOf[Plugin]))
   }
 
-  private def createFromAnnotation[T <: AnyPlugin](pluginClass: Class[T], annotation: Plugin) = {
+  private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin) = {
     new PluginDescription(
       id = annotation.id,
       label = annotation.label,
@@ -93,7 +93,7 @@ object PluginDescription {
     )
   }
 
-  private def createFromClass[T <: AnyPlugin](pluginClass: Class[T]) = {
+  private def createFromClass[T](pluginClass: Class[T]) = {
     new PluginDescription(
       id = pluginClass.getSimpleName,
       label =  pluginClass.getSimpleName,
@@ -104,14 +104,14 @@ object PluginDescription {
     )
   }
 
-  private def getConstructor[T <: AnyPlugin](pluginClass: Class[T]): Constructor[T] = {
+  private def getConstructor[T](pluginClass: Class[T]): Constructor[T] = {
     pluginClass.getConstructors.toList match {
       case constructor :: _ => constructor.asInstanceOf[Constructor[T]]
       case Nil => throw new InvalidPluginException("Plugin " + pluginClass.getName + " does not provide a constructor")
     }
   }
 
-  private def getParameters[T <: AnyPlugin](pluginClass: Class[T]): Array[Parameter] = {
+  private def getParameters[T](pluginClass: Class[T]): Array[Parameter] = {
     val constructor = getConstructor(pluginClass)
 
     val paranamer = new BytecodeReadingParanamer()
@@ -136,7 +136,7 @@ object PluginDescription {
     }
   }
 
-  private def getDefaultValues[T <: AnyPlugin](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
+  private def getDefaultValues[T](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
     try {
       val clazz = Class.forName(pluginClass.getName + "$")
       val module = clazz.getField("MODULE$").get(null)
