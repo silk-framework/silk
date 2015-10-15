@@ -5,6 +5,7 @@ import java.net._
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.util.StringUtils._
 import scala.io.Source
 
 /**
@@ -61,16 +62,17 @@ class SparqlSink(params: SparqlParams) extends DataSink {
   }
 
   private def writeStatement(subject: String, property: String, value: String): Unit = {
-    // Check if value is an URI
-    if (value.startsWith("http:"))
-      writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> <" + value + "> .\n", "UTF-8"))
-    // Check if value is a number
-    else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E'))
-      writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n", "UTF-8"))
-    // Write string values
-    else {
-      val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-      writer.write(URLEncoder.encode("<" + subject + "> <" + property + "> \"" + escapedValue + "\" .\n", "UTF-8"))
+    value match {
+      // Check if value is an URI
+      case v if value.startsWith ("http:") =>
+        writer.write (URLEncoder.encode ("<" + subject + "> <" + property + "> <" + value + "> .\n", "UTF-8") )
+      // Check if value is a number
+      case DoubleLiteral(d) =>
+        writer.write (URLEncoder.encode ("<" + subject + "> <" + property + "> " + d + " .\n", "UTF-8") )
+      // Write string values
+      case _ =>
+        val escapedValue = value.replace ("\\", "\\\\").replace ("\"", "\\\"").replace ("\n", "\\n")
+        writer.write (URLEncoder.encode ("<" + subject + "> <" + property + "> \"" + escapedValue + "\" .\n", "UTF-8") )
     }
 
     statements += 1
