@@ -51,13 +51,13 @@ class ActiveLearning(config: LearningConfiguration,
     updatePool(context)
 
     val generator = Timer("LinkageRuleGenerator") {
-      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.map(_.entities.get), Nil), config.components)
+      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.links.map(_.entities.get), Nil), config.components)
     }
     val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
     
     buildPopulation(generator, context)
 
-    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool, population) }
+    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool.links, population) }
     val fitnessFunction = config.fitnessFunction(completeEntities)
     
     updatePopulation(generator, targetFitness, completeEntities, fitnessFunction, context)
@@ -84,7 +84,7 @@ class ActiveLearning(config: LearningConfiguration,
     }
 
     //Assert that no reference links are in the pool
-    pool = pool.filterNot(referenceEntities.positive.contains).filterNot(referenceEntities.negative.contains)
+    pool = pool.withoutLinks(referenceEntities.all.keySet)
   }
   
   private def buildPopulation(generator: LinkageRuleGenerator, context: ActivityContext[ActiveLearningState]) = Timer("Generating population") {
@@ -118,6 +118,6 @@ class ActiveLearning(config: LearningConfiguration,
       }
     }
 
-    links = config.active.selector(weightedRules, pool.toSeq, completeEntities)
+    links = config.active.selector(weightedRules, pool.links.toSeq, completeEntities)
   }
 }

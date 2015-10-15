@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearningState, ActiveLearning}
+import de.fuberlin.wiwiss.silk.learning.active.{UnlabeledLinkPool, ActiveLearningState, ActiveLearning}
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
@@ -82,7 +82,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     val positiveValLinks = for((link, entityPair) <- validationEntities.positive) yield link.update(entities = Some(entityPair))
     val negativeValLinks = for(s <- sourceEntities; t <- targetEntities) yield new Link(s.uri, t.uri, None, Some(DPair(s, t)))
 
-    var pool: Traversable[Link] = Nil//positiveValLinks.take(maxPosRefLinks) ++ Random.shuffle(negativeValLinks).take(maxNegRefLinks)
+    var pool = UnlabeledLinkPool.empty //positiveValLinks.take(maxPosRefLinks) ++ Random.shuffle(negativeValLinks).take(maxNegRefLinks)
     var population = Population.empty
     val startTime = System.currentTimeMillis()
 

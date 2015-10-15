@@ -29,6 +29,9 @@ import scala.xml.Node
 case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
                              negative: Map[Link, DPair[Entity]] = Map.empty) {
 
+  /** Returns positive and negative reference links. */
+  def all = positive ++ negative
+
   /** True, if no entities are available. */
   def isEmpty = positive.isEmpty && negative.isEmpty
 

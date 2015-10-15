@@ -31,13 +31,13 @@ import scala.xml.Node
 
 private class GeneratePool(inputs: Seq[DataSource],
                            linkSpec: LinkSpecification,
-                           paths: DPair[Seq[Path]]) extends Activity[Seq[Link]] {
+                           paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
   private var generateLinksTask: GenerateLinks = _
 
-  override def run(context: ActivityContext[Seq[Link]]): Unit = {
+  override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
                            linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
     val op = new SampleOperator()
@@ -59,7 +59,7 @@ private class GeneratePool(inputs: Seq[DataSource],
 
     val shuffledLinks = for((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
 
-    context.value.update(generatedLinks ++ shuffledLinks)
+    context.value.update(UnlabeledLinkPool(entityDesc, generatedLinks ++ shuffledLinks))
   }
 
   private class SampleOperator() extends SimilarityOperator {
