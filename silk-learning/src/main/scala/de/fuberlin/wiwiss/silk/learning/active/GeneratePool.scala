@@ -55,7 +55,7 @@ private class GeneratePool(inputs: Seq[DataSource],
     context.executeBlocking(generateLinksTask, 0.8, listener)
 
     val generatedLinks = op.getLinks()
-    assert(!generatedLinks.isEmpty, "Could not load any links")
+    assert(generatedLinks.nonEmpty, "Could not load any links")
 
     val shuffledLinks = for((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
 
@@ -116,7 +116,5 @@ private class GeneratePool(inputs: Seq[DataSource],
 
       index
     }
-
-    def toXML(implicit prefixes: Prefixes): Node = throw new UnsupportedOperationException("Cannot serialize " + getClass.getName)
   }
 }

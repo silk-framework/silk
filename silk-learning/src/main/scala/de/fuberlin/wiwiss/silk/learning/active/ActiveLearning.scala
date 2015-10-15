@@ -80,7 +80,7 @@ class ActiveLearning(config: LearningConfiguration,
     //Build unlabeled pool
     if(context.value().pool.isEmpty) {
       context.status.update("Loading")
-      context.executeBlocking(new GeneratePool(datasets, linkSpec, paths), 0.5)
+      pool = context.executeBlocking(new GeneratePool(datasets, linkSpec, paths), 0.5)
     }
 
     //Assert that no reference links are in the pool

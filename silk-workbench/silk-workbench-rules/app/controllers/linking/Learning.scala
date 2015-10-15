@@ -4,8 +4,10 @@ import controllers.core.{Stream, Widgets}
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.learning.LearningActivity
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
+import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import de.fuberlin.wiwiss.silk.workspace.User
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
@@ -33,7 +35,7 @@ object Learning extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
-    val population = task.activity[LearningActivity].value().population
+    val population = getPopulation(task)
 
     Ok(views.html.learning.rule(population, referenceLinks))
   }
@@ -41,8 +43,9 @@ object Learning extends Controller {
   def ruleStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val stream = Stream.activityValue(task.activity[ActiveLearning])
-    Ok.chunked(Widgets.autoReload("reload", stream))
+    val stream1 = Stream.status(task.activity[LearningActivity].status)
+    val stream2 = Stream.status(task.activity[ActiveLearning].status)
+    Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
@@ -91,7 +94,7 @@ object Learning extends Controller {
   def populationView(projectName: String, taskName: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val population = task.activity[LearningActivity].value().population
+    val population = getPopulation(task)
 
     val pageSize = 20
     val individuals = population.individuals.toSeq
@@ -99,5 +102,18 @@ object Learning extends Controller {
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
     Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value()))
+  }
+
+  private def getPopulation(task: Task[LinkSpecification]): Population = {
+    val population1 = task.activity[ActiveLearning].value().population
+    val population2 = task.activity[LearningActivity].value().population
+    if(population1.isEmpty)
+      population2
+    else if(population2.isEmpty)
+      population1
+    else if(population1.bestIndividual.fitness >= population2.bestIndividual.fitness)
+      population1
+    else
+      population2
   }
 }
