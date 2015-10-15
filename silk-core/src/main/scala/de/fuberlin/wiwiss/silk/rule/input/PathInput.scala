@@ -48,7 +48,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
       Set(entity.uri)
     else {
       var index = cachedPathIndex
-      if(index == -1 || entity.desc.paths(index) != path) {
+      if(index == -1 || index >= entity.desc.paths.size || entity.desc.paths(index) != path) {
         index = entity.desc.pathIndex(path)
         cachedPathIndex = index
       }
