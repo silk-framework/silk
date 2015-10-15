@@ -19,6 +19,6 @@ case class UnlabeledLinkPool(entityDescs: DPair[EntityDescription], links: Trave
 
 object UnlabeledLinkPool {
 
-  def empty = UnlabeledLinkPool(DPair.empty, Traversable.empty)
+  def empty = UnlabeledLinkPool(DPair.fill(EntityDescription.empty), Traversable.empty)
 
 }
