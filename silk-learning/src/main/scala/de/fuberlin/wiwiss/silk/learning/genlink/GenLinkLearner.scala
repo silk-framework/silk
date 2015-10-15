@@ -12,5 +12,3 @@ case class GenLinkLearner(config: LearningConfiguration) extends LinkageRuleLear
     new GenLink(trainingLinks, seeds, config)
   }
 }
-
-

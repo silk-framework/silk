@@ -78,8 +78,9 @@ class ActiveLearning(config: LearningConfiguration,
   
   private def updatePool(context: ActivityContext[ActiveLearningState]) = Timer("Generating Pool")  {
     //Build unlabeled pool
-    if(context.value().pool.isEmpty) {
-      context.status.update("Loading")
+    val poolPaths = context.value().pool.entityDescs.map(_.paths)
+    if(context.value().pool.isEmpty || poolPaths != paths) {
+      context.status.update("Loading pool")
       pool = context.executeBlocking(new GeneratePool(datasets, linkSpec, paths), 0.5)
     }
 
