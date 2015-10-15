@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPostfixTransfo
 
 @RunWith(classOf[JUnitRunner])
 class StripPostfixTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new StripPostfixTransformer(postfix = "abc")
 

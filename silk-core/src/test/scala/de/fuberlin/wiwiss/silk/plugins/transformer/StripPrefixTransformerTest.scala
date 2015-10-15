@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.substring.StripPrefixTransfor
 
 @RunWith(classOf[JUnitRunner])
 class StripPrefixTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new StripPrefixTransformer(prefix = "abc")
 

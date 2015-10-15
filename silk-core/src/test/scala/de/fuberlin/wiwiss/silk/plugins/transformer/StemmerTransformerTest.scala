@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.linguistic.StemmerTransformer
 
 @RunWith(classOf[JUnitRunner])
 class StemmerTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new StemmerTransformer()
 

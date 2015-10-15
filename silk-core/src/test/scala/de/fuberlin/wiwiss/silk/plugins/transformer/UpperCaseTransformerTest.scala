@@ -23,7 +23,6 @@ import de.fuberlin.wiwiss.silk.plugins.transformer.normalize.UpperCaseTransforme
 
 @RunWith(classOf[JUnitRunner])
 class UpperCaseTransformerTest extends FlatSpec with ShouldMatchers {
-  CorePlugins.register()
 
   val transformer = new UpperCaseTransformer()
 
