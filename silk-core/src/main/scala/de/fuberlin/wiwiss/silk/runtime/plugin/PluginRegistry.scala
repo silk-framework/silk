@@ -3,9 +3,8 @@ package de.fuberlin.wiwiss.silk.runtime.plugin
 import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
-import java.util.logging.{Logger, Level}
+import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
-import org.clapper.classutil.{ClassFinder, ClassInfo}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 

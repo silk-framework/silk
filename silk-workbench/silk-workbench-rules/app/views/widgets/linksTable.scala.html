@@ -98,12 +98,12 @@
       </div>
       <div class="link-source">
         <a href="@link.source" target="_blank">
-          @PrefixRegistry.all.shorten(link.source)
+          @project.config.prefixes.shorten(link.source)
         </a>
       </div>
       <div class="link-target">
         <a href="@link.target" target="_blank">
-          @PrefixRegistry.all.shorten(link.target)
+          @project.config.prefixes.shorten(link.target)
         </a>
       </div>
       <div class="link-confidence">
@@ -160,7 +160,7 @@
 @renderEntity(entity: Entity, divClassPrefix: String) = {
   <li>
     <span class="@{divClassPrefix}-value">
-      @entity.uri
+      @project.config.prefixes.shorten(entity.uri)
     </span>
     <ul>
       @for((path, index) <- entity.desc.paths.zipWithIndex) {
@@ -172,8 +172,8 @@
 
 @renderValues(path: Path, values: Set[String], divClassPrefix: String) = {
   <li>
-    @path.serialize
-    @values.take(10).map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
+    @path.serializeSimplified(project.config.prefixes)
+    @values.take(10).map(v => <span class={divClassPrefix + "-value"}>{project.config.prefixes.shorten(v)}</span>)
     @if(values.size > 10) {...} else {}
   </li>
 }
@@ -216,7 +216,7 @@
   case TransformedValue(transform, values, children) => {
     <li>
       <span class="input">
-        Transform:@transform.transformer.plugin.id (@transform.id)
+        Transform: @transform.transformer.plugin.id (@transform.id)
         @values.map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
       </span>
       <ul>
@@ -227,7 +227,7 @@
   case InputValue(input, values) => {
     <li>
       <span class="input">
-        Input:@input.path.serialize (@input.id)
+        Input: @input.path.serializeSimplified(project.config.prefixes) (@input.id)
         @values.map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
       </span>
     </li>
