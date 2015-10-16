@@ -19,7 +19,6 @@ import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, LinkingConfig, TransformSpecification}
 import de.fuberlin.wiwiss.silk.execution.{ExecuteTransform, GenerateLinks}
-import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
@@ -40,10 +39,7 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.6.1")
-
-  //Register all available plugins
-  Plugins.register()
+  println("Silk Link Discovery Framework - Version 2.7.0")
 
   // Initialize Log4j
   val ca = new ConsoleAppender()

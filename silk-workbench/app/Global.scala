@@ -1,7 +1,5 @@
 import java.io.File
 import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
-
-import de.fuberlin.wiwiss.silk.plugins.Plugins
 import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
 import play.api.Play.current
 import play.api.{Application, Play}
@@ -16,9 +14,6 @@ object Global extends WorkbenchGlobal {
     // Initialize user manager
     val user = new FileUser
     User.userManager = () => user
-
-    // Load Silk plugins
-    Plugins.register()
 
     // Load Workbench plugins
     WorkbenchPlugins.register(DatasetPlugin())
