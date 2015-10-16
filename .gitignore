@@ -13,4 +13,3 @@ target/
 .project
 .settings
 .cache
-**/project/*
