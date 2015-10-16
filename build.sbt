@@ -44,8 +44,8 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
     .dependsOn(core)
     .settings(commonSettings: _*)
     .settings(
-      libraryDependencies += "org.apache.jena" % "jena-core" % "2.13.0", // exclude("org.slf4j", "slf4j-log4j12")
-      libraryDependencies += "org.apache.jena" % "jena-arq" % "2.13.0" // exclude("org.slf4j", "slf4j-log4j12")
+      libraryDependencies += "org.apache.jena" % "jena-core" % "2.13.0" exclude("org.slf4j", "slf4j-log4j12"),
+      libraryDependencies += "org.apache.jena" % "jena-arq" % "2.13.0" exclude("org.slf4j", "slf4j-log4j12")
     )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
