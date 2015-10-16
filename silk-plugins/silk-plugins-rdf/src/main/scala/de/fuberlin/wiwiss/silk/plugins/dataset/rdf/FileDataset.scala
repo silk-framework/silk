@@ -1,22 +1,21 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
-import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter, Writer}
-
 import com.hp.hpl.jena.query.DatasetFactory
 import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
-import de.fuberlin.wiwiss.silk.dataset.{Formatter, DataSink, DataSource}
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link, Path, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{JenaModelEndpoint, JenaEndpoint}
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{SparqlTypesCollector, SparqlAggregatePathsCollector, EntityRetriever}
+import de.fuberlin.wiwiss.silk.dataset.{DataSource, Formatter}
+import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.FormattedDataSink
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.runtime.resource.{FileResource, Resource}
+import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 
 @Plugin(
   id = "file",
   label = "RDF dump",
   description =
-    """ DataSource which retrieves all entities from an RDF file.
+    """ Dataset which retrieves and writes all entities from/to an RDF file.
       | Parameters:
       |  file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
       |  format: Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle"
@@ -25,9 +24,19 @@ import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 )
 case class FileDataset(file: Resource, format: String, graph: String = "") extends RdfDatasetPlugin {
 
-  // Try to parse the format
-  private val lang = RDFLanguages.nameToLang(format)
-  require(lang != null || format.toLowerCase == "alignment", "Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\", \"Alignment\"")
+  /** The RDF format of the given resource. */
+  private val lang = {
+    // If the format is not specified explicitly, we try to guess it
+    if(format.isEmpty) {
+      val guessedLang = RDFLanguages.filenameToLang(file.name)
+      require(guessedLang != null, "Cannot guess RDF format from resource name. Please specify it explicitly using the 'format' parameter.")
+      guessedLang
+    } else {
+      val explicitLang = RDFLanguages.nameToLang(format)
+      require(explicitLang != null, "Invalid format. Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
+      explicitLang
+    }
+  }
 
   override def sparqlEndpoint = {
     // Load data set
@@ -46,7 +55,7 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
 
   override def source = FileSource
 
-  override def sink = FileSink
+  override def sink = new FormattedDataSink(file, Formatter(format.filter(_ != '-').toLowerCase))
 
   object FileSource extends DataSource {
 
@@ -75,46 +84,6 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
     private def load() = synchronized {
       if (endpoint == null) {
         endpoint = sparqlEndpoint
-      }
-    }
-  }
-
-  object FileSink extends DataSink {
-
-    private val formatter = Formatter(format.filter(_ != '-').toLowerCase)
-
-    private var properties = Seq[String]()
-
-    private val javaFile = file match {
-      case f: FileResource => f.file
-      case _ => throw new IllegalArgumentException("Can only write to files, but got a resource of type " + file.getClass)
-    }
-
-    private var out: Writer = null
-
-    override def open(properties: Seq[String]) {
-      this.properties = properties
-      //Create buffered writer
-      out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
-      //Write header
-      out.write(formatter.header)
-    }
-
-    override def writeLink(link: Link, predicateUri: String) {
-      out.write(formatter.format(link, predicateUri))
-    }
-
-    override def writeEntity(subject: String, values: Seq[Set[String]]) {
-      for((property, valueSet) <- properties zip values; value <- valueSet) {
-        out.write(formatter.formatLiteralStatement(subject, property, value))
-      }
-    }
-
-    override def close() {
-      if (out != null) {
-        out.write(formatter.footer)
-        out.close()
-        out = null
       }
     }
   }
