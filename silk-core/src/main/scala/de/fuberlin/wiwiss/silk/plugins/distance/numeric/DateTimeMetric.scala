@@ -24,14 +24,14 @@ import de.fuberlin.wiwiss.silk.rule.similarity.SimpleDistanceMeasure
   categories = Array("Numeric"),
   label = "DateTime",
   description = "Distance between two date time values (xsd:dateTime format) in seconds.")
-case class DateTimeMetric() extends SimpleDistanceMeasure {
 
-  private val datatypeFactory = DatatypeFactory.newInstance
+case class DateTimeMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     try {
-      val date1 = datatypeFactory.newXMLGregorianCalendar(str1)
-      val date2 = datatypeFactory.newXMLGregorianCalendar(str2)
+      val dataTypeFactory = DatatypeFactory.newInstance
+      val date1 = dataTypeFactory.newXMLGregorianCalendar(str1)
+      val date2 = dataTypeFactory.newXMLGregorianCalendar(str2)
 
       abs(totalSeconds(date1) - totalSeconds(date2)).toDouble
     }

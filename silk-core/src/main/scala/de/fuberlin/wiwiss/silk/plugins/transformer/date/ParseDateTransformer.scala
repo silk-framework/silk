@@ -33,8 +33,6 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin;
 )
 case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transformer {
 
-  private val datatypeFactory = DatatypeFactory.newInstance()
-
   def apply(values: Seq[Set[String]]): Set[String] = {
     values.flatten.toSet.flatMap(parse)
   }

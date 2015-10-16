@@ -22,7 +22,7 @@ trait AnyPlugin {
   /**
    * The description for this plugin.
    */
-  lazy val plugin = PluginDescription(getClass)
+  @transient lazy val plugin = PluginDescription(getClass)
 
   /**
    * The parameters for this plugin as Map.
