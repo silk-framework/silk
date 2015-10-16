@@ -24,7 +24,6 @@ import de.fuberlin.wiwiss.silk.rule.similarity.SimpleDistanceMeasure
   categories = Array("Numeric"),
   label = "DateTime",
   description = "Distance between two date time values (xsd:dateTime format) in seconds.")
-
 case class DateTimeMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double) = {
