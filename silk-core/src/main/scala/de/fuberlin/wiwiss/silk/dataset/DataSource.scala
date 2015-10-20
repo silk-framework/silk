@@ -14,7 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.dataset
 
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path, SparqlRestriction}
+import java.net.URI
+
+import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
  * The base trait of a concrete source of entities.
@@ -44,6 +47,12 @@ trait DataSource {
   def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
     Traversable.empty
   }
+
+  def retrievePathsByType(t: Uri, depth: Int = 1, limit: Option[Int] = None): Seq[Path] = ???
+
+  def retrieveEntities(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = ???
+
+  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Option[Entity]] = ???
 
   /**
    * Retrieve the most frequent types in the source.
