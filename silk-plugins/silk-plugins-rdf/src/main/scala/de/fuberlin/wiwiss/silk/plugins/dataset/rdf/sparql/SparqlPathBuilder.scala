@@ -29,8 +29,9 @@ object SparqlPathBuilder {
    * @param valuesPrefix The value of every path will be bound to a variable of the form: valuesPrefix{path.id}
    */
   def apply(paths: Seq[Path], subject: String = "?s", valuesPrefix: String = "?v"): String = {
+    val vars = new Vars(subject, valuesPrefix)
     paths.zipWithIndex.map {
-      case (path, index) => buildPath(path, index, new Vars(subject, valuesPrefix))
+      case (path, index) => buildPath(path, index, vars)
     }.mkString
   }
 
@@ -85,7 +86,7 @@ object SparqlPathBuilder {
     def curTempVar: String = TempVarPrefix + tempVarIndex
 
     def newFilterVar: String = {
-      filterVarIndex += 1; FilterVarPrefix + tempVarIndex
+      filterVarIndex += 1; FilterVarPrefix + filterVarIndex
     }
 
     def curFilterVar: String = FilterVarPrefix + filterVarIndex
