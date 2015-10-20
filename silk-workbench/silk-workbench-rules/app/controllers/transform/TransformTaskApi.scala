@@ -24,7 +24,7 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), Constants.SourceVariable, SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+    val input = DatasetSelection(values("source"), SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
