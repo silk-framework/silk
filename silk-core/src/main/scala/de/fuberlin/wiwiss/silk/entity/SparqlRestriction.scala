@@ -28,6 +28,11 @@ class SparqlRestriction private(val variable: String, restrictionsFull: String, 
 
   def isEmpty = restrictionsFull.isEmpty
 
+  def merge(other: SparqlRestriction) = {
+    require(variable == other.variable, "Variables must match")
+    SparqlRestriction.fromSparql(variable, toSparql + "\n" + other.toSparql)
+  }
+
   override def toString = restrictionsQualified
 
   override def equals(other: Any) = other match {

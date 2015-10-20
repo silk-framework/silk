@@ -28,7 +28,7 @@ class ExecuteTransform(input: DataSource,
         restrictions = selection.restriction,
         paths = rules.flatMap(_.paths).distinct.toIndexedSeq
       )
-    val entities = input.retrieve(entityDesc)
+    val entities = input.retrieveSparqlEntities(entityDesc)
 
     try {
       // Open outputs

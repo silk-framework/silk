@@ -25,7 +25,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
   /**
    * Retrieves entities from this source which satisfy a specific entity description.
    */
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val json = load(file)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
@@ -36,7 +36,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
   /**
    * Retrieves the most frequent paths in this source.
    */
-  override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     val json = Json.parse(file.loadAsString)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
     for (element <- selectedElements.headOption.toSeq; // At the moment, we only retrieve the path from the first found element

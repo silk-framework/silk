@@ -27,13 +27,13 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
     }
   }
 
-  override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     for (property <- propertyList) yield {
       (Path(restriction.variable, ForwardOperator(prefix + property) :: Nil), 1.0)
     }
   }
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 

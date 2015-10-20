@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
  * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
@@ -38,18 +39,18 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+  override def retrieve(entityDesc: EntityDescription, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     canceled = false
     if(entityDesc.paths.size <= 1)
-      new SimpleEntityRetriever(endpoint, pageSize, graphUri).retrieve(entityDesc, entities)
+      new SimpleEntityRetriever(endpoint, pageSize, graphUri).retrieve(entityDesc, entities, limit)
     else
-      new EntityTraversable(entityDesc, entities)
+      new EntityTraversable(entityDesc, entities, limit)
   }
 
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(entityDesc: EntityDescription, entityUris: Seq[String]) extends Traversable[Entity] {
+  private class EntityTraversable(entityDesc: EntityDescription, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U) {
       var inconsistentOrder = false
       var counter = 0
@@ -59,7 +60,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       pathRetrievers.foreach(_.start())
 
       try {
-        while (pathRetrievers.forall(_.hasNext) && !inconsistentOrder) {
+        while (pathRetrievers.forall(_.hasNext) && !inconsistentOrder && limit.forall(counter <= _)) {
           val pathValues = for (pathRetriever <- pathRetrievers) yield pathRetriever.next()
 
           val uri = pathValues.head.uri
@@ -88,20 +89,20 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
         if (!useOrderBy) {
           logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
           val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
-          val entities = entityRetriever.retrieve(entityDesc, entityUris)
+          val entities = entityRetriever.retrieve(entityDesc, entityUris, limit)
           entities.drop(counter).foreach(f)
         }
         else {
           logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by. Falling back to serial querying.")
           val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
-          val entities = simpleEntityRetriever.retrieve(entityDesc, entityUris)
+          val entities = simpleEntityRetriever.retrieve(entityDesc, entityUris, limit)
           entities.drop(counter).foreach(f)
         }
       }
     }
   }
 
-  private class PathRetriever(entityUris: Seq[String], entityDesc: EntityDescription, path: Path) extends Thread {
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: EntityDescription, path: Path) extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null
@@ -145,7 +146,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       }
     }
 
-    private def queryPath(fixedSubject: Option[String] = None) = {
+    private def queryPath(fixedSubject: Option[Uri] = None) = {
       //Select
       var sparql = "SELECT "
       if (fixedSubject.isEmpty) {
@@ -179,8 +180,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       endpoint.query(sparql)
     }
 
-    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[String] = None) {
-      var currentSubject: Option[String] = fixedSubject
+    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None) {
+      var currentSubject: Option[String] = fixedSubject.map(_.uri)
       var currentValues: Set[String] = Set.empty
 
       for (result <- sparqlResults) {
@@ -188,7 +189,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
           return
         }
 
-        if (!fixedSubject.isDefined) {
+        if (fixedSubject.isEmpty) {
           //Check if we are still reading values for the current subject
           val subject = result.get(entityDesc.variable) match {
             case Some(Resource(value)) => Some(value)

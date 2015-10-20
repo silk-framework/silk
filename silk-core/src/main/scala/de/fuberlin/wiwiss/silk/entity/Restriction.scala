@@ -18,6 +18,12 @@ import scala.xml.Elem
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 case class Restriction(operator: Option[Restriction.Operator]) {
+
+  /** Retrieves all paths that are used by this restriction. */
+  def paths = operator.map(_.paths).getOrElse(Set.empty)
+
+  def isEmpty = operator.isEmpty
+
   def toXml = {
     <Restriction>
       {for (op <- operator) yield op.toXml}
@@ -26,9 +32,13 @@ case class Restriction(operator: Option[Restriction.Operator]) {
 }
 
 object Restriction {
+
   def empty = new Restriction(None)
 
   sealed trait Operator {
+
+    def paths: Set[Path]
+
     def toXml: Elem
   }
 
@@ -36,6 +46,9 @@ object Restriction {
    * A condition which evaluates to true if the provided path contains the given value.
    */
   case class Condition(path: Path, value: String) extends Operator {
+
+    def paths = Set(path)
+
     def toXml = {
       <Condition path={path.toString}>
        { value }
@@ -57,6 +70,9 @@ object Restriction {
    * Currently not supported.
    */
   case class Not(op: Operator) {
+
+    def paths = op.paths
+
     def toXml = <Not>
       {op.toXml}
     </Not>
@@ -66,6 +82,9 @@ object Restriction {
    * Evaluates to true if all provided operators evaluate to true.
    */
   case class And(children: Traversable[Operator]) extends Operator {
+
+    def paths = children.flatMap(_.paths).toSet
+
     def toXml = <And>
       {children.map(_.toXml)}
     </And>
@@ -75,6 +94,9 @@ object Restriction {
    * Evaluates to true if at least one of the provided operators evaluate to true.
    */
   case class Or(children: Traversable[Operator]) extends Operator {
+
+    def paths = children.flatMap(_.paths).toSet
+
     def toXml = <Or>
       {children.map(_.toXml)}
     </Or>

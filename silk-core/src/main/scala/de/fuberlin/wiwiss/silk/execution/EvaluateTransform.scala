@@ -33,7 +33,7 @@ class EvaluateTransform(source: Dataset,
         restrictions = dataSelection.restriction,
         paths = rules.flatMap(_.paths).toIndexedSeq
       )
-    val entities = source.source.retrieve(entityDesc)
+    val entities = source.source.retrieveSparqlEntities(entityDesc)
 
     // Read all entities
     for(entity <- entities) {

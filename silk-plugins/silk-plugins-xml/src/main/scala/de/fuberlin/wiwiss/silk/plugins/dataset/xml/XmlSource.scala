@@ -15,7 +15,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
-  override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes().head
     for (path <- collectPaths(Nil, xml)) yield {
@@ -39,7 +39,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     if (childPaths.isEmpty) Seq(path) else childPaths
   }
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
 
     logger.log(Level.FINE, "Retrieving data from XML.")
 

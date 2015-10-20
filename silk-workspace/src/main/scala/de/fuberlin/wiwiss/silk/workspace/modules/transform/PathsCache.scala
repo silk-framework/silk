@@ -26,7 +26,7 @@ class PathsCache(dataset: Dataset, transform: TransformSpecification) extends Ac
       val source = dataset.source
       //Retrieve most frequent paths
       context.status.update("Retrieving frequent paths", 0.0)
-      val paths = source.retrievePaths(transform.selection.restriction, 1).map(_._1)
+      val paths = source.retrieveSparqlPaths(transform.selection.restriction, 1).map(_._1)
       //Add the frequent paths to the entity description
       context.value() = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ paths).distinct)
     }

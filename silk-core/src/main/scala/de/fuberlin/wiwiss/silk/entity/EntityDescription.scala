@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.entity
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
+import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionBuilder
 
 import scala.xml.Node
 
@@ -35,20 +36,6 @@ case class EntityDescription(variable: String = "a", restrictions: SparqlRestric
     }
     index
   }
-
-  /**
-   * Merges two entity descriptions.
-   * The variable as well as the restrictions of both entity descriptions must be the same.
-   *
-   * @param other The entity description that should be merged with this entity description
-   * @return The merged entity description
-   */
-  def merge(other: EntityDescription) = {
-    require(variable == other.variable)
-    require(restrictions == other.restrictions)
-
-    copy(paths = (paths ++ other.paths).distinct)
-  }
 }
 
 object EntityDescription {
@@ -57,6 +44,12 @@ object EntityDescription {
    * Creates an empty entity description.
    */
   def empty = EntityDescription("a", SparqlRestriction.empty, IndexedSeq.empty)
+
+  def fromSchema(entitySchema: EntitySchema) = {
+    val sparqlRestriction = new SparqlRestrictionBuilder("a")(Prefixes.empty).apply(entitySchema.filter)
+    val typeRestriction = SparqlRestriction.fromSparql("a", s"?a a <${entitySchema.typ}>")
+    EntityDescription("a", sparqlRestriction merge typeRestriction, entitySchema.paths)
+  }
 
   /**
    * XML serialization format.
