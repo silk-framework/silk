@@ -70,7 +70,6 @@ trait DataSource {
    */
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Option[Entity]] = ???
 
-
   /**
    * Retrieves entities from this source which satisfy a specific entity description.
    *

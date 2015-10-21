@@ -50,6 +50,7 @@ object Restriction {
 
   /**
    * Base trait for all restriction operators.
+   * Either a custom operator or a logical operator.
    */
   sealed trait Operator {
 
@@ -71,6 +72,9 @@ object Restriction {
     def serialize = expression
   }
 
+  /**
+   * A logical restriction operator.
+   */
   trait LogicalOperator extends Operator
 
   /**
