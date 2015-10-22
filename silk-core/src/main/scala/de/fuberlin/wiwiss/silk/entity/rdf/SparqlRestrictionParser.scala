@@ -12,17 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.util.convert
+package de.fuberlin.wiwiss.silk.entity.rdf
 
+import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.entity.Restriction.{And, Condition, Operator, Or}
+import de.fuberlin.wiwiss.silk.entity.{Path, Restriction}
 import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
 
-import util.parsing.combinator.RegexParsers
-import de.fuberlin.wiwiss.silk.entity.Path
-import util.parsing.input.CharSequenceReader
-
-import de.fuberlin.wiwiss.silk.entity.{Restriction, SparqlRestriction}
-import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Or, Condition, And}
+import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.input.CharSequenceReader
 
 
 /**

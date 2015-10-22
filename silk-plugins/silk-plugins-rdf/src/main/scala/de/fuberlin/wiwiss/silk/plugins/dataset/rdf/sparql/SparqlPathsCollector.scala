@@ -15,7 +15,8 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
 import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
-import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.Path
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 
 /**
  * Retrieves the most frequent property paths.

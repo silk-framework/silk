@@ -15,8 +15,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
-
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlParams
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.util.Timer

@@ -84,12 +84,6 @@ object Restriction {
 
     def paths = Set(path)
 
-    def toXml = {
-      <Condition path={path.toString}>
-       { value }
-      </Condition>
-    }
-
     def serialize = s"$path = $value"
   }
 

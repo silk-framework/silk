@@ -1,10 +1,11 @@
 package de.fuberlin.wiwiss.silk.util.convert
 
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestrictionBuilder
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import de.fuberlin.wiwiss.silk.entity.{Path, Restriction, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.{Path, Restriction}
 import de.fuberlin.wiwiss.silk.entity.Restriction.Condition
 import de.fuberlin.wiwiss.silk.config.Prefixes
 

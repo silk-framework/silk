@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, TransformSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}

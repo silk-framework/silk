@@ -18,6 +18,7 @@ package de.fuberlin.wiwiss.silk.evaluation
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.DPair
@@ -50,10 +51,10 @@ case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
   }
 
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
-  def entitiyDescs: DPair[EntityDescription] = {
+  def entitiyDescs: DPair[SparqlEntitySchema] = {
     (positive ++ negative).values.headOption match {
       case Some(entityPair) => entityPair.map(_.desc)
-      case None => DPair.fill(EntityDescription.empty)
+      case None => DPair.fill(SparqlEntitySchema.empty)
     }
   }
 }
@@ -76,7 +77,7 @@ object ReferenceEntities {
      * Deserialize a value from XML.
      */
     def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = {
-      val entityDescs = Serialization.fromXml[DPair[EntityDescription]]((node \ "Pair").head)
+      val entityDescs = Serialization.fromXml[DPair[SparqlEntitySchema]]((node \ "Pair").head)
       val posNode = node \ "PositiveEntities"
       val negNode = node \ "NegativeEntities"
 

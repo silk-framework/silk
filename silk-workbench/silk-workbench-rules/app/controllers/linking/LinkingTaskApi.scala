@@ -3,7 +3,8 @@ package controllers.linking
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, LinkSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.{Link, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
 import de.fuberlin.wiwiss.silk.learning.LearningActivity

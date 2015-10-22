@@ -4,7 +4,7 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, Prefixes, TransformSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
@@ -86,6 +86,6 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
       )
     // Create task activities
     TaskActivity(executeTransform) ::
-    TaskActivity("cache.xml", null: EntityDescription, pathsCache, project.resourceManager.child(prefix).child(task.name))  :: Nil
+    TaskActivity("cache.xml", null: SparqlEntitySchema, pathsCache, project.resourceManager.child(prefix).child(task.name))  :: Nil
   }
 }

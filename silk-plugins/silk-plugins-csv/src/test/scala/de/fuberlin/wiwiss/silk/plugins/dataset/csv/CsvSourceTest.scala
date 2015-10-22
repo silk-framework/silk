@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
-import de.fuberlin.wiwiss.silk.entity.{Path, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.Path
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.runtime.resource.ClasspathResourceLoader
 import org.scalatest.{Matchers, FlatSpec}
 
@@ -23,7 +24,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   "For persons.csv, CsvParser" should "extract all columns" in {
-    val entityDesc = EntityDescription(paths = IndexedSeq(Path("ID"), Path("Name"), Path("Age")))
+    val entityDesc = SparqlEntitySchema(paths = IndexedSeq(Path("ID"), Path("Name"), Path("Age")))
     val persons = source.retrieveSparqlEntities(entityDesc).toIndexedSeq
     persons(0).values should equal (IndexedSeq(Set("1"), Set("Max Mustermann"), Set("30")))
     persons(1).values should equal (IndexedSeq(Set("2"), Set("Markus G."), Set("24")))
@@ -31,7 +32,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
-    val entityDesc = EntityDescription(paths = IndexedSeq(Path("Name"), Path("Age")))
+    val entityDesc = SparqlEntitySchema(paths = IndexedSeq(Path("Name"), Path("Age")))
     val persons = source.retrieveSparqlEntities(entityDesc).toIndexedSeq
     persons(0).values should equal (IndexedSeq(Set("Max Mustermann"), Set("30")))
     persons(1).values should equal (IndexedSeq(Set("Markus G."), Set("24")))

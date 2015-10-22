@@ -17,7 +17,8 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
-import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Path}
 import de.fuberlin.wiwiss.silk.util.Uri
 
 /**

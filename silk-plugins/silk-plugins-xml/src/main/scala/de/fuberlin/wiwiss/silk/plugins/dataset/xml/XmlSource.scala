@@ -5,6 +5,7 @@ import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -39,7 +40,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     if (childPaths.isEmpty) Seq(path) else childPaths
   }
 
-  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
 
     logger.log(Level.FINE, "Retrieving data from XML.")
 
@@ -74,7 +75,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     currentNode
   }
 
-  private class Entities(xml: NodeSeq, entityDesc: EntityDescription) extends Traversable[Entity] {
+  private class Entities(xml: NodeSeq, entityDesc: SparqlEntitySchema) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((node, index) <- xml.zipWithIndex) {

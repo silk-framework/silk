@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.learning.active.linkselector
 
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregation, Comparison}
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.rule.input.PathInput
@@ -86,8 +87,8 @@ object LinkSelectorTest extends App {
   }
 
   def entities(label1: String, date1: String, label2: String, date2: String) = {
-    val sourceEntityDesc = EntityDescription("a", SparqlRestriction.empty, IndexedSeq(Path.parse("?a/<label>"), Path.parse("?a/<date>")))
-    val targetEntityDesc = EntityDescription("b", SparqlRestriction.empty, IndexedSeq(Path.parse("?b/<label>"), Path.parse("?b/<date>")))
+    val sourceEntityDesc = SparqlEntitySchema("a", SparqlRestriction.empty, IndexedSeq(Path.parse("?a/<label>"), Path.parse("?a/<date>")))
+    val targetEntityDesc = SparqlEntitySchema("b", SparqlRestriction.empty, IndexedSeq(Path.parse("?b/<label>"), Path.parse("?b/<date>")))
 
     DPair(
       source = new Entity(label1 + date1, IndexedSeq(Set(label1), Set(date1)), sourceEntityDesc),

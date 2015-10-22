@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
 @RunWith(classOf[JUnitRunner])

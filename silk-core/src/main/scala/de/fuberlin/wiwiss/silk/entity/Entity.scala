@@ -14,13 +14,15 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+
 import scala.xml.Node
 import java.io.{DataOutput, DataInput}
 
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: EntityDescription) {
+class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: SparqlEntitySchema) {
   
   def evaluate(path: Path): Set[String] = {
     if(path.operators.isEmpty)
@@ -60,7 +62,7 @@ class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: Ent
 }
 
 object Entity {
-  def fromXML(node: Node, desc: EntityDescription) = {
+  def fromXML(node: Node, desc: SparqlEntitySchema) = {
     new Entity(
       uri = (node \ "@uri").text.trim,
       values = {
@@ -72,7 +74,7 @@ object Entity {
     )
   }
 
-  def deserialize(stream: DataInput, desc: EntityDescription) = {
+  def deserialize(stream: DataInput, desc: SparqlEntitySchema) = {
     //Read URI
     val uri = stream.readUTF()
 

@@ -14,8 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.cache
 
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Entity}
+import de.fuberlin.wiwiss.silk.entity.Entity
 import java.io.{DataInput, DataOutput}
+
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 
 class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
   require(entities.size == indices.size, "entities.size == indices.size")
@@ -48,7 +50,7 @@ object Partition {
     }
   }
 
-  def deserialize(stream: DataInput, desc: EntityDescription) = {
+  def deserialize(stream: DataInput, desc: SparqlEntitySchema) = {
     val partitionSize = stream.readInt()
     val entities = new Array[Entity](partitionSize)
     val indices = new Array[BitsetIndex](partitionSize)

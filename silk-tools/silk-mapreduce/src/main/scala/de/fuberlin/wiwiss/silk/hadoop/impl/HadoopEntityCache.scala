@@ -15,6 +15,7 @@
 package de.fuberlin.wiwiss.silk.hadoop.impl
 
 import java.util.logging.Logger
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import org.apache.hadoop.fs.{Path, FileSystem}
 import de.fuberlin.wiwiss.silk.entity._
 import java.io._
@@ -25,7 +26,7 @@ import de.fuberlin.wiwiss.silk.cache.{BitsetIndex, Partition, EntityCache}
  * An entity cache, which uses the Hadoop FileSystem API.
  * This can be used to cache the entities on any file system which is supported by Hadoop e.g. the Hadoop Distributed FileSystem.
  */
-class HadoopEntityCache(val entityDesc: EntityDescription,
+class HadoopEntityCache(val entityDesc: SparqlEntitySchema,
                         val indexFunction: (Entity => Index),
                         fs: FileSystem, path: Path,
                         runtimeConfig: RuntimeConfig) extends EntityCache {

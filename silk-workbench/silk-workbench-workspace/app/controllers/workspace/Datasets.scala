@@ -2,7 +2,7 @@ package controllers.workspace
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, ResultSet}
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.workspace.User
 import play.api.mvc.{Action, Controller}
@@ -54,7 +54,7 @@ object Datasets extends Controller {
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = EntityDescription("a", SparqlRestriction.empty, paths)
+    val entityDesc = SparqlEntitySchema("a", SparqlRestriction.empty, paths)
     val entities = source.retrieveSparqlEntities(entityDesc).take(maxEntities).toList
 
     Ok(views.html.workspace.dataset.table(context, paths, entities))

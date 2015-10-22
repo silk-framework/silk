@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.xml
 
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.runtime.resource.ClasspathResourceLoader
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -22,7 +23,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   val personValue = Path.parse("Properties/Property[Key = \"2\"]/Value")
 
   val entityDesc =
-    EntityDescription(
+    SparqlEntitySchema(
       variable = "a",
       restrictions = SparqlRestriction.empty,
       paths = IndexedSeq(personId, personName, personBirth, personDeath, personValue)

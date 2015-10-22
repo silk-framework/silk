@@ -18,13 +18,14 @@ import java.io._
 import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Index}
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+import de.fuberlin.wiwiss.silk.entity.{Entity, Index}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 
 /**
  * An entity cache, which caches the entities on the local file system.
  */
-class FileEntityCache(val entityDesc: EntityDescription,
+class FileEntityCache(val entityDesc: SparqlEntitySchema,
                       val indexFunction: (Entity => Index),
                       dir: File,
                       runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {

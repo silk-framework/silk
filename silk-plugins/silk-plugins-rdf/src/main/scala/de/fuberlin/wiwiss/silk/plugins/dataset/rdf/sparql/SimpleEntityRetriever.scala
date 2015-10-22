@@ -15,7 +15,8 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
 import de.fuberlin.wiwiss.silk.dataset.rdf.{Resource, RdfNode, SparqlEndpoint}
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
@@ -31,7 +32,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entityDesc: SparqlEntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     if (entities.isEmpty) {
       retrieveAll(entityDesc, limit)
     } else {
@@ -45,7 +46,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    * @param entityDesc The entity description
    * @return The retrieved entities
    */
-  private def retrieveAll(entityDesc: EntityDescription, limit: Option[Int]): Traversable[Entity] = {
+  private def retrieveAll(entityDesc: SparqlEntitySchema, limit: Option[Int]): Traversable[Entity] = {
     //Select
     var sparql = "SELECT "
     sparql += "?" + entityDesc.variable + " "
@@ -80,7 +81,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    * @param entityDesc The entity description
    * @return A sequence of the retrieved entities.
    */
-  private def retrieveList(entityUris: Seq[Uri], entityDesc: EntityDescription): Seq[Entity] = {
+  private def retrieveList(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema): Seq[Entity] = {
     entityUris.view.flatMap(entityUri => retrieveEntity(entityUri, entityDesc))
   }
 
@@ -92,7 +93,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    * @return Some(entity), if an entity with the given uri is in the Store
    *         None, if no entity with the given uri is in the Store
    */
-  def retrieveEntity(entityUri: Uri, entityDesc: EntityDescription): Option[Entity] = {
+  def retrieveEntity(entityUri: Uri, entityDesc: SparqlEntitySchema): Option[Entity] = {
     //Query only one path at once and combine the result into one
     val sparqlResults = {
       for ((path, pathIndex) <- entityDesc.paths.zipWithIndex;
@@ -106,7 +107,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     new EntityTraversable(sparqlResults, entityDesc, Some(entityUri), None).headOption
   }
 
-  private def retrievePaths(entityDesc: EntityDescription, entityUri: Uri, paths: Seq[Path]) = {
+  private def retrievePaths(entityDesc: SparqlEntitySchema, entityUri: Uri, paths: Seq[Path]) = {
     //Select
     var sparql = "SELECT DISTINCT "
     for (i <- paths.indices) {
@@ -128,7 +129,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]], entityDesc: EntityDescription, subject: Option[Uri], limit: Option[Int]) extends Traversable[Entity] {
+  private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]], entityDesc: SparqlEntitySchema, subject: Option[Uri], limit: Option[Int]) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U) {
       //Remember current subject
       var curSubject: Option[String] = subject.map(_.uri)

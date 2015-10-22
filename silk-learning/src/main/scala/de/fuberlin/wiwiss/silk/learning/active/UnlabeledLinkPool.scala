@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.learning.active
 
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link}
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
@@ -9,7 +10,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
  * @param entityDescs The schemata of the two data sources.
  * @param links The unlabeled link candidates.
  */
-case class UnlabeledLinkPool(entityDescs: DPair[EntityDescription], links: Traversable[Link]) {
+case class UnlabeledLinkPool(entityDescs: DPair[SparqlEntitySchema], links: Traversable[Link]) {
 
   def isEmpty = links.isEmpty
 
@@ -19,6 +20,6 @@ case class UnlabeledLinkPool(entityDescs: DPair[EntityDescription], links: Trave
 
 object UnlabeledLinkPool {
 
-  def empty = UnlabeledLinkPool(DPair.fill(EntityDescription.empty), Traversable.empty)
+  def empty = UnlabeledLinkPool(DPair.fill(SparqlEntitySchema.empty), Traversable.empty)
 
 }

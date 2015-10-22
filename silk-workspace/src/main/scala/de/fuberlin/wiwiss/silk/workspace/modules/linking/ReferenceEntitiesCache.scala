@@ -2,7 +2,8 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, Dataset}
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Link}
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.DPair
@@ -28,7 +29,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
     }
   }
 
-  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntityDescription]) {
+  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[SparqlEntitySchema]) {
 
     private val sources = task.data.dataSelections.map(ds => project.task[Dataset](ds.datasetId).data.source)
 
@@ -107,7 +108,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
      * Updates an entity so that it conforms to a new entity description.
      * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateEntity(entity: Entity, entityDesc: EntityDescription, source: DataSource): Option[Entity] = {
+    private def updateEntity(entity: Entity, entityDesc: SparqlEntitySchema, source: DataSource): Option[Entity] = {
       if (entity.desc.paths == entityDesc.paths) {
         // No updated needed as the given entity already contains all paths in the correct order.
         None

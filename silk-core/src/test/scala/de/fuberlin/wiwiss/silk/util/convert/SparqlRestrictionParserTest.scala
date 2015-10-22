@@ -14,10 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.util.convert
 
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, Restriction}
+import de.fuberlin.wiwiss.silk.entity.{Path, Restriction}
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Or, Condition}
 
 import org.junit.runner.RunWith

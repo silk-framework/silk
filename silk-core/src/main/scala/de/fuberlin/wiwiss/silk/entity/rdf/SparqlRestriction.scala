@@ -12,10 +12,11 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.entity
+package de.fuberlin.wiwiss.silk.entity.rdf
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import util.matching.Regex
+
+import scala.util.matching.Regex
 
 /**
  * Represents a SPARQL restriction.

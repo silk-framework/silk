@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
@@ -18,7 +18,7 @@ import scala.xml.Node
 case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty) {
 
   def entityDescription = {
-    new EntityDescription(
+    new SparqlEntitySchema(
       variable = selection.variable,
       restrictions = selection.restriction,
       paths = rules.flatMap(_.paths).distinct.toIndexedSeq

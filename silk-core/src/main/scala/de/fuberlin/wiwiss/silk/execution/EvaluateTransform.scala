@@ -4,7 +4,7 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.config.DatasetSelection
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 
@@ -28,7 +28,7 @@ class EvaluateTransform(source: Dataset,
   def execute(): Seq[DetailedEntity] = {
     // Retrieve entities
     val entityDesc =
-      new EntityDescription(
+      new SparqlEntitySchema(
         variable = dataSelection.variable,
         restrictions = dataSelection.restriction,
         paths = rules.flatMap(_.paths).toIndexedSeq

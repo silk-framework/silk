@@ -6,11 +6,11 @@ import java.util.logging.{Level, Logger}
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlRestrictionBuilder, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.Uri
-import de.fuberlin.wiwiss.silk.util.convert.SparqlRestrictionBuilder
 
 /**
  * A DataSource where all entities are given directly in the configuration.
@@ -41,11 +41,11 @@ case class RdfDataSource(input: String, format: String) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from RDF.")
     // TODO limit is currently ignored
-    EntityRetriever(endpoint).retrieve(EntityDescription.fromSchema(entitySchema), Seq.empty, limit)
+    EntityRetriever(endpoint).retrieve(SparqlEntitySchema.fromSchema(entitySchema), Seq.empty, limit)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Option[Entity]] = {
-    val entitiesByUri = EntityRetriever(endpoint).retrieve(EntityDescription.fromSchema(entitySchema), entities, None).groupBy(_.uri)
+    val entitiesByUri = EntityRetriever(endpoint).retrieve(SparqlEntitySchema.fromSchema(entitySchema), entities, None).groupBy(_.uri)
     entities.map(e => entitiesByUri.get(e.uri).map(_.head))
   }
 
@@ -53,7 +53,7 @@ case class RdfDataSource(input: String, format: String) extends DataSource {
   // TODO remove deprecated methods below
   ////////////////////////////////////////
 
-  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from RDF.")
     EntityRetriever(endpoint).retrieve(entityDesc, entities.map(Uri(_)), None)
   }

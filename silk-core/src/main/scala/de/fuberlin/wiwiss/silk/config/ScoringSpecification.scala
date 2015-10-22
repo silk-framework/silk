@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.rule.{ScoringRule, TransformRule}
 import de.fuberlin.wiwiss.silk.util.Identifier
 
@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 case class ScoringSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[ScoringRule], outputs: Seq[Identifier] = Seq.empty) {
 
   def entityDescription = {
-    new EntityDescription(
+    new SparqlEntitySchema(
       variable = selection.variable,
       restrictions = selection.restriction,
       paths = rules.flatMap(_.toTransform.paths).distinct.toIndexedSeq

@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.util.convert
+package de.fuberlin.wiwiss.silk.entity.rdf
 
-import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, SparqlRestriction, Restriction}
-import de.fuberlin.wiwiss.silk.entity.Restriction.{Operator, Condition, Or, And}
 import de.fuberlin.wiwiss.silk.config.Prefixes
+import de.fuberlin.wiwiss.silk.entity.Restriction._
+import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction}
 
 /**
  * Builds a SPARQL restriction from a Silk restriction.
@@ -15,6 +15,7 @@ class SparqlRestrictionBuilder(subjectVar: String)(implicit prefixes: Prefixes) 
   }
 
   def convertOperator(op: Operator): String = op match {
+    case CustomOperator(ex) => ex
     case Condition(path, value) => path.operators match {
       case ForwardOperator(uri) :: Nil => s"{?$subjectVar <$uri> <$value>}"
       case _ => throw new UnsupportedOperationException("Complex paths are not supported.")

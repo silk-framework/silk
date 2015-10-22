@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.config
 
-import de.fuberlin.wiwiss.silk.entity.SparqlRestriction
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 
 import scala.xml.Node

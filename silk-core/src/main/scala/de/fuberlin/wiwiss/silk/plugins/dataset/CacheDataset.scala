@@ -18,7 +18,8 @@ import java.io.File
 import de.fuberlin.wiwiss.silk.cache.FileEntityCache
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, DatasetPlugin}
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Index}
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+import de.fuberlin.wiwiss.silk.entity.{Entity, Index}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 @Plugin(id = "cache", label = "Cache", description= "Reads the entities from an existing Silk entity cache.")
@@ -31,7 +32,7 @@ case class CacheDataset(dir: String) extends DatasetPlugin {
   override def sink = ???
 
   object CacheSource extends DataSource {
-    def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+    def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
 
       entityCache.readAll

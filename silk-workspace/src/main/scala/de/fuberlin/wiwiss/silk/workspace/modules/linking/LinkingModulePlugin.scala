@@ -17,7 +17,8 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, Prefixes, RuntimeConfig}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Link}
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, ReferenceLinksReader}
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
 import de.fuberlin.wiwiss.silk.learning.active.{ActiveLearning, ActiveLearningState}
@@ -119,7 +120,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     // Create task activities
     val taskResources = project.resourceManager.child(prefix).child(task.name)
     TaskActivity(Seq[Link](), generateLinks) ::
-    TaskActivity("pathsCache.xml", null: DPair[EntityDescription], pathsCache, taskResources) ::
+    TaskActivity("pathsCache.xml", null: DPair[SparqlEntitySchema], pathsCache, taskResources) ::
     TaskActivity("referenceEntitiesCache.xml", ReferenceEntities.empty, referenceEntitiesCache, taskResources) ::
     TaskActivity(LearningResult(), learning) ::
     TaskActivity(ActiveLearningState.initial, activeLearning) :: Nil

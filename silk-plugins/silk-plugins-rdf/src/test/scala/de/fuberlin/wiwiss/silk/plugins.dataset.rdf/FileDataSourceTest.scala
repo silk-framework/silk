@@ -14,8 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.scalatest.{Matchers, FlatSpec}
-import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import java.io.File
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
@@ -35,7 +36,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDescCity =
-    EntityDescription(
+    SparqlEntitySchema(
       variable = "a",
       restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type do:City"),
       paths = IndexedSeq(Path.parse("?a/rdfs:label"))
@@ -56,7 +57,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val pathCities = Path.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""")
 
   val entityDescPerson =
-    EntityDescription(
+    SparqlEntitySchema(
       variable = "a",
       restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type do:Person"),
       paths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)

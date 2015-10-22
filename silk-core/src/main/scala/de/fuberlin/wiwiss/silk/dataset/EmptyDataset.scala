@@ -1,6 +1,7 @@
 package de.fuberlin.wiwiss.silk.dataset
 
-import de.fuberlin.wiwiss.silk.entity.{Link, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.Link
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 
 /**
  * An empty data set.
@@ -11,7 +12,7 @@ private object EmptyDataset extends DatasetPlugin {
    * Returns an empty data source.
    */
   override def source: DataSource = new DataSource {
-    override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = Traversable.empty
+    override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = Traversable.empty
   }
 
   /**

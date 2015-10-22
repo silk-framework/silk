@@ -3,7 +3,8 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 import com.hp.hpl.jena.query.DatasetFactory
 import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, Formatter}
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.FormattedDataSink
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
@@ -63,7 +64,7 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
     // Load dataset
     private var endpoint: JenaEndpoint = null
 
-    override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = {
+    override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = {
       load()
       EntityRetriever(endpoint).retrieve(entityDesc, entities.map(Uri(_)), None)
     }

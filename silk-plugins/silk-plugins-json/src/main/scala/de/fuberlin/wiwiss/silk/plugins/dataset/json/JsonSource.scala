@@ -4,6 +4,7 @@ import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 import JsonParser._
 import play.api.libs.json._
@@ -25,7 +26,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
   /**
    * Retrieves entities from this source which satisfy a specific entity description.
    */
-  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val json = load(file)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
@@ -45,7 +46,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
     }
   }
 
-  private class Entities(elements: Seq[JsValue], entityDesc: EntityDescription, allowedUris: Set[String]) extends Traversable[Entity] {
+  private class Entities(elements: Seq[JsValue], entityDesc: SparqlEntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((node, index) <- elements.zipWithIndex) {

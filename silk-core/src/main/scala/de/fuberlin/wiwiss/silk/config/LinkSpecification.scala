@@ -17,7 +17,8 @@ package de.fuberlin.wiwiss.silk.config
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, Dataset}
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.entity.Path
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.rule.input.{Input, PathInput, TransformInput}
@@ -46,7 +47,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.sink)
   }
   
-  def entityDescriptions: DPair[EntityDescription] = {
+  def entityDescriptions: DPair[SparqlEntitySchema] = {
     val sourceVar = dataSelections.source.variable
     val targetVar = dataSelections.target.variable
 
@@ -63,8 +64,8 @@ case class LinkSpecification(id: Identifier = Identifier.random,
       case None => Set[Path]()
     }
 
-    val sourceEntityDesc = new EntityDescription(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
-    val targetEntityDesc = new EntityDescription(targetVar, targetRestriction, targetPaths.toIndexedSeq)
+    val sourceEntityDesc = new SparqlEntitySchema(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
+    val targetEntityDesc = new SparqlEntitySchema(targetVar, targetRestriction, targetPaths.toIndexedSeq)
 
     DPair(sourceEntityDesc, targetEntityDesc)
   }

@@ -14,6 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.util.DPair
 import scala.xml.Node
 
@@ -72,7 +73,7 @@ class Link(source: String,
 }
 
 object Link {
-  def fromXML(node: Node, entityDescription: Option[EntityDescription]) = {
+  def fromXML(node: Node, entityDescription: Option[SparqlEntitySchema]) = {
     new Link(
       source = (node \ "Source").text,
       target = (node \ "Target").text,

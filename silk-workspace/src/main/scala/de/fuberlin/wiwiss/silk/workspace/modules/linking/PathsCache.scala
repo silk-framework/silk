@@ -2,19 +2,19 @@ package de.fuberlin.wiwiss.silk.workspace.modules.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.EntityDescription
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.DPair
 
 /**
  * Holds the most frequent paths.
  */
-class PathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[EntityDescription]] {
+class PathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[SparqlEntitySchema]] {
 
   /**
    * Loads the most frequent property paths.
    */
-  override def run(context: ActivityContext[DPair[EntityDescription]]) = {
+  override def run(context: ActivityContext[DPair[SparqlEntitySchema]]) = {
     context.status.update("Retrieving frequent property paths", 0.0)
 
     //Create an entity description from the link specification

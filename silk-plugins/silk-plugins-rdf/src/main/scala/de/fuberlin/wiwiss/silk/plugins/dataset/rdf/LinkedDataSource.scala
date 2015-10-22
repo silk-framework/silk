@@ -4,7 +4,8 @@ import java.util.logging.{Logger, Level}
 
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import de.fuberlin.wiwiss.silk.dataset.DataSource
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.Entity
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
@@ -15,7 +16,7 @@ case class LinkedDataSource() extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]): Traversable[Entity] = {
     require(!entities.isEmpty, "Retrieving all entities not supported")
 
     logger.log(Level.FINE, "Retrieving data from Linked Data.")

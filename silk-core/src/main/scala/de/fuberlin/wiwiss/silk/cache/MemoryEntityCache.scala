@@ -14,16 +14,18 @@
 
 package de.fuberlin.wiwiss.silk.cache
 
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+
 import collection.mutable.ArrayBuffer
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import java.lang.InterruptedException
 
 /**
  * An entity cache, which caches the entities in memory and allows adding new entities at runtime.
  */
-class MemoryEntityCache(val entityDesc: EntityDescription,
+class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
                         val indexFunction: (Entity => Index),
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
 

@@ -14,8 +14,10 @@
 
 package de.fuberlin.wiwiss.silk.cache
 
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+
 import xml.Node
-import de.fuberlin.wiwiss.silk.entity.{Index, Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 
 /**
  * A cache of entities.
@@ -24,7 +26,7 @@ trait EntityCache {
   /**
    * The entity description of the entities in this cache.
    */
-  def entityDesc: EntityDescription
+  def entityDesc: SparqlEntitySchema
 
   /**
    * The index function according to which the entities are indexed.
@@ -99,7 +101,7 @@ trait EntityCache {
   /**
    * Reads entities from XML
    */
-  def fromXML(node: Node, entityDesc: EntityDescription) {
+  def fromXML(node: Node, entityDesc: SparqlEntitySchema) {
     val entities = new Traversable[Entity] {
       var currentBlock = 0
 

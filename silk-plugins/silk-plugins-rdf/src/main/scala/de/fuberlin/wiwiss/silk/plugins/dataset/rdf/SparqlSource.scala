@@ -3,7 +3,8 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 import java.util.logging.{Level, Logger}
 
 import de.fuberlin.wiwiss.silk.dataset.DataSource
-import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import de.fuberlin.wiwiss.silk.entity.Path
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{DefaultHttpEndpoint, HttpEndpoint, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql._
 import de.fuberlin.wiwiss.silk.util.Uri
@@ -24,7 +25,7 @@ class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new Defaul
     new RemoteSparqlEndpoint(params, httpEndpoint)
   }
 
-  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = {
+  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = {
     val entityRetriever =
       if(params.parallel)
         new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, graphUri)

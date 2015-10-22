@@ -17,7 +17,8 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
-import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription, Path}
+import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
@@ -39,7 +40,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entityDesc: SparqlEntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     canceled = false
     if(entityDesc.paths.size <= 1)
       new SimpleEntityRetriever(endpoint, pageSize, graphUri).retrieve(entityDesc, entities, limit)
@@ -50,7 +51,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(entityDesc: EntityDescription, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
+  private class EntityTraversable(entityDesc: SparqlEntitySchema, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U) {
       var inconsistentOrder = false
       var counter = 0
@@ -102,7 +103,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: EntityDescription, path: Path) extends Thread {
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path) extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null

@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.dataset
 import java.net.URI
 
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
@@ -78,7 +79,7 @@ trait DataSource {
    *
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
-  def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity]
+  def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity]
 
   /**
    * Retrieves the most frequent paths in this source.

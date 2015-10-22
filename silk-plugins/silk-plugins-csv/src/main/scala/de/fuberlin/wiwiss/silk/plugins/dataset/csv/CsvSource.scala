@@ -7,6 +7,7 @@ import java.util.regex.Pattern
 
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 
 import scala.io.{Codec, Source}
@@ -33,7 +34,7 @@ class CsvSource(file: Resource, settings: CsvSettings, properties: String = "", 
     }
   }
 
-  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
