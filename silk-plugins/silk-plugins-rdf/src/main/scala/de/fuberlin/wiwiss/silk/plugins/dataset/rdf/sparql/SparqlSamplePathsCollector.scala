@@ -38,7 +38,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)] = {
+  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
         getAllEntities(endpoint)
@@ -65,7 +65,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     results.bindings.map(_(restrictions.variable).value)
   }
 
-  private def getEntitiesPaths(endpoint: SparqlEndpoint, entities: Traversable[String], variable: String, limit: Int): Traversable[(Path, Double)] = {
+  private def getEntitiesPaths(endpoint: SparqlEndpoint, entities: Traversable[String], variable: String, limit: Int): Seq[Path] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
     val entityArray = entities.toArray
@@ -78,7 +78,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     //Choose the relevant properties
     val relevantProperties = propertyFrequencies.filter { case (uri, frequency) => frequency > MinFrequency }
-                                                .sortWith(_._2 > _._2).take(limit)
+                                                .sortWith(_._2 > _._2).take(limit).map(_._1)
 
     logger.info("Found " + relevantProperties.size + " relevant properties in " + endpoint)
 

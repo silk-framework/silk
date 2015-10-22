@@ -73,7 +73,7 @@ class Loader(sources: DPair[DataSource],
         context.status.update("Loading entities of dataset " + source.toString)
 
         entityCache.clear()
-        entityCache.write(source.retrieve(entityCache.entityDesc))
+        entityCache.write(source.retrieveSparqlEntities(entityCache.entityDesc))
         entityCache.close()
 
         context.status.update(s"Entities loaded [ dataset :: ${source.toString} ].")

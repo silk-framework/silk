@@ -16,6 +16,7 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 
 import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
 import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
+import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
  * Retrieves entities from a SPARQL endpoint.
@@ -28,7 +29,7 @@ trait EntityRetriever {
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity]
+  def retrieve(entityDesc: EntityDescription, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity]
 }
 
 /**

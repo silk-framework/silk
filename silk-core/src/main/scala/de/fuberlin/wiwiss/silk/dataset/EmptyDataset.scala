@@ -11,7 +11,7 @@ private object EmptyDataset extends DatasetPlugin {
    * Returns an empty data source.
    */
   override def source: DataSource = new DataSource {
-    override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = Traversable.empty
+    override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = Traversable.empty
   }
 
   /**

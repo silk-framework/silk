@@ -83,8 +83,8 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
     }
 
     private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]]  = {
-       for(source <- sources.source.retrieve(entityDescs.source, uris.source :: Nil).headOption;
-           target <-  sources.target.retrieve(entityDescs.target, uris.target :: Nil).headOption) yield {
+       for(source <- sources.source.retrieveSparqlEntities(entityDescs.source, uris.source :: Nil).headOption;
+           target <-  sources.target.retrieveSparqlEntities(entityDescs.target, uris.target :: Nil).headOption) yield {
          DPair(source, target)
        }
     }
@@ -118,7 +118,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
 
         //Retrieve an entity with all missing paths
         val missingEntity =
-          source.retrieve(
+          source.retrieveSparqlEntities(
             entityDesc = entity.desc.copy(paths = missingPaths),
             entities = entity.uri :: Nil
           ).head

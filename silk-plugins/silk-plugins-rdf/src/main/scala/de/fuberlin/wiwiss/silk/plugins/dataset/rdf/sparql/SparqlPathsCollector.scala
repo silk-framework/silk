@@ -21,7 +21,7 @@ import de.fuberlin.wiwiss.silk.entity.{Path, SparqlRestriction}
  * Retrieves the most frequent property paths.
  */
 trait SparqlPathsCollector {
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Traversable[(Path, Double)]
+  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path]
 }
 
 object SparqlPathsCollector {

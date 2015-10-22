@@ -6,6 +6,7 @@ import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity.{EntityDescription, Path, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{DefaultHttpEndpoint, HttpEndpoint, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql._
+import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
  * A source for reading from SPARQL endpoints.
@@ -23,26 +24,26 @@ class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new Defaul
     new RemoteSparqlEndpoint(params, httpEndpoint)
   }
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = {
     val entityRetriever =
       if(params.parallel)
         new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, graphUri)
       else
         new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, graphUri)
 
-    entityRetriever.retrieve(entityDesc, entityUris union entities)
+    entityRetriever.retrieve(entityDesc, (entityUris union entities).map(Uri(_)), None)
   }
 
-  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     //Create an endpoint which fails after 3 retries
     val failFastEndpoint = new RemoteSparqlEndpoint(params.copy(retryCount = 3, retryPause = 1000))
 
     try {
-      SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)
+      SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit).map(p => (p, 1.0))
     } catch {
       case ex: Exception =>
         log.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
-        SparqlSamplePathsCollector(sparqlEndpoint, restrictions, limit)
+        SparqlSamplePathsCollector(sparqlEndpoint, restrictions, limit).map(p => (p, 1.0))
     }
   }
 

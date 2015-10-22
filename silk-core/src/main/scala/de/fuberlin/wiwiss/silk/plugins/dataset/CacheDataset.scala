@@ -31,7 +31,7 @@ case class CacheDataset(dir: String) extends DatasetPlugin {
   override def sink = ???
 
   object CacheSource extends DataSource {
-    def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+    def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
 
       entityCache.readAll

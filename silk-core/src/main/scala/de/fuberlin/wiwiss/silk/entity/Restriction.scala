@@ -14,35 +14,86 @@
 
 package de.fuberlin.wiwiss.silk.entity
 
-import scala.xml.Elem
 import de.fuberlin.wiwiss.silk.config.Prefixes
 
+/**
+ * A restriction for filtering datasets.
+
+ * @param operator The root operator.
+ */
 case class Restriction(operator: Option[Restriction.Operator]) {
-  def toXml = {
-    <Restriction>
-      {for (op <- operator) yield op.toXml}
-    </Restriction>
-  }
+
+  /** True if this restriction is empty, i.e., no filtering should be applied. */
+  def isEmpty = operator.isEmpty
+
+  /** Retrieves all paths that are used by this restriction. */
+  def paths = operator.map(_.paths).getOrElse(Set.empty)
+
+  override def toString = operator.mkString
 }
 
+/**
+ * Contains the available restriction operators and methods for parsing restrictions.
+ */
 object Restriction {
-  def empty = new Restriction(None)
 
+  /**
+   * Returns an empty restriction
+   */
+  def empty = Restriction(None)
+
+  /**
+   * Parses a condition.
+   * Currently all conditions are parsed into custom conditions.
+   */
+  def parse(restriction: String) = Restriction(Some(CustomOperator(restriction)))
+
+  /**
+   * Base trait for all restriction operators.
+   * Either a custom operator or a logical operator.
+   */
   sealed trait Operator {
-    def toXml: Elem
+
+    def paths: Set[Path]
+
+    def serialize: String
   }
+
+  /**
+   * A custom restriction operator.
+   * The semantic interpretation of this operator depends on the implementing data set.
+   * It can be used to express conditions that cannot be expressed with the provided logical operators.
+   * Examples are: SQL or SPARQL patterns.
+   */
+  case class CustomOperator(expression: String) extends Operator {
+
+    def paths: Set[Path] = Set.empty
+
+    def serialize = expression
+  }
+
+  /**
+   * A logical restriction operator.
+   */
+  trait LogicalOperator extends Operator
 
   /**
    * A condition which evaluates to true if the provided path contains the given value.
    */
-  case class Condition(path: Path, value: String) extends Operator {
+  case class Condition(path: Path, value: String) extends LogicalOperator {
+
+    def paths = Set(path)
+
     def toXml = {
       <Condition path={path.toString}>
        { value }
       </Condition>
     }
+
+    def serialize = s"$path = $value"
   }
 
+  // TODO remove
   object Condition {
     def resolve(path: Path, value: String)(implicit prefixes: Prefixes) = {
       if(value.startsWith("<"))
@@ -56,28 +107,33 @@ object Restriction {
    * Negates the provided operator.
    * Currently not supported.
    */
-  case class Not(op: Operator) {
-    def toXml = <Not>
-      {op.toXml}
-    </Not>
+  case class Not(op: Operator) extends LogicalOperator {
+
+    def paths = op.paths
+
+    def serialize = "!" + op.serialize
   }
 
   /**
    * Evaluates to true if all provided operators evaluate to true.
    */
-  case class And(children: Traversable[Operator]) extends Operator {
-    def toXml = <And>
-      {children.map(_.toXml)}
-    </And>
+  case class And(children: Traversable[Operator]) extends LogicalOperator {
+
+    def paths = children.flatMap(_.paths).toSet
+
+    def serialize = children.mkString(" & ")
   }
 
   /**
    * Evaluates to true if at least one of the provided operators evaluate to true.
    */
-  case class Or(children: Traversable[Operator]) extends Operator {
-    def toXml = <Or>
-      {children.map(_.toXml)}
-    </Or>
+  case class Or(children: Traversable[Operator]) extends LogicalOperator {
+
+    def paths = children.flatMap(_.paths).toSet
+
+    def serialize = children.mkString(" ' ")
+
   }
 
 }
+

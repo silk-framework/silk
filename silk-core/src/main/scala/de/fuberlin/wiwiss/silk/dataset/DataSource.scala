@@ -24,6 +24,53 @@ import de.fuberlin.wiwiss.silk.util.Uri
  */
 trait DataSource {
   /**
+   * Retrieves known types in this source.
+   * Implementations are only required to work on a best effort basis i.e. it does not necessarily return any or all types.
+   * The default implementation returns an empty traversable.
+   *
+   * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
+   *
+   */
+  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+    Traversable.empty
+  }
+
+  /**
+   * Retrieves the most frequent paths in this source.
+   * Implementations are only required to work on a best effort basis i.e. it does not necessarily return all paths in the source.
+   * The default implementation returns an empty traversable.
+   *
+   * @param t The entity type for which paths shall be retrieved
+   * @param depth Only retrieve paths up to a certain length. If not given, only paths of length 1 are returned.
+   * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
+   *
+   * @return A Sequence of the found paths sorted by their frequency (most frequent first).
+   */
+  def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+    IndexedSeq.empty
+  }
+
+  /**
+   * Retrieves entities from this source which satisfy a specific entity schema.
+   *
+   * @param entitySchema The entity schema
+   * @param limit Limits the maximum number of retrieved entities
+   *
+   * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+   */
+  def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = ???
+
+  /**
+   * Retrieves a list of entities from this source.
+   *
+   * @param entitySchema The entity schema
+   * @param entities The URIs of the entities to be retrieved.
+   *
+   * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+   */
+  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Option[Entity]] = ???
+
+  /**
    * Retrieves entities from this source which satisfy a specific entity description.
    *
    * @param entityDesc The entity description
@@ -31,7 +78,7 @@ trait DataSource {
    *
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
-  def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity]
+  def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -44,25 +91,7 @@ trait DataSource {
    *
    * @return A Traversable of the found paths and their frequency.
    */
-  def retrievePaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
-    Traversable.empty
-  }
-
-  def retrievePathsByType(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = ???
-
-  def retrieveEntities(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = ???
-
-  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Option[Entity]] = ???
-
-  /**
-   * Retrieve the most frequent types in the source.
-   * Implementations are only required to work on a best effort basis i.e. it does not necessarily return any types.
-   * The default implementation returns an empty traversable.
-   *
-   * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
-   *
-   */
-  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+  def retrieveSparqlPaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
     Traversable.empty
   }
 }

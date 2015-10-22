@@ -30,7 +30,7 @@ class PathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends 
       // Retrieve the data sources
       val sources = datasets.map(_.source)
       //Retrieve most frequent paths
-      val paths = for ((source, dataset) <- sources zip linkSpec.dataSelections) yield source.retrievePaths(dataset.restriction, 1, Some(50))
+      val paths = for ((source, dataset) <- sources zip linkSpec.dataSelections) yield source.retrieveSparqlPaths(dataset.restriction, 1, Some(50))
       //Add the frequent paths to the entity description
       context.value() = for ((entityDesc, paths) <- currentEntityDescs zip paths) yield entityDesc.copy(paths = (entityDesc.paths ++ paths.map(_._1)).distinct)
     }

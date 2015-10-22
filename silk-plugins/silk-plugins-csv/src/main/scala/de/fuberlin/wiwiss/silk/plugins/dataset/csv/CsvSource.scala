@@ -37,13 +37,13 @@ class CsvSource(file: Resource,
     }
   }
 
-  override def retrievePaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     for (property <- propertyList) yield {
       (Path(restriction.variable, ForwardOperator(prefix + property) :: Nil), 1.0)
     }
   }
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
@@ -148,7 +148,7 @@ class CsvSource(file: Resource,
     Seq((classUri, 1.0))
   }
 
-  override def retrievePathsByType(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
     if(classUri == t.uri) {
       val reader = getBufferedReaderForCsvFile
       val props = for (property <- propertyList) yield {
@@ -160,11 +160,11 @@ class CsvSource(file: Resource,
     }
   }
 
-  override def retrieveEntities(entitySchema: EntitySchema, limitOpt: Option[Int] = None): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None): Traversable[Entity] = {
     if(entitySchema.filter.operator.isDefined) {
       ??? // TODO: Implement Restriction handling!
     }
-    val entities = retrieve(EntityDescription(paths = entitySchema.paths))
+    val entities = retrieveSparqlEntities(EntityDescription(paths = entitySchema.paths))
     limitOpt match {
       case Some(limit) =>
         entities.take(limit)

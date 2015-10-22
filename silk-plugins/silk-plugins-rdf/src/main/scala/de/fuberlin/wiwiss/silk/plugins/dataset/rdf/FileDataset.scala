@@ -9,6 +9,7 @@ import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.FormattedDataSink
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
+import de.fuberlin.wiwiss.silk.util.Uri
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 
 @Plugin(
@@ -62,14 +63,14 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
     // Load dataset
     private var endpoint: JenaEndpoint = null
 
-    override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
+    override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = {
       load()
-      EntityRetriever(endpoint).retrieve(entityDesc, entities)
+      EntityRetriever(endpoint).retrieve(entityDesc, entities.map(Uri(_)), None)
     }
 
-    override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+    override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
       load()
-      SparqlAggregatePathsCollector(endpoint, restrictions, limit)
+      SparqlAggregatePathsCollector(endpoint, restrictions, limit).map(p => (p, 1.0))
     }
 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {

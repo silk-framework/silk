@@ -8,13 +8,14 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, EntityDescription}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.EntityRetriever
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
+import de.fuberlin.wiwiss.silk.util.Uri
 
 @Plugin(id = "linkedData", label = "Linked Data", description = "TODO")
 case class LinkedDataSource() extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]): Traversable[Entity] = {
     require(!entities.isEmpty, "Retrieving all entities not supported")
 
     logger.log(Level.FINE, "Retrieving data from Linked Data.")
@@ -28,6 +29,6 @@ case class LinkedDataSource() extends DataSource {
 
     val entityRetriever = EntityRetriever(endpoint)
 
-    entityRetriever.retrieve(entityDesc, entities)
+    entityRetriever.retrieve(entityDesc, entities.map(Uri(_)), None)
   }
 }

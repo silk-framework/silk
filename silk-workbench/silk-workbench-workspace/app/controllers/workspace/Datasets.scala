@@ -52,9 +52,10 @@ object Datasets extends Controller {
     val context = Context.get[Dataset](project, task, request.path)
     val source = context.task.data.source
 
-    val paths = source.retrievePaths().map(_._1).toIndexedSeq
+    val firstTypes = source.retrieveTypes().head._1
+    val paths = source.retrievePaths(firstTypes).toIndexedSeq
     val entityDesc = EntityDescription("a", SparqlRestriction.empty, paths)
-    val entities = source.retrieve(entityDesc).take(maxEntities).toList
+    val entities = source.retrieveSparqlEntities(entityDesc).take(maxEntities).toList
 
     Ok(views.html.workspace.dataset.table(context, paths, entities))
   }

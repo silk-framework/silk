@@ -42,11 +42,11 @@ import de.fuberlin.wiwiss.silk.entity.{SparqlRestriction, Path, Entity, EntityDe
 @Plugin(id = "nop", label = "inactive datasource", description = "DataSource which doesn't retrieve any entities at all")
 class NopDataSource extends DataSource {
 
-  override def retrieve(entityDesc: EntityDescription, entities: Seq[String]) = {
+  override def retrieveSparqlEntities(entityDesc: EntityDescription, entities: Seq[String]) = {
     Traversable.empty[Entity]
   }
 
-  override def retrievePaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     Traversable.empty[(Path, Double)]
   }
 

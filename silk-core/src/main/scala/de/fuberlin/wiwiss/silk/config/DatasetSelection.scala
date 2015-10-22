@@ -23,11 +23,11 @@ import scala.xml.Node
  * Defines a dataset.
  *
  * @param datasetId The id of the dataset
- * @param variable Each data item will be bound to this variable.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSelection(datasetId: Identifier, variable: String, restriction: SparqlRestriction) {
-  require(!variable.isEmpty, "Variable must be non-empty")
+case class DatasetSelection(datasetId: Identifier, restriction: SparqlRestriction) {
+
+  def variable = restriction.variable
 
   /**
    * Serializes this dataset specification as XML.
@@ -61,16 +61,15 @@ object DatasetSelection {
 
     DatasetSelection(
       datasetId = (node \ "@dataSource").text,
-      variable = variable,
       restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
     )
   }
 
-  def empty = DatasetSelection("EmptyDatasetSelection", "a", SparqlRestriction.empty)
+  def empty = DatasetSelection("EmptyDatasetSelection", SparqlRestriction.empty)
 
   def emptyPair =
     DPair(
-      DatasetSelection("SourceDatasetSelection", "a", SparqlRestriction.empty),
-      DatasetSelection("TargetDatasetSelection", "b", SparqlRestriction.empty)
+      DatasetSelection("SourceDatasetSelection", SparqlRestriction.empty),
+      DatasetSelection("TargetDatasetSelection", SparqlRestriction.empty)
     )
 }

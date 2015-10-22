@@ -3,10 +3,14 @@ package de.fuberlin.wiwiss.silk.entity
 import de.fuberlin.wiwiss.silk.util.Uri
 
 /**
- * Created by andreas on 10/20/15.
+ * An entity schema.
+ *
+ * @param typ The entity type
+ * @param paths The list of paths
+ * @param filter A filter for restricting the entity set
  */
-case class EntitySchema(typ: Uri, paths: IndexedSeq[Path], filter: Restriction = Restriction.empty) {
-  // TODO: Check paths in Restriction filter if they match schema paths, else IllegalArgumentException
+case class EntitySchema(typ: Uri, paths: IndexedSeq[Path], filter: Restriction) {
+  require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
    * Retrieves the index of a given path.
