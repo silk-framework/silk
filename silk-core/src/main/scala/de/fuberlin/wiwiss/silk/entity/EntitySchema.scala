@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.util.Uri
 /**
  * Created by andreas on 10/20/15.
  */
-case class EntitySchema(typ: Uri, paths: IndexedSeq[Path], filter: Restriction) {
+case class EntitySchema(typ: Uri, paths: IndexedSeq[Path], filter: Restriction = Restriction.empty) {
   // TODO: Check paths in Restriction filter if they match schema paths, else IllegalArgumentException
 
   /**

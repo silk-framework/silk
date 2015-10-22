@@ -48,7 +48,7 @@ trait DataSource {
     Traversable.empty
   }
 
-  def retrievePathsByType(t: Uri, depth: Int = 1, limit: Option[Int] = None): Seq[Path] = ???
+  def retrievePathsByType(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = ???
 
   def retrieveEntities(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = ???
 
