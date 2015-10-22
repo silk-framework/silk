@@ -165,7 +165,7 @@ class CsvSource(file: Resource,
     if(entitySchema.filter.operator.isDefined) {
       ??? // TODO: Implement Restriction handling!
     }
-    val entities = retrieveSparqlEntities(EntityDescription(paths = entitySchema.paths))
+    val entities = retrieveSparqlEntities(SparqlEntitySchema(paths = entitySchema.paths))
     limitOpt match {
       case Some(limit) =>
         entities.take(limit)
