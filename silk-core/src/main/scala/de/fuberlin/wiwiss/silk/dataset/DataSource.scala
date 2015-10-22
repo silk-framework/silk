@@ -47,8 +47,8 @@ trait DataSource {
    *
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
-  def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): Seq[Path] = {
-    Seq.empty
+  def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+    IndexedSeq.empty
   }
 
   /**

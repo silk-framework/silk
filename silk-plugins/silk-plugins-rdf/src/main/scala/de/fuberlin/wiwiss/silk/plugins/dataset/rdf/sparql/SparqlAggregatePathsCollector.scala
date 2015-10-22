@@ -37,11 +37,11 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   /**
    * Retrieves a list of properties which are defined on most entities.
    */
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path] = {
+  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): IndexedSeq[Path] = {
     val forwardPaths = getForwardPaths(endpoint, restrictions, limit.getOrElse(100))
     val backwardPaths = getBackwardPaths(endpoint, restrictions, 10)
 
-    (forwardPaths ++ backwardPaths).toSeq.sortBy(-_._2).map(_._1)
+    (forwardPaths ++ backwardPaths).toIndexedSeq.sortBy(-_._2).map(_._1)
   }
 
   private def getForwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {

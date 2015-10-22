@@ -33,7 +33,7 @@ case class RdfDataSource(input: String, format: String) extends DataSource {
     SparqlTypesCollector(endpoint, limit)
   }
 
-  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): Seq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
     val restriction = SparqlRestriction.fromSparql("a", s"?a a <$t>")
     SparqlAggregatePathsCollector(endpoint, restriction, limit)
   }
