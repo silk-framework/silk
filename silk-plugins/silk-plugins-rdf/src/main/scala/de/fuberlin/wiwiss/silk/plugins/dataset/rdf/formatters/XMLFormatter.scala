@@ -14,9 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 
-import de.fuberlin.wiwiss.silk.dataset.Formatter
 import de.fuberlin.wiwiss.silk.entity.Link
-
 import scala.xml.NodeSeq
 
 /**

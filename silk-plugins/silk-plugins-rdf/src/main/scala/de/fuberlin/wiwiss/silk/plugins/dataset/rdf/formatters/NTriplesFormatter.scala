@@ -14,12 +14,9 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 
-import de.fuberlin.wiwiss.silk.dataset.Formatter
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
-@Plugin(id = "ntriples", label = "N-Triples")
-class NTriplesFormatter() extends Formatter {
+case class NTriplesFormatter() extends Formatter {
 
   override def format(link: Link, predicateUri: String) = {
     "<" + link.source + ">  <" + predicateUri + ">  <" + link.target + "> .\n"

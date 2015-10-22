@@ -12,15 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.dataset
+package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginFactory, AnyPlugin}
+import de.fuberlin.wiwiss.silk.runtime.plugin.AnyPlugin
 
 /**
  * Serializes a link.
  */
-trait Formatter extends AnyPlugin {
+trait Formatter {
   def header: String = ""
 
   def footer: String = ""
@@ -29,8 +29,3 @@ trait Formatter extends AnyPlugin {
 
   def formatLiteralStatement(subject: String, predicate: String, value: String): String = ???
 }
-
-/**
- * Formatter factory
- */
-object Formatter extends PluginFactory[Formatter]
