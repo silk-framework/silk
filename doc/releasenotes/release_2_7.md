@@ -12,9 +12,9 @@ Silk is an open source framework for integrating heterogeneous data sources. The
 
 Silk is based on the Linked Data paradigm, which is built on two simple ideas: First, RDF provides an expressive data model for representing structured information. Second, RDF links are set between entities in different data sources. 
 
-What�s new:
+What’s new:
 
-- Panayiotis Smeros (Affiliation?) contributed plugins for a wide variety of spatial and temporal relations.
+- Panayiotis Smeros (National and Kapodistrian University of Athens) contributed plugins for a wide variety of spatial and temporal relations. Specifically, the spatial relations that were introduced derive from the Dimensionally Extended 9-Intersection, the Egenhofer’s and the OGC Simple Features Models and the Region Connection Calculus (e.g., Intersects, Touches, Contains etc.) whereas the temporal relations are based on the Allen’s Interval Calculus (e.g., Before, After, During etc.). Also, by pairing a spatial and a temporal relation, Silk is able to discover spatiotemporal relations between spatial objects that change over time or between moving objects.
 
 - TODO Robert: other updates
 
