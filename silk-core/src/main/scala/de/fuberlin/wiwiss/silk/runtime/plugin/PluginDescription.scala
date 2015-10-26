@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.runtime.plugin
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import java.lang.reflect.{InvocationTargetException, Constructor}
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
 import de.fuberlin.wiwiss.silk.util.Identifier
 
@@ -28,7 +28,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
   /**
    * Creates a new instance of this plugin.
    */
-  def apply(parameterValues: Map[String, String], resourceLoader: ResourceLoader): T = {
+  def apply(parameterValues: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T = {
     val parsedParameters = parseParameters(parameterValues, resourceLoader)
     try {
       constructor.newInstance(parsedParameters: _*)

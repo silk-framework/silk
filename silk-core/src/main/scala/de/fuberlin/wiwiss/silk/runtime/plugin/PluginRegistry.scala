@@ -41,8 +41,8 @@ object PluginRegistry {
     (desc, parameters)
   }
 
-  def availablePlugins[T: ClassTag] = {
-    pluginType[T].availablePlugins
+  def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
+    pluginType[T].availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
   }
 
   def pluginsByCategoty[T: ClassTag] = {
@@ -99,9 +99,9 @@ object PluginRegistry {
     nonStdTypes.toSet ++ nonStdTypes.flatMap(getSuperTypes)
   }
 
-  private def pluginType[T: ClassTag] = {
+  private def pluginType[T: ClassTag]: PluginType = {
     val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
-    pluginTypes.getOrElse(pluginClass, throw new NoSuchElementException(s"No plugins for type '$pluginClass' registered."))
+    pluginTypes.getOrElse(pluginClass, new PluginType)
   }
 
   /**
