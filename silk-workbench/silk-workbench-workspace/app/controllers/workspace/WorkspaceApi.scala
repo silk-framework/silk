@@ -3,10 +3,12 @@ package controllers.workspace
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
 import controllers.core.{Stream, Widgets}
+import controllers.workspace.Datasets._
 import de.fuberlin.wiwiss.silk.config._
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.modules.{ProjectExecutor, Task}
 import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
@@ -44,6 +46,19 @@ object WorkspaceApi extends Controller {
     outputStream.close()
 
     Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+  }
+
+  def executeProject(projectName: String) = Action {
+    val project = User().workspace.project(projectName)
+
+    val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
+    if(projectExecutors.isEmpty)
+      BadRequest("No project executor available")
+    else {
+      val projectExecutor = projectExecutors.head()
+      projectExecutor.execute(project)
+      Ok
+    }
   }
 
   def importLinkSpec(projectName: String) = Action { implicit request => {

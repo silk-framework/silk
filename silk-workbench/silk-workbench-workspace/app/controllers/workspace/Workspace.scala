@@ -1,6 +1,7 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
+import controllers.workspace.WorkspaceApi._
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Condition, Operator, Or}
 import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
@@ -88,5 +89,9 @@ object Workspace extends Controller {
     inputStream.close()
 
     Ok
+  }
+
+  def executeProjectDialog(projectName: String) = Action {
+    Ok(views.html.workspace.executeProjectDialog(projectName))
   }
 }

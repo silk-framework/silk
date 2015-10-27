@@ -1,0 +1,18 @@
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
+@import de.fuberlin.wiwiss.silk.workspace.modules.ProjectExecutor
+@import controllers.workspace.routes
+
+@(project: String)
+
+@widgets.pluginDialog(name = project,
+                      plugins = PluginRegistry.availablePlugins[ProjectExecutor],
+                      currentObj = None,
+                      resources = Nil) {
+
+  <script type="text/javascript">
+    function submit(pluginId, name, parameters) {
+      $.post('@routes.WorkspaceApi.executeProject(project)');
+      closeDialog();
+    }
+  </script>
+}

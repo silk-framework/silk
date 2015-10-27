@@ -1,10 +1,12 @@
-@(workspace: de.fuberlin.wiwiss.silk.workspace.Workspace)
-
+@import de.fuberlin.wiwiss.silk.workspace.modules.ProjectExecutor
 @import plugins.WorkbenchPlugins
 @import de.fuberlin.wiwiss.silk.workspace.modules.Task
 @import de.fuberlin.wiwiss.silk.workspace.Project
 @import plugins.WorkbenchPlugin.TaskActions
+@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 @import controllers.workspace.routes.Assets
+
+@(workspace: de.fuberlin.wiwiss.silk.workspace.Workspace)
 
 <script type="application/javascript" >
   $(function () {
@@ -35,6 +37,9 @@
     }
     @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
     @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
+    @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
+      @button("Execute", "Execute project", "document-export.png", s"executeProject('${project.name}')")
+    }
     @button("Remove", "Remove project", "cross.png", s"deleteProject('${project.name}')")
     <ul>
       @for(plugin <- WorkbenchPlugins();

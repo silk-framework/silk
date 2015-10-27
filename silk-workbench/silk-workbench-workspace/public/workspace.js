@@ -39,6 +39,10 @@ function deleteProject(project) {
   deleteTaskConfirm(project, baseUrl + '/workspace/projects/' + project);
 }
 
+function executeProject(project) {
+  showDialog(baseUrl + '/workspace/dialogs/executeProject/' + project);
+}
+
 function editPrefixes(project) {
   showDialog(baseUrl + '/workspace/dialogs/prefixes/' + project);
 }

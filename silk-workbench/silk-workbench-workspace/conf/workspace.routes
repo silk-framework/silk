@@ -12,6 +12,7 @@ GET           /dialogs/importlinkspec/:project                 controllers.works
 GET           /dialogs/prefixes/:project                       controllers.workspace.Workspace.prefixDialog(project: String)
 GET           /dialogs/resources/:project                      controllers.workspace.Workspace.resourcesDialog(project: String)
 GET           /dialogs/editRestriction/:project/:task          controllers.workspace.Workspace.restrictionDialog(project: String, task: String, varName: String, restriction: String)
+GET           /dialogs/executeProject/:project                 controllers.workspace.Workspace.executeProjectDialog(project: String)
 POST          /:project/importExample                          controllers.workspace.Workspace.importExample(project: String)
 
 ############################################################################################################################################
@@ -43,6 +44,7 @@ POST          /projects/:project/import                        controllers.works
 GET           /projects/:project/export                        controllers.workspace.WorkspaceApi.exportProject(project: String)
 POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
 PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
+POST          /projects/:project/execute                       controllers.workspace.WorkspaceApi.executeProject(project: String)
 
 # Activities
 POST          /activities/start                                controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
