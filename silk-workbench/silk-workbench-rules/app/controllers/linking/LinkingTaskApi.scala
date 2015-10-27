@@ -1,6 +1,7 @@
 package controllers.linking
 
 import java.util.logging.{Level, Logger}
+import controllers.workspace.WorkspaceApi._
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, LinkSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.Link
@@ -161,16 +162,19 @@ object LinkingTaskApi extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val referenceLinksXml = task.data.referenceLinks.toXML
 
-    Ok(referenceLinksXml)
+    Ok(referenceLinksXml).withHeaders("Content-Disposition" -> s"attachment; filename=referenceLinks.xml")
   }
 
-  def putReferenceLinks(projectName: String, taskName: String) = Action { implicit request => {
+  def putReferenceLinks(projectName: String, taskName: String, generateNegative: Boolean) = Action { implicit request => {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      val referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.file))
+      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.file))
+      if(generateNegative) {
+        referenceLinks = referenceLinks.generateNegative
+      }
       project.updateTask(taskName, task.data.copy(referenceLinks = referenceLinks))
     }
     Ok

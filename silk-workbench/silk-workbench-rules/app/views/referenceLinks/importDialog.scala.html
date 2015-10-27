@@ -12,6 +12,10 @@
     </tr>
     <tr>
       <td></td>
+      <td><input id="generateNegative" type="checkbox" ><label for="generateNegative">Generate Negative Links</label></td>
+    </tr>
+    <tr>
+      <td></td>
       <td align="right"><button onclick='submit()'>Ok</button></td>
     </tr>
   </table>
@@ -19,11 +23,12 @@
   <script>
     function submit() {
       var file = $("input[name='file']").val();
+      var generateNegative = $("#generateNegative").is(':checked');
       var formData = new FormData($('form')[0]);
 
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks',
+        url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks?generateNegative=' + generateNegative,
         xhr: function() {
           myXhr = $.ajaxSettings.xhr();
           return myXhr;

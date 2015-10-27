@@ -18,7 +18,6 @@ GET           /:project/:task/generateLinks/statusStream                        
 GET           /:project/:task/referenceLinks                                                controllers.linking.ReferenceLinksManager.referenceLinksView(project: String, task: String)
 GET           /:project/:task/referenceLinks/addLinkDialog                                  controllers.linking.ReferenceLinksManager.addLinkDialog(project: String, task: String)
 GET           /:project/:task/referenceLinks/importDialog                                   controllers.linking.ReferenceLinksManager.importDialog(project: String, task: String)
-GET           /:project/:task/referenceLinks/exportDialog                                   controllers.linking.ReferenceLinksManager.exportDialog(project: String, task: String)
 GET           /:project/:task/referenceLinks/:linkType/:sorting/:filter/:page               controllers.linking.ReferenceLinksManager.referenceLinks(project: String, task: String, linkType: String, sorting: String, filter: String, page: Int)
 
 # Learn
@@ -41,7 +40,7 @@ PUT           /tasks/:project/:task/rule                                        
 GET           /tasks/:project/:task/linkSpec                                        controllers.linking.LinkingTaskApi.getLinkSpec(project: String, task: String)
 PUT           /tasks/:project/:task/linkSpec                                        controllers.linking.LinkingTaskApi.putLinkSpec(project: String, task: String)
 GET           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.getReferenceLinks(project: String, task: String)
-PUT           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.putReferenceLinks(project: String, task: String)
+PUT           /tasks/:project/:task/referenceLinks                                  controllers.linking.LinkingTaskApi.putReferenceLinks(project: String, task: String, generateNegative: Boolean)
 PUT           /tasks/:project/:task/referenceLink                                   controllers.linking.LinkingTaskApi.putReferenceLink(project: String, task: String, linkType: String, source: String, target: String)
 DELETE        /tasks/:project/:task/referenceLink                                   controllers.linking.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
 

@@ -2,6 +2,7 @@
 @import de.fuberlin.wiwiss.silk.config.LinkSpecification
 @import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
 @import controllers.rules.routes.Assets
+@import controllers.linking.routes
 
 @(context: Context[LinkSpecification])
 
@@ -38,7 +39,7 @@
       <button onclick="showDialog('referenceLinks/importDialog')">Import</button>
     </li>
     <li>
-      <button onclick="showDialog('referenceLinks/exportDialog')">Export</button>
+      <button onclick="window.location = '@routes.LinkingTaskApi.getReferenceLinks(context.project.name, context.task.name).url'">Download</button>
     </li>
     <li>
       <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Managing_Reference_Links" target="_help">Help</a>
