@@ -83,6 +83,6 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
     // Types cache
     def typesCache() = new TypesCache(task.data)
     // Create task activities
-    TaskActivity(s"${task.name}_cache.xml", Types.empty, typesCache, project.resourceManager.child(prefix)) :: Nil
+    TaskActivity(s"${task.name}_cache.xml", Types.empty, typesCache, project.cacheResources.child(prefix)) :: Nil
   }
 }

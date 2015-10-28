@@ -50,7 +50,7 @@ object FileUser {
       provider.registerModule(new TransformModulePlugin())
       provider.registerModule(new WorkflowModulePlugin())
 
-      new Workspace(resourceManager, provider)
+      new Workspace(provider)
     }
     catch {
       case ex: Exception => {

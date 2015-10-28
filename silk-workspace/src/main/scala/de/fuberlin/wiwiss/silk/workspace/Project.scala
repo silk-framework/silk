@@ -29,11 +29,13 @@ import scala.reflect.ClassTag
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resourceManager: ResourceManager) {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
-  val resources = resourceManager.child("resources")
+  val resources = provider.projectResources(initialConfig.id)
+
+  val cacheResources = provider.projectCache(initialConfig.id)
 
   @volatile
   private var cachedConfig: ProjectConfig = initialConfig

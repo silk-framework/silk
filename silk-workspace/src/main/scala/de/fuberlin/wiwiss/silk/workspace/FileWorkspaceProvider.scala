@@ -4,7 +4,7 @@ import java.io._
 import java.util.zip.{ZipInputStream, ZipEntry, ZipOutputStream}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.{FileResourceManager, ResourceManager}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, FileResourceManager, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
@@ -39,6 +39,20 @@ class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
 
   override def deleteProject(name: Identifier): Unit = {
     res.delete(name)
+  }
+
+  /**
+   * Retrieves the project resources (e.g. associated files).
+   */
+  override def projectResources(name: Identifier): ResourceManager = {
+    res.child(name).child("resources")
+  }
+
+  /**
+   * Retrieves the project cache folder.
+   */
+  def projectCache(name: Identifier): ResourceManager = {
+    res.child(name)
   }
 
   override def readTasks[T: ClassTag](project: Identifier): Seq[(Identifier, T)] = {
@@ -87,7 +101,7 @@ class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
   }
 
   //TODO if an import fails, delete all already created files!
-  override def importProject(project: Identifier, inputStream: InputStream): Unit = {
+  override def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader): Unit = {
     // Open ZIP
     val zip = new ZipInputStream(inputStream)
     val projectDir = res.child(project).asInstanceOf[FileResourceManager].baseDir // TODO allow importing non file-based workspaces

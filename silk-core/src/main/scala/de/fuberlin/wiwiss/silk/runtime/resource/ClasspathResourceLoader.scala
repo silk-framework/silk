@@ -5,7 +5,7 @@ package de.fuberlin.wiwiss.silk.runtime.resource
  *
  * @param basePath A base path of the form '''com/example/library'''. Note the use of '/' instead of '.'
  */
-class ClasspathResourceLoader(val basePath: String) extends ResourceLoader {
+case class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
 
   override def list = {
     throw new UnsupportedOperationException("ClasspathResourceLoader does not support listing resources")

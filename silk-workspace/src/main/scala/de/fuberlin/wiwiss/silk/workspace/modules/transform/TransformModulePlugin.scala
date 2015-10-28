@@ -86,6 +86,6 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
       )
     // Create task activities
     TaskActivity(executeTransform) ::
-    TaskActivity("cache.xml", null: SparqlEntitySchema, pathsCache, project.resourceManager.child(prefix).child(task.name))  :: Nil
+    TaskActivity("cache.xml", null: SparqlEntitySchema, pathsCache, project.cacheResources.child(prefix).child(task.name))  :: Nil
   }
 }

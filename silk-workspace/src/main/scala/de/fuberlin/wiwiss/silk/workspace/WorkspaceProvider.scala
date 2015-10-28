@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.io.{InputStream, OutputStream}
 
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import scala.reflect.ClassTag
 
@@ -21,6 +22,16 @@ trait WorkspaceProvider {
    * Deletes a project.
    */
   def deleteProject(name: Identifier): Unit
+
+  /**
+   * Retrieves the project resources (e.g. associated files).
+   */
+  def projectResources(name: Identifier): ResourceManager
+
+  /**
+   * Retrieves the project cache folder.
+   */
+  def projectCache(name: Identifier): ResourceManager
 
   /**
    * Reads all tasks of a specific type from a project.
@@ -48,7 +59,7 @@ trait WorkspaceProvider {
   /**
    * Imports a project from a file.
    */
-  def importProject(project: Identifier, inputStream: InputStream): Unit = {
+  def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader = EmptyResourceManager): Unit = {
     throw new UnsupportedOperationException("The configured workspace provider does not support importing projects!")
   }
 }

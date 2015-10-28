@@ -118,7 +118,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
     def referenceEntitiesCache() = new ReferenceEntitiesCache(task, project)
 
     // Create task activities
-    val taskResources = project.resourceManager.child(prefix).child(task.name)
+    val taskResources = project.cacheResources.child(prefix).child(task.name)
     TaskActivity(Seq[Link](), generateLinks) ::
     TaskActivity("pathsCache.xml", null: DPair[SparqlEntitySchema], pathsCache, taskResources) ::
     TaskActivity("referenceEntitiesCache.xml", ReferenceEntities.empty, referenceEntitiesCache, taskResources) ::

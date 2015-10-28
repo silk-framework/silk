@@ -17,4 +17,4 @@ package de.fuberlin.wiwiss.silk.workspace
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.util.Identifier
 
-case class ProjectConfig(id: Identifier, prefixes: Prefixes = Prefixes.default)
+case class ProjectConfig(id: Identifier = Identifier.random, prefixes: Prefixes = Prefixes.default)

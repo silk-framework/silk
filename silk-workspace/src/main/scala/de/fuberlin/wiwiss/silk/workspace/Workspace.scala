@@ -16,10 +16,10 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.io._
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
+import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.util.Identifier
 
-class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
+class Workspace(provider: WorkspaceProvider) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
@@ -41,7 +41,7 @@ class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
 
     val projectConfig = ProjectConfig(name)
     provider.putProject(projectConfig)
-    val newProject = new Project(projectConfig, provider, resourceManager.child(name))
+    val newProject = new Project(projectConfig, provider)
     cacbedProjects :+= newProject
     newProject
   }
@@ -55,8 +55,8 @@ class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
     provider.exportProject(name, outputStream)
   }
 
-  def importProject(name: Identifier, inputStream: InputStream) {
-    provider.importProject(name, inputStream)
+  def importProject(name: Identifier, inputStream: InputStream, resources: ResourceLoader = EmptyResourceManager) {
+    provider.importProject(name, inputStream, resources)
     reload()
   }
 
@@ -67,7 +67,7 @@ class Workspace(resourceManager: ResourceManager, provider: WorkspaceProvider) {
   private def loadProjects(): Seq[Project] = {
     for(projectConfig <- provider.readProjects()) yield {
       logger.info("Loading project: " + projectConfig.id)
-      new Project(projectConfig, provider, resourceManager.child(projectConfig.id))
+      new Project(projectConfig, provider)
     }
   }
 }
