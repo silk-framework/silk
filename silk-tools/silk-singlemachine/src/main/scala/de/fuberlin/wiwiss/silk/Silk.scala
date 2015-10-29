@@ -26,6 +26,7 @@ import de.fuberlin.wiwiss.silk.util.CollectLogs
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import scala.xml.XML
+import scala.math.max
 
 /**
  * Executes the complete Silk workflow.
@@ -34,7 +35,7 @@ object Silk {
   /**
    * The default number of threads to be used for matching.
    */
-  val DefaultThreads = 8
+  val DefaultThreads = max(8, Runtime.getRuntime.availableProcessors())
 
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
