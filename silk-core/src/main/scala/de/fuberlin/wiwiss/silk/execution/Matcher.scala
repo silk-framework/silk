@@ -61,7 +61,7 @@ class Matcher(linkageRule: LinkageRule,
     //Create execution service for the matching tasks
     val startTime = System.currentTimeMillis()
     val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
-    val executor = new ExecutorCompletionService[Traversable[Link]](executorService)
+    val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
     val scheduler = new SchedulerThread(executor)
@@ -107,7 +107,7 @@ class Matcher(linkageRule: LinkageRule,
   /**
    * Monitors the entity caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor: CompletionService[Traversable[Link]]) extends Thread {
+  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]]) extends Thread {
     @volatile var taskCount = 0
 
     private var sourcePartitions = new Array[Int](caches.source.blockCount)
@@ -183,9 +183,9 @@ class Matcher(linkageRule: LinkageRule,
   /**
    * Matches the entities of two partitions.
    */
-  private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[Traversable[Link]] {
-    override def call(): Traversable[Link] = {
-      var links = List[Link]()
+  private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[IndexedSeq[Link]] {
+    override def call(): IndexedSeq[Link] = {
+      var links = IndexedSeq[Link]()
 
       try {
         //Read source and target partitions
@@ -205,10 +205,10 @@ class Matcher(linkageRule: LinkageRule,
           if(!runtimeConfig.indexingOnly) {
             val confidence = linkageRule(entityPair, 0.0)
             if (confidence >= 0.0) {
-              links ::= new Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
+              links = links :+ new Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
             }
           } else {
-            links ::= new Link(entityPair.source.uri, entityPair.target.uri, None, attachedEntities)
+            links = links :+ new Link(entityPair.source.uri, entityPair.target.uri, None, attachedEntities)
           }
         }
       }
