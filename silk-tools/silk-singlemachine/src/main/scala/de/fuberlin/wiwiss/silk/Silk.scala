@@ -96,7 +96,7 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    implicit val resourceLoader = new FileResourceManager(configFile.getParentFile)
+    implicit val resourceLoader = new FileResourceManager(configFile.getAbsoluteFile.getParentFile)
     val config = Serialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }

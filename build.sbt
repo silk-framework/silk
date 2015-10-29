@@ -142,7 +142,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .dependsOn(core, plugins)
   .settings(commonSettings: _*)
   .settings(
-    // The assembly plugin cannot resolve multiple depedencies to commons logging
+    // The assembly plugin cannot resolve multiple dependencies to commons logging
     assemblyMergeStrategy in assembly := {
       case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
       case other =>
