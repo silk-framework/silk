@@ -19,3 +19,7 @@ Downloading and installing sbt is not necessary as it is available from this dir
 
 - Execute: `sbt "project workbench" dist`
 - The package should be available in the folder silk-workbench/target/universal
+
+## Building a Silk Single Machine Jar
+
+- Execute: `sbt "project singlemachine" assembly`
