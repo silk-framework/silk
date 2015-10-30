@@ -4,9 +4,11 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
+import com.typesafe.config.Config
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
+import scala.collection.JavaConversions._
 
 /**
  * Registry of all available plugins.
@@ -35,24 +37,54 @@ object PluginRegistry {
     pluginType[T].create[T](id, params, resourceLoader)
   }
 
+  /**
+   * Loads a plugin from the configuration.
+   *
+   * @param config The config object that contains the plugin parameters.
+   * @tparam T The type of the plugin.
+   * @return The plugin instance.
+   */
+  def createFromConfig[T: ClassTag](config: Config): T = {
+    if(config.entrySet().isEmpty)
+      throw new InvalidPluginException(s"Configuration property ${config.toString} does not contain a plugin definition.")
+    else if(config.entrySet().size > 1)
+      throw new InvalidPluginException(s"Configuration property ${config.toString} does contain multiple plugin definitions.")
+    else {
+      val pluginConfig = config.entrySet().head
+      val pluginId = pluginConfig.getKey.takeWhile(_ != '.')
+      val pluginParams = for (entry <- config.getConfig(pluginId).entrySet()) yield (entry.getKey, entry.getValue.unwrapped().toString)
+      val plugin = create[T](pluginId, pluginParams.toMap)
+      log.fine(s"Loaded plugin $plugin")
+      plugin
+    }
+  }
+
+  /**
+   * Given a plugin instance, extracts its plugin description and parameters.
+   */
   def reflect(pluginInstance: AnyRef): (PluginDescription[_], Map[String, String]) = {
     val desc = PluginDescription(pluginInstance.getClass)
     val parameters = desc.parameters.map(param => (param.name, param(pluginInstance).toString)).toMap
     (desc, parameters)
   }
 
+  /**
+   * Returns a list of all available plugins of a specific type.
+   */
   def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
     pluginType[T].availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
   }
 
-  def pluginsByCategoty[T: ClassTag] = {
+  /**
+   * Returns a map of all plugins grouped by category
+   */
+  def pluginsByCategoty[T: ClassTag]: Map[String, Seq[PluginDescription[_]]] = {
     pluginType[T].pluginsByCategory
   }
 
   /**
    * Finds and registers all plugins in the classpath.
    */
-  //TODO also register plugins from jars in plugin directory
   def registerFromClasspath(): Unit = {
     val loader = ServiceLoader.load(classOf[PluginModule])
     val iter = loader.iterator()
