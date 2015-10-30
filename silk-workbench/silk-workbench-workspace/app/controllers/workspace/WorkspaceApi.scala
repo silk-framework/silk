@@ -5,6 +5,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 import controllers.core.{Stream, Widgets}
 import controllers.workspace.Datasets._
 import de.fuberlin.wiwiss.silk.config._
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
@@ -56,7 +57,7 @@ object WorkspaceApi extends Controller {
       BadRequest("No project executor available")
     else {
       val projectExecutor = projectExecutors.head()
-      projectExecutor.execute(project)
+      Activity(projectExecutor.create(project)).start()
       Ok
     }
   }
