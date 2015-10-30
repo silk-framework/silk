@@ -23,12 +23,13 @@ import de.fuberlin.wiwiss.silk.workspace.Project
  */
 object SilkConfigExporter {
   def build(project: Project, linkSpec: LinkSpecification): LinkingConfig = {
+    val datasets = project.tasks[Dataset].map(_.data)
     LinkingConfig(
       prefixes = project.config.prefixes,
       runtime = new RuntimeConfig(),
-      sources = linkSpec.dataSelections.map(ds => project.tasks[Dataset].find(_.name == ds.datasetId).get.data).toSeq,
+      sources = linkSpec.dataSelections.map(ds => datasets.find(_.id == ds.datasetId).get).toSeq,
       linkSpecs = linkSpec :: Nil,
-      outputs = Seq.empty
+      outputs = linkSpec.outputs.map(id => datasets.find(_.id == id).get)
     )
   }
 }
