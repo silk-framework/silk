@@ -4,6 +4,7 @@ import java.io.{InputStream, OutputStream}
 
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
 import scala.reflect.ClassTag
 
 trait WorkspaceProvider {
