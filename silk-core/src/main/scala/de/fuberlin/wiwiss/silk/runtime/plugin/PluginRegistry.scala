@@ -4,7 +4,7 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
-import com.typesafe.config.Config
+import de.fuberlin.wiwiss.silk.config.Config
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
@@ -40,15 +40,16 @@ object PluginRegistry {
   /**
    * Loads a plugin from the configuration.
    *
-   * @param config The config object that contains the plugin parameters.
+   * @param configPath The config path that contains the plugin parameters, e.g., workspace.plugin
    * @tparam T The type of the plugin.
    * @return The plugin instance.
    */
-  def createFromConfig[T: ClassTag](config: Config): T = {
+  def createFromConfig[T: ClassTag](configPath: String): T = {
+    val config = Config().getConfig(configPath)
     if(config.entrySet().isEmpty)
-      throw new InvalidPluginException(s"Configuration property ${config.toString} does not contain a plugin definition.")
+      throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
     else if(config.entrySet().size > 1)
-      throw new InvalidPluginException(s"Configuration property ${config.toString} does contain multiple plugin definitions.")
+      throw new InvalidPluginException(s"Configuration property $configPath does contain multiple plugin definitions.")
     else {
       val pluginConfig = config.entrySet().head
       val pluginId = pluginConfig.getKey.takeWhile(_ != '.')

@@ -45,7 +45,7 @@ object FileUser {
       // Load the workspace provider from configuration or use the default file-based on
       val provider =
         if(Config().hasPath("workspace.provider"))
-          PluginRegistry.createFromConfig[WorkspaceProvider](Config().getConfig("workspace.provider"))
+          PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
         else
           new FileWorkspaceProvider(workspaceDir.toString)
 
