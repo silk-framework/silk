@@ -1,7 +1,16 @@
 # Silk Link Discovery Framework
 
-The Silk Link Discovery Framework is a tool for discovering relationships between data items
-within different Linked Data sources. More information about Silk can be found on http://silk-framework.com.
+Silk is an open source framework for integrating heterogeneous data sources. The primary uses cases of Silk include:
+
+- Generating links between related data items within different Linked Data sources.
+- Linked Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web.
+- Applying data transformations to structured data sources.
+
+General information about Silk can be found on the official [website](http://silk-framework.com).
+
+## Documentation
+
+Community documentation is maintained in the [doc](doc/) folder.
 
 ## Requirements
 
