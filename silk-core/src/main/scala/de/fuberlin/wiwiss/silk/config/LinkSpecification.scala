@@ -120,7 +120,13 @@ object LinkSpecification {
         dataSelections = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
           DatasetSelection.fromXML((node \ "TargetDataset").head)),
         rule = fromXml[LinkageRule](linkageRuleNode),
-        outputs = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
+        outputs =
+          for(outputNode <- node \ "Outputs" \ "Output") yield {
+            val id = (outputNode \ "@id").text
+            if(id.isEmpty)
+              throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
+            Identifier(id)
+          }
       )
     }
 
