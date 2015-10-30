@@ -23,3 +23,4 @@ Downloading and installing sbt is not necessary as it is available from this dir
 ## Building a Silk Single Machine Jar
 
 - Execute: `sbt "project singlemachine" assembly`
+- The generated jar can be executed with: `java -DconfigFile=<Silk-LSL file> [-DlinkSpec=<Interlink ID>] [-Dthreads=<threads>]  [-DlogQueries=(true/false)] [-Dreload=(true/false)] -jar silk.jar`
