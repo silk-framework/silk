@@ -15,6 +15,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
       quote = None,
       arraySeparator = None
     )
+  
+  val noSeparatorSettings = settings.copy(separator = ' ')
 
   val source = new CsvSource(resources.get("persons.csv"), settings)
 
@@ -38,5 +40,39 @@ class CsvSourceTest extends FlatSpec with Matchers {
     persons(1).values should equal (IndexedSeq(Set("Markus G."), Set("24")))
     persons(2).values should equal (IndexedSeq(Set("John Doe"), Set("55")))
   }
+  
+  "SeparatorDetector" should "detect comma separator" in {
+    SeparatorDetector.detectSeparatorCharInLines(
+      Seq(
+        """f1,f2,f3""",
+        """1,"test",3""",
+        """1,"test, with, commas, in, literal",3"""
+      ),
+      noSeparatorSettings
+    ) shouldBe Some(',')
+  }
 
+  "SeparatorDetector" should "detect tab separator" in {
+    val tab = "\t"
+    SeparatorDetector.detectSeparatorCharInLines(
+      Seq(
+        s"""f1${tab}f2${tab}f3""",
+        s"""1${tab}"test"${tab}3""",
+        s"""1${tab}"test, with, commas, in, literal"${tab}3"""
+      ),
+      noSeparatorSettings
+    ) shouldBe Some('\t')
+  }
+
+  "SeparatorDetector" should "return None if not confident enough" in {
+    val tab = "\t"
+    SeparatorDetector.detectSeparatorCharInLines(
+      Seq(
+        s"""f1${tab}f2${tab}f3""",
+        s"""1${tab}"test"""",
+        s"""1,"test, with, commas, in, literal",3"""
+      ),
+      noSeparatorSettings
+    ) shouldBe None
+  }
 }
