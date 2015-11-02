@@ -17,6 +17,8 @@ package de.fuberlin.wiwiss.silk.workspace
 import java.io.{IOException, File}
 import java.util.logging.{Level, Logger}
 
+import de.fuberlin.wiwiss.silk.config.Config
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModulePlugin
@@ -40,16 +42,14 @@ object FileUser {
 
   var workspace: Workspace = {
     try {
-      if(!workspaceDir.exists && !workspaceDir.mkdirs()) throw new IOException("Could not create workspace directory at: " + workspaceDir.getCanonicalPath)
+      // Load the workspace provider from configuration or use the default file-based on
+      val provider =
+        if(Config().hasPath("workspace.provider"))
+          PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
+        else
+          new FileWorkspaceProvider(workspaceDir.toString)
 
-      val resourceManager = new FileResourceManager(workspaceDir)
-
-      val provider = new FileWorkspaceProvider(resourceManager)
-      provider.registerModule(new DatasetModulePlugin())
-      provider.registerModule(new LinkingModulePlugin())
-      provider.registerModule(new TransformModulePlugin())
-      provider.registerModule(new WorkflowModulePlugin())
-
+      // Create workspace
       new Workspace(provider)
     }
     catch {

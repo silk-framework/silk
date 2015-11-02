@@ -2,19 +2,37 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.io._
 import java.util.zip.{ZipInputStream, ZipEntry, ZipOutputStream}
+import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, FileResourceManager, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
 import scala.reflect.ClassTag
 import scala.xml.XML
 
-class FileWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
+@Plugin(
+  id = "file",
+  label = "Filesystem",
+  description = "Workspace on filesystem"
+)
+case class FileWorkspaceProvider(dir: String) extends WorkspaceProvider {
+
+  private val res = new FileResourceManager(dir)
 
   @volatile
   private var plugins = Map[Class[_], ModulePlugin[_]]()
+
+  // Register all module types
+  registerModule(new DatasetModulePlugin())
+  registerModule(new LinkingModulePlugin())
+  registerModule(new TransformModulePlugin())
+  registerModule(new WorkflowModulePlugin())
 
   def registerModule[T: ClassTag](plugin: ModulePlugin[T]) = {
     val clazz = implicitly[ClassTag[T]].runtimeClass

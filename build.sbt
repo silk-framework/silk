@@ -25,6 +25,7 @@ lazy val commonSettings = Seq(
 lazy val core = (project in file("silk-core"))
     .settings(commonSettings: _*)
     .settings(
+      libraryDependencies += "com.typesafe" % "config" % "1.3.0",
       libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
       libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
       // Additional scala standard libraries
@@ -141,6 +142,15 @@ lazy val workbench = (project in file("silk-workbench"))
 lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .dependsOn(core, plugins)
   .settings(commonSettings: _*)
+  .settings(
+    // The assembly plugin cannot resolve multiple dependencies to commons logging
+    assemblyMergeStrategy in assembly := {
+      case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
+      case other =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(other)
+    }
+  )
 
 //////////////////////////////////////////////////////////////////////////////
 // Root

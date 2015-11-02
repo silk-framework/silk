@@ -54,7 +54,8 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
   }
 
   override def put(name: String)(write: OutputStream => Unit) {
-    baseDir.mkdirs()
+    if(!baseDir.exists && !baseDir.mkdirs())
+      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
     val outputStream = new BufferedOutputStream(new FileOutputStream(baseDir + "/" + name))
     write(outputStream)
     outputStream.close()
@@ -83,7 +84,7 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
   }
 
   override def parent: Option[ResourceManager] = {
-    for(parent <- Option(baseDir.getParentFile)) yield
+    for(parent <- Option(baseDir.getAbsoluteFile.getParentFile)) yield
       new FileResourceManager(parent)
   }
 }
