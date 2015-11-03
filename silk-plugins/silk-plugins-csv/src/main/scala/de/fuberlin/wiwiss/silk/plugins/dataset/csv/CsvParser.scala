@@ -13,6 +13,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
 
   private val parser = new UniCsvParser(parserSettings)
 
+
   def parseLine(line: String): Seq[String] = {
     parser.parseLine(line)
   }

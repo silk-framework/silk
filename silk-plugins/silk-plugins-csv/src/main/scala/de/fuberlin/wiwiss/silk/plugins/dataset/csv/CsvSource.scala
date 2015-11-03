@@ -7,11 +7,12 @@ import java.util.regex.Pattern
 
 import de.fuberlin.wiwiss.silk.dataset.DataSource
 import de.fuberlin.wiwiss.silk.entity._
-import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import de.fuberlin.wiwiss.silk.runtime.resource.Resource
 import de.fuberlin.wiwiss.silk.util.Uri
 
-import scala.io.{Codec, Source}
+import scala.collection.mutable.{HashMap => MMap}
+import scala.io.Codec
 
 class CsvSource(file: Resource,
                 settings: CsvSettings,
@@ -21,20 +22,41 @@ class CsvSource(file: Resource,
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
                 skipLinesBeginning: Int = 0,
-                ignoreBadLines: Boolean = false ) extends DataSource {
+                ignoreBadLines: Boolean = false,
+                detectSeparator: Boolean = false) extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
   private lazy val propertyList: Seq[String] = {
-    val parser = new CsvParser(Seq.empty, settings)
+    val parser = new CsvParser(Seq.empty, csvSettings)
     if (!properties.trim.isEmpty)
       parser.parseLine(properties)
     else {
-      val source = getBufferedReaderForCsvFile()
-      initBufferedReader(source)
+      val source = getAndInitBufferedReaderForCsvFile()
       val firstLine = source.readLine()
       source.close()
       parser.parseLine(firstLine).map(s => URLEncoder.encode(s, "UTF8"))
+    }
+  }
+  
+  lazy val csvSettings: CsvSettings = {
+    var csvSettings = settings
+    if(detectSeparator) {
+      csvSettings = csvSettings.copy(separator = detectSeparatorChar() getOrElse settings.separator)
+    }
+    csvSettings
+  }
+
+  // automatically detect the separator, returns None if confidence is too low
+  private def detectSeparatorChar(): Option[Char] = {
+    val source = getAndInitBufferedReaderForCsvFile()
+    try {
+      val inputLines = (for (i <- 1 to 100)
+        yield source.readLine()) filter (_ != null)
+      SeparatorDetector.detectSeparatorCharInLines(inputLines, settings)
+    } finally {
+      source.close()
+      None
     }
   }
 
@@ -62,8 +84,8 @@ class CsvSource(file: Resource,
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
 
-        val reader = getBufferedReaderForCsvFile
-        val parser = new CsvParser(Seq.empty, settings) // Here we could only load the required indices as a performance improvement
+        lazy val reader = getAndInitBufferedReaderForCsvFile
+        val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
 
         // Compile the line regex.
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
@@ -71,7 +93,6 @@ class CsvSource(file: Resource,
         try {
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
           // the rows.
-          initBufferedReader(reader)
           var line = reader.readLine()
           var index = 0
           while(line != null) {
@@ -103,7 +124,7 @@ class CsvSource(file: Resource,
 
                   //Build entity
                   if (entities.isEmpty || entities.contains(entityURI)) {
-                    val entityValues = settings.arraySeparator match {
+                    val entityValues = csvSettings.arraySeparator match {
                       case None =>
                         values.map(v => if (v != null) Set(v) else Set.empty[String])
                       case Some(c) =>
@@ -140,9 +161,11 @@ class CsvSource(file: Resource,
       reader.readLine() // Skip line
   }
 
-  private def getBufferedReaderForCsvFile(): BufferedReader = {
+  private def getAndInitBufferedReaderForCsvFile(): BufferedReader = {
     val inputStream = file.load
-    new BufferedReader(new InputStreamReader(inputStream, codec.decoder))
+    val reader = new BufferedReader(new InputStreamReader(inputStream, codec.decoder))
+    initBufferedReader(reader)
+    reader
   }
 
   override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
@@ -151,7 +174,6 @@ class CsvSource(file: Resource,
 
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
     if(classUri == t.uri) {
-      val reader = getBufferedReaderForCsvFile
       val props = for (property <- propertyList) yield {
         Path(prefix + property)
       }
@@ -175,4 +197,56 @@ class CsvSource(file: Resource,
   }
 
   private def classUri = prefix + "CsvTable"
+}
+
+object SeparatorDetector {
+  private val separatorList = Seq(',', '\t', ';', '|', '^')
+
+  def detectSeparatorCharInLines(inputLines: Seq[String], settings: CsvSettings): Option[Char] = {
+    val separatorCharDist = for (separator <- separatorList) yield {
+      // Test which separator has the lowest entropy
+      val csvParser = new CsvParser(Seq.empty, settings.copy(separator = separator))
+      val fieldCountDist = new MMap[Int, Int]
+      for (line <- inputLines) {
+        val fieldCount = csvParser.parseLine(line).size
+        fieldCountDist.put(fieldCount, fieldCountDist.getOrElse(fieldCount, 0) + 1)
+      }
+      (separator, fieldCountDist.toMap)
+    }
+    pickBestSeparator(separatorCharDist.toMap)
+  }
+
+  // For entropy equation, see https://en.wikipedia.org/wiki/Entropy_%28information_theory%29
+  def entropy(distribution: Map[Int, Int]): Double = {
+    if(distribution.size == 0)
+      return 0.0
+    val overallCount = distribution.values.sum
+    if(overallCount == 0)
+      return 0.0
+    var sum = 0.0
+
+    for((_, count) <- distribution if count > 0) {
+      val probability = count.toDouble / overallCount
+      sum += probability * math.log(probability)
+    }
+    - sum
+  }
+
+  // Filter out separators that don't split most of the input lines, then pick the one with the lowest entropy
+  private def pickBestSeparator(separatorDistribution: Map[Char, Map[Int, Int]]): Option[Char] = {
+    assert(separatorDistribution.forall(d => d._2.size > 0 && d._2.values.sum > 0))
+    // Ignore characters that did not split anything
+    val candidates = separatorDistribution filter { case (c, dist) =>
+      val oneFieldCount = dist.getOrElse(1, 0)
+      val sum = dist.values.sum
+      // Separators with too many 1-field lines are filtered out
+      oneFieldCount.toDouble / sum < 0.5
+    }
+    val charEntropy = candidates map { case (c, dist) =>
+      (c, entropy(dist))
+    }
+    val lowestEntropySeparator = charEntropy.toSeq.sortWith(_._2 < _._2).headOption
+    // Entropy must be < 0.1, which means that at most 6 out of 100 lines may have a different number of fields than the majority
+    lowestEntropySeparator filter (_._2 < 0.1) map (_._1)
+  }
 }
