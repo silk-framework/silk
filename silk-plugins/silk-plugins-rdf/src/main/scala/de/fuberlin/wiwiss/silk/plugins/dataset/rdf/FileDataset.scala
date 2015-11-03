@@ -41,7 +41,7 @@ case class FileDataset(file: Resource, format: String, graph: String = "") exten
   }
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
-  private val formatter: Formatter = {
+  private def formatter: Formatter = {
     if(lang == Lang.NTRIPLES)
       NTriplesFormatter()
     else
