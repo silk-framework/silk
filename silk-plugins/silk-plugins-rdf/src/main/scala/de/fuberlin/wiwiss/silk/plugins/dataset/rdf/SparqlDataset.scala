@@ -25,9 +25,9 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 case class SparqlDataset(endpointURI: String, login: String = null, password: String = null,
                          graph: String = null, pageSize: Int = 1000, entityList: String = null,
                          pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
-                         queryParameters: String = "", parallel: Boolean = true, updateParameter: String = "query") extends RdfDatasetPlugin {
+                         queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true, updateParameter: String = "query") extends RdfDatasetPlugin {
 
-  private val params = SparqlParams(endpointURI, login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, updateParameter)
+  private val params = SparqlParams(endpointURI, login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy, updateParameter)
 
   override val source = new SparqlSource(params)
 

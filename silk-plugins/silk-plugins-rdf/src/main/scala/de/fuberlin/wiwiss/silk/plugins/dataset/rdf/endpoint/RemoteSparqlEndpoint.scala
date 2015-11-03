@@ -95,7 +95,7 @@ class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint = ne
 
       //Execute query
       if (logger.isLoggable(Level.FINE))
-        logger.info("Executing query on " + params.uri + "\n" + query)
+        logger.fine("Executing query on " + params.uri + "\n" + query)
 
       val url = params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters
       var result: Elem = null

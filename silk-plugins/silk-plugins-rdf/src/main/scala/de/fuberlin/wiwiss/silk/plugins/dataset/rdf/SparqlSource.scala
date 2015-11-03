@@ -28,9 +28,9 @@ class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new Defaul
   override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = {
     val entityRetriever =
       if(params.parallel)
-        new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, graphUri)
+        new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, graphUri, params.useOrderBy)
       else
-        new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, graphUri)
+        new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, graphUri, params.useOrderBy)
 
     entityRetriever.retrieve(entityDesc, (entityUris union entities).map(Uri(_)), None)
   }
