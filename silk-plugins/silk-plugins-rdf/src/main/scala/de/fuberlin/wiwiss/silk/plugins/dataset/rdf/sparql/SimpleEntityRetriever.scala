@@ -69,7 +69,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     sparql += "}"
     if(useOrderBy) sparql +=" ORDER BY ?" + entityDesc.variable
 
-    val sparqlResults = endpoint.query(sparql)
+    val sparqlResults = endpoint.select(sparql)
 
     new EntityTraversable(sparqlResults.bindings, entityDesc, None, limit)
   }
@@ -123,7 +123,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     sparql += SparqlPathBuilder(paths, "<" + entityUri + ">", "?" + varPrefix)
     sparql += "}"
 
-    endpoint.query(sparql).bindings
+    endpoint.select(sparql).bindings
   }
 
   /**

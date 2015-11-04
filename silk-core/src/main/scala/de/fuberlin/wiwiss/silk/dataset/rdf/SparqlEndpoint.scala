@@ -18,5 +18,18 @@ package de.fuberlin.wiwiss.silk.dataset.rdf
  * Represents a SPARQL endpoint and provides an interface to execute queries on it.
  */
 trait SparqlEndpoint {
-  def query(sparql: String, limit: Int = Integer.MAX_VALUE): ResultSet
+
+  /**
+    * Executes a select query.
+    * If the query does not contain a offset or limit, automatic paging is done by issuing multiple queries with a sliding offset.
+    *
+    */
+  def select(query: String, limit: Int = Integer.MAX_VALUE): SparqlResults
+
+  /**
+    * Executes an update query.
+    */
+  def update(query: String): Unit = {
+    throw new UnsupportedOperationException(s"Endpoint type $getClass does not support issuing SPARQL/Update queries")
+  }
 }

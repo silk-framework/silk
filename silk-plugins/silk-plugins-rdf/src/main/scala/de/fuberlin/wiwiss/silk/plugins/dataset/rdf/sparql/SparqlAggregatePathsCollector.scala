@@ -55,7 +55,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         "GROUP BY ?p\n" +
         "ORDER BY DESC (?count)"
 
-      val results = endpoint.query(sparql, limit).bindings.toList
+      val results = endpoint.select(sparql, limit).bindings.toList
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
@@ -79,7 +79,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         "GROUP BY ?p\n" +
         "ORDER BY DESC (?count)"
 
-      val results = endpoint.query(sparql, limit).bindings.toList
+      val results = endpoint.select(sparql, limit).bindings.toList
       if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {

@@ -3,13 +3,13 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.dataset.DataSink
+import de.fuberlin.wiwiss.silk.dataset.rdf.SparqlEndpoint
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.HttpEndpoint
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
  */
-class SparqlSink(params: SparqlParams, client: HttpEndpoint) extends DataSink {
+class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -102,6 +102,6 @@ class SparqlSink(params: SparqlParams, client: HttpEndpoint) extends DataSink {
       body.append("} }")
     val query = body.toString()
     body.clear()
-    client.update(query)
+    endpoint.update(query)
   }
 }

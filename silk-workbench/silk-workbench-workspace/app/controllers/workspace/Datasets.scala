@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, ResultSet}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
 import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -66,9 +66,9 @@ object Datasets extends Controller {
     context.task.data.plugin match {
       case rdf: RdfDatasetPlugin =>
         val sparqlEndpoint = rdf.sparqlEndpoint
-        var queryResults: Option[ResultSet] = None
+        var queryResults: Option[SparqlResults] = None
         if(!query.isEmpty) {
-          queryResults = Some(sparqlEndpoint.query(query))
+          queryResults = Some(sparqlEndpoint.select(query))
         }
         Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
       case _ => BadRequest("This is not an RDF-Dataset.")

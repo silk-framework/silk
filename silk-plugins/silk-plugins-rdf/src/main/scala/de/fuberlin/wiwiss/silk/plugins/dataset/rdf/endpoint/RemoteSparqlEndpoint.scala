@@ -28,104 +28,71 @@ import scala.xml.{NodeSeq, Elem, XML}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
+ *
  */
-class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint) extends SparqlEndpoint {
+class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
-  private var lastQueryTime = 0L
+  override def toString = params.uri
 
-  override def toString = httpEndpoint.toString
-
-  override def query(sparql: String, limit: Int) = {
-    ResultSet(
-      bindings = new ResultTraversable(sparql, limit)
-    )
+  override def select(query: String, limit: Int) = {
+    PagingSparqlTraversable(query, executeSelect, params, limit)
   }
 
-  private class ResultTraversable(sparql: String, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
-    @volatile var blankNodeCount = 0
-
-    override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
-      if(sparql.toLowerCase.contains("limit ") || sparql.toLowerCase.contains("offset ")) {
-        val xml = executeQuery(sparql)
-        val resultsXml = xml \ "results" \ "result"
-        for (resultXml <- resultsXml) {
-          f(parseResult(resultXml))
-        }
-      } else {
-        for (offset <- 0 until limit by params.pageSize) {
-          val xml = executeQuery(sparql + " OFFSET " + offset + " LIMIT " + math.min(params.pageSize, limit - offset))
-          val resultsXml = xml \ "results" \ "result"
-          for (resultXml <- resultsXml) {
-            f(parseResult(resultXml))
-          }
-          if (resultsXml.size < params.pageSize) return
-        }
-      }
+  /**
+    * Executes a single select query.
+    */
+  def executeSelect(query: String): Elem = {
+    val queryUrl = params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters
+    //Open connection
+    val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
+    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
+    //Set authentication
+    for ((user, password) <- params.login) {
+      httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
     }
 
-    private def parseResult(resultXml: NodeSeq): SortedMap[String, RdfNode] = {
-      val bindings = resultXml \ "binding"
-
-      val uris = for (binding <- bindings; node <- binding \ "uri") yield ((binding \ "@name").text, Resource(node.text))
-
-      val literals = for (binding <- bindings; node <- binding \ "literal") yield ((binding \ "@name").text, Literal(node.text))
-
-      val bnodes = for (binding <- bindings; node <- binding \ "bnode") yield {
-        blankNodeCount += 1
-        ((binding \ "@name").text, BlankNode("bnode" + blankNodeCount))
-      }
-
-      SortedMap(uris ++ literals ++ bnodes: _*)
-    }
-
-    /**
-     * Executes a SPARQL SELECT query.
-     *
-     * @param query The SPARQL query to be executed
-     * @return Query result in SPARQL Query Results XML Format
-     */
-    private def executeQuery(query: String): Elem = {
-      //Wait until pause time is elapsed since last query
-      synchronized {
-        while (System.currentTimeMillis < lastQueryTime + params.pauseTime) Thread.sleep(params.pauseTime / 10)
-        lastQueryTime = System.currentTimeMillis
-      }
-
-      //Execute query
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("Executing query on " + httpEndpoint + "\n" + query)
-
-      var result: Elem = null
-      var retries = 0
-      var retryPause = params.retryPause
-      while (result == null) {
-        try {
-          result = httpEndpoint.select(query)
-        }
-        catch {
-          case ex: IOException => {
-            retries += 1
-            if (retries > params.retryCount) {
-              throw ex
-            }
-            logger.info("Query on " + httpEndpoint + " failed:\n" + query + "\nError Message: '" + ex.getMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
-
-            Thread.sleep(retryPause)
-            //Double the retry pause up to a maximum of 1 hour
-            //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
-          }
-          case ex: Exception => {
-            logger.log(Level.SEVERE, "Could not execute query on " + httpEndpoint + ":\n" + query, ex)
-            throw ex
-          }
-        }
-      }
-
-      //Return result
-      if (logger.isLoggable(Level.FINER)) logger.finer("Query Result\n" + result)
+    try {
+      val inputStream = httpConnection.getInputStream
+      val result = XML.load(inputStream)
+      inputStream.close()
       result
+    } catch {
+      case ex: IOException =>
+        val errorStream = httpConnection.getErrorStream
+        if (errorStream != null) {
+          val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
+          throw new IOException(errorMessage, ex)
+        } else {
+          throw ex
+        }
+    } finally {
+      httpConnection.disconnect()
+    }
+  }
+
+  override def update(query: String): Unit = {
+    //Open a new HTTP connection
+    val connection = new URL(params.uri).openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("POST")
+    connection.setDoOutput(true)
+    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+    val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
+    writer.write("query=")
+    writer.write(URLEncoder.encode(query, "UTF8"))
+    writer.close()
+
+    //Check if the HTTP response code is in the range 2xx
+    if (connection.getResponseCode / 100 != 2) {
+      val errorStream = connection.getErrorStream
+      if (errorStream != null) {
+        val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
+        throw new IOException("SPARQL/Update query on " + params.uri + " failed with error code " + connection.getResponseCode + ". Error Message: '" + errorMessage + "'.")
+      }
+      else {
+        throw new IOException("SPARQL/Update query on " + params.uri + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ".")
+      }
     }
   }
 

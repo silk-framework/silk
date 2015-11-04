@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
 import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{DefaultHttpEndpoint, RemoteSparqlEndpoint}
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 /**
@@ -26,17 +26,14 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
                          pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
                          queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true) extends RdfDatasetPlugin {
 
-  private val params = SparqlParams(login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy)
+  private val params = SparqlParams(endpointURI, login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy)
 
-  override val source = new SparqlSource(params, endpoint)
-
-  override val sink = new SparqlSink(params, endpoint)
-
-  override def sparqlEndpoint = {
+  override val sparqlEndpoint = {
     //new JenaRemoteEndpoint(endpointURI)
-    new RemoteSparqlEndpoint(params, endpoint)
+    new RemoteSparqlEndpoint(params)
   }
 
-  private def endpoint = new DefaultHttpEndpoint(endpointURI, params.login, queryParameters)
+  override val source = new SparqlSource(params, sparqlEndpoint)
 
+  override val sink = new SparqlSink(params, sparqlEndpoint)
 }

@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 import java.util.logging.{Level, Logger}
 
 import com.hp.hpl.jena.query.{QueryExecution, QuerySolution, ResultSet}
-import de.fuberlin.wiwiss.silk.dataset.rdf.{BlankNode, Literal, Resource, SparqlEndpoint, ResultSet => SilkResultSet}
+import de.fuberlin.wiwiss.silk.dataset.rdf.{BlankNode, Literal, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.SortedMap
@@ -37,7 +37,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
    * Executes a SPARQL SELECT query.
    */
-  override def query(sparql: String, limit: Int): SilkResultSet = {
+  override def select(sparql: String, limit: Int): SilkResultSet = {
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
     // Execute query

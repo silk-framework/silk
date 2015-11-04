@@ -178,7 +178,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
         sparql += " ORDER BY " + "?" + entityDesc.variable
       }
 
-      endpoint.query(sparql)
+      endpoint.select(sparql)
     }
 
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None) {
