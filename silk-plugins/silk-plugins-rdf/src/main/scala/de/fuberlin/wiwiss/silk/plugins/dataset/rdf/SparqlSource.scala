@@ -12,7 +12,7 @@ import de.fuberlin.wiwiss.silk.util.Uri
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new DefaultHttpEndpoint) extends DataSource {
+class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint) extends DataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -37,7 +37,7 @@ class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new Defaul
 
   override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     //Create an endpoint which fails after 3 retries
-    val failFastEndpoint = new RemoteSparqlEndpoint(params.copy(retryCount = 3, retryPause = 1000))
+    val failFastEndpoint = new RemoteSparqlEndpoint(params.copy(retryCount = 3, retryPause = 1000), httpEndpoint)
 
     try {
       SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit).map(p => (p, 1.0))
@@ -52,5 +52,5 @@ class SparqlSource(params: SparqlParams, httpEndpoint: HttpEndpoint = new Defaul
     SparqlTypesCollector(sparqlEndpoint, limit)
   }
 
-  override def toString = params.uri
+  override def toString = httpEndpoint.toString
 }

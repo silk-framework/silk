@@ -29,13 +29,13 @@ import scala.xml.{NodeSeq, Elem, XML}
 /**
  * Executes queries on a remote SPARQL endpoint.
  */
-class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint = new DefaultHttpEndpoint) extends SparqlEndpoint {
+class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
   private var lastQueryTime = 0L
 
-  override def toString = "SparqlEndpoint(" + params.uri + ")"
+  override def toString = httpEndpoint.toString
 
   override def query(sparql: String, limit: Int) = {
     ResultSet(
@@ -95,15 +95,14 @@ class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint = ne
 
       //Execute query
       if (logger.isLoggable(Level.FINE))
-        logger.fine("Executing query on " + params.uri + "\n" + query)
+        logger.fine("Executing query on " + httpEndpoint + "\n" + query)
 
-      val url = params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters
       var result: Elem = null
       var retries = 0
       var retryPause = params.retryPause
       while (result == null) {
         try {
-          result = httpEndpoint.select(url, params.login)
+          result = httpEndpoint.select(query)
         }
         catch {
           case ex: IOException => {
@@ -111,14 +110,14 @@ class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint = ne
             if (retries > params.retryCount) {
               throw ex
             }
-            logger.info("Query on " + params.uri + " failed:\n" + query + "\nError Message: '" + ex.getMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
+            logger.info("Query on " + httpEndpoint + " failed:\n" + query + "\nError Message: '" + ex.getMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
 
             Thread.sleep(retryPause)
             //Double the retry pause up to a maximum of 1 hour
             //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
           }
           case ex: Exception => {
-            logger.log(Level.SEVERE, "Could not execute query on " + params.uri + ":\n" + query, ex)
+            logger.log(Level.SEVERE, "Could not execute query on " + httpEndpoint + ":\n" + query, ex)
             throw ex
           }
         }
@@ -131,24 +130,6 @@ class RemoteSparqlEndpoint(params: SparqlParams, httpEndpoint: HttpEndpoint = ne
   }
 
 }
-
-private object RemoteSparqlEndpoint {
-  /**
-   * Opens a new HTTP connection to the endpoint.
-   */
-  private def openConnection(url: URL, login: Option[(String, String)]): HttpURLConnection = {
-    //Open connection
-    val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
-    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
-    //Set authentication
-    for ((user, password) <- login) {
-      httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
-    }
-
-    httpConnection
-  }
-}
-
 
 
 

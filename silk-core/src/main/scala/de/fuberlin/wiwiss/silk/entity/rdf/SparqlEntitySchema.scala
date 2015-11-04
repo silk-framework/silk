@@ -15,7 +15,6 @@
 package de.fuberlin.wiwiss.silk.entity.rdf
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestrictionBuilder
 import de.fuberlin.wiwiss.silk.entity.{EntitySchema, Path}
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat

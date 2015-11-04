@@ -1,17 +1,18 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 
 import java.io.{OutputStreamWriter, IOException}
-import java.net.{HttpURLConnection, URL}
+import java.net.{URLEncoder, HttpURLConnection, URL}
 import javax.xml.bind.DatatypeConverter
 
 import scala.io.Source
 import scala.xml.{XML, Elem}
 
-class DefaultHttpEndpoint extends HttpEndpoint {
+class DefaultHttpEndpoint(url: String, login: Option[(String, String)] = None, queryParameters: String = "") extends HttpEndpoint {
 
-  def select(url: String, login: Option[(String, String)]): Elem = {
+  def select(query: String): Elem = {
+    val queryUrl = url + "?query=" + URLEncoder.encode(query, "UTF-8") + queryParameters
     //Open connection
-    val httpConnection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
+    val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
     httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
     //Set authentication
     for ((user, password) <- login) {
@@ -37,15 +38,15 @@ class DefaultHttpEndpoint extends HttpEndpoint {
     }
   }
 
-  def update(url: String, query: String): Unit = {
+  def update(query: String): Unit = {
     //Open a new HTTP connection
     val connection = new URL(url).openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
     connection.setDoOutput(true)
     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
     val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
-    // TODO url encode
-    writer.write(query)
+    writer.write("query=")
+    writer.write(URLEncoder.encode(query, "UTF8"))
     writer.close()
 
     //Check if the HTTP response code is in the range 2xx
@@ -60,5 +61,7 @@ class DefaultHttpEndpoint extends HttpEndpoint {
       }
     }
   }
+
+  override def toString = url
 
 }

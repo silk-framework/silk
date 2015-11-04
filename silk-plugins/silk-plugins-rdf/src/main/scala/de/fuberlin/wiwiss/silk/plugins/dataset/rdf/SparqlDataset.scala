@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
 
 import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{DefaultHttpEndpoint, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 
 /**
@@ -19,23 +19,24 @@ import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
  * - '''retryPause (optional)''': The number of milliseconds to wait until a failed query is retried
  * - '''queryParameters (optional)''' Additional parameters to be appended to every request e.g. &soft-limit=1
  * - '''parallel (optional)''' True (default), if multiple queries should be executed in parallel for faster retrieval.
- * - '''updateParameter (optional)''' The HTTP parameter used to submit queries. Defaults to "query".
  */
 @Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(endpointURI: String, login: String = null, password: String = null,
                          graph: String = null, pageSize: Int = 1000, entityList: String = null,
                          pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
-                         queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true, updateParameter: String = "query") extends RdfDatasetPlugin {
+                         queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true) extends RdfDatasetPlugin {
 
-  private val params = SparqlParams(endpointURI, login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy, updateParameter)
+  private val params = SparqlParams(login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy)
 
-  override val source = new SparqlSource(params)
+  override val source = new SparqlSource(params, endpoint)
 
-  override val sink = new SparqlSink(params)
+  override val sink = new SparqlSink(params, endpoint)
 
   override def sparqlEndpoint = {
     //new JenaRemoteEndpoint(endpointURI)
-    new RemoteSparqlEndpoint(params)
+    new RemoteSparqlEndpoint(params, endpoint)
   }
+
+  private def endpoint = new DefaultHttpEndpoint(endpointURI, params.login, queryParameters)
 
 }

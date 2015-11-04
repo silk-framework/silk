@@ -6,6 +6,6 @@ import scala.xml.Elem
  * An HTTP endpoint to issue SPARQL queries.
  */
 trait HttpEndpoint {
-  def select(url: String, login: Option[(String, String)]): Elem
-  def update(url: String, query: String): Unit
+  def select(query: String): Elem
+  def update(query: String): Unit
 }

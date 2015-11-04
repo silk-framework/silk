@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.SparqlParams
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
+import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{DefaultHttpEndpoint, RemoteSparqlEndpoint}
 import de.fuberlin.wiwiss.silk.util.Timer
 
 /**
@@ -47,7 +47,7 @@ object SparqlPathsCollectorTest {
     def execute() {
       logger.info("Executing " + name + " test")
 
-      val endpoint = new RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
+      val endpoint = new RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100), new DefaultHttpEndpoint(uri))
       val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
       val limit = Some(50)
 
