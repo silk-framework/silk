@@ -27,6 +27,13 @@ trait SparqlEndpoint {
   def select(query: String, limit: Int = Integer.MAX_VALUE): SparqlResults
 
   /**
+    * Executes a construct query.
+    */
+  def construct(query: String): String = {
+    throw new UnsupportedOperationException(s"Endpoint type $getClass does not support issuing SPARQL Construct queries")
+  }
+
+  /**
     * Executes an update query.
     */
   def update(query: String): Unit = {
