@@ -53,7 +53,7 @@ class Module[TaskData: ClassTag](private[modules] val plugin: ModulePlugin[TaskD
 
   def add(name: Identifier, taskData: TaskData) = {
     val task = new Task(name, taskData, this)
-    provider.putTask(project.name, taskData)
+    provider.putTask(project.name, name, taskData)
     cachedTasks += ((name, task))
   }
 

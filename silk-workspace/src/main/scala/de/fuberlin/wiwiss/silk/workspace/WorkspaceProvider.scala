@@ -42,7 +42,7 @@ trait WorkspaceProvider {
   /**
    * Adds/Updates a task in a project.
    */
-  def putTask[T: ClassTag](project: Identifier, data: T): Unit
+  def putTask[T: ClassTag](project: Identifier, task: Identifier, data: T): Unit
 
   /**
    * Deletes a task from a project.

@@ -102,7 +102,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      module.provider.putTask(projectName, data)
+      module.provider.putTask(projectName, name, data)
       log.info(s"Persisted task '$name' in project '$projectName'")
       // Update caches
       for(activity <- activityList if activity.autoRun) {

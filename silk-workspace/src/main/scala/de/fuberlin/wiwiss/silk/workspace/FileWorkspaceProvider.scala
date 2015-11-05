@@ -77,7 +77,7 @@ case class FileWorkspaceProvider(dir: String) extends WorkspaceProvider {
     plugin[T].loadTasks(res.child(project).child(plugin[T].prefix), res.child(project).child("resources")).toSeq
   }
 
-  override def putTask[T: ClassTag](project: Identifier, data: T): Unit = {
+  override def putTask[T: ClassTag](project: Identifier, task: Identifier, data: T): Unit = {
     plugin[T].writeTask(data, res.child(project).child(plugin[T].prefix))
   }
 
