@@ -47,7 +47,7 @@ object FileUser {
         if(Config().hasPath("workspace.provider"))
           PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
         else
-          new FileWorkspaceProvider(workspaceDir.toString)
+          new FileWorkspaceProvider(workspaceDir.getAbsolutePath)
 
       // Create workspace
       new Workspace(provider)
