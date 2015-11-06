@@ -26,12 +26,13 @@ import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformModulePlugin
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
 
 class FileUser extends User {
+
   override def workspace = FileUser.workspace
 
-  def workspace_=(w: Workspace): Unit = FileUser.workspace = w
 }
 
 object FileUser {
+
   lazy val workspaceDir = {
     val elds_home = System.getenv("ELDS_HOME")
     if(elds_home != null)
@@ -40,9 +41,9 @@ object FileUser {
       new File(System.getProperty("user.home") + "/.silk/workspace/")
   }
 
-  var workspace: Workspace = {
+  lazy val workspace: Workspace = {
     try {
-      // Load the workspace provider from configuration or use the default file-based on
+      // Load the workspace provider from configuration or use the default file-based one
       val provider =
         if(Config().hasPath("workspace.provider"))
           PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
