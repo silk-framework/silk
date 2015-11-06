@@ -25,7 +25,7 @@ lazy val commonSettings = Seq(
 lazy val core = (project in file("silk-core"))
     .settings(commonSettings: _*)
     .settings(
-      libraryDependencies += "com.typesafe" % "config" % "1.2.1",
+      libraryDependencies += "com.typesafe" % "config" % "1.2.1", // Should always use the same version as the Play Framework dependency
       libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
       libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
       // Additional scala standard libraries
