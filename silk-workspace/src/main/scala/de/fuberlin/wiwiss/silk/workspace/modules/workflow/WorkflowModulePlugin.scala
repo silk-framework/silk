@@ -31,7 +31,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
    * Writes an updated task.
    */
   override def writeTask(data: Workflow, resources: ResourceManager): Unit = {
-    resources.put(data.id + ".xml"){ os => data.toXML.write(os) }
+    resources.get(data.id + ".xml").write { os => data.toXML.write(os) }
   }
 
   /**

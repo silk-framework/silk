@@ -77,8 +77,8 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
 
     // Write resources
     val taskResources = resources.child(data.id)
-    taskResources.put("linkSpec.xml", toXml(data).toString())
-    taskResources.put("alignment.xml") { os => data.referenceLinks.toXML.write(os) }
+    taskResources.get("linkSpec.xml").write(toXml(data).toString())
+    taskResources.get("alignment.xml").write{ os => data.referenceLinks.toXML.write(os) }
   }
 
   override def activities(task: Task[LinkSpecification], project: Project): Seq[TaskActivity[_,_]] = {

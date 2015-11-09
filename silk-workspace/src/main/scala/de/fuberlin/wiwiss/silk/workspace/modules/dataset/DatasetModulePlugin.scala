@@ -68,7 +68,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
    * Writes an updated task.
    */
   override def writeTask(data: Dataset, resources: ResourceManager): Unit = {
-    resources.put(data.id + ".xml"){ os => Serialization.toXml(data).write(os) }
+    resources.get(data.id + ".xml").write{ os => Serialization.toXml(data).write(os) }
   }
 
   /**

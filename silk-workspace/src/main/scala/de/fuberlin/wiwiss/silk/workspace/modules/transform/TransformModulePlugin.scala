@@ -33,8 +33,8 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
-    taskResources.put("dataset.xml") { os => data.selection.toXML(asSource = true).write(os) }
-    taskResources.put("rules.xml") { os =>
+    taskResources.get("dataset.xml").write { os => data.selection.toXML(asSource = true).write(os) }
+    taskResources.get("rules.xml").write { os =>
       <TransformSpec>
         { data.rules.map(toXml[TransformRule]) }
         <Outputs>

@@ -141,7 +141,7 @@ object TaskActivity {
 
     private def writeValue(value: T): Unit = {
       try {
-        resourceMgr.put(resourceName)(toXml[T](value).write)
+        resourceMgr.get(resourceName).write(w => toXml[T](value).write(w))
         log.info(s"Cache written to $resourceName.")
       } catch {
         case ex: Exception =>
