@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.rule.input
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.Entity
 import de.fuberlin.wiwiss.silk.rule.Operator
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.{DPair, Identifier}
 
@@ -48,12 +48,12 @@ object TransformInput {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): TransformInput = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformInput = {
       val id = Operator.readId(node)
       val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
 
       try {
-        val transformer = Transformer((node \ "@function").text, Operator.readParams(node), resourceLoader)
+        val transformer = Transformer((node \ "@function").text, Operator.readParams(node), resources)
         TransformInput(id, transformer, inputs.toList)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")

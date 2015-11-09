@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaM
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters.{Formatter, NTriplesFormatter, FormattedDataSink}
 import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.runtime.resource.Resource
+import de.fuberlin.wiwiss.silk.runtime.resource.{WritableResource, Resource}
 import de.fuberlin.wiwiss.silk.util.Uri
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 
@@ -24,7 +24,7 @@ import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
       |  graph: The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.
     """
 )
-case class FileDataset(file: Resource, format: String, graph: String = "") extends RdfDatasetPlugin {
+case class FileDataset(file: WritableResource, format: String, graph: String = "") extends RdfDatasetPlugin {
 
   /** The RDF format of the given resource. */
   private val lang = {

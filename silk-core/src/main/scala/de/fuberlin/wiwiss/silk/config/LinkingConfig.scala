@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.config
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{XmlFormat, Serialization, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
@@ -108,7 +108,7 @@ object LinkingConfig {
     /**
      * Deserializes a LinkingConfig from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): LinkingConfig = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): LinkingConfig = {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
 
@@ -119,7 +119,7 @@ object LinkingConfig {
         case None => Blocking()
       }
       val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[LinkSpecification](p))
-      val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resourceLoader))
+      val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resources))
 
       implicit val globalThreshold = None
       val outputs = (node \ "Outputs" \ "Output").map(fromXml[Dataset])

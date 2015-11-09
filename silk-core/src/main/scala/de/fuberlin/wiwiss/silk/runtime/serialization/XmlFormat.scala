@@ -1,7 +1,7 @@
 package de.fuberlin.wiwiss.silk.runtime.serialization
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager}
 
 import scala.xml.Node
 
@@ -13,7 +13,7 @@ trait XmlFormat[T] {
   /**
    * Deserialize a value from XML.
    */
-  def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T
+  def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): T
 
   /**
    * Serialize a value to XML.

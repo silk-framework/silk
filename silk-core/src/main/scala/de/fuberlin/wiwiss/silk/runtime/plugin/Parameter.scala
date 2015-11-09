@@ -33,6 +33,7 @@ object Parameter {
     val Double = Value("Double")
     val Boolean = Value("Boolean")
     val Resource = Value("Resource")
+    val WritableResource = Value("WritableResource")
   }
 
   type Type = Type.Value

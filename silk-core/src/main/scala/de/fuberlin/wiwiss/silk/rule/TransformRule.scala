@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.rule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.plugins.transformer.combine.ConcatTransformer
 import de.fuberlin.wiwiss.silk.plugins.transformer.value.ConstantTransformer
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat, ValidatingXMLReader}
 import de.fuberlin.wiwiss.silk.util._
 
@@ -143,7 +143,7 @@ object TransformRule {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): TransformRule = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformRule = {
       ValidatingXMLReader.validate(node, "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
       val target = (node \ "@targetProperty").text
       val complex =

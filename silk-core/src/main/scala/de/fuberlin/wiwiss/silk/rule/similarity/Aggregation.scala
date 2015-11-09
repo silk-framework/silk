@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import scala.xml.Node
 import de.fuberlin.wiwiss.silk.rule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 
 /**
  * An aggregation combines multiple similarity values into a single value.
@@ -100,11 +100,11 @@ object Aggregation {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Aggregation = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Aggregation = {
       val requiredStr = (node \ "@required").text
       val weightStr = (node \ "@weight").text
 
-      val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node), resourceLoader)
+      val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node), resources)
 
       Aggregation(
         id = Operator.readId(node),

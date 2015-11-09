@@ -5,7 +5,7 @@ import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.config.Config
-import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.collection.JavaConversions._
@@ -29,12 +29,12 @@ object PluginRegistry {
    *
    * @param id The id of the plugin.
    * @param params The instantiation parameters.
-   * @param resourceLoader The resource loader for retrieving referenced resources.
+   * @param resources The resource loader for retrieving referenced resources.
    * @tparam T The based type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T = {
-    pluginType[T].create[T](id, params, resourceLoader)
+  def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty, resources: ResourceManager = EmptyResourceManager): T = {
+    pluginType[T].create[T](id, params, resources)
   }
 
   /**
@@ -161,14 +161,14 @@ object PluginRegistry {
      *
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
-     * @param resourceLoader The resource loader for retrieving referenced resources.
+     * @param resources The resource loader for retrieving referenced resources.
      * @tparam T The based type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: Map[String, String], resourceLoader: ResourceLoader): T = {
+    def create[T: ClassTag](id: String, params: Map[String, String], resources: ResourceManager): T = {
       val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
       val pluginDesc = plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
-      pluginDesc(params, resourceLoader).asInstanceOf[T]
+      pluginDesc(params, resources).asInstanceOf[T]
     }
 
     /**

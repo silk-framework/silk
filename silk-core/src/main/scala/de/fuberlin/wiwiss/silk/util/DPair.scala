@@ -15,7 +15,7 @@
 package de.fuberlin.wiwiss.silk.util
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 
 import scala.language.implicitConversions
@@ -83,7 +83,7 @@ object DPair {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) =
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) =
       DPair(
         Serialization.fromXml[T]((node \ "Source" \ "_").head),
         Serialization.fromXml[T]((node \ "Target" \ "_").head)

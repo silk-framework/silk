@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.rule.input
 import de.fuberlin.wiwiss.silk.entity.{Entity, Path}
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.rule.Operator
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{XmlFormat, ValidationException}
 import scala.xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
@@ -64,7 +64,7 @@ object PathInput {
    */
   implicit object PathInputFormat extends XmlFormat[PathInput] {
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): PathInput = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): PathInput = {
       val id = Operator.readId(node)
       try {
         val pathStr = (node \ "@path").text

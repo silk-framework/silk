@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.runtime.plugin
 
-import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import scala.reflect.ClassTag
 
 /**
@@ -25,8 +25,8 @@ class PluginFactory[T: ClassTag] {
   /**
    * Creates a new instance of a specific plugin.
    */
-  def apply(id: String, params: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T = {
-    PluginRegistry.create(id, params, resourceLoader)
+  def apply(id: String, params: Map[String, String] = Map.empty, resources: ResourceManager = EmptyResourceManager): T = {
+    PluginRegistry.create(id, params, resources)
   }
 
   /**

@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.rule
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.{Entity, Index}
 import de.fuberlin.wiwiss.silk.rule.similarity.SimilarityOperator
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.{DPair, Uri}
 
@@ -78,7 +78,7 @@ object LinkageRule {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): LinkageRule = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): LinkageRule = {
       val link = (node \ "@linkType").text.trim
       LinkageRule(
         operator = (node \ "_").find(_.label != "Filter").map(fromXml[SimilarityOperator]),

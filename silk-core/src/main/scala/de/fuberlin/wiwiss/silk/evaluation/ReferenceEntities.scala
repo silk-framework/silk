@@ -19,7 +19,7 @@ package de.fuberlin.wiwiss.silk.evaluation
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity._
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, XmlFormat}
 import de.fuberlin.wiwiss.silk.util.DPair
 import scala.xml.Node
@@ -76,7 +76,7 @@ object ReferenceEntities {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
       val entityDescs = Serialization.fromXml[DPair[SparqlEntitySchema]]((node \ "Pair").head)
       val posNode = node \ "PositiveEntities"
       val negNode = node \ "NegativeEntities"

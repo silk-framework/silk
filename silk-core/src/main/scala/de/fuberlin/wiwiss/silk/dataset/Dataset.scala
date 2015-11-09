@@ -18,7 +18,7 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 import de.fuberlin.wiwiss.silk.util.Identifier
 
@@ -101,14 +101,14 @@ object Dataset {
    */
   implicit object DatasetFormat extends XmlFormat[Dataset] {
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Dataset = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Dataset = {
       // Check if the data source still uses the old outdated XML format
       if(node.label == "DataSource" || node.label == "Output") {
         // Read old format
         val id = (node \ "@id").text
         new Dataset(
           id = if(id.nonEmpty) id else Identifier.random,
-          plugin = DatasetPlugin((node \ "@type").text, readParams(node), resourceLoader),
+          plugin = DatasetPlugin((node \ "@type").text, readParams(node), resources),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -118,7 +118,7 @@ object Dataset {
         val sourceNode = (node \ "DatasetPlugin").head
         new Dataset(
           id = if(id.nonEmpty) id else Identifier.random,
-          plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resourceLoader),
+          plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resources),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )

@@ -20,7 +20,7 @@ import scala.xml.Node
 import de.fuberlin.wiwiss.silk.rule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 
 /**
  * An operator which computes the similarity between two entities.
@@ -65,7 +65,7 @@ object SimilarityOperator {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): SimilarityOperator = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): SimilarityOperator = {
       node match {
         case node@ <Aggregate>{_*}</Aggregate> => fromXml[Aggregation](node)
         case node@ <Compare>{_*}</Compare> => fromXml[Comparison](node)

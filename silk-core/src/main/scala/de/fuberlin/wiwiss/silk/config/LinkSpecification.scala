@@ -23,7 +23,7 @@ import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
 import de.fuberlin.wiwiss.silk.rule.LinkageRule
 import de.fuberlin.wiwiss.silk.rule.input.{Input, PathInput, TransformInput}
 import de.fuberlin.wiwiss.silk.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import de.fuberlin.wiwiss.silk.runtime.serialization.{ValidatingXMLReader, ValidationException, XmlFormat}
 import de.fuberlin.wiwiss.silk.util._
@@ -101,7 +101,7 @@ object LinkSpecification {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceLoader = EmptyResourceManager): LinkSpecification = {
+    def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): LinkSpecification = {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
 

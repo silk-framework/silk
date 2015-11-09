@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.entity.rdf
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.entity.{EntitySchema, Path}
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 
 import scala.xml.Node
@@ -58,7 +58,7 @@ object SparqlEntitySchema {
     /**
      * Deserialize an EntityDescription from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
       val variable = (node \ "Variable").text.trim
       new SparqlEntitySchema(
         variable = variable,

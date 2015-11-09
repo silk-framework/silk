@@ -16,7 +16,7 @@ package de.fuberlin.wiwiss.silk.runtime.plugin
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import java.lang.reflect.{InvocationTargetException, Constructor}
-import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
 import de.fuberlin.wiwiss.silk.util.Identifier
 
@@ -28,8 +28,8 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
   /**
    * Creates a new instance of this plugin.
    */
-  def apply(parameterValues: Map[String, String] = Map.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T = {
-    val parsedParameters = parseParameters(parameterValues, resourceLoader)
+  def apply(parameterValues: Map[String, String] = Map.empty, resources: ResourceManager = EmptyResourceManager): T = {
+    val parsedParameters = parseParameters(parameterValues, resources)
     try {
       constructor.newInstance(parsedParameters: _*)
     } catch {
@@ -37,7 +37,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
     }
   }
 
-  private def parseParameters(parameterValues: Map[String, String], resourceLoader: ResourceLoader): Seq[AnyRef] = {
+  private def parseParameters(parameterValues: Map[String, String], resourceLoader: ResourceManager): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.get(parameter.name) match {
         case Some(v) =>
@@ -49,6 +49,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
               case Parameter.Type.Double => Double.box(v.toDouble)
               case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
               case Parameter.Type.Resource => resourceLoader.get(v, mustExist = false)
+              case Parameter.Type.WritableResource => resourceLoader.get(v, mustExist = false)
             }
           }
           catch {
@@ -129,6 +130,7 @@ object PluginDescription {
         case "double" => Parameter.Type.Double
         case "boolean" => Parameter.Type.Boolean
         case "de.fuberlin.wiwiss.silk.runtime.resource.Resource" => Parameter.Type.Resource
+        case "de.fuberlin.wiwiss.silk.runtime.resource.WritableResource" => Parameter.Type.WritableResource
         case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
       }
 

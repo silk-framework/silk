@@ -3,9 +3,9 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 import java.io.{FileOutputStream, OutputStreamWriter, BufferedWriter, Writer}
 import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.runtime.resource.{Resource, FileResource}
+import de.fuberlin.wiwiss.silk.runtime.resource.{WritableResource, Resource, FileResource}
 
-class FormattedDataSink(resource: Resource, formatter: Formatter) extends DataSink {
+class FormattedDataSink(resource: WritableResource, formatter: Formatter) extends DataSink {
 
   private var properties = Seq[String]()
 

@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import scala.xml.Node
 import de.fuberlin.wiwiss.silk.rule.Operator
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 
 /**
  * An input that retrieves a set of values.
@@ -44,7 +44,7 @@ object Input {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Input = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Input = {
       node match {
         case node @ <Input/> => fromXml[PathInput](node)
         case node @ <TransformInput>{_*}</TransformInput> => fromXml[TransformInput](node)

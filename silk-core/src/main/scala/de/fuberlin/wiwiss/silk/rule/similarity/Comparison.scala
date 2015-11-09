@@ -21,7 +21,7 @@ import scala.xml.Node
 import de.fuberlin.wiwiss.silk.util.{Identifier, DPair}
 import de.fuberlin.wiwiss.silk.rule.Operator
 import de.fuberlin.wiwiss.silk.entity.{Index, Entity}
-import de.fuberlin.wiwiss.silk.runtime.resource.ResourceLoader
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}
 
 /**
  * A comparison computes the similarity of two inputs.
@@ -93,7 +93,7 @@ object Comparison {
 
     import Serialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Comparison = {
+    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Comparison = {
       val id = Operator.readId(node)
       val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
       if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
@@ -103,7 +103,7 @@ object Comparison {
         val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
         val weightStr = (node \ "@weight").text
         val indexingStr = (node \ "@indexing").text
-        val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node), resourceLoader)
+        val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node), resources)
 
         Comparison(
           id = id,
