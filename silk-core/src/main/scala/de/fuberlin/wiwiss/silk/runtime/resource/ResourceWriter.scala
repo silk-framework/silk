@@ -15,7 +15,7 @@ trait ResourceWriter {
     * @return The resource.
     * @throws ResourceNotFoundException If no resource with the given name has been found and mustExist is set to true.
     */
-  def get(name: String, mustExist: Boolean = true): WritableResource
+  def get(name: String, mustExist: Boolean = false): WritableResource
 
   /**
     * Deletes a resource by name.

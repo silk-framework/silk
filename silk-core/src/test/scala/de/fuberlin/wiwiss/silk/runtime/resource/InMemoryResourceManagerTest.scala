@@ -22,7 +22,7 @@ class InMemoryResourceManagerTest extends FlatSpec with Matchers {
     res.get("name").write("Parent Data")
     res.child("childName").get("name").write("Child Data")
     res.child("childName").get("name").loadAsString should be ("Child Data")
-    res.child("childName").parent.get.get("childName").loadAsString should be ("Parent Data")
+    res.child("childName").parent.get.get("name").loadAsString should be ("Parent Data")
   }
 
 }

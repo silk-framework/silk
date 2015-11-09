@@ -23,7 +23,7 @@ trait ResourceLoader {
    * @return The resource.
    * @throws ResourceNotFoundException If no resource with the given name has been found and mustExist is set to true.
    */
-  def get(name: String, mustExist: Boolean = true): Resource
+  def get(name: String, mustExist: Boolean = false): Resource
 
   def listChildren: List[String]
 
