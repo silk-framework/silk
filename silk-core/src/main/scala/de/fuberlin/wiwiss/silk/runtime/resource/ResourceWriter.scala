@@ -7,21 +7,20 @@ import java.io.{OutputStream, InputStream}
  */
 trait ResourceWriter {
 
-  def put(name: String)(write: OutputStream => Unit)
+  /**
+    * Retrieves a named resource whose data can be written.
+    *
+    * @param name The name of the resource.
+    * @param mustExist If true, an ResourceNotFoundException is thrown if the resource does not exist
+    * @return The resource.
+    * @throws ResourceNotFoundException If no resource with the given name has been found and mustExist is set to true.
+    */
+  def get(name: String, mustExist: Boolean = true): WritableResource
 
-  def put(name: String, inputStream: InputStream) {
-    put(name) { outputStream =>
-      var b = inputStream.read()
-      while(b != -1) {
-        outputStream.write(b)
-        b = inputStream.read()
-      }
-    }
-  }
-
-  def put(name: String, content: String): Unit = {
-    put(name)(os => os.write(content.getBytes))
-  }
-
+  /**
+    * Deletes a resource by name.
+    *
+    * @param name The name of the resource.
+    */
   def delete(name: String)
 }

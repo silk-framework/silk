@@ -97,7 +97,7 @@ object WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
-          project.resources.put(resourceName, inputStream)
+          project.resources.get(resourceName).write(inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -105,7 +105,7 @@ object WorkspaceApi extends Controller {
         }
       case None =>
         // Put empty resource
-        project.resources.put(resourceName, new ByteArrayInputStream(Array[Byte]()))
+        project.resources.get(resourceName).write(new ByteArrayInputStream(Array[Byte]()))
         Ok
     }
   }}

@@ -52,7 +52,7 @@ case class FileWorkspaceProvider(dir: String) extends WorkspaceProvider {
       <ProjectConfig>
         { config.prefixes.toXML }
       </ProjectConfig>
-    res.child(config.id).put("config.xml") { os => configXMl.write(os) }
+    res.child(config.id).get("config.xml").write { os => configXMl.write(os) }
   }
 
   override def deleteProject(name: Identifier): Unit = {

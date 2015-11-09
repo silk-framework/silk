@@ -29,7 +29,7 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
    * @return The file resource.
    * @throws ResourceNotFoundException If no resource with the given name has been found in the base directory.
    */
-  override def get(name: String, mustExist: Boolean): Resource = {
+  override def get(name: String, mustExist: Boolean): WritableResource = {
     // We still need to support the deprecated method of using absolute paths
     val oldAbsoluteFile = new File(name)
     // We still need to support the deprecated method of putting files in a dataset directory in the user home
@@ -51,14 +51,6 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
         newFile
 
     new FileResource(name, file)
-  }
-
-  override def put(name: String)(write: OutputStream => Unit) {
-    if(!baseDir.exists && !baseDir.mkdirs())
-      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
-    val outputStream = new BufferedOutputStream(new FileOutputStream(baseDir + "/" + name))
-    write(outputStream)
-    outputStream.close()
   }
 
   override def delete(name: String) {
@@ -89,7 +81,7 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
   }
 }
 
-class FileResource(val name: String, val file: File) extends Resource {
+class FileResource(val name: String, val file: File) extends WritableResource {
 
   val path = file.getAbsolutePath
 
@@ -97,4 +89,12 @@ class FileResource(val name: String, val file: File) extends Resource {
     new BufferedInputStream(new FileInputStream(file))
   }
 
+  override def write(write: (OutputStream) => Unit): Unit = {
+    val baseDir = file.getParentFile
+    if(!baseDir.exists && !baseDir.mkdirs())
+      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
+    val outputStream = new BufferedOutputStream(new FileOutputStream(file))
+    write(outputStream)
+    outputStream.close()
+  }
 }

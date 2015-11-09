@@ -1,10 +1,10 @@
 package de.fuberlin.wiwiss.silk.runtime.resource
 
-import java.io.OutputStream
+import java.io.{InputStream, OutputStream}
 
 case class ReadOnlyResourceManager(loader: ResourceLoader) extends ResourceManager {
 
-  override def get(name: String, mustExist: Boolean) = loader.get(name, mustExist)
+  override def get(name: String, mustExist: Boolean): WritableResource = new ReadOnlyResource(loader.get(name, mustExist))
 
   override def list = loader.list
 
@@ -16,11 +16,20 @@ case class ReadOnlyResourceManager(loader: ResourceLoader) extends ResourceManag
 
   override def parent: Option[ResourceManager] = for(parent <- loader.parent) yield new ReadOnlyResourceManager(parent)
 
-  override def put(name: String)(write: (OutputStream) => Unit) {
-    throw new UnsupportedOperationException("ReadOnlyResourceManager does not support writing resources.")
-  }
-
   override def delete(name: String) {
     throw new UnsupportedOperationException("ReadOnlyResourceManager does not support deleting resources.")
+  }
+
+  private class ReadOnlyResource(resource: Resource) extends WritableResource {
+
+    override def name: String = resource.name
+
+    override def path: String = resource.path
+
+    override def load: InputStream = resource.load
+
+    override def write(write: (OutputStream) => Unit): Unit = {
+      throw new UnsupportedOperationException("ReadOnlyResourceManager does not support writing resources.")
+    }
   }
 }
