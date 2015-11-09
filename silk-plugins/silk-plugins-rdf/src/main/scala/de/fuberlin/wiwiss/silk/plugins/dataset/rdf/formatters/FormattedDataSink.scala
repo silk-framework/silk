@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.formatters
 
-import java.io.{FileOutputStream, OutputStreamWriter, BufferedWriter, Writer}
+import java.io._
 import de.fuberlin.wiwiss.silk.dataset.DataSink
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.runtime.resource.{WritableResource, Resource, FileResource}
@@ -9,36 +9,45 @@ class FormattedDataSink(resource: WritableResource, formatter: Formatter) extend
 
   private var properties = Seq[String]()
 
+  // We optimize cases in which the resource is a file resource
   private val javaFile = resource match {
-    case f: FileResource => f.file
-    case _ => throw new IllegalArgumentException("Can only write to files, but got a resource of type " + resource.getClass)
+    case f: FileResource => Some(f.file)
+    case _ => None
   }
 
-  private var out: Writer = null
+  private var writer: Writer = null
 
   override def open(properties: Seq[String]) {
     this.properties = properties
-    //Create buffered writer
-    out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
+    // If we got a java file, we write directly to it, otherwise we write to a temporary string
+    writer = javaFile match {
+      case Some(file) => new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))
+      case None => new StringWriter()
+    }
     //Write header
-    out.write(formatter.header)
+    writer.write(formatter.header)
   }
 
   override def writeLink(link: Link, predicateUri: String) {
-    out.write(formatter.format(link, predicateUri))
+    writer.write(formatter.format(link, predicateUri))
   }
 
   override def writeEntity(subject: String, values: Seq[Set[String]]) {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
-      out.write(formatter.formatLiteralStatement(subject, property, value))
+      writer.write(formatter.formatLiteralStatement(subject, property, value))
     }
   }
 
   override def close() {
-    if (out != null) {
-      out.write(formatter.footer)
-      out.close()
-      out = null
+    if (writer != null) {
+      writer.write(formatter.footer)
+      writer.close()
+      // In case we used a string writer, we still need to write the generated string.
+      writer match {
+        case stringWriter: StringWriter => resource.write(stringWriter.toString)
+        case _ =>
+      }
+      writer = null
     }
   }
 }
