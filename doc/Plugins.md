@@ -60,6 +60,54 @@ errors, there are a number of tasks where token-base distance measures are bette
 | cjkReadingDistance([minChar: Char = '0'], [maxChar: Char = 'z']) | CJK Reading Distance | CJK Reading Distance. |
 | korean TranslitDistance([minChar: Char = '0'], [maxChar: Char = 'z']) | Korean translit distance | Transliterated Korean distance. |
 | koreanPhonemeDistance([minChar: Char = '0'], [maxChar: Char = 'z']) | Korean phoneme distance | Korean phoneme distance. |
+
+## Spatial Distances
+| Function and parameters | Name | Description |
+| --- | --- | --- |
+| CentroidDistanceMetric([blockingParameter: Double = 1.0]) | Centroid distance | Computes the distance between the centroids of two geometries in meters. |
+| MinDistanceMetric([blockingParameter: Double = 1.0]) | Min distance | Computes the minimum distance between two geometries in meters. |
+
+## Spatial Relations
+| Function and parameters | Name | Description |
+| --- | --- | --- |
+| SContainsMetric([blockingParameter: Double = 1.0]) | Spatial Contains | Computes the relation "contains" between two geometries. |
+| CrossesMetric([blockingParameter: Double = 1.0]) | Crosses | Computes the relation "crosses" between two geometries. |
+| DisjointMetric([blockingParameter: Double = 1.0]) | Disjoint | Computes the relation "disjoint" between two geometries. |
+| SEqualsMetric([blockingParameter: Double = 1.0]) | Spatial Equals  | Computes the relation "equals" between two geometries. |
+| IntersectsMetric([blockingParameter: Double = 1.0]) | Intersects | Computes the relation "intersects" between two geometries. |
+| SOverlapsMetric([blockingParameter: Double = 1.0]) | Spatial Overlaps | Computes the relation "overlaps" between two geometries. |
+| RelateMetric([blockingParameter: Double = 1.0], relation: String) | Relate | Computes every relation from DE-9IM between two geometries. |
+| TouchesMetric([blockingParameter: Double = 1.0]) | Touches | Computes the relation "touches" between two geometries. |
+| WithinMetric([blockingParameter: Double = 1.0]) | Within | Computes the relation "within" between two geometries. |
+
+## Temporal Distances
+| Function and parameters | Name | Description |
+| --- | --- | --- |
+| DaysDistanceMetric | Days distance | Computes the distance in days between two time periods or instants. |
+| HoursDistanceMetric | Hours distance | Computes the distance in hours between two time periods or instants. |
+| MillisecsDistanceMetric | Millisecs distance | Computes the distance in millisecs between two time periods or instants. |
+| MinsDistanceMetric | Mins distance | Computes the distance in mins between two time periods or instants. |
+| MonthsDistanceMetric | Months distance | Computes the distance in months between two time periods or instants. |
+| SecsDistanceMetric | Secs distance | Computes the distance in secs between two time periods or instants. |
+| YearsDistanceMetric | Years distance | Computes the distance in years between two time periods or instants. |
+
+## Temporal Relations
+| Function and parameters | Name | Description |
+| --- | --- | --- |
+| AfterMetric | After | Computes the relation "after" between two time periods or instants. |
+| BeforeMetric | Before | Computes the relation "before" between two time periods or instants. |
+| TContainsMetric | Temporal Contains | Computes the relation "contains" between two time periods or instants. |
+| DuringMetric | During | Computes the relation "during" between two time periods or instants. |
+| TEqualsMetric | Temporal Equals | Computes the relation "equals" between two time periods or instants. |
+| FinishesMetric | Finishes | Computes the relation "finishes" between two time periods or instants. |
+| IsFinishedByMetric | IsFinishedBy | Computes the relation "isFinishedBy" between two time periods or instants. |
+| IsMetByMetric | IsMetBy | Computes the relation "isMetBy" between two time periods or instants. |
+| IsOverlappedByMetric | IsOverlappedBy | Computes the relation "isOverlappedBy" between two time periods or instants. |
+| IsStartedByMetric | IsStartedBy | Computes the relation "isStartedBy" between two time periods or instants. |
+| MeetsMetric | Meets | Computes the relation "meets" between two time periods or instants. |
+| TOverlapsMetric | Temporal Overlaps | Computes the relation "overlaps" between two time periods or instants. |
+| StartsMetric | Starts | Computes the relation "starts" between two time periods or instants. |
+
 # Transformations
 
 The following transform and normalization functions are included:
@@ -135,3 +183,14 @@ The following transform and normalization functions are included:
 | durationInDays() | Duration in Days | Converts an xsd:duration to days. |
 | durationInSeconds() | Duration in Seconds | Converts an xsd:duration to seconds. |
 | timeToDate() | Timestamp to date | convert Unix timestamp to xsd:date |
+
+
+## Spatial
+| Function and parameters | Name | Description |
+| --- | --- | --- |
+| AreaTransformer | Area Transformer | Returns the area of the input geometry. |
+| BufferTransformer(distance: Double) | Buffer Transformer | Returns the buffered geometry of the input geometry. |
+| EnvelopeTransformer | Envelope Transformer | Returns the envelope (minimum bounding rectangle) of the input geometry. |
+| GeometryTransformer | Geometry Transformer | Trasforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude). |
+| PointsToCentroidCTransformer | Points-To-Centroid Transformer | Transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude). |
+| SimplifyTransformer(distanceTolerance: Double, [preserveTopology: Boolean = false]) | Simplify Transformer | Simplifies a geometry according to a given distance tolerance. |
