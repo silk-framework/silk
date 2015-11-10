@@ -44,7 +44,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, LinkSpecification] = {
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, LinkSpecification] = {
     val tasks =
       for(name <- resources.listChildren) yield
         loadTask(resources.child(name), projectResources)
@@ -54,7 +54,7 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
   /**
    * Loads a specific task in this module.
    */
-  private def loadTask(taskResources: ResourceLoader, projectResources: ResourceLoader) = {
+  private def loadTask(taskResources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val resources = projectResources
     val linkSpec = fromXml[LinkSpecification](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)

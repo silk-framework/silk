@@ -37,7 +37,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, Dataset] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, Dataset] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     var tasks = for (name <- names) yield {
@@ -57,7 +57,7 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
     tasks.toMap
   }
 
-  private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceLoader) = {
+  private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
     // Load the data set
     implicit val res = projectResources
     val dataset = Serialization.fromXml[Dataset](XML.load(resources.get(name).load))

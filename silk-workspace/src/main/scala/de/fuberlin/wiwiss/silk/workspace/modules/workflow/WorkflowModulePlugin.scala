@@ -15,7 +15,7 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, Workflow] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, Workflow] = {
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {

@@ -47,14 +47,14 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceLoader): Map[Identifier, TransformSpecification] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, TransformSpecification] = {
     val tasks =
       for(name <- resources.listChildren) yield
         loadTask(name, resources.child(name), projectResources)
     tasks.toMap
   }
 
-  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceLoader) = {
+  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val resources = projectResources
     val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
     val rulesXml = XML.load(taskResources.get("rules.xml").load)
