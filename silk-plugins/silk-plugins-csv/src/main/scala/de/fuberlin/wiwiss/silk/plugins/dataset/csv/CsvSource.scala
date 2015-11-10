@@ -15,7 +15,7 @@ import scala.collection.mutable.{HashMap => MMap}
 import scala.io.Codec
 
 class CsvSource(file: Resource,
-                settings: CsvSettings,
+                settings: CsvSettings = CsvSettings(),
                 properties: String = "",
                 prefix: String = "",
                 uri: String = "",
