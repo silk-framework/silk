@@ -35,7 +35,13 @@ class CsvSource(file: Resource,
       val source = getAndInitBufferedReaderForCsvFile()
       val firstLine = source.readLine()
       source.close()
-      parser.parseLine(firstLine).map(s => URLEncoder.encode(s, "UTF8"))
+      if(firstLine != null) {
+        parser.parseLine(firstLine).
+            takeWhile(_ != null). // Break if a header field is null
+            map(s => URLEncoder.encode(s, "UTF8"))
+      } else {
+        Seq()
+      }
     }
   }
   
@@ -236,7 +242,7 @@ object SeparatorDetector {
 
   // Filter out separators that don't split most of the input lines, then pick the one with the lowest entropy
   private def pickBestSeparator(separatorDistribution: Map[Char, Map[Int, Int]]): Option[Char] = {
-    assert(separatorDistribution.forall(d => d._2.size > 0 && d._2.values.sum > 0))
+    assert(separatorDistribution.size == 0 || separatorDistribution.forall(d => d._2.size > 0 && d._2.values.sum > 0))
     // Ignore characters that did not split anything
     val candidates = separatorDistribution filter { case (c, dist) =>
       val oneFieldCount = dist.getOrElse(1, 0)
