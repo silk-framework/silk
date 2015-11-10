@@ -1,11 +1,8 @@
 package de.fuberlin.wiwiss.silk.runtime.serialization
 
-import java.io.File
-
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
-
-import scala.xml.{XML, Node}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, EmptyResourceManager}
+import scala.xml.Node
 
 /**
  * Serializes between classes and XML.
@@ -17,7 +14,7 @@ object Serialization {
     format.write(value)
   }
 
-  def fromXml[T](node: Node)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceLoader = EmptyResourceManager): T = {
+  def fromXml[T](node: Node)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): T = {
     format.read(node)
   }
 }
