@@ -14,9 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 
+import java.io.StringWriter
 import java.util.logging.{Level, Logger}
 
 import com.hp.hpl.jena.query.{QueryExecution, QuerySolution, ResultSet}
+import com.hp.hpl.jena.update.UpdateProcessor
 import de.fuberlin.wiwiss.silk.dataset.rdf.{BlankNode, Literal, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
 
 import scala.collection.JavaConversions._
@@ -35,6 +37,11 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   protected def createQueryExecution(query: String): QueryExecution
 
   /**
+    * Overloaded in subclasses.
+    */
+  protected def createUpdateExecution(query: String): UpdateProcessor
+
+  /**
    * Executes a SPARQL SELECT query.
    */
   override def select(sparql: String, limit: Int): SilkResultSet = {
@@ -49,6 +56,29 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     finally {
       qe.close()
     }
+  }
+
+  /**
+    * Executes a construct query.
+    */
+  override def construct(query: String): String = {
+    val qe = createQueryExecution(query)
+    try {
+      val resultModel = qe.execConstruct()
+      val writer = new StringWriter()
+      resultModel.write(writer, "Turtle")
+      writer.toString
+    }
+    finally {
+      qe.close()
+    }
+  }
+
+  /**
+    * Executes an update query.
+    */
+  override def update(query: String): Unit = {
+    createUpdateExecution(query).execute()
   }
 
   /**
