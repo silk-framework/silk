@@ -5,11 +5,20 @@ import com.univocity.parsers.csv.{CsvParser => UniCsvParser, CsvParserSettings}
 class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
 
   private val parserSettings = new CsvParserSettings()
-  parserSettings.getFormat.setDelimiter(settings.separator)
-  for(quoteChar <- settings.quote)
+  import settings._
+  parserSettings.getFormat.setDelimiter(separator)
+  for(quoteChar <- quote) {
     parserSettings.getFormat.setQuote(quoteChar)
-  if(selectedIndices.nonEmpty)
+  }
+  if(selectedIndices.nonEmpty) {
     parserSettings.selectIndexes(selectedIndices.map(new Integer(_)): _*)
+  }
+  maxCharsPerColumn foreach {
+    parserSettings.setMaxCharsPerColumn(_)
+  }
+  maxColumns foreach {
+    parserSettings.setMaxColumns(_)
+  }
 
   private val parser = new UniCsvParser(parserSettings)
 

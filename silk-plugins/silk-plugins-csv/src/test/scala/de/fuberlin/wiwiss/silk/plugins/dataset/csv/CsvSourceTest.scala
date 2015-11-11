@@ -49,7 +49,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
         """1,"test, with, commas, in, literal",3"""
       ),
       noSeparatorSettings
-    ) shouldBe Some(',')
+    ) shouldBe Some(DetectedSeparator(',', 3, 0))
   }
 
   "SeparatorDetector" should "detect tab separator" in {
@@ -61,7 +61,21 @@ class CsvSourceTest extends FlatSpec with Matchers {
         s"""1${tab}"test, with, commas, in, literal"${tab}3"""
       ),
       noSeparatorSettings
-    ) shouldBe Some('\t')
+    ) shouldBe Some(DetectedSeparator('\t', 3, 0))
+  }
+
+  "SeparatorDetector" should "detect lines to skip" in {
+    val tab = "\t"
+    val validLines = for(i <- 1 to 100) yield {
+      s"""1,2,3"""
+    }
+    SeparatorDetector.detectSeparatorCharInLines(
+      Seq(
+        s"""Some gibberish""",
+        s""""""
+      ) ++ validLines,
+      noSeparatorSettings
+    ) shouldBe Some(DetectedSeparator(',', 3, 2))
   }
 
   "SeparatorDetector" should "return None if not confident enough" in {
