@@ -23,7 +23,13 @@ import scala.language.implicitConversions
  * Holds namespace prefixes.
  */
 class Prefixes(val prefixMap: Map[String, String]) {
+
   override def toString = "Prefixes(" + prefixMap.toString + ")"
+
+  override def equals(other: Any): Boolean = other match {
+    case o: Prefixes => this.prefixMap == o.prefixMap
+    case _ => false
+  }
 
   /**
    * Combines two prefix objects.
