@@ -2,7 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf.endpoint
 
 import com.hp.hpl.jena.query.{QueryExecution, QueryExecutionFactory}
 import com.hp.hpl.jena.rdf.model.Model
-import com.hp.hpl.jena.update.{UpdateFactory, GraphStoreFactory, UpdateProcessor, UpdateExecutionFactory}
+import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.
