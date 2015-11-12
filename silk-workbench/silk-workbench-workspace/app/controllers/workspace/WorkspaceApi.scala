@@ -7,10 +7,11 @@ import controllers.workspace.Datasets._
 import de.fuberlin.wiwiss.silk.config._
 import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
+import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
-import de.fuberlin.wiwiss.silk.workspace.io.SilkConfigImporter
+import de.fuberlin.wiwiss.silk.workspace.io.{WorkspaceIO, SilkConfigImporter}
 import de.fuberlin.wiwiss.silk.workspace.modules.{ProjectExecutor, Task}
-import de.fuberlin.wiwiss.silk.workspace.{Project, User}
+import de.fuberlin.wiwiss.silk.workspace.{XmlWorkspaceProvider, FileWorkspaceProvider, Project, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller}
 
@@ -33,7 +34,16 @@ object WorkspaceApi extends Controller {
         file <- data.files) {
       // Read the project from the received file
       val inputStream = new FileInputStream(file.ref.file)
-      User().workspace.importProject(project, inputStream)
+      if(file.filename.endsWith(".zip")) {
+        // TWe assume that this is a project using the default XML serialization.
+        val xmlWorkspace = new XmlWorkspaceProvider(new InMemoryResourceManager())
+        xmlWorkspace.importProject(project, inputStream)
+        WorkspaceIO.copyProjects(xmlWorkspace, User().workspace.provider)
+        User().workspace.reload()
+      } else {
+        // Try to import the project using the current workspaces import mechanism
+        User().workspace.importProject(project, inputStream)
+      }
       inputStream.close()
     }
     Ok
