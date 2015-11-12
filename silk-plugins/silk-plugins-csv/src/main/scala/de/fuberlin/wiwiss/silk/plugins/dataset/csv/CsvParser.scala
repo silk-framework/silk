@@ -19,6 +19,9 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   maxColumns foreach {
     parserSettings.setMaxColumns(_)
   }
+  commentChar foreach {
+    parserSettings.getFormat.setComment(_)
+  }
 
   private val parser = new UniCsvParser(parserSettings)
 
