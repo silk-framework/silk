@@ -5,7 +5,7 @@ import java.util.zip.{ZipInputStream, ZipEntry, ZipOutputStream}
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.util.FileUtils._
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, FileResourceManager, ResourceManager}
+import de.fuberlin.wiwiss.silk.runtime.resource.{Resource, ResourceLoader, FileResourceManager, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
 import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
@@ -86,29 +86,22 @@ case class FileWorkspaceProvider(dir: String) extends WorkspaceProvider {
   }
 
   override def exportProject(project: Identifier, outputStream: OutputStream): String = {
+    require(res.listChildren.contains(project.toString), s"Project $project does not exist.")
+
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
-    val projectDir = res.child(project).asInstanceOf[FileResourceManager].baseDir // TODO allow exporting non file-based workspaces
-    require(projectDir.exists, s"Project $project does not exist.")
-
-    // Recursively lists all files in the given directory
-    def listFiles(file: File): List[File] = {
-      if(file.isFile) file :: Nil
-      else file.listFiles.toList.flatMap(listFiles)
-    }
 
     // Go through all files and create a ZIP entry for each
-    for(file <- listFiles(projectDir)) {
-      val relativePath = projectDir.toPath.relativize(file.toPath).toString.replace("\\", "/")
-      zip.putNextEntry(new ZipEntry(relativePath))
-      val in = new BufferedInputStream(new FileInputStream(file))
-      var b = in.read()
-      while (b > -1) {
-        zip.write(b)
-        b = in.read()
+    putResources(res.child(project), "")
+
+    def putResources(loader: ResourceLoader, basePath: String): Unit = {
+      for(resName <- loader.list) {
+        zip.putNextEntry(new ZipEntry(basePath + resName))
+        zip.write(loader.get(resName).loadAsBytes)
       }
-      in.close()
-      zip.closeEntry()
+      for(childName <- loader.listChildren) {
+        putResources(loader.child(childName), basePath + childName + "/")
+      }
     }
 
     // Close ZIP
@@ -118,29 +111,28 @@ case class FileWorkspaceProvider(dir: String) extends WorkspaceProvider {
     project + ".zip"
   }
 
-  //TODO if an import fails, delete all already created files!
   override def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader): Unit = {
+    require(!res.listChildren.contains(project.toString), s"Project $project already exists.")
+
     // Open ZIP
     val zip = new ZipInputStream(inputStream)
-    val projectDir = res.child(project).asInstanceOf[FileResourceManager].baseDir // TODO allow importing non file-based workspaces
-    require(!projectDir.exists, s"Project $project already exists.")
 
     // Read all ZIP entries
-    var entry = zip.getNextEntry
-    while(entry != null) {
-      if(!entry.isDirectory) {
-        val file = projectDir + ("/" + entry.getName)
-        file.getParentFile.mkdirs()
-        val out = new BufferedOutputStream(new FileOutputStream(file))
-        var b = zip.read()
-        while (b > -1) {
-          out.write(b)
-          b = zip.read()
+    try {
+      val projectRes = res.child(project)
+      var entry = zip.getNextEntry
+      while (entry != null) {
+        if (!entry.isDirectory) {
+          projectRes.getInPath(entry.getName).write(zip)
         }
-        out.close()
+        zip.closeEntry()
+        entry = zip.getNextEntry
       }
-      zip.closeEntry()
-      entry = zip.getNextEntry
+    } catch {
+      case ex: Throwable =>
+        // Something failed. Delete already written project resources and escalate exception.
+        res.delete(project)
+        throw ex;
     }
 
     // Close ZIP and reload
