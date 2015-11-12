@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import de.fuberlin.wiwiss.silk.util.Identifier
 
-class Workspace(provider: WorkspaceProvider) {
+class Workspace(val provider: WorkspaceProvider) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
