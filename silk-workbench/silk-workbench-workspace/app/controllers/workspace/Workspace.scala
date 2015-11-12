@@ -6,9 +6,11 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.Restriction.{Condition, Operator, Or}
 import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
 import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction}
+import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
 import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
+import de.fuberlin.wiwiss.silk.workspace.io.WorkspaceIO
 import de.fuberlin.wiwiss.silk.workspace.modules.dataset.TypesCache
-import de.fuberlin.wiwiss.silk.workspace.{Constants, PrefixRegistry, User}
+import de.fuberlin.wiwiss.silk.workspace.{XmlWorkspaceProvider, Constants, PrefixRegistry, User}
 import play.Logger
 import play.api.mvc.{Action, Controller}
 
@@ -84,9 +86,14 @@ object Workspace extends Controller {
   }
 
   def importExample(project: String) = Action {
+    // Import example into an XML workspace
+    val xmlWorkspace = new XmlWorkspaceProvider(new InMemoryResourceManager())
     val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").load
-    User().workspace.importProject(project, inputStream)
+    xmlWorkspace.importProject(project, inputStream)
     inputStream.close()
+    // Transfer into current workspace
+    WorkspaceIO.copyProjects(xmlWorkspace, User().workspace.provider)
+    User().workspace.reload()
 
     Ok
   }

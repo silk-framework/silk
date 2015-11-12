@@ -35,13 +35,13 @@ object WorkspaceApi extends Controller {
       // Read the project from the received file
       val inputStream = new FileInputStream(file.ref.file)
       if(file.filename.endsWith(".zip")) {
-        // TWe assume that this is a project using the default XML serialization.
+        // We assume that this is a project using the default XML serialization.
         val xmlWorkspace = new XmlWorkspaceProvider(new InMemoryResourceManager())
         xmlWorkspace.importProject(project, inputStream)
         WorkspaceIO.copyProjects(xmlWorkspace, User().workspace.provider)
         User().workspace.reload()
       } else {
-        // Try to import the project using the current workspaces import mechanism
+        // Try to import the project using the current workspaces import mechanism (if overloaded)
         User().workspace.importProject(project, inputStream)
       }
       inputStream.close()
