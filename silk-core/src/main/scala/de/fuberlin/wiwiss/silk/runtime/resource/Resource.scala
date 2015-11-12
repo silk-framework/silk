@@ -1,6 +1,6 @@
 package de.fuberlin.wiwiss.silk.runtime.resource
 
-import java.io.InputStream
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream, InputStream}
 import scala.io.{Codec, Source}
 
 /**
@@ -29,8 +29,26 @@ trait Resource {
   /**
    * Loads this resource into a string.
    */
-  def loadAsString = {
+  def loadAsString: String = {
     Source.fromInputStream(load)(Codec.UTF8).getLines.mkString("\n")
+  }
+
+  /**
+    * Loads this resource into a byte array.
+    */
+  def loadAsBytes: Array[Byte] = {
+    val in = load
+    try {
+      val out = new ByteArrayOutputStream()
+      var b = in.read()
+      while (b > -1) {
+        out.write(b)
+        b = in.read()
+      }
+      out.toByteArray
+    } finally {
+      in.close()
+    }
   }
 
   /**

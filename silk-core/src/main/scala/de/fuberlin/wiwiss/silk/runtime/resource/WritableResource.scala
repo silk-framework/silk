@@ -4,8 +4,17 @@ import java.io.{InputStream, OutputStream}
 
 trait WritableResource extends Resource{
 
+  /**
+    * Preferred method for writing to a resource.
+    *
+    * @param write A function that accepts an output stream and writes to it.
+    */
   def write(write: OutputStream => Unit)
 
+  /**
+    * Writes the contents of a provided input stream.
+    * Does not close the input stream.
+    */
   def write(inputStream: InputStream) {
     write { outputStream =>
       var b = inputStream.read()
@@ -16,6 +25,9 @@ trait WritableResource extends Resource{
     }
   }
 
+  /**
+    * Writes a string.
+    */
   def write(content: String): Unit = {
     write(os => os.write(content.getBytes))
   }
