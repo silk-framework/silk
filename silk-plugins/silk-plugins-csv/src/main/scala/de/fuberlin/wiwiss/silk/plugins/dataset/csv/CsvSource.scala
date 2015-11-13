@@ -221,7 +221,7 @@ object SeparatorDetector {
 
   def detectSeparatorCharInLines(inputLines: Seq[String],
                                  settings: CsvSettings): Option[DetectedSeparator] = {
-    if (inputLines.size == 0) {
+    if (inputLines.isEmpty) {
       return None
     }
     val separatorCharDist = for (separator <- separatorList) yield {
@@ -244,7 +244,7 @@ object SeparatorDetector {
 
   // For entropy equation, see https://en.wikipedia.org/wiki/Entropy_%28information_theory%29
   def entropy(distribution: Map[Int, Int]): Double = {
-    if (distribution.size == 0)
+    if (distribution.isEmpty)
       return 0.0
     val overallCount = distribution.values.sum
     if (overallCount == 0)
