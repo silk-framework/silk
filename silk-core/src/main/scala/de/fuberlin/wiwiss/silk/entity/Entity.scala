@@ -22,7 +22,7 @@ import java.io.{DataOutput, DataInput}
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: SparqlEntitySchema) {
+class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: SparqlEntitySchema = SparqlEntitySchema.empty) {
   
   def evaluate(path: Path): Set[String] = {
     if(path.operators.isEmpty)
@@ -54,10 +54,10 @@ class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: Spa
     for (valueSet <- values) {
       stream.writeInt(valueSet.size)
       for (value <- valueSet) {
-        stream.write(value.getBytes())
+        stream.writeUTF(value)
+        value.getBytes
       }
     }
-    stream.write(-1)
   }
 }
 
@@ -78,14 +78,8 @@ object Entity {
     //Read URI
     val uri = stream.readUTF()
 
-   //Read Values
-    val int = stream.readInt
-
-    var value = ""
-    var byte = null.asInstanceOf[Byte]
-    while ({ byte = stream.readByte; byte != -1 }) value += byte.toChar
-
-    def readValue = Traversable.fill(int)(value).toSet
+    //Read Values
+    def readValue = Traversable.fill(stream.readInt)(stream.readUTF).toSet
     val values = IndexedSeq.fill(desc.paths.size)(readValue)
 
     new Entity(uri, values, desc)
