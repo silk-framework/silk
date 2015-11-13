@@ -20,13 +20,13 @@ import java.io.{DataInput, DataOutput}
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 
 class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
-  require(entities.size == indices.size, "entities.size == indices.size")
+  require(entities.length == indices.length, "entities.size == indices.size")
 
-  def size = entities.size
+  def size = entities.length
 
   def serialize(stream: DataOutput) {
-    stream.writeInt(entities.size)
-    for (i <- 0 until entities.size) {
+    stream.writeInt(entities.length)
+    for (i <- entities.indices) {
       entities(i).serialize(stream)
       indices(i).serialize(stream)
     }
@@ -37,7 +37,7 @@ object Partition {
   def apply(entities: Array[Entity], indices: Array[BitsetIndex]) = new Partition(entities, indices)
 
   def apply(entities: Array[Entity], indices: Array[BitsetIndex], count: Int) = {
-    if (count < entities.size) {
+    if (count < entities.length) {
       val entityArray = new Array[Entity](count)
       Array.copy(entities, 0, entityArray, 0, count)
 
