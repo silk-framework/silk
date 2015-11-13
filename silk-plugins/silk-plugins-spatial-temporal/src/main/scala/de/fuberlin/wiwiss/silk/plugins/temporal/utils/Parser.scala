@@ -17,6 +17,7 @@ package de.fuberlin.wiwiss.silk.plugins.temporal.utils
 import java.text.{ParseException, SimpleDateFormat}
 import java.util.Date
 import java.util.logging.Logger
+import javax.xml.datatype.DatatypeFactory
 
 import scala.util.Try
 
@@ -29,9 +30,7 @@ object Parser {
 
   private val logger = Logger.getLogger(this.getClass.getName)
 
-  private val dateFormat = new SimpleDateFormat(Constants.SIMPLE_DATE_FORMAT)
-
-  private val dateTimeFormat = new SimpleDateFormat(Constants.SIMPLE_DATETIME_FORMAT)
+  private val datatypeFactory = DatatypeFactory.newInstance()
 
   /**
    * This function parses a time String.
@@ -63,14 +62,11 @@ object Parser {
    * @return (Date, Date)
    */
   def parsePeriod(periodString: String): (Date, Date) = {
-
     try {
-      val sdf = new SimpleDateFormat(Constants.SIMPLE_DATETIME_FORMAT);
-
       //Remove brackets and split to instants.
       val instants = periodString.substring(1, periodString.length() - 1).split(Constants.PERIOD_DELIM)
       instants.length match {
-        case 2 => (sdf.parse(instants.head), sdf.parse(instants.last))
+        case 2 => (parseInstant(instants.head.trim), parseInstant(instants.last.trim))
         case _ => null
       }
     } catch {
@@ -85,6 +81,6 @@ object Parser {
    * @return (Date, Date)
    */
   def parseInstant(instantString: String): Date = {
-    Try(dateTimeFormat.parse(instantString)).orElse(Try(dateFormat.parse(instantString))).getOrElse(null)
+    Try(datatypeFactory.newXMLGregorianCalendar(instantString).toGregorianCalendar.getTime).getOrElse(null)
   }
 }

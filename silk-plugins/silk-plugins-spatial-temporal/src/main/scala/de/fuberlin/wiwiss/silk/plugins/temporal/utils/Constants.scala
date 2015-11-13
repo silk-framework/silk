@@ -29,16 +29,6 @@ object Constants {
   val PERIOD_DELIM = ","
 
   /**
-    * Simple Date Format.
-    */
-  val SIMPLE_DATE_FORMAT = "yyyy-MM-dd"
-
-  /**
-   * Simple Date Time Format.
-   */
-  val SIMPLE_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
-
-  /**
    * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT).
    */
   val MIN_TIME = new Date(0l).getDate()
