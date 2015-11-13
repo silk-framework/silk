@@ -12,7 +12,7 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.rdf
  * @param queryParameters Additional parameters to be appended to every request e.g. &soft-limit=1
  * @param parallel True, if multiple queries should be executed in parallel for faster retrieval.
 */
-case class SparqlParams(uri: String, user: String = null, password: String = null,
+case class SparqlParams(uri: String = "", user: String = null, password: String = null,
                         graph: String = null, pageSize: Int = 1000, entityList: String = null,
                         pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
                         queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true) {
