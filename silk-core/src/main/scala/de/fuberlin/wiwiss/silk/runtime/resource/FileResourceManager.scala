@@ -50,7 +50,7 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
       else
         newFile
 
-    new FileResource(name, file)
+    new FileResource(file)
   }
 
   override def delete(name: String) {
@@ -81,7 +81,9 @@ class FileResourceManager(val baseDir: File) extends ResourceManager {
   }
 }
 
-class FileResource(val name: String, val file: File) extends WritableResource {
+class FileResource(val file: File) extends WritableResource {
+
+  val name = file.getName
 
   val path = file.getAbsolutePath
 
