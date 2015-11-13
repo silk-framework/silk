@@ -210,13 +210,15 @@ class CsvSource(file: Resource,
       // Test read
       try {
         var line = reader.readLine()
-        for (i <- 1 to linesForDetection if line != null) {
+        while (line != null) {
           line = reader.readLine()
         }
         return c
       } catch {
         case e: MalformedInputException =>
           logger.fine(s"Codec $c failed for input file ${file.name}")
+      } finally {
+        reader.close()
       }
     }
     codec
