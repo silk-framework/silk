@@ -199,23 +199,27 @@ class CsvSource(file: Resource,
     if(fallbackCodecs.isEmpty) {
       codec
     } else {
-      var useCodec = codec
-      val tryCodecs = codec :: fallbackCodecs
-      for(c <- tryCodecs if useCodec == codec) {
-        val reader = getBufferedReaderForCsvFile(c)
-        // Test read
-        try {
-          for (i <- 1 to linesForDetection) {
-            reader.readLine()
-          }
-          useCodec = c
-        } catch {
-          case e: MalformedInputException =>
-            logger.fine(s"Codec $c failed for input file ${file.name}")
-        }
-      }
-      useCodec
+      pickWorkingCodec
     }
+  }
+
+  private def pickWorkingCodec: Codec = {
+    val tryCodecs = codec :: fallbackCodecs
+    for (c <- tryCodecs) {
+      val reader = getBufferedReaderForCsvFile(c)
+      // Test read
+      try {
+        var line = reader.readLine()
+        for (i <- 1 to linesForDetection if line != null) {
+          line = reader.readLine()
+        }
+        return c
+      } catch {
+        case e: MalformedInputException =>
+          logger.fine(s"Codec $c failed for input file ${file.name}")
+      }
+    }
+    codec
   }
 
   override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
