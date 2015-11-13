@@ -39,6 +39,13 @@ class Prefixes(val prefixMap: Map[String, String]) {
   }
 
   /**
+    * Combines two prefix objects.
+    */
+  def ++(prefixMap: Map[String, String]) = {
+    new Prefixes(prefixMap ++ prefixMap)
+  }
+
+  /**
    * Resolves a qualified name to its full URI.
    *
    * @param name The qualified name e.g. rdf:label or a full URI enclosed in <> brackets.
