@@ -2,6 +2,7 @@ package de.fuberlin.wiwiss.silk.plugins.dataset.csv
 
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.URLEncoder
+import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
@@ -24,9 +25,14 @@ class CsvSource(file: Resource,
                 skipLinesBeginning: Int = 0,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
-                detectSkipLinesBeginning: Boolean = false) extends DataSource {
+                detectSkipLinesBeginning: Boolean = false,
+               // If the text file fails to be read because of a MalformedInputException, try other codecs
+                fallbackCodecs: List[Codec] = List()) extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
+
+  // How many lines should be used for detecting the encoding or separator etc.
+  final val linesForDetection = 100
 
   private lazy val propertyList: Seq[String] = {
     val parser = new CsvParser(Seq.empty, csvSettings)
@@ -61,7 +67,7 @@ class CsvSource(file: Resource,
   private def detectSeparatorChar(): Option[DetectedSeparator] = {
     val source = getBufferedReaderForCsvFile()
     try {
-      val inputLines = (for (i <- 1 to 100)
+      val inputLines = (for (i <- 1 to linesForDetection)
         yield source.readLine()) filter (_ != null)
       SeparatorDetector.detectSeparatorCharInLines(inputLines, settings)
     } finally {
@@ -181,8 +187,35 @@ class CsvSource(file: Resource,
   }
 
   private def getBufferedReaderForCsvFile(): BufferedReader = {
+    getBufferedReaderForCsvFile(codecToUse)
+  }
+
+  private def getBufferedReaderForCsvFile(codec: Codec): BufferedReader = {
     val inputStream = file.load
     new BufferedReader(new InputStreamReader(inputStream, codec.decoder))
+  }
+
+  lazy val codecToUse: Codec = {
+    if(fallbackCodecs.isEmpty) {
+      codec
+    } else {
+      var useCodec = codec
+      val tryCodecs = codec :: fallbackCodecs
+      for(c <- tryCodecs if useCodec == codec) {
+        val reader = getBufferedReaderForCsvFile(c)
+        // Test read
+        try {
+          for (i <- 1 to linesForDetection) {
+            reader.readLine()
+          }
+          useCodec = c
+        } catch {
+          case e: MalformedInputException =>
+            logger.fine(s"Codec $c failed for input file ${file.name}")
+        }
+      }
+      useCodec
+    }
   }
 
   override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
@@ -282,7 +315,7 @@ object SeparatorDetector {
                                           inputLines: Seq[String],
                                           csvSettings: CsvSettings): Option[DetectedSeparator] = {
     val lowestEntropySeparator = charEntropy.toSeq.sortWith(_._2 < _._2).headOption
-    // Entropy must be < 0.1, which means that at most 6 out of 100 lines may have a different number of fields than the majority
+    // Entropy must be < 0.1, which means that at most 6 out of [[linesForDetection]] lines may have a different number of fields than the majority
     val separator = lowestEntropySeparator filter (_._2 < 0.1) map (_._1)
     separator map { c =>
       val dist = separatorDistribution(c)
