@@ -24,7 +24,7 @@ import de.fuberlin.wiwiss.silk.entity.Index
   id = "levenshteinDistance",
   categories = Array("Characterbased", "Recommended"),
   label = "Levenshtein distance",
-  description = "Levenshtein distance."
+  description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
 )
 case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
