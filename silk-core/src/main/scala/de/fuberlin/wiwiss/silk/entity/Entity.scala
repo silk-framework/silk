@@ -33,8 +33,6 @@ class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: Spa
 
   def evaluate(pathIndex: Int): Set[String] = values(pathIndex)
 
-  override def toString = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
-
   def toXML = {
     <Entity uri={uri}> {
       for (valueSet <- values) yield {
@@ -58,6 +56,13 @@ class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: Spa
         value.getBytes
       }
     }
+  }
+
+  override def toString = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
+
+  override def equals(other: Any): Boolean = other match {
+    case o: Entity => this.uri == o.uri && this.values == o.values && this.desc == o.desc
+    case _ => false
   }
 }
 
