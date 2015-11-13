@@ -17,16 +17,14 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
-  private val graphUri = Option(params.graph)
-
   private val entityUris = Option(params.entityList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
   override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = {
     val entityRetriever =
       if(params.parallel)
-        new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, graphUri, params.useOrderBy)
+        new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
       else
-        new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, graphUri, params.useOrderBy)
+        new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
 
     entityRetriever.retrieve(entityDesc, (entityUris union entities).map(Uri(_)), None)
   }

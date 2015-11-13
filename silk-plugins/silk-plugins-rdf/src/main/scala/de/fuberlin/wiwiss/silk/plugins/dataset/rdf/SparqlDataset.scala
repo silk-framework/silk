@@ -26,7 +26,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
                          pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
                          queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true) extends RdfDatasetPlugin {
 
-  private val params = SparqlParams(endpointURI, login, password, graph, pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy)
+  private val params = SparqlParams(endpointURI, login, password, Option(graph).filterNot(_.isEmpty), pageSize, entityList, pauseTime, retryCount, retryPause, queryParameters, parallel, useOrderBy)
 
   override val sparqlEndpoint = {
     //new JenaRemoteEndpoint(endpointURI)

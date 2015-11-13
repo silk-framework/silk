@@ -80,14 +80,14 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSin
    */
   private def beginSparul(newGraph: Boolean) {
     body.clear()
-    if (params.graph.isEmpty) {
-      body.append("INSERT DATA { ")
-    }
-    else {
-      //if (newGraph) {
-      //  body.append("CREATE SILENT GRAPH {" + params.graph + "}")
-      //}
-      body.append("INSERT DATA { GRAPH <" + params.graph + "> { ")
+    params.graph match {
+      case None =>
+        body.append("INSERT DATA { ")
+      case Some(graph) =>
+        //if (newGraph) {
+        //  body.append("CREATE SILENT GRAPH {" + params.graph + "}")
+        //}
+        body.append("INSERT DATA { GRAPH <" + graph + "> { ")
     }
     statements = 0
   }
@@ -96,10 +96,10 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSin
    * Ends the current SPARQL/Update request.
    */
   private def endSparql() {
-    if(params.graph.isEmpty)
-      body.append("}")
-    else
-      body.append("} }")
+    params.graph match {
+      case None => body.append("}")
+      case Some(g) => body.append("} }")
+    }
     val query = body.toString()
     body.clear()
     endpoint.update(query)
