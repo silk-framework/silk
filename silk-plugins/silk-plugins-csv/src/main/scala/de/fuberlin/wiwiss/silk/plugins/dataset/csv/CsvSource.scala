@@ -36,7 +36,7 @@ class CsvSource(file: Resource,
       val source = getAndInitBufferedReaderForCsvFile()
       val firstLine = source.readLine()
       source.close()
-      if (firstLine != null) {
+      if (firstLine != null && firstLine != "") {
         parser.parseLine(firstLine).
             takeWhile(_ != null). // Break if a header field is null
             map(s => URLEncoder.encode(s, "UTF8"))
