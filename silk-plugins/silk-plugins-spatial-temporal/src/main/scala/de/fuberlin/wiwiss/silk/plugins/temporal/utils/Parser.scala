@@ -14,9 +14,11 @@
 
 package de.fuberlin.wiwiss.silk.plugins.temporal.utils
 
-import java.text.SimpleDateFormat
+import java.text.{ParseException, SimpleDateFormat}
 import java.util.Date
 import java.util.logging.Logger
+
+import scala.util.Try
 
 /**
  * A time parser.
@@ -26,6 +28,10 @@ import java.util.logging.Logger
 object Parser {
 
   private val logger = Logger.getLogger(this.getClass.getName)
+
+  private val dateFormat = new SimpleDateFormat(Constants.SIMPLE_DATE_FORMAT)
+
+  private val dateTimeFormat = new SimpleDateFormat(Constants.SIMPLE_DATETIME_FORMAT)
 
   /**
    * This function parses a time String.
@@ -38,8 +44,10 @@ object Parser {
     try {
 
       var period = parsePeriod(timeString)
-      if (period == null)
-        period = parseInstant(timeString)
+      if (period == null) {
+        val instant = parseInstant(timeString)
+        period = (instant, instant)
+      }
 
       period
 
@@ -57,7 +65,7 @@ object Parser {
   def parsePeriod(periodString: String): (Date, Date) = {
 
     try {
-      val sdf = new SimpleDateFormat(Constants.SIMPLE_DATE_FORMAT);
+      val sdf = new SimpleDateFormat(Constants.SIMPLE_DATETIME_FORMAT);
 
       //Remove brackets and split to instants.
       val instants = periodString.substring(1, periodString.length() - 1).split(Constants.PERIOD_DELIM)
@@ -76,14 +84,7 @@ object Parser {
    * @param instantString : String
    * @return (Date, Date)
    */
-  def parseInstant(instantString: String): (Date, Date) = {
-
-    try {
-      val sdf = new SimpleDateFormat(Constants.SIMPLE_DATE_FORMAT);
-
-      (sdf.parse(instantString), sdf.parse(instantString))
-    } catch {
-      case e: Exception => null
-    }
+  def parseInstant(instantString: String): Date = {
+    Try(dateTimeFormat.parse(instantString)).orElse(Try(dateFormat.parse(instantString))).getOrElse(null)
   }
 }
