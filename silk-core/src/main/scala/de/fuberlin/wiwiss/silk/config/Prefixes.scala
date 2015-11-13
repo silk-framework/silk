@@ -42,7 +42,7 @@ class Prefixes(val prefixMap: Map[String, String]) {
     * Combines two prefix objects.
     */
   def ++(prefixMap: Map[String, String]) = {
-    new Prefixes(prefixMap ++ prefixMap)
+    new Prefixes(this.prefixMap ++ prefixMap)
   }
 
   /**
