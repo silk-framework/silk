@@ -32,10 +32,12 @@ object Utils {
    * This function indexes times. Assumes that all the times are between "the epoch" (January 1, 1970, 00:00:00 GMT) and "NOW".
    *
    * @param timeString : String
-   * @param distance: Double
+   * @param blockingParameter: Double
+   * @param distance: Double (optional; for distance measures)
+   * @param distanceType: String (optional; for distance measures)
    * @return Index
    */
-  def indexTimes(timeString: String): Index = {
+  def indexTimes(timeString: String, blockingParameter: Double, distance: Double = 0.0, distanceType: String = Constants.MILLISECS_DISTANCE): Index = {
     try {
       val period = Parser.parseTime(timeString)
 
@@ -44,9 +46,24 @@ object Utils {
         return Index.empty
 
       val (start, end) = period
-
-      val blockCount = Constants.TIME_RANGE
-      val blocks = for (i <- start.getDate() to end.getDate()) yield i
+          
+      val divisor = { 
+        distanceType match {
+          case Constants.MILLISECS_DISTANCE => 1.0
+          case Constants.SECS_DISTANCE => Constants.MILLISECS_PER_SEC
+          case Constants.MINS_DISTANCE => Constants.MILLISECS_PER_MIN
+          case Constants.HOURS_DISTANCE => Constants.MILLISECS_PER_HOUR
+          case Constants.DAYS_DISTANCE => Constants.MILLISECS_PER_DAY
+          case Constants.MONTHS_DISTANCE => Constants.MILLISECS_PER_MONTH
+          case Constants.YEARS_DISTANCE => Constants.MILLISECS_PER_YEAR
+          case _ => Double.PositiveInfinity
+        }  
+      }
+            
+      val blockCount = (Constants.TIME_RANGE/divisor).toInt
+      val minblock = ((start.getTime()-distance)/divisor*blockingParameter).toInt
+      val maxblock = ((end.getTime()+distance)/divisor*blockingParameter).toInt
+      val blocks = for (i <- minblock to maxblock) yield i
 
       Index.oneDim(blocks.toSet, blockCount)
 
@@ -56,30 +73,6 @@ object Utils {
     }
   }
 
-  /**
-   * This function indexes times. Assumes that all the times are between "the epoch" (January 1, 1970, 00:00:00 GMT) and "NOW".
-   *
-   * @param timeString : String
-   * @param distance: Double
-   * @return Index
-   */
-  def indexTimes(timeString: String, distance: Double): Index = {
-    try {
-      val period = Parser.parseTime(timeString)
-
-      //Ensure that period is well-defined.
-      if (period == null)
-        return Index.empty
-
-      val (start, end) = period
-
-      Index.continuous((start.getDate() + end.getDate()) / 2.0, Constants.MIN_TIME, Constants.MAX_TIME, distance)
-
-    } catch {
-      case e: Exception =>
-        Index.empty
-    }
-  }
 
   /**
    * This function evaluates a distance between two time periods or instants (for periods, it evaluates the minimum distance between their starts/ends).

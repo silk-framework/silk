@@ -31,12 +31,12 @@ object Constants {
   /**
    * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT).
    */
-  val MIN_TIME = new Date(0l).getDate()
+  val MIN_TIME = new Date(0l).getTime
 
   /**
    * Max Time - "NOW".
    */
-  val MAX_TIME = new Date().getDate()
+  val MAX_TIME = new Date().getTime
 
   /**
    * Time Range.

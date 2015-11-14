@@ -28,13 +28,13 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
   categories = Array("Temporal"),
   label = "Hours distance",
   description = "Computes the distance in hours between two time periods or instants.")
-case class HoursDistanceMetric() extends SimpleDistanceMeasure {
+case class HoursDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateDistance(str1, str2, limit, Constants.HOURS_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    Utils.indexTimes(str, distance*Constants.MILLISECS_PER_HOUR)
+    Utils.indexTimes(str, blockingParameter, distance, Constants.HOURS_DISTANCE)
   }
 }
