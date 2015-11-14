@@ -34,8 +34,8 @@ class WithinMetricTest extends FlatSpec with Matchers {
     metric.evaluate("POINT (1 1)", "POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))", 0.0) should equal(0.0)
   }
 
-  "WithinMetric test 2" should "return '1.0'" in {
-    metric.evaluate("POINT (3 3)", "POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))", 0.0) should equal(0.0)
+  "WithinMetric test 2" should "not return '0.0'" in {
+    metric.evaluate("POINT (3 3)", "POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))", 0.0) should not equal(0.0)
   }
 
   "WithinMetric test 3" should "return '0.0'" in {
