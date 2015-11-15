@@ -14,7 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.plugins.temporal.utils
 
-import java.util.Date
+import javax.xml.datatype.DatatypeFactory
+import java.util.GregorianCalendar
 
 /**
  * An object that contains all needed constants.
@@ -31,12 +32,12 @@ object Constants {
   /**
    * Min Time - "the epoch" (January 1, 1970, 00:00:00 GMT).
    */
-  val MIN_TIME = new Date(0l).getTime
+  val MIN_TIME = DatatypeFactory.newInstance().newXMLGregorianCalendar().toGregorianCalendar.getTime.getTime
 
   /**
    * Max Time - "NOW".
    */
-  val MAX_TIME = new Date().getTime
+  val MAX_TIME = DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar).toGregorianCalendar.getTime.getTime
 
   /**
    * Time Range.
