@@ -28,13 +28,13 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
   categories = Array("Temporal"),
   label = "Millisecs distance",
   description = "Computes the distance in milliseconds between two time periods or instants.")
-case class MillisecsDistanceMetric() extends SimpleDistanceMeasure {
+case class MillisecsDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateDistance(str1, str2, limit, Constants.MILLISECS_DISTANCE)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    Utils.indexTimes(str, distance)
+    Utils.indexTimes(str, blockingParameter, distance, Constants.MILLISECS_DISTANCE)
   }
 }

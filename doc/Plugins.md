@@ -83,30 +83,30 @@ errors, there are a number of tasks where token-base distance measures are bette
 ## Temporal Distances
 | Function and parameters | Name | Description |
 | --- | --- | --- |
-| DaysDistanceMetric | Days distance | Computes the distance in days between two time periods or instants. |
-| HoursDistanceMetric | Hours distance | Computes the distance in hours between two time periods or instants. |
-| MillisecsDistanceMetric | Millisecs distance | Computes the distance in millisecs between two time periods or instants. |
-| MinsDistanceMetric | Mins distance | Computes the distance in mins between two time periods or instants. |
-| MonthsDistanceMetric | Months distance | Computes the distance in months between two time periods or instants. |
-| SecsDistanceMetric | Secs distance | Computes the distance in secs between two time periods or instants. |
-| YearsDistanceMetric | Years distance | Computes the distance in years between two time periods or instants. |
+| DaysDistanceMetric([blockingParameter: Double = 1.0]) | Days distance | Computes the distance in days between two time periods or instants. |
+| HoursDistanceMetric([blockingParameter: Double = 1.0]) | Hours distance | Computes the distance in hours between two time periods or instants. |
+| MillisecsDistanceMetric([blockingParameter: Double = 1.0]) | Millisecs distance | Computes the distance in millisecs between two time periods or instants. |
+| MinsDistanceMetric([blockingParameter: Double = 1.0]) | Mins distance | Computes the distance in mins between two time periods or instants. |
+| MonthsDistanceMetric([blockingParameter: Double = 1.0]) | Months distance | Computes the distance in months between two time periods or instants. |
+| SecsDistanceMetric([blockingParameter: Double = 1.0]) | Secs distance | Computes the distance in secs between two time periods or instants. |
+| YearsDistanceMetric([blockingParameter: Double = 1.0]) | Years distance | Computes the distance in years between two time periods or instants. |
 
 ## Temporal Relations
 | Function and parameters | Name | Description |
 | --- | --- | --- |
-| AfterMetric | After | Computes the relation "after" between two time periods or instants. |
-| BeforeMetric | Before | Computes the relation "before" between two time periods or instants. |
-| TContainsMetric | Temporal Contains | Computes the relation "contains" between two time periods or instants. |
-| DuringMetric | During | Computes the relation "during" between two time periods or instants. |
-| TEqualsMetric | Temporal Equals | Computes the relation "equals" between two time periods or instants. |
-| FinishesMetric | Finishes | Computes the relation "finishes" between two time periods or instants. |
-| IsFinishedByMetric | IsFinishedBy | Computes the relation "isFinishedBy" between two time periods or instants. |
-| IsMetByMetric | IsMetBy | Computes the relation "isMetBy" between two time periods or instants. |
-| IsOverlappedByMetric | IsOverlappedBy | Computes the relation "isOverlappedBy" between two time periods or instants. |
-| IsStartedByMetric | IsStartedBy | Computes the relation "isStartedBy" between two time periods or instants. |
-| MeetsMetric | Meets | Computes the relation "meets" between two time periods or instants. |
-| TOverlapsMetric | Temporal Overlaps | Computes the relation "overlaps" between two time periods or instants. |
-| StartsMetric | Starts | Computes the relation "starts" between two time periods or instants. |
+| AfterMetric([blockingParameter: Double = 1.0]) | After | Computes the relation "after" between two time periods or instants. |
+| BeforeMetric([blockingParameter: Double = 1.0]) | Before | Computes the relation "before" between two time periods or instants. |
+| TContainsMetric([blockingParameter: Double = 1.0]) | Temporal Contains | Computes the relation "contains" between two time periods or instants. |
+| DuringMetric([blockingParameter: Double = 1.0]) | During | Computes the relation "during" between two time periods or instants. |
+| TEqualsMetric([blockingParameter: Double = 1.0]) | Temporal Equals | Computes the relation "equals" between two time periods or instants. |
+| FinishesMetric([blockingParameter: Double = 1.0]) | Finishes | Computes the relation "finishes" between two time periods or instants. |
+| IsFinishedByMetric([blockingParameter: Double = 1.0]) | IsFinishedBy | Computes the relation "isFinishedBy" between two time periods or instants. |
+| IsMetByMetric([blockingParameter: Double = 1.0]) | IsMetBy | Computes the relation "isMetBy" between two time periods or instants. |
+| IsOverlappedByMetric([blockingParameter: Double = 1.0]) | IsOverlappedBy | Computes the relation "isOverlappedBy" between two time periods or instants. |
+| IsStartedByMetric([blockingParameter: Double = 1.0]) | IsStartedBy | Computes the relation "isStartedBy" between two time periods or instants. |
+| MeetsMetric([blockingParameter: Double = 1.0]) | Meets | Computes the relation "meets" between two time periods or instants. |
+| TOverlapsMetric([blockingParameter: Double = 1.0]) | Temporal Overlaps | Computes the relation "overlaps" between two time periods or instants. |
+| StartsMetric([blockingParameter: Double = 1.0]) | Starts | Computes the relation "starts" between two time periods or instants. |
 
 # Transformations
 

@@ -28,13 +28,13 @@ import de.fuberlin.wiwiss.silk.plugins.temporal.utils._
   categories = Array("Temporal"),
   label = "Starts",
   description = "Computes the relation \"starts\" between two time periods or instants.")
-case class StartsMetric() extends SimpleDistanceMeasure {
+case class StartsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateRelation(str1, str2, Constants.STARTS)
   }
 
   override def indexValue(str: String, distance: Double): Index = {
-    Utils.indexTimes(str)
+    Utils.indexTimes(str, blockingParameter)
   }
 }
