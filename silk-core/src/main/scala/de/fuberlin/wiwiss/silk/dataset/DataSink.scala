@@ -15,6 +15,8 @@ trait DataSink extends EntitySink with LinkSink {
    */
   override def open(properties: Seq[String] = Seq.empty) { init() }
 
+  override def init(): Unit = {}
+
   /**
    * Closes this writer.
    */

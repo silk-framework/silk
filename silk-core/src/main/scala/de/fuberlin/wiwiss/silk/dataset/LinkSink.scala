@@ -11,7 +11,7 @@ trait LinkSink extends Closeable {
   /**
    * Initialize the link sink
    */
-  def init(): Unit = {}
+  def init(): Unit
 
   /**
    * Writes a new link to this writer.

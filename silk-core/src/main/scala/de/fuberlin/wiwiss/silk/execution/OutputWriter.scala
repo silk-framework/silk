@@ -14,7 +14,7 @@
 
 package de.fuberlin.wiwiss.silk.execution
 
-import de.fuberlin.wiwiss.silk.dataset.DataSink
+import de.fuberlin.wiwiss.silk.dataset.{LinkSink, DataSink}
 import de.fuberlin.wiwiss.silk.entity.Link
 import de.fuberlin.wiwiss.silk.util.Uri
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
@@ -22,12 +22,12 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 /**
  * Writes the links to the output.
  */
-class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[DataSink]) extends Activity[Unit] {
+class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[LinkSink]) extends Activity[Unit] {
 
   override def name = "Writing output"
 
   override def run(context: ActivityContext[Unit]) {
-    outputs.foreach(_.open())
+    outputs.foreach(_.init())
 
     for (link <- links;
          output <- outputs) {

@@ -19,7 +19,7 @@ import java.util.logging.LogRecord
 
 import de.fuberlin.wiwiss.silk.cache.{FileEntityCache, MemoryEntityCache}
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, RuntimeConfig}
-import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource, Dataset}
+import de.fuberlin.wiwiss.silk.dataset.{LinkSink, DataSink, DataSource, Dataset}
 import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext, Status}
 import de.fuberlin.wiwiss.silk.util.FileUtils._
@@ -30,7 +30,7 @@ import de.fuberlin.wiwiss.silk.util.{CollectLogs, DPair}
  */
 class GenerateLinks(inputs: DPair[DataSource],
                     linkSpec: LinkSpecification,
-                    outputs: Seq[DataSink],
+                    outputs: Seq[LinkSink],
                     runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Seq[Link]] {
 
   /** The task used for loading the entities into the cache */
