@@ -18,8 +18,8 @@ Each task may provide one or more activities. An activity is a unit of work that
 
 | Resource | Description |
 | --- | --- |
-| `POST activities/start | Starts a task activity. |
-| `POST activities/cancel | Cancels a task activity. |
+| `POST activities/start` | Starts a task activity. |
+| `POST activities/cancel` | Cancels a task activity. |
 
 All resources support three parameters:
 - `project`: The project name
@@ -28,5 +28,6 @@ All resources support three parameters:
 
 Example for starting the `Generate Links` activity for the LinkMovies task:
 
-    POST activities/start?project=MyProject&task=LinkMovies&activity=Generate%20Links` 
+    POST activities/start?project=MyProject&task=LinkMovies&activity=Generate%20Links
+    
     
