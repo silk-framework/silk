@@ -19,6 +19,9 @@ class FormattedDataSink(resource: WritableResource, formatter: Formatter) extend
 
   override def open(properties: Seq[String]) {
     this.properties = properties
+  }
+
+  override def init(): Unit = {
     // If we got a java file, we write directly to it, otherwise we write to a temporary string
     writer = javaFile match {
       case Some(file) => new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))

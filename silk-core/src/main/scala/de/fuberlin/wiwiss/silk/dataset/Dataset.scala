@@ -60,11 +60,15 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
       isOpen = true
     }
 
+    override def init(): Unit = {
+      writer.init()
+    }
+
     /**
      * Writes a new link to this writer.
      */
     override def writeLink(link: Link, predicateUri: String) {
-      require(isOpen, "Output must be opened before writing statements to it")
+      //require(isOpen, "Output must be opened before writing statements to it")
 
       if ((minConfidence.isEmpty || link.confidence.getOrElse(-1.0) >= minConfidence.get) &&
           (maxConfidence.isEmpty || link.confidence.getOrElse(-1.0) < maxConfidence.get)) {
