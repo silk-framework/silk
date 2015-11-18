@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
-import de.fuberlin.wiwiss.silk.workspace.io.{WorkspaceIO, SilkConfigImporter}
+import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigExporter, WorkspaceIO, SilkConfigImporter}
 import de.fuberlin.wiwiss.silk.workspace.modules.{ProjectExecutor, Task}
 import de.fuberlin.wiwiss.silk.workspace.{XmlWorkspaceProvider, FileWorkspaceProvider, Project, User}
 import play.api.libs.iteratee.Enumerator
@@ -82,6 +82,15 @@ object WorkspaceApi extends Controller {
     }
     Ok
   }}
+
+  def exportLinkSpec(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+
+    val silkConfig = SilkConfigExporter.build(project, task.data)
+
+    Ok(Serialization.toXml(silkConfig))
+  }
 
   def updatePrefixes(project: String) = Action { implicit request => {
     val prefixMap = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
