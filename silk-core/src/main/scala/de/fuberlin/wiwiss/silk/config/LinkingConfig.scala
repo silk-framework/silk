@@ -133,12 +133,16 @@ object LinkingConfig {
      */
     def write(value: LinkingConfig)(implicit prefixes: Prefixes): Node = {
       <Silk>
-        {value.prefixes.toXML}<DataSources>
-        {value.sources.map(toXml[Dataset])}
-      </DataSources>
+        {value.prefixes.toXML}
+        <DataSources>
+          {value.sources.map(toXml[Dataset])}
+        </DataSources>
         <Interlinks>
           {value.linkSpecs.map(spec => Serialization.toXml(spec))}
         </Interlinks>
+        <Outputs>
+          {value.outputs.map(toXml[Dataset])}
+        </Outputs>
       </Silk>
 
       // TODO: add support for serializing the transforms.
