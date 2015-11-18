@@ -38,12 +38,13 @@ DELETE        /projects/:project/dataset/:name                 controllers.works
 ############################################################################################################################################
 
 # Projects
+GET           /projects                                        controllers.workspace.WorkspaceApi.projects
 PUT           /projects/:project                               controllers.workspace.WorkspaceApi.newProject(project: String)
 DELETE        /projects/:project                               controllers.workspace.WorkspaceApi.deleteProject(project: String)
 POST          /projects/:project/import                        controllers.workspace.WorkspaceApi.importProject(project: String)
 GET           /projects/:project/export                        controllers.workspace.WorkspaceApi.exportProject(project: String)
 POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
-GET          /projects/:project/:task/exportLinkSpec           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
+GET           /projects/:project/:task/exportLinkSpec          controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
 PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 POST          /projects/:project/execute                       controllers.workspace.WorkspaceApi.executeProject(project: String)
 

@@ -13,11 +13,16 @@ import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigExporter, WorkspaceIO, Si
 import de.fuberlin.wiwiss.silk.workspace.modules.{ProjectExecutor, Task}
 import de.fuberlin.wiwiss.silk.workspace.{XmlWorkspaceProvider, FileWorkspaceProvider, Project, User}
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object WorkspaceApi extends Controller {
+
+  def projects = Action {
+    Ok.apply(JsonSerializer.projectsJson)
+  }
 
   def newProject(project: String) = Action {
     User().workspace.createProject(project)
