@@ -35,7 +35,7 @@ case class FileDataset(file: WritableResource, format: String, graph: String = "
       guessedLang
     } else {
       val explicitLang = RDFLanguages.nameToLang(format)
-      require(explicitLang != null, "Invalid format. Supported formats are: \"RDF/XML\", \"N-Triples\", \"N-Quads\", \"Turtle\"")
+      require(explicitLang != null, s"Invalid format '$format'. Supported formats are: 'RDF/XML', 'N-Triples', 'N-Quads', 'Turtle'")
       explicitLang
     }
   }
