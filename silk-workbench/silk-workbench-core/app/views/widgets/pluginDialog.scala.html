@@ -71,7 +71,7 @@
  *@
 @createField(pluginId: String, param: Parameter) = @{
   param.dataType match {
-    case Parameter.Type.Resource => createResourceField(pluginId, param)
+    case Parameter.Type.Resource | Parameter.Type.WritableResource => createResourceField(pluginId, param)
     case _ => createTextField(pluginId, param)
   }
 }
