@@ -24,16 +24,16 @@ import de.fuberlin.wiwiss.silk.rule.LinkFilter
 /**
  * Filters the links according to the link limit.
  */
-class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[IndexedSeq[Link]] {
+class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
 
   override def name = "Filtering"
 
-  override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
-    val linkBuffer = new ArrayBuffer[Link]()
+  override def run(context: ActivityContext[Seq[Link]]): Unit = {
     val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
         context.status.update("Filtering output")
+        val linkBuffer = new ArrayBuffer[Link]()
         for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
           if(filter.unambiguous==Some(true)) {
             if(groupedLinks.distinct.size==1)
@@ -47,7 +47,8 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[IndexedSeq[L
         context.log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
       }
       case None => {
-        links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
+        val distinctLinks = links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
+        context.value.update(distinctLinks)
       }
     }
   }
