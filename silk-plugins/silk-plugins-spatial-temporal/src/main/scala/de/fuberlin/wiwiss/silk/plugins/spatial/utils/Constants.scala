@@ -62,19 +62,14 @@ object Constants {
   val EMPTY_GEOM = "MULTIPOLYGON EMPTY"
 
   /**
-   * EPSG:4326 (default for stSPARQL).
+   * EPSG:4326 (default for stSPARQL and GeoSPARQL).
    */
-  val WGS84_LAT_LON_SRID = 4326
-
-  /**
-   * EPSG:3857 (default for GeoSPARQL).
-   */
-  val WGS84_LON_LAT_SRID = 3857
+  val WGS84_LONG_LAT_SRID = 4326
 
   /**
    * Default SRID.
    */
-  val DEFAULT_SRID = WGS84_LAT_LON_SRID;
+  val DEFAULT_SRID = WGS84_LONG_LAT_SRID;
 
   /**
    * stRDF SRID delimiter.
