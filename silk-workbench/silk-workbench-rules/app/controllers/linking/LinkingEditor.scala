@@ -2,7 +2,7 @@ package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache, PathsCache}
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache, LinkingPathsCache}
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User
@@ -20,7 +20,7 @@ object LinkingEditor extends Controller {
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val pathsCache = task.activity[PathsCache]
+    val pathsCache = task.activity[LinkingPathsCache]
     val prefixes = project.config.prefixes
 
     if(pathsCache.status().isRunning) {

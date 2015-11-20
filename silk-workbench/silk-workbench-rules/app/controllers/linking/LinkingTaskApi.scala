@@ -15,7 +15,7 @@ import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationE
 import de.fuberlin.wiwiss.silk.util.Identifier._
 import ValidationException.ValidationError
 import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs, DPair}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{PathsCache, ReferenceEntitiesCache}
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.{Constants, Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}
@@ -214,8 +214,8 @@ object LinkingTaskApi extends Controller {
   def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    task.activity[PathsCache].reset()
-    task.activity[PathsCache].start()
+    task.activity[LinkingPathsCache].reset()
+    task.activity[LinkingPathsCache].start()
     task.activity[ReferenceEntitiesCache].reset()
     task.activity[ReferenceEntitiesCache].start()
     Ok

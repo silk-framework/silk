@@ -3,7 +3,7 @@ package controllers.transform
 import de.fuberlin.wiwiss.silk.config.TransformSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformPathsCache
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
@@ -25,7 +25,7 @@ object TransformEditor extends Controller {
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
-    val pathsCache = task.activity[PathsCache]
+    val pathsCache = task.activity[TransformPathsCache]
     val prefixes = project.config.prefixes
 
     if(pathsCache.status().isRunning) {

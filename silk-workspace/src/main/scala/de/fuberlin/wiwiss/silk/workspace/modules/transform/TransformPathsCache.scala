@@ -11,7 +11,7 @@ import scala.xml.Node
 /**
  * Holds the most frequent paths.
  */
-class PathsCache(dataset: Dataset, transform: TransformSpecification) extends Activity[SparqlEntitySchema] {
+class TransformPathsCache(dataset: Dataset, transform: TransformSpecification) extends Activity[SparqlEntitySchema] {
 
   /**
    * Loads the most frequent paths.

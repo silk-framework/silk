@@ -104,13 +104,13 @@ class LinkingModulePlugin extends ModulePlugin[LinkSpecification] {
         config = LearningConfiguration.default,
         datasets = DPair.fromSeq(task.data.dataSelections.map(ds => project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).getOrElse(Dataset.empty).source)),
         linkSpec = task.data,
-        paths = task.activity[PathsCache].value().map(_.paths),
+        paths = task.activity[LinkingPathsCache].value().map(_.paths),
         referenceEntities = task.activity[ReferenceEntitiesCache].value(),
         state = state
       )
     // Paths Cache
     def pathsCache() =
-      new PathsCache(
+      new LinkingPathsCache(
         datasets = task.data.dataSelections.map(ds => project.task[Dataset](ds.datasetId).data),
         linkSpec = task.data
       )

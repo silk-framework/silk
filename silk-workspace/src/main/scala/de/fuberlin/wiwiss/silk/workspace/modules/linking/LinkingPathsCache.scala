@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 /**
  * Holds the most frequent paths.
  */
-class PathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[SparqlEntitySchema]] {
+class LinkingPathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[SparqlEntitySchema]] {
 
   /**
    * Loads the most frequent property paths.

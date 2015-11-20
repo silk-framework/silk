@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
 import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs}
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.PathsCache
+import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformPathsCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}
@@ -140,8 +140,8 @@ object TransformTaskApi extends Controller {
   def reloadTransformCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
-    task.activity[PathsCache].reset()
-    task.activity[PathsCache].start()
+    task.activity[TransformPathsCache].reset()
+    task.activity[TransformPathsCache].start()
     Ok
   }
 
@@ -162,8 +162,8 @@ object TransformTaskApi extends Controller {
     var completions = Seq[String]()
 
     // Add known paths
-    if(task.activity[PathsCache].value() != null) {
-      val knownPaths = task.activity[PathsCache].value().paths
+    if(task.activity[TransformPathsCache].value() != null) {
+      val knownPaths = task.activity[TransformPathsCache].value().paths
       completions ++= knownPaths.map(_.serializeSimplified(project.config.prefixes)).sorted
     }
 

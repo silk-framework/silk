@@ -80,7 +80,7 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
         outputs = task.data.outputs.map(id => project.task[Dataset](id).data.sink)
       )
     def pathsCache() =
-      new PathsCache(
+      new TransformPathsCache(
         dataset = project.task[Dataset](task.data.selection.datasetId).data,
         transform = task.data
       )

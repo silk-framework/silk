@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{PathsCache, ReferenceEntitiesCache}
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends EvaluationScript {
@@ -95,7 +95,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           config = config,
           datasets = ds.sources,
           linkSpec = ds.task.data,
-          paths = ds.task.activity[PathsCache].value().map(_.paths),
+          paths = ds.task.activity[LinkingPathsCache].value().map(_.paths),
           referenceEntities = referenceEntities,
           state = ActiveLearningState(pool, population, Seq.empty)
         )
