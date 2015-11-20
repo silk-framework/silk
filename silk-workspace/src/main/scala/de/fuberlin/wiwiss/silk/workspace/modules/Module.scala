@@ -3,13 +3,13 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.workspace.xml.XmlSerializer
 import de.fuberlin.wiwiss.silk.workspace.{Project, WorkspaceProvider}
 
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
 
-class Module[TaskData: ClassTag](private[modules] val plugin: ModulePlugin[TaskData],
-                                 private[modules] val provider: WorkspaceProvider,
+class Module[TaskData: ClassTag](private[modules] val provider: WorkspaceProvider,
                                  private[modules] val project: Project) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)

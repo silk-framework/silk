@@ -1,26 +1,22 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.transform
+package de.fuberlin.wiwiss.silk.workspace.xml
 
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.config.{DatasetSelection, Prefixes, TransformSpecification}
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
+import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
-import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
+
 import scala.xml.XML
 
 /**
  * The transform module, which encapsulates all transform tasks.
  */
-class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
+private class TransformXmlSerializer extends XmlSerializer[TransformSpecification] {
 
-  private val logger = Logger.getLogger(classOf[TransformModulePlugin].getName)
+  private val logger = Logger.getLogger(classOf[TransformXmlSerializer].getName)
 
   override def prefix = "transform"
 
@@ -68,24 +64,5 @@ class TransformModulePlugin extends ModulePlugin[TransformSpecification] {
    */
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name)
-  }
-
-  override def activities(task: Task[TransformSpecification], project: Project): Seq[TaskActivity[_,_]] = {
-    // Execute transform
-    def executeTransform =
-      new ExecuteTransform(
-        input = project.task[Dataset](task.data.selection.datasetId).data.source,
-        selection = task.data.selection,
-        rules = task.data.rules,
-        outputs = task.data.outputs.map(id => project.task[Dataset](id).data.sink)
-      )
-    def pathsCache() =
-      new TransformPathsCache(
-        dataset = project.task[Dataset](task.data.selection.datasetId).data,
-        transform = task.data
-      )
-    // Create task activities
-    TaskActivity(executeTransform) ::
-    TaskActivity("cache.xml", null: SparqlEntitySchema, pathsCache, project.cacheResources.child(prefix).child(task.name))  :: Nil
   }
 }

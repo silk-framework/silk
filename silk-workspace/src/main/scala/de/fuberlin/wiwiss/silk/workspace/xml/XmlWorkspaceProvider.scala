@@ -1,18 +1,14 @@
-package de.fuberlin.wiwiss.silk.workspace
+package de.fuberlin.wiwiss.silk.workspace.xml
 
 import java.io._
-import java.util.zip.{ZipInputStream, ZipEntry, ZipOutputStream}
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.util.FileUtils._
+import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
+
 import de.fuberlin.wiwiss.silk.config.Prefixes
-import de.fuberlin.wiwiss.silk.runtime.resource.{Resource, ResourceLoader, FileResourceManager, ResourceManager}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.modules.ModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.{ProjectConfig, WorkspaceProvider}
+
 import scala.reflect.ClassTag
 import scala.xml.XML
 
@@ -22,15 +18,15 @@ import scala.xml.XML
 class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
 
   @volatile
-  private var plugins = Map[Class[_], ModulePlugin[_]]()
+  private var plugins = Map[Class[_], XmlSerializer[_]]()
 
   // Register all module types
-  registerModule(new DatasetModulePlugin())
-  registerModule(new LinkingModulePlugin())
-  registerModule(new TransformModulePlugin())
-  registerModule(new WorkflowModulePlugin())
+  registerModule(new DatasetXmlSerializer())
+  registerModule(new LinkingXmlSerializer())
+  registerModule(new TransformXmlSerializer())
+  registerModule(new WorkflowXmlSerializer())
 
-  def registerModule[T: ClassTag](plugin: ModulePlugin[T]) = {
+  def registerModule[T: ClassTag](plugin: XmlSerializer[T]) = {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     plugins += (clazz -> plugin)
   }
@@ -136,6 +132,6 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
   }
 
   private def plugin[T: ClassTag] = {
-    plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[ModulePlugin[T]]
+    plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlSerializer[T]]
   }
 }

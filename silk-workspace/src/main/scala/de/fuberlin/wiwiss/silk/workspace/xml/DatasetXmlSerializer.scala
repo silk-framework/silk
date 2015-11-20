@@ -12,25 +12,24 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace.modules.dataset
+package de.fuberlin.wiwiss.silk.workspace.xml
 
 import java.util.logging.Logger
+
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
 
 import scala.xml.XML
 
 /**
  * The source module which encapsulates all data sources.
  */
-class DatasetModulePlugin extends ModulePlugin[Dataset] {
+private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
 
-  private val logger = Logger.getLogger(classOf[DatasetModulePlugin].getName)
+  private val logger = Logger.getLogger(classOf[DatasetXmlSerializer].getName)
 
   override def prefix = "dataset"
 
@@ -77,12 +76,5 @@ class DatasetModulePlugin extends ModulePlugin[Dataset] {
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name + ".xml")
     resources.delete(name + "_cache.xml")
-  }
-
-  override def activities(task: Task[Dataset], project: Project): Seq[TaskActivity[_,_]] = {
-    // Types cache
-    def typesCache() = new TypesCache(task.data)
-    // Create task activities
-    TaskActivity(s"${task.name}_cache.xml", Types.empty, typesCache, project.cacheResources.child(prefix)) :: Nil
   }
 }

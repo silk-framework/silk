@@ -1,13 +1,12 @@
-package de.fuberlin.wiwiss.silk.workspace.modules
+package de.fuberlin.wiwiss.silk.workspace.xml
 
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.Project
 
 /**
  * A plugin that adds a new module to the workspace.
  */
-trait ModulePlugin[DataType] {
+private trait XmlSerializer[DataType] {
 
   /**
    * A prefix that uniquely identifies this module.
@@ -28,9 +27,4 @@ trait ModulePlugin[DataType] {
    * Writes an updated task.
    */
   def writeTask(data: DataType, resources: ResourceManager)
-
-  /**
-   * The activities that belong to a given task.
-   */
-  def activities(task: Task[DataType], project: Project): Seq[TaskActivity[_,_]] = Seq.empty
 }

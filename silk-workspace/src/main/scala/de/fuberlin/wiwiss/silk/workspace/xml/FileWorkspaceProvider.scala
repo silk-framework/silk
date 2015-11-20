@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workspace
+package de.fuberlin.wiwiss.silk.workspace.xml
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager

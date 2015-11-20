@@ -17,7 +17,10 @@ package de.fuberlin.wiwiss.silk.workspace.modules
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl, HasValue}
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.util.Identifier
+import de.fuberlin.wiwiss.silk.workspace.ActivityProvider
+import scala.collection.immutable.{ListMap, TreeMap}
 import scala.reflect.ClassTag
 
 
@@ -39,10 +42,13 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val activityList = module.plugin.activities(this, module.project)
+  private val activityList: Seq[TaskActivity[_,_]] = {
+    for { activityProvider <- PluginRegistry.availablePlugins[ActivityProvider].toList
+          activity <- activityProvider().taskActivities(module.project, this) } yield activity
+  }
 
   // Activity controls for all activities
-  private var activityControls = Map[Class[_], ActivityControl[_]]()
+  private var activityControls = ListMap[Class[_], ActivityControl[_]]()
   for(activity <- activityList)
     activityControls += ((activity.activityType, Activity(activity)))
 

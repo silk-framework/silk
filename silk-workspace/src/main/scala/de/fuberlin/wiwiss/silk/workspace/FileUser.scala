@@ -20,10 +20,7 @@ import java.util.logging.{Level, Logger}
 import de.fuberlin.wiwiss.silk.config.Config
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
+import de.fuberlin.wiwiss.silk.workspace.xml._
 
 class FileUser extends User {
 

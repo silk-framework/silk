@@ -11,7 +11,8 @@ import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
 import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigExporter, WorkspaceIO, SilkConfigImporter}
 import de.fuberlin.wiwiss.silk.workspace.modules.{ProjectExecutor, Task}
-import de.fuberlin.wiwiss.silk.workspace.{XmlWorkspaceProvider, FileWorkspaceProvider, Project, User}
+import de.fuberlin.wiwiss.silk.workspace.xml.XmlWorkspaceProvider
+import de.fuberlin.wiwiss.silk.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}

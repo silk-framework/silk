@@ -1,14 +1,13 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.workflow
+package de.fuberlin.wiwiss.silk.workspace.xml
 
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.{ModulePlugin, Task, TaskActivity}
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
 
 import scala.xml.XML
 
-class WorkflowModulePlugin extends ModulePlugin[Workflow] {
+private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
 
   override def prefix = "workflow"
 
@@ -39,10 +38,5 @@ class WorkflowModulePlugin extends ModulePlugin[Workflow] {
    */
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name + ".xml")
-  }
-
-  override def activities(task: Task[Workflow], project: Project): Seq[TaskActivity[_,_]] = {
-    def workflowExecutor = new WorkflowExecutor(task.data.operators, project)
-    TaskActivity(workflowExecutor) :: Nil
   }
 }

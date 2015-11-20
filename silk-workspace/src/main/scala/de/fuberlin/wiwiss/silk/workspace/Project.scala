@@ -16,13 +16,15 @@ package de.fuberlin.wiwiss.silk.workspace
 
 import java.util.logging.Logger
 
+import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification}
+import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.DatasetModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingModulePlugin, LinkingTaskExecutor}
+import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTaskExecutor
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.WorkflowModulePlugin
-import de.fuberlin.wiwiss.silk.workspace.modules.{Module, ModulePlugin, Task, TaskExecutor}
+import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
+import de.fuberlin.wiwiss.silk.workspace.modules.{Module, Task, TaskExecutor}
+import de.fuberlin.wiwiss.silk.workspace.xml._
 
 import scala.reflect.ClassTag
 
@@ -47,10 +49,10 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
   private var executors = Map[String, TaskExecutor[_]]()
 
   // Register all default modules
-  registerModule(new DatasetModulePlugin())
-  registerModule(new LinkingModulePlugin())
-  registerModule(new TransformModulePlugin())
-  registerModule(new WorkflowModulePlugin())
+  registerModule[Dataset]()
+  registerModule[TransformSpecification]()
+  registerModule[LinkSpecification]()
+  registerModule[Workflow]()
 
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
@@ -154,8 +156,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T : ClassTag](plugin: ModulePlugin[T]) = {
-    modules = modules :+ new Module(plugin, provider, this)
+  def registerModule[T : ClassTag]() = {
+    modules = modules :+ new Module[T](provider, this)
   }
 
   /**
