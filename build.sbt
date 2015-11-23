@@ -143,6 +143,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .dependsOn(core, plugins)
   .settings(commonSettings: _*)
   .settings(
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "1.7.13",
     // The assembly plugin cannot resolve multiple dependencies to commons logging
     assemblyMergeStrategy in assembly := {
       case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
