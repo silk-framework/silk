@@ -24,7 +24,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class JsonReaderTest extends FlatSpec with Matchers {
 
   private val json = {
-    val resources = new ClasspathResourceLoader("de/fuberlin/wiwiss/silk/plugins/dataset/json")
+    val resources = new ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
     JsonParser.load(resources.get("example.json"))
   }
 

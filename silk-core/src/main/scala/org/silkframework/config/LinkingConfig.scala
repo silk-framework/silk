@@ -103,7 +103,7 @@ object LinkingConfig {
    */
   implicit object LinkingConfigFormat extends XmlFormat[LinkingConfig] {
 
-    private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
+    private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
 
     /**
      * Deserializes a LinkingConfig from XML.

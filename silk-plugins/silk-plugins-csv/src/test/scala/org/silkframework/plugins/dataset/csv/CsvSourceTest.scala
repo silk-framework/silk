@@ -7,7 +7,7 @@ import org.scalatest.{Matchers, FlatSpec}
 
 class CsvSourceTest extends FlatSpec with Matchers {
 
-  val resources = new ClasspathResourceLoader("de/fuberlin/wiwiss/silk/plugins/dataset/csv")
+  val resources = new ClasspathResourceLoader("org/silkframework/plugins/dataset/csv")
 
   val settings =
     CsvSettings(

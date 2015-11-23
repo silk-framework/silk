@@ -31,7 +31,7 @@ object PrefixRegistry {
    */
   lazy val all: Prefixes = {
     try {
-      val prefixStream = getClass.getClassLoader.getResourceAsStream("de/fuberlin/wiwiss/silk/workspace/prefixes.csv")
+      val prefixStream = getClass.getClassLoader.getResourceAsStream("org/silkframework/workspace/prefixes.csv")
       val prefixSource = Source.fromInputStream(prefixStream)
       val prefixLines = prefixSource.getLines
 

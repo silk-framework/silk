@@ -144,7 +144,7 @@ object TransformRule {
     import Serialization._
 
     def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformRule = {
-      ValidatingXMLReader.validate(node, "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd")
+      ValidatingXMLReader.validate(node, "org/silkframework/LinkSpecificationLanguage.xsd")
       val target = (node \ "@targetProperty").text
       val complex =
         ComplexMapping(

@@ -96,7 +96,7 @@ object LinkSpecification {
    */
   implicit object LinkSpecificationFormat extends XmlFormat[LinkSpecification] {
 
-    private val schemaLocation = "de/fuberlin/wiwiss/silk/LinkSpecificationLanguage.xsd"
+    private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
 
     /**
      * Deserialize a value from XML.

@@ -32,7 +32,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val fileName = "test.nt"
 
-  val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("de/fuberlin/wiwiss/silk/plugins/dataset/rdf").getFile))
+  val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile))
 
   val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
