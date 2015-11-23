@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.learning.{LearningConfiguration, LearningResult}
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{LinkingPathsCache, ReferenceEntitiesCache}
+import de.fuberlin.wiwiss.silk.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 object ActiveLearningEvaluation extends EvaluationScript {

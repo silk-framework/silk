@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction}
 import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
 import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
 import de.fuberlin.wiwiss.silk.workspace.io.WorkspaceIO
-import de.fuberlin.wiwiss.silk.workspace.modules.dataset.TypesCache
+import de.fuberlin.wiwiss.silk.workspace.activity.dataset.TypesCache
 import de.fuberlin.wiwiss.silk.workspace.xml.XmlWorkspaceProvider
 import de.fuberlin.wiwiss.silk.workspace.{Constants, PrefixRegistry, User}
 import play.Logger

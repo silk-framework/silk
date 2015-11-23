@@ -1,7 +1,7 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.workflow
+package de.fuberlin.wiwiss.silk.workspace.activity.workflow
 
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow.{WorkflowDataset, WorkflowOperator}
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow.{WorkflowDataset, WorkflowOperator}
 
 import scala.xml.Node
 

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.linking
+package de.fuberlin.wiwiss.silk.workspace.activity.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.dataset
+package de.fuberlin.wiwiss.silk.workspace.activity.dataset
 
 import de.fuberlin.wiwiss.silk.config.Prefixes
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceManager, ResourceLoader}

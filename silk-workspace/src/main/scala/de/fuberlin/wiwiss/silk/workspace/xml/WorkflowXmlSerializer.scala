@@ -3,7 +3,7 @@ package de.fuberlin.wiwiss.silk.workspace.xml
 import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceLoader, ResourceManager}
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow
 
 import scala.xml.XML
 

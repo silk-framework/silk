@@ -1,10 +1,8 @@
-package de.fuberlin.wiwiss.silk.workspace.modules
+package de.fuberlin.wiwiss.silk.workspace
 
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.xml.XmlSerializer
-import de.fuberlin.wiwiss.silk.workspace.{Project, WorkspaceProvider}
 
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
@@ -16,8 +14,8 @@ import scala.reflect.ClassTag
   * @param project The project this module belongs to
   * @tparam TaskData The task type held by this module
   */
-class Module[TaskData: ClassTag](private[modules] val provider: WorkspaceProvider,
-                                 private[modules] val project: Project) {
+class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvider,
+                                 private[workspace] val project: Project) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 

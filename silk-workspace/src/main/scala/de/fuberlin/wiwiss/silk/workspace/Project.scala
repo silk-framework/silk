@@ -22,10 +22,10 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityControl, Activity}
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTaskExecutor
-import de.fuberlin.wiwiss.silk.workspace.modules.transform._
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
-import de.fuberlin.wiwiss.silk.workspace.modules.{ Module, Task, TaskExecutor}
+import de.fuberlin.wiwiss.silk.workspace.activity.linking.LinkingTaskExecutor
+import de.fuberlin.wiwiss.silk.workspace.activity.transform._
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow
+import de.fuberlin.wiwiss.silk.workspace.activity.{ProjectActivityFactory, TaskExecutor}
 import de.fuberlin.wiwiss.silk.workspace.xml._
 
 import scala.reflect.ClassTag

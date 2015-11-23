@@ -12,14 +12,16 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace.modules
+package de.fuberlin.wiwiss.silk.workspace
 
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.Logger
+
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl, HasValue}
-import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginDescription, PluginRegistry}
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.{TaskActivityFactory, ProjectActivityFactory}
+import de.fuberlin.wiwiss.silk.workspace.activity.TaskActivityFactory
+
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 

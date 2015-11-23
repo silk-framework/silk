@@ -6,9 +6,8 @@ import de.fuberlin.wiwiss.silk.learning.LearningActivity
 import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
 import de.fuberlin.wiwiss.silk.learning.individual.Population
 import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
+import de.fuberlin.wiwiss.silk.workspace.{Task, User}
+import de.fuberlin.wiwiss.silk.workspace.activity.linking.ReferenceEntitiesCache
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import play.api.mvc.{Action, Controller}

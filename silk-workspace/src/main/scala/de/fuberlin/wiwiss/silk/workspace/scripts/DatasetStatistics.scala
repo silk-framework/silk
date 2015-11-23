@@ -3,10 +3,10 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
 import de.fuberlin.wiwiss.silk.util.{Table, DPair, Timer}
 import java.io.FileWriter
 import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
+import de.fuberlin.wiwiss.silk.workspace.Task
 
 /**
  * Collects various statistics about the projects in the workspace.

@@ -1,7 +1,7 @@
 package controllers.workflow
 
 import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.{WorkflowExecutor, Workflow}
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.{WorkflowExecutor, Workflow}
 import play.api.mvc.{Action, Controller}
 
 object WorkflowApi extends Controller {

@@ -1,7 +1,7 @@
 package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.ReferenceEntitiesCache
+import de.fuberlin.wiwiss.silk.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.rule.evaluation.DetailedEvaluator

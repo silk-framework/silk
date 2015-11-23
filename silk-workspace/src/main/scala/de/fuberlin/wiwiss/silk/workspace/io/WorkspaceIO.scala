@@ -5,7 +5,7 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.{ProjectConfig, WorkspaceProvider}
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow
 
 import scala.reflect.ClassTag
 

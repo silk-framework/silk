@@ -1,12 +1,11 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.workflow
+package de.fuberlin.wiwiss.silk.workspace.activity.workflow
 
 import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
-import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow.WorkflowOperator
+import de.fuberlin.wiwiss.silk.workspace.{Task, Project}
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow.WorkflowOperator
 
 class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
 

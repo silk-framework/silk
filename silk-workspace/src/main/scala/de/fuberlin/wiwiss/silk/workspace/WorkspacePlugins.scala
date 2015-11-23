@@ -1,6 +1,10 @@
 package de.fuberlin.wiwiss.silk.workspace
 
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginModule
+import de.fuberlin.wiwiss.silk.workspace.activity.dataset.TypesCacheFactory
+import de.fuberlin.wiwiss.silk.workspace.activity.linking._
+import de.fuberlin.wiwiss.silk.workspace.activity.transform.{TransformPathsCacheFactory, ExecuteTransformFactory}
+import de.fuberlin.wiwiss.silk.workspace.activity.workflow.WorkflowExecutorFactory
 import de.fuberlin.wiwiss.silk.workspace.xml.FileWorkspaceProvider
 
 class WorkspacePlugins extends PluginModule {

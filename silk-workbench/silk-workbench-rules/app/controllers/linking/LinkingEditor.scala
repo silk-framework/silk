@@ -2,7 +2,7 @@ package controllers.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache, LinkingPathsCache}
+import de.fuberlin.wiwiss.silk.workspace.activity.linking.{ReferenceEntitiesCache, LinkingPathsCache}
 import play.api.mvc.Controller
 import play.api.mvc.Action
 import de.fuberlin.wiwiss.silk.workspace.User

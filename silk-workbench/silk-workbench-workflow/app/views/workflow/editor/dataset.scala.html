@@ -1,6 +1,5 @@
-@import de.fuberlin.wiwiss.silk.workspace.Project
+@import de.fuberlin.wiwiss.silk.workspace.{Task, Project}
 @import plugins.WorkbenchPlugin.TaskActions
-@import de.fuberlin.wiwiss.silk.workspace.modules.Task
 @import controllers.workflow.routes.Assets
 
 @(project: Project, task: Task[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)

@@ -14,8 +14,8 @@
 
 package de.fuberlin.wiwiss.silk.workspace
 
-import modules.linking.LinkingTask
-import modules.dataset.DatasetTask
+import activity.linking.LinkingTask
+import activity.dataset.DatasetTask
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import de.fuberlin.wiwiss.silk.plugins.CorePlugins

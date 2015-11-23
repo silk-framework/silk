@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.linking
+package de.fuberlin.wiwiss.silk.workspace.activity.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.{DataSource, Dataset}
@@ -7,8 +7,7 @@ import de.fuberlin.wiwiss.silk.entity.{Entity, Link}
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.{Task, Project}
 
 class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[ReferenceEntities] {
 

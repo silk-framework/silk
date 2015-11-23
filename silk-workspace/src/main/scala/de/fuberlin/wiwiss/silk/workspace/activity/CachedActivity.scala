@@ -1,12 +1,13 @@
-package de.fuberlin.wiwiss.silk.workspace
+package de.fuberlin.wiwiss.silk.workspace.activity
 
 import java.util.logging.Level
 
-import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
-import de.fuberlin.wiwiss.silk.runtime.resource.{WritableResource, ResourceNotFoundException, ResourceManager}
+import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
+import de.fuberlin.wiwiss.silk.runtime.resource.{ResourceNotFoundException, WritableResource}
 import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization._
 import de.fuberlin.wiwiss.silk.runtime.serialization.XmlFormat
 import de.fuberlin.wiwiss.silk.util.XMLUtils._
+
 import scala.xml.XML
 
 /**

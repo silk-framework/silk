@@ -1,7 +1,6 @@
 package plugins
 
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
-import de.fuberlin.wiwiss.silk.workspace.{Project, User}
+import de.fuberlin.wiwiss.silk.workspace.{Task, Project, User}
 import scala.reflect.ClassTag
 
 /**

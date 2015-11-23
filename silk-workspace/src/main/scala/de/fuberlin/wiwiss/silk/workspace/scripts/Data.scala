@@ -3,8 +3,7 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.dataset.{Dataset, DataSource}
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.{Task, User}
 
 case class Data(name: String,
                 task: Task[LinkSpecification],

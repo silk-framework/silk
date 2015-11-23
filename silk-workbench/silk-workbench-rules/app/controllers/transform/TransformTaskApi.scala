@@ -9,7 +9,7 @@ import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
 import de.fuberlin.wiwiss.silk.rule.TransformRule
 import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
 import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs}
-import de.fuberlin.wiwiss.silk.workspace.modules.transform.TransformPathsCache
+import de.fuberlin.wiwiss.silk.workspace.activity.transform.TransformPathsCache
 import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}

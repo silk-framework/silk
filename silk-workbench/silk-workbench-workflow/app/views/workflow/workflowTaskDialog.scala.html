@@ -1,6 +1,6 @@
 @(project: String, task: String)
 
-@import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
+@import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow
 @import de.fuberlin.wiwiss.silk.workspace.User
 
 @workflowTask = @{ User().workspace.project(project).tasks[Workflow].find(_.name == task) }

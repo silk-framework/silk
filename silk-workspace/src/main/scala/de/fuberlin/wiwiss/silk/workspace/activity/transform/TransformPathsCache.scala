@@ -1,11 +1,10 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.transform
+package de.fuberlin.wiwiss.silk.workspace.activity.transform
 
 import de.fuberlin.wiwiss.silk.config.TransformSpecification
 import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
-import de.fuberlin.wiwiss.silk.workspace.Project
-import de.fuberlin.wiwiss.silk.workspace.modules.Task
+import de.fuberlin.wiwiss.silk.workspace.{Task, Project}
 
 import scala.xml.Node
 

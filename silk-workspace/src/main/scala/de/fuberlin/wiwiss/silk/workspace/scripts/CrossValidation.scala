@@ -17,7 +17,7 @@ package de.fuberlin.wiwiss.silk.workspace.scripts
 import de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities
 import de.fuberlin.wiwiss.silk.learning._
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
-import de.fuberlin.wiwiss.silk.workspace.modules.linking.{ReferenceEntitiesCache}
+import de.fuberlin.wiwiss.silk.workspace.activity.linking.{ReferenceEntitiesCache}
 import de.fuberlin.wiwiss.silk.workspace.scripts.RunResult.Run
 
 import scala.util.Random

@@ -1,9 +1,9 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.transform
+package de.fuberlin.wiwiss.silk.workspace.activity.transform
 
 import de.fuberlin.wiwiss.silk.config.TransformSpecification
 import de.fuberlin.wiwiss.silk.dataset.{DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
-import de.fuberlin.wiwiss.silk.workspace.modules.TaskExecutor
+import de.fuberlin.wiwiss.silk.workspace.activity.TaskExecutor
 
 class TransformTaskExecutor extends TaskExecutor[TransformSpecification] {
 

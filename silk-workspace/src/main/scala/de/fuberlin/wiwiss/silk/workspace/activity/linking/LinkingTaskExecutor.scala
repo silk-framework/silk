@@ -1,10 +1,12 @@
-package de.fuberlin.wiwiss.silk.workspace.modules.linking
+package de.fuberlin.wiwiss.silk.workspace.activity.linking
 
 import de.fuberlin.wiwiss.silk.config.LinkSpecification
 import de.fuberlin.wiwiss.silk.dataset.{Dataset, DataSink, DataSource}
 import de.fuberlin.wiwiss.silk.execution.GenerateLinks
+import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.modules.TaskExecutor
+import de.fuberlin.wiwiss.silk.workspace.Task
+import de.fuberlin.wiwiss.silk.workspace.activity.TaskExecutor
 
 class LinkingTaskExecutor extends TaskExecutor[LinkSpecification] {
 
