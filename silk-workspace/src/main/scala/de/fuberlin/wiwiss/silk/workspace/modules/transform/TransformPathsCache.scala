@@ -5,18 +5,22 @@ import de.fuberlin.wiwiss.silk.dataset.Dataset
 import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
 import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityContext, Activity}
 import de.fuberlin.wiwiss.silk.workspace.Project
+import de.fuberlin.wiwiss.silk.workspace.modules.Task
 
 import scala.xml.Node
 
 /**
  * Holds the most frequent paths.
  */
-class TransformPathsCache(dataset: Dataset, transform: TransformSpecification) extends Activity[SparqlEntitySchema] {
+class TransformPathsCache(task: Task[TransformSpecification]) extends Activity[SparqlEntitySchema] {
 
   /**
    * Loads the most frequent paths.
    */
   override def run(context: ActivityContext[SparqlEntitySchema]) = {
+    val dataset = task.project.task[Dataset](task.data.selection.datasetId).data
+    val transform = task.data
+
     //Create an entity description from the transformation task
     val currentEntityDesc = transform.entityDescription
 

@@ -9,6 +9,13 @@ import de.fuberlin.wiwiss.silk.workspace.{Project, WorkspaceProvider}
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
 
+/**
+  * A module holds all tasks of a specific type.
+  *
+  * @param provider The workspace provider
+  * @param project The project this module belongs to
+  * @tparam TaskData The task type held by this module
+  */
 class Module[TaskData: ClassTag](private[modules] val provider: WorkspaceProvider,
                                  private[modules] val project: Project) {
 

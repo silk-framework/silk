@@ -37,6 +37,8 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
     }
   }
 
+  override def toString = label
+
   private def parseParameters(parameterValues: Map[String, String], resourceLoader: ResourceManager): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.get(parameter.name) match {

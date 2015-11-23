@@ -35,29 +35,26 @@ class ActiveLearning(config: LearningConfiguration,
                      linkSpec: LinkSpecification,
                      paths: DPair[Seq[Path]],
                      referenceEntities: ReferenceEntities = ReferenceEntities.empty,
-                     state: ActiveLearningState) extends Activity[ActiveLearningState] {
-
-  private var pool = state.pool
-
-  private var population = state.population
-
-  private var links = state.links
+                     initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {
 
   def isEmpty = datasets.isEmpty
 
-  override def initialValue = Some(state)
+  override def initialValue = Some(initialState)
 
   override def run(context: ActivityContext[ActiveLearningState]): Unit = {
+    // Update unlabeled pool
     updatePool(context)
+    val pool = context.value().pool
 
+    // Update population
     val generator = Timer("LinkageRuleGenerator") {
       LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.links.map(_.entities.get), Nil), config.components)
     }
-    val targetFitness = if(population.isEmpty) 1.0 else population.bestIndividual.fitness
+    val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     
     buildPopulation(generator, context)
 
-    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool.links, population) }
+    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool.links, context.value().population) }
     val fitnessFunction = config.fitnessFunction(completeEntities)
     
     updatePopulation(generator, targetFitness, completeEntities, fitnessFunction, context)
@@ -70,13 +67,14 @@ class ActiveLearning(config: LearningConfiguration,
 
     //Clean population
     if(referenceEntities.isDefined) {
-      population = context.executeBlocking(new CleanPopulationTask(population, fitnessFunction, generator))
+      val cleanedPopulation = context.executeBlocking(new CleanPopulationTask(context.value().population, fitnessFunction, generator))
+      context.value() = context.value().copy(population = cleanedPopulation)
     }
-
-    context.value.update(ActiveLearningState(pool, population, links))
   }
   
-  private def updatePool(context: ActivityContext[ActiveLearningState]) = Timer("Generating Pool")  {
+  private def updatePool(context: ActivityContext[ActiveLearningState]) = Timer("Generating Pool") {
+    var pool = context.value().pool
+
     //Build unlabeled pool
     val poolPaths = context.value().pool.entityDescs.map(_.paths)
     if(context.value().pool.isEmpty || poolPaths != paths) {
@@ -86,17 +84,23 @@ class ActiveLearning(config: LearningConfiguration,
 
     //Assert that no reference links are in the pool
     pool = pool.withoutLinks(referenceEntities.all.keySet)
+
+    // Update pool
+    context.value() = context.value().copy(pool = pool)
   }
   
   private def buildPopulation(generator: LinkageRuleGenerator, context: ActivityContext[ActiveLearningState]) = Timer("Generating population") {
+    var population = context.value().population
     if(population.isEmpty) {
       context.status.update("Generating population", 0.5)
       val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
       population = context.executeBlocking(new GeneratePopulation(seedRules, generator, config), 0.6)
     }
+    context.value() = context.value().copy(population = population)
   }
   
   private def updatePopulation(generator: LinkageRuleGenerator, targetFitness: Double, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Updating population") {
+    var population = context.value().population
     for(i <- 0 until config.params.maxIterations
         if i > 0 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
@@ -106,10 +110,11 @@ class ActiveLearning(config: LearningConfiguration,
         population = context.executeBlocking(new CleanPopulationTask(population, fitnessFunction, generator))
       }
     }
+    context.value() = context.value().copy(population = population)
   }
 
   private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Selecting links") {
-    val randomizedPopulation = context.executeBlocking(new Randomize(population, fitnessFunction, generator, config))
+    val randomizedPopulation = context.executeBlocking(new Randomize(context.value().population, fitnessFunction, generator, config))
 
     val weightedRules = {
       val bestFitness = randomizedPopulation.bestIndividual.fitness
@@ -119,6 +124,8 @@ class ActiveLearning(config: LearningConfiguration,
       }
     }
 
-    links = config.active.selector(weightedRules, pool.links.toSeq, completeEntities)
+    val updatedLinks = config.active.selector(weightedRules, context.value().pool.links.toSeq, completeEntities)
+
+    context.value() = context.value().copy(links = updatedLinks)
   }
 }

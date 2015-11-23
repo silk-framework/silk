@@ -59,6 +59,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
 
+  // Initialize Tasks
+  allTasks.foreach(_.init())
+
   /**
     * The name of this project.
     */

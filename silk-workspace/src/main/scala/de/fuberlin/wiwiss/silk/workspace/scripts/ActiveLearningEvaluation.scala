@@ -97,7 +97,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           linkSpec = ds.task.data,
           paths = ds.task.activity[LinkingPathsCache].value().map(_.paths),
           referenceEntities = referenceEntities,
-          state = ActiveLearningState(pool, population, Seq.empty)
+          initialState = ActiveLearningState(pool, population, Seq.empty)
         )
 
       val result = Activity(activity).startBlocking()
