@@ -1,7 +1,8 @@
-@import de.fuberlin.wiwiss.silk.workspace.{Task, Project}
+@import org.silkframework.workspace.Project
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
 
+@import org.silkframework.workspace.Task
 @(project: Project, task: Task[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
 <div class="dataset" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">

@@ -1,13 +1,13 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
-import de.fuberlin.wiwiss.silk.workspace.activity.linking.{ReferenceEntitiesCache, LinkingPathsCache}
+import org.silkframework.config.LinkSpecification
+import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.workspace.activity.linking.{ReferenceEntitiesCache, LinkingPathsCache}
 import play.api.mvc.Controller
 import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.evaluation.LinkageRuleEvaluator
+import org.silkframework.workspace.User
+import org.silkframework.util.DPair
+import org.silkframework.evaluation.LinkageRuleEvaluator
 import plugins.Context
 
 object LinkingEditor extends Controller {

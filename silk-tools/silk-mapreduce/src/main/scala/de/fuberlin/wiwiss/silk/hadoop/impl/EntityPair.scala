@@ -12,12 +12,12 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
-import de.fuberlin.wiwiss.silk.entity.Entity
+import org.silkframework.entity.Entity
 import java.io._
 import org.apache.hadoop.io.Writable
-import de.fuberlin.wiwiss.silk.util.DPair
+import org.silkframework.util.DPair
 
 /**
  * Represents a pair of source and target entity.

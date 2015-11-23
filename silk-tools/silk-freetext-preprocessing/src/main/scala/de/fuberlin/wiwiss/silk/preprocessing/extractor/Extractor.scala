@@ -1,9 +1,9 @@
-package de.fuberlin.wiwiss.silk.preprocessing.extractor
+package org.silkframework.preprocessing.extractor
 
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.preprocessing.entity.{Entity, Property}
-import de.fuberlin.wiwiss.silk.preprocessing.transformer.Transformer
-import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
+import org.silkframework.preprocessing.entity.{Entity, Property}
+import org.silkframework.preprocessing.transformer.Transformer
+import org.silkframework.preprocessing.dataset.Dataset
 
 /**
  * Represents an extractor.

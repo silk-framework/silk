@@ -12,16 +12,16 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.workspace
+package org.silkframework.workspace
 
-import activity.linking.LinkingTask
-import activity.dataset.DatasetTask
+import org.silkframework.workspace.activity.linking.LinkingTask
+import org.silkframework.workspace.activity.dataset.DatasetTask
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
-import de.fuberlin.wiwiss.silk.plugins.CorePlugins
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import org.silkframework.plugins.CorePlugins
+import org.silkframework.config.LinkSpecification
 import java.net.URI
-import de.fuberlin.wiwiss.silk.dataset.{DataSource, Source}
+import org.silkframework.dataset.{DataSource, Source}
 
 class LDEWorkspaceTest extends FlatSpec with ShouldMatchers
 {

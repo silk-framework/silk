@@ -3,7 +3,7 @@ package config
 import java.io.File
 import play.api.Play
 import play.api.Play.current
-import de.fuberlin.wiwiss.silk.runtime.resource._
+import org.silkframework.runtime.resource._
 import WorkbenchConfig.Tabs
 
 /**

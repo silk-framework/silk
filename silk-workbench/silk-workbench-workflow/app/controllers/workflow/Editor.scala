@@ -1,7 +1,7 @@
 package controllers.workflow
 
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.workspace.activity.workflow.{WorkflowExecutor, Workflow}
+import org.silkframework.workspace.activity.workflow.{WorkflowExecutor, Workflow}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 

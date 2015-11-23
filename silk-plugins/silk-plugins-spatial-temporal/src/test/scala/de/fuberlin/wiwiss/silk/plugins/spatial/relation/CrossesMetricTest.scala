@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.relation
+package org.silkframework.plugins.spatial.relation
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec

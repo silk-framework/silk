@@ -1,6 +1,6 @@
 package plugins
 
-import de.fuberlin.wiwiss.silk.workspace.Project
+import org.silkframework.workspace.Project
 import play.core.Router.Routes
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import scala.reflect.ClassTag

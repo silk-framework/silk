@@ -12,12 +12,12 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
 import org.apache.hadoop.mapreduce.Reducer
 import scala.collection.JavaConversions._
 import org.apache.hadoop.io.Text
-import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
+import org.silkframework.hadoop.SilkConfiguration
 
 class SilkReduce extends Reducer[Text, EntityConfidence, Text, EntityConfidence] {
 

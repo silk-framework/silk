@@ -12,12 +12,12 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.relation
+package org.silkframework.plugins.spatial.relation
 
-import de.fuberlin.wiwiss.silk.rule.similarity.SimpleDistanceMeasure
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.entity.Index
-import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.entity.Index
+import org.silkframework.plugins.spatial.utils._
 
 /**
  * Computes the relation \"overlaps\" between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

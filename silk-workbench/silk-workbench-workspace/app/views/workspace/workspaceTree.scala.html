@@ -1,11 +1,13 @@
-@import de.fuberlin.wiwiss.silk.workspace.activity.ProjectExecutor
+@import org.silkframework.workspace.activity.ProjectExecutor
 @import plugins.WorkbenchPlugins
-@import de.fuberlin.wiwiss.silk.workspace.{Task, Project}
+@import org.silkframework.workspace.Project
 @import plugins.WorkbenchPlugin.TaskActions
-@import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
+@import org.silkframework.runtime.plugin.PluginRegistry
 @import controllers.workspace.routes.Assets
+@import org.silkframework.workspace.Workspace
+@import org.silkframework.workspace.Task
 
-@(workspace: de.fuberlin.wiwiss.silk.workspace.Workspace)
+@(workspace: Workspace)
 
 <script type="application/javascript" >
   $(function () {

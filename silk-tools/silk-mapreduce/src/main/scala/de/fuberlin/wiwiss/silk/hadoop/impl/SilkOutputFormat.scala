@@ -12,13 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import java.io.DataOutputStream
 import org.apache.hadoop.mapreduce.{TaskAttemptContext, RecordWriter}
 import org.apache.hadoop.io.Text
-import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
+import org.silkframework.hadoop.SilkConfiguration
 
 class SilkOutputFormat extends FileOutputFormat[Text, EntityConfidence]
 {

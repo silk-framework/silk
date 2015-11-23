@@ -2,21 +2,22 @@ package controllers.linking
 
 import java.util.logging.{Level, Logger}
 import controllers.workspace.WorkspaceApi._
-import de.fuberlin.wiwiss.silk.config.{DatasetSelection, LinkSpecification}
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
-import de.fuberlin.wiwiss.silk.evaluation.ReferenceLinks
-import de.fuberlin.wiwiss.silk.execution.{GenerateLinks => GenerateLinksActivity}
-import de.fuberlin.wiwiss.silk.learning.LearningActivity
-import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
-import de.fuberlin.wiwiss.silk.rule.LinkageRule
-import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
-import de.fuberlin.wiwiss.silk.util.Identifier._
+import org.silkframework.config.{DatasetSelection, LinkSpecification}
+import org.silkframework.dataset.Dataset
+import org.silkframework.entity.Link
+import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.evaluation.ReferenceLinks
+import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
+import org.silkframework.learning.LearningActivity
+import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.serialization.{Serialization, ValidationException}
+import org.silkframework.util.Identifier._
 import ValidationException.ValidationError
-import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs, DPair}
-import de.fuberlin.wiwiss.silk.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
-import de.fuberlin.wiwiss.silk.workspace.{Constants, Project, User}
+import org.silkframework.util.{Identifier, CollectLogs, DPair}
+import org.silkframework.workspace.Constants
+import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
+import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}
 
@@ -82,7 +83,7 @@ object LinkingTaskApi extends Controller {
       case Some(xml) =>
         try {
           //Collect warnings while parsing linkage rule
-          val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
+          val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
             //Load linkage rule
             val updatedRule = Serialization.fromXml[LinkageRule](xml.head)
             //Update linking task
@@ -123,7 +124,7 @@ object LinkingTaskApi extends Controller {
       case Some(xml) => {
         try {
           //Collect warnings while parsing link spec
-          val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkspec") {
+          val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkspec") {
             //Load link specification
             val newLinkSpec = Serialization.fromXml[LinkSpecification](xml.head)
             //Update linking task

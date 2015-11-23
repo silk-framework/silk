@@ -1,4 +1,4 @@
-import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.workflow.Workflow
 import plugins.WorkbenchPlugin.{TaskActions, Tab}
 import plugins.{Context, WorkbenchPlugin}
 

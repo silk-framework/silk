@@ -13,12 +13,12 @@
  */
 
 
-package de.fuberlin.wiwiss.silk.server.model
+package org.silkframework.server.model
 
-import de.fuberlin.wiwiss.silk.dataset.DataSource
-import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.entity.{Path, Entity}
+import org.silkframework.dataset.DataSource
+import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.entity.{Path, Entity}
 
 /**
   * ${DESCRIPTION}

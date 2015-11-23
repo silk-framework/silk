@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop
+package org.silkframework.hadoop
 
 import impl._
 import org.apache.hadoop.mapreduce._
 import lib.output.FileOutputFormat
 import org.apache.hadoop.io.Text
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import org.silkframework.plugins.Plugins
 import org.apache.hadoop.fs.Path
 
 /**

@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop
+package org.silkframework.hadoop
 
 import impl.HadoopEntityCache
 import org.apache.hadoop.fs.{FileSystem, Path}
-import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
-import de.fuberlin.wiwiss.silk.runtime.resource.EmptyResourceManager
+import org.silkframework.plugins.Plugins
+import org.silkframework.config.LinkingConfig
+import org.silkframework.plugins.dataset.JenaPlugins
+import org.silkframework.runtime.resource.EmptyResourceManager
 
 object SilkConfiguration {
   val InputParam = "silk.inputpath"

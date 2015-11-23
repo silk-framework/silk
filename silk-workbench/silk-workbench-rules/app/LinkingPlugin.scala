@@ -1,4 +1,4 @@
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
+import org.silkframework.config.LinkSpecification
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 

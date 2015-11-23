@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
 import org.apache.hadoop.mapreduce._
-import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
+import org.silkframework.hadoop.SilkConfiguration
 import org.apache.hadoop.io.NullWritable
 import collection.immutable.HashSet
-import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.cache.Partition
+import org.silkframework.entity.Entity
+import org.silkframework.cache.Partition
 
 class SilkInputFormat extends InputFormat[NullWritable, EntityPair]
 {

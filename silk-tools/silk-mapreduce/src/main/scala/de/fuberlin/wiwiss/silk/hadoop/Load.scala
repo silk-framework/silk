@@ -12,20 +12,20 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop
+package org.silkframework.hadoop
 
 import impl.HadoopEntityCache
-import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.plugins.Plugins
+import org.silkframework.config.LinkingConfig
+import org.silkframework.plugins.Plugins
 import org.apache.hadoop.fs.{FileSystem, Path}
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.entity.Entity
-import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.plugins.dataset.JenaPlugins
-import de.fuberlin.wiwiss.silk.execution.Loader
+import org.silkframework.config.LinkSpecification
+import org.silkframework.entity.Entity
+import org.silkframework.util.DPair
+import org.silkframework.plugins.dataset.JenaPlugins
+import org.silkframework.execution.Loader
 import java.io.File
-import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
+import org.silkframework.runtime.resource.FileResourceManager
 
 /**
  * Populates the entity cache.

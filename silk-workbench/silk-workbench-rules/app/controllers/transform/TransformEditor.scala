@@ -1,9 +1,9 @@
 package controllers.transform
 
-import de.fuberlin.wiwiss.silk.config.TransformSpecification
-import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.workspace.User
-import de.fuberlin.wiwiss.silk.workspace.activity.transform.TransformPathsCache
+import org.silkframework.config.TransformSpecification
+import org.silkframework.util.DPair
+import org.silkframework.workspace.User
+import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 

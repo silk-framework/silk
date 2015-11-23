@@ -1,6 +1,6 @@
 package controllers.core
 
-import de.fuberlin.wiwiss.silk.runtime.activity.Status
+import org.silkframework.runtime.activity.Status
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.Comet
 import play.api.libs.json._

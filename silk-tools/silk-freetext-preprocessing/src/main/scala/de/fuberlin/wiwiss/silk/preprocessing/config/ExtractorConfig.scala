@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.preprocessing.config
+package org.silkframework.preprocessing.config
 
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.preprocessing.transformer.Transformer
-import de.fuberlin.wiwiss.silk.preprocessing.extractor.{Dictionary, Regex, FeatureValuePairs, BagOfWords}
+import org.silkframework.preprocessing.transformer.Transformer
+import org.silkframework.preprocessing.extractor.{Dictionary, Regex, FeatureValuePairs, BagOfWords}
 
 /**
  * Represents a Extractor Configuration from XML.

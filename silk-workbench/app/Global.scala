@@ -1,6 +1,7 @@
 import java.io.File
 import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
-import de.fuberlin.wiwiss.silk.workspace.{FileUser, User}
+import org.silkframework.workspace.User
+import org.silkframework.workspace.FileUser
 import play.api.Play.current
 import play.api.{Application, Play}
 import plugins.WorkbenchPlugins

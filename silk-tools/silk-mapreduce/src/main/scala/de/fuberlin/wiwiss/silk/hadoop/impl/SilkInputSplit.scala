@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
 import org.apache.hadoop.mapreduce.InputSplit
 import java.io.{DataInput, DataOutput}

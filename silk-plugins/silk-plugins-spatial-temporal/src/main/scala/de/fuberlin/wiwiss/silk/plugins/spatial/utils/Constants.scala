@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.utils
+package org.silkframework.plugins.spatial.utils
 
 /**
  * An object that contains all needed constants (namespaces, URIs, prefixes).

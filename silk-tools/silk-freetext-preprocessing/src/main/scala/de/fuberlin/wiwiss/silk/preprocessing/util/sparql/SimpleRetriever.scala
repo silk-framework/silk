@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.preprocessing.util.sparql
+package org.silkframework.preprocessing.util.sparql
 
-import de.fuberlin.wiwiss.silk.preprocessing.util.jena._
-import de.fuberlin.wiwiss.silk.preprocessing.entity.{Property, Entity}
-import de.fuberlin.wiwiss.silk.util.sparql.{Node, Resource, BlankNode, Literal}
+import org.silkframework.preprocessing.util.jena._
+import org.silkframework.preprocessing.entity.{Property, Entity}
+import org.silkframework.util.sparql.{Node, Resource, BlankNode, Literal}
 
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve entities and/or properties.

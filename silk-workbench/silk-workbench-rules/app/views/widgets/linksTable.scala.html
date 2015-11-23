@@ -1,13 +1,14 @@
-@import de.fuberlin.wiwiss.silk.workspace.{Task, PrefixRegistry, Project}
+@import org.silkframework.workspace.{PrefixRegistry, Project}
 @import models.linking.EvalLink._
 @import models.linking._
-@import de.fuberlin.wiwiss.silk.entity.Path
-@import de.fuberlin.wiwiss.silk.entity.Entity
-@import de.fuberlin.wiwiss.silk.util.DPair
-@import de.fuberlin.wiwiss.silk.rule.evaluation._
-@import de.fuberlin.wiwiss.silk.config.LinkSpecification
+@import org.silkframework.entity.Path
+@import org.silkframework.entity.Entity
+@import org.silkframework.util.DPair
+@import org.silkframework.rule.evaluation._
+@import org.silkframework.config.LinkSpecification
 @import controllers.rules.routes.Assets
 
+@import org.silkframework.workspace.Task
 @(project: Project,
   task: Task[LinkSpecification],
   links: Seq[EvalLink],

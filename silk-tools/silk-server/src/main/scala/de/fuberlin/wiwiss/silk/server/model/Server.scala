@@ -12,17 +12,17 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.server.model
+package org.silkframework.server.model
 
-import de.fuberlin.wiwiss.silk.dataset.{DataSource, Source}
-import de.fuberlin.wiwiss.silk.plugins.Plugins
-import de.fuberlin.wiwiss.silk.plugins.dataset.rdf.RdfDataSource
-import de.fuberlin.wiwiss.silk.plugins.writer.NTriplesFormatter
-import de.fuberlin.wiwiss.silk.plugins.dataset.FileDataSource
-import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.entity.Link
+import org.silkframework.dataset.{DataSource, Source}
+import org.silkframework.plugins.Plugins
+import org.silkframework.plugins.dataset.rdf.RdfDataSource
+import org.silkframework.plugins.writer.NTriplesFormatter
+import org.silkframework.plugins.dataset.FileDataSource
+import org.silkframework.config.LinkingConfig
+import org.silkframework.entity.Link
 import java.util.logging.{Level, Logger}
-import de.fuberlin.wiwiss.silk.runtime.resource.FileResourceManager
+import org.silkframework.runtime.resource.FileResourceManager
 
 /**
  * The Silk Server.
@@ -109,17 +109,17 @@ private class Server {
 
   def processAndReturnLinks(source : Source) : Traversable[MatchResult] =
   {
-    Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
+    Logger.getLogger("org.silkframework").setLevel(Level.WARNING)
     val results = datasets.map(m => m(source))
-    Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
+    Logger.getLogger("org.silkframework").setLevel(Level.INFO)
     results
  }
 
   def process(source : Source) : String =
   {
-    //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.WARNING)
+    //Logger.getLogger("org.silkframework").setLevel(Level.WARNING)
     val matchResults = datasets.map(m => m(source))
-    //Logger.getLogger("de.fuberlin.wiwiss.silk").setLevel(Level.INFO)
+    //Logger.getLogger("org.silkframework").setLevel(Level.INFO)
 
     formatResults(matchResults)
   }

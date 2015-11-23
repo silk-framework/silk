@@ -12,15 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
 import java.util.logging.Logger
-import de.fuberlin.wiwiss.silk.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.apache.hadoop.fs.{Path, FileSystem}
-import de.fuberlin.wiwiss.silk.entity._
+import org.silkframework.entity._
 import java.io._
-import de.fuberlin.wiwiss.silk.config.RuntimeConfig
-import de.fuberlin.wiwiss.silk.cache.{BitsetIndex, Partition, EntityCache}
+import org.silkframework.config.RuntimeConfig
+import org.silkframework.cache.{BitsetIndex, Partition, EntityCache}
 
 /**
  * An entity cache, which uses the Hadoop FileSystem API.

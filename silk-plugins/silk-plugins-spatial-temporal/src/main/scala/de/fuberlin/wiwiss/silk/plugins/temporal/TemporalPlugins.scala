@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.temporal
+package org.silkframework.plugins.temporal
 
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure}
+import org.silkframework.rule.similarity.{DistanceMeasure}
 
-import de.fuberlin.wiwiss.silk.plugins.temporal.distance._
-import de.fuberlin.wiwiss.silk.plugins.temporal.relation._
-import de.fuberlin.wiwiss.silk.runtime.plugin.PluginModule
+import org.silkframework.plugins.temporal.distance._
+import org.silkframework.plugins.temporal.relation._
+import org.silkframework.runtime.plugin.PluginModule
 
 /**
  * Register Temporal Plugins.

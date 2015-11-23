@@ -1,11 +1,11 @@
-package de.fuberlin.wiwiss.silk.preprocessing
+package org.silkframework.preprocessing
 
 import java.io.File
-import de.fuberlin.wiwiss.silk.preprocessing.config.Config
-import de.fuberlin.wiwiss.silk.preprocessing.extractor.{FeatureValuePairs, BagOfWords}
-import de.fuberlin.wiwiss.silk.preprocessing.transformer.{Tokenizer, Transformer}
-import de.fuberlin.wiwiss.silk.preprocessing.entity.{Entity, Property}
-import de.fuberlin.wiwiss.silk.preprocessing.execution.ExecuteTask
+import org.silkframework.preprocessing.config.Config
+import org.silkframework.preprocessing.extractor.{FeatureValuePairs, BagOfWords}
+import org.silkframework.preprocessing.transformer.{Tokenizer, Transformer}
+import org.silkframework.preprocessing.entity.{Entity, Property}
+import org.silkframework.preprocessing.execution.ExecuteTask
 
 
 /**

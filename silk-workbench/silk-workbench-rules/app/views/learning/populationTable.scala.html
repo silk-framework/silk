@@ -1,12 +1,12 @@
 @(project: String, task: String,
-  individuals: Seq[de.fuberlin.wiwiss.silk.learning.individual.Individual],
-  referenceEntities: de.fuberlin.wiwiss.silk.evaluation.ReferenceEntities)
+  individuals: Seq[org.silkframework.learning.individual.Individual],
+  referenceEntities: org.silkframework.evaluation.ReferenceEntities)
 
-@import de.fuberlin.wiwiss.silk.learning.individual.Individual
-@import de.fuberlin.wiwiss.silk.evaluation.{ReferenceEntities, LinkageRuleEvaluator, EvaluationResult}
-@import de.fuberlin.wiwiss.silk.evaluation.statistics.LinkageRuleComplexity
+@import org.silkframework.learning.individual.Individual
+@import org.silkframework.evaluation.{ReferenceEntities, LinkageRuleEvaluator, EvaluationResult}
+@import org.silkframework.evaluation.statistics.LinkageRuleComplexity
 @import org.apache.commons.lang3.StringEscapeUtils
-@import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
+@import org.silkframework.runtime.serialization.Serialization
 @import controllers.rules.routes.Assets
 
 <div>

@@ -12,10 +12,10 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.server.model
+package org.silkframework.server.model
 
 import java.io.{FileNotFoundException, File}
-import de.fuberlin.wiwiss.silk.util.StringUtils._
+import org.silkframework.util.StringUtils._
 
 /**
  * The Silk Server configuration.

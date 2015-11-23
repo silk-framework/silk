@@ -12,13 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.server.view.comet
+package org.silkframework.server.view.comet
 
 import xml.{Text, NodeSeq}
 import net.liftweb.common.{Full, Empty, Box}
 import net.liftweb.util.Helpers
 import net.liftweb.http.{SHtml, CometActor}
-import de.fuberlin.wiwiss.silk.server.model.{Dataset, Server}
+import org.silkframework.server.model.{Dataset, Server}
 
 class DatasetManager extends CometActor {
   override def defaultPrefix = Full("comet")

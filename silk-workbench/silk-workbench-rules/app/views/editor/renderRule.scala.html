@@ -1,12 +1,12 @@
-@(rule: de.fuberlin.wiwiss.silk.rule.Operator,
-  prefixes: de.fuberlin.wiwiss.silk.config.Prefixes)
+@(rule: org.silkframework.rule.Operator,
+  prefixes: org.silkframework.config.Prefixes)
+@import org.silkframework.workspace.Constants
 
-@import de.fuberlin.wiwiss.silk.workspace.Constants
-@import de.fuberlin.wiwiss.silk.rule.Operator
-@import de.fuberlin.wiwiss.silk.rule.input.TransformInput
-@import de.fuberlin.wiwiss.silk.rule.input.PathInput
-@import de.fuberlin.wiwiss.silk.rule.similarity.Aggregation
-@import de.fuberlin.wiwiss.silk.rule.similarity.Comparison
+@import org.silkframework.rule.Operator
+@import org.silkframework.rule.input.TransformInput
+@import org.silkframework.rule.input.PathInput
+@import org.silkframework.rule.similarity.Aggregation
+@import org.silkframework.rule.similarity.Comparison
 
 @drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 150)
 @* TODO> suspend drawing in jsPlumb while drawing *@

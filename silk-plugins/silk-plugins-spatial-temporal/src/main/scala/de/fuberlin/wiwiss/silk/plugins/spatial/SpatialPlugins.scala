@@ -12,16 +12,16 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial
+package org.silkframework.plugins.spatial
 
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.rule.input.Transformer
-import de.fuberlin.wiwiss.silk.rule.similarity.{DistanceMeasure}
+import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.similarity.{DistanceMeasure}
 
-import de.fuberlin.wiwiss.silk.plugins.spatial.transformer._
-import de.fuberlin.wiwiss.silk.plugins.spatial.distance._
-import de.fuberlin.wiwiss.silk.plugins.spatial.relation._
-import de.fuberlin.wiwiss.silk.runtime.plugin.PluginModule
+import org.silkframework.plugins.spatial.transformer._
+import org.silkframework.plugins.spatial.distance._
+import org.silkframework.plugins.spatial.relation._
+import org.silkframework.runtime.plugin.PluginModule
 
 /**
  * Register Spatial Plugins.

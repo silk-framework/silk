@@ -1,10 +1,10 @@
-@(project: de.fuberlin.wiwiss.silk.workspace.Project,
+@(project: org.silkframework.workspace.Project,
   varName: String,
   restriction: String,
   types: Set[String],
   typesCache: Seq[(String, Double)])
 
-@import de.fuberlin.wiwiss.silk.workspace.Constants
+@import org.silkframework.workspace.Constants
 @import controllers.workspace.routes.Assets
 
 <link rel="stylesheet" href="@Assets.at("restrictionDialog.css")" type="text/css" />

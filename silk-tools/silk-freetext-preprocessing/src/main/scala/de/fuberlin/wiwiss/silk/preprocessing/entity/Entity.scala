@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.preprocessing.entity
+package org.silkframework.preprocessing.entity
 
 
 case class Entity(uri:String, properties:Traversable[Property]) {

@@ -12,12 +12,12 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.temporal.utils
+package org.silkframework.plugins.temporal.utils
 
 import java.util.Date
 import java.util.logging.Logger
 
-import de.fuberlin.wiwiss.silk.entity.Index
+import org.silkframework.entity.Index
 
 /**
  * Useful utils for the temporal plugins of Silk.

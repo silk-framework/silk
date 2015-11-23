@@ -1,12 +1,14 @@
 @import plugins.Context
-@import de.fuberlin.wiwiss.silk.workspace.{Task, User, Workspace, Project}
-@import de.fuberlin.wiwiss.silk.runtime.activity.ActivityControl
+@import org.silkframework.workspace.{User, Project}
+@import org.silkframework.runtime.activity.ActivityControl
 @import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Assets
 
 @**
  * Overview page of all activities and their status
  *@
+@import org.silkframework.workspace.Task
+@import org.silkframework.workspace.Workspace
 @()
 
 @header = {

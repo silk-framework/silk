@@ -1,7 +1,7 @@
-package de.fuberlin.wiwiss.silk.preprocessing.output
+package org.silkframework.preprocessing.output
 
 
-import de.fuberlin.wiwiss.silk.preprocessing.entity.{Entity,Property}
+import org.silkframework.preprocessing.entity.{Entity,Property}
 import scalax.io._
 
 /**

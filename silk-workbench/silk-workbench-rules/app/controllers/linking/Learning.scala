@@ -1,13 +1,14 @@
 package controllers.linking
 
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.learning.LearningActivity
-import de.fuberlin.wiwiss.silk.learning.active.ActiveLearning
-import de.fuberlin.wiwiss.silk.learning.individual.Population
-import de.fuberlin.wiwiss.silk.util.Identifier._
-import de.fuberlin.wiwiss.silk.workspace.{Task, User}
-import de.fuberlin.wiwiss.silk.workspace.activity.linking.ReferenceEntitiesCache
+import org.silkframework.config.LinkSpecification
+import org.silkframework.learning.LearningActivity
+import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.learning.individual.Population
+import org.silkframework.util.Identifier._
+import org.silkframework.workspace.User
+import org.silkframework.workspace.Task
+import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import play.api.mvc.{Action, Controller}

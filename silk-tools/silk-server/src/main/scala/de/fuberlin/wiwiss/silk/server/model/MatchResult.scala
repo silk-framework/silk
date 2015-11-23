@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.server.model
+package org.silkframework.server.model
 
-import de.fuberlin.wiwiss.silk.util.Uri
-import de.fuberlin.wiwiss.silk.entity.Link
+import org.silkframework.util.Uri
+import org.silkframework.entity.Link
 
 case class MatchResult(links : Traversable[Link], linkType : Uri, unmatchedEntities : Set[String])

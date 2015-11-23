@@ -2,16 +2,16 @@ package controllers.workspace
 
 import config.WorkbenchConfig
 import controllers.workspace.WorkspaceApi._
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.Restriction.{Condition, Operator, Or}
-import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
-import de.fuberlin.wiwiss.silk.entity.{ForwardOperator, Restriction}
-import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
-import de.fuberlin.wiwiss.silk.runtime.serialization.ValidationException
-import de.fuberlin.wiwiss.silk.workspace.io.WorkspaceIO
-import de.fuberlin.wiwiss.silk.workspace.activity.dataset.TypesCache
-import de.fuberlin.wiwiss.silk.workspace.xml.XmlWorkspaceProvider
-import de.fuberlin.wiwiss.silk.workspace.{Constants, PrefixRegistry, User}
+import org.silkframework.dataset.Dataset
+import org.silkframework.entity.Restriction.{Condition, Operator, Or}
+import org.silkframework.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
+import org.silkframework.entity.{ForwardOperator, Restriction}
+import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.activity.dataset.TypesCache
+import org.silkframework.workspace.xml.XmlWorkspaceProvider
+import org.silkframework.workspace.{PrefixRegistry, User}
 import play.Logger
 import play.api.mvc.{Action, Controller}
 

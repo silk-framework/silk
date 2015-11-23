@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.preprocessing.util.jena
+package org.silkframework.preprocessing.util.jena
 
 import java.io.File
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
-import de.fuberlin.wiwiss.silk.preprocessing.util.sparql.SimpleRetriever
+import org.silkframework.preprocessing.util.sparql.SimpleRetriever
 
 
 /**

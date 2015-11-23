@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop
+package org.silkframework.hadoop
 
 import org.apache.hadoop.conf.Configured
 import org.apache.hadoop.util.{ToolRunner, Tool}

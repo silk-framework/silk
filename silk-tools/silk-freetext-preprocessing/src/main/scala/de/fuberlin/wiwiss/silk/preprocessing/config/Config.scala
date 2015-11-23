@@ -1,12 +1,12 @@
-package de.fuberlin.wiwiss.silk.preprocessing.config
+package org.silkframework.preprocessing.config
 
-import de.fuberlin.wiwiss.silk.runtime.serialization.ValidatingXMLReader
+import org.silkframework.runtime.serialization.ValidatingXMLReader
 
 import scala.xml.Node
 
 import scala.Some
-import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
-import de.fuberlin.wiwiss.silk.preprocessing.extractor.Extractor
+import org.silkframework.preprocessing.dataset.Dataset
+import org.silkframework.preprocessing.extractor.Extractor
 
 /**
  * A Free text preprocessing configuration.

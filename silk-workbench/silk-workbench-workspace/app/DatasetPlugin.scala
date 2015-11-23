@@ -1,6 +1,6 @@
-import de.fuberlin.wiwiss.silk.dataset.rdf.RdfDatasetPlugin
-import de.fuberlin.wiwiss.silk.dataset.{DatasetPlugin => DataPlugin, Dataset}
-import de.fuberlin.wiwiss.silk.workspace.scripts.DatasetStatistics.TaskData
+import org.silkframework.dataset.rdf.RdfDatasetPlugin
+import org.silkframework.dataset.{DatasetPlugin => DataPlugin, Dataset}
+import org.silkframework.workspace.scripts.DatasetStatistics.TaskData
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 

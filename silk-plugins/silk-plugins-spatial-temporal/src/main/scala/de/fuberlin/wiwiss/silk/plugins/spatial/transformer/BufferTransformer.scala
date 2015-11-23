@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.transformer
+package org.silkframework.plugins.spatial.transformer
 
-import de.fuberlin.wiwiss.silk.rule.input.SimpleTransformer
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
+import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.plugins.spatial.utils._
 
 /**
  * This plugin returns the buffered geometry of the input geometry (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

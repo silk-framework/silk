@@ -1,6 +1,6 @@
 package models.linking
 
-import de.fuberlin.wiwiss.silk.rule.evaluation.{SimpleConfidence, ComparisonConfidence, AggregatorConfidence, Confidence}
+import org.silkframework.rule.evaluation.{SimpleConfidence, ComparisonConfidence, AggregatorConfidence, Confidence}
 
 object LinkFilter {
   def apply(links: Seq[EvalLink], filter: String): Seq[EvalLink] = {

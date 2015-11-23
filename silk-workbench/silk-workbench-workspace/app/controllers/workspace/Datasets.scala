@@ -1,10 +1,10 @@
 package controllers.workspace
 
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
-import de.fuberlin.wiwiss.silk.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
-import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
-import de.fuberlin.wiwiss.silk.workspace.User
+import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
+import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 

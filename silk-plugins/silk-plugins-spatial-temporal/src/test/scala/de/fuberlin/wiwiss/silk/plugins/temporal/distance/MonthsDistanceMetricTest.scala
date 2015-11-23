@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.temporal.distance
+package org.silkframework.plugins.temporal.distance
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec

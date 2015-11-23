@@ -1,14 +1,14 @@
 package controllers.linking
 
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.workspace.activity.linking.ReferenceEntitiesCache
+import org.silkframework.config.LinkSpecification
+import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.Controller
 import play.api.mvc.Action
-import de.fuberlin.wiwiss.silk.rule.evaluation.DetailedEvaluator
+import org.silkframework.rule.evaluation.DetailedEvaluator
 import models.linking.EvalLink
-import de.fuberlin.wiwiss.silk.entity.Link
+import org.silkframework.entity.Link
 import models.linking.EvalLink._
-import de.fuberlin.wiwiss.silk.workspace.User
+import org.silkframework.workspace.User
 import models.linking.LinkSorter
 import plugins.Context
 

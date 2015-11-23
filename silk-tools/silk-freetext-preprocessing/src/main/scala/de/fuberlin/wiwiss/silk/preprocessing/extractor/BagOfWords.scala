@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.preprocessing.extractor
+package org.silkframework.preprocessing.extractor
 
-import de.fuberlin.wiwiss.silk.preprocessing.transformer.Transformer
-import de.fuberlin.wiwiss.silk.preprocessing.entity.{Property, Entity}
-import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
+import org.silkframework.preprocessing.transformer.Transformer
+import org.silkframework.preprocessing.entity.{Property, Entity}
+import org.silkframework.preprocessing.dataset.Dataset
 import scala.collection.mutable.{ArrayBuffer,HashMap}
 
 /**

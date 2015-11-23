@@ -1,15 +1,15 @@
-package de.fuberlin.wiwiss.silk.preprocessing.execution
+package org.silkframework.preprocessing.execution
 
 
-import de.fuberlin.wiwiss.silk.preprocessing.config.{ExtractorConfig, TransformerConfig, Config}
-import de.fuberlin.wiwiss.silk.preprocessing.extractor._
-import de.fuberlin.wiwiss.silk.preprocessing.transformer.{Tokenizer, Ngrams, Transformer}
-import de.fuberlin.wiwiss.silk.preprocessing.entity.Entity
+import org.silkframework.preprocessing.config.{ExtractorConfig, TransformerConfig, Config}
+import org.silkframework.preprocessing.extractor._
+import org.silkframework.preprocessing.transformer.{Tokenizer, Ngrams, Transformer}
+import org.silkframework.preprocessing.entity.Entity
 import java.util.logging.{Logger, Level}
-import de.fuberlin.wiwiss.silk.preprocessing.dataset.Dataset
+import org.silkframework.preprocessing.dataset.Dataset
 import scala.Some
-import de.fuberlin.wiwiss.silk.preprocessing.util.jena.JenaSource
-import de.fuberlin.wiwiss.silk.preprocessing.output.OutputWriter
+import org.silkframework.preprocessing.util.jena.JenaSource
+import org.silkframework.preprocessing.output.OutputWriter
 
 /**
  * Execute task

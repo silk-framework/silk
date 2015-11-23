@@ -15,8 +15,8 @@
 package bootstrap.liftweb
 
 import net.liftweb.http.LiftRules
-import de.fuberlin.wiwiss.silk.server.view.RestApi
-import de.fuberlin.wiwiss.silk.server.model.Server
+import org.silkframework.server.view.RestApi
+import org.silkframework.server.model.Server
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -28,7 +28,7 @@ class Boot
   {
     Server.start()
 
-    LiftRules.addToPackages("de.fuberlin.wiwiss.silk.server.view")
+    LiftRules.addToPackages("org.silkframework.server.view")
     LiftRules.dispatch.prepend(RestApi.dispatch)
   }
 }

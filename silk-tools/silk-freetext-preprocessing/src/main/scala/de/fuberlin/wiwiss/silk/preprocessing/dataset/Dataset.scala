@@ -1,8 +1,8 @@
-package de.fuberlin.wiwiss.silk.preprocessing.dataset
+package org.silkframework.preprocessing.dataset
 
-import de.fuberlin.wiwiss.silk.preprocessing.entity.{Property, Entity}
+import org.silkframework.preprocessing.entity.{Property, Entity}
 import scala.xml.Node
-import de.fuberlin.wiwiss.silk.preprocessing.util.jena.JenaSource
+import org.silkframework.preprocessing.util.jena.JenaSource
 
 /**
  * Represents a dataset of entities

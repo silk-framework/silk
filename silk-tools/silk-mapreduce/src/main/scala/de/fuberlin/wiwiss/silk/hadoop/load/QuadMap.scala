@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.load
+package org.silkframework.hadoop.load
 
 import org.apache.hadoop.mapreduce.Mapper
 import org.apache.hadoop.io.{Text, NullWritable}

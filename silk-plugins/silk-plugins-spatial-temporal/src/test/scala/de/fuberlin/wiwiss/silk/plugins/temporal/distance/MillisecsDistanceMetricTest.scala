@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.temporal.distance
+package org.silkframework.plugins.temporal.distance
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import de.fuberlin.wiwiss.silk.entity.Index
+import org.silkframework.entity.Index
 
 /**
  * Tests the MillisecsDistance Metric.

@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.utils
+package org.silkframework.plugins.spatial.utils
 
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -26,7 +26,7 @@ import com.vividsolutions.jts.algorithm.MinimumBoundingCircle
 import org.geotools.geometry.jts.JTS.{ orthodromicDistance, transform }
 import org.geotools.referencing.CRS.{ findMathTransform, decode }
 
-import de.fuberlin.wiwiss.silk.entity.Index
+import org.silkframework.entity.Index
 
 /**
  * Useful utils for the spatial plugins of Silk.

@@ -1,6 +1,6 @@
 package controllers.core
 
-import de.fuberlin.wiwiss.silk.runtime.activity.{Observable, ActivityControl, Status}
+import org.silkframework.runtime.activity.{Observable, ActivityControl, Status}
 import models._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import scala.collection.mutable

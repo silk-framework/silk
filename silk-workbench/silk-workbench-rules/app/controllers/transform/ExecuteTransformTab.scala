@@ -1,10 +1,10 @@
 package controllers.transform
 
 import controllers.core.{Stream, Widgets}
-import de.fuberlin.wiwiss.silk.config.TransformSpecification
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
-import de.fuberlin.wiwiss.silk.workspace.User
+import org.silkframework.config.TransformSpecification
+import org.silkframework.dataset.Dataset
+import org.silkframework.execution.ExecuteTransform
+import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.preprocessing.transformer
+package org.silkframework.preprocessing.transformer
 
 
 class Abbreviator {

@@ -1,4 +1,4 @@
-package de.fuberlin.wiwiss.silk.preprocessing.config
+package org.silkframework.preprocessing.config
 
 import scala.xml.Node
 

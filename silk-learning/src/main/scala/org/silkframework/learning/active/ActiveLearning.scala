@@ -1,0 +1,131 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.silkframework.learning.active
+
+import org.silkframework.config.LinkSpecification
+import org.silkframework.dataset.DataSource
+import org.silkframework.entity.Path
+import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import org.silkframework.learning.LearningConfiguration
+import org.silkframework.learning.active.linkselector.WeightedLinkageRule
+import org.silkframework.learning.cleaning.CleanPopulationTask
+import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
+import org.silkframework.learning.reproduction.{Randomize, Reproduction}
+import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.util.{DPair, Timer}
+
+import scala.math.max
+
+//TODO support canceling
+class ActiveLearning(config: LearningConfiguration,
+                     datasets: DPair[DataSource],
+                     linkSpec: LinkSpecification,
+                     paths: DPair[Seq[Path]],
+                     referenceEntities: ReferenceEntities = ReferenceEntities.empty,
+                     initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {
+
+  def isEmpty = datasets.isEmpty
+
+  override def initialValue = Some(initialState)
+
+  override def run(context: ActivityContext[ActiveLearningState]): Unit = {
+    // Update unlabeled pool
+    updatePool(context)
+    val pool = context.value().pool
+
+    // Update population
+    val generator = Timer("LinkageRuleGenerator") {
+      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.links.map(_.entities.get), Nil), config.components)
+    }
+    val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
+    
+    buildPopulation(generator, context)
+
+    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool.links, context.value().population) }
+    val fitnessFunction = config.fitnessFunction(completeEntities)
+    
+    updatePopulation(generator, targetFitness, completeEntities, fitnessFunction, context)
+
+    //Select evaluation links
+    context.status.update("Selecting evaluation links", 0.8)
+
+    //TODO measure improvement of randomization
+    selectLinks(generator, completeEntities, fitnessFunction, context)
+
+    //Clean population
+    if(referenceEntities.isDefined) {
+      val cleanedPopulation = context.executeBlocking(new CleanPopulationTask(context.value().population, fitnessFunction, generator))
+      context.value() = context.value().copy(population = cleanedPopulation)
+    }
+  }
+  
+  private def updatePool(context: ActivityContext[ActiveLearningState]) = Timer("Generating Pool") {
+    var pool = context.value().pool
+
+    //Build unlabeled pool
+    val poolPaths = context.value().pool.entityDescs.map(_.paths)
+    if(context.value().pool.isEmpty || poolPaths != paths) {
+      context.status.update("Loading pool")
+      pool = context.executeBlocking(new GeneratePool(datasets, linkSpec, paths), 0.5)
+    }
+
+    //Assert that no reference links are in the pool
+    pool = pool.withoutLinks(referenceEntities.all.keySet)
+
+    // Update pool
+    context.value() = context.value().copy(pool = pool)
+  }
+  
+  private def buildPopulation(generator: LinkageRuleGenerator, context: ActivityContext[ActiveLearningState]) = Timer("Generating population") {
+    var population = context.value().population
+    if(population.isEmpty) {
+      context.status.update("Generating population", 0.5)
+      val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
+      population = context.executeBlocking(new GeneratePopulation(seedRules, generator, config), 0.6)
+    }
+    context.value() = context.value().copy(population = population)
+  }
+  
+  private def updatePopulation(generator: LinkageRuleGenerator, targetFitness: Double, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Updating population") {
+    var population = context.value().population
+    for(i <- 0 until config.params.maxIterations
+        if i > 0 || population.bestIndividual.fitness < targetFitness
+        if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
+      val progress = 0.2 / config.params.maxIterations
+      population = context.executeBlocking(new Reproduction(population, fitnessFunction, generator, config), progress)
+      if(i % config.params.cleanFrequency == 0) {
+        population = context.executeBlocking(new CleanPopulationTask(population, fitnessFunction, generator))
+      }
+    }
+    context.value() = context.value().copy(population = population)
+  }
+
+  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Selecting links") {
+    val randomizedPopulation = context.executeBlocking(new Randomize(context.value().population, fitnessFunction, generator, config))
+
+    val weightedRules = {
+      val bestFitness = randomizedPopulation.bestIndividual.fitness
+      val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
+      for(individual <- topIndividuals) yield {
+        new WeightedLinkageRule(individual.node.build.operator, max(0.0001, individual.fitness))
+      }
+    }
+
+    val updatedLinks = config.active.selector(weightedRules, context.value().pool.links.toSeq, completeEntities)
+
+    context.value() = context.value().copy(links = updatedLinks)
+  }
+}

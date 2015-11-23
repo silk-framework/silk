@@ -12,15 +12,15 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.server.model
+package org.silkframework.server.model
 
-import de.fuberlin.wiwiss.silk.config.LinkingConfig
-import de.fuberlin.wiwiss.silk.dataset.Source
-import de.fuberlin.wiwiss.silk.config.LinkSpecification
-import de.fuberlin.wiwiss.silk.util.DPair
-import de.fuberlin.wiwiss.silk.entity.Link
-import de.fuberlin.wiwiss.silk.cache.MemoryEntityCache
-import de.fuberlin.wiwiss.silk.execution.{Matcher, Loader}
+import org.silkframework.config.LinkingConfig
+import org.silkframework.dataset.Source
+import org.silkframework.config.LinkSpecification
+import org.silkframework.util.DPair
+import org.silkframework.entity.Link
+import org.silkframework.cache.MemoryEntityCache
+import org.silkframework.execution.{Matcher, Loader}
 
 /**
  * Holds the dataset of a link specification.

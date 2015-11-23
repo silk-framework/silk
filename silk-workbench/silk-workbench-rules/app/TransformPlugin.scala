@@ -1,4 +1,4 @@
-import de.fuberlin.wiwiss.silk.config.TransformSpecification
+import org.silkframework.config.TransformSpecification
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 

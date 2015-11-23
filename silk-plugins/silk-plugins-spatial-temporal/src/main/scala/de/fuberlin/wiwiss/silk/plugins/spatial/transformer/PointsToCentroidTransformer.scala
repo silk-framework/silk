@@ -12,13 +12,13 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.transformer
+package org.silkframework.plugins.spatial.transformer
 
 import java.util.logging.Logger
 
-import de.fuberlin.wiwiss.silk.rule.input.Transformer
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.plugins.spatial.utils._
 
 /**
  * This plugin transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).

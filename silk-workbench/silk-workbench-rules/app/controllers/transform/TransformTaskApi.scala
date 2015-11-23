@@ -2,15 +2,16 @@ package controllers.transform
 
 import java.util.logging.{Level, Logger}
 
-import de.fuberlin.wiwiss.silk.config.{DatasetSelection, TransformSpecification}
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.entity.rdf.SparqlRestriction
-import de.fuberlin.wiwiss.silk.execution.ExecuteTransform
-import de.fuberlin.wiwiss.silk.rule.TransformRule
-import de.fuberlin.wiwiss.silk.runtime.serialization.{Serialization, ValidationException}
-import de.fuberlin.wiwiss.silk.util.{Identifier, CollectLogs}
-import de.fuberlin.wiwiss.silk.workspace.activity.transform.TransformPathsCache
-import de.fuberlin.wiwiss.silk.workspace.{Constants, User}
+import org.silkframework.config.{DatasetSelection, TransformSpecification}
+import org.silkframework.dataset.Dataset
+import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.execution.ExecuteTransform
+import org.silkframework.rule.TransformRule
+import org.silkframework.runtime.serialization.{Serialization, ValidationException}
+import org.silkframework.util.{Identifier, CollectLogs}
+import org.silkframework.workspace.Constants
+import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.User
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, Controller}
 
@@ -104,7 +105,7 @@ object TransformTaskApi extends Controller {
       case Some(xml) =>
         try {
           //Collect warnings while parsing transformation rule
-          val warnings = CollectLogs(Level.WARNING, "de.fuberlin.wiwiss.silk.linkagerule") {
+          val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
             //Load transformation rule
             val updatedRule = Serialization.fromXml[TransformRule](xml.head)
             val updatedRules = task.data.rules.updated(ruleIndex, updatedRule)

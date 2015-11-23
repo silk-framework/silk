@@ -1,9 +1,9 @@
 package controllers.workspace
 
-import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification}
-import de.fuberlin.wiwiss.silk.dataset.Dataset
-import de.fuberlin.wiwiss.silk.workspace.{User, Project}
-import de.fuberlin.wiwiss.silk.workspace.activity.workflow.Workflow
+import org.silkframework.config.{LinkSpecification, TransformSpecification}
+import org.silkframework.dataset.Dataset
+import org.silkframework.workspace.{User, Project}
+import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsArray, JsObject, JsString, Json}
 
 import scala.reflect.ClassTag

@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.hadoop.impl
+package org.silkframework.hadoop.impl
 
 import org.apache.hadoop.mapreduce.Mapper
 import org.apache.hadoop.io.{NullWritable, Text}
-import de.fuberlin.wiwiss.silk.hadoop.SilkConfiguration
+import org.silkframework.hadoop.SilkConfiguration
 
 class SilkMap extends Mapper[NullWritable, EntityPair, Text, EntityConfidence]
 {

@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.temporal.utils
+package org.silkframework.plugins.temporal.utils
 
 import java.text.{ParseException, SimpleDateFormat}
 import java.util.Date

@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.transformer
+package org.silkframework.plugins.spatial.transformer
 
-import de.fuberlin.wiwiss.silk.rule.input.Transformer
-import de.fuberlin.wiwiss.silk.runtime.plugin.Plugin
-import de.fuberlin.wiwiss.silk.plugins.spatial.utils._
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.plugins.spatial.utils._
 
 /**
  * This plugin transforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).

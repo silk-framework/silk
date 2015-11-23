@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package de.fuberlin.wiwiss.silk.plugins.spatial.transformer
+package org.silkframework.plugins.spatial.transformer
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec

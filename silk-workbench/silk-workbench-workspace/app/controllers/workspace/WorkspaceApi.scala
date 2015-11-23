@@ -4,15 +4,16 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 
 import controllers.core.{Stream, Widgets}
 import controllers.workspace.Datasets._
-import de.fuberlin.wiwiss.silk.config._
-import de.fuberlin.wiwiss.silk.runtime.activity.Activity
-import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
-import de.fuberlin.wiwiss.silk.runtime.resource.InMemoryResourceManager
-import de.fuberlin.wiwiss.silk.runtime.serialization.Serialization
-import de.fuberlin.wiwiss.silk.workspace.io.{SilkConfigExporter, WorkspaceIO, SilkConfigImporter}
-import de.fuberlin.wiwiss.silk.workspace.activity.ProjectExecutor
-import de.fuberlin.wiwiss.silk.workspace.xml.XmlWorkspaceProvider
-import de.fuberlin.wiwiss.silk.workspace.{Task, Project, User}
+import org.silkframework.config._
+import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.workspace.Task
+import org.silkframework.workspace.io.{SilkConfigExporter, WorkspaceIO, SilkConfigImporter}
+import org.silkframework.workspace.activity.ProjectExecutor
+import org.silkframework.workspace.xml.XmlWorkspaceProvider
+import org.silkframework.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
