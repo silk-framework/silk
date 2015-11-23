@@ -20,7 +20,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl, HasV
 import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.ActivityProvider
-import scala.collection.immutable.{ListMap, TreeMap}
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 
@@ -33,8 +33,6 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
                                module: Module[DataType]) {
 
   private val log = Logger.getLogger(getClass.getName)
-
-  private def projectName: String = module.project.name
 
   @volatile
   private var currentData: DataType = initialData
@@ -93,7 +91,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    */
   def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '$projectName' does not contain an activity of type '${requestedClass.getName}'. " +
+    activityControls.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
                                                                                 s"Available activities:\n${activityControls.keys.map(_.getName).mkString("\n ")}"))
                     .asInstanceOf[ActivityControl[T#ValueType]]
   }
@@ -106,15 +104,15 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    */
   def activity(activityName: String): ActivityControl[_] = {
     activityControls.values.find(_.name == activityName)
-      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '$projectName' does not contain an activity named '$activityName'. " +
+      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
                                                   s"Available activities: ${activityControls.values.map(_.name).mkString(", ")}"))
   }
 
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      module.provider.putTask(projectName, name, data)
-      log.info(s"Persisted task '$name' in project '$projectName'")
+      module.provider.putTask(project.name, name, data)
+      log.info(s"Persisted task '$name' in project '${project.name}'")
       // Update caches
       for(activity <- activityList if activity.autoRun) {
         val activityControl = activityControls(activity.activityType)
