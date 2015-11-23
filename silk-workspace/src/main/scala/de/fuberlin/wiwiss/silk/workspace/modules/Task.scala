@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityControl, HasValue}
 import de.fuberlin.wiwiss.silk.runtime.plugin.{PluginDescription, PluginRegistry}
 import de.fuberlin.wiwiss.silk.util.Identifier
-import de.fuberlin.wiwiss.silk.workspace.{TaskActivityFactory, ActivityProvider}
+import de.fuberlin.wiwiss.silk.workspace.{TaskActivityFactory, ProjectActivityFactory}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 

@@ -3,6 +3,7 @@ package de.fuberlin.wiwiss.silk.runtime.activity
 import de.fuberlin.wiwiss.silk.util.StringUtils._
 
 import scala.concurrent.ExecutionContext
+import scala.reflect.ClassTag
 
 /**
  * An activity is a unit of work that can be executed in the background.
@@ -61,6 +62,18 @@ object Activity {
    */
   def apply[T](activity: Activity[T]): ActivityControl[T] = {
     new ActivityExecution[T](activity)
+  }
+
+  /**
+    * Whenever the returned activity is executed, generates and executes a new internal activity.
+    */
+  def regenerating[ActivityType <: Activity[ActivityData] : ClassTag, ActivityData](generateActivity: => ActivityType): Activity[ActivityData] = {
+    new Activity[ActivityData] {
+      override def name = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.undoCamelCase
+      override def run(context: ActivityContext[ActivityData]): Unit = {
+        generateActivity.run(context)
+      }
+    }
   }
 }
 

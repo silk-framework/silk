@@ -48,19 +48,6 @@ abstract class TaskActivityFactory[TaskType: ClassTag, ActivityType <: Activity[
     * Returns the type of generated activities.
     */
   def activityType = implicitly[ClassTag[ActivityType]].runtimeClass
-
-  /**
-    * Whenever the returned activity is executed, generates and executes a new internal activity.
-    */
-  protected def regenerating(generateActivity: => ActivityType): Activity[ActivityData] = {
-    new Activity[ActivityData] {
-      override def name = activityType.getSimpleName.undoCamelCase
-      override def run(context: ActivityContext[ActivityData]): Unit = {
-        generateActivity.run(context)
-      }
-    }
-  }
-
 }
 
 class TypesCacheFactory extends TaskActivityFactory[Dataset, TypesCache, Types] {
@@ -78,7 +65,7 @@ class TypesCacheFactory extends TaskActivityFactory[Dataset, TypesCache, Types] 
 class ExecuteTransformFactory extends TaskActivityFactory[TransformSpecification, ExecuteTransform, Unit] {
 
   def apply(task: Task[TransformSpecification]): Activity[Unit] = {
-    regenerating {
+    Activity.regenerating {
       new ExecuteTransform(
         input = task.project.task[Dataset](task.data.selection.datasetId).data.source,
         selection = task.data.selection,
@@ -102,7 +89,7 @@ class TransformPathsCacheFactory extends TaskActivityFactory[TransformSpecificat
 class GenerateLinksFactory extends TaskActivityFactory[LinkSpecification, GenerateLinks, Seq[Link]] {
 
   def apply(task: Task[LinkSpecification]): Activity[Seq[Link]] = {
-    regenerating {
+    Activity.regenerating {
       GenerateLinks.fromSources(
         datasets = task.project.tasks[Dataset].map(_.data),
         linkSpec = task.data,
@@ -115,7 +102,7 @@ class GenerateLinksFactory extends TaskActivityFactory[LinkSpecification, Genera
 class LearningFactory extends TaskActivityFactory[LinkSpecification, LearningActivity, LearningResult] {
 
   def apply(task: Task[LinkSpecification]): Activity[LearningResult] = {
-    regenerating {
+    Activity.regenerating {
       val input =
         LearningInput(
           trainingEntities = task.activity[ReferenceEntitiesCache].value(),
@@ -130,7 +117,7 @@ class LearningFactory extends TaskActivityFactory[LinkSpecification, LearningAct
 class ActiveLearningFactory extends TaskActivityFactory[LinkSpecification, ActiveLearning, ActiveLearningState] {
 
   def apply(task: Task[LinkSpecification]): Activity[ActiveLearningState] = {
-    regenerating {
+    Activity.regenerating {
       new ActiveLearning(
         config = LearningConfiguration.default,
         datasets = DPair.fromSeq(task.data.dataSelections.map(ds => task.project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).getOrElse(Dataset.empty).source)),

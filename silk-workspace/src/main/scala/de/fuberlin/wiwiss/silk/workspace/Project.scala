@@ -25,7 +25,7 @@ import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTaskExecutor
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
-import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, Module, Task, TaskExecutor}
+import de.fuberlin.wiwiss.silk.workspace.modules.{ Module, Task, TaskExecutor}
 import de.fuberlin.wiwiss.silk.workspace.xml._
 
 import scala.reflect.ClassTag
@@ -71,8 +71,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
     * Available activities for this project.
     */
   val activities: Seq[ActivityControl[Unit]] = {
-    for { activityProvider <- PluginRegistry.availablePlugins[ActivityProvider].toList
-          activity <- activityProvider().projectActivities(this) } yield Activity(activity)
+    for (activityFactory <- PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList) yield Activity(activityFactory()(this))
   }
 
   /**
