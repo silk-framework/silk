@@ -43,7 +43,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
   override def retrieve(entityDesc: SparqlEntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     canceled = false
     if(entityDesc.paths.size <= 1)
-      new SimpleEntityRetriever(endpoint, pageSize, graphUri).retrieve(entityDesc, entities, limit)
+      new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entityDesc, entities, limit)
     else
       new EntityTraversable(entityDesc, entities, limit)
   }
