@@ -18,9 +18,11 @@ What’s new:
 
 - TODO Robert: other updates
 
+- Silk packages are now located in the package org.silkframework
+
 The Silk framework is provided under the terms of the Apache License, Version 2.0. More information about the Silk Link Discovery Framework is available at: 
 
-http://silk-framework.com/
+http://silkframework.org/
 
 Commercial extensions and support for Silk is provided by eccenca:
 
