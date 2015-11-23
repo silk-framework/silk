@@ -5,6 +5,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
 /**
   * An activity that belongs to a project.
   *
+  * @param name The name of this activity
   * @param project The project this activity belongs to
   * @param activityGenerator A function that generates a new activity for a project.
   */

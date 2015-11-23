@@ -93,7 +93,7 @@ case class DefaultActivities() extends ActivityProvider {
       )
 
     // ReferenceEntities Cache
-    def referenceEntitiesCache() = new ReferenceEntitiesCache(task, project)
+    def referenceEntitiesCache() = new ReferenceEntitiesCache(task)
 
     // Create task activities
     val taskResources = project.cacheResources.child("linking").child(task.name)

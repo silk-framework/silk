@@ -10,7 +10,7 @@ import de.fuberlin.wiwiss.silk.util.DPair
 import de.fuberlin.wiwiss.silk.workspace.Project
 import de.fuberlin.wiwiss.silk.workspace.modules.Task
 
-class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) extends Activity[ReferenceEntities] {
+class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[ReferenceEntities] {
 
   override def initialValue = Some(ReferenceEntities.empty)
 
@@ -31,7 +31,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification], project: Project) ex
 
   private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[SparqlEntitySchema]) {
 
-    private val sources = task.data.dataSelections.map(ds => project.task[Dataset](ds.datasetId).data.source)
+    private val sources = task.data.dataSelections.map(ds => task.project.task[Dataset](ds.datasetId).data.source)
 
     private val linkSpec = task.data
 

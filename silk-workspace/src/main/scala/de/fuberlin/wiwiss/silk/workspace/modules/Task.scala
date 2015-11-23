@@ -57,6 +57,11 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
     activityControls(activity.activityType).start()
 
   /**
+    * The project this task belongs to.
+    */
+  def project = module.project
+
+  /**
    * Retrieves the current data of this task.
    */
   def data = currentData
