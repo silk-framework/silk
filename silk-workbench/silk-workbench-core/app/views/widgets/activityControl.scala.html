@@ -1,4 +1,4 @@
-@(context: plugins.Context[_], activity: String)
+@(project: String, task: Option[String], activity: String)
 
 @import controllers.core.routes.Assets
 
@@ -37,12 +37,12 @@
   }
 </script>
 
-<div id="@id(context.project.name, context.task.name, activity)" class="activity-progress">
+<div id="@id(project, task.getOrElse(""), activity)" class="activity-progress">
   <div class="activity-progress-text"></div>
   <img class="activity-progress-help" src="@Assets.at("img/help.png")"/>
 </div>
 
-<iframe src="@config.baseUrl/workspace/activities/updates?project=@context.project.name&task=@context.task.name&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
+<iframe src="@config.baseUrl/workspace/activities/updates?project=@project@for(t <- task){&task=@t}&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
 
 @id(project: String, task: String, activity: String) = @{
   "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)

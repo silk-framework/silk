@@ -5,6 +5,9 @@
 @import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Assets
 
+@**
+ * Overview page of all activities and their status
+ *@
 @()
 
 @header = {
@@ -79,6 +82,12 @@
   <li id="project_@project.name" class="jstree-open" >
     @project.name
     <ul>
+    Project Activities
+    @for(activity <- project.activities) {
+      @projectActivityStatus(project, activity)
+    }
+    </ul>
+    <ul>
     @for(task <- project.allTasks) {
       @taskActivities(project, task)
     }
@@ -91,13 +100,24 @@
     @task.name
     <ul>
     @for(activity <- task.activities) {
-      @activityStatus(project, task, activity)
+      @taskActivityStatus(project, task, activity)
     }
     </ul>
   </li>
 }
 
-@activityStatus(project: Project, task: Task[_], activity: ActivityControl[_]) = {
+@projectActivityStatus(project: Project, activity: ActivityControl[_]) = {
+  <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
+    @activity.name
+    <div id="@id(project.name, "", activity.name)" class="activity-progress-small">
+      <div class="activity-progress-small-text"></div>
+      <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
+    </div>
+    <button class="activity-button" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name).url')">Start</button>
+  </li>
+}
+
+@taskActivityStatus(project: Project, task: Task[_], activity: ActivityControl[_]) = {
   <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div id="@id(project.name, task.name, activity.name)" class="activity-progress-small">

@@ -73,7 +73,7 @@ object WorkspaceApi extends Controller {
       BadRequest("No project executor available")
     else {
       val projectExecutor = projectExecutors.head()
-      Activity(projectExecutor.create(project)).start()
+      Activity(projectExecutor.apply(project)).start()
       Ok
     }
   }
@@ -144,8 +144,14 @@ object WorkspaceApi extends Controller {
 
   def startActivity(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    val activity = task.activity(activityName)
+    val activity =
+      if(taskName.nonEmpty) {
+        val task = project.anyTask(taskName)
+        task.activity(activityName)
+      } else {
+        project.activity(activityName)
+      }
+
     activity.cancel()
     activity.reset()
     activity.start()
@@ -154,32 +160,46 @@ object WorkspaceApi extends Controller {
 
   def cancelActivity(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    val activity = task.activity(activityName)
+    val activity =
+      if(taskName.nonEmpty) {
+        val task = project.anyTask(taskName)
+        task.activity(activityName)
+      } else {
+        project.activity(activityName)
+      }
+
     activity.cancel()
     Ok
   }
 
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
     val projects =
-      if(projectName.nonEmpty) User().workspace.project(projectName) :: Nil
-      else User().workspace.projects.toSeq
+      if (projectName.nonEmpty) User().workspace.project(projectName) :: Nil
+      else User().workspace.projects
 
     def tasks(project: Project) =
-      if(taskName.nonEmpty) project.anyTask(taskName) :: Nil
+      if (taskName.nonEmpty) project.anyTask(taskName) :: Nil
       else project.allTasks
 
-    def activities(task: Task[_]) =
-      if(activityName.nonEmpty) task.activity(activityName) :: Nil
+    def projectActivities(project: Project) =
+      if (taskName.nonEmpty) Nil
+      else project.activities
+
+    def taskActivities(task: Task[_]) =
+      if (activityName.nonEmpty) task.activity(activityName) :: Nil
       else task.activities
 
-    val activityStreams =
-      for(project <- projects;
-          task <- tasks(project);
-          activity <- activities(task)) yield
+    val projectActivityStreams =
+      for (project <- projects; activity <- projectActivities(project)) yield
+        Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = "", activity = activity.name)
+
+    val taskActivityStreams =
+      for (project <- projects;
+           task <- tasks(project);
+           activity <- taskActivities(task)) yield
         Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = task.name, activity = activity.name)
 
-    Ok.chunked(Enumerator.interleave(activityStreams))
+    Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
   }
 
 }

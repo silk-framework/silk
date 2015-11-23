@@ -8,7 +8,7 @@ import de.fuberlin.wiwiss.silk.runtime.activity.{Activity, ActivityContext}
   * @param project The project this activity belongs to
   * @param activityGenerator A function that generates a new activity for a project.
   */
-class ProjectActivity(project: Project, activityGenerator: Project => Activity[Unit]) extends Activity[Unit] {
+class ProjectActivity(override val name: String, project: Project, activityGenerator: Project => Activity[Unit]) extends Activity[Unit] {
 
   /**
     * Executes this activity.
@@ -19,5 +19,4 @@ class ProjectActivity(project: Project, activityGenerator: Project => Activity[U
     val activity = activityGenerator(project)
     activity.run(context)
   }
-
 }

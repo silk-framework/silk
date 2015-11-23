@@ -4,8 +4,8 @@ import de.fuberlin.wiwiss.silk.runtime.activity.Activity
 import de.fuberlin.wiwiss.silk.runtime.plugin.AnyPlugin
 import de.fuberlin.wiwiss.silk.workspace.Project
 
-trait ProjectExecutor extends AnyPlugin {
+trait ProjectExecutor extends AnyPlugin with (Project => Activity[Unit]) {
 
-  def create(project: Project): Activity[Unit]
+  def apply(project: Project): Activity[Unit]
 
 }

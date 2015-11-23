@@ -18,12 +18,14 @@ import java.util.logging.Logger
 
 import de.fuberlin.wiwiss.silk.config.{LinkSpecification, TransformSpecification}
 import de.fuberlin.wiwiss.silk.dataset.Dataset
+import de.fuberlin.wiwiss.silk.runtime.activity.{ActivityControl, Activity}
+import de.fuberlin.wiwiss.silk.runtime.plugin.PluginRegistry
 import de.fuberlin.wiwiss.silk.runtime.resource.ResourceManager
 import de.fuberlin.wiwiss.silk.util.Identifier
 import de.fuberlin.wiwiss.silk.workspace.modules.linking.LinkingTaskExecutor
 import de.fuberlin.wiwiss.silk.workspace.modules.transform._
 import de.fuberlin.wiwiss.silk.workspace.modules.workflow.Workflow
-import de.fuberlin.wiwiss.silk.workspace.modules.{Module, Task, TaskExecutor}
+import de.fuberlin.wiwiss.silk.workspace.modules.{TaskActivity, Module, Task, TaskExecutor}
 import de.fuberlin.wiwiss.silk.workspace.xml._
 
 import scala.reflect.ClassTag
@@ -57,8 +59,31 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
 
+  /**
+    * The name of this project.
+    */
   def name = cachedConfig.id
-  
+
+  /**
+    * Available activities for this project.
+    */
+  val activities: Seq[ActivityControl[Unit]] = {
+    for { activityProvider <- PluginRegistry.availablePlugins[ActivityProvider].toList
+          activity <- activityProvider().projectActivities(this) } yield Activity(activity)
+  }
+
+  /**
+    * Retrieves an activity by name.
+    *
+    * @param activityName The name of the requested activity
+    * @return The activity control for the requested activity
+    */
+  def activity(activityName: String): ActivityControl[_] = {
+    activities.find(_.name == activityName)
+      .getOrElse(throw new NoSuchElementException(s"Project '$name' does not contain an activity named '$activityName'. " +
+        s"Available activities: ${activities.map(_.name).mkString(", ")}"))
+  }
+
   /**
    * Reads the project configuration.
    */
