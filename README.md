@@ -6,7 +6,7 @@ Silk is an open source framework for integrating heterogeneous data sources. The
 - Linked Data publishers can use Silk to set RDF links from their data sources to other data sources on the Web.
 - Applying data transformations to structured data sources.
 
-General information about Silk can be found on the official [website](http://silk-framework.com).
+General information about Silk can be found on the official [website](http://silkframework.org).
 
 ## Documentation
 
