@@ -20,7 +20,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   /**
    * Retrieves the logger to be used by the activity.
    */
-  override val log = Logger.getLogger(activity.getClass.getName)
+  override val log = Logger.getLogger("org.silkframework.runtime.activity." + name)  // activity.getClass.getName
 
   /**
    * Holds the current status.

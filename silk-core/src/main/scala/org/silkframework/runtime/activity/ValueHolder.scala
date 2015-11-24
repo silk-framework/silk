@@ -7,13 +7,21 @@ class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
 
   @volatile
   private var value: T = _
-  for(v <- initialValue)
-    value = v
 
-  override def apply(): T = value
+  @volatile
+  private var initialized: Boolean = false
+
+  override def apply(): T = {
+    if(!initialized && initialValue.isDefined) {
+      value = initialValue.get
+      initialized = true
+    }
+    value
+  }
 
   def update(v: T) {
     value = v
+    initialized = true
     publish(v)
   }
 }

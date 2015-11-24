@@ -70,8 +70,10 @@ object Activity {
   def regenerating[ActivityType <: Activity[ActivityData] : ClassTag, ActivityData](generateActivity: => ActivityType): Activity[ActivityData] = {
     new Activity[ActivityData] {
       override def name = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.undoCamelCase
+      override def initialValue = generateActivity.initialValue
       override def run(context: ActivityContext[ActivityData]): Unit = {
-        generateActivity.run(context)
+        val activity = generateActivity
+        activity.run(context)
       }
     }
   }
