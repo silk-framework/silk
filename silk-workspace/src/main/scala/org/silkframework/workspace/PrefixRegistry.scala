@@ -18,7 +18,7 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Prefixes
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 /**
  * Registry of known prefixes.
@@ -32,7 +32,7 @@ object PrefixRegistry {
   lazy val all: Prefixes = {
     try {
       val prefixStream = getClass.getClassLoader.getResourceAsStream("org/silkframework/workspace/prefixes.csv")
-      val prefixSource = Source.fromInputStream(prefixStream)
+      val prefixSource = Source.fromInputStream(prefixStream)(Codec.ISO8859)
       val prefixLines = prefixSource.getLines
 
       val prefixMap = prefixLines.map(_.split(',')).map {
