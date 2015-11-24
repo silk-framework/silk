@@ -18,7 +18,7 @@ import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.Logger
 
 import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.TaskActivityFactory
 
@@ -42,25 +42,14 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val taskActivityFactories: Seq[TaskActivityFactory[DataType, _, _]] = {
+  private val taskActivities: Seq[ActivityHolder] = {
     // Get all task activity factories for this task type
-    PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _, _]].map(_.apply()).filter(_.isTaskType[DataType])
+    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _, _]].map(_.apply()).filter(_.isTaskType[DataType])
+    for(factory <- factories) yield
+      new ActivityHolder(factory)
   }
 
-  @volatile
-  private var taskActivities = Seq[ActivityControl[_]]()
-  taskActivities = {
-    taskActivityFactories.map(factory => Activity(factory(this)))
-  }
-
-  @volatile
-  private var taskActivityMap = ListMap[Class[_], ActivityControl[_]]()
-  taskActivityMap = {
-    var map = ListMap[Class[_], ActivityControl[_]]()
-    for ((factory, activity) <- taskActivityFactories zip taskActivities)
-      map += ((factory.activityType, activity))
-    map
-  }
+  private val taskActivityMap: Map[Class[_], ActivityHolder] = taskActivities.map(a => (a.factory.activityType, a)).toMap
 
   /**
     * The project this task belongs to.
@@ -74,8 +63,8 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
 
   def init() = {
     // Start autorun activities
-    for((factory, activity) <- taskActivityFactories zip taskActivities if factory.autoRun)
-      activity.start()
+    for(activity <- taskActivities if activity.factory.autoRun)
+      activity.control.start()
   }
 
   /**
@@ -95,7 +84,12 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   /**
    * All activities that belong to this task.
    */
-  def activities: Seq[ActivityControl[_]] = taskActivityMap.values.toSeq
+  def activities: Seq[ActivityControl[_]] = taskActivities.map(_.control)
+
+  def activityConfig(activityName: String): Map[String, String] = {
+    val activity = taskActivities.find(_.name == activityName).get
+    PluginDescription(activity.factory.getClass).parameterValues(activity.factory)
+  }
 
   /**
    * Retrieves an activity by type.
@@ -107,7 +101,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
     val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
                                                                                          s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
-    act.asInstanceOf[ActivityControl[T#ValueType]]
+    act.control.asInstanceOf[ActivityControl[T#ValueType]]
   }
 
   /**
@@ -117,9 +111,9 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @return The activity control for the requested activity
    */
   def activity(activityName: String): ActivityControl[_] = {
-    taskActivityMap.values.find(_.name == activityName)
+    taskActivities.find(_.name == activityName)
       .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
-                                                  s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
+                                                  s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}")).control
   }
 
   private object Writer extends Runnable {
@@ -128,11 +122,17 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
       module.provider.putTask(project.name, name, data)
       log.info(s"Persisted task '$name' in project '${project.name}'")
       // Update caches
-      for((factory, activity) <- taskActivityFactories zip taskActivities if factory.autoRun) {
-        activity.cancel()
-        activity.start()
+      for(activity <- taskActivities if activity.factory.autoRun) {
+        activity.control.cancel()
+        activity.control.start()
       }
     }
+  }
+
+  private class ActivityHolder(@volatile var factory: TaskActivityFactory[DataType, _, _]) {
+    def name = control.name
+    @volatile
+    var control: ActivityControl[_] = Activity(factory(Task.this))
   }
 }
 

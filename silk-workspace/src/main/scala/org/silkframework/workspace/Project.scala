@@ -19,13 +19,13 @@ import java.util.logging.Logger
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.{ActivityControl, Activity}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.activity.{ProjectActivityFactory, TaskExecutor}
+import org.silkframework.workspace.activity.{TaskActivityFactory, ProjectActivityFactory, TaskExecutor}
 import org.silkframework.workspace.xml._
 
 import scala.reflect.ClassTag
@@ -67,11 +67,17 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
     */
   def name = cachedConfig.id
 
+  private val projectActivities = {
+    val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList
+    for(factory <- factories) yield
+      new ActivityHolder(factory())
+  }
+
   /**
     * Available activities for this project.
     */
-  val activities: Seq[ActivityControl[Unit]] = {
-    for (activityFactory <- PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList) yield Activity(activityFactory()(this))
+  def activities: Seq[ActivityControl[Unit]] = {
+    projectActivities.map(_.control)
   }
 
   /**
@@ -81,7 +87,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
     * @return The activity control for the requested activity
     */
   def activity(activityName: String): ActivityControl[_] = {
-    activities.find(_.name == activityName)
+    activityHolder(activityName).control
+  }
+
+  def activityConfig(activityName: String): Map[String, String] = {
+    val factory = activityHolder(activityName).factory
+    PluginDescription(factory.getClass).parameterValues(factory)
+  }
+
+  private def activityHolder(activityName: String) = {
+    projectActivities.find(_.name == activityName)
       .getOrElse(throw new NoSuchElementException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
   }
@@ -193,5 +208,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
   def registerExecutor[T : ClassTag](executor: TaskExecutor[T]) = {
     val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
     executors = executors.updated(taskClassName, executor)
+  }
+
+  private class ActivityHolder(@volatile var factory: ProjectActivityFactory[_]) {
+    def name = control.name
+    @volatile
+    var control: ActivityControl[Unit] = Activity(factory(Project.this))
   }
 }

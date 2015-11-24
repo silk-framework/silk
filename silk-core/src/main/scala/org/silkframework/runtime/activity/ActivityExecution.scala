@@ -46,7 +46,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
         throw ex
     }
   }
-  
+
   override def children(): Seq[ActivityControl[_]] = {
     removeDoneChildren()
     childControls
@@ -84,6 +84,8 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     addChild(execution)
     execution
   }
+
+  override def underlying: Activity[T] = activity
 
   private def addChild(control: ActivityControl[_]): Unit = {
     childControls = childControls :+ control

@@ -51,4 +51,9 @@ trait ActivityControl[T] {
    * Resets the value of this activity to its initial value.
    */
   def reset()
+
+  /**
+    * Returns the underlying activity.
+    */
+  def underlying: Activity[T]
 }
