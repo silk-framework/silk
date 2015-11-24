@@ -91,6 +91,12 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
     PluginDescription(activity.factory.getClass).parameterValues(activity.factory)
   }
 
+  def updateActivity(activityName: String, config: Map[String, String]) = {
+    val activity = taskActivities.find(_.name == activityName).get
+    activity.factory = PluginDescription(activity.factory.getClass)(config)
+    activity.control = Activity(activity.factory(Task.this))
+  }
+
   /**
    * Retrieves an activity by type.
    *

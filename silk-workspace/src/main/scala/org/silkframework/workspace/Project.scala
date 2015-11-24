@@ -95,6 +95,12 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider) {
     PluginDescription(factory.getClass).parameterValues(factory)
   }
 
+  def updateActivity(activityName: String, config: Map[String, String]) = {
+    val activity = activityHolder(activityName)
+    activity.factory = PluginDescription(activity.factory.getClass)(config)
+    activity.control = Activity(activity.factory(Project.this))
+  }
+
   private def activityHolder(activityName: String) = {
     projectActivities.find(_.name == activityName)
       .getOrElse(throw new NoSuchElementException(s"Project '$name' does not contain an activity named '$activityName'. " +
