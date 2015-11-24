@@ -27,7 +27,7 @@ trait AnyPlugin {
   /**
    * The parameters for this plugin as Map.
    */
-  lazy val parameters: Map[String, String] = plugin.parameters.map(param => (param.name, param(this).toString)).toMap
+  lazy val parameters: Map[String, String] = plugin.parameterValues(this)
 
   override def toString = {
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
