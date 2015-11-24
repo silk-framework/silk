@@ -6,7 +6,7 @@ import controllers.core.{Stream, Widgets}
 import controllers.workspace.Datasets._
 import org.silkframework.config._
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.Task
@@ -171,6 +171,19 @@ object WorkspaceApi extends Controller {
 
     activity.cancel()
     Ok
+  }
+
+  def getActivityConfig(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val activityConfig =
+      if(taskName.nonEmpty) {
+        val task = project.anyTask(taskName)
+        task.activityConfig(activityName)
+      } else {
+        project.activityConfig(activityName)
+      }
+
+    Ok(activityConfig.toString)
   }
 
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {

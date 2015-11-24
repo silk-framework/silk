@@ -51,6 +51,7 @@ POST          /projects/:project/execute                       controllers.works
 # Activities
 POST          /activities/start                                controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
 POST          /activities/cancel                               controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
+GET           /activities/config                               controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task: String, activity: String)
 GET           /activities/updates                              controllers.workspace.WorkspaceApi.activityUpdates(project: String, task: String, activity: String)
 
 # Resources
