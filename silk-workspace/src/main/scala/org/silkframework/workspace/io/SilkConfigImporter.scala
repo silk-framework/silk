@@ -21,13 +21,18 @@ import org.silkframework.config.LinkingConfig
  * Imports a Silk SilkConfig into a project.
  */
 object SilkConfigImporter {
-  def apply(config : LinkingConfig, project : Project) {
+  def apply(config: LinkingConfig, project: Project) {
     //Add all prefixes
     project.config = project.config.copy(prefixes = project.config.prefixes ++ config.prefixes)
 
     //Add all sources
     for(source <- config.sources) {
       project.addTask(source.id, source)
+    }
+
+    //Add all outputs
+    for(output <- config.outputs) {
+      project.addTask(output.id, output)
     }
 
     //Add all linking tasks
