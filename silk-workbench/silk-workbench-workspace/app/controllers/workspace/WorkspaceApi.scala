@@ -81,6 +81,7 @@ object WorkspaceApi extends Controller {
 
   def importLinkSpec(projectName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
+    implicit val resources = project.resources
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
