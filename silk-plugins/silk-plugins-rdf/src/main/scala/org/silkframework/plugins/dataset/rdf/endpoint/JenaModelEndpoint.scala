@@ -38,3 +38,4 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
       super.update(query)
     }
   }
+}
