@@ -87,7 +87,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
      * Closes this writer.
      */
     override def close() {
-      if (isOpen) writer.close()
+      if (writer != null) writer.close()
       isOpen = false
       log.info(s"Wrote $entityCount entities and $linkCount links.")
     }
