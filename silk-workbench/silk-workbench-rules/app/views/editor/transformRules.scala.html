@@ -225,7 +225,7 @@
             <input class="name" value="@rule.name" size="16" />
           </td>
           <td>
-            (complex)
+            @if(rule.paths.size == 1) { @rule.paths.head.serializeSimplified(prefixes()) } else { (multiple) }
           </td>
           <td>
             <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" />
