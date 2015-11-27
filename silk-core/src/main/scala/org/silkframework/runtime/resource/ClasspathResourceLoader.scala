@@ -22,7 +22,7 @@ case class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
     val path = if(basePath.isEmpty) name else basePath + "/" + name
     if(mustExist && getClass.getClassLoader.getResource(path) == null)
       throw new ResourceNotFoundException(s"Resource $name not found in classpath $basePath")
-    new ClasspathResource(name, path)
+    new ClasspathResource(path)
   }
 
   override def listChildren: List[String] = {
@@ -41,9 +41,4 @@ case class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
   }
 }
 
-private class ClasspathResource(val name: String, val path: String) extends Resource {
 
-  override def load = {
-    getClass.getClassLoader.getResourceAsStream(path)
-  }
-}
