@@ -1,10 +1,11 @@
-@(name: String,
-  plugins: Seq[org.silkframework.runtime.plugin.PluginDescription[_]],
-  currentObj: Option[org.silkframework.runtime.plugin.AnyPlugin],
-  resources: List[String])(contents: Html)
-
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.runtime.plugin.Parameter
+@import org.silkframework.runtime.plugin.AnyPlugin
+
+@(name: String,
+  plugins: Seq[PluginDescription[_]],
+  currentObj: Option[AnyPlugin],
+  resources: List[String])(contents: Html)
 
 @dialog(title = "Edit Properties", width = 500) {
   <div id="plugintabs">
@@ -107,7 +108,7 @@
  *@
 @value(pluginId: String, param: Parameter) = @{
   currentObj match {
-    case Some(obj) if obj.plugin.id == pluginId => Option(param(obj)).getOrElse("").toString
+    case Some(obj) if obj.plugin.id.toString == pluginId => Option(param(obj)).getOrElse("").toString
     case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
   }
 }

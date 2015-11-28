@@ -4,7 +4,7 @@ import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.workspace.{User, Project}
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{JsArray, JsObject, JsString, Json}
+import play.api.libs.json._
 
 import scala.reflect.ClassTag
 
@@ -39,4 +39,13 @@ object JsonSerializer {
     }
   )
 
+  def activityConfig(config: Map[String, String]) = JsArray(
+    for((name, value) <- config.toSeq) yield
+      Json.obj("name" -> name, "value" -> value)
+  )
+
+  def readActivityConfig(json: JsValue): Map[String, String] = {
+    for(value <- json.as[JsArray].value) yield
+      ((value \ "name").toString(), (value \ "value").toString)
+  }.toMap
 }

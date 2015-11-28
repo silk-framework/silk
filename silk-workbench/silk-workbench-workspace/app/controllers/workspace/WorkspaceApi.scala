@@ -15,7 +15,7 @@ import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, Controller}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -149,9 +149,9 @@ object WorkspaceApi extends Controller {
     val activity =
       if(taskName.nonEmpty) {
         val task = project.anyTask(taskName)
-        task.activity(activityName)
+        task.activity(activityName).control
       } else {
-        project.activity(activityName)
+        project.activity(activityName).control
       }
 
     activity.cancel()
@@ -165,9 +165,9 @@ object WorkspaceApi extends Controller {
     val activity =
       if(taskName.nonEmpty) {
         val task = project.anyTask(taskName)
-        task.activity(activityName)
+        task.activity(activityName).control
       } else {
-        project.activity(activityName)
+        project.activity(activityName).control
       }
 
     activity.cancel()
@@ -179,12 +179,29 @@ object WorkspaceApi extends Controller {
     val activityConfig =
       if(taskName.nonEmpty) {
         val task = project.anyTask(taskName)
-        task.activityConfig(activityName)
+        task.activity(activityName).config
       } else {
-        project.activityConfig(activityName)
+        project.activity(activityName).config
       }
 
-    Ok(activityConfig.toString)
+    Ok(JsonSerializer.activityConfig(activityConfig))
+  }
+
+  def postActivityConfig(projectName: String, taskName: String, activityName: String) = Action { request =>
+    request.body.asJson match {
+      case Some(json) =>
+        val config = JsonSerializer.readActivityConfig(json)
+        val project = User().workspace.project(projectName)
+        if(taskName.nonEmpty) {
+          val task = project.anyTask(taskName)
+          task.activity(activityName).update(config)
+        } else {
+          project.activity(activityName).update(config)
+        }
+        Ok
+      case None =>
+        BadRequest("No config supplied in body.")
+    }
   }
 
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
@@ -198,11 +215,11 @@ object WorkspaceApi extends Controller {
 
     def projectActivities(project: Project) =
       if (taskName.nonEmpty) Nil
-      else project.activities
+      else project.activities.map(_.control)
 
     def taskActivities(task: Task[_]) =
-      if (activityName.nonEmpty) task.activity(activityName) :: Nil
-      else task.activities
+      if (activityName.nonEmpty) task.activity(activityName).control :: Nil
+      else task.activities.map(_.control)
 
     val projectActivityStreams =
       for (project <- projects; activity <- projectActivities(project)) yield

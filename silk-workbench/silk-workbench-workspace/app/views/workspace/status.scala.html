@@ -2,6 +2,7 @@
 @import org.silkframework.workspace.{User, Project}
 @import org.silkframework.runtime.activity.ActivityControl
 @import controllers.workspace.routes.WorkspaceApi
+@import controllers.workspace.routes.Workspace
 @import controllers.workspace.routes.Assets
 
 @**
@@ -9,6 +10,8 @@
  *@
 @import org.silkframework.workspace.Task
 @import org.silkframework.workspace.Workspace
+@import org.silkframework.workspace.activity.ProjectActivity
+@import org.silkframework.workspace.activity.TaskActivity
 @()
 
 @header = {
@@ -107,25 +110,39 @@
   </li>
 }
 
-@projectActivityStatus(project: Project, activity: ActivityControl[_]) = {
+@projectActivityStatus(project: Project, activity: ProjectActivity) = {
   <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div id="@id(project.name, "", activity.name)" class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
-    <button class="activity-button" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name).url')">Start</button>
+    <div class="activity-button-start">
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control.png")" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name).url')" />
+    </div>
+    @if(activity.config.nonEmpty) {
+      <div class="activity-button-edit">
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.projectActivityConfigDialog(project.name, "", activity.name).url')" />
+      </div>
+    }
   </li>
 }
 
-@taskActivityStatus(project: Project, task: Task[_], activity: ActivityControl[_]) = {
+@taskActivityStatus(project: Project, task: Task[_], activity: TaskActivity[_]) = {
   <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div id="@id(project.name, task.name, activity.name)" class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
-    <button class="activity-button" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')">Start</button>
+    <div class="activity-button-start">
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')" />
+    </div>
+    @if(activity.config.nonEmpty) {
+      <div class="activity-button-edit">
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.taskActivityConfigDialog(project.name, task.name, activity.name).url')" />
+      </div>
+    }
   </li>
 }
 

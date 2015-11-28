@@ -102,4 +102,17 @@ object Workspace extends Controller {
   def executeProjectDialog(projectName: String) = Action {
     Ok(views.html.workspace.executeProjectDialog(projectName))
   }
+
+  def projectActivityConfigDialog(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val activity = project.activity(activityName)
+    Ok(views.html.workspace.projectActivityConfigDialog(activity))
+  }
+
+  def taskActivityConfigDialog(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val activity = task.activity(activityName)
+    Ok(views.html.workspace.taskActivityConfigDialog(activity))
+  }
 }

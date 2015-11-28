@@ -1,0 +1,25 @@
+@import controllers.workspace.routes
+@import org.silkframework.workspace.activity.TaskActivity
+@import org.silkframework.runtime.plugin.PluginDescription
+@import org.silkframework.workspace.activity.TaskActivityFactory
+
+@import org.silkframework.runtime.plugin.AnyPlugin
+
+@(activity: TaskActivity[_])
+
+@widgets.pluginDialog(
+    name = activity.name,
+    plugins = PluginDescription(activity.factory.getClass) :: Nil,
+    currentObj = Some(activity.factory.asInstanceOf[AnyPlugin]),
+    resources = Nil) {
+
+  <script type="text/javascript">
+    function submit(pluginId, name, parameters) {
+      $.post(
+        '@routes.WorkspaceApi.postActivityConfig(activity.task.project.name, activity.task.name, activity.name)',
+        parameters
+      );
+      closeDialog();
+    }
+  </script>
+}

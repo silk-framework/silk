@@ -59,9 +59,17 @@
   position: absolute;
 }
 
-.activity-button {
-  left: 480px;
-  top: -41px;
+.activity-button-start {
+  position: relative;
+  left: 478px;
   height: 18px;
+  top: -37px;
+}
+
+.activity-button-edit {
+  position: relative;
+  left: 500px;
+  height: 18px;
+  top: -55px;
   font-size: 9px;
 }

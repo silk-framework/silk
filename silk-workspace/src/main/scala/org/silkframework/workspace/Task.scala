@@ -20,7 +20,7 @@ import java.util.logging.Logger
 import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.TaskActivityFactory
+import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
@@ -42,14 +42,14 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val taskActivities: Seq[ActivityHolder] = {
+  private val taskActivities: Seq[TaskActivity[DataType]] = {
     // Get all task activity factories for this task type
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _, _]].map(_.apply()).filter(_.isTaskType[DataType])
     for(factory <- factories) yield
-      new ActivityHolder(factory)
+      new TaskActivity(this, factory)
   }
 
-  private val taskActivityMap: Map[Class[_], ActivityHolder] = taskActivities.map(a => (a.factory.activityType, a)).toMap
+  private val taskActivityMap: Map[Class[_], TaskActivity[DataType]] = taskActivities.map(a => (a.activityType, a)).toMap
 
   /**
     * The project this task belongs to.
@@ -63,7 +63,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
 
   def init() = {
     // Start autorun activities
-    for(activity <- taskActivities if activity.factory.autoRun)
+    for(activity <- taskActivities if activity.autoRun)
       activity.control.start()
   }
 
@@ -84,18 +84,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   /**
    * All activities that belong to this task.
    */
-  def activities: Seq[ActivityControl[_]] = taskActivities.map(_.control)
-
-  def activityConfig(activityName: String): Map[String, String] = {
-    val activity = taskActivities.find(_.name == activityName).get
-    PluginDescription(activity.factory.getClass).parameterValues(activity.factory)
-  }
-
-  def updateActivity(activityName: String, config: Map[String, String]) = {
-    val activity = taskActivities.find(_.name == activityName).get
-    activity.factory = PluginDescription(activity.factory.getClass)(config)
-    activity.control = Activity(activity.factory(Task.this))
-  }
+  def activities: Seq[TaskActivity[DataType]] = taskActivities
 
   /**
    * Retrieves an activity by type.
@@ -116,10 +105,10 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @param activityName The name of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity(activityName: String): ActivityControl[_] = {
+  def activity(activityName: String): TaskActivity[DataType] = {
     taskActivities.find(_.name == activityName)
       .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
-                                                  s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}")).control
+                                                  s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
   }
 
   private object Writer extends Runnable {
@@ -128,17 +117,11 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
       module.provider.putTask(project.name, name, data)
       log.info(s"Persisted task '$name' in project '${project.name}'")
       // Update caches
-      for(activity <- taskActivities if activity.factory.autoRun) {
+      for(activity <- taskActivities if activity.autoRun) {
         activity.control.cancel()
         activity.control.start()
       }
     }
-  }
-
-  private class ActivityHolder(@volatile var factory: TaskActivityFactory[DataType, _, _]) {
-    def name = control.name
-    @volatile
-    var control: ActivityControl[_] = Activity(factory(Task.this))
   }
 }
 
