@@ -1,4 +1,5 @@
 
+import play.api.PlayException.ExceptionSource
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.{Logger, Application, GlobalSettings}
@@ -46,7 +47,11 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 //      }
 //
 //    Future.successful(res)
-    Future.successful(InternalServerError(ex.getMessage))
+    if(ex.isInstanceOf[ExceptionSource]) {
+      Future.successful(InternalServerError(ex.getCause.getMessage))
+    } else {
+      Future.successful(InternalServerError(ex.getMessage))
+    }
   }
 
 }
