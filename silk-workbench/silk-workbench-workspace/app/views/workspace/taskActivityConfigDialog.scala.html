@@ -18,8 +18,11 @@
       $.post(
         '@routes.WorkspaceApi.postActivityConfig(activity.task.project.name, activity.task.name, activity.name)',
         parameters
-      );
-      closeDialog();
+      ).done(function() {
+        closeDialog();
+      }).fail(function(response) {
+        alert(response.responseText);
+      });
     }
   </script>
 }

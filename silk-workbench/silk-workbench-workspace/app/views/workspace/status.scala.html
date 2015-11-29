@@ -1,6 +1,8 @@
-@import plugins.Context
 @import org.silkframework.workspace.{User, Project}
-@import org.silkframework.runtime.activity.ActivityControl
+@import org.silkframework.workspace.Task
+@import org.silkframework.workspace.Workspace
+@import org.silkframework.workspace.activity.ProjectActivity
+@import org.silkframework.workspace.activity.TaskActivity
 @import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Workspace
 @import controllers.workspace.routes.Assets
@@ -8,10 +10,6 @@
 @**
  * Overview page of all activities and their status
  *@
-@import org.silkframework.workspace.Task
-@import org.silkframework.workspace.Workspace
-@import org.silkframework.workspace.activity.ProjectActivity
-@import org.silkframework.workspace.activity.TaskActivity
 @()
 
 @header = {

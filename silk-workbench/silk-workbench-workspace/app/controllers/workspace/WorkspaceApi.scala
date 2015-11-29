@@ -16,7 +16,7 @@ import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{AnyContentAsFormUrlEncoded, Action, Controller}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -188,9 +188,9 @@ object WorkspaceApi extends Controller {
   }
 
   def postActivityConfig(projectName: String, taskName: String, activityName: String) = Action { request =>
-    request.body.asJson match {
-      case Some(json) =>
-        val config = JsonSerializer.readActivityConfig(json)
+    request.body match {
+      case AnyContentAsFormUrlEncoded(values) =>
+        val config = values.mapValues(_.head)
         val project = User().workspace.project(projectName)
         if(taskName.nonEmpty) {
           val task = project.anyTask(taskName)
@@ -199,7 +199,7 @@ object WorkspaceApi extends Controller {
           project.activity(activityName).update(config)
         }
         Ok
-      case None =>
+      case _ =>
         BadRequest("No config supplied in body.")
     }
   }
