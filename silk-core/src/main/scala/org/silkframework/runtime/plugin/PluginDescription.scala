@@ -56,7 +56,11 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
               case Parameter.Type.Char => Char.box(v(0))
               case Parameter.Type.Int => Int.box(v.toInt)
               case Parameter.Type.Double => Double.box(v.toDouble)
-              case Parameter.Type.Boolean => Boolean.box(v.toBoolean)
+              case Parameter.Type.Boolean => v.toLowerCase match {
+                case "true" | "1" => Boolean.box(true)
+                case "false" | "0" => Boolean.box(false)
+                case _ => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be either 'true' or 'false'")
+              }
               case Parameter.Type.Resource => resourceLoader.get(v, mustExist = false)
               case Parameter.Type.WritableResource => resourceLoader.get(v, mustExist = false)
             }
