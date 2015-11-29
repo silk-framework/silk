@@ -28,22 +28,27 @@ object GenerateLinks extends Controller {
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val referenceLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
     val generatedLinks = task.activity[GenerateLinksActivity].value
 
-    def links =
-      for (link <- generatedLinks.view;
-           detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
-        if (referenceLinks.positive.contains(link))
-          new EvalLink(detailedLink, Correct, Generated)
-        else if (referenceLinks.negative.contains(link))
-          new EvalLink(detailedLink, Incorrect, Generated)
-        else
-          new EvalLink(detailedLink, Unknown, Generated)
-      }
-
-    Ok(views.html.widgets.linksTable(project, task, links, linkSorter, filter, page, showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
+    // We only show links if entities have been attached to them. We check this by looking at the first link.
+    if(generatedLinks.headOption.exists(_.entities.nonEmpty)) {
+      val referenceLinks = task.data.referenceLinks
+      def links =
+        for (link <- generatedLinks.view;
+             detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
+          if (referenceLinks.positive.contains(link))
+            new EvalLink(detailedLink, Correct, Generated)
+          else if (referenceLinks.negative.contains(link))
+            new EvalLink(detailedLink, Incorrect, Generated)
+          else
+            new EvalLink(detailedLink, Unknown, Generated)
+        }
+      Ok(views.html.widgets.linksTable(project, task, links, linkSorter, filter, page, showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
+    } else {
+      // Show an empty links table
+      Ok(views.html.widgets.linksTable(project, task, Seq[EvalLink](), linkSorter, filter, page, showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
+    }
   }
 
   def linksStream(projectName: String, taskName: String) = Action {

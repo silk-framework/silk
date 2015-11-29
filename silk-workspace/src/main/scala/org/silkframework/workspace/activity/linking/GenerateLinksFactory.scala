@@ -8,13 +8,21 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
-case class GenerateLinksFactory(useFileCache: Boolean = false, partitionSize: Int = 300, generateLinksWithEntities: Boolean = true) extends TaskActivityFactory[LinkSpecification, GenerateLinks] {
+case class GenerateLinksFactory(
+  useFileCache: Boolean = false,
+  partitionSize: Int = 300,
+  generateLinksWithEntities: Boolean = true,
+  writeOutputs: Boolean = true) extends TaskActivityFactory[LinkSpecification, GenerateLinks] {
 
   def apply(task: Task[LinkSpecification]): Activity[Seq[Link]] = {
     Activity.regenerating {
+      var linksSpec = task.data
+      if(!writeOutputs)
+        linksSpec = linksSpec.copy(outputs = Seq.empty)
+
       GenerateLinks.fromSources(
         datasets = task.project.tasks[Dataset].map(_.data),
-        linkSpec = task.data,
+        linkSpec = linksSpec,
         runtimeConfig = RuntimeConfig(useFileCache = useFileCache, partitionSize = partitionSize, generateLinksWithEntities = generateLinksWithEntities)
       )
     }
