@@ -13,7 +13,7 @@ GET           /dialogs/prefixes/:project                       controllers.works
 GET           /dialogs/resources/:project                      controllers.workspace.Workspace.resourcesDialog(project: String)
 GET           /dialogs/editRestriction/:project/:task          controllers.workspace.Workspace.restrictionDialog(project: String, task: String, varName: String, restriction: String)
 GET           /dialogs/executeProject/:project                 controllers.workspace.Workspace.executeProjectDialog(project: String)
-GET           /dialogs/activityConfig/:project/:activity       controllers.workspace.Workspace.projectActivityConfigDialog(project: String, task: String, activity: String)
+GET           /dialogs/activityConfig/:project/:activity       controllers.workspace.Workspace.projectActivityConfigDialog(project: String, activity: String)
 GET           /dialogs/activityConfig/:project/:task/:activity controllers.workspace.Workspace.taskActivityConfigDialog(project: String, task: String, activity: String)
 POST          /:project/importExample                          controllers.workspace.Workspace.importExample(project: String)
 

@@ -3,4 +3,4 @@
 @(activity: ProjectActivity, showButtons: Boolean = false)
 
 @activityControl(activity.project.name, None, activity.name,
-                 showProgressBar = true, showConfigButton = false, showStartButton = showButtons)
+                 showProgressBar = true, showStartButton = showButtons, showConfigButton = showButtons && activity.config.nonEmpty)

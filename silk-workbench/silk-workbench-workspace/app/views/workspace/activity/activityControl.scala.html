@@ -1,7 +1,8 @@
 @import controllers.core.routes.Assets
 @import controllers.workspace.routes.WorkspaceApi
+@import controllers.workspace.routes.Workspace
 
-@(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showConfigButton: Boolean, showStartButton: Boolean)
+@(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showConfigButton: Boolean)
 
 <div class="activity-control">
 
@@ -17,9 +18,15 @@
     <button name="stop" class="activity-button" onclick="stopActivity()" disabled="disabled" >Stop</button>
   }
 
-</div>
+  @if(showConfigButton && task.isDefined) {
+    <button name="config" class="activity-button" onclick="showDialog('@Workspace.taskActivityConfigDialog(project, task.get, activity)')" >Config</button>
+  }
 
-<iframe src="@config.baseUrl/workspace/activities/updates?project=@project@for(t <- task){&task=@t}&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
+  @if(showConfigButton && task.isEmpty) {
+    <button name="config" class="activity-button" onclick="showDialog('@Workspace.projectActivityConfigDialog(project, activity)')" >Config</button>
+  }
+
+</div>
 
 <script type="text/javascript">
   function updateStatus(status) {
@@ -83,6 +90,8 @@
     });
   }
 </script>
+
+<iframe src="@config.baseUrl/workspace/activities/updates?project=@project@for(t <- task){&task=@t}&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
 
 @id(project: String, task: String, activity: String) = @{
   "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)

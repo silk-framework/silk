@@ -3,4 +3,4 @@
 @(activity: TaskActivity[_, _], showButtons: Boolean = false)
 
 @activityControl(activity.task.project.name, Some(activity.task.name), activity.name,
-                 showProgressBar = true, showConfigButton = false, showStartButton = showButtons)
+                 showProgressBar = true, showStartButton = showButtons, showConfigButton = showButtons && activity.config.nonEmpty)

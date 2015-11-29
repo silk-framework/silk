@@ -120,7 +120,7 @@
     </div>
     @if(activity.config.nonEmpty) {
       <div class="activity-button-edit">
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.projectActivityConfigDialog(project.name, "", activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.projectActivityConfigDialog(project.name, activity.name).url')" />
       </div>
     }
   </li>

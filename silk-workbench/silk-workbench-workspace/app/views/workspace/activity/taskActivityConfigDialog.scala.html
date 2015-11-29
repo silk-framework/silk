@@ -20,6 +20,8 @@
         parameters
       ).done(function() {
         closeDialog();
+        // Currently updating an activity means that all listeners are still listening to the old activity. That's why we have to reload
+        location.reload();
       }).fail(function(response) {
         alert(response.responseText);
       });
