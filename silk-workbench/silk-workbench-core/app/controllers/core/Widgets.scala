@@ -16,6 +16,7 @@ object Widgets {
         ("project" -> JsString(project)) ::
         ("task" -> JsString(task)) ::
         ("activity" -> JsString(activity)) ::
+        ("isRunning" -> JsBoolean(status.isRunning)) ::
         ("progress" -> JsNumber(status.progress * 100.0)) ::
         ("message" -> JsString(status.toString)) ::
         ("failed" -> JsBoolean(status.failed)) :: Nil

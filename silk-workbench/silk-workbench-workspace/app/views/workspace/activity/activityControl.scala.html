@@ -4,10 +4,10 @@
 
 @(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showConfigButton: Boolean)
 
-<div class="activity-control">
+<div id="@id(project, task.getOrElse(""), activity)" class="activity-control">
 
   @if(showProgressBar) {
-    <div id="@id(project, task.getOrElse(""), activity)" class="activity-progress">
+    <div class="activity-progress">
       <div class="activity-progress-text"></div>
       <img class="activity-progress-help" src="@Assets.at("img/help.png")"/>
     </div>
@@ -15,7 +15,7 @@
 
   @if(showStartButton) {
     <button name="start" class="activity-button" onclick="startActivity()" >Start</button>
-    <button name="stop" class="activity-button" onclick="stopActivity()" disabled="disabled" >Stop</button>
+    <button name="stop" class="activity-button" onclick="stopActivity()" >Stop</button>
   }
 
   @if(showConfigButton && task.isDefined) {
@@ -30,15 +30,16 @@
 
 <script type="text/javascript">
   function updateStatus(status) {
-    // Get progress bar node
-    var progressbar = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+    // Get control node
+    var control = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+    var progressbar = control.children(".activity-progress");
 
     // Initialize progress bar
     if(progressbar.find(".ui-progressbar-value").length == 0) {
       progressbar.progressbar();
     }
 
-    // Get child nodes
+    // Get progress bar child nodes
     var progressbarValue = progressbar.find(".ui-progressbar-value");
     var progressbarText = progressbar.find(".activity-progress-text");
     var progressbarHelp = progressbar.find(".activity-progress-help");
@@ -60,6 +61,12 @@
       progressbarText.text(status.message);
       progressbarHelp.hide();
     }
+
+    // Enable/Disable start/stop buttons
+    var startButton = control.children("button[name='start']");
+    var stopButton = control.children("button[name='stop']");
+    startButton.button("option", "disabled", status.isRunning);
+    stopButton.button("option", "disabled", !status.isRunning);
   }
 
   function startActivity() {
@@ -67,8 +74,6 @@
       type: 'POST',
       url: '@WorkspaceApi.startActivity(project, task.getOrElse(""), activity).url',
       success: function(response) {
-        $("button[name='start']").button("option", "disabled", true);
-        $("button[name='stop']").button("option", "disabled", false);
       },
       error: function(request) {
         alert(request.responseText);
@@ -81,8 +86,6 @@
       type: 'POST',
       url: '@WorkspaceApi.cancelActivity(project, task.getOrElse(""), activity).url',
       success: function(response) {
-        $("button[name='start']").button("option", "disabled", false);
-        $("button[name='stop']").button("option", "disabled", true);
       },
       error: function(request) {
         alert(request.responseText);
@@ -91,7 +94,7 @@
   }
 </script>
 
-<iframe src="@config.baseUrl/workspace/activities/updates?project=@project@for(t <- task){&task=@t}&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
+<iframe src="@WorkspaceApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
 
 @id(project: String, task: String, activity: String) = @{
   "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
