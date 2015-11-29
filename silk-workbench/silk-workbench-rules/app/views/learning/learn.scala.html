@@ -2,6 +2,7 @@
 @import org.silkframework.config.LinkSpecification
 @import org.silkframework.learning.LearningActivity
 @import controllers.rules.routes.Assets
+@import views.html.workspace.activity.taskActivityControl
 
 @(context: Context[LinkSpecification])
 
@@ -38,7 +39,7 @@
       <button onclick="next()">Next</button>
     </li>
     <li>
-      @widgets.taskActivityControl(context, context.task.activity[LearningActivity].name)
+      @taskActivityControl(context.task.activity[LearningActivity])
     </li>
   </ul>
 }

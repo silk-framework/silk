@@ -8,7 +8,7 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
-class LinkingPathsCacheFactory extends TaskActivityFactory[LinkSpecification, LinkingPathsCache, DPair[SparqlEntitySchema]] {
+class LinkingPathsCacheFactory extends TaskActivityFactory[LinkSpecification, LinkingPathsCache] {
 
   override def autoRun = true
 

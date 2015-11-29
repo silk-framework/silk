@@ -43,15 +43,15 @@ object Learning extends Controller {
   def ruleStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val stream1 = Stream.status(task.activity[LearningActivity].status)
-    val stream2 = Stream.status(task.activity[ActiveLearning].status)
+    val stream1 = Stream.status(task.activity[LearningActivity].control.status)
+    val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
     Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val validLinks = task.activity[ActiveLearning].value().links
+    val validLinks = task.activity[ActiveLearning].value.links
     def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
@@ -72,7 +72,7 @@ object Learning extends Controller {
   def linksStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val stream = Stream.activityValue(task.activity[ActiveLearning])
+    val stream = Stream.activityValue(task.activity[ActiveLearning].control)
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
@@ -80,8 +80,8 @@ object Learning extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
 
-    val stream1 = Stream.status(task.activity[LearningActivity].status)
-    val stream2 = Stream.status(task.activity[ActiveLearning].status)
+    val stream1 = Stream.status(task.activity[LearningActivity].control.status)
+    val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
 
     Ok.chunked(Widgets.statusStream(stream1 interleave stream2))
   }
@@ -101,12 +101,12 @@ object Learning extends Controller {
     val sortedIndividuals = individuals.sortBy(-_.fitness)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
-    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value()))
+    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value))
   }
 
   private def getPopulation(task: Task[LinkSpecification]): Population = {
-    val population1 = task.activity[ActiveLearning].value().population
-    val population2 = task.activity[LearningActivity].value().population
+    val population1 = task.activity[ActiveLearning].value.population
+    val population2 = task.activity[LearningActivity].value.population
     if(population1.isEmpty)
       population2
     else if(population2.isEmpty)

@@ -39,7 +39,7 @@ object ActiveLearningEvaluation extends EvaluationScript {
 
   private def execute(config: LearningConfiguration, dataset: Data): RunResult = {
     val cache = dataset.task.activity[ReferenceEntitiesCache]
-    while(cache.status().isRunning)
+    while(cache.status.isRunning)
       Thread.sleep(200)
     Activity(new ActiveLearningEvaluator(config, dataset)).startBlocking()
   }
@@ -75,7 +75,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
     Logger.getLogger(getClass.getName).info("Experiment " + config.name + " on data set " + ds.name +  ": run " + run )
 
     var referenceEntities = ReferenceEntities()
-    val validationEntities = ds.task.activity[ReferenceEntitiesCache].value()
+    val validationEntities = ds.task.activity[ReferenceEntitiesCache].value
 
     val sourceEntities =  validationEntities.positive.values.map(_.source)
     val targetEntities =  validationEntities.positive.values.map(_.target)
@@ -95,7 +95,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           config = config,
           datasets = ds.sources,
           linkSpec = ds.task.data,
-          paths = ds.task.activity[LinkingPathsCache].value().map(_.paths),
+          paths = ds.task.activity[LinkingPathsCache].value.map(_.paths),
           referenceEntities = referenceEntities,
           initialState = ActiveLearningState(pool, population, Seq.empty)
         )

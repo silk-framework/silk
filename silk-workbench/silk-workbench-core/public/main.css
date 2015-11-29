@@ -127,21 +127,28 @@ button
   float: left;
 }
 
-.ui-progressbar
-{
-  margin-top: 0;
-  width: 300px;
-  position: relative;
-}
+/* Activity Control
+----------------------------------*/
 
-.ui-progressbar-value
-{
-  background-image: url(img/progressbar.gif);
+.activity-control {
+  background: rgba(0, 0, 0, 0.10);
+  margin-top: -2px;
+  height: 32px;
+  padding: 2px;
+  border-radius: 4px;
 }
 
 .activity-progress {
+  float: left;
   width: 300px;
-  height: 15px;
+  height: 30px !important;
+  margin-top: 0;
+  position: relative;
+}
+
+.activity-button {
+  margin-left: 4px;
+  float: left;
 }
 
 .activity-progress-text {
@@ -156,6 +163,13 @@ button
   left: 280px;
   position: absolute;
 }
+
+.activity-progress .ui-progressbar-value {
+  background-image: url(img/progressbar.gif);
+}
+
+/* About dialog
+----------------------------------*/
 
 #about_dialog p {
   margin-top: 10px;

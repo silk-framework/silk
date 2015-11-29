@@ -5,7 +5,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
-class TypesCacheFactory extends TaskActivityFactory[Dataset, TypesCache, Types] {
+class TypesCacheFactory extends TaskActivityFactory[Dataset, TypesCache] {
 
   override def autoRun = true
 

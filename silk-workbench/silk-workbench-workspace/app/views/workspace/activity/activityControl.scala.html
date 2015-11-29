@@ -1,0 +1,89 @@
+@import controllers.core.routes.Assets
+@import controllers.workspace.routes.WorkspaceApi
+
+@(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showConfigButton: Boolean, showStartButton: Boolean)
+
+<div class="activity-control">
+
+  @if(showProgressBar) {
+    <div id="@id(project, task.getOrElse(""), activity)" class="activity-progress">
+      <div class="activity-progress-text"></div>
+      <img class="activity-progress-help" src="@Assets.at("img/help.png")"/>
+    </div>
+  }
+
+  @if(showStartButton) {
+    <button name="start" class="activity-button" onclick="startActivity()" >Start</button>
+    <button name="stop" class="activity-button" onclick="stopActivity()" disabled="disabled" >Stop</button>
+  }
+
+</div>
+
+<iframe src="@config.baseUrl/workspace/activities/updates?project=@project@for(t <- task){&task=@t}&activity=@helper.urlEncode(activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
+
+<script type="text/javascript">
+  function updateStatus(status) {
+    // Get progress bar node
+    var progressbar = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+
+    // Initialize progress bar
+    if(progressbar.find(".ui-progressbar-value").length == 0) {
+      progressbar.progressbar();
+    }
+
+    // Get child nodes
+    var progressbarValue = progressbar.find(".ui-progressbar-value");
+    var progressbarText = progressbar.find(".activity-progress-text");
+    var progressbarHelp = progressbar.find(".activity-progress-help");
+
+    // Update values
+    progressbar.attr('title', status.message);
+    if(status.failed) {
+      progressbar.progressbar("option", {value: 100});
+      progressbarValue.css({
+        "background": '#FF5050'
+      });
+      progressbarText.text("Failed ");
+      progressbarHelp.show();
+    } else {
+      progressbar.progressbar("option", {value: parseFloat(status.progress)});
+      progressbarValue.css({
+        "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
+      });
+      progressbarText.text(status.message);
+      progressbarHelp.hide();
+    }
+  }
+
+  function startActivity() {
+    $.ajax({
+      type: 'POST',
+      url: '@WorkspaceApi.startActivity(project, task.getOrElse(""), activity).url',
+      success: function(response) {
+        $("button[name='start']").button("option", "disabled", true);
+        $("button[name='stop']").button("option", "disabled", false);
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+
+  function stopActivity() {
+    $.ajax({
+      type: 'POST',
+      url: '@WorkspaceApi.cancelActivity(project, task.getOrElse(""), activity).url',
+      success: function(response) {
+        $("button[name='start']").button("option", "disabled", false);
+        $("button[name='stop']").button("option", "disabled", true);
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+</script>
+
+@id(project: String, task: String, activity: String) = @{
+  "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
+}

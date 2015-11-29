@@ -9,7 +9,7 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
-class ActiveLearningFactory extends TaskActivityFactory[LinkSpecification, ActiveLearning, ActiveLearningState] {
+class ActiveLearningFactory extends TaskActivityFactory[LinkSpecification, ActiveLearning] {
 
   def apply(task: Task[LinkSpecification]): Activity[ActiveLearningState] = {
     Activity.regenerating {
@@ -17,8 +17,8 @@ class ActiveLearningFactory extends TaskActivityFactory[LinkSpecification, Activ
         config = LearningConfiguration.default,
         datasets = DPair.fromSeq(task.data.dataSelections.map(ds => task.project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).getOrElse(Dataset.empty).source)),
         linkSpec = task.data,
-        paths = task.activity[LinkingPathsCache].value().map(_.paths),
-        referenceEntities = task.activity[ReferenceEntitiesCache].value()
+        paths = task.activity[LinkingPathsCache].value.map(_.paths),
+        referenceEntities = task.activity[ReferenceEntitiesCache].value
       )
     }
   }

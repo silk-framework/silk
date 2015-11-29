@@ -3,6 +3,7 @@
 @import controllers.workspace.routes.WorkspaceApi
 @import org.silkframework.execution.GenerateLinks
 @import org.silkframework.config.LinkSpecification
+@import views.html.workspace.activity.taskActivityControl
 
 @(context: Context[LinkSpecification])
 
@@ -31,7 +32,7 @@
       <button name="stop" onclick="stopTask()" disabled="disabled" >Stop</button>
     </li>
     <li>
-      @widgets.taskActivityControl(context, context.task.activity[GenerateLinks].name)
+      @taskActivityControl(context.task.activity[GenerateLinks], showButtons = true)
     </li>
   </ul>
 }

@@ -24,7 +24,7 @@ object ReferenceLinksManager extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
     def linkageRule = task.data.rule
-    def entities = task.activity[ReferenceEntitiesCache].value()
+    def entities = task.activity[ReferenceEntitiesCache].value
     val linkSorter = LinkSorter.fromId(sorting)
 
     val links = linkType match {

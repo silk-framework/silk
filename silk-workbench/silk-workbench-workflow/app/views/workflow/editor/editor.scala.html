@@ -1,9 +1,8 @@
-@import plugins.WorkbenchPlugins
-
 @import plugins.Context
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import controllers.workflow.routes.Assets
 @import org.silkframework.workspace.activity.workflow.WorkflowExecutor
+@import views.html.workspace.activity.taskActivityControl
 
 @(context: Context[Workflow])
 
@@ -29,7 +28,7 @@
       <button onclick="executeWorkflow()" >Execute</button>
     </li>
     <li>
-      @widgets.taskActivityControl(context, context.task.activity[WorkflowExecutor].name)
+      @taskActivityControl(context.task.activity[WorkflowExecutor])
     </li>
   </ul>
 }

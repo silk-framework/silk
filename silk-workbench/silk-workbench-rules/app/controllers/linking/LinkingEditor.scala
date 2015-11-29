@@ -20,7 +20,7 @@ object LinkingEditor extends Controller {
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val pathsCache = task.activity[LinkingPathsCache]
+    val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
 
     if(pathsCache.status().isRunning) {
@@ -38,7 +38,7 @@ object LinkingEditor extends Controller {
   def score(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val entitiesCache = task.activity[ReferenceEntitiesCache]
+    val entitiesCache = task.activity[ReferenceEntitiesCache].control
 
     // If the entity cache is still loading
     if(entitiesCache.status().isRunning) {

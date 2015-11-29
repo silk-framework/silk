@@ -5,7 +5,7 @@ import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
-class TransformPathsCacheFactory extends TaskActivityFactory[TransformSpecification, TransformPathsCache, SparqlEntitySchema] {
+class TransformPathsCacheFactory extends TaskActivityFactory[TransformSpecification, TransformPathsCache] {
 
   def apply(task: Task[TransformSpecification]) = {
     new CachedActivity(

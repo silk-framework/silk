@@ -42,14 +42,14 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val taskActivities: Seq[TaskActivity[DataType]] = {
+  private val taskActivities: Seq[TaskActivity[DataType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _, _]].map(_.apply()).filter(_.isTaskType[DataType])
+    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[DataType])
     for(factory <- factories) yield
       new TaskActivity(this, factory)
   }
 
-  private val taskActivityMap: Map[Class[_], TaskActivity[DataType]] = taskActivities.map(a => (a.activityType, a)).toMap
+  private val taskActivityMap: Map[Class[_], TaskActivity[DataType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
 
   /**
     * The project this task belongs to.
@@ -84,7 +84,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   /**
    * All activities that belong to this task.
    */
-  def activities: Seq[TaskActivity[DataType]] = taskActivities
+  def activities: Seq[TaskActivity[DataType, _]] = taskActivities
 
   /**
    * Retrieves an activity by type.
@@ -92,11 +92,11 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @tparam T The type of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity[T <: HasValue : ClassTag]: ActivityControl[T#ValueType] = {
+  def activity[T <: HasValue : ClassTag]: TaskActivity[DataType, T] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
     val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
                                                                                          s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
-    act.control.asInstanceOf[ActivityControl[T#ValueType]]
+    act.asInstanceOf[TaskActivity[DataType, T]]
   }
 
   /**
@@ -105,7 +105,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @param activityName The name of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity(activityName: String): TaskActivity[DataType] = {
+  def activity(activityName: String): TaskActivity[DataType, _] = {
     taskActivities.find(_.name == activityName)
       .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
                                                   s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))

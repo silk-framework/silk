@@ -1,6 +1,7 @@
 @import plugins.Context
 @import org.silkframework.config.TransformSpecification
 @import org.silkframework.execution.ExecuteTransform
+@import views.html.workspace.activity.taskActivityControl
 
 @(context: Context[TransformSpecification])
 
@@ -13,7 +14,7 @@
       <button onclick="execute()" >Start</button>
     </li>
     <li>
-      @widgets.taskActivityControl(context, context.task.activity[ExecuteTransform].name)
+      @taskActivityControl(context.task.activity[ExecuteTransform])
     </li>
     <li>
     </li>

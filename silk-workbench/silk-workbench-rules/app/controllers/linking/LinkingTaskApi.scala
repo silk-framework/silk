@@ -215,17 +215,17 @@ object LinkingTaskApi extends Controller {
   def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    task.activity[LinkingPathsCache].reset()
-    task.activity[LinkingPathsCache].start()
-    task.activity[ReferenceEntitiesCache].reset()
-    task.activity[ReferenceEntitiesCache].start()
+    task.activity[LinkingPathsCache].control.reset()
+    task.activity[LinkingPathsCache].control.start()
+    task.activity[ReferenceEntitiesCache].control.reset()
+    task.activity[ReferenceEntitiesCache].control.start()
     Ok
   }
 
   def startGenerateLinksTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val generateLinksActivity = task.activity[GenerateLinksActivity]
+    val generateLinksActivity = task.activity[GenerateLinksActivity].control
     generateLinksActivity.start()
     Ok
   }
@@ -233,7 +233,7 @@ object LinkingTaskApi extends Controller {
   def stopGenerateLinksTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val generateLinksActivity = task.activity[GenerateLinksActivity]
+    val generateLinksActivity = task.activity[GenerateLinksActivity].control
     generateLinksActivity.cancel()
     Ok
   }
@@ -259,14 +259,14 @@ object LinkingTaskApi extends Controller {
   def learningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    task.activity[LearningActivity].start()
+    task.activity[LearningActivity].control.start()
     Ok
   }
 
   def activeLearningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    task.activity[ActiveLearning].start()
+    task.activity[ActiveLearning].control.start()
     Ok
   }
 }

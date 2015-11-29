@@ -16,7 +16,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
 
   override def run(context: ActivityContext[ReferenceEntities]) = {
     context.status.update("Waiting for paths cache", 0.0)
-    val pathsCache = task.activity[LinkingPathsCache]
+    val pathsCache = task.activity[LinkingPathsCache].control
     while(pathsCache.status().isRunning)
       Thread.sleep(1000)
     if(pathsCache.status().failed)

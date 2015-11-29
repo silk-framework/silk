@@ -56,9 +56,9 @@ object CrossValidation extends EvaluationScript {
   private def execute(dataset: Data, config: LearningConfiguration): RunResult = {
     log.info("Running: " + dataset.name)
     val cache = dataset.task.activity[ReferenceEntitiesCache]
-    while(cache.status().isRunning)
+    while(cache.status.isRunning)
       Thread.sleep(200)
-    Activity(new CrossValidation(cache.value(), config)).startBlocking()
+    Activity(new CrossValidation(cache.value, config)).startBlocking()
   }
 }
 

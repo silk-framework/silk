@@ -1,6 +1,7 @@
 @import org.silkframework.config.LinkSpecification
 @import controllers.rules.routes.Assets
 @import org.silkframework.learning.active.ActiveLearning
+@import views.html.workspace.activity.taskActivityControl
 
 @(context: plugins.Context[LinkSpecification])
 
@@ -52,7 +53,7 @@
 @toolbar = {
     <ul>
     <li>
-      @widgets.taskActivityControl(context, context.task.activity[ActiveLearning].name)
+      @taskActivityControl(context.task.activity[ActiveLearning])
     </li>
     <li>
       <button onclick="back()">Back</button>

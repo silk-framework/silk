@@ -7,7 +7,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
-class ExecuteTransformFactory extends TaskActivityFactory[TransformSpecification, ExecuteTransform, Unit] {
+class ExecuteTransformFactory extends TaskActivityFactory[TransformSpecification, ExecuteTransform] {
 
   def apply(task: Task[TransformSpecification]): Activity[Unit] = {
     Activity.regenerating {

@@ -24,7 +24,7 @@ object ExecuteTransformTab extends Controller {
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpecification](taskName)
-    val stream = Stream.status(task.activity[ExecuteTransform].status)
+    val stream = Stream.status(task.activity[ExecuteTransform].control.status)
     Ok.chunked(Widgets.statusStream(stream))
   }
 

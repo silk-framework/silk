@@ -55,7 +55,7 @@ object Workspace extends Controller {
 
   def restrictionDialog(projectName: String, sourceName: String, varName: String, restriction: String) = Action {
     val project = User().workspace.project(projectName)
-    val typesCache = project.task[Dataset](sourceName).activity[TypesCache].value().typesByFrequency
+    val typesCache = project.task[Dataset](sourceName).activity[TypesCache].value.typesByFrequency
     implicit val prefixes = project.config.prefixes
 
     // Try to parse the SPARQL restriction
@@ -106,13 +106,13 @@ object Workspace extends Controller {
   def projectActivityConfigDialog(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
     val activity = project.activity(activityName)
-    Ok(views.html.workspace.projectActivityConfigDialog(activity))
+    Ok(views.html.workspace.activity.projectActivityConfigDialog(activity))
   }
 
   def taskActivityConfigDialog(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val activity = task.activity(activityName)
-    Ok(views.html.workspace.taskActivityConfigDialog(activity))
+    Ok(views.html.workspace.activity.taskActivityConfigDialog(activity))
   }
 }

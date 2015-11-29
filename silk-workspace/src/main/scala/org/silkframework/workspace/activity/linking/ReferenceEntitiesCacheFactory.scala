@@ -6,7 +6,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
-class ReferenceEntitiesCacheFactory extends TaskActivityFactory[LinkSpecification, ReferenceEntitiesCache, ReferenceEntities] {
+class ReferenceEntitiesCacheFactory extends TaskActivityFactory[LinkSpecification, ReferenceEntitiesCache] {
 
   override def autoRun = true
 

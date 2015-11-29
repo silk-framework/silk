@@ -30,7 +30,7 @@ object GenerateLinks extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
-    val generatedLinks = task.activity[GenerateLinksActivity].value()
+    val generatedLinks = task.activity[GenerateLinksActivity].value
 
     def links =
       for (link <- generatedLinks.view;
@@ -49,14 +49,14 @@ object GenerateLinks extends Controller {
   def linksStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val stream = Stream.activityValue(task.activity[GenerateLinksActivity])
+    val stream = Stream.activityValue(task.activity[GenerateLinksActivity].control)
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val stream = Stream.status(task.activity[GenerateLinksActivity].status)
+    val stream = Stream.status(task.activity[GenerateLinksActivity].control.status)
     Ok.chunked(Widgets.statusStream(stream))
   }
 

@@ -1,0 +1,6 @@
+@import org.silkframework.workspace.activity.TaskActivity
+
+@(activity: TaskActivity[_, _], showButtons: Boolean = false)
+
+@activityControl(activity.task.project.name, Some(activity.task.name), activity.name,
+                 showProgressBar = true, showConfigButton = false, showStartButton = showButtons)

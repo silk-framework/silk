@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
-case class GenerateLinksFactory(useFileCache: Boolean = false, partitionSize: Int = 300, generateLinksWithEntities: Boolean = true) extends TaskActivityFactory[LinkSpecification, GenerateLinks, Seq[Link]] {
+case class GenerateLinksFactory(useFileCache: Boolean = false, partitionSize: Int = 300, generateLinksWithEntities: Boolean = true) extends TaskActivityFactory[LinkSpecification, GenerateLinks] {
 
   def apply(task: Task[LinkSpecification]): Activity[Seq[Link]] = {
     Activity.regenerating {

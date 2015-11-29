@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{HasValue, Activity}
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.workspace.Task
 
@@ -11,9 +11,8 @@ import scala.reflect.ClassTag
   *
   * @tparam TaskType The type of the task the generate activities belong to
   * @tparam ActivityType The type of activity that is generated and by which the activity will be identified within the task
-  * @tparam ActivityData The type of the activity values.
   */
-abstract class TaskActivityFactory[TaskType: ClassTag, ActivityType <: Activity[ActivityData] : ClassTag, ActivityData] extends AnyPlugin with (Task[TaskType] => Activity[ActivityData]) {
+abstract class TaskActivityFactory[TaskType: ClassTag, ActivityType <: HasValue : ClassTag] extends AnyPlugin with (Task[TaskType] => Activity[ActivityType#ValueType]) {
 
   /** True, if this activity shall be executed automatically after startup */
   def autoRun: Boolean = false
@@ -21,7 +20,7 @@ abstract class TaskActivityFactory[TaskType: ClassTag, ActivityType <: Activity[
   /**
     * Generates a new activity for a given task.
     */
-  def apply(task: Task[TaskType]): Activity[ActivityData]
+  def apply(task: Task[TaskType]): Activity[ActivityType#ValueType]
 
   /**
     * Checks, if this factory generates activities for a given task type
