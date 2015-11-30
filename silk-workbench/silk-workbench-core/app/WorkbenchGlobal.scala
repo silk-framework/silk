@@ -47,7 +47,7 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 //      }
 //
 //    Future.successful(res)
-    if(ex.isInstanceOf[ExceptionSource]) {
+    if(ex.isInstanceOf[ExceptionSource] && ex.getCause != null) {
       Future.successful(InternalServerError(ex.getCause.getMessage))
     } else {
       Future.successful(InternalServerError(ex.getMessage))
