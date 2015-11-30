@@ -48,7 +48,7 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
    */
   def task(name: Identifier): Task[TaskData] = {
     load()
-    cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' not found in ${project.name}"))
+    cachedTasks.getOrElse(name, throw new NoSuchElementException(s"Task '$name' of type $taskType not found in ${project.name}"))
   }
 
   def taskOption(name: Identifier): Option[Task[TaskData]] = {
