@@ -23,7 +23,8 @@ import java.io.{DataOutput, DataInput}
  * A single entity.
  */
 class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: SparqlEntitySchema = SparqlEntitySchema.empty) {
-  
+  require(values.size == desc.paths.size, "Must provide the same number of value sets as there are paths in the schema.")
+
   def evaluate(path: Path): Set[String] = {
     if(path.operators.isEmpty)
       Set(uri)
