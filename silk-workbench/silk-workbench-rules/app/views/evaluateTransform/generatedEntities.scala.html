@@ -1,7 +1,8 @@
-@(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity])
-
+@import org.silkframework.config.Prefixes
 @import org.silkframework.rule.evaluation.{DetailedEntity, Value, TransformedValue, InputValue}
 @import controllers.rules.routes.Assets
+
+@(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)
 
 @frame() {
   <link rel="stylesheet" href="@Assets.at("stylesheets/treeview/jquery.treeview.css")" type="text/css" />
@@ -76,7 +77,7 @@
   case InputValue(input, values) => {
     <li>
       <span class="input">
-    Input:@input.path.serialize (@input.id)
+    Input: @input.path.serializeSimplified(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
       </span>
     </li>

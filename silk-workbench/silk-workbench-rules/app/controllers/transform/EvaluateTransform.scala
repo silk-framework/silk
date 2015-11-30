@@ -28,7 +28,7 @@ object EvaluateTransform extends Controller {
       )
     val entities = evaluateTransform.execute().drop(offset)
 
-    Ok(views.html.evaluateTransform.generatedEntities(entities))
+    Ok(views.html.evaluateTransform.generatedEntities(entities, project.config.prefixes))
   }
 
 }
