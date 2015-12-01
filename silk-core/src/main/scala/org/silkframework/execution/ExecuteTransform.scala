@@ -43,6 +43,8 @@ class ExecuteTransform(input: DataSource,
         for (output <- outputs)
           output.writeEntity(uri, values)
         count += 1
+        if(count % 1000 == 0)
+          context.status.update(s"Executing ($count Entities)")
       }
       context.status.update(s"$count entities written to ${outputs.size} outputs", 1.0)
     } finally {
