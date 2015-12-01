@@ -114,7 +114,7 @@ object PagingSparqlTraversable {
       }
 
       //Return result
-      if (logger.isLoggable(Level.FINER)) logger.finer("Query Result\n" + result)
+      if (logger.isLoggable(Level.FINEST)) logger.finer("Query Result\n" + result)
       result
     }
   }
