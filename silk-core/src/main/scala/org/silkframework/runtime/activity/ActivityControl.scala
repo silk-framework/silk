@@ -33,12 +33,15 @@ trait ActivityControl[T] {
    */
   def start(): Unit
 
+  /**
+    * Starts this activity in the current thread and returns after the activity has been finished.
+    *
+    * @return The final value of the activity
+    */
   def startBlocking(): Unit
 
   /**
    * Starts this activity in the current thread and returns after the activity has been finished.
-   *
-   * @return The final value of the activity
    */
   def startBlockingAndGetValue(initialValue: Option[T] = None): T
 
