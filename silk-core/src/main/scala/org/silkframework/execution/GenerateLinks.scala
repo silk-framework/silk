@@ -68,7 +68,8 @@ class GenerateLinks(inputs: DPair[DataSource],
 
       //Load entities
       if (runtimeConfig.reloadCache) {
-        val loaderControl = context.executeBackground(loader)
+        val loaderControl = context.child(loader, 0.0)
+        loaderControl.start()
         // Wait until the caches are being written
         while (!loaderControl.status().isInstanceOf[Status.Finished] && !(caches.source.isWriting && caches.target.isWriting)) {
           Thread.sleep(100)
@@ -76,15 +77,17 @@ class GenerateLinks(inputs: DPair[DataSource],
       }
 
       //Execute matching
-      context.executeBlocking(matcher, 0.95, context.value.update)
+      val matcherContext = context.child(matcher, 0.95)
+      matcherContext.value.onUpdate(context.value.update)
+      matcherContext.startBlocking()
 
       //Filter links
       val filterTask = new Filter(context.value(), linkSpec.rule.filter)
-      context.executeBlocking(filterTask, 0.03, context.value.update)
+      context.child(filterTask, 0.03).startBlocking()
 
       //Output links
       val outputTask = new OutputWriter(context.value(), linkSpec.rule.linkType, outputs)
-      context.executeBlocking(outputTask)
+      context.child(outputTask, 0.02).startBlocking()
     }
   }
 

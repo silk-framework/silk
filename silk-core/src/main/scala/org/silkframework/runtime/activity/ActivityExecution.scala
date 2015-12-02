@@ -60,7 +60,11 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
     Activity.executionContext.execute(this)
   }
 
-  override def startBlocking(initialValue: Option[T]): T = {
+  override def startBlocking(): Unit = {
+    run()
+  }
+
+  override def startBlockingAndGetValue(initialValue: Option[T]): T = {
     for(v <- initialValue)
       value.update(v)
     run()
