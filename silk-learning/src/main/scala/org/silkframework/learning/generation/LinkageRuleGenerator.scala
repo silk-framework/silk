@@ -76,7 +76,7 @@ object LinkageRuleGenerator {
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {
       val paths = entities.positive.values.head.map(_.desc.paths)
-      new LinkageRuleGenerator((new CompatiblePathsGenerator(components).apply(entities, components.seed) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
+      new LinkageRuleGenerator((new CompatiblePathsGenerator(components).apply(entities, components.compatibleOnly) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
     }
   }
 }

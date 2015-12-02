@@ -59,8 +59,8 @@ object Experiment {
   val seeding =
     Experiment("Seeding",
       configurations =
-        LearningConfiguration("Random",       components = Components(seed = false), params = Parameters(maxIterations = 10)) ::
-        LearningConfiguration("Our Approach", components = Components(seed = true),  params = Parameters(maxIterations = 10)) :: Nil,
+        LearningConfiguration("Random",       components = Components(compatibleOnly = false), params = Parameters(maxIterations = 10)) ::
+        LearningConfiguration("Our Approach", components = Components(compatibleOnly = true),  params = Parameters(maxIterations = 10)) :: Nil,
       metrics =
         FixedIterationsFMeasure(0) :: FixedIterationsFMeasure(10) :: Nil
     )

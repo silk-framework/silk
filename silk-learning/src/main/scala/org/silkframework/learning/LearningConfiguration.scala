@@ -33,14 +33,14 @@ object LearningConfiguration {
   /**
    * Specifies which components of the linkage rules are learned.
    * 
-   * @param seed Only generate linkage rules with compatible path pairs
+   * @param compatibleOnly Only generate linkage rules with compatible path pairs
    * @param linear Include linear aggregations
    * @param boolean Include boolean aggregations
    * @param hierarchies Build aggregation hierarchies
    * @param transformations Use transformations
    * @param useSpecializedCrossover Use specialized crossover operations
    */
-  case class Components(seed: Boolean = true,
+  case class Components(compatibleOnly: Boolean = true,
                         linear: Boolean = true,
                         boolean: Boolean = true,
                         hierarchies: Boolean = true,
