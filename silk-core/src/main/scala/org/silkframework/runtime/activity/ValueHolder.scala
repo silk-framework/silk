@@ -12,9 +12,13 @@ class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
   private var initialized: Boolean = false
 
   override def apply(): T = {
-    if(!initialized && initialValue.isDefined) {
-      value = initialValue.get
-      initialized = true
+    if(!initialized) {
+      if(initialValue.isDefined) {
+        value = initialValue.get
+        initialized = true
+      } else {
+        throw new NoSuchElementException(s"No value has been set and the activity does not define an initial value.")
+      }
     }
     value
   }

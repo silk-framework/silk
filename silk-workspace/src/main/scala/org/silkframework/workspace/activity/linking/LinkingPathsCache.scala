@@ -11,6 +11,8 @@ import org.silkframework.util.DPair
  */
 class LinkingPathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[SparqlEntitySchema]] {
 
+  override def initialValue = Some(DPair.fill(SparqlEntitySchema.empty))
+
   /**
    * Loads the most frequent property paths.
    */

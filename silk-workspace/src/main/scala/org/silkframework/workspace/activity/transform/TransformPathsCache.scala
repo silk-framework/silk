@@ -14,6 +14,8 @@ import scala.xml.Node
  */
 class TransformPathsCache(task: Task[TransformSpecification]) extends Activity[SparqlEntitySchema] {
 
+  override def initialValue = Some(SparqlEntitySchema.empty)
+
   /**
    * Loads the most frequent paths.
    */
