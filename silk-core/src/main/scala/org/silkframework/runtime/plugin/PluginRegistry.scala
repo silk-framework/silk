@@ -46,21 +46,11 @@ object PluginRegistry {
    */
   def createFromConfig[T: ClassTag](configPath: String): T = {
     val config = Config().getConfig(configPath)
-    if(config.isEmpty)
+    if(!config.hasPath("plugin"))
       throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
-    else if(config.entrySet().size > 1)
-      throw new InvalidPluginException(s"Configuration property $configPath does contain multiple plugin definitions.")
     else {
       // Retrieve plugin id
-      val pluginId =
-        if(config.entrySet().isEmpty) {
-          // The key set is empty although the config is not empty. This is probably a bug in the config library. We have to search for the plugin manually
-          val pluginIds = availablePlugins[T].map(_.id.toString)
-          pluginIds.find(config.hasPath).getOrElse(throw new InvalidPluginException(s"Unknown plugin id in path $configPath"))
-        } else {
-          val pluginConfig = config.entrySet().head
-          pluginConfig.getKey.takeWhile(_ != '.')
-        }
+      val pluginId = config.getString("plugin")
       // Instantiate plugin with configured parameters
       val pluginParams = for (entry <- config.getConfig(pluginId).entrySet()) yield (entry.getKey, entry.getValue.unwrapped().toString)
       val plugin = create[T](pluginId, pluginParams.toMap)
