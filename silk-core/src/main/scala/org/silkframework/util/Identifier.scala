@@ -37,6 +37,8 @@ class Identifier(private val name: String) extends Serializable {
   }
 
   override def hashCode = name.hashCode
+
+  def +(other: Any): Identifier = new Identifier(name + other.toString)
 }
 
 /**

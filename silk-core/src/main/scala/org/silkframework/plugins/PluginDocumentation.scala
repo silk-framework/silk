@@ -49,11 +49,11 @@ object PluginDocumentation extends App {
     )
   }
 
-  def formatFunction(plugin: PluginDescription[_]) = {
-    plugin.id + plugin.parameters.map(formatParameter).mkString("(", ", ", ")")
+  def formatFunction(plugin: PluginDescription[_]): String = {
+    plugin.id.toString + plugin.parameters.map(formatParameter).mkString("(", ", ", ")")
   }
 
-  def formatParameter(parameter: Parameter) = {
+  def formatParameter(parameter: Parameter): String = {
     val signature = parameter.name + ": " + parameter.dataType.toString
     parameter.defaultValue match {
       case Some(default) => s"[$signature = '$default']"
