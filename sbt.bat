@@ -13,7 +13,7 @@
 set SBT_HOME=%~dp0
 
 rem FIRST we load the config file of extra options.
-set FN=%SBT_HOME%\project\sbtconfig.txt
+set FN=%SBT_HOME%\project\sbtopts
 set CFG_OPTS=
 FOR /F "tokens=* eol=# usebackq delims=" %%i IN ("%FN%") DO (
   set DO_NOT_REUSE_ME=%%i

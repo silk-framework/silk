@@ -5,6 +5,10 @@
 ###  Helper methods for BASH scripts ###
 ###  ------------------------------- ###
 
+# Path of the directory this file is placed in
+projectPath=${0%sbt}
+echo "Project path is $projectPath"
+
 realpath () {
 (
   TARGET_FILE="$1"
@@ -61,8 +65,7 @@ cygwinpath() {
 
 declare -r noshare_opts="-Dsbt.global.base=project/.sbtboot -Dsbt.boot.directory=project/.boot -Dsbt.ivy.home=project/.ivy"
 declare -r sbt_opts_file=".sbtopts"
-declare -r etc_sbt_opts_file="${sbt_home}/project/sbtopts"
-declare -r win_sbt_opts_file="${sbt_home}/project/sbtconfig.txt"
+declare -r etc_sbt_opts_file="${projectPath}/project/sbtopts"
 
 usage() {
  cat <<EOM
@@ -138,14 +141,14 @@ loadConfigFile() {
 
 # TODO - Pull in config based on operating system... (MSYS + cygwin should pull in txt file).
 # Here we pull in the global settings configuration.
-[[ -f "$etc_sbt_opts_file" ]] && set -- $(loadConfigFile "$etc_sbt_opts_file") "$@"
+JAVA_OPTS=$(loadConfigFile "$etc_sbt_opts_file")
+# [[ -f "$etc_sbt_opts_file" ]] && set -- $(loadConfigFile "$etc_sbt_opts_file") "$@" && echo "sbtopts recognized" && export SBT_OPTS=$(loadConfigFile "$etc_sbt_opts_file")
 # -- Windows behavior stub'd
 # JAVA_OPTS=$(cat "$WDIR/sbtconfig.txt" | sed -e 's/\r//g' -e 's/^#.*$//g' | sed ':a;N;$!ba;s/\n/ /g')
 
 
 #  Pull in the project-level config file, if it exists.
 [[ -f "$sbt_opts_file" ]] && set -- $(loadConfigFile "$sbt_opts_file") "$@"
-
 
 run "$@"
 
