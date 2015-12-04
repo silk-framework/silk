@@ -12,6 +12,30 @@ All resources below are available under the path `{deploymentURI}/workspace/`.
 | `PUT projects/<project>`    | Adds a new empty project |   
 | `DELETE projects/<project>` | Delets an existing project |
 
+### Resources
+
+Each project may contain a number of resources (i.e. files). 
+Resources may be referenced by tasks in the workspace.
+For instance, a dataset may read a CSV-file or a linkage rule may read a stopword list.
+
+| Resource | Description |
+| --- | --- |
+| `GET projects/<project>/resources ` | Retrieves a JSON listing all resources in a project. |
+| `GET projects/<project>/resources/<name> ` | Retrieves a specific resource. |   
+| `PUT projects/<project>/resources/<name> ` | Uploads a specific resource. |   
+| `DELETE projects/<project>/resources/<name> ` | Deletes a specific resource. |   
+
+### Datasets
+
+A dataset description holds all properties needed to read entities from a dataset.
+The dataset may either be local (e.g., a resource) or remote (e.g., accessed through queries).
+
+| Resource | Description |
+| --- | --- |
+| `GET projects/<project>/datasets/<name> ` | Retrieves the properties of a specific dataset. |   
+| `PUT projects/<project>/datasets/<name> ` | Creates or updates a dataset. |   
+| `DELETE projects/<project>/datasets/<name> ` | Deletes a dataset. |   
+
 ### Start/Stop Activities
 
 Each task may provide one or more activities. An activity is a unit of work that can be executed in the background.

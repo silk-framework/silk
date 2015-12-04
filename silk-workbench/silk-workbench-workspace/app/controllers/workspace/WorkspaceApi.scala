@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object WorkspaceApi extends Controller {
 
   def projects = Action {
-    Ok.apply(JsonSerializer.projectsJson)
+    Ok(JsonSerializer.projectsJson)
   }
 
   def newProject(project: String) = Action {
@@ -107,6 +107,12 @@ object WorkspaceApi extends Controller {
 
     Ok
   }}
+
+  def getResources(projectName: String) = Action {
+    val project = User().workspace.project(projectName)
+
+    Ok(JsonSerializer.projectResources(project))
+  }
 
   def getResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)

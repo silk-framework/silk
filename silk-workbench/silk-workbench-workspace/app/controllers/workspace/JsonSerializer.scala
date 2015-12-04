@@ -39,6 +39,10 @@ object JsonSerializer {
     }
   )
 
+  def projectResources(project: Project) = {
+    JsArray(project.resources.list.map(JsString))
+  }
+
   def activityConfig(config: Map[String, String]) = JsArray(
     for((name, value) <- config.toSeq) yield
       Json.obj("name" -> name, "value" -> value)

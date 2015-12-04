@@ -31,9 +31,9 @@ GET           /datasets/:project/:task/table                   controllers.works
 GET           /datasets/:project/:task/sparql                  controllers.workspace.Datasets.sparql(project, task, query ?= "")
 
 # API
-GET           /projects/:project/dataset/:name                 controllers.workspace.Datasets.getDataset(project: String, name: String)
-PUT           /projects/:project/dataset/:name                 controllers.workspace.Datasets.putDataset(project: String, name: String)
-DELETE        /projects/:project/dataset/:name                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
+GET           /projects/:project/datasets/:name                controllers.workspace.Datasets.getDataset(project: String, name: String)
+PUT           /projects/:project/datasets/:name                controllers.workspace.Datasets.putDataset(project: String, name: String)
+DELETE        /projects/:project/datasets/:name                controllers.workspace.Datasets.deleteDataset(project: String, name: String)
 
 ############################################################################################################################################
 # Workspace API
@@ -58,6 +58,7 @@ POST          /activities/config                               controllers.works
 GET           /activities/updates                              controllers.workspace.WorkspaceApi.activityUpdates(project: String, task: String, activity: String)
 
 # Resources
+GET           /projects/:project/resources                     controllers.workspace.WorkspaceApi.getResources(project: String)
 GET           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
 PUT           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)

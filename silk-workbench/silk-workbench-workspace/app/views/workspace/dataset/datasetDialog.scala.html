@@ -23,12 +23,12 @@
       // Delete the old dataset in case its name changed
       if(!@task.isEmpty) {
         if(name != '@task') {
-          deleteTask('@config.baseUrl/workspace/projects/@project/dataset/@task');
+          deleteTask('@config.baseUrl/workspace/projects/@project/datasets/@task');
         }
       }
 
       // Submit data source
-      putTask('@config.baseUrl/workspace/projects/@project/dataset/' + name, xml);
+      putTask('@config.baseUrl/workspace/projects/@project/datasets/' + name, xml);
     }
   </script>
 }
