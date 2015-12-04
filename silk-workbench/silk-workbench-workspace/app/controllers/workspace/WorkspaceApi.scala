@@ -210,6 +210,18 @@ object WorkspaceApi extends Controller {
     }
   }
 
+  def getActivityStatus(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    if(taskName.nonEmpty) {
+      val task = project.anyTask(taskName)
+      val activity = task.activity(activityName)
+      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status))
+    } else {
+      val activity = project.activity(activityName)
+      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status))
+    }
+  }
+
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
     val projects =
       if (projectName.nonEmpty) User().workspace.project(projectName) :: Nil

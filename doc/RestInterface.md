@@ -42,12 +42,16 @@ Each task may provide one or more activities. An activity is a unit of work that
 
 | Resource | Description |
 | --- | --- |
-| `POST activities/start` | Starts a task activity. |
-| `POST activities/cancel` | Cancels a task activity. |
+| `POST activities/start` | Starts an activity. |
+| `POST activities/cancel` | Cancels an activity. |
+| `GET activities/config` | Retrieves the configuration of an activity as key-value pairs. |
+| `POST activities/config` | Updates the configuration of an activity. |
+| `GET activities/status` | Retrieves the status of an activity. |
+| `GET activities/updates` | Retrieves a Comet stream of Javascript calls to updateStatus whenever the status changes. Can be used to avoid status polling. |
 
 All resources support three parameters:
 - `project`: The project name
-- `task`: The task name
+- `task`: The task name. If left empty, a project activity is retrieved.
 - `activity`: The name of the activity
 
 Example for starting the `Generate Links` activity for the LinkMovies task:

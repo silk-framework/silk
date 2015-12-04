@@ -14,6 +14,10 @@ class ProjectActivity(val project: Project, initialFactory: ProjectActivityFacto
 
   def name = currentControl.name
 
+  def value = currentControl.value()
+
+  def status = currentControl.status()
+
   def control = currentControl
 
   def factory = currentFactory
