@@ -44,10 +44,7 @@ class CorePlugins extends PluginModule {
   override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators
 
   private def datasets = {
-    if(InternalDataset.isAvailable)
-      classOf[InternalDataset] :: Nil
-    else
-      Nil
+    classOf[InternalDataset] :: Nil
   }
 
   private def transformers =
