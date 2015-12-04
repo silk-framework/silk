@@ -58,7 +58,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
    * Removes a specific task.
    */
   def removeTask(name: Identifier, resources: ResourceManager) = {
-    resources.delete(name)
+    resources.delete(name.toString)
   }
 
   /**

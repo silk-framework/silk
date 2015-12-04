@@ -30,13 +30,13 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
    * Writes an updated task.
    */
   override def writeTask(data: Workflow, resources: ResourceManager): Unit = {
-    resources.get(data.id + ".xml").write { os => data.toXML.write(os) }
+    resources.get(data.id.toString + ".xml").write { os => data.toXML.write(os) }
   }
 
   /**
    * Removes a specific task.
    */
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
-    resources.delete(name + ".xml")
+    resources.delete(name.toString + ".xml")
   }
 }

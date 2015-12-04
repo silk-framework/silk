@@ -67,14 +67,14 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
    * Writes an updated task.
    */
   override def writeTask(data: Dataset, resources: ResourceManager): Unit = {
-    resources.get(data.id + ".xml").write{ os => Serialization.toXml(data).write(os) }
+    resources.get(data.id.toString + ".xml").write{ os => Serialization.toXml(data).write(os) }
   }
 
   /**
    * Removes a specific task.
    */
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
-    resources.delete(name + ".xml")
-    resources.delete(name + "_cache.xml")
+    resources.delete(name.toString + ".xml")
+    resources.delete(name.toString + "_cache.xml")
   }
 }

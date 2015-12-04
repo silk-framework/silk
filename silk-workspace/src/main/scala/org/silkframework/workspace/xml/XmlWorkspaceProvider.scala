@@ -100,7 +100,7 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     zip.close()
 
     //Return proposed file name
-    project + ".zip"
+    project.toString + ".zip"
   }
 
   override def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader): Unit = {

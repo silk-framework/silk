@@ -63,6 +63,6 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpecificatio
    * Removes a specific task.
    */
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
-    resources.delete(name)
+    resources.delete(name.toString)
   }
 }
