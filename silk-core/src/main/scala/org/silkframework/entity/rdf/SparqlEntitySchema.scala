@@ -36,6 +36,8 @@ case class SparqlEntitySchema(variable: String = "a", restrictions: SparqlRestri
     }
     index
   }
+
+  def isEmpty = restrictions.isEmpty && paths.isEmpty
 }
 
 object SparqlEntitySchema {
