@@ -31,6 +31,8 @@ case class DPair[+T](source: T, target: T) {
 
   def zip[U](pair: DPair[U]) = DPair((source, pair.source), (target, pair.target))
 
+  def forall(predicate: T => Boolean) = predicate(source) && predicate(target)
+
   def reverse = DPair(target, source)
 }
 
