@@ -19,6 +19,11 @@ trait Resource {
   def path: String
 
   /**
+    * Checks if this resource exists.
+    */
+  def exists: Boolean
+
+  /**
    * Loads the resource.
    *
    * @return An input stream for reading the resource.

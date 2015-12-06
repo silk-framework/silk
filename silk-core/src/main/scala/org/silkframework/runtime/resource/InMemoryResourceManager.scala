@@ -63,6 +63,8 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     */
   private class InMemoryResource(val name: String, val path: String) extends WritableResource {
 
+    override def exists = resources.contains(name)
+
     override def load: InputStream = {
       resources.get(name) match {
         case Some(data) => new ByteArrayInputStream(data)

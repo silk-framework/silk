@@ -13,6 +13,8 @@ class FileResource(val file: File) extends WritableResource {
 
   val path = file.getAbsolutePath
 
+  def exists = file.exists()
+
   override def load = {
     new BufferedInputStream(new FileInputStream(file))
   }

@@ -26,6 +26,8 @@ case class ReadOnlyResourceManager(loader: ResourceLoader) extends ResourceManag
 
     override def path: String = resource.path
 
+    override def exists = resource.exists
+
     override def load: InputStream = resource.load
 
     override def write(write: (OutputStream) => Unit): Unit = {
