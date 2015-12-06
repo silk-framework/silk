@@ -27,7 +27,7 @@ class TransformPathsCache(task: Task[TransformSpecification]) extends Activity[S
     val currentEntityDesc = transform.entityDescription
 
     //Check if paths have not been loaded yet or if the restriction has been changed
-    if (context.value() == null || currentEntityDesc.restrictions != context.value().restrictions) {
+    if (context.value().isEmpty || currentEntityDesc.restrictions != context.value().restrictions) {
       // Retrieve the data sources
       val source = dataset.source
       //Retrieve most frequent paths

@@ -24,9 +24,9 @@ class LinkingPathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) e
 
     //Check if the restriction has been changed
     val update =
-      context.value() == null ||
-        (currentEntityDescs.source.restrictions != context.value().source.restrictions &&
-         currentEntityDescs.target.restrictions != context.value().target.restrictions)
+      (context.value().source.isEmpty && context.value().target.isEmpty) ||
+      (currentEntityDescs.source.restrictions != context.value().source.restrictions &&
+       currentEntityDescs.target.restrictions != context.value().target.restrictions)
 
     if (update) {
       // Retrieve the data sources
