@@ -62,7 +62,7 @@ object Status {
    * Status which indicates that the task has been started.
    */
   case class Started(name: String) extends Status {
-    override def message = name + " started"
+    override def message = "Started"
     override def isRunning = true
   }
   
@@ -84,7 +84,7 @@ object Status {
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
   case class Canceling(name: String, override val progress: Double) extends Status {
-    override def message = "Stopping " + name
+    override def message = "Stopping..."
     override def isRunning = true
   }
   
@@ -98,8 +98,8 @@ object Status {
    */
   case class Finished(name: String, success: Boolean, time: Long, exception: Option[Throwable] = None) extends Status {
     override def message = exception match {
-      case None => name + " finished in " + formattedTime
-      case Some(ex) => name + " failed after " + formattedTime + ": " + ex.getMessage
+      case None => "Finished in " + formattedTime
+      case Some(ex) => "Failed after " + formattedTime + ": " + ex.getMessage
     }
   
     private def formattedTime = {
