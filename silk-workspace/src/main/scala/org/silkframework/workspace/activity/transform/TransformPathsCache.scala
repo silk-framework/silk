@@ -14,6 +14,8 @@ import scala.xml.Node
  */
 class TransformPathsCache(task: Task[TransformSpecification]) extends Activity[SparqlEntitySchema] {
 
+  override def name = s"Paths cache ${task.name}"
+
   override def initialValue = Some(SparqlEntitySchema.empty)
 
   /**

@@ -11,6 +11,8 @@ import org.silkframework.util.DPair
  */
 class LinkingPathsCache(datasets: DPair[Dataset], linkSpec: LinkSpecification) extends Activity[DPair[SparqlEntitySchema]] {
 
+  override def name = s"Paths cache ${linkSpec.id}"
+
   override def initialValue = Some(DPair.fill(SparqlEntitySchema.empty))
 
   /**

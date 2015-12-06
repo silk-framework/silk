@@ -12,6 +12,8 @@ import org.silkframework.workspace.Task
 
 class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[ReferenceEntities] {
 
+  override def name = s"Entities cache ${task.name}"
+
   override def initialValue = Some(ReferenceEntities.empty)
 
   override def run(context: ActivityContext[ReferenceEntities]) = {

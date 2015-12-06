@@ -29,9 +29,14 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
   override def run(context: ActivityContext[T]): Unit = {
     if(!initialized) {
       initialized = true
-      readValue(context) match {
-        case Some(value) => context.value() = value
-        case None => update(context)
+      if(resource.exists) {
+        readValue(context) match {
+          case Some(value) => context.value() = value
+          case None => update(context)
+        }
+      } else {
+        context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
+        update(context)
       }
     } else {
       update(context)
@@ -58,7 +63,7 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
       Some(value)
     } catch {
       case ex: ResourceNotFoundException =>
-        context.log.log(Level.INFO, s"Cache $resource not found")
+        context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
         None
       case ex: Exception =>
         context.log.log(Level.WARNING, s"Loading cache from $resource failed", ex)
