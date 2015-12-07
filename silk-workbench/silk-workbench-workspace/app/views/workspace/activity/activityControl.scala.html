@@ -72,7 +72,7 @@
   function startActivity() {
     $.ajax({
       type: 'POST',
-      url: '@WorkspaceApi.startActivity(project, task.getOrElse(""), activity).url',
+      url: '@Html(WorkspaceApi.startActivity(project, task.getOrElse(""), activity).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -84,7 +84,7 @@
   function stopActivity() {
     $.ajax({
       type: 'POST',
-      url: '@WorkspaceApi.cancelActivity(project, task.getOrElse(""), activity).url',
+      url: '@Html(WorkspaceApi.cancelActivity(project, task.getOrElse(""), activity).url)',
       success: function(response) {
       },
       error: function(request) {
