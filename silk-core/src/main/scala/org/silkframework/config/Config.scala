@@ -12,7 +12,7 @@ object Config {
   private lazy val config = {
     var fullConfig = ConfigFactory.load()
     // Check if we are running as part of the eccenca Linked Data Suite
-    val eldsHome = System.getenv("ELDS_HOME")
+    val eldsHome = fullConfig.getString("elds.home")
     if (eldsHome != null) {
       val eldsConfig = ConfigFactory.parseFile(new File(eldsHome + "/etc/dataintegration/dataintegration.conf"))
       fullConfig = eldsConfig.withFallback(fullConfig)
@@ -22,7 +22,7 @@ object Config {
     if(playConfig.exists()) {
       fullConfig = ConfigFactory.parseFile(playConfig).withFallback(fullConfig)
     }
-    fullConfig
+    fullConfig.resolve()
   }
 
   def apply() = config
