@@ -142,7 +142,7 @@ body{
 
 .dragDiv .content {
   min-height: 14px;
-  padding: 5px;
+  padding: 5px 10px 5px 5px;
   border-radius: 0 0 5px 5px;
   border-left:1px solid #aeaeae;
   border-right:1px solid #aeaeae;

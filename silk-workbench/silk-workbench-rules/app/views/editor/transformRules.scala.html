@@ -107,7 +107,7 @@
           <td>
             <input class="source" value="@rule.sourcePath.serializeSimplified(prefixes())" style="width:100%" />
           </td>
-          <td>
+          <td style="padding-right: 10px">
             <input class="target" value="@rule.targetProperty.serialize(prefixes())" style="width:100%" />
           </td>
         </tr>
@@ -135,7 +135,7 @@
           <td>
             <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
-          <td>
+          <td style="padding-right: 10px">
             <input class="pattern" value="@rule.pattern" size="45" style="width:100%" />
           </td>
         </tr>
@@ -167,7 +167,7 @@
           <td>
             <input class="pattern" value="@rule.pattern" style="width:100%" />
           </td>
-          <td>
+          <td style="padding-right: 10px">
             <input class="target" value="@rule.targetProperty.serialize(prefixes())" style="width:100%" />
           </td>
         </tr>
@@ -195,7 +195,7 @@
           <td>
             <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
-          <td>
+          <td style="padding-right: 10px">
             <input class="type" value="@rule.typeUri" size="45" style="width:100%" />
           </td>
         </tr>
@@ -227,7 +227,7 @@
           <td>
             @if(rule.paths.size == 1) { @rule.paths.head.serializeSimplified(prefixes()) } else { (multiple) }
           </td>
-          <td>
+          <td style="padding-right: 10px">
             <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" style="width:100%" />
           </td>
         </tr>
