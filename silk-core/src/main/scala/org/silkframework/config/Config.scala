@@ -12,8 +12,8 @@ object Config {
   private lazy val config = {
     var fullConfig = ConfigFactory.load()
     // Check if we are running as part of the eccenca Linked Data Suite
-    val eldsHome = fullConfig.getString("elds.home")
-    if (eldsHome != null) {
+    if (fullConfig.hasPath("elds.home")) {
+      val eldsHome = fullConfig.getString("elds.home")
       val eldsConfig = ConfigFactory.parseFile(new File(eldsHome + "/etc/dataintegration/dataintegration.conf"))
       fullConfig = eldsConfig.withFallback(fullConfig)
     }
