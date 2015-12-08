@@ -34,15 +34,16 @@ class FileEntityCache(val entityDesc: SparqlEntitySchema,
 
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
-  @volatile private var writing = false
+  @volatile
+  private var writing = false
+
+  @volatile
+  private var entityCount = 0
 
   override def write(entities: Traversable[Entity]) {
-
     logger.log(Level.FINER, "Writing data to file cache.")
-
     val startTime = System.currentTimeMillis()
     writing = true
-    var entityCount = 0
 
     try {
       for (entity <- entities) {
@@ -54,7 +55,7 @@ class FileEntityCache(val entityDesc: SparqlEntitySchema,
           blocks(block).write(entity, BitsetIndex.build(index))
         }
 
-        if (!indices.isEmpty) entityCount += 1
+        if (indices.nonEmpty) entityCount += 1
       }
 
       val time = (System.currentTimeMillis - startTime) / 1000.0
@@ -81,21 +82,21 @@ class FileEntityCache(val entityDesc: SparqlEntitySchema,
     blocks(block).partitionCount
   }
 
-  override def clear() {
+  override def size = entityCount
 
+  override def clear() {
     logger.log(Level.FINE, s"Clearing the file cache [ path :: ${dir.getAbsolutePath} ].")
 
     dir.deleteRecursive()
     for (block <- blocks) {
       block.clear()
     }
+    entityCount = 0
 
     logger.log(Level.FINE, "Cache cleared.")
-
   }
 
   override def close() {
-
     logger.log(Level.FINER, s"Closing file cache [ size :: ${blocks.length} ].")
 
     for (block <- blocks) {

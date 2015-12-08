@@ -82,6 +82,11 @@ trait EntityCache {
   def partitionCount(block: Int): Int
 
   /**
+    * Total number of entities in this cache.
+    */
+  def size: Int
+
+  /**
    * Serializes the complete Cache as XML
    */
   def toXML = {

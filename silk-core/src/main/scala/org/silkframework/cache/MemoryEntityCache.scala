@@ -31,13 +31,17 @@ class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
 
   private val logger = Logger.getLogger(getClass.getName)
 
+  @volatile
   private var blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
 
+  @volatile
   private var allEntities = Set[String]()
 
+  @volatile
   private var entityCounter = 0
 
-  @volatile private var writing = false
+  @volatile
+  private var writing = false
 
   /**
    * Writes to this cache.
@@ -52,7 +56,7 @@ class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
         add(entity)
       }
 
-      val time = ((System.currentTimeMillis - startTime) / 1000.0)
+      val time = (System.currentTimeMillis - startTime) / 1000.0
       logger.log(runtimeConfig.logLevel, "Finished writing " + entityCounter + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
     }
     finally {
@@ -80,9 +84,7 @@ class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
   }
 
   override def clear() {
-
     logger.log(Level.FINE, "Clearing the memory cache.")
-
     entityCounter = 0
     blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
     allEntities = Set[String]()
@@ -90,7 +92,7 @@ class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
 
   override def close() { }
 
-  def entityCount = entityCounter
+  override def size = entityCounter
 
   /**
    * Reads a partition of a block.
