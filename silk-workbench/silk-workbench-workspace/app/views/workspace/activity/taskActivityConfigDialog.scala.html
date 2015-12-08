@@ -16,7 +16,7 @@
   <script type="text/javascript">
     function submit(pluginId, name, parameters) {
       $.post(
-        '@routes.WorkspaceApi.postActivityConfig(activity.task.project.name, activity.task.name, activity.name)',
+        '@Html(routes.WorkspaceApi.postActivityConfig(activity.task.project.name, activity.task.name, activity.name).url)',
         parameters
       ).done(function() {
         closeDialog();
