@@ -69,11 +69,19 @@
 
 .operatorHeader {
   height: 15px;
-  font-size: 9pt;
   cursor: move;
   padding: 4px;
   background-color:#1484d4;
   border-radius: 5px 5px 0 0;
+}
+
+.operatorHeaderText {
+  width: 160px;
+  white-space:nowrap;
+  overflow:hidden;
+  float: left;
+  font-size: 9pt;
+  font-weight: bold
 }
 
 .operatorContent {
@@ -121,7 +129,9 @@
   position: absolute;
   left: 0;
   top: 45px;
-  width: 100px;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dataset-top {

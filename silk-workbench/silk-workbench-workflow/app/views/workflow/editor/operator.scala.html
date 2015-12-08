@@ -8,18 +8,16 @@
 
 <div class="operator" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
   <div class="operatorHeader">
-    <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
-      @task.name (@taskActions.name)
+    <div class="operatorHeaderText">
+      @taskActions.name
     </div>
     <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+  </div>
+  <div class="operatorContent">
+    @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
+    @task.name
     @for(path <- taskActions.open(project.name, task.name)) {
       <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
     }
-  </div>
-  <div class="operatorContent">
-      @for(((key, value), index) <- taskActions.properties(task.data).zipWithIndex) {
-        @if(index != 0) {<br/>}
-        @key: @value
-      }
   </div>
 </div>
