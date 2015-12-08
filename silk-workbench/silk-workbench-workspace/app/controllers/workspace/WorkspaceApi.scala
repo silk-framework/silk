@@ -16,7 +16,7 @@ import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsFormUrlEncoded, Action, Controller}
+import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -83,12 +83,20 @@ object WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     implicit val resources = project.resources
 
-    for(data <- request.body.asMultipartFormData;
-        file <- data.files) {
-      val config = Serialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
-      SilkConfigImporter(config, project)
+    request.body match {
+      case AnyContentAsMultipartFormData(data) =>
+        for(file <- data.files) {
+          val config = Serialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
+          SilkConfigImporter(config, project)
+        }
+        Ok
+      case AnyContentAsXml(xml) =>
+        val config = Serialization.fromXml[LinkingConfig](xml.head)
+        SilkConfigImporter(config, project)
+        Ok
+      case _ =>
+        UnsupportedMediaType("Link spec must be provided either as Multipart form data or as XML. Please set the Content-Type header accordingly, e.g. to application/xml")
     }
-    Ok
   }}
 
   def exportLinkSpec(projectName: String, taskName: String) = Action {
