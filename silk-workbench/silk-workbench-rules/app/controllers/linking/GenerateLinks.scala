@@ -29,7 +29,7 @@ object GenerateLinks extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
-    val generatedLinks = task.activity[GenerateLinksActivity].value
+    val generatedLinks = task.activity[GenerateLinksActivity].value.links
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
     if(generatedLinks.headOption.exists(_.entities.nonEmpty)) {

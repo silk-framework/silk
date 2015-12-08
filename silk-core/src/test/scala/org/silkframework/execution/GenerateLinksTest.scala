@@ -34,9 +34,9 @@ import org.silkframework.runtime.resource.ClasspathResourceLoader
 import scala.xml.XML
 
 /**
- * This test evaluates the GenerateLinksTask with different execution methods.
+ * This test evaluates the GenerateLinks Activity with different execution methods.
  */
-object GenerateLinksTaskTest {
+object GenerateLinksTest {
 
   Locale.setDefault(Locale.ENGLISH)
 
@@ -161,7 +161,7 @@ object GenerateLinksTaskTest {
           runtimeConfig = runtimeConfig
         )
 
-      val links = Activity(activity).startBlockingAndGetValue()
+      val links = Activity(activity).startBlockingAndGetValue().links
       links.toSet
     }
   }

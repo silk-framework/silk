@@ -17,7 +17,7 @@ package org.silkframework.learning.active
 import org.silkframework.config.{LinkSpecification, Prefixes, RuntimeConfig}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, Index, Link, Path}
-import org.silkframework.execution.GenerateLinks
+import org.silkframework.execution.{Linking, GenerateLinks}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
@@ -35,7 +35,7 @@ private class GeneratePool(inputs: Seq[DataSource],
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-  private var generateLinksTask: GenerateLinks = _
+  private var generateLinksActivity: GenerateLinks = _
 
   override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
     val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
@@ -43,16 +43,16 @@ private class GeneratePool(inputs: Seq[DataSource],
     val op = new SampleOperator()
     val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
-    generateLinksTask =
+    generateLinksActivity =
       new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
         override def entityDescs = entityDesc
       }
 
-    val listener = (v: Seq[Link]) =>  {
-      if(v.size > 1000) generateLinksTask.cancelExecution()
+    val listener = (v: Linking) =>  {
+      if(v.links.size > 1000) generateLinksActivity.cancelExecution()
     }
     context.status.update(0.0)
-    context.executeBlocking(generateLinksTask, 0.8, listener)
+    context.executeBlocking(generateLinksActivity, 0.8, listener)
 
     val generatedLinks = op.getLinks()
     assert(generatedLinks.nonEmpty, "Could not load any links")
@@ -93,7 +93,7 @@ private class GeneratePool(inputs: Seq[DataSource],
         }
 
         if (size > 1000 && labelLinks > 100)
-          generateLinksTask.cancelExecution()
+          generateLinksActivity.cancelExecution()
       }
 
       None

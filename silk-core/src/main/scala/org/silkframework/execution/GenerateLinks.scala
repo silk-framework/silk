@@ -31,7 +31,7 @@ import org.silkframework.util.{CollectLogs, DPair}
 class GenerateLinks(inputs: DPair[DataSource],
                     linkSpec: LinkSpecification,
                     outputs: Seq[LinkSink],
-                    runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Seq[Link]] {
+                    runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Linking] {
 
   /** The task used for loading the entities into the cache */
   @volatile private var loader: Loader = null
@@ -50,13 +50,13 @@ class GenerateLinks(inputs: DPair[DataSource],
    */
   def warnings = warningLog
 
-  override def initialValue = Some(Seq.empty)
+  override def initialValue = Some(Linking())
 
-  override def run(context: ActivityContext[Seq[Link]]) = {
+  override def run(context: ActivityContext[Linking]) = {
     //TODO statusLogLevel = runtimeConfig.logLevel
     //TODO progressLogLevel = runtimeConfig.logLevel
 
-    context.value.update(Seq.empty)
+    context.value.update(Linking())
 
     warningLog = CollectLogs() {
       //Entity caches
@@ -78,15 +78,16 @@ class GenerateLinks(inputs: DPair[DataSource],
 
       //Execute matching
       val matcherContext = context.child(matcher, 0.95)
-      matcherContext.value.onUpdate(context.value.update)
+      matcherContext.value.onUpdate(links => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size)))))
       matcherContext.startBlocking()
 
       //Filter links
-      val filterTask = new Filter(context.value(), linkSpec.rule.filter)
-      context.child(filterTask, 0.03).startBlocking()
-
+      val filterTask = new Filter(context.value().links, linkSpec.rule.filter)
+      val filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
+      context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
+      
       //Output links
-      val outputTask = new OutputWriter(context.value(), linkSpec.rule.linkType, outputs)
+      val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
       context.child(outputTask, 0.02).startBlocking()
     }
   }

@@ -70,7 +70,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
     }
 
     var links: Seq[Link] = Seq.empty
-    if (entityCache.entityCount > 0) {
+    if (entityCache.size > 0) {
       val matcher = if (matchOnlyInProvidedGraph){
         new Matcher(linkSpec.rule, DPair(entityCache, targetInstanceCache))
       } else {
@@ -89,7 +89,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecificati
     MatchResult(links, linkSpec.rule.linkType, unmatchedEntities.map(_.uri).toSet)
   }
 
-  def sourceEntityCount = caches.source.entityCount
+  def sourceEntityCount = caches.source.size
 
-  def targetEntityCount = caches.target.entityCount
+  def targetEntityCount = caches.target.size
 }

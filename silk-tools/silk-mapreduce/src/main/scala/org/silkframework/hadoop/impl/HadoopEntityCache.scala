@@ -35,7 +35,11 @@ class HadoopEntityCache(val entityDesc: SparqlEntitySchema,
 
   private val blocks = (for (i <- 0 until blockCount) yield new BlockReader(i)).toArray
 
-  @volatile private var writing = false
+  @volatile
+  private var writing = false
+
+  @volatile
+  private var entityCount = 0
 
   override def write(entities: Traversable[Entity]) {
     writing = true
@@ -44,7 +48,6 @@ class HadoopEntityCache(val entityDesc: SparqlEntitySchema,
       fs.delete(path, true)
 
       val blockWriters = (for (i <- 0 until blockCount) yield new BlockWriter(i)).toArray
-      var entityCount = 0
 
       for (entity <- entities) {
         val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
@@ -77,7 +80,7 @@ class HadoopEntityCache(val entityDesc: SparqlEntitySchema,
   }
 
   override def clear() {
-    //throw new UnsupportedOperationException()
+    throw new UnsupportedOperationException()
   }
 
   override def close() { }
@@ -99,6 +102,8 @@ class HadoopEntityCache(val entityDesc: SparqlEntitySchema,
 
     fs.getFileStatus(path.suffix("/block" + block + "/partition" + partition)).getLen
   }
+
+  override def size = entityCount
 
   /**
    * The list of nodes by name where the partition would be local.
