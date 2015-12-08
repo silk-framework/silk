@@ -210,3 +210,23 @@
 #results .ui-corner-left {
   border-radius: 0;
 }
+
+
+/*
+ * Linking Statistics
+ */
+
+.linkingStatistics {
+
+}
+
+.linkingStatisticsHeader {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.linkingStatistics td {
+  border-width: 0;
+}
+

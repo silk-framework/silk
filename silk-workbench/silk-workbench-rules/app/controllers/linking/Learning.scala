@@ -66,7 +66,7 @@ object Learning extends Controller {
       }
     }.sortBy(_.confidence.get.abs)
 
-    Ok(views.html.widgets.linksTable(project, task, valLinks, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
+    Ok(views.html.widgets.linksTable(project, task, valLinks, None, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
   }
 
   def linksStream(projectName: String, taskName: String) = Action {

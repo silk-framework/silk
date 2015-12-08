@@ -51,21 +51,11 @@
       <div id="pending"><img src="@Assets.at("img/pending.gif")"></div>
     </div>
 
-    <div style="clear: both"></div>
+    <div id="links"></div>
 
-    <p>
-      <div id="links"></div>
-      <iframe src="generateLinks/linksStream" frameborder="0" height="0" width="100%"></iframe>
-    </p>
-
-    <div style="clear:both;"></div>
-
-    <div id="tree-footer">
-      <div class="navigation"></div>
-    </div>
-
-    <div style="clear: both"></div>
   </div>
+
+  <iframe src="generateLinks/linksStream" frameborder="0" height="0" width="100%"></iframe>
 }
 
 @main(Some(context))(header)(toolbar)(content)

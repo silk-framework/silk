@@ -7,11 +7,13 @@
 @import org.silkframework.rule.evaluation._
 @import org.silkframework.config.LinkSpecification
 @import controllers.rules.routes.Assets
-
 @import org.silkframework.workspace.Task
+@import org.silkframework.execution.LinkingStatistics
+
 @(project: Project,
   task: Task[LinkSpecification],
   links: Seq[EvalLink],
+  linkingStatistics: Option[LinkingStatistics],
   sorting: LinkSorter,
   filter: String,
   page: Int,
@@ -26,9 +28,16 @@
 }
 
 @render(getPageLinks())
+@for(statistics <- linkingStatistics) {
+  @renderStatistics(statistics)
+}
 
 @render(pageLinks: Seq[EvalLink]) = {
   <script>$(document).ready(function() { initPagination(@links.size) })</script>
+
+  <div style="clear: both"></div>
+
+  <p>
   <div id="results">
     <div class="link">
       <div class="link-header heading">
@@ -76,6 +85,15 @@
       @renderLink(link, index)
     }
   </div>
+  </p>
+
+  <div style="clear:both;"></div>
+
+  <div id="tree-footer">
+    <div class="navigation"></div>
+  </div>
+
+  <div style="clear: both"></div>
 }
 
 @sortableHeader(ascendingSorter: LinkSorter, descendingSorter: LinkSorter)(content: Html) = {
@@ -244,4 +262,26 @@
 
 @id(link: EvalLink, prefix: String = "") = @{
   prefix + link.hashCode
+}
+
+@renderStatistics(statistics: LinkingStatistics) = {
+  <div class="linkingStatistics">
+    <div class="linkingStatisticsHeader">
+      Linking Statistics
+    </div>
+    <table>
+      <tr>
+        <td>Number of source entities:</td>
+        <td>@statistics.entityCount.source</td>
+      </tr>
+      <tr>
+        <td>Number of target entities:</td>
+        <td>@statistics.entityCount.target</td>
+      </tr>
+      <tr>
+        <td>Number of links:</td>
+        <td>@links.size</td>
+      </tr>
+    </table>
+  </div>
 }
