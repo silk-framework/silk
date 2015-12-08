@@ -94,7 +94,7 @@
       @renderRuleButtons()
     </div>
     <div class="ruleContents">
-      <table>
+      <table style="width:100%">
         <tr>
           <th>Name</th>
           <th>Source Path</th>
@@ -102,13 +102,13 @@
         </tr>
         <tr>
           <td>
-            <input class="name" value="@rule.name" size="16" />
+            <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
           <td>
-            <input class="source" value="@rule.sourcePath.serializeSimplified(prefixes())" />
+            <input class="source" value="@rule.sourcePath.serializeSimplified(prefixes())" style="width:100%" />
           </td>
           <td>
-            <input class="target" value="@rule.targetProperty.serialize(prefixes())" />
+            <input class="target" value="@rule.targetProperty.serialize(prefixes())" style="width:100%" />
           </td>
         </tr>
       </table>
@@ -126,17 +126,17 @@
       @renderRuleButtons()
     </div>
     <div class="ruleContents">
-      <table>
+      <table style="width:100%">
         <tr>
           <th>Name</th>
           <th>Pattern</th>
         </tr>
         <tr>
           <td>
-            <input class="name" value="@rule.name" size="16" />
+            <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
           <td>
-            <input class="pattern" value="@rule.pattern" size="45" />
+            <input class="pattern" value="@rule.pattern" size="45" style="width:100%" />
           </td>
         </tr>
       </table>
@@ -154,7 +154,7 @@
       @renderRuleButtons()
     </div>
     <div class="ruleContents">
-      <table>
+      <table style="width:100%">
         <tr>
           <th>Name</th>
           <th>Pattern</th>
@@ -162,13 +162,13 @@
         </tr>
         <tr>
           <td>
-            <input class="name" value="@rule.name" size="16" />
+            <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
           <td>
-            <input class="pattern" value="@rule.pattern" />
+            <input class="pattern" value="@rule.pattern" style="width:100%" />
           </td>
           <td>
-            <input class="target" value="@rule.targetProperty.serialize(prefixes())" />
+            <input class="target" value="@rule.targetProperty.serialize(prefixes())" style="width:100%" />
           </td>
         </tr>
       </table>
@@ -186,17 +186,17 @@
       @renderRuleButtons()
     </div>
     <div class="ruleContents">
-      <table>
+      <table style="width:100%">
         <tr>
           <th>Name</th>
           <th>Type</th>
         </tr>
         <tr>
           <td>
-            <input class="name" value="@rule.name" size="16" />
+            <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
           <td>
-            <input class="type" value="@rule.typeUri" size="45" />
+            <input class="type" value="@rule.typeUri" size="45" style="width:100%" />
           </td>
         </tr>
       </table>
@@ -214,7 +214,7 @@
       @renderRuleButtons()
     </div>
     <div class="ruleContents">
-      <table>
+      <table style="width:100%">
         <tr>
           <th>Name</th>
           <th>Source Path</th>
@@ -222,13 +222,13 @@
         </tr>
         <tr>
           <td>
-            <input class="name" value="@rule.name" size="16" />
+            <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
           <td>
             @if(rule.paths.size == 1) { @rule.paths.head.serializeSimplified(prefixes()) } else { (multiple) }
           </td>
           <td>
-            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" />
+            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" style="width:100%" />
           </td>
         </tr>
       </table>
