@@ -7,6 +7,8 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
 
 class TransformPathsCacheFactory extends TaskActivityFactory[TransformSpecification, TransformPathsCache] {
 
+  override def autoRun = true
+
   def apply(task: Task[TransformSpecification]) = {
     new CachedActivity(
       activity = new TransformPathsCache(task),
