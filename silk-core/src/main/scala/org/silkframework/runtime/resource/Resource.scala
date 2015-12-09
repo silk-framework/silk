@@ -34,8 +34,8 @@ trait Resource {
   /**
    * Loads this resource into a string.
    */
-  def loadAsString: String = {
-    Source.fromInputStream(load)(Codec.UTF8).getLines.mkString("\n")
+  def loadAsString(implicit codec: Codec): String = {
+    Source.fromInputStream(load)(codec).getLines.mkString("\n")
   }
 
   /**

@@ -4,6 +4,8 @@ import org.silkframework.entity.{Path, PropertyFilter, ForwardOperator, PathOper
 import org.silkframework.runtime.resource.Resource
 import play.api.libs.json._
 
+import scala.io.Codec
+
 /**
  * Implementation of JSON access functions.
  */
@@ -12,7 +14,7 @@ object JsonParser {
   /**
    * Loads JSON from a resource.
    */
-  def load(resource: Resource): JsValue = {
+  def load(resource: Resource)(implicit codec: Codec): JsValue = {
     Json.parse(resource.loadAsString)
   }
 
