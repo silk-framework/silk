@@ -9,6 +9,8 @@ import org.silkframework.runtime.resource.Resource
 import JsonParser._
 import play.api.libs.json._
 
+import scala.io.Codec
+
 /**
  * A data source that retrieves all entities from an JSON file.
  *
@@ -17,7 +19,7 @@ import play.api.libs.json._
  *                 If left empty, all direct children of the root element will be read.
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
-class JsonSource(file: Resource, basePath: String, uriPattern: String) extends DataSource {
+class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -28,7 +30,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
    */
   override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
-    val json = load(file)
+    val json = load(file)(codec)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
     new Entities(selectedElements, entityDesc, entities.toSet)
 
@@ -38,7 +40,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String) extends D
    * Retrieves the most frequent paths in this source.
    */
   override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
-    val json = Json.parse(file.loadAsString)
+    val json = load(file)(codec)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
     for (element <- selectedElements.headOption.toSeq; // At the moment, we only retrieve the path from the first found element
          path <- collectPaths(element)) yield {

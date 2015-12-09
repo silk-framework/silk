@@ -4,6 +4,8 @@ import org.silkframework.dataset.{DataSink, DataSource, DatasetPlugin}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.Resource
 
+import scala.io.Codec
+
 @Plugin(
   id = "json",
   label = "JSON",
@@ -16,9 +18,11 @@ Parameters:
   uriPrefix: A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
 """
 )
-case class JsonDataset(file: Resource, basePath: String = "", uriPattern: String = "") extends DatasetPlugin {
+case class JsonDataset(file: Resource, basePath: String = "", uriPattern: String = "", charset: String = "UTF8") extends DatasetPlugin {
 
-  override def source: DataSource = new JsonSource(file, basePath, uriPattern)
+  private val codec = Codec(charset)
+
+  override def source: DataSource = new JsonSource(file, basePath, uriPattern, codec)
 
   override def sink: DataSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 }
