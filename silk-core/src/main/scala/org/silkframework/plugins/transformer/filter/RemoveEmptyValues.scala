@@ -24,7 +24,7 @@ import org.silkframework.rule.input.Transformer
   description = "Removes empty values."
 )
 case class RemoveEmptyValues() extends Transformer {
-  override def apply(values: Seq[Set[String]]) = {
+  override def apply(values: Seq[Seq[String]]) = {
     values.head.filter(!_.isEmpty)
   }
 }

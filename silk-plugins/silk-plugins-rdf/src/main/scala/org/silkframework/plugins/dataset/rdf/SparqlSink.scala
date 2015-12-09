@@ -38,7 +38,7 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSin
     statements += 1
   }
 
-  override def writeEntity(subject: String, values: Seq[Set[String]]) {
+  override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     if(body.isEmpty) {
       beginSparul(true)
     } else if (statements + 1 > StatementsPerRequest) {

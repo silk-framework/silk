@@ -25,7 +25,7 @@ import org.silkframework.entity.Index
   description = "Dice similarity coefficient."
 )
 case class DiceCoefficient() extends DistanceMeasure {
-  override def apply(values1: Traversable[String], values2: Traversable[String], threshold: Double): Double = {
+  override def apply(values1: Seq[String], values2: Seq[String], threshold: Double): Double = {
     val set1 = values1.toSet
     val set2 = values2.toSet
 
@@ -35,10 +35,11 @@ case class DiceCoefficient() extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / totalSize
   }
 
-  override def index(values: Set[String], limit: Double): Index = {
+  override def index(values: Seq[String], limit: Double): Index = {
+    val valueSet = values.toSet
     //The number of values we need to index
-    val indexSize = math.round((2.0 * values.size * limit / (1 + limit)) + 0.5).toInt
+    val indexSize = math.round((2.0 * valueSet.size * limit / (1 + limit)) + 0.5).toInt
 
-    Index.oneDim(values.take(indexSize).map(value => value.hashCode))
+    Index.oneDim(valueSet.take(indexSize).map(value => value.hashCode))
   }
 }

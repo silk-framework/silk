@@ -22,17 +22,17 @@ import java.io.{DataOutput, DataInput}
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Set[String]], val desc: SparqlEntitySchema = SparqlEntitySchema.empty) {
+class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: SparqlEntitySchema = SparqlEntitySchema.empty) {
   require(values.size == desc.paths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
-  def evaluate(path: Path): Set[String] = {
+  def evaluate(path: Path): Seq[String] = {
     if(path.operators.isEmpty)
-      Set(uri)
+      Seq(uri)
     else
       evaluate(desc.pathIndex(path))
   }
 
-  def evaluate(pathIndex: Int): Set[String] = values(pathIndex)
+  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
   def toXML = {
     <Entity uri={uri}> {
@@ -73,7 +73,7 @@ object Entity {
       uri = (node \ "@uri").text.trim,
       values = {
         for (valNode <- node \ "Val") yield {
-          { for (e <- valNode \ "e") yield e.text }.toSet
+          for (e <- valNode \ "e") yield e.text
         }
       }.toIndexedSeq,
       desc = desc
@@ -85,7 +85,7 @@ object Entity {
     val uri = stream.readUTF()
 
     //Read Values
-    def readValue = Traversable.fill(stream.readInt)(stream.readUTF).toSet
+    def readValue = Seq.fill(stream.readInt)(stream.readUTF)
     val values = IndexedSeq.fill(desc.paths.size)(readValue)
 
     new Entity(uri, values, desc)

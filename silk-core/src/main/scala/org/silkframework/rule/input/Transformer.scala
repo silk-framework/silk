@@ -20,7 +20,16 @@ import org.silkframework.runtime.plugin.{PluginFactory, AnyPlugin}
  * Transforms values.
  */
 trait Transformer extends AnyPlugin {
-  def apply(values: Seq[Set[String]]): Set[String]
+
+  /**
+    * Transforms a sequence of values
+    *
+    * @param values A sequence which contains as many elements as there are input operators for this transformation.
+    *               For each input operator it contains a sequence of values.
+    *
+    * @return The transformed sequence of values.
+    */
+  def apply(values: Seq[Seq[String]]): Seq[String]
 }
 
 object Transformer extends PluginFactory[Transformer]

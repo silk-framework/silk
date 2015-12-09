@@ -46,7 +46,7 @@ object DetailedIndexer {
       if (detailedIndices.isEmpty || foundRequiredEmptyIndex)
         Index.empty
       else
-        detailedIndices.map(_.index).reduceLeft[Index](agg.aggregator.combineIndexes(_, _))
+        detailedIndices.map(_.index).reduceLeft[Index](agg.aggregator.combineIndexes)
 
     AggregationIndex(overallIndex, agg, detailedIndices)
   }

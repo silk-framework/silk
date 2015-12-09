@@ -14,7 +14,7 @@ sealed trait Value {
   /**
    * The values the resulted from evaluating the corresponding input.
    */
-  def values: Set[String]
+  def values: Seq[String]
 
   /**
    * The intermediate values of the children operators of the corresponding input.
@@ -25,11 +25,11 @@ sealed trait Value {
 /**
  * An intermediate value of a transformation evaluation.
  */
-case class TransformedValue(input: TransformInput, values: Set[String], children: Seq[Value]) extends Value
+case class TransformedValue(input: TransformInput, values: Seq[String], children: Seq[Value]) extends Value
 
 /**
  * An intermediate value of a path input evaluation.
  */
-case class InputValue(input: PathInput, values: Set[String]) extends Value {
+case class InputValue(input: PathInput, values: Seq[String]) extends Value {
   def children = Seq.empty
 }

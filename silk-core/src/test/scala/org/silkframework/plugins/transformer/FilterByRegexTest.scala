@@ -27,10 +27,10 @@ class FilterByRegexTest extends FlatSpec with ShouldMatchers {
   val threeLettersFilter = new FilterByRegex(regex = "\\w\\w\\w")
 
   "FilterByRegex(regex = '\\w\\w\\w')" should "only retain strings consisting of three letters" in {
-    threeLettersFilter(Seq(Set("abc"))) should equal(Set("abc"))
-    threeLettersFilter(Seq(Set("ab"))) should equal(Set())
-    threeLettersFilter(Seq(Set("abcd"))) should equal(Set())
-    threeLettersFilter(Seq(Set("a-x"))) should equal(Set())
-    threeLettersFilter(Seq(Set("ab", "abc", "abcd"))) should equal(Set("abc"))
+    threeLettersFilter(Seq(Seq("abc"))) should equal(Seq("abc"))
+    threeLettersFilter(Seq(Seq("ab"))) should equal(Seq())
+    threeLettersFilter(Seq(Seq("abcd"))) should equal(Seq())
+    threeLettersFilter(Seq(Seq("a-x"))) should equal(Seq())
+    threeLettersFilter(Seq(Seq("ab", "abc", "abcd"))) should equal(Seq("abc"))
   }
 }

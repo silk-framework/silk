@@ -20,6 +20,6 @@ private object EmptyDataset extends DatasetPlugin {
    */
   override def sink: DataSink = new DataSink {
     override def writeLink(link: Link, predicateUri: String): Unit = {}
-    override def writeEntity(subject: String, values: Seq[Set[String]]): Unit = {}
+    override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {}
   }
 }

@@ -40,14 +40,14 @@ class ComparisonTest extends FlatSpec with ShouldMatchers {
   private def cmp(distance: Double, threshold: Double) = {
     Comparison(
       threshold = threshold,
-      metric = new DistanceMeasure { def apply(values1: Traversable[String], values2: Traversable[String], limit: Double) = distance },
+      metric = new DistanceMeasure { def apply(values1: Seq[String], values2: Seq[String], limit: Double) = distance },
       inputs = DPair.fill(DummyInput)
     ).apply(null, -1.0).get
   }
 
   private object DummyInput extends Input {
     val id = Identifier.random
-    def apply(entities: DPair[Entity]) = Set("dummy")
+    def apply(entities: DPair[Entity]): Seq[String] = Seq("dummy")
     def toXML(implicit prefixes: Prefixes): Node = null
   }
 }

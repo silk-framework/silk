@@ -42,13 +42,13 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   }
 
   "XmlDatasetTest" should "extract person names" in {
-    entities()(0).evaluate(personName) should equal(Set("Max Doe"))
-    entities()(1).evaluate(personName) should equal(Set("Max Noe"))
+    entities()(0).evaluate(personName) should equal(Seq("Max Doe"))
+    entities()(1).evaluate(personName) should equal(Seq("Max Noe"))
   }
 
   "XmlDatasetTest" should "extract birth and death dates" in {
-    entities()(0).evaluate(personBirth) should equal(Set("May 1900"))
-    entities()(0).evaluate(personDeath) should equal(Set("June 1990"))
+    entities()(0).evaluate(personBirth) should equal(Seq("May 1900"))
+    entities()(0).evaluate(personDeath) should equal(Seq("June 1990"))
   }
 
   "XmlDatasetTest" should "generate URIs from IDs" in {
@@ -57,7 +57,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   }
 
   "XmlDatasetTest" should "support property filters" in {
-    entities().head.evaluate(personValue) should equal(Set("V2"))
+    entities().head.evaluate(personValue) should equal(Seq("V2"))
   }
 
   private def entities(basePath: String = "") = {

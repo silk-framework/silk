@@ -76,12 +76,12 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
       }
     }
 
-    private def evaluateSilkPath(node: NodeSeq, path: Path): Set[String] = {
+    private def evaluateSilkPath(node: NodeSeq, path: Path): Seq[String] = {
       var xml = node
       for (op <- path.operators) {
         xml = evaluateOperator(xml, op)
       }
-      xml.map(_.text).toSet
+      xml.map(_.text)
     }
 
     private def evaluateOperator(node: NodeSeq, op: PathOperator): NodeSeq = op match {

@@ -18,11 +18,12 @@ package org.silkframework.rule.input
  * Simple transformer which transforms all values of the first input.
  */
 abstract class SimpleTransformer extends Transformer {
-  override final def apply(values: Seq[Set[String]]): Set[String] = {
+
+  override final def apply(values: Seq[Seq[String]]): Seq[String] = {
     if(values.nonEmpty)
       values.reduce(_ ++ _).map(evaluate)
     else
-      Set.empty
+      Seq.empty
   }
 
   def evaluate(value: String): String

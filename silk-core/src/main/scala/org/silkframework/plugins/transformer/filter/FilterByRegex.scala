@@ -14,7 +14,7 @@ import org.silkframework.rule.input.Transformer
 )
 case class FilterByRegex(regex: String, negate: Boolean = false) extends Transformer {
 
-  override def apply(values: Seq[Set[String]]) = {
+  override def apply(values: Seq[Seq[String]]) = {
     if(!negate)
       values.head.filter(str => str.matches(regex))
     else

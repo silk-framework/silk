@@ -20,5 +20,5 @@ trait EntitySink extends Closeable {
    * @param values The list of values of the entity. For each property that has been provided
    *               when opening this writer, it must contain a set of values.
    */
-  def writeEntity(subject: String, values: Seq[Set[String]]): Unit
+  def writeEntity(subject: String, values: Seq[Seq[String]]): Unit
 }

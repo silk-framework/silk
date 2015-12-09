@@ -26,7 +26,7 @@ import org.silkframework.entity.Index
 )
 case class JaccardDistance() extends DistanceMeasure {
 
-  override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
+  override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     val set1 = values1.toSet
     val set2 = values2.toSet
 
@@ -36,10 +36,11 @@ case class JaccardDistance() extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / unionSize
   }
 
-  override def index(values: Set[String], limit: Double) = {
+  override def index(values: Seq[String], limit: Double) = {
+    val valuesSet = values.toSet
     //The number of values we need to index
-    val indexSize = math.round(values.size * limit + 0.5).toInt
+    val indexSize = math.round(valuesSet.size * limit + 0.5).toInt
 
-    Index.oneDim(values.take(indexSize).map(_.hashCode))
+    Index.oneDim(valuesSet.take(indexSize).map(_.hashCode))
   }
 }

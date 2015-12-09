@@ -28,7 +28,7 @@ class CsvSink(file: Resource, settings: CsvSettings) extends DataSink {
     out.write(link.source + settings.separator + link.target + "\n")
   }
 
-  override def writeEntity(subject: String, values: Seq[Set[String]]) {
+  override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     out.write(values.map(_.mkString(settings.arraySeparator.getOrElse(' ').toString)).mkString(settings.separator.toString) + "\n")
   }
 

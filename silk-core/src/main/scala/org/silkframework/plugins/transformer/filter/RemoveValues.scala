@@ -26,7 +26,7 @@ import org.silkframework.rule.input.Transformer
 case class RemoveValues(blacklist: String) extends Transformer {
   val filterValues = blacklist.split(",").map(_.toLowerCase).toSet
 
-  override def apply(values: Seq[Set[String]]) = {
+  override def apply(values: Seq[Seq[String]]) = {
     values.head.filterNot(v => filterValues.contains(v.toLowerCase))
   }
 }

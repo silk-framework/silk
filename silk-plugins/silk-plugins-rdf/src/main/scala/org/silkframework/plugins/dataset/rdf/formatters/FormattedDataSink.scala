@@ -37,7 +37,7 @@ class FormattedDataSink(resource: WritableResource, formatter: Formatter) extend
     writer.write(formatter.format(link, predicateUri))
   }
 
-  override def writeEntity(subject: String, values: Seq[Set[String]]) {
+  override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
       writer.write(formatter.formatLiteralStatement(subject, property, value))
     }

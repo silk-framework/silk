@@ -20,7 +20,7 @@ case class Blocking(sourceKey: Path, targetKey: Path, q: Int = 100, transformers
      val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
      val values = entity.evaluate(key)
 
-     Index.blocks(values.map(getBlock))
+     Index.blocks(values.map(getBlock).toSet)
    }
 
    private def getBlock(value: String) = {

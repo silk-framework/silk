@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Merges the values of all inputs."
 )
 case class MergeTransformer() extends Transformer {
-  override def apply(values: Seq[Set[String]]): Set[String] = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ union _)
   }
 }

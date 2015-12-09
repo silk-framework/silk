@@ -26,7 +26,7 @@ case class Tokenizer(regex: String = "\\s") extends Transformer {
 
   private[this] val compiledRegex = regex.r
   
-  override def apply(values: Seq[Set[String]]): Set[String] = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ ++ _).flatMap(compiledRegex.split)
   }
 }

@@ -34,6 +34,7 @@ import org.silkframework.plugins.distance.tokenbased.JaccardDistance
   description = "String similarity based on q-grams (by default q=2)."
 )
 case class QGramsMetric(q: Int = 2, minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+
   private val jaccardCoefficient = JaccardDistance()
 
   //TODO test with toSet?

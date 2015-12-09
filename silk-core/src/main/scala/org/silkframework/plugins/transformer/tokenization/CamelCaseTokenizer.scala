@@ -25,7 +25,7 @@ import scala.collection.mutable.HashSet
   description = "Tokenizes a camel case string. That is it splits strings between a lower case characted and an upper case character."
 )
 case class CamelCaseTokenizer() extends Transformer {
-  override def apply(values: Seq[Set[String]]): Set[String] = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ ++ _).flatMap(splitOnCamelCase)
   }
   

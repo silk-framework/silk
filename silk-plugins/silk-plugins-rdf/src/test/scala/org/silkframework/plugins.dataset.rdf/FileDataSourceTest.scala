@@ -68,8 +68,8 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   "FileDataSource" should "work with filters" in {
     persons.size should equal (1)
-    persons.head.evaluate(pathPlaces) should equal (Set("Berlin", "Munich", "Some Place"))
-    persons.head.evaluate(pathPlacesCalledMunich) should equal (Set("Munich"))
-    persons.head.evaluate(pathCities) should equal (Set("Berlin", "Munich"))
+    persons.head.evaluate(pathPlaces).toSet should equal (Set("Berlin", "Munich", "Some Place"))
+    persons.head.evaluate(pathPlacesCalledMunich).toSet should equal (Set("Munich"))
+    persons.head.evaluate(pathCities).toSet should equal (Set("Berlin", "Munich"))
   }
 }

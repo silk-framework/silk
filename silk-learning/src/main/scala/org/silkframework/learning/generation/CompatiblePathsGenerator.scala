@@ -139,14 +139,14 @@ class CompatiblePathsGenerator(components: Components) {
     @inline private def transformEntities(entities: DPair[Entity]) = {
       for(entity <- entities) yield {
         new Entity(
-          uri = transformValues(Set(entity.uri)).head,
+          uri = transformValues(Seq(entity.uri)).head,
           values = for(values <- entity.values) yield transformValues(values),
           desc = entity.desc
         )
       }
     }
 
-    @inline private def transformValues(values: Set[String]) = {
+    @inline private def transformValues(values: Seq[String]) = {
       transformers.foldLeft(values)((v, trans) => trans(Seq(v)))
     }
 
@@ -164,7 +164,7 @@ class CompatiblePathsGenerator(components: Components) {
 
     private def matches(entityPair: DPair[Entity], pathPair: DPair[Path]): Boolean = {
       val sourceValues = entityPair.source.evaluate(pathPair.source)
-      val targetValues = entityPair.target.evaluate(pathPair.target)
+      val targetValues = entityPair.target.evaluate(pathPair.target).toSet
 
       sourceValues.exists(targetValues)
     }

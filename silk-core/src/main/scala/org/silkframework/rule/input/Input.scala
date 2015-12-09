@@ -32,7 +32,7 @@ trait Input extends Operator {
    * @param entities The pair of entities.
    * @return The values.
    */
-  def apply(entities: DPair[Entity]): Set[String]
+  def apply(entities: DPair[Entity]): Seq[String]
 }
 
 object Input {

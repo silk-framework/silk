@@ -24,8 +24,8 @@ class ParseDataTransformerTest extends FlatSpec with ShouldMatchers {
   val transformer = new ParseDateTransformer("dd.MM.yyyy")
 
   "ParseDataTransformer" should "parse dates" in {
-    transformer(Seq(Set("03.04.2015"))) should equal(Set("2015-04-03"))
-    transformer(Seq(Set("3.4.2015"))) should equal(Set("2015-04-03"))
-    transformer(Seq(Set("03.4.2015"))) should equal(Set("2015-04-03"))
+    transformer(Seq(Seq("03.04.2015"))) should equal(Seq("2015-04-03"))
+    transformer(Seq(Seq("3.4.2015"))) should equal(Seq("2015-04-03"))
+    transformer(Seq(Seq("03.4.2015"))) should equal(Seq("2015-04-03"))
   }
 }

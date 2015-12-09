@@ -30,7 +30,7 @@ case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
 
   private val jaccard = JaccardDistance()
 
-  override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double): Double = {
+  override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     //Replace all values in values1 with their equivalent in values2 while keeping values without any equivalent
     val values1Replaced = values1.flatMap{v1 =>
       val equivalentValues = values2.filter(v2 => levenshtein.evaluate(v1, v2, maxDistance) <= maxDistance)
@@ -40,7 +40,7 @@ case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
     jaccard(values1Replaced, values2)
   }
 
-  override def index(values: Set[String], limit: Double) = {
+  override def index(values: Seq[String], limit: Double) = {
     if(values.isEmpty) {
       //We index an empty value, so that the index is empty but has the right size
       levenshtein.indexValue("", limit)

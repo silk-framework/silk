@@ -14,7 +14,7 @@ import org.silkframework.rule.input.{Transformer, SimpleTransformer}
 )
 case class FilterByLength(min: Int = 0, max: Int = Int.MaxValue) extends Transformer {
 
-  override def apply(values: Seq[Set[String]]) = {
+  override def apply(values: Seq[Seq[String]]) = {
     values.head.filterNot(str => str.length < min || str.length > max)
   }
 }

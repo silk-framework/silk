@@ -24,7 +24,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 case class CompareNumbersTransformer(comparator: String = "<") extends Transformer {
   require(Set("<", "<=", "=", ">=", ">") contains comparator, "Comparator must be one of '<', '<=', '=', '>=', '>'")
 
-  def apply(values: Seq[Set[String]]): Set[String] = {
+  def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all numbers
     val n1 = values(0).collect { case DoubleLiteral(d) => d }
     val n2 = values(1).collect { case DoubleLiteral(d) => d }
@@ -38,6 +38,6 @@ case class CompareNumbersTransformer(comparator: String = "<") extends Transform
       case "="  => n1.min == n1.max && n2.min == n2.max && n1.head == n2.head
     }
     // Return result
-    Set(if(result) "1" else "0")
+    Seq(if(result) "1" else "0")
   }
 }

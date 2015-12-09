@@ -24,11 +24,12 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Concatenates strings from two inputs."
 )
 case class ConcatTransformer(glue: String = "") extends Transformer {
-  override def apply(values: Seq[Set[String]]): Set[String] = {
+
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
   }
 
-  private def cartesianProduct(strings: Seq[Set[String]]): Set[List[String]] = {
+  private def cartesianProduct(strings: Seq[Seq[String]]): Seq[List[String]] = {
     if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
     else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
   }

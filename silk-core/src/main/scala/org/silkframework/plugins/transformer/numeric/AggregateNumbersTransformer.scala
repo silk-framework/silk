@@ -35,7 +35,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 case class AggregateNumbersTransformer(operator: String) extends Transformer {
   require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
-  def apply(values: Seq[Set[String]]): Set[String] = {
+  def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all numbers
     val numbers = values.flatten.collect { case DoubleLiteral(d) => d }
     // Aggregate numbers
@@ -48,6 +48,6 @@ case class AggregateNumbersTransformer(operator: String) extends Transformer {
       case "average" => numbers.sum / numbers.size
     }
     // Return result
-    Set(result.toString)
+    Seq(result.toString)
   }
 }

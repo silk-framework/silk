@@ -26,13 +26,13 @@ class FilterByLengthTest extends FlatSpec with ShouldMatchers {
   val transformer = new FilterByLength(min = 3, max = 5)
 
   "FilterByLength" should "retain strings inside the range" in {
-    transformer(Seq(Set("abc"))) should equal(Set("abc"))
-    transformer(Seq(Set("abcd"))) should equal(Set("abcd"))
-    transformer(Seq(Set("abcde"))) should equal(Set("abcde"))
+    transformer(Seq(Seq("abc"))) should equal(Seq("abc"))
+    transformer(Seq(Seq("abcd"))) should equal(Seq("abcd"))
+    transformer(Seq(Seq("abcde"))) should equal(Seq("abcde"))
   }
 
   "FilterByLength" should "remove strings outside the range" in {
-    transformer(Seq(Set("ab"))) should equal(Set())
-    transformer(Seq(Set("abc", "ab", "abd", "abcdef"))) should equal(Set("abc", "abd"))
+    transformer(Seq(Seq("ab"))) should equal(Seq())
+    transformer(Seq(Seq("abc", "ab", "abd", "abcdef"))) should equal(Seq("abc", "abd"))
   }
 }

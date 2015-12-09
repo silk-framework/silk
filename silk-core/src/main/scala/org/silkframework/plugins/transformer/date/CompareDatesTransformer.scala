@@ -26,7 +26,7 @@ import org.silkframework.util.StringUtils.XSDDateLiteral
 case class CompareDatesTransformer(comparator: String = "<") extends Transformer {
   private val datatypeFactory = DatatypeFactory.newInstance()
 
-  override def apply(values: Seq[Set[String]]): Set[String] = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all dates in milliseconds
     val n1 = values(0).collect { case XSDDateLiteral(d) => d.toGregorianCalendar.getTimeInMillis }
     val n2 = values(1).collect { case XSDDateLiteral(d) => d.toGregorianCalendar.getTimeInMillis }
@@ -41,6 +41,6 @@ case class CompareDatesTransformer(comparator: String = "<") extends Transformer
       case "="  => n1.min == n1.max && n2.min == n2.max && n1.head == n2.head
     }
     // Return result
-    Set(if(result) "1" else "0")
+    Seq(if(result) "1" else "0")
   }
 }

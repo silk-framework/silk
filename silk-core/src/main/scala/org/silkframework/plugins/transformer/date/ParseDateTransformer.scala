@@ -33,11 +33,11 @@ import org.silkframework.runtime.plugin.Plugin;
 )
 case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transformer {
 
-  def apply(values: Seq[Set[String]]): Set[String] = {
-    values.flatten.toSet.flatMap(parse)
+  def apply(values: Seq[Seq[String]]): Seq[String] = {
+    values.flatten.flatMap(parse)
   }
 
-  def parse(value: String): Set[String] = {
+  def parse(value: String): Seq[String] = {
     try {
       // Parse date
       val dateFormat = new SimpleDateFormat(format)
@@ -47,10 +47,10 @@ case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transform
       val xsdFormat = new SimpleDateFormat("yyyy-MM-dd")
       val xsdDate = xsdFormat.format(date.getTime)
 
-      Set(xsdDate)
+      Seq(xsdDate)
     }
     catch {
-      case ex: ParseException => Set.empty
+      case ex: ParseException => Seq.empty
     }
   }
 }

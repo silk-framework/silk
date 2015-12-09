@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Always returns a constant similarity value."
 )
 case class ConstantMetric(value: Double = 1.0) extends DistanceMeasure {
-  override def apply(values1: Traversable[String], values2: Traversable[String], limit: Double) = {
+  override def apply(values1: Seq[String], values2: Seq[String], limit: Double) = {
     value
   }
 }

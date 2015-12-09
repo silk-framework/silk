@@ -23,10 +23,10 @@ import scala.xml.{Elem, XML}
   description = "Concatenates all values to a string and gets a weighted entity vector from the Spotlight service."
 )
 case class SpotlightTextVectorTransformer() extends Transformer {
-  def apply(values: Seq[Set[String]]): Set[String] = {
+  def apply(values: Seq[Seq[String]]): Seq[String] = {
     val stringSet = values.reduce(_ union _)
     if(stringSet.size==0)
-      return Set[String]()
+      return Seq[String]()
     val query = if(stringSet.size>1)
       stringSet.reduceLeft(_ + " " + _)
     else
@@ -38,7 +38,7 @@ case class SpotlightTextVectorTransformer() extends Transformer {
 object SpotlightClient {
   val baseURL = "http://160.45.137.71:2222/extract?text="
 
-  def querySpotlight(query: String): Set[String] = {
+  def querySpotlight(query: String): Seq[String] = {
     val url = new URL(baseURL + URLEncoder.encode(query, "UTF-8"))
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     conn.setRequestMethod("GET")
@@ -52,9 +52,9 @@ object SpotlightClient {
     }
     val is = conn.getInputStream
     if(is==null)
-      return Set[String]()
+      return Seq[String]()
     val root = XML.load(is)
-    Set(createEntityString(root))
+    Seq(createEntityString(root))
   }
 
   // Converts the elements to "resource simScore;resource simScore..." strings

@@ -28,7 +28,7 @@ import scala.xml.Node
  */
 case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: List[Input] = Nil) extends Input {
 
-  def apply(entities: DPair[Entity]): Set[String] = {
+  def apply(entities: DPair[Entity]): Seq[String] = {
     val values = for (input <- inputs) yield input(entities)
 
     transformer(values)

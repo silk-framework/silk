@@ -32,7 +32,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 )
 case class CountTransformer() extends Transformer {
 
-  def apply(values: Seq[Set[String]]): Set[String] = {
-    Set(values.flatten.size.toString)
+  def apply(values: Seq[Seq[String]]): Seq[String] = {
+    Seq(values.flatten.size.toString)
   }
 }

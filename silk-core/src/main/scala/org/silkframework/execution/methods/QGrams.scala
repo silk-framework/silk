@@ -26,7 +26,7 @@ case class QGrams(sourceKey: Path, targetKey: Path, q: Int = 2, t: Double = 0.8)
     val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
     val values = entity.evaluate(key)
 
-    Index.blocks(values.flatMap(indexValue))
+    Index.blocks(values.flatMap(indexValue).toSet)
   }
 
   @inline

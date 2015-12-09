@@ -51,7 +51,7 @@ object DetailedIndex {
    * @param values The values from which the index has been built
    * @param comparison The comparison from which the index has been built
    */
-  case class ComparisonIndex(index: Index, values: Set[String], comparison: Comparison) extends OperatorIndex {
+  case class ComparisonIndex(index: Index, values: Seq[String], comparison: Comparison) extends OperatorIndex {
     def toXML =
       <ComparisonIndex id={comparison.id} index={index.toString} values={values.mkString("|")} >
       </ComparisonIndex>

@@ -144,9 +144,9 @@ class CsvSource(file: Resource,
                   if (entities.isEmpty || entities.contains(entityURI)) {
                     val entityValues = csvSettings.arraySeparator match {
                       case None =>
-                        values.map(v => if (v != null) Set(v) else Set.empty[String])
+                        values.map(v => if (v != null) Seq(v) else Seq.empty[String])
                       case Some(c) =>
-                        values.map(v => if (v != null) v.split(c.toString, -1).toSet else Set.empty[String])
+                        values.map(v => if (v != null) v.split(c.toString, -1).toSeq else Seq.empty[String])
                     }
 
                     f(new Entity(

@@ -66,7 +66,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
         // Check if this URI should be extracted
         if(allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.paths) yield evaluate(node, path).toSet // TODO toSet can be removed as soon as the Entity class uses Seq instead of Set for storing values
+          val values = for (path <- entityDesc.paths) yield evaluate(node, path)
           f(new Entity(uri, values, entityDesc))
         }
       }

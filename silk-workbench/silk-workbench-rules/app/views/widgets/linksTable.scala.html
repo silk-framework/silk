@@ -187,7 +187,7 @@
   </li>
 }
 
-@renderValues(path: Path, values: Set[String], divClassPrefix: String) = {
+@renderValues(path: Path, values: Seq[String], divClassPrefix: String) = {
   <li>
     @path.serializeSimplified(project.config.prefixes)
     @values.take(10).map(v => <span class={divClassPrefix + "-value"}>{project.config.prefixes.shorten(v)}</span>)

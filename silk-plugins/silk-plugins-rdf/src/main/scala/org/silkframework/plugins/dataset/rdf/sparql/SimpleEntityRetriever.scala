@@ -135,7 +135,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
       var curSubject: Option[String] = subject.map(_.uri)
 
       //Collect values of the current subject
-      var values = Array.fill(entityDesc.paths.size)(Set[String]())
+      var values = Array.fill(entityDesc.paths.size)(Seq[String]())
 
       // Count retrieved entities
       var counter = 0
@@ -158,7 +158,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
             }
 
             curSubject = resultSubject
-            values = Array.fill(entityDesc.paths.size)(Set[String]())
+            values = Array.fill(entityDesc.paths.size)(Seq[String]())
           }
         }
 
@@ -167,7 +167,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
           for ((variable, node) <- result if variable.startsWith(varPrefix)) {
             val id = variable.substring(varPrefix.length).toInt
 
-            values(id) += node.value
+            values(id) = values(id) :+ node.value
           }
         }
       }

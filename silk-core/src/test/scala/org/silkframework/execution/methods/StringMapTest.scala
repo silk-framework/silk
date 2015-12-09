@@ -14,7 +14,7 @@
 
 package org.silkframework.execution.methods
 
-import io.Source
+import scala.io.Source
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
@@ -69,9 +69,9 @@ class StringMapTest extends FlatSpec with ShouldMatchers {
   val origCoord9 = Array(12.0238095238095, 15.0267364192164, 15.0617743792403, 12.1206542605972, 5.55278235082782, 11.3944150151342, 7.59032166994711, 11.5184958326959, 10.4827691625226, 12.7049469064549, 8.41319319224661, 12.2129864935699, 8.55850928485589, 6.20967458969635, 12.9160806169689, 8.71104376072714, 10.7750921455517, 9.80102696821875, 9.61773294484923, 9.20959719763996)
   val origCoord2000 = Array(12.1190476190476, 15.148088604278, 15.3950093693189, 12.1017712352083, 9.5167343690371, 11.9142946743942, 9.42742509299494, 9.9857424024219, 9.23970696423749, 10.5193250846191, 8.10789391863431, 11.7174491562294, 9.04153293822916, 8.45624908509521, 7.40694231364865, 8.95346105057554, 10.622666395547, 10.2660042714931, 10.9891360680569, 7.39756415396112)
 
-  private def loadSource(name: String): Array[Set[String]] = {
+  private def loadSource(name: String): Array[Seq[String]] = {
     val source = Source.fromURL(getClass.getClassLoader.getResource(name))
-    val data = source.getLines.map(Set(_)).toArray
+    val data = source.getLines.map(Seq(_)).toArray
     source.close()
     data
   }

@@ -48,6 +48,7 @@ class CorePlugins extends PluginModule {
   }
 
   private def transformers =
+    classOf[RemoveDuplicates] ::
     classOf[ReplaceTransformer] ::
     classOf[RegexReplaceTransformer] ::
     classOf[ConcatTransformer] ::

@@ -40,9 +40,9 @@ case class NumOperationTransformer(operator: String, operand: Double) extends Tr
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
-  def apply(values: Seq[Set[String]]): Set[String] = {
+  def apply(values: Seq[Seq[String]]): Seq[String] = {
     val operands = values.map(_.map(parse).sum) :+ operand
-    Set(operands.reduce(operation).toString)
+    Seq(operands.reduce(operation).toString)
   }
 
   def parse(value: String): Double = {

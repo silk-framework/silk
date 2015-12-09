@@ -183,7 +183,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
 
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None) {
       var currentSubject: Option[String] = fixedSubject.map(_.uri)
-      var currentValues: Set[String] = Set.empty
+      var currentValues: Seq[String] = Seq.empty
 
       for (result <- sparqlResults) {
         if (canceled) {
@@ -207,23 +207,23 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
             queue.add(PathValues(currentSubject.get, currentValues))
 
             currentSubject = subject
-            currentValues = Set.empty
+            currentValues = Seq.empty
           }
         }
 
         if (currentSubject.isDefined) {
           for (node <- result.get(varPrefix + "0")) {
-            currentValues += node.value
+            currentValues = currentValues :+ node.value
           }
         }
       }
 
-      for (s <- currentSubject if !sparqlResults.isEmpty) {
+      for (s <- currentSubject if sparqlResults.nonEmpty) {
         queue.add(PathValues(s, currentValues))
       }
     }
   }
 
-  private case class PathValues(uri: String, values: Set[String])
+  private case class PathValues(uri: String, values: Seq[String])
 
 }

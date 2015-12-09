@@ -91,8 +91,8 @@ object LinkSelectorTest extends App {
     val targetEntityDesc = SparqlEntitySchema("b", SparqlRestriction.empty, IndexedSeq(Path.parse("?b/<label>"), Path.parse("?b/<date>")))
 
     DPair(
-      source = new Entity(label1 + date1, IndexedSeq(Set(label1), Set(date1)), sourceEntityDesc),
-      target = new Entity(label2 + date2, IndexedSeq(Set(label2), Set(date2)), targetEntityDesc)
+      source = new Entity(label1 + date1, IndexedSeq(Seq(label1), Seq(date1)), sourceEntityDesc),
+      target = new Entity(label2 + date2, IndexedSeq(Seq(label2), Seq(date2)), targetEntityDesc)
     )
   }
 }

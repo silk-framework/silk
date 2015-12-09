@@ -64,7 +64,7 @@ object StringMap {
    * @param distanceMetric The metric that assigns a distance value to each pair of string values.
    * @param dimensionality The number of dimensions of the mapped space.
    */
-  class Mapper(stringVector: Array[Set[String]], distanceMetric: DistanceMeasure, dimensionality: Int = 20) {
+  class Mapper(stringVector: Array[Seq[String]], distanceMetric: DistanceMeasure, dimensionality: Int = 20) {
 
     private val size = stringVector.size
 
@@ -92,8 +92,8 @@ object StringMap {
     /**
      * Given a distance threshold between unmapped values, returns the corresponding threshold in the mapped space.
      */
-    def computeThreshold(stringVector1: Array[Set[String]], percentage1: Double,
-                         stringVector2: Array[Set[String]], percentage2: Double,
+    def computeThreshold(stringVector1: Array[Seq[String]], percentage1: Double,
+                         stringVector2: Array[Seq[String]], percentage2: Double,
                          distanceThreshold: Int) =
     {
       var mappedThreshold = 0.0
@@ -128,7 +128,7 @@ object StringMap {
     /**
      * Maps a single value.
      */
-    def mapValue(s: Set[String]) = {
+    def mapValue(s: Seq[String]) = {
       var coordinates = Array[Double]()
 
       for(dim <- 0 until dimensionality) {
@@ -238,7 +238,7 @@ object StringMap {
   // "dimLimit" (excluding) dimensions.  "coordinates1" and
   // "coordinates2" store there coordinates of the two strings up to
   // "dimLimit - 1"
-    private def getDistance(s1: Set[String], coordinates1: Array[Double], s2: Set[String], coordinates2: Array[Double], dimLimit: Int) : Double = {
+    private def getDistance(s1: Seq[String], coordinates1: Array[Double], s2: Seq[String], coordinates2: Array[Double], dimLimit: Int) : Double = {
       var dist = distanceMetric(s1, s2)
 
       for(i <- 0 until dimLimit) {

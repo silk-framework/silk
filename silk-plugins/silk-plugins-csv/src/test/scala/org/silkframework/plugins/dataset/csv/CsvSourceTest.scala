@@ -28,17 +28,17 @@ class CsvSourceTest extends FlatSpec with Matchers {
   "For persons.csv, CsvParser" should "extract all columns" in {
     val entityDesc = SparqlEntitySchema(paths = IndexedSeq(Path("ID"), Path("Name"), Path("Age")))
     val persons = source.retrieveSparqlEntities(entityDesc).toIndexedSeq
-    persons(0).values should equal (IndexedSeq(Set("1"), Set("Max Mustermann"), Set("30")))
-    persons(1).values should equal (IndexedSeq(Set("2"), Set("Markus G."), Set("24")))
-    persons(2).values should equal (IndexedSeq(Set("3"), Set("John Doe"), Set("55")))
+    persons(0).values should equal (IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
+    persons(1).values should equal (IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
+    persons(2).values should equal (IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55")))
   }
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
     val entityDesc = SparqlEntitySchema(paths = IndexedSeq(Path("Name"), Path("Age")))
     val persons = source.retrieveSparqlEntities(entityDesc).toIndexedSeq
-    persons(0).values should equal (IndexedSeq(Set("Max Mustermann"), Set("30")))
-    persons(1).values should equal (IndexedSeq(Set("Markus G."), Set("24")))
-    persons(2).values should equal (IndexedSeq(Set("John Doe"), Set("55")))
+    persons(0).values should equal (IndexedSeq(Seq("Max Mustermann"), Seq("30")))
+    persons(1).values should equal (IndexedSeq(Seq("Markus G."), Seq("24")))
+    persons(2).values should equal (IndexedSeq(Seq("John Doe"), Seq("55")))
   }
   
   "SeparatorDetector" should "detect comma separator" in {

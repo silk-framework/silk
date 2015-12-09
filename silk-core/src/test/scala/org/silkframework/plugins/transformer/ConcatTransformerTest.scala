@@ -26,12 +26,12 @@ class ConcatTransformerTest extends FlatSpec with ShouldMatchers {
   val transformer = new ConcatTransformer()
 
   "ConcatTransformer" should "return 'abcdef'" in {
-    transformer.apply(Seq(Set("abc"), Set("def"))) should equal(Set("abcdef"))
+    transformer.apply(Seq(Seq("abc"), Seq("def"))) should equal(Seq("abcdef"))
   }
 
   val transformer1 = new ConcatTransformer()
 
   "ConcatTransformer" should "return 'def123'" in {
-    transformer1.apply(Seq(Set("def"), Set("123"))) should equal(Set("def123"))
+    transformer1.apply(Seq(Seq("def"), Seq("123"))) should equal(Seq("def123"))
   }
 }

@@ -114,7 +114,7 @@ class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
     val myMetric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "", nonStopwordWeight = 1.0, stopwordWeight = 1.0, matchThreshold = 1.0)
     val jaccardMetric = new JaccardDistance()
     val tokenWiseScore = myMetric.evaluate("several seditious scribes", "several seditious scribes from caesarea", 1.0)
-    val jaccardScore = jaccardMetric.apply(Set("several", "seditious", "scribes"), Set("several", "seditious", "scribes", "from", "caesarea"), 1.0)
+    val jaccardScore = jaccardMetric.apply(Seq("several", "seditious", "scribes"), Seq("several", "seditious", "scribes", "from", "caesarea"), 1.0)
     tokenWiseScore should equal(jaccardScore)
 
   }

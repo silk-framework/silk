@@ -10,7 +10,7 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Generates a constant value."
 )
 case class ConstantTransformer(value: String = "") extends Transformer {
-  override def apply(values: Seq[Set[String]]): Set[String] = {
-    Set(value)
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
+    Seq(value)
   }
 }

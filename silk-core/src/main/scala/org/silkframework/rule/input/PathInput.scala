@@ -34,18 +34,18 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    * @param entities The pair of entities.
    * @return The values.
    */
-  override def apply(entities: DPair[Entity]): Set[String] = {
+  override def apply(entities: DPair[Entity]): Seq[String] = {
     if (entities.source.desc.variable == path.variable)
       eval(entities.source)
     else if (entities.target.desc.variable == path.variable)
       eval(entities.target)
     else
-      Set.empty
+      Seq.empty
   }
 
   private def eval(entity: Entity) = {
     if(path.operators.isEmpty)
-      Set(entity.uri)
+      Seq(entity.uri)
     else {
       var index = cachedPathIndex
       if(index == -1 || index >= entity.desc.paths.size || entity.desc.paths(index) != path) {
