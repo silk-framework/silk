@@ -59,7 +59,7 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSin
 
   private def writeStatement(subject: String, property: String, value: String): Unit = {
     // Check if value is an URI
-    if (value.startsWith("http:"))
+    if (value.startsWith("http:") || value.startsWith("https:"))
       body.append("<" + subject + "> <" + property + "> <" + value + "> .\n")
     // Check if value is a number
     else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E'))

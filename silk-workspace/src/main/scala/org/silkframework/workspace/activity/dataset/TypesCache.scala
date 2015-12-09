@@ -10,6 +10,8 @@ class TypesCache(dataset: Dataset) extends Activity[Types] {
 
   override def name = s"Types cache ${dataset.id}"
 
+  override def initialValue = Some(Types.empty)
+
   override def run(context: ActivityContext[Types]): Unit = {
     val dataSource = dataset.source
     val types = Types(dataSource.retrieveTypes().toSeq)

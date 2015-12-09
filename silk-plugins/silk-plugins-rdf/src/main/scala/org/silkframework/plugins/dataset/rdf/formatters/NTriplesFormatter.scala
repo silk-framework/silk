@@ -24,7 +24,7 @@ case class NTriplesFormatter() extends Formatter {
 
   override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
     // Check if value is an URI
-    if (value.startsWith("http:")) {
+    if (value.startsWith("http:") || value.startsWith("https:")) {
       "<" + subject + "> <" + predicate + "> <" + value + "> .\n"
     // Check if value  a number
     } else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E')) {
