@@ -32,7 +32,7 @@ import org.silkframework.plugins.spatial.utils._
   description = "Trasforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).")
 case class GeometryTransformer() extends Transformer {
 
-  override final def apply(values: Seq[Set[String]]): Set[String] = {
+  override final def apply(values: Seq[Seq[String]]): Seq[String] = {
 
     values.length match {
       case 1 =>
@@ -44,7 +44,7 @@ case class GeometryTransformer() extends Transformer {
 
         if ((set1.iterator.size >= 1) && (set1.iterator.size >= 1)) {
           //Assumes that the first point corresponds to the geometry of the resource.
-          Set(Utils.w3cGeoTransformer(set1.iterator.next, set2.iterator.next))
+          Seq(Utils.w3cGeoTransformer(set1.iterator.next, set2.iterator.next))
         } else
           values.reduce(_ ++ _)
       case _ =>

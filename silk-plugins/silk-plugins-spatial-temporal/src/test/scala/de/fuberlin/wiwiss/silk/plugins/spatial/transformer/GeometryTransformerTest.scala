@@ -31,31 +31,31 @@ class GeometryTransformerTest extends FlatSpec with Matchers {
 
   //Without SRID.
   "GeometryTransformer test 1" should "return 'Set(\"Point(1 0)\")'" in {
-    transformer.apply(Seq(Set("Point(1 0)"))) should equal(Set("Point(1 0)"))
+    transformer.apply(Seq(Seq("Point(1 0)"))) should equal(Seq("Point(1 0)"))
   }
 
   //With default SRID (GeoSPARQL).
   "GeometryTransformer test 2" should "return 'Set(\"POINT (1 0)\")'" in {
-    transformer.apply(Seq(Set("<http://www.opengis.net/def/crs/EPSG/0/4326> POINT (1 0)"))) should equal(Set("POINT (1 0)"))
+    transformer.apply(Seq(Seq("<http://www.opengis.net/def/crs/EPSG/0/4326> POINT (1 0)"))) should equal(Seq("POINT (1 0)"))
   }
 
   //With non-default SRID (GeoSPARQL).
   "GeometryTransformer test 3" should "return 'Set(\"POINT (0 0)\")'" in {
-    transformer.apply(Seq(Set("<http://www.opengis.net/def/crs/EPSG/0/3857> POINT (0 0)"))) should equal(Set("POINT (0 0)"))
+    transformer.apply(Seq(Seq("<http://www.opengis.net/def/crs/EPSG/0/3857> POINT (0 0)"))) should equal(Seq("POINT (0 0)"))
   }
 
   //With default SRID (stSPARQL).
   "GeometryTransformer test 4" should "return 'Set(\"POINT (1 0)\")'" in {
-    transformer.apply(Seq(Set("POINT (1 0);http://www.opengis.net/def/crs/EPSG/0/4326"))) should equal(Set("POINT (1 0)"))
+    transformer.apply(Seq(Seq("POINT (1 0);http://www.opengis.net/def/crs/EPSG/0/4326"))) should equal(Seq("POINT (1 0)"))
   }
 
   //With non-default SRID (stSPARQL).
   "GeometryTransformer test 5" should "return 'Set(\"POINT (0 0)\")'" in {
-    transformer.apply(Seq(Set("POINT (0 0);http://www.opengis.net/def/crs/EPSG/0/3857"))) should equal(Set("POINT (0 0)"))
+    transformer.apply(Seq(Seq("POINT (0 0);http://www.opengis.net/def/crs/EPSG/0/3857"))) should equal(Seq("POINT (0 0)"))
   }
 
   //With 2 arguments (W3C Geo).
   "GeometryTransformer test 6" should "return 'Set(\"POINT (1 0)\")'" in {
-    transformer.apply(Seq(Set("1"), Set("0"))) should equal(Set("POINT (1 0)"))
+    transformer.apply(Seq(Seq("1"), Seq("0"))) should equal(Seq("POINT (1 0)"))
   }  
 }

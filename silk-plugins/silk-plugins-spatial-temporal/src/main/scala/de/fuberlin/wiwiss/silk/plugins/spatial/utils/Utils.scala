@@ -103,10 +103,10 @@ object Utils {
   /**
    * This function transforms a cluster of points to their centroid.
    *
-   * @param points: Seq[Set[String]]
+   * @param points: Seq[Seq[String]]
    * @return Set[String]
    */
-  def pointsToCentroidTransformer(points: Seq[Set[String]]): Set[String] = {
+  def pointsToCentroidTransformer(points: Seq[Seq[String]]): Seq[String] = {
 
     val Seq(set1, set2) = points
     val iterator1 = set1.iterator
@@ -124,7 +124,7 @@ object Utils {
       lat /= set1.iterator.size
       long /= set2.iterator.size
 
-      Set(Parser.latLongConcat(lat, long))
+      Seq(Parser.latLongConcat(lat, long))
     } catch {
       case e: Exception =>
         logger.log(Level.ALL, "Cast Error. Returning literal as it is.")

@@ -34,7 +34,7 @@ import org.silkframework.plugins.spatial.utils._
   description = "Transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).")
 case class PointsToCentroidTransformer() extends Transformer {
 
-  override final def apply(values: Seq[Set[String]]): Set[String] = {
+  override final def apply(values: Seq[Seq[String]]): Seq[String] = {
 
     val logger = Logger.getLogger(this.getClass.getName)
 

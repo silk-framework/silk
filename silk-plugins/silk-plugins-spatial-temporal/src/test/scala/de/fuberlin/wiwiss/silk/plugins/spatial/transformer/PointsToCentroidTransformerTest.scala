@@ -31,6 +31,6 @@ class PointsToCentroidTransformerTest extends FlatSpec with Matchers {
 
   //Centroid of 2 Points.
   "PointsToCentroidTransformer test 1" should "return 'Set(\"POINT (2.0 2.0)\")'" in {
-    transformer.apply(Seq(Set("1", "3"), Set("1", "3"))) should equal(Set("POINT (2.0 2.0)"))
+    transformer.apply(Seq(Seq("1", "3"), Seq("1", "3"))) should equal(Seq("POINT (2.0 2.0)"))
   }  
 }
