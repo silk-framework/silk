@@ -91,13 +91,6 @@ class Matcher(linkageRule: LinkageRule,
       executorService.shutdownNow()
     else
       executorService.shutdown()
-
-//    Log result
-//    val time = ((System.currentTimeMillis - startTime) / 1000.0) + " seconds"
-//    if (cancelled)
-//      log.log(statusLogLevel, "Matching cancelled after " + time)
-//    else
-//      log.log(statusLogLevel, "Executed matching in " + time)
   }
 
   override def cancelExecution() {
