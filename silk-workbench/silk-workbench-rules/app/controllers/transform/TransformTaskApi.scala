@@ -1,22 +1,17 @@
 package controllers.transform
 
-import java.io.StringWriter
 import java.util.logging.{Level, Logger}
 
-import com.hp.hpl.jena.rdf.model.ModelFactory
+import controllers.util.ProjectUtils._
 import org.silkframework.config.{DatasetSelection, TransformSpecification}
-import org.silkframework.dataset.Dataset
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.execution.ExecuteTransform
-import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
-import org.silkframework.plugins.dataset.rdf.{SparqlParams, SparqlSink}
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
 import org.silkframework.util.{CollectLogs, Identifier}
-import org.silkframework.workspace.{Constants, User}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.{Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
@@ -46,7 +41,8 @@ object TransformTaskApi extends Controller {
       }
     }
     Ok
-  }}
+  }
+  }
 
   def deleteTransformTask(project: String, task: String) = Action {
     User().workspace.project(project).removeTask[TransformSpecification](task)
@@ -58,7 +54,9 @@ object TransformTaskApi extends Controller {
     val task = project.task[TransformSpecification](taskName)
     implicit val prefixes = project.config.prefixes
 
-    Ok(<TransformRules>{ task.data.rules.map(Serialization.toXml[TransformRule]) }</TransformRules>)
+    Ok(<TransformRules>
+      {task.data.rules.map(Serialization.toXml[TransformRule])}
+    </TransformRules>)
   }
 
   def putRules(projectName: String, taskName: String) = Action { request => {
@@ -87,7 +85,8 @@ object TransformTaskApi extends Controller {
       case None =>
         BadRequest("Expecting text/xml request body")
     }
-  }}
+  }
+  }
 
   def getRule(projectName: String, taskName: String, rule: String) = Action {
     val project = User().workspace.project(projectName)
@@ -130,16 +129,17 @@ object TransformTaskApi extends Controller {
       case None =>
         BadRequest("Expecting text/xml request body")
     }
-  }}
+  }
+  }
 
   private def statusJson(errors: Seq[ValidationException.ValidationError] = Nil, warnings: Seq[String] = Nil, infos: Seq[String] = Nil) = {
-    /**Generates a Json expression from an error */
-    def errorToJsExp(error: ValidationException.ValidationError) = JsObject(("message", JsString(error.toString)) :: ("id", JsString(error.id.map(_.toString).getOrElse(""))) :: Nil)
+    /** Generates a Json expression from an error */
+    def errorToJsExp(error: ValidationException.ValidationError) = JsObject(("message", JsString(error.toString)) ::("id", JsString(error.id.map(_.toString).getOrElse(""))) :: Nil)
 
     JsObject(
       ("error", JsArray(errors.map(errorToJsExp))) ::
-      ("warning", JsArray(warnings.map(JsString))) ::
-      ("info", JsArray(infos.map(JsString))) :: Nil
+          ("warning", JsArray(warnings.map(JsString))) ::
+          ("info", JsArray(infos.map(JsString))) :: Nil
     )
   }
 
@@ -168,7 +168,7 @@ object TransformTaskApi extends Controller {
     var completions = Seq[String]()
 
     // Add known paths
-    if(task.activity[TransformPathsCache].value != null) {
+    if (task.activity[TransformPathsCache].value != null) {
       val knownPaths = task.activity[TransformPathsCache].value.paths
       completions ++= knownPaths.map(_.serializeSimplified(project.config.prefixes)).sorted
     }
@@ -185,8 +185,7 @@ object TransformTaskApi extends Controller {
   }
 
   def targetPathCompletions(projectName: String, taskName: String, term: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val (project, task) = projectAndTask(projectName, taskName)
 
     // Collect known prefixes
     val prefixCompletions = project.config.prefixes.prefixMap.keys
@@ -199,30 +198,28 @@ object TransformTaskApi extends Controller {
   }
 
   def postTransformInput(projectName: String, taskName: String) = Action { request =>
-    val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
-      case AnyContentAsXml(xmlBody) =>
-        implicit val resourceManager = InMemoryResourceManager()
-        val resource = xmlBody \ "resource"
-        val resourceId = resource \ "@name"
-        resourceManager.
-            get(resourceId.text).
-            write(resource.text)
-
-//        val dataSink = xmlBody \ "dataSink"
-        val model = ModelFactory.createDefaultModel()
-        val dataSink = new SparqlSink(SparqlParams(parallel = false), new JenaModelEndpoint(model))
-        val dataSource = xmlBody \ "DataSources"
-        val dataset = Serialization.fromXml[Dataset]((dataSource \ "_").head)
-        val transform = new ExecuteTransform(dataset.source, DatasetSelection.empty, task.data.rules, Seq(dataSink))
+      case AnyContentAsXml(xmlRoot) =>
+        val inputResource = xmlRoot \ "resource"
+        implicit val resourceManager = createInmemoryResourceManagerForResource(inputResource)
+        val (model, dataSink) = createDataSink(xmlRoot)
+        val dataSource = createDataSource(xmlRoot)
+        val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(dataSink))
         Activity(transform).startBlocking()
-        val writer = new StringWriter()
-        val result = model.write(writer, "N-Triples")
-        Ok(writer.toString).as("application/n-triples")
+        if(model != null) {
+          nTriplesModelResult(model)
+        } else {
+          // Result is written to registered sink
+          Ok("Data transformed successfully!")
+        }
       case _ =>
         UnsupportedMediaType("Only XML supported")
     }
+  }
+
+  private def projectAndTask(projectName: String, taskName: String)  = {
+    getProjectAndTask[TransformSpecification](projectName, taskName)
   }
 }
 

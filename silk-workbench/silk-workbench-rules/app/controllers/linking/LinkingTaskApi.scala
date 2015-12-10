@@ -1,13 +1,14 @@
 package controllers.linking
 
 import java.util.logging.{Level, Logger}
+import controllers.transform.TransformTaskApi._
 import controllers.workspace.WorkspaceApi._
 import org.silkframework.config.{DatasetSelection, LinkSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.Link
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.evaluation.ReferenceLinks
-import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
+import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity, ExecuteTransform}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkageRule
@@ -269,4 +270,10 @@ object LinkingTaskApi extends Controller {
     task.activity[ActiveLearning].control.start()
     Ok
   }
+
+//  def postLinkDatasource(projectName: String, taskName: String) = Action { request =>
+//    val (_, task) = getProjectAndTask[LinkSpecification](projectName, taskName)
+//    val link = new ExecuteTransform()
+//    Ok
+//  }
 }
