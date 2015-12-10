@@ -29,6 +29,8 @@ import scala.math._
   description = "The distance in days between two dates ('YYYY-MM-DD' format).")
 case class DateMetric() extends SimpleDistanceMeasure {
 
+  import DateMetric._
+
   private val minDays = 0
 
   private val maxDays = 3000 * 365
@@ -37,9 +39,8 @@ case class DateMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     try {
-      val dataTypeFactory = DatatypeFactory.newInstance
-
       val date1 = dataTypeFactory.newXMLGregorianCalendar(str1)
+
       val date2 = dataTypeFactory.newXMLGregorianCalendar(str2)
 
       val days1 = date1.toGregorianCalendar.getTimeInMillis / millisPerDay
@@ -53,8 +54,6 @@ case class DateMetric() extends SimpleDistanceMeasure {
 
   override def indexValue(str: String, limit: Double): Index = {
     try {
-      val dataTypeFactory = DatatypeFactory.newInstance
-
       val date = dataTypeFactory.newXMLGregorianCalendar(str)
       val days = date.toGregorianCalendar.getTimeInMillis / millisPerDay
       Index.continuous(days, minDays, maxDays, limit)
@@ -62,4 +61,8 @@ case class DateMetric() extends SimpleDistanceMeasure {
       case ex: IllegalArgumentException => Index.empty
     }
   }
+}
+
+object DateMetric {
+  private val dataTypeFactory = DatatypeFactory.newInstance
 }
