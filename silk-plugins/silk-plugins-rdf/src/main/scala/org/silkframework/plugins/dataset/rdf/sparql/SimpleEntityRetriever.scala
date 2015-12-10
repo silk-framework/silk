@@ -48,7 +48,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    */
   private def retrieveAll(entityDesc: SparqlEntitySchema, limit: Option[Int]): Traversable[Entity] = {
     //Select
-    var sparql = "SELECT "
+    var sparql = "SELECT DISTINCT "
     sparql += "?" + entityDesc.variable + " "
     for (i <- entityDesc.paths.indices) {
       sparql += "?" + varPrefix + i + " "
