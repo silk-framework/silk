@@ -18,6 +18,12 @@ package org.silkframework.runtime.activity
  * A status message
  */
 sealed trait Status {
+
+  /**
+    * The name of this status, e.g., Idle.
+    */
+  def name: String = getClass.getSimpleName
+
   /**
    * The current status message.
    */
@@ -61,7 +67,7 @@ object Status {
   /**
    * Status which indicates that the task has been started.
    */
-  case class Started(name: String) extends Status {
+  case class Started() extends Status {
     override def message = "Started"
     override def isRunning = true
   }
@@ -80,10 +86,9 @@ object Status {
   /**
    * Indicating that the task has been requested to stop but has not stopped yet.
    *
-   * @param name The name of the task.
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  case class Canceling(name: String, override val progress: Double) extends Status {
+  case class Canceling(override val progress: Double) extends Status {
     override def message = "Stopping..."
     override def isRunning = true
   }
@@ -91,12 +96,11 @@ object Status {
   /**
    * Status which indicates that the task has finished execution.
    *
-   * @param name The name of the task.
    * @param success True, if the computation finished successfully. False, otherwise.
    * @param time The time in milliseconds needed to execute the task.
    * @param exception The exception, if the task failed.
    */
-  case class Finished(name: String, success: Boolean, time: Long, exception: Option[Throwable] = None) extends Status {
+  case class Finished(success: Boolean, time: Long, exception: Option[Throwable] = None) extends Status {
     override def message = exception match {
       case None => "Finished in " + formattedTime
       case Some(ex) => "Failed after " + formattedTime + ": " + ex.getMessage

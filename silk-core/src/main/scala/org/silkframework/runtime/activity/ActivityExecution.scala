@@ -33,16 +33,16 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   override def run(): Unit = synchronized {
     // Reset
     val startTime = System.currentTimeMillis
-    status.update(Status.Started(activity.name))
+    status.update(Status.Started())
 
     // Run
     try {
       activity.run(this)
-      status.update(Status.Finished(activity.name, success = true, System.currentTimeMillis - startTime))
+      status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
     } catch {
       case ex: Throwable =>
         log.log(Level.WARNING, activity.name + " failed", ex)
-        status.update(Status.Finished(activity.name, success = false, System.currentTimeMillis - startTime, Some(ex)))
+        status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex
     }
   }
@@ -73,7 +73,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
 
   override def cancel() = {
     if(status().isRunning && !status().isInstanceOf[Status.Canceling]) {
-      status.update(Status.Canceling(activity.name, status().progress))
+      status.update(Status.Canceling(status().progress))
       childControls.foreach(_.cancel())
       activity.cancelExecution()
     }

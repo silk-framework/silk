@@ -59,6 +59,7 @@ object JsonSerializer {
       ("project" -> JsString(project)) ::
       ("task" -> JsString(task)) ::
       ("activity" -> JsString(activity)) ::
+      ("statusName" -> JsString(status.name)) ::
       ("isRunning" -> JsBoolean(status.isRunning)) ::
       ("progress" -> JsNumber(status.progress * 100.0)) ::
       ("message" -> JsString(status.toString)) ::

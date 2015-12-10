@@ -1,5 +1,6 @@
 package org.silkframework.runtime.activity
 
+import java.net.URLEncoder
 import java.util.logging.{Logger, Level}
 
 /**
@@ -51,7 +52,8 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
     }
 
     // Publish status change
-    if(!newStatus.isInstanceOf[Status.Canceling]) {
+    // If this task is in Canceling state, it doesn't accept new status changes except the finished status.
+    if(!status.isInstanceOf[Status.Canceling] || !newStatus.isRunning) {
       status = newStatus
       publish(status)
     }
