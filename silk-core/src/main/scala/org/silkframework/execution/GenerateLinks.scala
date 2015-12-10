@@ -42,6 +42,9 @@ class GenerateLinks(inputs: DPair[DataSource],
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
+  /** Indicates if this task has been canceled. */
+  @volatile private var canceled = false
+
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs = linkSpec.entityDescriptions
 
@@ -52,7 +55,7 @@ class GenerateLinks(inputs: DPair[DataSource],
 
   override def initialValue = Some(Linking())
 
-  override def run(context: ActivityContext[Linking]) = {
+  override def run(context: ActivityContext[Linking]): Unit = {
     //TODO statusLogLevel = runtimeConfig.logLevel
     //TODO progressLogLevel = runtimeConfig.logLevel
 
@@ -73,6 +76,7 @@ class GenerateLinks(inputs: DPair[DataSource],
         // Wait until the caches are being written
         while (!loaderControl.status().isInstanceOf[Status.Finished] && !(caches.source.isWriting && caches.target.isWriting)) {
           Thread.sleep(100)
+          if(canceled) return
         }
       }
 
@@ -80,16 +84,26 @@ class GenerateLinks(inputs: DPair[DataSource],
       val matcherContext = context.child(matcher, 0.95)
       matcherContext.value.onUpdate(links => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size)))))
       matcherContext.startBlocking()
+      if(canceled) return
 
       //Filter links
       val filterTask = new Filter(context.value().links, linkSpec.rule.filter)
       val filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
       context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
-      
+      if(canceled) return
+
       //Output links
       val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
       context.child(outputTask, 0.02).startBlocking()
     }
+  }
+
+  override def cancelExecution(): Unit = {
+    canceled = true
+    if(loader != null)
+      loader.cancelExecution()
+    if(matcher != null)
+      matcher.cancelExecution()
   }
 
   private def createCaches() = {

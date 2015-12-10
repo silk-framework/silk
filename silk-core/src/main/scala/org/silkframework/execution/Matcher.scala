@@ -46,7 +46,7 @@ class Matcher(linkageRule: LinkageRule,
   private val log = Logger.getLogger(getClass.getName)
 
   /** Indicates if this task has been canceled. */
-  @volatile private var cancelled = false
+  @volatile private var canceled = false
 
   /**
    * Executes the matching.
@@ -56,7 +56,7 @@ class Matcher(linkageRule: LinkageRule,
 
     //Reset properties
     context.value.update(IndexedSeq.empty)
-    cancelled = false
+    canceled = false
 
     //Create execution service for the matching tasks
     val startTime = System.currentTimeMillis()
@@ -69,7 +69,7 @@ class Matcher(linkageRule: LinkageRule,
 
     //Process finished tasks
     var finishedTasks = 0
-    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
+    while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
@@ -87,7 +87,7 @@ class Matcher(linkageRule: LinkageRule,
     if (scheduler.isAlive)
       scheduler.interrupt()
 
-    if(cancelled)
+    if(canceled)
       executorService.shutdownNow()
     else
       executorService.shutdown()
@@ -101,7 +101,7 @@ class Matcher(linkageRule: LinkageRule,
   }
 
   override def cancelExecution() {
-    cancelled = true
+    canceled = true
   }
 
   /**

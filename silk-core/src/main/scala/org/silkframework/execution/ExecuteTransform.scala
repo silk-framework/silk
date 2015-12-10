@@ -20,7 +20,11 @@ class ExecuteTransform(input: DataSource,
 
   private val propertyRules = rules.filter(_.target.isDefined)
 
+  @volatile
+  private var isCanceled: Boolean = false
+
   def run(context: ActivityContext[Unit]): Unit = {
+    isCanceled = false
     // Retrieve entities
     val entityDesc =
       new SparqlEntitySchema(
@@ -42,6 +46,8 @@ class ExecuteTransform(input: DataSource,
         val values = propertyRules.map(_(entity))
         for (output <- outputs)
           output.writeEntity(uri, values)
+        if(isCanceled)
+          return
         count += 1
         if(count % 1000 == 0)
           context.status.update(s"Executing ($count Entities)")
@@ -51,5 +57,9 @@ class ExecuteTransform(input: DataSource,
       // Close outputs
       for (output <- outputs) output.close()
     }
+  }
+
+  override def cancelExecution(): Unit = {
+    isCanceled = true
   }
 }

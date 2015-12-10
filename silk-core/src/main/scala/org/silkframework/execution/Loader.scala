@@ -79,6 +79,8 @@ class Loader(sources: DPair[DataSource],
         context.status.update(s"Entities loaded [ dataset :: ${source.toString} ].")
 
       } catch {
+        case _: InterruptedException =>
+          canceled = true
         case ex: Exception => {
           context.log.log(Level.WARNING, "Error loading resources", ex)
           exception = ex
