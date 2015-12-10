@@ -84,7 +84,7 @@ class GenerateLinks(inputs: DPair[DataSource],
       if(canceled) return
 
       //Filter links
-      val filterTask = new Filter(context.value().links, linkSpec.rule.filter)
+      val filterTask = new Filter(matcherContext.value(), linkSpec.rule.filter)
       val filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
       context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
       if(canceled) return
