@@ -56,9 +56,6 @@ class GenerateLinks(inputs: DPair[DataSource],
   override def initialValue = Some(Linking())
 
   override def run(context: ActivityContext[Linking]): Unit = {
-    //TODO statusLogLevel = runtimeConfig.logLevel
-    //TODO progressLogLevel = runtimeConfig.logLevel
-
     context.value.update(Linking())
 
     warningLog = CollectLogs() {
