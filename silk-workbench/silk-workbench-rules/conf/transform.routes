@@ -29,3 +29,5 @@ PUT           /tasks/:project/:task/executeTransform             controllers.tra
 
 GET           /tasks/:project/:task/sourcePathCompletions        controllers.transform.TransformTaskApi.sourcePathCompletions(project: String, task: String, term: String)
 GET           /tasks/:project/:task/targetPathCompletions        controllers.transform.TransformTaskApi.targetPathCompletions(project: String, task: String, term: String)
+
+POST          /tasks/:project/:task/transformInput               controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)
