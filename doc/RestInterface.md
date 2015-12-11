@@ -1,5 +1,7 @@
 # REST Interface
 
+The Workbench provides a REST API.
+
 ## Workspace
 
 All resources below are available under the path `{deploymentURI}/workspace/`.

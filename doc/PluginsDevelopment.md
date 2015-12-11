@@ -1,4 +1,4 @@
-The framework provides a plugin system for extending it with additional behavour.
+The framework provides a plugin system for extending it with additional behaviour.
 
 How to write a plugin
 =====================
