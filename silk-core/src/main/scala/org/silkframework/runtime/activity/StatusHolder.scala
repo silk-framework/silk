@@ -23,6 +23,11 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
   private val progressLogLevel = Level.INFO
 
   /**
+    * The level at which the failure of a task is logged.
+    */
+  private val failureLogLevel = Level.WARNING
+
+  /**
    * Holds the current status.
    */
   @volatile
@@ -36,19 +41,20 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
   /**
    * Updates the current status.
    */
-  def update(newStatus: Status) {
-    // Log status change if there is no parent that will log it in the end
-    if(parent.isEmpty) {
+  def update(newStatus: Status, logStatus: Boolean = true) {
+    // Log new status change if requested
+    if(logStatus) {
       newStatus match {
-        case s: Status.Running => log.log(progressLogLevel, s.toString)
-        case s => log.log(statusLogLevel, s.toString)
+        case s: Status.Running => log.log(progressLogLevel, s.message)
+        case s: Status.Finished if s.failed => log.log(failureLogLevel, s.message)
+        case s => log.log(statusLogLevel, s.message)
       }
     }
 
     // Advance the progress of the parent task
     for(p <- parent if progressContribution != 0.0) {
       val progressDiff = newStatus.progress - status.progress
-      p.update(newStatus.message, p.status.progress + progressDiff * progressContribution)
+      p.update(Status.Running(newStatus.message, p.status.progress + progressDiff * progressContribution), logStatus = false)
     }
 
     // Publish status change

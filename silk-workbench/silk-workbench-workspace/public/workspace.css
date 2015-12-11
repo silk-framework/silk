@@ -59,7 +59,7 @@
   position: absolute;
 }
 
-.activity-button-start {
+.activity-button-start, .activity-button-stop {
   position: relative;
   left: 478px;
   height: 18px;

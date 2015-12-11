@@ -49,6 +49,7 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
       case None => {
         val distinctLinks = links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
         context.value.update(distinctLinks)
+        context.log.info("Merged " + links.size + " links yielding " + distinctLinks.size + " links")
       }
     }
   }

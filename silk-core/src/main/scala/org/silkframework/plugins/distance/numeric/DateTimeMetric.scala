@@ -26,9 +26,10 @@ import org.silkframework.rule.similarity.SimpleDistanceMeasure
   description = "Distance between two date time values (xsd:dateTime format) in seconds.")
 case class DateTimeMetric() extends SimpleDistanceMeasure {
 
+  import DateTimeMetric._
+
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     try {
-      val dataTypeFactory = DatatypeFactory.newInstance
       val date1 = dataTypeFactory.newXMLGregorianCalendar(str1)
       val date2 = dataTypeFactory.newXMLGregorianCalendar(str2)
 
@@ -72,4 +73,8 @@ case class DateTimeMetric() extends SimpleDistanceMeasure {
 
     seconds + minuteSeconds + hourSeconds + daySeconds + monthSeconds + yearSeconds
   }
+}
+
+object DateTimeMetric {
+  private val dataTypeFactory = DatatypeFactory.newInstance
 }

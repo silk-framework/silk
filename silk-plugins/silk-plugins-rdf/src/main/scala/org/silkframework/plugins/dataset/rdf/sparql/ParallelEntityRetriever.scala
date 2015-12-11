@@ -149,7 +149,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
 
     private def queryPath(fixedSubject: Option[Uri] = None) = {
       //Select
-      var sparql = "SELECT "
+      var sparql = "SELECT DISTINCT "
       if (fixedSubject.isEmpty) {
         sparql += "?" + entityDesc.variable + " "
       }

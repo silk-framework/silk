@@ -19,12 +19,21 @@
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $(function () {
-      $('#workspace_root').jstree();
+      $('#workspace_root').jstree()
+      .on('before_open.jstree', function (e, data) {
+        loadCometStream();
+      });
+      loadCometStream();
     });
+
+    function loadCometStream() {
+      $('#statusCometIFrame').html('<iframe src="@WorkspaceApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>')
+    }
 
     function updateStatus(status) {
       // Get progress bar node
-      var progressbar = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+      var node = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+      var progressbar = node.find(".activity-progress-small");
 
       // Initialize progress bar
       if(progressbar.find(".ui-progressbar-value").length == 0) {
@@ -53,6 +62,18 @@
         progressbarText.text(status.message);
         progressbarHelp.hide();
       }
+
+      // Update buttons
+      if(status.statusName == "Canceling") {
+        node.find(".activity-button-start").hide();
+        node.find(".activity-button-stop").hide();
+      } else if(status.isRunning) {
+        node.find(".activity-button-start").hide();
+        node.find(".activity-button-stop").show();
+      } else {
+        node.find(".activity-button-stop").hide();
+        node.find(".activity-button-start").show();
+      }
     }
 
     function post(url) {
@@ -67,7 +88,7 @@
 @content = {
   @workspaceActivities(User().workspace)
 
-  <iframe src="@WorkspaceApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>
+  <div id="statusCometIFrame"></div>
 }
 
 @workspaceActivities(workspace: Workspace) = {
@@ -109,14 +130,17 @@
 }
 
 @projectActivityStatus(project: Project, activity: ProjectActivity) = {
-  <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
+  <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
-    <div id="@id(project.name, "", activity.name)" class="activity-progress-small">
+    <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control.png")" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name).url')" />
+    </div>
+    <div class="activity-button-stop">
+      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, "", activity.name).url')" />
     </div>
     @if(activity.config.nonEmpty) {
       <div class="activity-button-edit">
@@ -127,14 +151,17 @@
 }
 
 @taskActivityStatus(project: Project, task: Task[_], activity: TaskActivity[_, _]) = {
-  <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
+  <li id="@id(project.name, task.name, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
-    <div id="@id(project.name, task.name, activity.name)" class="activity-progress-small">
+    <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')" />
+    </div>
+    <div class="activity-button-stop">
+      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, task.name, activity.name).url')" />
     </div>
     @if(activity.config.nonEmpty) {
       <div class="activity-button-edit">

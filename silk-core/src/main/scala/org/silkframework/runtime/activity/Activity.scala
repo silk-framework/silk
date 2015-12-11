@@ -69,12 +69,15 @@ object Activity {
     */
   def regenerating[ActivityType <: Activity[ActivityData] : ClassTag, ActivityData](generateActivity: => ActivityType): Activity[ActivityData] = {
     new Activity[ActivityData] {
+      @volatile var currentActivity: Option[ActivityType] = None
       override def name = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.undoCamelCase
       override def initialValue = generateActivity.initialValue
       override def run(context: ActivityContext[ActivityData]): Unit = {
-        val activity = generateActivity
-        activity.run(context)
+        currentActivity = Some(generateActivity)
+        currentActivity.get.run(context)
+        currentActivity = None
       }
+      override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
     }
   }
 }

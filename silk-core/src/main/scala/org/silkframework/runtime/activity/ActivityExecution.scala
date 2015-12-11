@@ -13,14 +13,17 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
   override val name: String = activity.name
 
   /**
+    * The logger to be used by the activity.
+    */
+  override val log = parent match {
+    case None => Logger.getLogger("org.silkframework.runtime.activity." + name)
+    case Some(p) => Logger.getLogger(p.log.getName + "." + name)
+  }
+
+  /**
    * Holds the current value.
    */
   override val value = new ValueHolder[T](activity.initialValue)
-
-  /**
-   * Retrieves the logger to be used by the activity.
-   */
-  override val log = Logger.getLogger("org.silkframework.runtime.activity." + name)  // activity.getClass.getName
 
   /**
    * Holds the current status.
@@ -41,7 +44,6 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
       status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
     } catch {
       case ex: Throwable =>
-        log.log(Level.WARNING, activity.name + " failed", ex)
         status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
         throw ex
     }
