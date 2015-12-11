@@ -289,7 +289,8 @@ object LinkingTaskApi extends Controller {
         val (model, linkSink) = createLinkSink(xmlRoot)
         val link = new GenerateLinksActivity(DPair(linkSource, linkTarget), task.data, Seq(linkSink))
         Activity(link).startBlocking()
-        result(model, "Successfully generated links")
+        val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
+        result(model, acceptedContentType, "Successfully generated links")
       case _ =>
         UnsupportedMediaType("Only XML supported")
     }

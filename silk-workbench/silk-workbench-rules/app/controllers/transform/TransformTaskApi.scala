@@ -214,7 +214,7 @@ object TransformTaskApi extends Controller {
         val dataSource = createDataSource(xmlRoot, None)
         val (model, dataSink) = createDataSink(xmlRoot)
         executeTransform(task, dataSink, dataSource)
-        val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
+        val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
         result(model, acceptedContentType, "Data transformed successfully!")
       case _ =>
         UnsupportedMediaType("Only XML supported")

@@ -4,7 +4,7 @@ import java.io.StringWriter
 
 import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
 import controllers.transform.TransformTaskApi._
-import org.apache.jena.riot.RDFLanguages
+import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.dataset.{LinkSink, DataSink, Dataset, DataSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesRdfFormatter, NTriplesFormatter, FormattedJenaLinkSink}
@@ -29,7 +29,8 @@ object ProjectUtils {
 
   def jenaModelResult(model: Model, contentType: String): Result = {
     val writer = new StringWriter()
-    model.write(writer, RDFLanguages.contentTypeToLang(contentType).getName)
+    val lang = Option(RDFLanguages.contentTypeToLang(contentType)).getOrElse(Lang.NTRIPLES)
+    model.write(writer, lang.getName)
     Ok(writer.toString).as(contentType)
   }
 
@@ -116,7 +117,7 @@ object ProjectUtils {
    * @param noResponseBodyMessage The message that should be displayed if the model does not exist
    * @return
    */
-  def result(model: Model, noResponseBodyMessage: String, contentType: String): Result = {
+  def result(model: Model, contentType: String, noResponseBodyMessage: String): Result = {
     if (model != null) {
       jenaModelResult(model, contentType)
     } else {
