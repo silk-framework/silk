@@ -19,8 +19,16 @@
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $(function () {
-      $('#workspace_root').jstree();
+      $('#workspace_root').jstree()
+      .on('before_open.jstree', function (e, data) {
+        loadCometStream();
+      });
+      loadCometStream();
     });
+
+    function loadCometStream() {
+      $('#statusCometIFrame').html('<iframe src="@WorkspaceApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>')
+    }
 
     function updateStatus(status) {
       // Get progress bar node
@@ -80,7 +88,7 @@
 @content = {
   @workspaceActivities(User().workspace)
 
-  <iframe src="@WorkspaceApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>
+  <div id="statusCometIFrame"></div>
 }
 
 @workspaceActivities(workspace: Workspace) = {
