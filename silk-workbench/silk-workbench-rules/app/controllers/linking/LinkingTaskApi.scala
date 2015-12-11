@@ -2,8 +2,9 @@ package controllers.linking
 
 import java.util.logging.{Level, Logger}
 import controllers.transform.TransformTaskApi._
+import controllers.util.ProjectUtils._
 import controllers.workspace.WorkspaceApi._
-import org.silkframework.config.{DatasetSelection, LinkSpecification}
+import org.silkframework.config.{TransformSpecification, DatasetSelection, LinkSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.Link
 import org.silkframework.entity.rdf.SparqlRestriction
@@ -12,6 +13,7 @@ import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity, Exec
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
 import org.silkframework.util.Identifier._
 import ValidationException.ValidationError
@@ -20,7 +22,7 @@ import org.silkframework.workspace.Constants
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{AnyContentAsXml, Action, Controller}
 
 object LinkingTaskApi extends Controller {
 
@@ -271,9 +273,24 @@ object LinkingTaskApi extends Controller {
     Ok
   }
 
-//  def postLinkDatasource(projectName: String, taskName: String) = Action { request =>
-//    val (_, task) = getProjectAndTask[LinkSpecification](projectName, taskName)
-//    val link = new ExecuteTransform()
-//    Ok
-//  }
+  // Get the project and linking task
+  private def projectAndTask(projectName: String, taskName: String)  = {
+    getProjectAndTask[LinkSpecification](projectName, taskName)
+  }
+
+  def postLinkDatasource(projectName: String, taskName: String) = Action { request =>
+    request.body match {
+      case AnyContentAsXml(xmlRoot) =>
+        val (_, task) = projectAndTask(projectName, taskName)
+        implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
+        val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
+        val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
+        val (model, linkSink) = createLinkSink(xmlRoot)
+        val link = new GenerateLinksActivity(DPair(linkSource, linkTarget), task.data, Seq(linkSink))
+        Activity(link).startBlocking()
+        result(model, "Successfully generated links")
+      case _ =>
+        UnsupportedMediaType("Only XML supported")
+    }
+  }
 }

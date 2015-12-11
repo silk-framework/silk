@@ -2,8 +2,10 @@ package controllers.transform
 
 import java.util.logging.{Level, Logger}
 
+import com.hp.hpl.jena.rdf.model.Model
 import controllers.util.ProjectUtils._
 import org.silkframework.config.{DatasetSelection, TransformSpecification}
+import org.silkframework.dataset.{DataSource, DataSink}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
@@ -11,9 +13,9 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
 import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{Constants, User}
+import org.silkframework.workspace.{Task, Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
-import play.api.mvc.{Action, AnyContentAsXml, Controller}
+import play.api.mvc.{Result, Action, AnyContentAsXml, Controller}
 
 object TransformTaskApi extends Controller {
 
@@ -197,28 +199,33 @@ object TransformTaskApi extends Controller {
     Ok(JsArray(matches.map(JsString)))
   }
 
+  /**
+   * Transform entities bundled with the request according to the transformation task.
+   * @param projectName
+   * @param taskName
+   * @return If no sink is specified in the request then return results in N-Triples format with the response,
+   *         else write triples to defined data sink.
+   */
   def postTransformInput(projectName: String, taskName: String) = Action { request =>
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
-        val inputResource = xmlRoot \ "resource"
-        implicit val resourceManager = createInmemoryResourceManagerForResource(inputResource)
+        implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
+        val dataSource = createDataSource(xmlRoot, None)
         val (model, dataSink) = createDataSink(xmlRoot)
-        val dataSource = createDataSource(xmlRoot)
-        val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(dataSink))
-        Activity(transform).startBlocking()
-        if(model != null) {
-          nTriplesModelResult(model)
-        } else {
-          // Result is written to registered sink
-          Ok("Data transformed successfully!")
-        }
+        executeTransform(task, dataSink, dataSource)
+        result(model, "Data transformed successfully!")
       case _ =>
         UnsupportedMediaType("Only XML supported")
     }
   }
 
-  private def projectAndTask(projectName: String, taskName: String)  = {
+  private def executeTransform(task: Task[TransformSpecification], dataSink: DataSink, dataSource: DataSource): Unit = {
+    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(dataSink))
+    Activity(transform).startBlocking()
+  }
+
+  private def projectAndTask(projectName: String, taskName: String) = {
     getProjectAndTask[TransformSpecification](projectName, taskName)
   }
 }
