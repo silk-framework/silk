@@ -20,7 +20,7 @@ import org.silkframework.runtime.plugin.Plugin
 /**
  * Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
  */
-class AlignmentFormatter() extends XMLFormatter {
+class AlignmentLinkFormatter() extends XMLLinkFormatter {
   override def header = {
     "<?xml version='1.0' encoding='utf-8' standalone='no'?>\n" +
       "<rdf:RDF xmlns='http://knowledgeweb.semanticweb.org/heterogeneity/alignment#'\n" +

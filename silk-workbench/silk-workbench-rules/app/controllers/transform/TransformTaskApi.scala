@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import com.hp.hpl.jena.rdf.model.Model
 import controllers.util.ProjectUtils._
 import org.silkframework.config.{DatasetSelection, TransformSpecification}
-import org.silkframework.dataset.{DataSource, DataSink}
+import org.silkframework.dataset.{EntitySink, DataSource, DataSink}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
@@ -212,8 +212,8 @@ object TransformTaskApi extends Controller {
       case AnyContentAsXml(xmlRoot) =>
         implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
         val dataSource = createDataSource(xmlRoot, None)
-        val (model, dataSink) = createDataSink(xmlRoot)
-        executeTransform(task, dataSink, dataSource)
+        val (model, entitySink) = createEntitySink(xmlRoot)
+        executeTransform(task, entitySink, dataSource)
         val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
         result(model, acceptedContentType, "Data transformed successfully!")
       case _ =>
@@ -221,8 +221,8 @@ object TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: Task[TransformSpecification], dataSink: DataSink, dataSource: DataSource): Unit = {
-    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(dataSink))
+  private def executeTransform(task: Task[TransformSpecification], entitySink: EntitySink, dataSource: DataSource): Unit = {
+    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink))
     Activity(transform).startBlocking()
   }
 

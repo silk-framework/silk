@@ -33,17 +33,17 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
   def source = plugin.source
 
-  lazy val sink = new DataSinkWrapper
+  lazy val entitySink = new EntitySinkWrapper
 
-  class DataSinkWrapper extends DataSink {
+  lazy val linkSink = new LinkSinkWrapper
 
-    private var linkCount: Int = 0
+  class EntitySinkWrapper extends EntitySink {
 
     private var entityCount: Int = 0
 
     private var isOpen = false
 
-    private val writer = plugin.sink
+    private val writer = plugin.entitySink
 
     /**
      * Initializes this writer.
@@ -55,13 +55,41 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
       }
 
       writer.open(properties)
-      linkCount = 0
       entityCount = 0
       isOpen = true
     }
 
+    override def writeEntity(subject: String, values: Seq[Seq[String]]) {
+      require(isOpen, "Output must be opened befored writing statements to it")
+      writer.writeEntity(subject, values)
+      entityCount += 1
+    }
+
+    /**
+     * Closes this writer.
+     */
+    override def close() {
+      if (writer != null) writer.close()
+      isOpen = false
+      log.info(s"Wrote $entityCount entities.")
+    }
+  }
+
+  class LinkSinkWrapper extends LinkSink {
+
+    private var linkCount: Int = 0
+
+    private var isOpen = false
+
+    private val writer = plugin.linkSink
+
     override def init(): Unit = {
+      if(isOpen) {
+        writer.close()
+        isOpen = false
+      }
       writer.init()
+      isOpen = true
     }
 
     /**
@@ -77,19 +105,13 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
       }
     }
 
-    override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-      require(isOpen, "Output must be opened befored writing statements to it")
-      writer.writeEntity(subject, values)
-      entityCount += 1
-    }
-
     /**
      * Closes this writer.
      */
     override def close() {
       if (writer != null) writer.close()
       isOpen = false
-      log.info(s"Wrote $entityCount entities and $linkCount links.")
+      log.info(s"Wrote $linkCount links.")
     }
   }
 }

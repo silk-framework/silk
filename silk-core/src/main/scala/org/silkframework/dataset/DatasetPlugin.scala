@@ -13,9 +13,14 @@ trait DatasetPlugin extends AnyPlugin {
   def source: DataSource
 
   /**
-   * Returns a data sink for writing data to the data set.
+   * Returns a link sink for writing entity links to the data set.
    */
-  def sink: DataSink
+  def linkSink: LinkSink
+
+  /**
+   * Returns a entity sink for writing entities to the data set.
+   */
+  def entitySink: EntitySink
 
 }
 

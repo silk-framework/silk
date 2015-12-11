@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset
 
-import org.silkframework.dataset.{DataSource, DataSink, DatasetPlugin}
+import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
@@ -13,7 +13,9 @@ case class InternalDataset() extends DatasetPlugin {
 
   override def source: DataSource = InternalDataset.default().source
 
-  override def sink: DataSink = InternalDataset.default().sink
+  override def linkSink: LinkSink = InternalDataset.default().linkSink
+
+  override def entitySink: EntitySink = InternalDataset.default().entitySink
 }
 
 /**

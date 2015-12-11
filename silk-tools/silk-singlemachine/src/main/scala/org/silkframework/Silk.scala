@@ -149,7 +149,7 @@ object Silk {
       new GenerateLinks(
         inputs = linkSpec.findSources(config.sources),
         linkSpec = linkSpec,
-        outputs = config.outputs.map(_.sink),
+        outputs = config.outputs.map(_.linkSink),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
     Activity(generateLinks).startBlocking()
@@ -164,7 +164,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {
     val input = config.source(transform.selection.datasetId).source
-    Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.sink))).startBlocking()
+    Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.entitySink))).startBlocking()
   }
 
   /**

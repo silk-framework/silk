@@ -1,11 +1,14 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import java.io._
-import org.silkframework.dataset.DataSink
-import org.silkframework.entity.Link
-import org.silkframework.runtime.resource.{WritableResource, Resource, FileResource}
 
-class FormattedDataSink(resource: WritableResource, formatter: Formatter) extends DataSink {
+import org.silkframework.dataset.EntitySink
+import org.silkframework.runtime.resource.{FileResource, WritableResource}
+
+/**
+ * Created by andreas on 12/11/15.
+ */
+class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter) extends EntitySink {
 
   private var properties = Seq[String]()
 
@@ -19,9 +22,6 @@ class FormattedDataSink(resource: WritableResource, formatter: Formatter) extend
 
   override def open(properties: Seq[String]) {
     this.properties = properties
-  }
-
-  override def init(): Unit = {
     // If we got a java file, we write directly to it, otherwise we write to a temporary string
     writer = javaFile match {
       case Some(file) =>
@@ -31,10 +31,6 @@ class FormattedDataSink(resource: WritableResource, formatter: Formatter) extend
     }
     //Write header
     writer.write(formatter.header)
-  }
-
-  override def writeLink(link: Link, predicateUri: String) {
-    writer.write(formatter.format(link, predicateUri))
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {

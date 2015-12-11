@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import org.silkframework.dataset.{DataSink, DataSource, DatasetPlugin}
+import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.Resource
 
@@ -47,5 +47,7 @@ case class CsvDataset(file: Resource, properties: String = "", separator: String
 
   override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec)
 
-  override def sink: DataSink = new CsvSink(file, settings)
+  override def linkSink: LinkSink = new CsvLinkSink(file, settings)
+
+  override def entitySink: EntitySink = new CsvEntitySink(file, settings)
 }
