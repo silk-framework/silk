@@ -117,7 +117,7 @@
 
       // Listen to changes of the file to be uploaded
       $("input:file").change(function (){
-        var fileName = $(this).val();
+        var fileName = this.files[0].name;
         $("input[name='resource-name']").val(fileName);
       });
     });
