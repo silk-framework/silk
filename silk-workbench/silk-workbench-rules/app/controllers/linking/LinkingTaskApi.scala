@@ -4,6 +4,7 @@ import java.util.logging.{Level, Logger}
 import controllers.transform.TransformTaskApi._
 import controllers.util.ProjectUtils._
 import controllers.workspace.WorkspaceApi._
+import org.apache.jena.riot.{RDFLanguages, Lang}
 import org.silkframework.config.{TransformSpecification, DatasetSelection, LinkSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.Link

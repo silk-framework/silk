@@ -4,6 +4,7 @@ import java.io.StringWriter
 
 import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
 import controllers.transform.TransformTaskApi._
+import org.apache.jena.riot.RDFLanguages
 import org.silkframework.dataset.{LinkSink, DataSink, Dataset, DataSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesRdfFormatter, NTriplesFormatter, FormattedJenaLinkSink}
@@ -26,10 +27,10 @@ object ProjectUtils {
     (project, task)
   }
 
-  def nTriplesModelResult(model: Model): Result = {
+  def jenaModelResult(model: Model, contentType: String): Result = {
     val writer = new StringWriter()
-    model.write(writer, "N-Triples")
-    Ok(writer.toString).as("application/n-triples")
+    model.write(writer, RDFLanguages.contentTypeToLang(contentType).getName)
+    Ok(writer.toString).as(contentType)
   }
 
   def createDataSource(xmlRoot: NodeSeq,
@@ -115,9 +116,9 @@ object ProjectUtils {
    * @param noResponseBodyMessage The message that should be displayed if the model does not exist
    * @return
    */
-  def result(model: Model, noResponseBodyMessage: String): Result = {
+  def result(model: Model, noResponseBodyMessage: String, contentType: String): Result = {
     if (model != null) {
-      nTriplesModelResult(model)
+      jenaModelResult(model, contentType)
     } else {
       // Result is written to registered sink
       Ok(noResponseBodyMessage)
