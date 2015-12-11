@@ -1,7 +1,7 @@
-package org.silkframework.plugins.dataset
+package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.dataset.{DataSource, DataSink, DatasetPlugin}
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.dataset.{DataSink, DataSource, DatasetPlugin}
+import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 
 @Plugin(
   id = "internal",
@@ -27,7 +27,15 @@ object InternalDataset {
 
   def isAvailable: Boolean = datasetPlugin.nonEmpty
 
-  def default(): DatasetPlugin = datasetPlugin.getOrElse(throw new IllegalAccessException("No dataset plugin has been defined."))
+  def default(): DatasetPlugin = {
+    if(datasetPlugin.isEmpty) {
+      PluginRegistry.createFromConfigOption("dataset.internal") match {
+        case Some(p) => datasetPlugin = p
+        case None => throw new IllegalAccessException("No dataset plugin has been defined.")
+      }
+    }
+    datasetPlugin.get
+  }
 
   def setDefault(plugin: DatasetPlugin): Unit = {
     datasetPlugin = Some(plugin)

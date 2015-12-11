@@ -45,17 +45,31 @@ object PluginRegistry {
    * @return The plugin instance.
    */
   def createFromConfig[T: ClassTag](configPath: String): T = {
+    createFromConfigOption[T](configPath) match {
+      case Some(p) => p
+      case None => throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
+    }
+  }
+
+  /**
+    * Loads a plugin from the configuration.
+    *
+    * @param configPath The config path that contains the plugin parameters, e.g., workspace.plugin
+    * @tparam T The type of the plugin.
+    * @return The plugin instance, if the given config path is set.
+    */
+  def createFromConfigOption[T: ClassTag](configPath: String): Option[T] = {
     val config = Config().getConfig(configPath)
-    if(!config.hasPath("plugin"))
-      throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
-    else {
+    if(!config.hasPath("plugin")) {
+      None
+    } else {
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
       // Instantiate plugin with configured parameters
       val pluginParams = for (entry <- config.getConfig(pluginId).entrySet()) yield (entry.getKey, entry.getValue.unwrapped().toString)
       val plugin = create[T](pluginId, pluginParams.toMap)
       log.fine(s"Loaded plugin $plugin")
-      plugin
+      Some(plugin)
     }
   }
 
