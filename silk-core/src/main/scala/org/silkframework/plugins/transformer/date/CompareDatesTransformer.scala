@@ -24,7 +24,6 @@ import org.silkframework.util.StringUtils.XSDDateLiteral
       |   comparator: One of '<', '<=', '=', '>=', '>' """
 )
 case class CompareDatesTransformer(comparator: String = "<") extends Transformer {
-  private val datatypeFactory = DatatypeFactory.newInstance()
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all dates in milliseconds
