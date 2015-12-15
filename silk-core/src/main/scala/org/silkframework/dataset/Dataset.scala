@@ -62,7 +62,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
     }
 
     override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-      require(isOpen, "Output must be opened befored writing statements to it")
+      require(isOpen, "Output must be opened before writing statements to it")
       writer.writeEntity(subject, values)
       entityCount += 1
     }
