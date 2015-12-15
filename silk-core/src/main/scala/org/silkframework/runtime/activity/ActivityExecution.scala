@@ -30,7 +30,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
    */
   override val status = new StatusHolder(log, parent.map(_.status), progressContribution)
 
-  // TODO synchronize
+  @volatile
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   override def run(): Unit = synchronized {
