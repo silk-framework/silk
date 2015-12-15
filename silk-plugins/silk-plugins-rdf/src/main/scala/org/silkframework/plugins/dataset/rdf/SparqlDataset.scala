@@ -52,4 +52,9 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
   override val linkSink = new SparqlSink(params, sparqlEndpoint)
 
   override val entitySink = new SparqlSink(params, sparqlEndpoint)
+
+  override def clear() = {
+    for(graph <- params.graph)
+      sparqlEndpoint.update(s"DELETE SILENT GRAPH <$graph>")
+  }
 }

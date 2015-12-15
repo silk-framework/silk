@@ -2,7 +2,8 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{LinkSink, EntitySink, Dataset}
+import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowOperator
@@ -12,7 +13,15 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
   val log = Logger.getLogger(getClass.getName)
 
   override def run(context: ActivityContext[Unit]) = {
+    val project = task.project
     val operators = task.data.operators
+
+    // Clear all internal datasets used as output before writing
+//    for(datasetId <- task.data.operators.flatMap(_.outputs).toSet;
+//        dataset <- project.taskOption[Dataset](datasetId)
+//        if dataset.data.plugin.isInstanceOf[InternalDataset]) {
+//      dataset.data.clear()
+//    }
 
     // Preliminary: Just execute the operators from left to right
     for((op, index) <- operators.sortBy(_.position.x).zipWithIndex) {

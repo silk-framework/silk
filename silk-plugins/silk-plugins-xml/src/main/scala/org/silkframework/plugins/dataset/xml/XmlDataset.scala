@@ -23,4 +23,6 @@ case class XmlDataset(file: Resource, basePath: String = "", uriPattern: String 
   override def linkSink: LinkSink = throw new NotImplementedError("XMLs cannot be written at the moment")
 
   override def entitySink: EntitySink = throw new NotImplementedError("XMLs cannot be written at the moment")
+
+  override def clear() = { }
 }

@@ -9,6 +9,11 @@ import org.silkframework.entity.rdf.SparqlEntitySchema
 private object EmptyDataset extends DatasetPlugin {
 
   /**
+    * Clears the contents of this dataset.
+    */
+  def clear(): Unit = { }
+
+  /**
    * Returns an empty data source.
    */
   override def source: DataSource = new DataSource {

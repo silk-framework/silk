@@ -69,6 +69,8 @@ case class FileDataset(file: WritableResource, format: String, graph: String = "
 
   override def entitySink = new FormattedEntitySink(file, formatter)
 
+  override def clear(): Unit = { }
+
   object FileSource extends DataSource {
 
     // Load dataset

@@ -27,4 +27,8 @@ case class InMemoryDataset() extends RdfDatasetPlugin {
     * Returns a link sink for writing entity links to the data set.
     */
   override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+
+  override def clear(): Unit = {
+    model.removeAll()
+  }
 }

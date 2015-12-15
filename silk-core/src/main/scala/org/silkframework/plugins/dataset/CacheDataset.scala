@@ -21,6 +21,7 @@ import org.silkframework.dataset.{DataSource, DatasetPlugin}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.util.FileUtils._
 
 @Plugin(id = "cache", label = "Cache", description= "Reads the entities from an existing Silk entity cache.")
 case class CacheDataset(dir: String) extends DatasetPlugin {
@@ -32,6 +33,8 @@ case class CacheDataset(dir: String) extends DatasetPlugin {
   override def entitySink = ???
 
   override def linkSink = ???
+
+  override def clear: Unit = { }
 
   object CacheSource extends DataSource {
     def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {

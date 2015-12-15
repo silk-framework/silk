@@ -22,6 +22,11 @@ trait DatasetPlugin extends AnyPlugin {
    */
   def entitySink: EntitySink
 
+  /**
+    * Makes sure that the next write will start from an empty dataset.
+    */
+  def clear(): Unit
+
 }
 
 

@@ -29,4 +29,6 @@ case class AlignmentDataset(file: WritableResource) extends DatasetPlugin {
    * Returns a entity sink for writing data to the data set.
    */
   override def entitySink: EntitySink = ???
+
+  override def clear(): Unit = { }
 }

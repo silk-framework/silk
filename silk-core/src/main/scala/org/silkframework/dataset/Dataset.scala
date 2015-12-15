@@ -37,6 +37,8 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
   lazy val linkSink = new LinkSinkWrapper
 
+  def clear(): Unit = plugin.clear()
+
   class EntitySinkWrapper extends EntitySink {
 
     private var entityCount: Int = 0
