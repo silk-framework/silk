@@ -65,12 +65,20 @@ function deserializeWorkflow(xml) {
     sourceEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointSource);
     targetEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointTarget);
 
-    // Connect endpoints
+
+  });
+
+  // Connect endpoints
+  xmlRoot.find('Operator').each(function() {
+    var xml = $(this);
+    var taskId = xml.attr('task');
+    // Connect inputs
     $.each(xml.attr('inputs').split(','), function() {
       if(this != "") {
         jsPlumb.connect({source: sourceEndpoints[this], target: targetEndpoints[taskId]});
       }
     });
+    // Connect outputs
     $.each(xml.attr('outputs').split(','), function() {
       if(this != "") {
         jsPlumb.connect({source: sourceEndpoints[taskId], target: targetEndpoints[this]});
