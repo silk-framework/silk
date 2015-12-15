@@ -6,7 +6,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.entity.Path
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
-import org.silkframework.plugins.dataset.rdf.formatters.{Formatter, NTriplesFormatter, FormattedDataSink}
+import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{WritableResource, Resource}
@@ -41,9 +41,9 @@ case class FileDataset(file: WritableResource, format: String, graph: String = "
   }
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
-  private def formatter: Formatter = {
+  private def formatter: LinkFormatter with EntityFormatter = {
     if(lang == Lang.NTRIPLES)
-      NTriplesFormatter()
+      NTriplesLinkFormatter()
     else
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
   }
@@ -65,7 +65,9 @@ case class FileDataset(file: WritableResource, format: String, graph: String = "
 
   override def source = FileSource
 
-  override def sink = new FormattedDataSink(file, formatter)
+  override def linkSink = new FormattedLinkSink(file, formatter)
+
+  override def entitySink = new FormattedEntitySink(file, formatter)
 
   object FileSource extends DataSource {
 

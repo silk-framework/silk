@@ -1,7 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.config.DatasetSelection
-import org.silkframework.dataset.{DataSink, DataSource}
+import org.silkframework.dataset.{EntitySink, DataSink, DataSource}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
@@ -12,7 +12,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext}
 class ExecuteTransform(input: DataSource,
                        selection: DatasetSelection,
                        rules: Seq[TransformRule],
-                       outputs: Seq[DataSink] = Seq.empty) extends Activity[Unit] {
+                       outputs: Seq[EntitySink] = Seq.empty) extends Activity[Unit] {
 
   require(rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 

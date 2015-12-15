@@ -20,7 +20,7 @@ import scala.xml.NodeSeq
 /**
  * Base trait of all formatters using XML.
  */
-trait XMLFormatter extends Formatter {
+trait XMLLinkFormatter extends LinkFormatter {
 
   override final def format(link: Link, predicateUri: String): String = formatXML(link, predicateUri).toString + "\n"
 

@@ -16,7 +16,7 @@ package org.silkframework.config
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.{DataSink, DataSource, Dataset}
+import org.silkframework.dataset.{LinkSink, DataSink, DataSource, Dataset}
 import org.silkframework.entity.Path
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.evaluation.ReferenceLinks
@@ -43,8 +43,8 @@ case class LinkSpecification(id: Identifier = Identifier.random,
     DPair.fromSeq(dataSelections.map(_.datasetId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
   }
 
-  def findOutputs(datasets: Traversable[Dataset]): Seq[DataSink] = {
-    outputs.flatMap(id => datasets.find(_.id == id)).map(_.sink)
+  def findOutputs(datasets: Traversable[Dataset]): Seq[LinkSink] = {
+    outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
   
   def entityDescriptions: DPair[SparqlEntitySchema] = {

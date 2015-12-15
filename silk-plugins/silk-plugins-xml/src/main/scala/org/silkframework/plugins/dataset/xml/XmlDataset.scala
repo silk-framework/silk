@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.{DataSink, DataSource, DatasetPlugin}
+import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.Resource
 
@@ -20,5 +20,7 @@ case class XmlDataset(file: Resource, basePath: String = "", uriPattern: String 
 
   override def source: DataSource = new XmlSource(file, basePath, uriPattern)
 
-  override def sink: DataSink = throw new NotImplementedError("XMLs cannot be written at the moment")
+  override def linkSink: LinkSink = throw new NotImplementedError("XMLs cannot be written at the moment")
+
+  override def entitySink: EntitySink = throw new NotImplementedError("XMLs cannot be written at the moment")
 }

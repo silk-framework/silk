@@ -2,14 +2,14 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.DataSink
+import org.silkframework.dataset.{LinkSink, EntitySink, DataSink}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.Link
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
  */
-class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSink {
+class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends EntitySink with LinkSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -25,6 +25,8 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends DataSin
   override def open(properties: Seq[String]) {
     this.properties = properties
   }
+
+  override def init() = {}
 
   override def writeLink(link: Link, predicateUri: String) {
     if(body.isEmpty) {

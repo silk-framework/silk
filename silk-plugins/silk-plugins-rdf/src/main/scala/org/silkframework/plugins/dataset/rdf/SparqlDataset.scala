@@ -49,5 +49,7 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
   override val source = new SparqlSource(params, sparqlEndpoint)
 
-  override val sink = new SparqlSink(params, sparqlEndpoint)
+  override val linkSink = new SparqlSink(params, sparqlEndpoint)
+
+  override val entitySink = new SparqlSink(params, sparqlEndpoint)
 }

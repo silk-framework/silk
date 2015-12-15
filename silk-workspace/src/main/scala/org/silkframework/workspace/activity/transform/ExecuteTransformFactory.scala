@@ -15,7 +15,7 @@ class ExecuteTransformFactory extends TaskActivityFactory[TransformSpecification
         input = task.project.task[Dataset](task.data.selection.datasetId).data.source,
         selection = task.data.selection,
         rules = task.data.rules,
-        outputs = task.data.outputs.map(id => task.project.task[Dataset](id).data.sink)
+        outputs = task.data.outputs.map(id => task.project.task[Dataset](id).data.entitySink)
       )
     }
   }

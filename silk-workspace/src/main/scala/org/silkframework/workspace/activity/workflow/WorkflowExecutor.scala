@@ -4,7 +4,6 @@ import java.util.logging.Logger
 
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.workspace.Project
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowOperator
 
@@ -25,13 +24,18 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
   def executeOperator(operator: WorkflowOperator, context: ActivityContext[Unit]) = {
     val project = task.project
     val inputs = operator.inputs.map(id => project.task[Dataset](id).data.source)
-    val outputs = operator.outputs.map(id => project.task[Dataset](id).data.sink)
+    val linkOutputs = operator.outputs.map{ id =>
+      project.task[Dataset](id).data.linkSink
+    }
+    val entityOutputs = operator.outputs.map{ id =>
+      project.task[Dataset](id).data.entitySink
+    }
     val taskData = project.anyTask(operator.task).data
 
     val taskExecutor = project.getExecutor(taskData)
       .getOrElse(throw new Exception("Cannot execute task " + operator.task))
 
-    val activity = taskExecutor(inputs, taskData, outputs)
+    val activity = taskExecutor(inputs, taskData, linkOutputs, entityOutputs)
     //TODO job.statusLogLevel = Level.FINE
     //TODO job.progressLogLevel = Level.FINE
     context.child(activity, 0.0).startBlocking()

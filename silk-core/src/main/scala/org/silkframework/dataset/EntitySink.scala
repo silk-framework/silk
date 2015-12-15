@@ -5,7 +5,7 @@ import java.io.Closeable
 /**
  * An entity sink implements methods to write entities, e.g. the result of a transformation task.
  */
-trait EntitySink extends Closeable {
+trait EntitySink extends DataSink {
   /**
    * Initializes this writer.
    *
@@ -21,4 +21,6 @@ trait EntitySink extends Closeable {
    *               when opening this writer, it must contain a set of values.
    */
   def writeEntity(subject: String, values: Seq[Seq[String]]): Unit
+
+  override def close() {}
 }

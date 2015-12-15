@@ -16,7 +16,11 @@ class CsvSink(file: Resource, settings: CsvSettings) extends DataSink {
   @volatile
   private var out: Writer = null
 
-  override def open(properties: Seq[String] = Seq.empty) {
+  def write(s: String): Unit = {
+    out.write(s)
+  }
+
+  def open(properties: Seq[String] = Seq.empty) {
     //Create buffered writer
     out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(javaFile), "UTF-8"))
     //Write header
@@ -24,15 +28,7 @@ class CsvSink(file: Resource, settings: CsvSettings) extends DataSink {
       out.write(properties.mkString(settings.separator.toString) + "\n")
   }
 
-  override def writeLink(link: Link, predicateUri: String) {
-    out.write(link.source + settings.separator + link.target + "\n")
-  }
-
-  override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-    out.write(values.map(_.mkString(settings.arraySeparator.getOrElse(' ').toString)).mkString(settings.separator.toString) + "\n")
-  }
-
-  override def close() {
+  def close() {
     if (out != null) {
       out.close()
       out = null

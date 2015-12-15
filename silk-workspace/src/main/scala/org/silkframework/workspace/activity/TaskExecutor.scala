@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.dataset.{DataSink, DataSource}
+import org.silkframework.dataset.{EntitySink, LinkSink, DataSink, DataSource}
 import org.silkframework.runtime.activity.Activity
 
 /**
@@ -8,5 +8,5 @@ import org.silkframework.runtime.activity.Activity
   */
 abstract class TaskExecutor[DataType] {
 
-  def apply(inputs: Seq[DataSource], taskData: DataType, outputs: Seq[DataSink]): Activity[_]
+  def apply(inputs: Seq[DataSource], taskData: DataType, linkOutputs: Seq[LinkSink], entityOutputs: Seq[EntitySink]): Activity[_]
 }

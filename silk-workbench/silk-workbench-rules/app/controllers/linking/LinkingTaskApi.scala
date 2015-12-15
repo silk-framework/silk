@@ -248,12 +248,12 @@ object LinkingTaskApi extends Controller {
     val params = request.body.asFormUrlEncoded.get
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[Dataset](posOutputName.head).data.sink
+      val posOutput = project.task[Dataset](posOutputName.head).data.linkSink
       posOutput.writeLinks(task.data.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[Dataset](negOutputName.head).data.sink
+      val negOutput = project.task[Dataset](negOutputName.head).data.linkSink
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 

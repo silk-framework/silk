@@ -16,10 +16,31 @@ private object EmptyDataset extends DatasetPlugin {
   }
 
   /**
-   * Returns a dummy data sink.
+   * Returns a dummy entity sink.
    */
-  override def sink: DataSink = new DataSink {
-    override def writeLink(link: Link, predicateUri: String): Unit = {}
+  override def entitySink: EntitySink = new EntitySink {
     override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {}
+
+    /**
+     * Initializes this writer.
+     *
+     * @param properties The list of properties of the entities to be written.
+     */
+    override def open(properties: Seq[String]): Unit = {}
+  }
+
+  /**
+   * Returns a dummy link sink
+   */
+  override def linkSink: LinkSink = new LinkSink {
+    /**
+     * Initialize the link sink
+     */
+    override def init(): Unit = {}
+
+    /**
+     * Writes a new link to this writer.
+     */
+    override def writeLink(link: Link, predicateUri: String): Unit = {}
   }
 }

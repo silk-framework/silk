@@ -29,7 +29,9 @@ case class CacheDataset(dir: String) extends DatasetPlugin {
 
   override def source = CacheSource
 
-  override def sink = ???
+  override def entitySink = ???
+
+  override def linkSink = ???
 
   object CacheSource extends DataSource {
     def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {

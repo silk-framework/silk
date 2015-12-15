@@ -5,9 +5,9 @@ import java.io.StringWriter
 import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
 import controllers.transform.TransformTaskApi._
 import org.apache.jena.riot.{Lang, RDFLanguages}
-import org.silkframework.dataset.{LinkSink, DataSink, Dataset, DataSource}
+import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
-import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesRdfFormatter, NTriplesFormatter, FormattedJenaLinkSink}
+import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesRdfFormatter, NTriplesLinkFormatter, FormattedJenaLinkSink}
 import org.silkframework.plugins.dataset.rdf.{SparqlParams, SparqlSink}
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization
@@ -66,7 +66,7 @@ object ProjectUtils {
   }
 
   // Create a data sink as specified in a REST request
-  def createDataSink(xmlRoot: NodeSeq): (Model, DataSink) = {
+  def createEntitySink(xmlRoot: NodeSeq): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -76,7 +76,7 @@ object ProjectUtils {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
       implicit val resourceManager = EmptyResourceManager
       val dataset = createDataset(dataSink, None)
-      (null, dataset.sink)
+      (null, dataset.entitySink)
     }
   }
 
@@ -90,7 +90,7 @@ object ProjectUtils {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
       implicit val resourceManager = EmptyResourceManager
       val dataset = createDataset(xmlRoot, None)
-      (null, dataset.sink)
+      (null, dataset.linkSink)
     }
   }
 
