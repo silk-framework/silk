@@ -17,11 +17,11 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
     val operators = task.data.operators
 
     // Clear all internal datasets used as output before writing
-//    for(datasetId <- task.data.operators.flatMap(_.outputs).toSet;
-//        dataset <- project.taskOption[Dataset](datasetId)
-//        if dataset.data.plugin.isInstanceOf[InternalDataset]) {
-//      dataset.data.clear()
-//    }
+    for(datasetId <- operators.flatMap(_.outputs).distinct;
+        dataset <- project.taskOption[Dataset](datasetId)
+        if dataset.data.plugin.isInstanceOf[InternalDataset]) {
+      dataset.data.clear()
+    }
 
     // Preliminary: Just execute the operators from left to right
     for((op, index) <- operators.sortBy(_.position.x).zipWithIndex) {

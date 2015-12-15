@@ -55,6 +55,6 @@ case class SparqlDataset(endpointURI: String, login: String = null, password: St
 
   override def clear() = {
     for(graph <- params.graph)
-      sparqlEndpoint.update(s"DELETE SILENT GRAPH <$graph>")
+      sparqlEndpoint.update(s"DROP SILENT GRAPH <$graph>")
   }
 }
