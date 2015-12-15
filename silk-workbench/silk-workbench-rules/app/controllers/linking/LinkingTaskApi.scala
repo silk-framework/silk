@@ -219,10 +219,12 @@ object LinkingTaskApi extends Controller {
   def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    task.activity[LinkingPathsCache].control.reset()
-    task.activity[LinkingPathsCache].control.start()
-    task.activity[ReferenceEntitiesCache].control.reset()
-    task.activity[ReferenceEntitiesCache].control.start()
+    val pathsCache = task.activity[LinkingPathsCache].control
+    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
+    pathsCache.reset()
+    pathsCache.start()
+    referenceEntitiesCache.reset()
+    referenceEntitiesCache.start()
     Ok
   }
 
