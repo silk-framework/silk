@@ -33,13 +33,13 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
   def source = plugin.source
 
-  lazy val entitySink = new EntitySinkWrapper
+  lazy val entitySink: EntitySink = new EntitySinkWrapper
 
-  lazy val linkSink = new LinkSinkWrapper
+  lazy val linkSink: LinkSink = new LinkSinkWrapper
 
   def clear(): Unit = plugin.clear()
 
-  class EntitySinkWrapper extends EntitySink {
+  private class EntitySinkWrapper extends EntitySink {
 
     private var entityCount: Int = 0
 
@@ -77,7 +77,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
     }
   }
 
-  class LinkSinkWrapper extends LinkSink {
+  private class LinkSinkWrapper extends LinkSink {
 
     private var linkCount: Int = 0
 
