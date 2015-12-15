@@ -3,7 +3,7 @@ package org.silkframework.runtime.activity
 import java.util.logging.{Logger, Level}
 import scala.concurrent.ExecutionContext
 
-private class ActivityExecution[T](@volatile var activity: Activity[T],
+private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,
                                    progressContribution: Double = 0.0) extends Runnable with ActivityControl[T] with ActivityContext[T] {
 
