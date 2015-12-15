@@ -119,7 +119,7 @@ object LinkingConfig {
         case None => Blocking()
       }
       val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[LinkSpecification](p))
-      val transforms = (node \ "Transforms" \ "Transform").map(p => TransformSpecification.fromXML(p, resources))
+      val transforms = (node \ "Transforms" \ "Transform").map(p => fromXml[TransformSpecification](p))
 
       implicit val globalThreshold = None
       val outputs = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
@@ -140,12 +140,13 @@ object LinkingConfig {
         <Interlinks>
           {value.linkSpecs.map(spec => Serialization.toXml(spec))}
         </Interlinks>
+        <Transforms>
+          {value.transforms.map(spec => Serialization.toXml(spec))}
+        </Transforms>
         <Outputs>
           {value.outputs.map(toXml[Dataset])}
         </Outputs>
       </Silk>
-
-      // TODO: add support for serializing the transforms.
     }
   }
 }
