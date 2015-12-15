@@ -113,15 +113,3 @@ function removeElement(elementId) {
     $('#toolbox' + elementId.substring(elementId.indexOf("_"))).show();
   }, 100);
 }
-
-function executeWorkflow() {
-  $.ajax({
-    type: 'PUT',
-    url: apiUrl + "/execute",
-    success: function(response) {
-    },
-    error: function(req) {
-      alert('Error executing workflow: ' + req.responseText);
-    }
-  });
-}

@@ -11,10 +11,7 @@
 @toolbar = {
   <ul>
     <li>
-      <button onclick="execute()" >Start</button>
-    </li>
-    <li>
-      @taskActivityControl(context.task.activity[ExecuteTransform])
+      @taskActivityControl(context.task.activity[ExecuteTransform], showButtons = true)
     </li>
     <li>
     </li>
@@ -22,20 +19,6 @@
 }
 
 @content = {
-  <script type="application/javascript">
-    function execute() {
-      $.ajax({
-        type: 'PUT',
-        url: '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name/executeTransform',
-        success: function(response) {
-          $('.dialog').dialog('close');
-        },
-        error: function(request) {
-          alert(request.responseText);
-        }
-      });
-    }
-  </script>
 }
 
 @main(Some(context))(header)(toolbar)(content)
