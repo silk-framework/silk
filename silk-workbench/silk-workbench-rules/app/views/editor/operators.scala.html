@@ -35,7 +35,7 @@ $(function() {
 <div class="boxheaders @{opType}Header">
   @name
   <select id="@{opType}_category" name="category" style="font-size:0.9em;">
-    @for(category <- pluginsByCategory.keys) {
+    @for(category <- pluginsByCategory.keys.toSeq.sorted) {
       <option value="@category" @if(category == "Recommended"){ selected="selected" } >
         @category
       </option>
