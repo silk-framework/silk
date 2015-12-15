@@ -14,9 +14,8 @@
 
 package org.silkframework.plugins
 
-import java.util.logging.Logger
 import org.silkframework.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
-import org.silkframework.plugins.dataset.rdf.InternalDataset
+import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import org.silkframework.plugins.distance.characterbased._
 import org.silkframework.plugins.distance.equality._
@@ -41,7 +40,10 @@ import org.silkframework.runtime.plugin.PluginModule
  */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses = transformers ++ measures ++ aggregators
+  override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators
+
+  private def datasets =
+    classOf[InternalDataset] :: Nil
 
   private def transformers =
     classOf[RemoveDuplicates] ::

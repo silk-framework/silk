@@ -2,8 +2,10 @@ package org.silkframework.runtime.plugin
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
+import java.util.Map.Entry
 import java.util.ServiceLoader
 import java.util.logging.Logger
+import com.typesafe.config.ConfigValue
 import org.silkframework.config.Config
 import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import scala.collection.immutable.ListMap
@@ -65,8 +67,10 @@ object PluginRegistry {
     } else {
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
+      // Check if there are any configuration parameters available for this plugin
+      val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().toSet else Set.empty
       // Instantiate plugin with configured parameters
-      val pluginParams = for (entry <- config.getConfig(pluginId).entrySet()) yield (entry.getKey, entry.getValue.unwrapped().toString)
+      val pluginParams = for (entry <- configValues) yield (entry.getKey, entry.getValue.unwrapped().toString)
       val plugin = create[T](pluginId, pluginParams.toMap)
       log.fine(s"Loaded plugin $plugin")
       Some(plugin)

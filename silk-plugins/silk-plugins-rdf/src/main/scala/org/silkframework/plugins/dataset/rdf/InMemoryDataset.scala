@@ -1,32 +1,30 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.StringReader
-import java.util.logging.{Level, Logger}
-
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
-import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlEndpoint}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
-import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
-import org.silkframework.util.Uri
+import org.silkframework.runtime.plugin.Plugin
 
-case class InMemoryDataset() extends DatasetPlugin {
+@Plugin(id = "inMemory", label = "in-memory", description = "A Dataset that holds all data in-memory.")
+case class InMemoryDataset() extends RdfDatasetPlugin {
 
+  private val model = ModelFactory.createDefaultModel()
 
+  override val sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
 
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source: DataSource = ???
+  override val source: DataSource = new SparqlSource(SparqlParams(), sparqlEndpoint)
 
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override def entitySink: EntitySink = ???
+  override val entitySink: EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override def linkSink: LinkSink = ???
+  override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 }
