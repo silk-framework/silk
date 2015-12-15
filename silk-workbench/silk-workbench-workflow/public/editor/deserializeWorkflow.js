@@ -64,8 +64,6 @@ function deserializeWorkflow(xml) {
     // Add endpoints
     sourceEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointSource);
     targetEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointTarget);
-
-
   });
 
   // Connect endpoints
