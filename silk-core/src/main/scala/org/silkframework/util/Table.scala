@@ -54,7 +54,15 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     sb.append("| Function and parameters | Name | Description |\n")
     sb.append("| --- | --- | --- |\n")
     for((label, row) <- rows zip values) {
-      sb.append("| " + label + " | " + row.map(_.toString.replace("\n", "<br/>")).mkString(" | ") + " |\n")
+      // If there are line breaks in a value, we need to generate multiple rows
+      val rowLines = row.map(_.toString.split("[\n\r]+"))
+      val maxLines = rowLines.map(_.length).max
+
+      for(index <- 0 until maxLines) {
+        val lineLabel = if(index == 0) label else ""
+        val lineValues = rowLines.map(lines => if(index >= lines.length) "" else lines(index))
+        sb.append("| " + lineLabel + " | " + lineValues.mkString(" | ") + " |\n")
+      }
     }
 
     sb.toString

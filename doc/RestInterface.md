@@ -53,9 +53,9 @@ Each task may provide one or more activities. An activity is a unit of work that
 |                          | the status changes. Can be used to avoid status polling. |
 
 All resources support three parameters:
-- `project`: The project name
+- `project`: The project name.
 - `task`: The task name. If left empty, a project activity is retrieved.
-- `activity`: The name of the activity
+- `activity`: The name of the activity.
 
 Example for starting the `Generate Links` activity for the LinkMovies task:
 

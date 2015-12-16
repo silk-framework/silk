@@ -6,43 +6,43 @@ import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.runtime.plugin._
 import org.silkframework.util.Table
 
+import scala.reflect.ClassTag
+
 /**
- * Script for generating documentation about plugins.
- * Currently generates textile documentation for transformations.
+ * Script for generating markdown documentation for all registered plugins.
  */
 object PluginDocumentation extends App {
 
   val sb = new StringBuilder
 
-  printPlugins(
+  printPlugins[DistanceMeasure](
     title = "Similarity Measures",
-    description = "The following similarity measures are included:",
-    pluginFactory = DistanceMeasure
+    description = "The following similarity measures are included:"
   )
 
-  printPlugins(
+  printPlugins[Transformer](
     title = "Transformations",
-    description = "The following transform and normalization functions are included:",
-    pluginFactory = Transformer
+    description = "The following transform and normalization functions are included:"
   )
 
-  val writer = new OutputStreamWriter(new FileOutputStream("../doc/plugins.md"))
+  val writer = new OutputStreamWriter(new FileOutputStream("doc/plugins2.md"))
   writer.write(sb.toString())
   writer.close()
 
-  def printPlugins(title: String, description: String, pluginFactory: PluginFactory[_ <: AnyPlugin]) = {
+  def printPlugins[T: ClassTag](title: String, description: String) = {
     sb ++= "# " + title + "\n\n"
-    sb ++= description + "\n"
-    for(category <- pluginFactory.availablePlugins.flatMap(_.categories).distinct if category != "Recommended") {
+    sb ++= description + "\n\n"
+    for(category <- PluginRegistry.availablePlugins[T].flatMap(_.categories).distinct if category != "Recommended") {
       sb ++= "## " + category + "\n"
-      sb ++= pluginTable(pluginFactory, category).toMarkdown
+      sb ++= pluginTable[T](title, category).toMarkdown
+      sb ++= "\n"
     }
   }
 
-  def pluginTable(pluginFactory: PluginFactory[_ <: AnyPlugin], category: String) = {
-    val plugins = pluginFactory.availablePlugins.filter(_.categories.contains(category)).sortBy(_.id.toString)
+  def pluginTable[T: ClassTag](title: String, category: String) = {
+    val plugins = PluginRegistry.availablePlugins[T].filter(_.categories.contains(category)).sortBy(_.id.toString)
     Table(
-      name = pluginFactory.getClass.getSimpleName,
+      name = title,
       header = Seq("Function and parameters", "Name", "Description"),
       rows = plugins.map(formatFunction),
       values = for(plugin <- plugins) yield Seq(plugin.label, plugin.description)
