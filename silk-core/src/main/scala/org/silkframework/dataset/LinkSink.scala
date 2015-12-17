@@ -7,7 +7,7 @@ import org.silkframework.entity.Link
 /**
  * A sink that only writes entity links.
  */
-trait LinkSink extends DataSink{
+trait LinkSink extends DataSink {
   /**
    * Initialize the link sink
    */
@@ -26,6 +26,4 @@ trait LinkSink extends DataSink{
     for (link <- links) writeLink(link, predicateUri)
     close()
   }
-
-  override def close() {}
 }

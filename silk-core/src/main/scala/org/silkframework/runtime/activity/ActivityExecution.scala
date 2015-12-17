@@ -3,7 +3,7 @@ package org.silkframework.runtime.activity
 import java.util.logging.{Logger, Level}
 import scala.concurrent.ExecutionContext
 
-private class ActivityExecution[T](@volatile var activity: Activity[T],
+private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,
                                    progressContribution: Double = 0.0) extends Runnable with ActivityControl[T] with ActivityContext[T] {
 
@@ -30,7 +30,7 @@ private class ActivityExecution[T](@volatile var activity: Activity[T],
    */
   override val status = new StatusHolder(log, parent.map(_.status), progressContribution)
 
-  // TODO synchronize
+  @volatile
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   override def run(): Unit = synchronized {

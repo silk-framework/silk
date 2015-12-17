@@ -9,6 +9,11 @@ import org.silkframework.entity.rdf.SparqlEntitySchema
 private object EmptyDataset extends DatasetPlugin {
 
   /**
+    * Clears the contents of this dataset.
+    */
+  def clear(): Unit = { }
+
+  /**
    * Returns an empty data source.
    */
   override def source: DataSource = new DataSource {
@@ -27,6 +32,8 @@ private object EmptyDataset extends DatasetPlugin {
      * @param properties The list of properties of the entities to be written.
      */
     override def open(properties: Seq[String]): Unit = {}
+
+    override def close(): Unit = {}
   }
 
   /**
@@ -42,5 +49,7 @@ private object EmptyDataset extends DatasetPlugin {
      * Writes a new link to this writer.
      */
     override def writeLink(link: Link, predicateUri: String): Unit = {}
+
+    override def close(): Unit = {}
   }
 }

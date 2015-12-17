@@ -50,4 +50,6 @@ case class CsvDataset(file: Resource, properties: String = "", separator: String
   override def linkSink: LinkSink = new CsvLinkSink(file, settings)
 
   override def entitySink: EntitySink = new CsvEntitySink(file, settings)
+
+  override def clear(): Unit = { }
 }

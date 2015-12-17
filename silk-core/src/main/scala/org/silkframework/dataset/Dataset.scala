@@ -33,11 +33,13 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
   def source = plugin.source
 
-  lazy val entitySink = new EntitySinkWrapper
+  lazy val entitySink: EntitySink = new EntitySinkWrapper
 
-  lazy val linkSink = new LinkSinkWrapper
+  lazy val linkSink: LinkSink = new LinkSinkWrapper
 
-  class EntitySinkWrapper extends EntitySink {
+  def clear(): Unit = plugin.clear()
+
+  private class EntitySinkWrapper extends EntitySink {
 
     private var entityCount: Int = 0
 
@@ -60,7 +62,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
     }
 
     override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-      require(isOpen, "Output must be opened befored writing statements to it")
+      require(isOpen, "Output must be opened before writing statements to it")
       writer.writeEntity(subject, values)
       entityCount += 1
     }
@@ -75,7 +77,7 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
     }
   }
 
-  class LinkSinkWrapper extends LinkSink {
+  private class LinkSinkWrapper extends LinkSink {
 
     private var linkCount: Int = 0
 

@@ -49,12 +49,13 @@ Each task may provide one or more activities. An activity is a unit of work that
 | `GET activities/config` | Retrieves the configuration of an activity as key-value pairs. |
 | `POST activities/config` | Updates the configuration of an activity. |
 | `GET activities/status` | Retrieves the status of an activity. |
-| `GET activities/updates` | Retrieves a Comet stream of Javascript calls to updateStatus whenever the status changes. Can be used to avoid status polling. |
+| `GET activities/updates` | Retrieves a Comet stream of Javascript calls to updateStatus whenever |
+|                          | the status changes. Can be used to avoid status polling. |
 
 All resources support three parameters:
-- `project`: The project name
+- `project`: The project name.
 - `task`: The task name. If left empty, a project activity is retrieved.
-- `activity`: The name of the activity
+- `activity`: The name of the activity.
 
 Example for starting the `Generate Links` activity for the LinkMovies task:
 

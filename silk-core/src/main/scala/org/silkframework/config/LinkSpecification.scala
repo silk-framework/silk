@@ -92,7 +92,7 @@ object LinkSpecification {
 
   /**
    * XML serialization format.
-   * Reference links are currently not serialized and need to be serialize separably.
+   * Reference links are currently not serialized and need to be serialized separately.
    */
   implicit object LinkSpecificationFormat extends XmlFormat[LinkSpecification] {
 

@@ -41,7 +41,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
     * Retrieves the parameters values of a given plugin instance.
     */
   def parameterValues(plugin: AnyRef): Map[String, String] = {
-    parameters.map(param => (param.name, param(plugin).toString)).toMap
+    parameters.map(param => (param.name, Option(param(plugin)).getOrElse("").toString)).toMap
   }
 
   override def toString = label

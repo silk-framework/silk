@@ -2,8 +2,10 @@ package org.silkframework.runtime.plugin
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
+import java.util.Map.Entry
 import java.util.ServiceLoader
 import java.util.logging.Logger
+import com.typesafe.config.ConfigValue
 import org.silkframework.config.Config
 import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import scala.collection.immutable.ListMap
@@ -45,17 +47,33 @@ object PluginRegistry {
    * @return The plugin instance.
    */
   def createFromConfig[T: ClassTag](configPath: String): T = {
+    createFromConfigOption[T](configPath) match {
+      case Some(p) => p
+      case None => throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
+    }
+  }
+
+  /**
+    * Loads a plugin from the configuration.
+    *
+    * @param configPath The config path that contains the plugin parameters, e.g., workspace.plugin
+    * @tparam T The type of the plugin.
+    * @return The plugin instance, if the given config path is set.
+    */
+  def createFromConfigOption[T: ClassTag](configPath: String): Option[T] = {
     val config = Config().getConfig(configPath)
-    if(!config.hasPath("plugin"))
-      throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
-    else {
+    if(!config.hasPath("plugin")) {
+      None
+    } else {
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
+      // Check if there are any configuration parameters available for this plugin
+      val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().toSet else Set.empty
       // Instantiate plugin with configured parameters
-      val pluginParams = for (entry <- config.getConfig(pluginId).entrySet()) yield (entry.getKey, entry.getValue.unwrapped().toString)
+      val pluginParams = for (entry <- configValues) yield (entry.getKey, entry.getValue.unwrapped().toString)
       val plugin = create[T](pluginId, pluginParams.toMap)
       log.fine(s"Loaded plugin $plugin")
-      plugin
+      Some(plugin)
     }
   }
 

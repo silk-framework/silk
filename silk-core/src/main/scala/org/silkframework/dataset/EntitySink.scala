@@ -21,6 +21,4 @@ trait EntitySink extends DataSink {
    *               when opening this writer, it must contain a set of values.
    */
   def writeEntity(subject: String, values: Seq[Seq[String]]): Unit
-
-  override def close() {}
 }

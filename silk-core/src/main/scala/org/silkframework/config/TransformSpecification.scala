@@ -2,8 +2,9 @@ package org.silkframework.config
 
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.TransformRule
-import org.silkframework.runtime.resource.ResourceLoader
+import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
 import org.silkframework.runtime.serialization.Serialization._
+import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.util.Identifier
 
 import scala.xml.Node
@@ -32,28 +33,34 @@ case class TransformSpecification(id: Identifier = Identifier.random, selection:
  */
 object TransformSpecification {
 
-  /**
-   * Create a TransformSpecification instance using the provided XML node.
-   *
-   * @since 2.6.1
-   *
-   * @param node The *Transform* XML node.
-   * @param resourceLoader A ResourceLoader instance.
-   * @return A TransformSpecification instance.
-   */
-  def fromXML(node: Node, resourceLoader: ResourceLoader)(implicit prefixes: Prefixes): TransformSpecification = {
+  implicit object TransformSpecificationFormat extends XmlFormat[TransformSpecification] {
+    /**
+      * Deserialize a value from XML.
+      */
+    override def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformSpecification = {
+      // Get the Id.
+      val id = (node \ "@id").text
 
-    // Get the Id.
-    val id = (node \ "@id").text
+      // Get the required parameters from the XML configuration.
+      val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
+      val rules = (node \ "TransformRule").map(fromXml[TransformRule])
+      val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
 
-    // Get the required parameters from the XML configuration.
-    val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-    val rules = (node \ "TransformRule").map(fromXml[TransformRule])
-    val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
+      // Create and return a TransformSpecification instance.
+      TransformSpecification(id, datasetSelection, rules, sinks)
+    }
 
-    // Create and return a TransformSpecification instance.
-    TransformSpecification(id, datasetSelection, rules, sinks)
-
+    /**
+      * Serialize a value to XML.
+      */
+    override def write(value: TransformSpecification)(implicit prefixes: Prefixes): Node = {
+      <TransformSpec>
+        { value.rules.map(toXml[TransformRule]) }
+        <Outputs>
+          { value.outputs.map(o => <Output id={o}></Output>) }
+        </Outputs>
+      </TransformSpec>
+    }
   }
 
 }

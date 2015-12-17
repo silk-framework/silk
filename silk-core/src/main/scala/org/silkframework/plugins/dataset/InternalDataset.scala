@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset
 
-import org.silkframework.dataset._
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.dataset.{DataSource, DatasetPlugin, EntitySink, LinkSink}
+import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 
 @Plugin(
   id = "internal",
@@ -16,10 +16,12 @@ case class InternalDataset() extends DatasetPlugin {
   override def linkSink: LinkSink = InternalDataset.default().linkSink
 
   override def entitySink: EntitySink = InternalDataset.default().entitySink
+
+  override def clear() = InternalDataset.default().clear()
 }
 
 /**
-  * Holds the default Corporate Memory endpoint.
+  * Holds the default internal endpoint.
   * At the moment, the default can only be set programmatically and not in the configuration.
   */
 object InternalDataset {
@@ -29,10 +31,13 @@ object InternalDataset {
 
   def isAvailable: Boolean = datasetPlugin.nonEmpty
 
-  def default(): DatasetPlugin = datasetPlugin.getOrElse(throw new IllegalAccessException("No dataset plugin has been defined."))
-
-  def setDefault(plugin: DatasetPlugin): Unit = {
-    datasetPlugin = Some(plugin)
+  def default(): DatasetPlugin = {
+    if(datasetPlugin.isEmpty) {
+      datasetPlugin = PluginRegistry.createFromConfigOption[DatasetPlugin]("dataset.internal")
+      if(datasetPlugin.isEmpty)
+        throw new IllegalAccessException("No internal dataset plugin has been configured at 'dataset.internal'.")
+    }
+    datasetPlugin.get
   }
 
 }

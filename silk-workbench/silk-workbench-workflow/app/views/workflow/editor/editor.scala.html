@@ -25,10 +25,7 @@
       <button onclick="commitWorkflow()" >Save</button>
     </li>
     <li>
-      <button onclick="executeWorkflow()" >Execute</button>
-    </li>
-    <li>
-      @taskActivityControl(context.task.activity[WorkflowExecutor])
+      @taskActivityControl(context.task.activity[WorkflowExecutor], showButtons = true)
     </li>
   </ul>
 }
