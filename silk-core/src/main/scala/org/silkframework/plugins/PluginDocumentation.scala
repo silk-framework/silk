@@ -26,27 +26,70 @@ object PluginDocumentation {
 
     sb ++= "# Plugin Reference\n\n"
 
-    printPlugins[DatasetPlugin](
+    plugins[DatasetPlugin](
       title = "Dataset Plugins",
       description = "The following dataset plugins are available:"
     )
 
-    printPlugins[DistanceMeasure](
+    plugins[DistanceMeasure](
       title = "Similarity Measures",
       description = "The following similarity measures are available:"
     )
 
-    printPlugins[Transformer](
+    plugins[Transformer](
       title = "Transformations",
       description = "The following transform and normalization functions are available:"
     )
 
-    printPlugins[Aggregator](
+    plugins[Aggregator](
       title = "Aggregations",
       description = "The following aggregation functions are available:"
     )
 
     sb.toString
+  }
+
+  def plugins[T: ClassTag](title: String, description: String)(implicit sb: StringBuilder): Unit = {
+    sb ++= "## " + title + "\n\n"
+    sb ++= description + "\n\n"
+    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != "Recommended").distinct.sorted
+    for(category <- categories) {
+      if(categories.size > 1)
+        sb ++= "### " + category + "\n\n"
+      for(categoryDescription <- categoryDescriptions.get(category)) {
+        sb ++= categoryDescription + "\n\n"
+      }
+      pluginCategory[T](title, category)
+      sb ++= "\n"
+    }
+  }
+
+  def pluginCategory[T: ClassTag](title: String, category: String)(implicit sb: StringBuilder): Unit = {
+    val plugins = PluginRegistry.availablePlugins[T].filter(_.categories.contains(category)).sortBy(_.id.toString)
+    for(plugin <- plugins) {
+      sb ++= "#### " + plugin.label + "\n\n"
+      sb ++= plugin.description + "\n\n"
+      val paramTable =
+        Table(
+          name = title,
+          header = Seq("Parameter", "Type", "Default"),
+          rows = plugin.parameters.map(_.name),
+          values = plugin.parameters.map(p => Seq(p.dataType.toString, formatDefaultValue(p.defaultValue)))
+        )
+      if(paramTable.rows.nonEmpty)
+        sb ++= paramTable.toMarkdown + "\n"
+      else
+        sb ++= "This plugin does not require any parameters.\n"
+    }
+  }
+
+  def formatDefaultValue(value: Option[AnyRef]): String = {
+    value match {
+      case Some(v) if v == null => "*null*"
+      case Some(v) if v == "" => "*empty string*"
+      case Some(v) => v.toString
+      case None => "*no default*"
+    }
   }
 
   def printPlugins[T: ClassTag](title: String, description: String)(implicit sb: StringBuilder) = {
@@ -59,7 +102,7 @@ object PluginDocumentation {
       for(categoryDescription <- categoryDescriptions.get(category)) {
         sb ++= categoryDescription + "\n\n"
       }
-      sb ++= pluginTable[T](title, category).toMarkdown
+      sb ++= pluginTable[T](title, category).toPandocMarkdown
       sb ++= "\n"
     }
   }

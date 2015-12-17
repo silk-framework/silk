@@ -37,7 +37,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
   def toTextile = {
     val sb = new StringBuilder()
 
-    sb.append("|_. Function and parameters |_. Name |_. Description |\n")
+    sb.append(header.mkString("|_. ", " |_. ", " |\n"))
     for((label, row) <- rows zip values) {
       sb.append("| " + label + " | " + row.mkString(" | ") + " |\n")
     }
@@ -51,8 +51,8 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
   def toMarkdown = {
     val sb = new StringBuilder()
 
-    sb.append("| Function and parameters | Name | Description |\n")
-    sb.append("| --- | --- | --- |\n")
+    sb.append(header.mkString("| ", " | ", " |\n"))
+    sb.append("| " + (" --- |" * header.size) + "\n")
     for((label, row) <- rows zip values) {
       // If there are line breaks in a value, we need to generate multiple rows
       val rowLines = row.map(_.toString.split("[\n\r]+"))
@@ -64,6 +64,54 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
         sb.append("| " + lineLabel + " | " + lineValues.mkString(" | ") + " |\n")
       }
     }
+
+    sb.toString
+  }
+
+  // TODO can be deleted if not needed anymore
+  def toPandocMarkdown = {
+    val sb = new StringBuilder()
+
+    val functionColumnSize = 20
+    val nameColumnSize = 20
+    val descriptionColumnSize = 80
+
+    sb ++= "-" * (functionColumnSize + nameColumnSize + descriptionColumnSize)
+    sb ++= "\n"
+
+    sb ++= "Function".padTo(functionColumnSize, ' ')
+    sb ++= "Id".padTo(nameColumnSize, ' ')
+    sb ++= "Description".padTo(descriptionColumnSize , ' ')
+    sb ++= "\n"
+
+    sb ++= "-" * (functionColumnSize - 1) + " "
+    sb ++= "-" * (nameColumnSize - 1) + " "
+    sb ++= "-" * descriptionColumnSize
+    sb ++= "\n"
+
+    for((label, row) <- rows zip values) {
+      val functionLines = label.toString.grouped(functionColumnSize - 1).toSeq
+      val idLines = row(0).toString.grouped(nameColumnSize - 1).toSeq
+      val descriptionLines = row(1).toString.split("[\n\r]+").flatMap(_.grouped(descriptionColumnSize - 1)).toSeq
+
+      val maxLines = Seq(functionLines.size, idLines.size, descriptionLines.size).max
+
+      for(index <- 0 until maxLines) {
+        val functionLine = if(index >= functionLines.size) "" else functionLines(index)
+        val idLine = if(index >= idLines.size) "" else idLines(index)
+        val descriptionLine = if(index >= descriptionLines.size) "" else descriptionLines(index)
+
+        sb ++= functionLine.padTo(functionColumnSize, ' ')
+        sb ++= idLine.padTo(nameColumnSize, ' ')
+        sb ++= descriptionLine.padTo(descriptionColumnSize, ' ')
+        sb ++= "\n"
+      }
+
+      sb ++= "\n"
+    }
+
+    sb ++= "-" * (functionColumnSize + nameColumnSize + descriptionColumnSize)
+    sb ++= "\n"
 
     sb.toString
   }
