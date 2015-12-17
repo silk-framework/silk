@@ -104,6 +104,8 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends EntityS
     }
     val query = body.toString()
     body.clear()
-    endpoint.update(query)
+    if(statements > 0) { // Else this would throw an exception, because of invalid syntax
+      endpoint.update(query)
+    }
   }
 }
