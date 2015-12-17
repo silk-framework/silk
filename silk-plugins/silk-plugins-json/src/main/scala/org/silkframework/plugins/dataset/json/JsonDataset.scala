@@ -10,12 +10,14 @@ import scala.io.Codec
   id = "json",
   label = "JSON",
   description =
-      """Retrieves all entities from an JSON file.
+"""Retrieves all entities from an JSON file.
+
 Parameters:
-  file:  File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
-  basePath: The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'.
+
+- file:  File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
+- basePath: The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'.
             If left empty, all direct children of the root element will be read.
-  uriPrefix: A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
+- uriPrefix: A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
 """
 )
 case class JsonDataset(file: Resource, basePath: String = "", uriPattern: String = "", charset: String = "UTF8") extends DatasetPlugin {

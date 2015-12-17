@@ -17,12 +17,13 @@ import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
   id = "file",
   label = "RDF dump",
   description =
-    """ Dataset which retrieves and writes all entities from/to an RDF file.
-      | Parameters:
-      |  file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
-      |  format: Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle"
-      |  graph: The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.
-    """
+"""Dataset which retrieves and writes all entities from/to an RDF file.
+
+Parameters:
+
+- file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
+- format: Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle"
+- graph: The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads."""
 )
 case class FileDataset(file: WritableResource, format: String, graph: String = "") extends RdfDatasetPlugin {
 

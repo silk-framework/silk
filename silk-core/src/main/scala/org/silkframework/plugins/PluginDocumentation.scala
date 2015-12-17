@@ -17,8 +17,8 @@ object PluginDocumentation {
   // Currently we add category descriptions manually here
   val categoryDescriptions: Map[String, String] =
     Map(
-      "Characterbased" -> "Character-based distance measures compare strings on the character level. They are well suited for\nhandling typographical errors.",
-      "Tokenbased" -> "While character-based distance measures work well for typographical errors, there are a number of tasks where token-base distance measures are better suited:\n- Strings where parts are reordered e.g. &ldquo;John Doe&rdquo; and &ldquo;Doe, John&rdquo;\n- Texts consisting of multiple words"
+      "Characterbased" -> "Character-based distance measures compare strings on the character level. They are well suited for handling typographical errors.",
+      "Tokenbased" -> "While character-based distance measures work well for typographical errors, there are a number of tasks where token-base distance measures are better suited:\n\n- Strings where parts are reordered e.g. &ldquo;John Doe&rdquo; and &ldquo;Doe, John&rdquo;\n- Texts consisting of multiple words"
     )
 
   def apply(): String = {
