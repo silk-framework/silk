@@ -60,7 +60,6 @@ object PluginDocumentation {
         sb ++= categoryDescription + "\n\n"
       }
       pluginCategory[T](title, category)
-      sb ++= "\n"
     }
   }
 
@@ -79,7 +78,7 @@ object PluginDocumentation {
       if(paramTable.rows.nonEmpty)
         sb ++= paramTable.toMarkdown + "\n"
       else
-        sb ++= "This plugin does not require any parameters.\n"
+        sb ++= "This plugin does not require any parameters.\n\n"
     }
   }
 
@@ -89,43 +88,6 @@ object PluginDocumentation {
       case Some(v) if v == "" => "*empty string*"
       case Some(v) => v.toString
       case None => "*no default*"
-    }
-  }
-
-  def printPlugins[T: ClassTag](title: String, description: String)(implicit sb: StringBuilder) = {
-    sb ++= "## " + title + "\n\n"
-    sb ++= description + "\n\n"
-    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != "Recommended").distinct.sorted
-    for(category <- categories) {
-      if(categories.size > 1)
-        sb ++= "### " + category + "\n\n"
-      for(categoryDescription <- categoryDescriptions.get(category)) {
-        sb ++= categoryDescription + "\n\n"
-      }
-      sb ++= pluginTable[T](title, category).toPandocMarkdown
-      sb ++= "\n"
-    }
-  }
-
-  def pluginTable[T: ClassTag](title: String, category: String) = {
-    val plugins = PluginRegistry.availablePlugins[T].filter(_.categories.contains(category)).sortBy(_.id.toString)
-    Table(
-      name = title,
-      header = Seq("Function and parameters", "Name", "Description"),
-      rows = plugins.map(formatFunction),
-      values = for(plugin <- plugins) yield Seq(plugin.label, plugin.description)
-    )
-  }
-
-  def formatFunction(plugin: PluginDescription[_]): String = {
-    plugin.id.toString + plugin.parameters.map(formatParameter).mkString("(", ", ", ")")
-  }
-
-  def formatParameter(parameter: Parameter): String = {
-    val signature = parameter.name + ": " + parameter.dataType.toString
-    parameter.defaultValue match {
-      case Some(default) => s"[$signature = '$default']"
-      case None => signature
     }
   }
 }

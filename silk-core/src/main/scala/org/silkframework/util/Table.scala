@@ -55,7 +55,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     sb.append("| " + (" --- |" * header.size) + "\n")
     for((label, row) <- rows zip values) {
       // If there are line breaks in a value, we need to generate multiple rows
-      val rowLines = row.map(_.toString.split("[\n\r]+"))
+      val rowLines = row.map(_.toString.replace("\\", "\\\\").split("[\n\r]+"))
       val maxLines = rowLines.map(_.length).max
 
       for(index <- 0 until maxLines) {
