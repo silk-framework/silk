@@ -8,11 +8,11 @@ All resources below are available under the path `{deploymentURI}/workspace/`.
 
 ### Manage Projects
 
-| Resource | Description |
-| --- | --- |
+| Resource                    | Description                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------ |
 | `GET projects`              | Retrieves a JSON listing all projects in the workspace and their tasks by type |
-| `PUT projects/<project>`    | Adds a new empty project |   
-| `DELETE projects/<project>` | Delets an existing project |
+| `PUT projects/<project>`    | Adds a new empty project                                                       |   
+| `DELETE projects/<project>` | Delets an existing project                                                     |
 
 ### Resources
 
