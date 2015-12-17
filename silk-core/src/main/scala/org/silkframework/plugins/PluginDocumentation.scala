@@ -32,8 +32,8 @@ object PluginDocumentation {
     )
 
     plugins[DistanceMeasure](
-      title = "Similarity Measures",
-      description = "The following similarity measures are available:"
+      title = "Distance Measures",
+      description = "The following distance measures are available:"
     )
 
     plugins[Transformer](
