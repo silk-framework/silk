@@ -33,7 +33,7 @@ A Plugin may define a number of parameters, such as `param1` and `param2` in the
 
 The plugin annotation has the following parameters:
 
--   `id`: An id that uniquely identifies this plugin. May only contain the following characters: (a - z, A - Z, 0 - 9, \_, -).
+-   `id`: An id that uniquely identifies this plugin. May only contain the following characters: (a - z, A - Z, 0 - 9, \\_, -).
 -   `label`: A human readable label to be shown in graphical user interfaces.
 -   `description`: A human readable description of this plugin.
 -   `categories` (optional): An array of categories for this plugin. Each category is a string value.
