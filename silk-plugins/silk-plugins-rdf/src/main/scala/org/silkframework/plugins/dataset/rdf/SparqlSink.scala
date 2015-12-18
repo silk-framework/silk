@@ -5,6 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.dataset.{LinkSink, EntitySink, DataSink}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.Link
+import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
@@ -60,16 +61,17 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends EntityS
   }
 
   private def writeStatement(subject: String, property: String, value: String): Unit = {
-    // Check if value is an URI
-    if (value.startsWith("http:") || value.startsWith("https:"))
-      body.append("<" + subject + "> <" + property + "> <" + value + "> .\n")
-    // Check if value is a number
-    else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E'))
-      body.append("<" + subject + "> <" + property + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n")
-    // Write string values
-    else {
-      val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-      body.append("<" + subject + "> <" + property + "> \"" + escapedValue + "\" .\n")
+    value match {
+      // Check if value is an URI
+      case v if value.startsWith("http:") || value.startsWith("https:") =>
+        body.append("<" + subject + "> <" + property + "> <" + v + "> .\n")
+      // Check if value is a number
+      case DoubleLiteral(d) =>
+        body.append("<" + subject + "> <" + property + "> \"" + d + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n")
+      // Write string values
+      case _ =>
+        val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+        body.append("<" + subject + "> <" + property + "> \"" + escapedValue + "\" .\n")
     }
 
     statements += 1

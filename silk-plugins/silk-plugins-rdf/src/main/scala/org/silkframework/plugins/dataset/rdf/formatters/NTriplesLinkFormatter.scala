@@ -15,6 +15,7 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import org.silkframework.entity.Link
+import org.silkframework.util.StringUtils.DoubleLiteral
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
 
@@ -23,16 +24,17 @@ case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
   }
 
   override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
-    // Check if value is an URI
-    if (value.startsWith("http:") || value.startsWith("https:")) {
-      "<" + subject + "> <" + predicate + "> <" + value + "> .\n"
-    // Check if value  a number
-    } else if (value.nonEmpty && value.forall(c => c.isDigit || c == '.' || c == 'E')) {
-      "<" + subject + "> <" + predicate + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n"
+    value match {
+      // Check if value is an URI
+      case v if value.startsWith("http:") || value.startsWith("https:") =>
+        "<" + subject + "> <" + predicate + "> <" + v + "> .\n"
+      // Check if value is a number
+      case DoubleLiteral(d) =>
+        "<" + subject + "> <" + predicate + "> \"" + d + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n"
       // Write string values
-    } else {
-      val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-      "<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n"
+      case _ =>
+        val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+        "<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n"
     }
   }
 }
