@@ -36,10 +36,12 @@ object Workflow {
 
     val operators =
       for(op <- xml \ "Operator") yield {
+        val inputStr = (op \ "@inputs").text
+        val outputStr = (op \ "@outputs").text
         WorkflowOperator(
-          inputs = (op \ "@inputs").text.split(',').toSeq,
+          inputs = if(inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
           task = (op \ "@task").text,
-          outputs = (op \ "@outputs").text.split(',').toSeq,
+          outputs = if(outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
           position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt)
         )
       }
