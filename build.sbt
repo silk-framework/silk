@@ -96,9 +96,14 @@ lazy val workspace = (project in file("silk-workspace"))
 
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     .enablePlugins(PlayScala)
+    .enablePlugins(BuildInfoPlugin)
     .dependsOn(workspace)
     .aggregate(workspace)
     .settings(commonSettings: _*)
+    .settings(
+      buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+      buildInfoPackage := "org.silkframework.buildInfo"
+    )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
     .enablePlugins(PlayScala)
