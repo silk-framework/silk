@@ -224,8 +224,8 @@
           <td>
             <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
-          <td>
-            @if(rule.paths.size == 1) { @rule.paths.head.serializeSimplified(prefixes()) } else { (multiple) }
+          <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="@renderRulePath(rule)">
+            @renderRulePath(rule)
           </td>
           <td style="padding-right: 10px">
             <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" style="width:100%" />
@@ -243,6 +243,8 @@
   <img class="button-delete" title="Delete" onclick="deleteRule($(this).parent().parent())" src="@Assets.at("img/delete.png")" style="float: right; cursor: pointer" />
   <img class="button-edit" title="Open in Editor" onclick="openRule($(this).parent().parent().find('.name').val())" src="@Assets.at("img/editor/wrench.png")" style="float:right; cursor: pointer" />
 }
+
+@renderRulePath(rule: ComplexMapping) = {@if(rule.paths.size == 1) {@rule.paths.head.serializeSimplified(prefixes())} else {(multiple)}}
 
 @prefixes() = @{ context.project.config.prefixes }
 
