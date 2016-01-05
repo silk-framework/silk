@@ -78,4 +78,9 @@ object EvalLink
    * Negative reference link.
    */
   case object Negative extends ReferenceType
+
+  /**
+    * Unlabeled reference link.
+    */
+  case object Unlabeled extends ReferenceType
 }

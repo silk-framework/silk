@@ -31,6 +31,8 @@
         <label for="showPositiveLinks">Positive</label>
         <input onchange="updateLinkType('negative')" id="showNegativeLinks" type="radio" name="selectLinks" />
         <label for="showNegativeLinks">Negative</label>
+        <input onchange="updateLinkType('unlabeled')" id="showUnlabeledLinks" type="radio" name="selectLinks" />
+        <label for="showUnlabeledLinks">Unlabeled</label>
       </div>
     </li>
     <li>
@@ -46,7 +48,7 @@
       <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Managing_Reference_Links" target="_help">Help</a>
     </li>
     <li>
-      @taskActivityControl(context.task.activity[ReferenceEntitiesCache])
+      @taskActivityControl(context.task.activity[ReferenceEntitiesCache], showButtons = true)
     </li>
   </ul>
 }

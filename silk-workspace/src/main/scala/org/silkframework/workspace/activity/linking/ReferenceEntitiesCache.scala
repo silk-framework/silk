@@ -10,16 +10,27 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.Task
 
+/**
+  * For each reference link, the reference entities cache holds all values of the linked entities.
+  */
 class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[ReferenceEntities] {
+
+  @volatile
+  private var canceled = false
 
   override def name = s"Entities cache ${task.name}"
 
   override def initialValue = Some(ReferenceEntities.empty)
 
+  override def cancelExecution(): Unit = {
+    canceled = true
+  }
+
   override def run(context: ActivityContext[ReferenceEntities]) = {
+    canceled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
-    while(pathsCache.status().isRunning)
+    while(pathsCache.status().isRunning && !canceled)
       Thread.sleep(1000)
     if(pathsCache.status().failed)
      throw new Exception(s"Cannot load reference entities cache for ${task.name}, because the paths cache could not be loaded.")
@@ -40,9 +51,9 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     def load() = {
       context.status.update("Loading entities", 0.0)
 
-      val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size
+      val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size + linkSpec.referenceLinks.unlabeled.size
       var loadedLinks = 0
-      for (link <- linkSpec.referenceLinks.positive) {
+      for (link <- linkSpec.referenceLinks.positive if !canceled) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         for(l <- loadPositiveLink(link))
           context.value() = context.value().withPositive(l)
@@ -51,10 +62,19 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
           context.status.update(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
-      for (link <- linkSpec.referenceLinks.negative) {
+      for (link <- linkSpec.referenceLinks.negative if !canceled) {
         if(Thread.currentThread.isInterrupted) throw new InterruptedException()
         for(l <- loadNegativeLink(link))
           context.value() = context.value().withNegative(l)
+        loadedLinks += 1
+        if(loadedLinks % 10 == 0)
+          context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
+      }
+
+      for (link <- linkSpec.referenceLinks.unlabeled if !canceled) {
+        if(Thread.currentThread.isInterrupted) throw new InterruptedException()
+        for(l <- loadUnlabeledLink(link))
+          context.value() = context.value().withUnlabeled(l)
         loadedLinks += 1
         if(loadedLinks % 10 == 0)
           context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
@@ -78,6 +98,18 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
         case Some(entities) => Some(entities)
         case None => {
           context.value().negative.get(link) match {
+            case None => retrieveEntityPair(link)
+            case Some(entityPair) => updateEntityPair(entityPair)
+          }
+        }
+      }
+    }
+
+    private def loadUnlabeledLink(link: Link): Option[DPair[Entity]] = {
+      link.entities match {
+        case Some(entities) => Some(entities)
+        case None => {
+          context.value().unlabeled.get(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
           }

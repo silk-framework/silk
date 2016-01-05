@@ -72,6 +72,28 @@ object ReferenceLinksManager extends Controller {
           }
         }
       }
+      case "unlabeled" => {
+        for (link <- referenceLinks.unlabeled.toSeq.view) yield entities.unlabeled.get(link) match {
+          case Some(entities) => {
+            val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
+
+            new EvalLink(
+              link = evaluatedLink,
+              correct = Unknown,
+              linkType = Unlabeled
+            )
+          }
+          case None => {
+            val cleanLink = new Link(link.source, link.target)
+
+            new EvalLink(
+              link = cleanLink,
+              correct = Unknown,
+              linkType = Unlabeled
+            )
+          }
+        }
+      }
     }
 
     Ok(views.html.widgets.linksTable(project, task, links, None, linkSorter, filter, page, showStatus = true, showDetails = true, showEntities = false, rateButtons = false))

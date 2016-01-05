@@ -43,7 +43,7 @@ object ReferenceLinksReader {
   }
 
   def readReferenceLinks(xml: Node): ReferenceLinks = {
-    new ReferenceLinks(readLinks(xml, "=").toSet, readLinks(xml, "!=").toSet)
+    new ReferenceLinks(readLinks(xml, "=").toSet, readLinks(xml, "!=").toSet, readLinks(xml, "?").toSet)
   }
 
   private def readLinks(xml: Node, relation: String): Traversable[Link] = {

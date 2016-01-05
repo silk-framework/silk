@@ -14,8 +14,8 @@
   }
 
   @if(showStartButton) {
-    <button name="start" class="activity-button" onclick="startActivity()" >Start</button>
-    <button name="stop" class="activity-button" onclick="stopActivity()" >Stop</button>
+    <button name="start" class="activity-button" onclick="startActivity()" title="Start @activity" >Start</button>
+    <button name="stop" class="activity-button" onclick="stopActivity()" title="Stop @activity">Stop</button>
   }
 
   @if(showConfigButton && task.isDefined) {
