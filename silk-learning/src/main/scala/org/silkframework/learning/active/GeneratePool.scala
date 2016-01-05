@@ -35,6 +35,8 @@ private class GeneratePool(inputs: Seq[DataSource],
 
   private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
+  private val maxLinks = 3000
+
   private var generateLinksActivity: GenerateLinks = _
 
   override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
@@ -49,7 +51,7 @@ private class GeneratePool(inputs: Seq[DataSource],
       }
 
     val listener = (v: Linking) =>  {
-      if(v.links.size > 1000) generateLinksActivity.cancelExecution()
+      if(v.links.size > maxLinks) generateLinksActivity.cancelExecution()
     }
     context.status.update(0.0)
     context.executeBlocking(generateLinksActivity, 0.8, listener)
@@ -70,7 +72,7 @@ private class GeneratePool(inputs: Seq[DataSource],
       val a = links.flatten.flatten
       val c = a.groupBy(_.source).values.map(randomElement(_))
                .groupBy(_.target).values.map(randomElement(_))
-      Random.shuffle(c.toSeq).take(1000)
+      Random.shuffle(c.toSeq).take(maxLinks)
     }
 
     val metric = EqualityMetric()
@@ -88,11 +90,11 @@ private class GeneratePool(inputs: Seq[DataSource],
         val size = links(sourceIndex)(targetIndex).size
         val labelLinks = links(0)(0).size
 
-        if(size <= 1000 && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
+        if(size <= maxLinks && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
           links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
         }
 
-        if (size > 1000 && labelLinks > 100)
+        if (size > maxLinks && labelLinks > 100)
           generateLinksActivity.cancelExecution()
       }
 
