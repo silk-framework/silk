@@ -6,6 +6,7 @@ import org.silkframework.config.{DatasetSelection, Prefixes, TransformSpecificat
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization._
+import org.silkframework.runtime.serialization.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
@@ -44,12 +45,17 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpecificatio
   }
 
   private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager) = {
-    implicit val resources = projectResources
-    val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
-    val rulesXml = XML.load(taskResources.get("rules.xml").load)
-    val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
-    val outputs = (rulesXml \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
-    (name, TransformSpecification(name, dataset, rules, outputs))
+    try {
+      implicit val resources = projectResources
+      val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
+      val rulesXml = XML.load(taskResources.get("rules.xml").load)
+      val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
+      val outputs = (rulesXml \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
+      (name, TransformSpecification(name, dataset, rules, outputs))
+    } catch {
+      case ex: ValidationException =>
+        throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)
+    }
   }
 
   /**
