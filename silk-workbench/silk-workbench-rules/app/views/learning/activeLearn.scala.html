@@ -1,5 +1,6 @@
 @import org.silkframework.config.LinkSpecification
 @import controllers.rules.routes.Assets
+@import controllers.linking.routes
 @import org.silkframework.learning.active.ActiveLearning
 @import views.html.workspace.activity.taskActivityControl
 
@@ -51,7 +52,7 @@
 }
 
 @toolbar = {
-    <ul>
+  <ul>
     <li>
       @taskActivityControl(context.task.activity[ActiveLearning])
     </li>
@@ -64,7 +65,10 @@
     <li>
       <button onclick="finish()">Done</button>
     </li>
-</ul>
+    <li>
+      <button onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.name)')">Details</button>
+    </li>
+  </ul>
 }
 
 @content = {

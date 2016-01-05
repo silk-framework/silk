@@ -4,6 +4,7 @@ import java.util.logging.Logger
 import org.silkframework.entity.Link
 import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.learning.active.{UnlabeledLinkPool, ActiveLearningState, ActiveLearning}
+import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
 import org.silkframework.learning.{LearningConfiguration, LearningResult}
 import org.silkframework.runtime.activity.{ActivityContext, Activity}
@@ -97,7 +98,7 @@ class ActiveLearningEvaluator(config: LearningConfiguration,
           linkSpec = ds.task.data,
           paths = ds.task.activity[LinkingPathsCache].value.map(_.paths),
           referenceEntities = referenceEntities,
-          initialState = ActiveLearningState(pool, population, Seq.empty)
+          initialState = ActiveLearningState(pool, LinkageRuleGenerator.empty, population, Seq.empty)
         )
 
       val result = Activity(activity).startBlockingAndGetValue()

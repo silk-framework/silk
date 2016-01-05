@@ -19,8 +19,8 @@ import org.silkframework.learning.individual.{LinkageRuleNode, AggregationNode}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.learning.LearningConfiguration.Components
 
-class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
-  require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
+case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
+  //require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
   
   private val aggregations = {
     val linear = if(components.linear) "average" :: Nil else Nil
@@ -70,6 +70,10 @@ class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator]
 }
 
 object LinkageRuleGenerator {
+
+  def empty = {
+    new LinkageRuleGenerator(IndexedSeq.empty, Components())
+  }
 
   def apply(entities: ReferenceEntities, components: Components = Components()) = {
     if(entities.positive.isEmpty)

@@ -23,7 +23,7 @@ import org.silkframework.learning.individual.{PathInputNode, InputNode, Transfor
 /**
  * Generates random inputs.
  */
-class InputGenerator(input: InputNode, useTransformations: Boolean) {
+case class InputGenerator(input: InputNode, useTransformations: Boolean) {
 
   /** The maximum number of transformations */
   val maxTransformations = 2

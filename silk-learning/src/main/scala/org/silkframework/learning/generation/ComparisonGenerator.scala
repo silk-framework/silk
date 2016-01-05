@@ -22,7 +22,7 @@ import org.silkframework.learning.individual._
 /**
  * Generates random comparisons.
  */
-class ComparisonGenerator(inputGenerators: DPair[InputGenerator], measure: FunctionNode[DistanceMeasure], maxThreshold: Double) {
+case class ComparisonGenerator(inputGenerators: DPair[InputGenerator], measure: FunctionNode[DistanceMeasure], maxThreshold: Double) {
 
   /** The maximum weight of the generate comparisons */
   val maxWeight = 20

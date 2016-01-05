@@ -4,6 +4,7 @@ import controllers.core.{Stream, Widgets}
 import org.silkframework.config.LinkSpecification
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
 import org.silkframework.util.Identifier._
 import org.silkframework.workspace.User
@@ -29,6 +30,12 @@ object Learning extends Controller {
   def activeLearn(project: String, task: String) = Action { request =>
     val context = Context.get[LinkSpecification](project, task, request.path)
     Ok(views.html.learning.activeLearn(context))
+  }
+
+  def activeLearnDetails(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkSpecification](project, task, request.path)
+    val activeLearnState = context.task.activity[ActiveLearning].value
+    Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
   def rule(projectName: String, taskName: String) = Action {

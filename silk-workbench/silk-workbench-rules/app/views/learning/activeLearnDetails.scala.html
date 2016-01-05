@@ -1,0 +1,27 @@
+@import org.silkframework.learning.active.ActiveLearningState
+
+@import org.silkframework.rule.input.Input
+@import org.silkframework.rule.input.PathInput
+@import org.silkframework.rule.input.TransformInput
+@import org.silkframework.config.Prefixes
+
+@(state: ActiveLearningState, prefixes: Prefixes)
+
+@widgets.dialog(title = "Details", width = 500) {
+
+  @state.pool.links.size link candidates in the pool
+  <br/>
+
+  Comparison Generators:
+
+  @for(generator <- state.generator.comparisonGenerators) {
+    <br/>
+    @printInput(generator.inputGenerators.source.input.build) - @printInput(generator.inputGenerators.target.input.build) - @generator.measure.build.toString
+  }
+
+}
+
+@printInput(input: Input) = @{ input match {
+  case pathInput: PathInput => pathInput.path.serializeSimplified(prefixes)
+  case transformInput: TransformInput => "Transformed"
+}}

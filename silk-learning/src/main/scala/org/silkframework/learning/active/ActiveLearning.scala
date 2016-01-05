@@ -50,6 +50,7 @@ class ActiveLearning(config: LearningConfiguration,
     val generator = Timer("LinkageRuleGenerator") {
       LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(pool.links.map(_.entities.get), Nil), config.components)
     }
+    context.value() = context.value().copy(generator = generator)
     val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     
     buildPopulation(generator, context)
