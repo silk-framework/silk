@@ -70,9 +70,9 @@ private class GeneratePool(inputs: Seq[DataSource],
 
     def getLinks() = {
       val a = links.flatten.flatten
-      val c = a.groupBy(_.source).values.map(randomElement(_))
-               .groupBy(_.target).values.map(randomElement(_))
-      Random.shuffle(c.toSeq).take(maxLinks)
+      //val c = a.groupBy(_.source).values.map(randomElement(_))
+      //         .groupBy(_.target).values.map(randomElement(_))
+      Random.shuffle(a.toSeq).take(maxLinks)
     }
 
     val metric = EqualityMetric()
