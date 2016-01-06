@@ -80,7 +80,12 @@ object Status {
    */
   case class Running(message: String, override val progress: Double) extends Status {
     override def isRunning = true
-    override def toString = message + " (" + "%3.1f".format(progress * 100.0) + "%)"
+    override def toString = {
+      if(progress != 0.0)
+        message + " (" + "%3.1f".format(progress * 100.0) + "%)"
+      else
+        message
+    }
   }
   
   /**

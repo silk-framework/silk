@@ -45,9 +45,9 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
     // Log new status change if requested
     if(logStatus) {
       newStatus match {
-        case s: Status.Running => log.log(progressLogLevel, s.message)
-        case s: Status.Finished if s.failed => log.log(failureLogLevel, s.message)
-        case s => log.log(statusLogLevel, s.message)
+        case s: Status.Running => log.log(progressLogLevel, s.toString)
+        case s: Status.Finished if s.failed => log.log(failureLogLevel, s.toString)
+        case s => log.log(statusLogLevel, s.toString)
       }
     }
 
