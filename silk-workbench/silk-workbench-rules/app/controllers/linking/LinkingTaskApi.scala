@@ -272,13 +272,14 @@ object LinkingTaskApi extends Controller {
   def activeLearningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
+    val learningActivity = task.activity[ActiveLearning]
 
     if(task.data.referenceLinks.unlabeled.isEmpty) {
-      val updatedReferenceLinks = task.data.referenceLinks.copy(unlabeled = task.activity[ActiveLearning].value.pool.links.toSet)
+      val updatedReferenceLinks = task.data.referenceLinks.copy(unlabeled = learningActivity.value.pool.links.toSet)
       task.update(task.data.copy(referenceLinks = updatedReferenceLinks))
     }
 
-    task.activity[ActiveLearning].control.start()
+    learningActivity.control.start()
     Ok
   }
 
