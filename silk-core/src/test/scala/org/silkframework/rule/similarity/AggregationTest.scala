@@ -17,6 +17,8 @@ package org.silkframework.rule.similarity
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import org.silkframework.plugins.aggegrator.AverageAggregator
+import org.silkframework.rule.Operator
+import org.silkframework.rule.input.Input
 import org.silkframework.testutil.approximatelyEqualToOption
 import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.entity.Entity
@@ -79,6 +81,8 @@ class AggregationTest extends FlatSpec with ShouldMatchers {
       def apply(entities: DPair[Entity], limit: Double): Option[Double] = value
       def index(entity: Entity, limit: Double): Index = indices
       def toXML(implicit prefixes: Prefixes): Node = null
+      def children = Seq.empty
+      def withChildren(newChildren: Seq[Operator]): Operator = ???
     }
   }
 }

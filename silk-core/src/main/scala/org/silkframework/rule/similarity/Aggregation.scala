@@ -89,6 +89,12 @@ case class Aggregation(id: Identifier = Operator.generateId,
     else
       indexSets.reduceLeft[Index](aggregator.combineIndexes)
   }
+
+  override def children = operators
+
+  override def withChildren(newChildren: Seq[Operator]) = {
+    copy(operators = newChildren.map(_.asInstanceOf[SimilarityOperator]))
+  }
 }
 
 object Aggregation {

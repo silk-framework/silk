@@ -19,13 +19,18 @@ import org.silkframework.util.Identifier
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Base class of all operators in the link condition.
+ * Base class of all rule operators.
  */
 trait Operator {
   /**
    * The identifier of this operator.
    */
-  val id: Identifier
+  def id: Identifier
+
+  def children: Seq[Operator]
+
+  def withChildren(newChildren: Seq[Operator]): Operator
+
 }
 
 /**

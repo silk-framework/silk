@@ -17,6 +17,7 @@ package org.silkframework.rule.input
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
+import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
 import org.silkframework.runtime.serialization.{Serialization, ValidationException, XmlFormat}
 import org.silkframework.util.{DPair, Identifier}
@@ -24,14 +25,24 @@ import org.silkframework.util.{DPair, Identifier}
 import scala.xml.Node
 
 /**
- * A TransformInput applies a transform to input values.
+  * A TransformInput applies a transform to input values.
+  *
+  * @param id The id of this transform input
+  * @param transformer The transformer used to transform values.
+  * @param inputs The children operators from which input values are read.
  */
-case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: List[Input] = Nil) extends Input {
+case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: Seq[Input] = Seq.empty) extends Input {
 
   def apply(entities: DPair[Entity]): Seq[String] = {
     val values = for (input <- inputs) yield input(entities)
 
     transformer(values)
+  }
+
+  override def children = inputs
+
+  override def withChildren(newChildren: Seq[Operator]) = {
+    copy(inputs = newChildren.map(_.asInstanceOf[Input]))
   }
 
   override def toString = transformer match {

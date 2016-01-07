@@ -18,7 +18,7 @@ import org.silkframework.config.{LinkSpecification, Prefixes, RuntimeConfig}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, Index, Link, Path}
 import org.silkframework.execution.{Linking, GenerateLinks}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.{Operator, LinkageRule}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.plugins.distance.equality.EqualityMetric
@@ -118,5 +118,8 @@ private class GeneratePool(inputs: Seq[DataSource],
 
       index
     }
+
+    def children = Seq.empty
+    def withChildren(newChildren: Seq[Operator]): Operator = ???
   }
 }

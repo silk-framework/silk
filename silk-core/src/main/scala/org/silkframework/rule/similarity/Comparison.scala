@@ -82,6 +82,12 @@ case class Comparison(id: Identifier = Operator.generateId,
 
     metric.index(values, distanceLimit)
   }
+
+  override def children = inputs.toSeq
+
+  override def withChildren(newChildren: Seq[Operator]) = {
+    copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
+  }
 }
 
 object Comparison {

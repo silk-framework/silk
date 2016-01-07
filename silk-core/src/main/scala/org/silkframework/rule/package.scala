@@ -15,7 +15,6 @@
 package org.silkframework
 
 /**
- * Provides classes to represent linkage rules.
+ * Provides classes to represent rules, such as linkage rules or transform rules.
  */
-// TODO this package should be renamed from 'linkagerule' to just 'rule'
 package object rule

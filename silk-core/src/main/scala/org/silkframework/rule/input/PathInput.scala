@@ -26,7 +26,23 @@ import org.silkframework.util.{Identifier, DPair}
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.
  */
 case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
+
   @volatile private var cachedPathIndex = -1
+
+  /**
+    * Returns an empty sequence as a path input does not have any children.
+    */
+  override def children = Seq.empty
+
+  /**
+    * As a path input does not have any children, an [IllegalArgumentException] will be thrown if the provided children sequence is nonempty.
+    */
+  override def withChildren(newChildren: Seq[Operator]) = {
+    if(newChildren.isEmpty)
+      this
+    else
+      throw new IllegalArgumentException("PathInput cannot have any children")
+  }
 
   /**
    * Retrieves the values of this input for a given entity.

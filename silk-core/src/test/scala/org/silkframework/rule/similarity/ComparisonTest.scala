@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
+import org.silkframework.rule.Operator
 import org.silkframework.testutil.approximatelyEqualTo
 import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.entity.Entity
@@ -49,5 +50,7 @@ class ComparisonTest extends FlatSpec with ShouldMatchers {
     val id = Identifier.random
     def apply(entities: DPair[Entity]): Seq[String] = Seq("dummy")
     def toXML(implicit prefixes: Prefixes): Node = null
+    def children = Seq.empty
+    def withChildren(newChildren: Seq[Operator]) = ???
   }
 }
