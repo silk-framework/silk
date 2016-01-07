@@ -1,0 +1,39 @@
+@import controllers.linking.routes
+
+@(project: String, task: String)
+
+@widgets.dialog(title = "Remove Reference Links", width = 500) {
+  <table border="0">
+    <tr>
+      <td>
+        <input type="checkbox" id="removePositive"><label for="removePositive">Positive</label>
+        <input type="checkbox" id="removeNegative"><label for="removeNegative">Negative</label>
+        <input type="checkbox" id="removeUnlabeled"><label for="removeUnlabeled">Unlabeled</label>
+      </td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="right"><button onclick='submit()'>Delete</button></td>
+    </tr>
+  </table>
+
+  <script>
+  function submit() {
+    var clearPositive = $("input[id='removePositive']").prop('checked');
+    var clearNegative = $("input[id='removeNegative']").prop('checked');
+    var clearUnlabeled = $("input[id='removeUnlabeled']").prop('checked');
+
+    $.ajax({
+      type: 'DELETE',
+      url: '@config.baseUrl/linking/tasks/@project/@task/referenceLinks?positive=' + clearPositive + '&negative=' + clearNegative + '&unlabeled=' + clearUnlabeled,
+      success: function(data) {
+        window.location.reload();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+  </script>
+}

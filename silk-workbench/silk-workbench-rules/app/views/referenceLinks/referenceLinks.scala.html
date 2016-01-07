@@ -42,6 +42,9 @@
       <button onclick="showDialog('referenceLinks/importDialog')">Import</button>
     </li>
     <li>
+      <button onclick="showDialog('referenceLinks/removeLinksDialog')">Remove</button>
+    </li>
+    <li>
       <button onclick="window.location = '@routes.LinkingTaskApi.getReferenceLinks(context.project.name, context.task.name).url'">Download</button>
     </li>
     <li>

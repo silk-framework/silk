@@ -15,6 +15,7 @@
 package org.silkframework.learning
 
 /**
- * Models the learned individuals i.e. candidate solutions.
- */
+  * Models the learned individuals i.e. candidate solutions.
+  * Mirros the classes of a linkage rule.
+  */
 package object individual

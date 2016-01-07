@@ -184,6 +184,24 @@ object LinkingTaskApi extends Controller {
     }
     Ok
   }}
+
+  def deleteReferenceLinks(projectName: String, taskName: String, positive: Boolean, negative: Boolean, unlabeled: Boolean) = Action { implicit request => {
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val referenceLinks = task.data.referenceLinks
+
+    val newReferenceLinks =
+      ReferenceLinks(
+        positive = if(positive) Set.empty else referenceLinks.positive,
+        negative = if(negative) Set.empty else referenceLinks.negative,
+        unlabeled = if(unlabeled) Set.empty else referenceLinks.unlabeled
+      )
+    task.update(task.data.copy(referenceLinks = newReferenceLinks))
+
+    Ok
+  }}
+
+
   
   def putReferenceLink(projectName: String, taskName: String, linkType: String, source: String, target: String) = Action {
     log.info(s"Adding $linkType reference link: $source - $target")

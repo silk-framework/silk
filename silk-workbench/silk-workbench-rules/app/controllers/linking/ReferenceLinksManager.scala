@@ -106,4 +106,8 @@ object ReferenceLinksManager extends Controller {
   def importDialog(project: String, task: String) = Action {
     Ok(views.html.referenceLinks.importDialog(project, task))
   }
+
+  def removeLinksDialog(project: String, task: String) = Action {
+    Ok(views.html.referenceLinks.removeLinksDialog(project, task))
+  }
 }
