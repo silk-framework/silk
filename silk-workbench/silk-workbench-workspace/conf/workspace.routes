@@ -2,68 +2,84 @@
 # Workspace
 ############################################################################################################################################
 
-GET           /                                                controllers.workspace.Workspace.index
-GET           /tree                                            controllers.workspace.Workspace.tree
-GET           /status                                          controllers.workspace.Workspace.status
+GET           /                                                                 controllers.workspace.Workspace.index
+GET           /tree                                                             controllers.workspace.Workspace.tree
+GET           /status                                                           controllers.workspace.Workspace.status
 
-GET           /dialogs/newproject                              controllers.workspace.Workspace.newProjectDialog()
-GET           /dialogs/importproject                           controllers.workspace.Workspace.importProjectDialog()
-GET           /dialogs/importlinkspec/:project                 controllers.workspace.Workspace.importLinkSpecDialog(project: String)
-GET           /dialogs/prefixes/:project                       controllers.workspace.Workspace.prefixDialog(project: String)
-GET           /dialogs/resources/:project                      controllers.workspace.Workspace.resourcesDialog(project: String)
-GET           /dialogs/editRestriction/:project/:task          controllers.workspace.Workspace.restrictionDialog(project: String, task: String, varName: String, restriction: String)
-GET           /dialogs/executeProject/:project                 controllers.workspace.Workspace.executeProjectDialog(project: String)
-GET           /dialogs/activityConfig/:project/:activity       controllers.workspace.Workspace.projectActivityConfigDialog(project: String, activity: String)
-GET           /dialogs/activityConfig/:project/:task/:activity controllers.workspace.Workspace.taskActivityConfigDialog(project: String, task: String, activity: String)
-POST          /:project/importExample                          controllers.workspace.Workspace.importExample(project: String)
+GET           /dialogs/newproject                                               controllers.workspace.Workspace.newProjectDialog()
+GET           /dialogs/importproject                                            controllers.workspace.Workspace.importProjectDialog()
+GET           /dialogs/importlinkspec/:project                                  controllers.workspace.Workspace.importLinkSpecDialog(project: String)
+GET           /dialogs/prefixes/:project                                        controllers.workspace.Workspace.prefixDialog(project: String)
+GET           /dialogs/resources/:project                                       controllers.workspace.Workspace.resourcesDialog(project: String)
+GET           /dialogs/editRestriction/:project/:task                           controllers.workspace.Workspace.restrictionDialog(project: String, task: String, varName: String, restriction: String)
+GET           /dialogs/executeProject/:project                                  controllers.workspace.Workspace.executeProjectDialog(project: String)
+GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.Workspace.projectActivityConfigDialog(project: String, activity: String)
+GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.Workspace.taskActivityConfigDialog(project: String, task: String, activity: String)
+POST          /:project/importExample                                           controllers.workspace.Workspace.importExample(project: String)
 
 ############################################################################################################################################
 # Datasets
 ############################################################################################################################################
 
 # Dialogs
-GET           /dialogs/newDataset/:project                     controllers.workspace.Datasets.datasetDialog(project: String, task = "")
-GET           /dialogs/editDataset/:project/:task              controllers.workspace.Datasets.datasetDialog(project: String, task: String)
+GET           /dialogs/newDataset/:project                                      controllers.workspace.Datasets.datasetDialog(project: String, task = "")
+GET           /dialogs/editDataset/:project/:task                               controllers.workspace.Datasets.datasetDialog(project: String, task: String)
 
 # Tabs
-GET           /datasets/:project/:task/dataset                 controllers.workspace.Datasets.dataset(project, task)
-GET           /datasets/:project/:task/table                   controllers.workspace.Datasets.table(project, task, maxEntities: Int ?= 20)
-GET           /datasets/:project/:task/sparql                  controllers.workspace.Datasets.sparql(project, task, query ?= "")
+GET           /datasets/:project/:task/dataset                                  controllers.workspace.Datasets.dataset(project, task)
+GET           /datasets/:project/:task/table                                    controllers.workspace.Datasets.table(project, task, maxEntities: Int ?= 20)
+GET           /datasets/:project/:task/sparql                                   controllers.workspace.Datasets.sparql(project, task, query ?= "")
 
 # API
-GET           /projects/:project/datasets/:name                controllers.workspace.Datasets.getDataset(project: String, name: String)
-PUT           /projects/:project/datasets/:name                controllers.workspace.Datasets.putDataset(project: String, name: String)
-DELETE        /projects/:project/datasets/:name                controllers.workspace.Datasets.deleteDataset(project: String, name: String)
+GET           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.getDataset(project: String, name: String)
+PUT           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.putDataset(project: String, name: String)
+DELETE        /projects/:project/datasets/:name                                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
 
 ############################################################################################################################################
 # Workspace API
 ############################################################################################################################################
 
 # Projects
-GET           /projects                                        controllers.workspace.WorkspaceApi.projects
-PUT           /projects/:project                               controllers.workspace.WorkspaceApi.newProject(project: String)
-DELETE        /projects/:project                               controllers.workspace.WorkspaceApi.deleteProject(project: String)
-POST          /projects/:project/import                        controllers.workspace.WorkspaceApi.importProject(project: String)
-GET           /projects/:project/export                        controllers.workspace.WorkspaceApi.exportProject(project: String)
-POST          /projects/:project/importLinkSpec                controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
-GET           /projects/:project/:task/exportLinkSpec          controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
-PUT           /projects/:project/prefixes                      controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
-POST          /projects/:project/execute                       controllers.workspace.WorkspaceApi.executeProject(project: String)
-
-# Activities
-POST          /activities/start                                controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
-POST          /activities/cancel                               controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
-GET           /activities/config                               controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task: String, activity: String)
-POST          /activities/config                               controllers.workspace.WorkspaceApi.postActivityConfig(project: String, task: String, activity: String)
-GET           /activities/status                               controllers.workspace.WorkspaceApi.getActivityStatus(project: String, task: String, activity: String)
-GET           /activities/updates                              controllers.workspace.WorkspaceApi.activityUpdates(project: String, task: String, activity: String)
+GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
+PUT           /projects/:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
+DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
+POST          /projects/:project/import                                         controllers.workspace.WorkspaceApi.importProject(project: String)
+GET           /projects/:project/export                                         controllers.workspace.WorkspaceApi.exportProject(project: String)
+POST          /projects/:project/importLinkSpec                                 controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
+GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
+PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
+POST          /projects/:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
 
 # Resources
-GET           /projects/:project/resources                     controllers.workspace.WorkspaceApi.getResources(project: String)
-GET           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
-PUT           /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
-DELETE        /projects/:project/resources/:name               controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
+GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String)
+GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
+PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
+DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
 
-# Assests
-GET           /assets/*file                                    controllers.workspace.Assets.at(path="/public", file)
+# Project Activities
+POST          /projects/:project/activities/:activity/start                     controllers.workspace.WorkspaceApi.startActivity(project: String, task = "", activity: String)
+POST          /projects/:project/activities/:activity/cancel                    controllers.workspace.WorkspaceApi.cancelActivity(project: String, task = "", activity: String)
+GET           /projects/:project/activities/:activity/config                    controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task = "", activity: String)
+POST          /projects/:project/activities/:activity/config                    controllers.workspace.WorkspaceApi.postActivityConfig(project: String, task = "", activity: String)
+GET           /projects/:project/activities/:activity/status                    controllers.workspace.WorkspaceApi.getActivityStatus(project: String, task = "", activity: String)
 
+# Task Activities
+POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
+POST          /projects/:project/tasks/:task/activities/:activity/cancel        controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
+GET           /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task: String, activity: String)
+POST          /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.WorkspaceApi.postActivityConfig(project: String, task: String, activity: String)
+GET           /projects/:project/tasks/:task/activities/:activity/status        controllers.workspace.WorkspaceApi.getActivityStatus(project: String, task: String, activity: String)
+
+# Old Activities API
+POST          /activities/start                                                 controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
+POST          /activities/cancel                                                controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
+GET           /activities/config                                                controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task: String, activity: String)
+POST          /activities/config                                                controllers.workspace.WorkspaceApi.postActivityConfig(project: String, task: String, activity: String)
+GET           /activities/status                                                controllers.workspace.WorkspaceApi.getActivityStatus(project: String, task: String, activity: String)
+GET           /activities/updates                                               controllers.workspace.WorkspaceApi.activityUpdates(project: String, task: String, activity: String)
+
+############################################################################################################################################
+# Assets
+############################################################################################################################################
+
+GET           /assets/*file                                                     controllers.workspace.Assets.at(path="/public", file)

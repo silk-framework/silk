@@ -15,7 +15,7 @@ import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,8 +27,12 @@ object WorkspaceApi extends Controller {
   }
 
   def newProject(project: String) = Action {
-    User().workspace.createProject(project)
-    Ok
+    if(User().workspace.projects.exists(_.name == project)) {
+      Conflict(JsonSerializer.errorJson(s"Project with name '$project' already exists. Creation failed."))
+    } else {
+      val newProject = User().workspace.createProject(project)
+      Created(JsonSerializer.projectJson(newProject))
+    }
   }
 
   def deleteProject(project: String) = Action {
@@ -168,10 +172,12 @@ object WorkspaceApi extends Controller {
         project.activity(activityName).control
       }
 
-    activity.cancel()
-    activity.reset()
-    activity.start()
-    Ok
+    if(activity.status().isRunning) {
+      BadRequest(s"Cannot start activitiy '$activityName'. Already running.")
+    } else {
+      activity.start()
+      Ok
+    }
   }
 
   def cancelActivity(projectName: String, taskName: String, activityName: String) = Action {

@@ -14,6 +14,14 @@ import scala.reflect.ClassTag
   */
 object JsonSerializer {
 
+  def errorJson(message: String) = {
+    Json.obj(
+      "error" -> Json.obj(
+        "message" -> JsString(message)
+      )
+    )
+  }
+
   def projectsJson = {
     JsArray (
       for (project <- User().workspace.projects) yield {

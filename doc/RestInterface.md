@@ -40,7 +40,7 @@ The dataset may either be local (e.g., a resource) or remote (e.g., accessed thr
 
 ### Start/Stop Activities
 
-Each task may provide one or more activities. An activity is a unit of work that can be executed in the background.
+Each project or task may provide one or more activities. An activity is a unit of work that can be executed in the background.
 
 | Resource | Description |
 | --- | --- |
