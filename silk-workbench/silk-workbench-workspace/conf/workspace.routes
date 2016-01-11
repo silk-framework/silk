@@ -57,6 +57,7 @@ PUT           /projects/:project/resources/:name                                
 DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
 
 # Project Activities
+GET           /projects/:project/activities                                     controllers.workspace.WorkspaceApi.getProjectActivities(project: String)
 POST          /projects/:project/activities/:activity/start                     controllers.workspace.WorkspaceApi.startActivity(project: String, task = "", activity: String)
 POST          /projects/:project/activities/:activity/cancel                    controllers.workspace.WorkspaceApi.cancelActivity(project: String, task = "", activity: String)
 GET           /projects/:project/activities/:activity/config                    controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task = "", activity: String)
@@ -64,6 +65,7 @@ POST          /projects/:project/activities/:activity/config                    
 GET           /projects/:project/activities/:activity/status                    controllers.workspace.WorkspaceApi.getActivityStatus(project: String, task = "", activity: String)
 
 # Task Activities
+GET           /projects/:project/tasks/:task/activities                         controllers.workspace.WorkspaceApi.getTaskActivities(project: String, task: String)
 POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
 POST          /projects/:project/tasks/:task/activities/:activity/cancel        controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
 GET           /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task: String, activity: String)

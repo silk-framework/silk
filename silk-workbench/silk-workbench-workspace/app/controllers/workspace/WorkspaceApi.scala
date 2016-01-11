@@ -162,6 +162,17 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
+  def getProjectActivities(projectName: String) = Action {
+    val project = User().workspace.project(projectName)
+    Ok(JsonSerializer.projectActivities(project))
+  }
+
+  def getTaskActivities(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    Ok(JsonSerializer.taskActivities(task))
+  }
+
   def startActivity(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
     val activity =

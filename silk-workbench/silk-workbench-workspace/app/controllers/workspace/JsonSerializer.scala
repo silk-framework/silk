@@ -3,7 +3,7 @@ package controllers.workspace
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.{ActivityControl, Status}
-import org.silkframework.workspace.{User, Project}
+import org.silkframework.workspace.{Task, User, Project}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
 
@@ -51,6 +51,18 @@ object JsonSerializer {
   def projectResources(project: Project) = {
     JsArray(project.resources.list.map(JsString))
   }
+
+  def projectActivities(project: Project) = JsArray(
+    for(activity <- project.activities) yield {
+      JsString(activity.name)
+    }
+  )
+
+  def taskActivities(task: Task[_]) = JsArray(
+    for(activity <- task.activities) yield {
+      JsString(activity.name)
+    }
+  )
 
   def activityConfig(config: Map[String, String]) = JsArray(
     for((name, value) <- config.toSeq) yield
