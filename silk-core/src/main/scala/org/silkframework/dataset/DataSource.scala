@@ -18,7 +18,9 @@ import java.net.URI
 
 import org.silkframework.entity._
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
-import org.silkframework.util.Uri
+import org.silkframework.util.{SampleUtil, Uri}
+import scala.reflect.ClassTag
+import scala.util.Random
 
 /**
  * The base trait of a concrete source of entities.
@@ -94,5 +96,18 @@ trait DataSource {
    */
   def retrieveSparqlPaths(restriction: SparqlRestriction = SparqlRestriction.empty, depth: Int = 1, limit: Option[Int] = None): Traversable[(Path, Double)] = {
     Traversable.empty
+  }
+
+  /**
+   * Samples a fixed size set of entities from the whole dataset.
+   * The default implementation iterates once over all entities.
+   * @param entityDesc
+   * @param size
+   * @return
+   */
+  def sampleEntities(entityDesc: EntitySchema,
+                     size: Int): Seq[Entity] = {
+    val entities = retrieve(entityDesc)
+    SampleUtil.sample(entities, size)
   }
 }
