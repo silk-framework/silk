@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{File, BufferedReader, InputStreamReader}
 import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.util.Uri
 
 import scala.collection.mutable.{HashMap => MMap}
@@ -50,6 +50,17 @@ class CsvSource(file: Resource,
         Seq()
       }
     }
+  }
+
+  // Number of lines in input file (including header and potential skipped lines)
+  lazy val nrLines = {
+    val reader = getBufferedReaderForCsvFile()
+    var count = 0l
+    while(reader.readLine() != null) {
+      count += 1
+    }
+    reader.close()
+    count
   }
 
   lazy val (csvSettings, skipLinesAutomatic): (CsvSettings, Option[Int]) = {
@@ -350,3 +361,10 @@ object SeparatorDetector {
  * @param numberOfFields the detected number of fields when splitting with this separator
  */
 case class DetectedSeparator(separator: Char, numberOfFields: Int, skipLinesBeginning: Int)
+
+object Test{
+  def main(args: Array[String]): Unit = {
+    val source = new CsvSource(new FileResource(new File("/tmp/loansAndStates.csv")))
+    println(source.nrLines)
+  }
+}
