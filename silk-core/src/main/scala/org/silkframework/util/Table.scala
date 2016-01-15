@@ -14,9 +14,13 @@
 
 package org.silkframework.util
 
-case class Table(name: String, header: Seq[String], rows: Seq[String], values: Seq[Seq[Any]]) {
+case class Table(name: String,
+                 header: Seq[String],
+                 rows: Seq[String],
+                 values: Seq[Seq[Any]])
+                (columnWidthInCharacters: Seq[Int] = Table.defaultColumnSizes(header.size)) {
 
-  def transpose = Table(name, rows, header, values.transpose)
+  def transpose = Table(name, rows, header, values.transpose)(columnWidthInCharacters)
 
   /**
    * Formats this table as CSV.
@@ -28,7 +32,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     for((label, row) <- rows zip values)
       csv.append(label + "," + row.mkString(",") + "\n")
 
-    csv.toString
+    csv.toString()
   }
 
   /**
@@ -42,7 +46,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
       sb.append("| " + label + " | " + row.mkString(" | ") + " |\n")
     }
 
-    sb.toString
+    sb.toString()
   }
 
   /**
@@ -55,7 +59,9 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     sb.append("| " + (" --- |" * header.size) + "\n")
     for((label, row) <- rows zip values) {
       // If there are line breaks in a value, we need to generate multiple rows
-      val rowLines = row.map(_.toString.replace("\\", "\\\\").split("[\n\r]+"))
+      val rowLines = row.zip(columnWidthInCharacters).map { case (v, maxChars) =>
+        Table.softGrouped(v.toString.replace("\\", "\\\\"), maxChars).flatMap(_.split("[\n\r]+"))
+      }
       val maxLines = rowLines.map(_.length).max
 
       for(index <- 0 until maxLines) {
@@ -65,7 +71,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
       }
     }
 
-    sb.toString
+    sb.toString()
   }
 
   // TODO can be deleted if not needed anymore
@@ -91,7 +97,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
 
     for((label, row) <- rows zip values) {
       val functionLines = label.toString.grouped(functionColumnSize - 1).toSeq
-      val idLines = row(0).toString.grouped(nameColumnSize - 1).toSeq
+      val idLines = row.head.toString.grouped(nameColumnSize - 1).toSeq
       val descriptionLines = row(1).toString.split("[\n\r]+").flatMap(_.grouped(descriptionColumnSize - 1)).toSeq
 
       val maxLines = Seq(functionLines.size, idLines.size, descriptionLines.size).max
@@ -113,7 +119,7 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     sb ++= "-" * (functionColumnSize + nameColumnSize + descriptionColumnSize)
     sb ++= "\n"
 
-    sb.toString
+    sb.toString()
   }
 
   /**
@@ -135,6 +141,35 @@ case class Table(name: String, header: Seq[String], rows: Seq[String], values: S
     sb.append("%\\label{}\n")
     sb.append("\\end{table}\n")
 
-    sb.toString
+    sb.toString()
+  }
+}
+
+object Table {
+  // Similar to String.grouped, but tries to split Strings on whitespace characters
+  def softGrouped(input: String, maxLength: Int): Seq[String] = {
+    assert(maxLength > 0)
+    val minLength = math.max(1, (maxLength * (2.0 / 3)).toInt)
+    var remainingString = input
+    var splits = Vector.empty[String]
+    while(remainingString.size > 0) {
+      val whiteSpaceSplitIdx = remainingString.take(maxLength + 1).lastIndexOf(' ')
+      val splitIndex = if(whiteSpaceSplitIdx > minLength) {
+        whiteSpaceSplitIdx
+      } else {
+        maxLength
+      }
+      val (next, remain) = remainingString.splitAt(splitIndex)
+      splits :+= next
+      remainingString = remain
+    }
+    splits
+  }
+
+  def defaultColumnSizes(nrColumns: Int): Seq[Int] = {
+    val columnSize = 180 / nrColumns
+    for(i <- 1 to nrColumns) yield {
+      columnSize
+    }
   }
 }

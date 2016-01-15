@@ -61,7 +61,7 @@ object AggregatedLearningResult {
         header = generateHeader,
         rows = Seq.tabulate(results.size)(_.toString),
         values = results.zipWithIndex.map(row _ tupled)
-      )
+      )()
     }
 
     private def generateHeader = {

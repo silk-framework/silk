@@ -18,7 +18,7 @@ object DatasetStatistics extends App {
 
   val measures = SourceEntities :: TargetEntities :: SourceProperties :: TargetProperties :: SourceCoverage :: TargetCoverage :: PosReferenceLinks :: NegReferenceLinks :: Nil
 
-  val table = Table("Dataset Statistics", measures.map(_.name), datasets.map(_.name), datasets.map(collect))
+  val table = Table("Dataset Statistics", measures.map(_.name), datasets.map(_.name), datasets.map(collect))()
 
   val writer = new FileWriter("statistics")
   writer.write(table.toLatex)
