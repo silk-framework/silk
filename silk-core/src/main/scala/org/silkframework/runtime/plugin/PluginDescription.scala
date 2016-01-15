@@ -140,7 +140,7 @@ object PluginDescription {
       val pluginParam = getAnnotationForParameter(pluginClass, parName, Array())
       val (description, exampleValue) = pluginParam map { pluginParam =>
         val ex = pluginParam.exampleValue()
-        (pluginParam.description(), if (ex != "") defaultValue else Some(ex))
+        (pluginParam.description(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
       val dataType = if (parType.isInstanceOf[Class[_]]) {
