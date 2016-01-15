@@ -2,7 +2,9 @@ package org.silkframework.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{PluginParam, Plugin}
+
+import scala.annotation.meta.field
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,12 +20,13 @@ import org.silkframework.runtime.plugin.Plugin
   label = "SubString",
   description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
 )
-case class SubStringDistance(granularity: String = "3") extends SimpleDistanceMeasure {
+case class SubStringDistance(@(PluginParam@field)(description = "The minimum length of a possible substring match.")
+                             granularity: String = "3") extends SimpleDistanceMeasure {
   private val n = granularity.toInt
 
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     val score = SubStringDistance.score(str1, str2)
-    if(score < 0)
+    if (score < 0)
       1.0
     else
       1.0 - score
@@ -193,13 +196,13 @@ object SubStringDistance {
     return common
   }
 
-  private def computeCommonality(common: Double, str1Len: Int, str2Len:Int):Double = {
+  private def computeCommonality(common: Double, str1Len: Int, str2Len: Int): Double = {
     return 2.0D * common / (str1Len + str2Len);
   }
 
   private def invalidStrings(str1: String, str2: String): Boolean = {
     (str1 == null) || (str2 == null) ||
-      (str1.length() == 0) || (str2.length() == 0)
+        (str1.length() == 0) || (str2.length() == 0)
   }
 
   private def winklerImprovement(s1: String, s2: String, commonality: Double): Double = {
@@ -217,7 +220,7 @@ object SubStringDistance {
         return i
       i += 1
     }
-    return n-1
+    return n - 1
   }
 
   def normalizeString(str: String, removeChar: Char): String = {
@@ -232,10 +235,10 @@ object SubStringDistance {
 
   def getNgrams(str: String, n: Int = 3): Seq[String] = {
     val normString = normalizeString(str).toLowerCase
-    if(normString.length <= n)
+    if (normString.length <= n)
       return Seq(normString)
-    for(i <- 0 to normString.length-n)
-      yield normString.substring(i, i+n)
+    for (i <- 0 to normString.length - n)
+      yield normString.substring(i, i + n)
   }
 
   def main(args: Array[String]) {
@@ -253,6 +256,6 @@ object SubStringDistance {
     println(lev.indexValue("aaaa", 0.0))
     println('a'.toInt)
     val isub = new SubStringDistance
-    println(isub.indexValue("abcdef",0.0))
+    println(isub.indexValue("abcdef", 0.0))
   }
 }

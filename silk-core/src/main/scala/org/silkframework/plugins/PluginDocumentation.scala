@@ -1,9 +1,8 @@
 package org.silkframework.plugins
 
-import java.io.{OutputStreamWriter, FileOutputStream}
-import org.silkframework.dataset.{DatasetPlugin, Dataset}
+import org.silkframework.dataset.DatasetPlugin
 import org.silkframework.rule.input.Transformer
-import org.silkframework.rule.similarity.{Aggregator, Aggregation, DistanceMeasure}
+import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.runtime.plugin._
 import org.silkframework.util.Table
 
@@ -21,65 +20,50 @@ object PluginDocumentation {
       "Tokenbased" -> "While character-based distance measures work well for typographical errors, there are a number of tasks where token-base distance measures are better suited:\n\n- Strings where parts are reordered e.g. &ldquo;John Doe&rdquo; and &ldquo;Doe, John&rdquo;\n- Texts consisting of multiple words"
     )
 
-  def apply(): String = {
-    implicit val sb = new StringBuilder
 
-    sb ++= "# Plugin Reference\n\n"
-
-    plugins[DatasetPlugin](
-      title = "Dataset Plugins",
-      description = "The following dataset plugins are available:"
-    )
-
-    plugins[DistanceMeasure](
-      title = "Distance Measures",
-      description = "The following distance measures are available:"
-    )
-
-    plugins[Transformer](
-      title = "Transformations",
-      description = "The following transform and normalization functions are available:"
-    )
-
-    plugins[Aggregator](
-      title = "Aggregations",
-      description = "The following aggregation functions are available:"
-    )
-
-    sb.toString
-  }
-
-  def plugins[T: ClassTag](title: String, description: String)(implicit sb: StringBuilder): Unit = {
+  def plugins[T: ClassTag](title: String,
+                           description: String)
+                          (implicit sb: StringBuilder,
+                           pluginParameterDisplay: PluginParameterDisplay): Unit = {
     sb ++= "## " + title + "\n\n"
     sb ++= description + "\n\n"
     val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != "Recommended").distinct.sorted
-    for(category <- categories) {
-      if(categories.size > 1)
+    for (category <- categories) {
+      if (categories.size > 1)
         sb ++= "### " + category + "\n\n"
-      for(categoryDescription <- categoryDescriptions.get(category)) {
+      for (categoryDescription <- categoryDescriptions.get(category)) {
         sb ++= categoryDescription + "\n\n"
       }
-      pluginCategory[T](title, category)
+      pluginCategory[T](title, category, pluginParameterDisplay)
     }
   }
 
-  def pluginCategory[T: ClassTag](title: String, category: String)(implicit sb: StringBuilder): Unit = {
+  def pluginCategory[T: ClassTag](title: String,
+                                  category: String,
+                                  pluginParameterDisplay: PluginParameterDisplay)
+                                 (implicit sb: StringBuilder): Unit = {
     val plugins = PluginRegistry.availablePlugins[T].filter(_.categories.contains(category)).sortBy(_.id.toString)
-    for(plugin <- plugins) {
-      sb ++= "#### " + plugin.label + "\n\n"
-      sb ++= plugin.description + "\n\n"
+    for (plugin <- plugins) {
       val paramTable =
         Table(
           name = title,
-          header = Seq("Parameter", "Type", "Default"),
+          header = pluginParameterDisplay.headers,
           rows = plugin.parameters.map(_.name),
-          values = plugin.parameters.map(p => Seq(p.dataType.toString, formatDefaultValue(p.defaultValue)))
+          values = plugin.parameters.map(pluginParameterDisplay.generateValues)
         )
-      if(paramTable.rows.nonEmpty)
-        sb ++= paramTable.toMarkdown + "\n"
-      else
-        sb ++= "This plugin does not require any parameters.\n\n"
+      serializeToMarkdown(plugin, paramTable)
     }
+  }
+
+  def serializeToMarkdown[T](plugin: PluginDescription[T],
+                             table: Table)
+                            (implicit sb: StringBuilder): Unit = {
+    sb ++= "#### " + plugin.label + "\n\n"
+    sb ++= plugin.description + "\n\n"
+    if (table.rows.nonEmpty)
+      sb ++= table.toMarkdown + "\n"
+    else
+      sb ++= "This plugin does not require any parameters.\n\n"
   }
 
   def formatDefaultValue(value: Option[AnyRef]): String = {
@@ -90,4 +74,19 @@ object PluginDocumentation {
       case None => "*no default*"
     }
   }
+
+  def formatExampleValue(value: Option[AnyRef]): String = {
+    value match {
+      case Some(v) if v == null => "*null*"
+      case Some(v) if v == "" => "*empty string*"
+      case Some(v) => v.toString
+      case None => ""
+    }
+  }
 }
+
+case class PluginParameterDisplay
+(
+  headers: Seq[String],
+  generateValues: Parameter => Seq[String]
+  )
