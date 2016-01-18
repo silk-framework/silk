@@ -4,7 +4,7 @@
     <xs:element name="Dataset">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="DatasetPlugin">
+                <xs:element name="DatasetPlugin"  minOccurs="0" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
@@ -12,8 +12,10 @@
                         <xs:attribute name="type" type="xs:string" use="required"/>
                     </xs:complexType>
                 </xs:element>
+                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>
+            <xs:attribute name="type" type="xs:string" use="optional"/>
         </xs:complexType>
     </xs:element>
 
@@ -229,6 +231,7 @@
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element ref="DataSource" minOccurs="0" maxOccurs="unbounded"/>
+                            <xs:element ref="Dataset" minOccurs="0" maxOccurs="unbounded"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>

@@ -113,7 +113,9 @@ object LinkingConfig {
       ValidatingXMLReader.validate(node, schemaLocation)
 
       implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
-      val sources = (node \ "DataSources" \ "DataSource").map(fromXml[Dataset]).toSet
+      val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[Dataset]).toSet
+      val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[Dataset]).toSet
+      val sources = oldSources ++ newSources
       val blocking = (node \ "Blocking").headOption match {
         case Some(blockingNode) => Blocking.fromXML(blockingNode)
         case None => Blocking()
@@ -122,7 +124,10 @@ object LinkingConfig {
       val transforms = (node \ "Transforms" \ "Transform").map(p => fromXml[TransformSpecification](p))
 
       implicit val globalThreshold = None
-      val outputs = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
+
+      val oldOutputs = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
+      val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[Dataset])
+      val outputs = oldOutputs ++ newOutputs
 
       LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
     }

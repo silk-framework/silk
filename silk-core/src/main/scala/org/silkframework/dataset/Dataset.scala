@@ -22,7 +22,7 @@ import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
 import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.util.Identifier
 
-import scala.xml.Node
+import scala.xml.{Text, Node}
 
 /**
  * A dataset of entities.
@@ -143,7 +143,8 @@ object Dataset {
       } else {
         // Read new format
         val id = (node \ "@id").text
-        val sourceNode = (node \ "DatasetPlugin").head
+        // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
+        val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new Dataset(
           id = if(id.nonEmpty) id else Identifier.random,
           plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resources),
@@ -158,24 +159,17 @@ object Dataset {
     }
 
     def write(value: Dataset)(implicit prefixes: Prefixes): Node = {
-      val datasetXML = value.plugin match {
+      val minConfidenceNode = value.minConfidence.map(c => Text(c.toString))
+      val maxConfidenceNode = value.maxConfidence.map(c => Text(c.toString))
+
+      value.plugin match {
         case DatasetPlugin(pluginDesc, params) =>
-          <DatasetPlugin type={pluginDesc.id}>
+          <Dataset id={value.id} type={pluginDesc.id} minConfidence={minConfidenceNode} maxConfidence={maxConfidenceNode}>
             { params.map {
             case (name, v) => <Param name={name} value={v}/>
           }}
-          </DatasetPlugin>
+          </Dataset>
       }
-
-      //    val selectionXML = {
-      //      <DataSelection type="sparql" var={selection.variable}>
-      //        { selection.toSparql }
-      //      </DataSelection>
-      //    }
-
-      <Dataset id={value.id}>
-        { datasetXML }
-      </Dataset>
     }
   }
 }
