@@ -13,15 +13,15 @@ The example below gives an overview of the main language constructs of Silk-LSL.
       </Prefixes>
     
       <DataSources>
-        <DataSource id="dbpedia">
+        <Dataset id="dbpedia" type="sparqlEndpoint">
           <Param name="endpointURI" value="http://demo_sparql_server1/sparql" />
           <Param name="graph" value="http://dbpedia.org" />
-        </DataSource>
+        </Dataset>
     
-        <DataSource id="geonames">
+        <Dataset id="geonames" type="sparqlEndpoint">
           <Param name="endpointURI" value="http://demo_sparql_server2/sparql" />
           <Param name="graph" value="http://sws.geonames.org/" />
-        </DataSource>
+        </Dataset>
       </DataSources>
       
       [<Blocking blocks="100" />]
@@ -66,14 +66,14 @@ The example below gives an overview of the main language constructs of Silk-LSL.
       </Interlinks>
       
       <Outputs>
-        <Output id="output_accepted" type="file" minConfidence="0.95">
+        <Dataset id="output_accepted" type="file" minConfidence="0.95">
           <Param name="file" value="accepted_links.nt" />
           <Param name="format" value="ntriples" />
-        </Output>
-        <Output id="output_verify" type="file" maxConfidence="0.95">
+        </Dataset>
+        <Dataset id="output_verify" type="file" maxConfidence="0.95">
           <Param name="file" value="verify_links.nt" />
           <Param name="format" value="alignment" />
-        </Output>
+        </Dataset>
       </Outputs>
 
     </Silk>
@@ -121,10 +121,10 @@ Example:
 Data source definitions are top-level statements that allow the specification of access parameters to local or remote SPARQL endpoints. The defined data sources may later be referred to and used by their ID within link specification statements.
 
     <DataSources>
-      <DataSource id="data source ID" type="dataSource type">
+      <Dataset id="data source ID" type="dataSource type">
         <Param name="parameter name" value="parameter value" />
         ...
-      </DataSource>
+      </Dataset>
     </DataSources>
 
 ### Blocking Data Items
@@ -177,7 +177,7 @@ A Silk linking configuration may contain several link specifications if differen
         ...
       </Interlink>  
       <Outputs>
-        <Output id="myOutput" type="output type" minConfidence="lower threshold" maxConfidence="upper threshold">
+        <Dataset id="myOutput" type="output type" minConfidence="lower threshold" maxConfidence="upper threshold">
           <Param name="parameter name" value="parameter value" />
             ...
         </Ouput>
@@ -210,16 +210,6 @@ Example:
             </Aggregate>
         </LinkageRule>
         <Filter limit="1" />
-        <Outputs>
-          <Output type="file" maxConfidence="0.9" >
-            <Param name="file" value="verify_links.nt"/>
-            <Param name="format" value="ntriples"/>
-          </Output>
-          <Output type="file" minConfidence="0.9">
-            <Param name="file" value="accepted_links.nt"/>
-            <Param name="format" value="ntriples"/>
-          </Output>
-        </Outputs>
       </Interlink>
     </Interlinks>
 
