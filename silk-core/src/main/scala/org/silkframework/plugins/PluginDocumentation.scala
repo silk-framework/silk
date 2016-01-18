@@ -49,9 +49,8 @@ object PluginDocumentation {
           name = title,
           header = pluginParameterDisplay.headers,
           rows = plugin.parameters.map(_.name),
-          values = plugin.parameters.map(pluginParameterDisplay.generateValues),
-          columnWidthInCharacters = pluginParameterDisplay.maxCharsInColumns
-        )
+          values = plugin.parameters.map(pluginParameterDisplay.generateValues)
+        )(columnWidthInCharacters = pluginParameterDisplay.maxCharsInColumns)
       serializeToMarkdown(plugin, paramTable)
     }
   }
