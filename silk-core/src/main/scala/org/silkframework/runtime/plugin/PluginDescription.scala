@@ -15,10 +15,13 @@
 package org.silkframework.runtime.plugin
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
-import java.lang.reflect.{InvocationTargetException, Constructor}
+import java.lang.reflect.{Field, InvocationTargetException, Constructor}
 import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
 import org.silkframework.runtime.serialization.ValidationException
 import org.silkframework.util.Identifier
+
+import scala.annotation.Annotation
+import scala.util.Try
 
 /**
  * Describes a plugin.
@@ -38,8 +41,8 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
   }
 
   /**
-    * Retrieves the parameters values of a given plugin instance.
-    */
+   * Retrieves the parameters values of a given plugin instance.
+   */
   def parameterValues(plugin: AnyRef): Map[String, String] = {
     parameters.map(param => (param.name, Option(param(plugin)).getOrElse("").toString)).toMap
   }
@@ -110,7 +113,7 @@ object PluginDescription {
   private def createFromClass[T](pluginClass: Class[T]) = {
     new PluginDescription(
       id = pluginClass.getSimpleName,
-      label =  pluginClass.getSimpleName,
+      label = pluginClass.getSimpleName,
       categories = Set("Uncategorized"),
       description = "",
       parameters = getParameters(pluginClass),
@@ -127,28 +130,49 @@ object PluginDescription {
 
   private def getParameters[T](pluginClass: Class[T]): Array[Parameter] = {
     val constructor = getConstructor(pluginClass)
-
+    val paramAnnotations = constructor.getParameterAnnotations
     val paranamer = new BytecodeReadingParanamer()
     val parameterNames = paranamer.lookupParameterNames(constructor)
     val parameterTypes = constructor.getGenericParameterTypes
     val defaultValues = getDefaultValues(pluginClass, parameterNames.size)
 
-    for (((parName, parType), defaultValue) <- parameterNames zip parameterTypes zip defaultValues) yield {
-      if (!parType.isInstanceOf[Class[_]]) throw new InvalidPluginException("Unsupported parameter type in plugin " + pluginClass.getName + ": " + parType)
+    for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
+      val pluginParam = getAnnotationForParameter(pluginClass, parName, Array())
+      val (description, exampleValue) = pluginParam map { pluginParam =>
+        val ex = pluginParam.exampleValue()
+        (pluginParam.description(), if (ex != "") Some(ex) else defaultValue)
+      } getOrElse ("No description", defaultValue)
 
-      val dataType = parType.asInstanceOf[Class[_]].getName match {
-        case "java.lang.String" => Parameter.Type.String
-        case "char" => Parameter.Type.Char
-        case "int" => Parameter.Type.Int
-        case "double" => Parameter.Type.Double
-        case "boolean" => Parameter.Type.Boolean
-        case "org.silkframework.runtime.resource.Resource" => Parameter.Type.Resource
-        case "org.silkframework.runtime.resource.WritableResource" => Parameter.Type.WritableResource
-        case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
+      val dataType = if (parType.isInstanceOf[Class[_]]) {
+        parType.asInstanceOf[Class[_]].getName match {
+          case "java.lang.String" => Parameter.Type.String
+          case "char" => Parameter.Type.Char
+          case "int" => Parameter.Type.Int
+          case "double" => Parameter.Type.Double
+          case "boolean" => Parameter.Type.Boolean
+          case "org.silkframework.runtime.resource.Resource" => Parameter.Type.Resource
+          case "org.silkframework.runtime.resource.WritableResource" => Parameter.Type.WritableResource
+          case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
+        }
+      } else {
+        throw new InvalidPluginException("Unsupported parameter type in plugin " + pluginClass.getName + ": " + parType)
       }
 
-      Parameter(parName, dataType, "No description", defaultValue)
+      Parameter(parName, dataType, description, defaultValue, exampleValue)
     }
+  }
+
+  private def getAnnotationForParameter[T](pluginClass: Class[T],
+                                           parName: String,
+                                           annotations: Array[Annotation]): Option[PluginParam] = {
+    val fieldOpt = try {
+      Some(pluginClass.getDeclaredField(parName))
+    } catch {
+      case e: Exception => None
+    }
+    val fieldAnnotation = fieldOpt flatMap (f => Option(f.getAnnotation(classOf[PluginParam])))
+    val constructorAnnotation = annotations.filter(_.isInstanceOf[PluginParam]).headOption.map(_.asInstanceOf[PluginParam])
+    fieldAnnotation orElse constructorAnnotation
   }
 
   private def getDefaultValues[T](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {

@@ -14,7 +14,11 @@
 
 package org.silkframework.runtime.plugin
 
-case class Parameter(name: String, dataType: Parameter.Type, description: String = "No description", defaultValue: Option[AnyRef] = None) {
+case class Parameter(name: String,
+                     dataType: Parameter.Type,
+                     description: String = "No description",
+                     defaultValue: Option[AnyRef] = None,
+                     exampleValue: Option[AnyRef] = None) {
 
   /**
    * Retrieves the current value of this parameter.

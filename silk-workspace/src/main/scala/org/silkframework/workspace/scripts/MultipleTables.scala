@@ -17,7 +17,7 @@ object MultipleTables {
     MultipleTables(
       for(metric <- metrics) yield {
         val rows = for(v <- values) yield v.map(metric)
-        Table(name + ": " + metric.name, header, rowLabels, rows)
+        Table(name + ": " + metric.name, header, rowLabels, rows)()
       }
     )
   }
