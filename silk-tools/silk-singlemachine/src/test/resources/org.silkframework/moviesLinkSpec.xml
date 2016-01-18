@@ -1,0 +1,55 @@
+<Silk>
+        <Prefixes>
+      <Prefix id="rdf" namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/><Prefix id="dbpp" namespace="http://dbpedia.org/property/"/><Prefix id="dcterm" namespace="http://purl.org/dc/terms/"/><Prefix id="dc" namespace="http://purl.org/dc/elements/1.1/"/><Prefix id="owl" namespace="http://www.w3.org/2002/07/owl#"/><Prefix id="foaf" namespace="http://xmlns.com/foaf/0.1/"/><Prefix id="rdfs" namespace="http://www.w3.org/2000/01/rdf-schema#"/><Prefix id="dbpediaowl" namespace="http://dbpedia.org/ontology/"/><Prefix id="linkedmdb" namespace="http://data.linkedmdb.org/resource/movie/"/>
+    </Prefixes>
+        <DataSources>
+          <Dataset id="DBpedia">
+        <DatasetPlugin type="file">
+            <Param name="file" value="source.nt"/><Param name="format" value="N-TRIPLE"/><Param name="graph" value=""/>
+          </DatasetPlugin>
+      </Dataset><Dataset id="linkedmdb">
+        <DatasetPlugin type="file">
+            <Param name="file" value="target.nt"/><Param name="format" value="N-TRIPLE"/><Param name="graph" value=""/>
+          </DatasetPlugin>
+      </Dataset>
+        </DataSources>
+        <Interlinks>
+          <Interlink id="movies">
+        <SourceDataset dataSource="DBpedia" var="a">
+        <RestrictTo>
+          ?a ?p ?v .
+        </RestrictTo>
+      </SourceDataset>
+        <TargetDataset dataSource="linkedmdb" var="b">
+        <RestrictTo>
+          ?b ?p ?v .
+        </RestrictTo>
+      </TargetDataset>
+        <LinkageRule linkType="&lt;http://www.w3.org/2002/07/owl#sameAs&gt;">
+        <Aggregate id="unnamed_7" required="false" weight="1" type="min">
+            <Compare id="unnamed_6" required="false" weight="1" metric="levenshteinDistance" threshold="0.0" indexing="true">
+            <TransformInput id="unnamed_8" function="lowerCase">
+            <Input id="unnamed_1" path="?a/&lt;http://xmlns.com/foaf/0.1/name&gt;"/>
+            
+          </TransformInput><TransformInput id="unnamed_9" function="lowerCase">
+            <Input id="unnamed_2" path="?b/&lt;http://www.w3.org/2000/01/rdf-schema#label&gt;"/>
+            
+          </TransformInput><Param name="minChar" value="0"/><Param name="maxChar" value="z"/>
+          </Compare><Compare id="unnamed_5" required="false" weight="1" metric="date" threshold="400.0" indexing="true">
+            <Input id="unnamed_4" path="?a/&lt;http://dbpedia.org/ontology/releaseDate&gt;"/><Input id="unnamed_3" path="?b/&lt;http://data.linkedmdb.org/resource/movie/initial_release_date&gt;"/>
+          </Compare>
+          </Aggregate>
+        <Filter/>
+      </LinkageRule>
+        <Outputs>
+          
+        </Outputs>
+      </Interlink>
+        </Interlinks>
+        <Transforms>
+          
+        </Transforms>
+        <Outputs>
+          
+        </Outputs>
+      </Silk>
