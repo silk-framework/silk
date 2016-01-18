@@ -106,6 +106,7 @@ object WorkspaceApi extends Controller {
   def exportLinkSpec(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
+    implicit val prefixes = project.config.prefixes
 
     val silkConfig = SilkConfigExporter.build(project, task.data)
 
