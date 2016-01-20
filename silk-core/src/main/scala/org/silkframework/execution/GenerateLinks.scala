@@ -85,9 +85,17 @@ class GenerateLinks(inputs: DPair[DataSource],
 
       //Filter links
       val filterTask = new Filter(matcherContext.value(), linkSpec.rule.filter)
-      val filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
-      context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
+      var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
       if(canceled) return
+
+      // Include reference links
+      // TODO include into Filter and execute before filtering
+      if(runtimeConfig.includeReferenceLinks) {
+        // Remove negative reference links and add positive reference links
+        filteredLinks = (filteredLinks.toSet -- linkSpec.referenceLinks.negative ++ linkSpec.referenceLinks.positive).toSeq
+      }
+
+      context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
 
       //Output links
       val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)

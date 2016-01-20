@@ -9,6 +9,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 case class GenerateLinksFactory(
+  includeReferenceLinks: Boolean = false,
   useFileCache: Boolean = false,
   partitionSize: Int = 300,
   generateLinksWithEntities: Boolean = true,
@@ -23,7 +24,13 @@ case class GenerateLinksFactory(
       GenerateLinks.fromSources(
         datasets = task.project.tasks[Dataset].map(_.data),
         linkSpec = linksSpec,
-        runtimeConfig = RuntimeConfig(useFileCache = useFileCache, partitionSize = partitionSize, generateLinksWithEntities = generateLinksWithEntities)
+        runtimeConfig =
+          RuntimeConfig(
+            includeReferenceLinks = includeReferenceLinks,
+            useFileCache = useFileCache,
+            partitionSize = partitionSize,
+            generateLinksWithEntities = generateLinksWithEntities
+          )
       )
     }
   }

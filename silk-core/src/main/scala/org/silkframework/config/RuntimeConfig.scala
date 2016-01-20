@@ -22,6 +22,8 @@ import java.util.logging.Level
  *
  * @param executionMethod The method used to execute the linkage rule.
  * @param blocking The blocking parameters.
+ * @param includeReferenceLinks If true, links for which there is a negative reference link are not generated,
+  *                             while links for which there is a positive reference link are always generated.
  * @param useFileCache If true, the entities are cached on the file system. If false, an in-memory cache is used.
  * @param reloadCache Specifies if the entity cache is to be reloaded before executing the matching.
  * @param partitionSize The maximum size of the entity partitions in the cache.
@@ -31,6 +33,7 @@ import java.util.logging.Level
  */
 case class RuntimeConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
                          blocking: Blocking = Blocking(),
+                         includeReferenceLinks: Boolean = false,
                          indexingOnly: Boolean = false,
                          useFileCache: Boolean = true,
                          reloadCache: Boolean = true,
