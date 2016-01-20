@@ -88,10 +88,10 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
       val errorStream = connection.getErrorStream
       if (errorStream != null) {
         val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-        throw new IOException("SPARQL/Update query on " + params.uri + " failed with error code " + connection.getResponseCode + ". Error Message: '" + errorMessage + "'.")
+        throw new IOException("SPARQL/Update query on " + params.uri + " failed with error code " + connection.getResponseCode + ". Error Message: '" + errorMessage + "'. Failed query:\n" + query)
       }
       else {
-        throw new IOException("SPARQL/Update query on " + params.uri + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ".")
+        throw new IOException("SPARQL/Update query on " + params.uri + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ". Failed query:\n" + query)
       }
     }
   }
