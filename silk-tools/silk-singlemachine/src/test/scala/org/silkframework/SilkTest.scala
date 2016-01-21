@@ -6,11 +6,14 @@ import scala.io.Source
 
 class SilkTest extends FlatSpec with Matchers {
 
-  val linkSpecFile = new File(getClass.getClassLoader.getResource("org/silkframework/example/linkSpec.xml").getFile)
-  val outputFile = new File(getClass.getClassLoader.getResource("org/silkframework/example/links.nt").getFile)
+  val exampleDir = getClass.getClassLoader.getResource("org/silkframework/example/").getFile
+  val linkSpecFile = new File(exampleDir + "linkSpec.xml")
+  val outputFile = new File(exampleDir + "links.nt")
+  outputFile.delete()
 
   "Silk" should "execute the example link spec" in {
     Silk.executeFile(linkSpecFile)
+    outputFile.exists() should be(true)
     Source.fromFile(outputFile).getLines().size should be (110)
   }
 
