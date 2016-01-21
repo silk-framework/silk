@@ -23,7 +23,10 @@ import org.silkframework.workspace.Constants
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
-import play.api.mvc.{AnyContentAsXml, Action, Controller}
+import play.api.mvc.{Result, AnyContentAsXml, Action, Controller}
+import play.mvc.Http.Response
+
+import scala.util.Try
 
 object LinkingTaskApi extends Controller {
 
@@ -309,15 +312,20 @@ object LinkingTaskApi extends Controller {
   def postLinkDatasource(projectName: String, taskName: String) = Action { request =>
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
-        val (_, task) = projectAndTask(projectName, taskName)
-        implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
-        val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
-        val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
-        val (model, linkSink) = createLinkSink(xmlRoot)
-        val link = new GenerateLinksActivity(DPair(linkSource, linkTarget), task.data, Seq(linkSink))
-        Activity(link).startBlocking()
-        val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
-        result(model, acceptedContentType, "Successfully generated links")
+        try{
+          val (_, task) = projectAndTask(projectName, taskName)
+          implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
+          val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
+          val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
+          val (model, linkSink) = createLinkSink(xmlRoot)
+          val link = new GenerateLinksActivity(DPair(linkSource, linkTarget), task.data, Seq(linkSink))
+          Activity(link).startBlocking()
+          val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
+          result(model, acceptedContentType, "Successfully generated links")
+        } catch {
+          case e: NoSuchElementException =>
+            NotFound
+        }
       case _ =>
         UnsupportedMediaType("Only XML supported")
     }
