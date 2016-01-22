@@ -8,6 +8,7 @@ import java.net.{URLConnection, UnknownHostException, URL}
  * Created by andreas on 1/21/16.
  */
 case class UrlResource(url: URL, connectTimeout: Option[Int] = Some(5000), readTimeout: Option[Int] = None) extends Resource {
+
   /**
    * The local name of this resource.
    */
@@ -42,7 +43,7 @@ case class UrlResource(url: URL, connectTimeout: Option[Int] = Some(5000), readT
       is = conn.getInputStream
       return handleStreamFN(is)
     } catch {
-      case _: FileNotFoundException| _: UnknownHostException =>
+      case _: FileNotFoundException | _: UnknownHostException =>
         // Ignore and return fail value
         failValue
     } finally {
