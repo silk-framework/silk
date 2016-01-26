@@ -1,21 +1,25 @@
 package org.silkframework.plugins.dataset.rdf
 
+import java.io.{ByteArrayOutputStream, FileOutputStream}
 import java.util.logging.Logger
 
+import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.{LinkSink, EntitySink, DataSink}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.Link
+import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesLinkFormatter, RdfFormatter}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
  */
-class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends EntitySink with LinkSink {
+class SparqlSink(params: SparqlParams,
+                 endpoint: SparqlEndpoint,
+                 formatterOpt: Option[RdfFormatter] = None,
+                 /**Maximum number of statements per request. */
+                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
-
-  /**Maximum number of statements per request. */
-  private val StatementsPerRequest = 200
 
   private val body: StringBuilder = new StringBuilder
 
@@ -30,21 +34,45 @@ class SparqlSink(params: SparqlParams, endpoint: SparqlEndpoint) extends EntityS
   override def init() = {}
 
   override def writeLink(link: Link, predicateUri: String) {
+    val (newStatements, statementCount) = formatLink(link, predicateUri)
     if(body.isEmpty) {
       beginSparul(true)
-    } else if (statements + 1 > StatementsPerRequest) {
+    } else if (statements + statementCount > statementsPerRequest) {
       endSparql()
       beginSparul(false)
     }
 
-    body.append("<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n")
-    statements += 1
+    body.append(newStatements)
+    statements += statementCount
+  }
+
+  /**
+   * Returns the RDF formatted link in N-Triples format and the number of triples.
+   * @param link
+   * @param predicateUri
+   * @return (serialized statements as N-Triples, triple count)
+   */
+  private def formatLink(link: Link,
+                         predicateUri: String): (String, Int) = {
+    formatterOpt match {
+      case Some(formatter) =>
+        val model = formatter.format(link, predicateUri)
+        val outputStream = new ByteArrayOutputStream()
+        RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
+        outputStream.flush()
+        outputStream.close()
+        val result = outputStream.toString("UTF-8")
+        (result, result.split("\n").length)
+      case None =>
+        val result = "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
+        (result, 1)
+    }
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     if(body.isEmpty) {
       beginSparul(true)
-    } else if (statements + 1 > StatementsPerRequest) {
+    } else if (statements + 1 > statementsPerRequest) {
       endSparql()
       beginSparul(false)
     }
