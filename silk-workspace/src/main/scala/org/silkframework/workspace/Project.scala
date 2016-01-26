@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace
 
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
@@ -27,6 +27,8 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory, TaskExecutor}
 
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
+import scala.util.{Success, Try}
 
 /**
  * A project.
@@ -67,8 +69,15 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
 
   private val projectActivities = {
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList
-    for(factory <- factories) yield
-      new ProjectActivity(this, factory())
+    var activities = List[ProjectActivity]()
+    for(factory <- factories) {
+      try {
+        activities ::= new ProjectActivity(this, factory())
+      } catch {
+        case NonFatal(ex) => logger.log(Level.WARNING, s"Could not load project activity '$factory' in project '${initialConfig.id}'.", ex)
+      }
+    }
+    activities.reverse
   }
 
   /**
