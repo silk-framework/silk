@@ -1,13 +1,14 @@
 package controllers.workspace
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
+import java.net.URL
 
 import controllers.core.{Stream, Widgets}
 import controllers.workspace.Datasets._
 import org.silkframework.config._
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
-import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.resource.{UrlResource, InMemoryResourceManager}
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.io.{SilkConfigExporter, WorkspaceIO, SilkConfigImporter}
@@ -143,6 +144,18 @@ object WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
+          project.resources.get(resourceName).write(inputStream)
+          inputStream.close()
+          Ok
+        } catch {
+          case ex: Exception => BadRequest(ex.getMessage)
+        }
+      case Some(formData) if formData.dataParts.contains("resource-url") =>
+        try {
+          val dataParts = formData.dataParts("resource-url")
+          val url = dataParts.head
+          val urlResource = UrlResource(new URL(url))
+          val inputStream = urlResource.load
           project.resources.get(resourceName).write(inputStream)
           inputStream.close()
           Ok

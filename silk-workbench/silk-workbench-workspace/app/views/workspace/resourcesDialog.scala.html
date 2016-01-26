@@ -37,6 +37,28 @@
   </fieldset>
 
   <fieldset>
+    <legend>Import input resource from URL:</legend>
+    <table border="0">
+      <tr>
+        <td>Name</td>
+        <td><input name="url-resource-name" title="Resource Name" size="25" value="unnamed"/></td>
+      </tr>
+      <tr>
+        <td>URL</td>
+        <td>
+          <form name="addUrlResourceForm" enctype="multipart/form-data">
+            <input name="resource-url" type="text" size="25" value="" />
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <td><img id="icon-pending2" title="Pending Import" src="@Assets.at("img/pending.gif")" /></td>
+        <td align="right"><button onclick="addUrlResource()">Import</button></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <fieldset>
     <legend>New output resource:</legend>
       <table border="0">
         <tr>
@@ -99,6 +121,7 @@
     $(function() {
       // Hide pending icon
       $('#icon-pending').hide();
+      $('#icon-pending2').hide();
 
       // Initialize the delete dialog
       $("#delete-dialog").dialog({
@@ -172,6 +195,35 @@
         },
         error: function(request) {
           $('#icon-pending').hide();
+          alert(request.responseText);
+        }
+      });
+    }
+
+    // Adds a new URL resource
+    function addUrlResource() {
+      var name = $("input[name='url-resource-name']").val();
+      var url = $("input[name='resource-url']").val();
+      var formData = new FormData($("form[name='addUrlResourceForm']")[0]);
+
+      $('#icon-pending2').show();
+      $.ajax({
+        type: 'PUT',
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        xhr: function() {
+          myXhr = $.ajaxSettings.xhr();
+          return myXhr;
+        },
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function() {
+          $('#icon-pending2').hide();
+          reloadDialog();
+        },
+        error: function(request) {
+          $('#icon-pending2').hide();
           alert(request.responseText);
         }
       });

@@ -18,15 +18,13 @@ import java.util.logging.Logger
 
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
-import org.silkframework.runtime.activity.{ActivityControl, Activity}
-import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.activity.{ProjectActivity, TaskActivityFactory, ProjectActivityFactory, TaskExecutor}
-import org.silkframework.workspace.xml._
+import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory, TaskExecutor}
 
 import scala.reflect.ClassTag
 
@@ -37,9 +35,9 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
-  val resources = provider.projectResources(initialConfig.id)
+  val resources: ResourceManager = provider.projectResources(initialConfig.id)
 
-  val cacheResources = provider.projectCache(initialConfig.id)
+  val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
   private var cachedConfig: ProjectConfig = initialConfig
