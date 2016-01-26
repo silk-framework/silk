@@ -51,13 +51,13 @@ object WorkbenchConfig {
   def getResourceLoader: ResourceLoader = {
     //Depending on the distribution method, the configuration resources may be located at different locations.
     //We identify the configuration location by searching for the application configuration.
-    if(new File("conf/application.conf").exists())
+    if(new File("conf/reference.conf").exists())
       new FileResourceManager(new File("conf/"))
-    else if(new File("silk-workbench/conf/application.conf").exists())
+    else if(new File("silk-workbench/conf/reference.conf").exists())
       new FileResourceManager(new File("silk-workbench/conf/"))
-    else if(new File("../conf/application.conf").exists())
+    else if(new File("../conf/reference.conf").exists())
       new FileResourceManager(new File("../conf/"))
-    else if(getClass.getClassLoader.getResourceAsStream("application.conf") != null)
+    else if(getClass.getClassLoader.getResourceAsStream("reference.conf") != null)
       new ClasspathResourceLoader("")
     else
       throw new ResourceNotFoundException("Could not locate configuration. Current directory is: " + new File(".").getAbsolutePath)
