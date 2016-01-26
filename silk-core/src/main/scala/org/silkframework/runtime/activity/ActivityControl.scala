@@ -21,7 +21,7 @@ trait ActivityControl[T] {
   def status: Observable[Status]
 
   /**
-   * The running child activity.
+   * The running child activities.
    */
   def children(): Seq[ActivityControl[_]]
 
