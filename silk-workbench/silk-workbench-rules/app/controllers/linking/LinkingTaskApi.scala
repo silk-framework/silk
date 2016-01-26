@@ -188,6 +188,15 @@ object LinkingTaskApi extends Controller {
     Ok
   }}
 
+  /**
+   * Delete all reference links of specific types.
+   * @param projectName
+   * @param taskName
+   * @param positive if true
+   * @param negative
+   * @param unlabeled
+   * @return
+   */
   def deleteReferenceLinks(projectName: String, taskName: String, positive: Boolean, negative: Boolean, unlabeled: Boolean) = Action { implicit request => {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
@@ -205,7 +214,15 @@ object LinkingTaskApi extends Controller {
   }}
 
 
-  
+  /**
+   * Add a reference link to a specific linking task.
+   * @param projectName
+   * @param taskName
+   * @param linkType E.g. "negative" or "positive"
+   * @param source the source entity URI
+   * @param target the target entity URI
+   * @return
+   */
   def putReferenceLink(projectName: String, taskName: String, linkType: String, source: String, target: String) = Action {
     log.info(s"Adding $linkType reference link: $source - $target")
     val project = User().workspace.project(projectName)
@@ -225,7 +242,15 @@ object LinkingTaskApi extends Controller {
     
     Ok
   }
-  
+
+  /**
+   * Delete a reference link
+   * @param projectName
+   * @param taskName
+   * @param source source URI
+   * @param target target URI
+   * @return
+   */
   def deleteReferenceLink(projectName: String, taskName: String, source: String, target: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
