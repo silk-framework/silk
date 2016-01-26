@@ -14,7 +14,9 @@
 
 package org.silkframework.learning.active
 
-import linkselector.{EntropySelector, JensenShannonDivergenceSelector, LinkSelector}
+import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector}
+import org.silkframework.learning.active.poolgenerator.{SimpleLinkPoolGenerator, LinkPoolGenerator}
 
 
-case class ActiveLearningConfiguration(selector: LinkSelector = JensenShannonDivergenceSelector())
+case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = SimpleLinkPoolGenerator(),
+                                       selector: LinkSelector = JensenShannonDivergenceSelector())

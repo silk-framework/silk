@@ -80,7 +80,8 @@ class ActiveLearning(config: LearningConfiguration,
     val poolPaths = context.value().pool.entityDescs.map(_.paths)
     if(context.value().pool.isEmpty || poolPaths != paths) {
       context.status.update("Loading pool")
-      pool = context.executeBlocking(new GeneratePool(datasets, linkSpec, paths), 0.5)
+      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, paths)
+      pool = context.child(generator, 0.5).startBlockingAndGetValue()
     }
 
     //Assert that no reference links are in the pool
