@@ -15,15 +15,16 @@
 package org.silkframework.workspace
 
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
+import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, TaskActivityFactory}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 
 /**
@@ -45,8 +46,15 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   private val taskActivities: Seq[TaskActivity[DataType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[DataType])
-    for(factory <- factories) yield
-      new TaskActivity(this, factory)
+    var activities = List[TaskActivity[DataType, _ <: HasValue]]()
+    for(factory <- factories) {
+      try {
+        activities ::= new TaskActivity(this, factory)
+      } catch {
+        case NonFatal(ex) => log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$name' in project '${module.project.name}'.", ex)
+      }
+    }
+    activities.reverse
   }
 
   private val taskActivityMap: Map[Class[_], TaskActivity[DataType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
