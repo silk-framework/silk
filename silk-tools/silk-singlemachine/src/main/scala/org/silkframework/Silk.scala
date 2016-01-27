@@ -18,7 +18,7 @@ import java.io.{File, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
 
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
-import org.silkframework.config.{LinkSpecification, LinkingConfig, TransformSpecification}
+import org.silkframework.config.{Config, LinkSpecification, LinkingConfig, TransformSpecification}
 import org.silkframework.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
@@ -33,6 +33,10 @@ import scala.xml.XML
  * Executes the complete Silk workflow.
  */
 object Silk {
+
+  // Initialize config
+  Config()
+
   /**
    * The default number of threads to be used for matching.
    */
