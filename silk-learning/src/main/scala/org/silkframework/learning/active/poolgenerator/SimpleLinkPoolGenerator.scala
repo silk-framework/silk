@@ -42,7 +42,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
     private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-    private val maxLinks = 3000
+    private val maxLinks = 1000
 
     private var generateLinksActivity: GenerateLinks = _
 
