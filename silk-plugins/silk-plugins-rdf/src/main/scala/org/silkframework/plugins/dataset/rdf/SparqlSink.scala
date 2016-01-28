@@ -56,7 +56,7 @@ class SparqlSink(params: SparqlParams,
                          predicateUri: String): (String, Int) = {
     formatterOpt match {
       case Some(formatter) =>
-        val model = formatter.format(link, predicateUri)
+        val model = formatter.formatAsRDF(link, predicateUri)
         val outputStream = new ByteArrayOutputStream()
         RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
         outputStream.flush()

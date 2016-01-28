@@ -19,7 +19,7 @@ class FormattedJenaLinkSink(model: Model,
    */
   override def writeLink(link: Link, predicateUri: String): Unit = {
     this.synchronized {
-      val linkModel = formatter.format(link, predicateUri)
+      val linkModel = formatter.formatAsRDF(link, predicateUri)
       model.add(linkModel)
     }
   }
