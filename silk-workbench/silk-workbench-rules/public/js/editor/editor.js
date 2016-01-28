@@ -252,18 +252,17 @@ function confirmExit() {
   }
 }
 
-function generateNewElementId() {
+function generateNewElementId(currentId) {
   var nameExists;
+  var counter = 0;
   do {
     nameExists = false;
-    elementcounter = elementcounter + 1;
-    $("div.label:contains('unnamed_" + elementcounter + "')").each(function() {
-      if(("unnamed_" + elementcounter).length == $(this).text().length) {
-        nameExists = true;
-      }
-    });
-  } while (nameExists || $("#unnamed_"+elementcounter).length > 0);
-  return "unnamed_"+elementcounter;
+    counter = counter + 1;
+    if($("#" + currentId + counter).length > 0) {
+      nameExists = true;
+    }
+  } while (nameExists);
+  return currentId + counter;
 }
 
 function getCurrentElementName(elId) {

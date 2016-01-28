@@ -9,7 +9,7 @@
     $('.sourcePaths, .targetPaths').draggable({
       helper: function() {
         var box = $(this).children('.dragDiv').clone(false);
-        box.attr("id", generateNewElementId());
+        box.attr("id", generateNewElementId("path"));
         box.show();
         return box;
       }
