@@ -102,6 +102,7 @@
             <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
           }
         </select>
+        <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
       }
     </td>
   </tr>
