@@ -33,12 +33,12 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
   override def generator(inputs: Seq[DataSource],
                          linkSpec: LinkSpecification,
                          paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool] = {
-    new Generator(inputs, linkSpec, paths)
+    new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
-  class Generator(inputs: Seq[DataSource],
-                  linkSpec: LinkSpecification,
-                  paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
+  class LinkPoolGenerator(inputs: Seq[DataSource],
+                          linkSpec: LinkSpecification,
+                          paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
 
     private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 

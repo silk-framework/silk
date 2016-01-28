@@ -91,6 +91,7 @@ class CorePlugins extends PluginModule {
     classOf[AggregateNumbersTransformer] ::
     classOf[CompareNumbersTransformer] ::
     classOf[CountTransformer] ::
+    classOf[PhysicalQuantityExtractor] ::
     // Date
     classOf[TimestampToDateTransformer] ::
     classOf[DateToTimestampTransformer] ::
