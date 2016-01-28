@@ -15,7 +15,6 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import org.silkframework.entity.Link
-import org.silkframework.runtime.plugin.AnyPlugin
 
 /**
  * Serializes a link.
