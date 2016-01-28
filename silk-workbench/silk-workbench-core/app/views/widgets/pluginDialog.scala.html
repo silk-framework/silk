@@ -1,6 +1,7 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.runtime.plugin.Parameter
 @import org.silkframework.runtime.plugin.AnyPlugin
+@import controllers.core.routes.Assets
 
 @(name: String,
   plugins: Seq[PluginDescription[_]],
@@ -80,7 +81,10 @@
 @createTextField(pluginId: String, param: Parameter) = {
   <tr>
     <td>@param.name</td>
-    <td><input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/></td>
+    <td>
+      <input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/>
+      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
+    </td>
   </tr>
 }
 
