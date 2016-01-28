@@ -316,3 +316,19 @@ body{
   color: rgb(113, 113, 113);
   line-height: 40px;
 }
+
+/* label and value formatting */
+
+.param_element {
+  width: 189px;
+}
+
+.param_label {
+  display: inline-block;
+  width: 60px;
+  text-align: right;
+}
+
+.param_input {
+  width: 119px;
+}
