@@ -11,7 +11,7 @@ $(function() {
   $('.@name.toLowerCase').draggable({
     helper: function() {
       var box = $(this).children('.@{opType}Div').clone(false);
-      box.attr("id", generateNewElementId());
+      box.attr("id", generateNewElementId(box.attr("id")));
       box.show();
       return box;
     }
@@ -67,9 +67,9 @@ $(function() {
 
 @operatorExpanded(plugin: PluginDescription[_]) = {
   @opType match {
-    case "transform" => { @transformationBox("undefined", plugin, parameterValues(plugin), 0, 0, false) }
-    case "compare" => { @comparisonBox("undefined", false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false) }
-    case "aggregate" => { @aggregationBox("undefined", false, 1, plugin, parameterValues(plugin), 0, 0, false) }
+    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false) }
+    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false) }
+    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false) }
   }
 }
 

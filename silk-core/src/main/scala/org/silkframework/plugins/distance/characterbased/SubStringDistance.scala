@@ -2,9 +2,7 @@ package org.silkframework.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.{PluginParam, Plugin}
-
-import scala.annotation.meta.field
+import org.silkframework.runtime.plugin.{Param, Plugin}
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,7 +18,7 @@ import scala.annotation.meta.field
   label = "SubString",
   description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
 )
-case class SubStringDistance(@(PluginParam@field)(description = "The minimum length of a possible substring match.")
+case class SubStringDistance(@Param("The minimum length of a possible substring match.")
                              granularity: String = "3") extends SimpleDistanceMeasure {
   private val n = granularity.toInt
 

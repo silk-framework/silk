@@ -2,19 +2,19 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.rdf.formatters.{AlignmentLinkFormatter, FormattedEntitySink, FormattedLinkSink}
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 
 @Plugin(
   id = "alignment",
   label = "Alignment",
   description =
-    """ Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.
-      | Parameters:
-      |  file: File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.
-    """
+    """ Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
 )
-case class AlignmentDataset(file: WritableResource) extends DatasetPlugin {
+case class AlignmentDataset(
+  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+  file: WritableResource) extends DatasetPlugin {
+
   /**
    * Returns a data source for reading entities from the data set.
    */
