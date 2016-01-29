@@ -11,7 +11,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "activeLearning",
+  id = "ActiveLearning",
   label = "Active Learning",
   categories = Array("LinkSpecification"),
   description = "Executes an active learning iteration."

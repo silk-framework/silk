@@ -6,7 +6,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "executeWorkflow",
+  id = "ExecuteWorkflow",
   label = "Execute Workflow",
   categories = Array("LinkSpecification"),
   description = "Executes the workflow."

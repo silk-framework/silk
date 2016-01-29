@@ -7,7 +7,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
 @Plugin(
-  id = "typesCache",
+  id = "TypesCache",
   label = "Types Cache",
   categories = Array("Dataset"),
   description = "Holds the most frequent types in a dataset."

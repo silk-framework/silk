@@ -9,7 +9,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "executeTransform",
+  id = "ExecuteTransform",
   label = "Execute Transform",
   categories = Array("TransformSpecification"),
   description = "Executes the transformation."

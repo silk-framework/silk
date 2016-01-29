@@ -10,7 +10,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
 @Plugin(
-  id = "linkingPathsCache",
+  id = "LinkingPathsCache",
   label = "Linking Paths Cache",
   categories = Array("LinkSpecification"),
   description = "Holds the most frequent paths for the selected entities."

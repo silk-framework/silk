@@ -8,7 +8,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "supervisedLearning",
+  id = "SupervisedLearning",
   label = "Supervised Learning",
   categories = Array("LinkSpecification"),
   description = "Executes the supervised learning."

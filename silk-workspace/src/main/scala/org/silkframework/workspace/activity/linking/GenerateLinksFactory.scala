@@ -10,7 +10,7 @@ import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "generateLinks",
+  id = "GenerateLinks",
   label = "Generate Links",
   categories = Array("LinkSpecification"),
   description = "Executes the link specification."
