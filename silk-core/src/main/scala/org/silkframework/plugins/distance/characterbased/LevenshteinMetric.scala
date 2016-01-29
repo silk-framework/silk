@@ -16,14 +16,18 @@ package org.silkframework.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import scala.math.max
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 
 @Plugin(
   id = "levenshtein",
   categories = Array("Characterbased"),
   label = "Normalized Levenshtein distance",
   description = "Normalized Levenshtein distance.")
-case class LevenshteinMetric(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+case class LevenshteinMetric(
+  @Param(value = "The minimum character that is used for indexing", advanced = true)
+  minChar: Char = '0',
+  @Param(value = "The maximum character that is used for indexing", advanced = true)
+  maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   private val levenshtein = new LevenshteinDistance(minChar, maxChar)
 

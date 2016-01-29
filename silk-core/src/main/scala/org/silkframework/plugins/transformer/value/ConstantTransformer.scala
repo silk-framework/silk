@@ -1,7 +1,7 @@
 package org.silkframework.plugins.transformer.value
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 
 @Plugin(
   id = "constant",
@@ -9,7 +9,10 @@ import org.silkframework.runtime.plugin.Plugin
   categories = Array("Recommended", "Value"),
   description = "Generates a constant value."
 )
-case class ConstantTransformer(value: String = "") extends Transformer {
+case class ConstantTransformer(
+  @Param("The constant value to be generated")
+  value: String = "") extends Transformer {
+
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(value)
   }

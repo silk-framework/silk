@@ -16,7 +16,7 @@ package org.silkframework.plugins.distance.characterbased
 
 import org.silkframework.util.StringUtils._
 import scala.math.{min, max, abs}
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.entity.Index
 
@@ -26,7 +26,11 @@ import org.silkframework.entity.Index
   label = "Levenshtein distance",
   description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
 )
-case class LevenshteinDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+case class LevenshteinDistance(
+  @Param(value = "The minimum character that is used for indexing", advanced = true)
+  minChar: Char = '0',
+  @Param(value = "The maximum character that is used for indexing", advanced = true)
+  maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   /**The size of the q-Grams to be indexed */
   private val q = 2

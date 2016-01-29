@@ -19,4 +19,9 @@ public @interface Param {
    * Example value for the annotated parameter.
    */
   String example() default "";
+
+  /**
+   * True, if this is an advanced paramter that should not be shown by default.
+   */
+  boolean advanced() default false;
 }
