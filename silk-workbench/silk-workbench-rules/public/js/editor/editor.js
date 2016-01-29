@@ -244,6 +244,8 @@ $(function ()
     UnTip();
   });
 
+  updateScore();
+
 });
 
 function confirmExit() {
