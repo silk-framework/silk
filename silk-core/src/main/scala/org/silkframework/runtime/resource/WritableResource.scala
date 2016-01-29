@@ -29,7 +29,9 @@ trait WritableResource extends Resource{
     * Writes a string.
     */
   def write(content: String): Unit = {
-    write(os => os.write(content.getBytes("UTF-8")))
+    write { os =>
+      os.write(content.getBytes("UTF-8"))
+    }
   }
 
 }
