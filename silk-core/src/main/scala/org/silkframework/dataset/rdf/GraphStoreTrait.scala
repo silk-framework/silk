@@ -20,7 +20,7 @@ trait GraphStoreTrait {
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
-                      chunkedStreamingMode: Option[Int] = Some(10000)): OutputStream = {
+                      chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
     val updateUrl = graphStoreEndpoint(graph)
     val url = new URL(updateUrl)
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
@@ -53,7 +53,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
     try {
       outputStream.flush()
       outputStream.close()
-      log.info("Finished with code " + connection.getResponseCode)
+      log.fine("Finished with code " + connection.getResponseCode)
     } finally {
       connection.disconnect()
     }
