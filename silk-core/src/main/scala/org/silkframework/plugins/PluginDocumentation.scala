@@ -63,7 +63,8 @@ object PluginDocumentation {
     if (table.rows.nonEmpty)
       sb ++= table.toMarkdown + "\n"
     else
-      sb ++= "This plugin does not require any parameters.\n\n"
+      sb ++= "This plugin does not require any parameters.\n"
+    sb ++= "The identifier for this plugin is: `" + plugin.id + "`.\n\n"
   }
 
   def formatDefaultValue(value: Option[AnyRef]): String = {
