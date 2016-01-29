@@ -137,7 +137,7 @@ object PluginDescription {
     for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
       val pluginParam = annotations.headOption
       val (description, exampleValue) = pluginParam map { pluginParam =>
-        val ex = pluginParam.value()
+        val ex = pluginParam.example()
         (pluginParam.value(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
