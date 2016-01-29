@@ -4,11 +4,18 @@ import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.DPair
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
-class LinkingPathsCacheFactory extends TaskActivityFactory[LinkSpecification, LinkingPathsCache] {
+@Plugin(
+  id = "linkingPathsCache",
+  label = "Linking Paths Cache",
+  categories = Array("LinkSpecification"),
+  description = "Holds the most frequent paths for the selected entities."
+)
+case class LinkingPathsCacheFactory() extends TaskActivityFactory[LinkSpecification, LinkingPathsCache] {
 
   override def autoRun = true
 

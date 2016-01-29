@@ -3,10 +3,17 @@ package org.silkframework.workspace.activity.linking
 import org.silkframework.config.LinkSpecification
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
-class ReferenceEntitiesCacheFactory extends TaskActivityFactory[LinkSpecification, ReferenceEntitiesCache] {
+@Plugin(
+  id = "referenceEntitiesCache",
+  label = "Reference Entities Cache",
+  categories = Array("LinkSpecification"),
+  description = "For each reference link, the reference entities cache holds all values of the linked entities."
+)
+case class ReferenceEntitiesCacheFactory() extends TaskActivityFactory[LinkSpecification, ReferenceEntitiesCache] {
 
   override def autoRun = true
 

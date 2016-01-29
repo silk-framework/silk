@@ -5,9 +5,16 @@ import org.silkframework.dataset.Dataset
 import org.silkframework.entity.Link
 import org.silkframework.execution.{Linking, GenerateLinks}
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
+@Plugin(
+  id = "generateLinks",
+  label = "Generate Links",
+  categories = Array("LinkSpecification"),
+  description = "Executes the link specification."
+)
 case class GenerateLinksFactory(
   includeReferenceLinks: Boolean = false,
   useFileCache: Boolean = false,

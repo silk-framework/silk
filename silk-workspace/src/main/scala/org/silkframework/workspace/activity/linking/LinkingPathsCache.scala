@@ -4,6 +4,7 @@ import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.DPair
 
 /**
