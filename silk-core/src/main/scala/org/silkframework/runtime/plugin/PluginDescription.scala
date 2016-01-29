@@ -128,7 +128,7 @@ object PluginDescription {
 
   private def getParameters[T](pluginClass: Class[T]): Array[Parameter] = {
     val constructor = getConstructor(pluginClass)
-    val paramAnnotations = constructor.getParameters.map(_.getAnnotationsByType(classOf[Param]))
+    val paramAnnotations = constructor.getParameterAnnotations.map(_.collect{ case p: Param => p })
     val paranamer = new BytecodeReadingParanamer()
     val parameterNames = paranamer.lookupParameterNames(constructor)
     val parameterTypes = constructor.getGenericParameterTypes
