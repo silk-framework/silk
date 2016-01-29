@@ -5,7 +5,7 @@ import org.silkframework.dataset.Dataset
 import org.silkframework.entity.Link
 import org.silkframework.execution.{Linking, GenerateLinks}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
 
@@ -16,10 +16,15 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   description = "Executes the link specification."
 )
 case class GenerateLinksFactory(
+  @Param("Do not generate a link for which there is a negative reference link while always generating positive reference links.")
   includeReferenceLinks: Boolean = false,
+  @Param("Use a file cache. This avoids memory overflows for big files.")
   useFileCache: Boolean = false,
+  @Param("The number of entities in a single partition in the cache.")
   partitionSize: Int = 300,
+  @Param("Generate detailed information about the matched entities. If set to false, the generated links won't be shown in the Workbench.")
   generateLinksWithEntities: Boolean = true,
+  @Param("Write the generated links to the configured output of this task.")
   writeOutputs: Boolean = true) extends TaskActivityFactory[LinkSpecification, GenerateLinks] {
 
   def apply(task: Task[LinkSpecification]): Activity[Linking] = {
