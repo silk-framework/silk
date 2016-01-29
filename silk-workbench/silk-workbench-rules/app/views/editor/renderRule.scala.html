@@ -9,7 +9,7 @@
 @import org.silkframework.rule.similarity.Comparison
 
 @drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 150)
-@* TODO> suspend drawing in jsPlumb while drawing *@
+
 @connectOperators(rule)
 
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
@@ -76,8 +76,13 @@
       var dropArea = $('#droppable');
       jsPlumb.draggable(dropArea.find('.dragDiv')); //TODO move
 
+      jsPlumb.setSuspendEvents(true);
+      jsPlumb.setSuspendDrawing(true);
+
       @connectOperator(op)
 
+      jsPlumb.setSuspendDrawing(false, true);
+      jsPlumb.setSuspendEvents(false);
     });
   </script>
 }
