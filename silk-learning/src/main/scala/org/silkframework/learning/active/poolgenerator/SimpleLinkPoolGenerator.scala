@@ -30,7 +30,7 @@ import scala.util.Random
 
 case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
-  override def generator(inputs: Seq[DataSource],
+  override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpecification,
                          paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
@@ -38,7 +38,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   def runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-  class LinkPoolGenerator(inputs: Seq[DataSource],
+  class LinkPoolGenerator(inputs: DPair[DataSource],
                           linkSpec: LinkSpecification,
                           paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
 
