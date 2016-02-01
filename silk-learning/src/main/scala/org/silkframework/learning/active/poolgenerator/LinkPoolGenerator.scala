@@ -9,7 +9,7 @@ import org.silkframework.util.DPair
 
 trait LinkPoolGenerator {
 
-  def generator(inputs: Seq[DataSource],
+  def generator(inputs: DPair[DataSource],
                 linkSpec: LinkSpecification,
                 paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool]
 
