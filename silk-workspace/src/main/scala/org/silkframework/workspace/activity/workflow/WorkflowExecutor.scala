@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.{DataSource, LinkSink, EntitySink, Dataset}
+import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.Task
@@ -54,12 +54,10 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
 
     // Get the sinks for this operator
     val outputs = operator.outputs.map(project.anyTask(_).data)
-    var linkSinks = outputs.collect { case ds: Dataset => ds.linkSink }
-    var entitySinks = outputs.collect { case ds: Dataset => ds.entitySink }
+    var sinks: Seq[SinkTrait] = outputs.collect { case ds: Dataset => ds }
 
     if(outputs.exists(!_.isInstanceOf[Dataset])) {
-      linkSinks +:= internalDataset.linkSink
-      entitySinks +:= internalDataset.entitySink
+      sinks +:= internalDataset
     }
 
     // Retrieve the task and its executor
@@ -68,7 +66,7 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
       .getOrElse(throw new Exception("Cannot execute task " + operator.task))
 
     // Execute the task
-    val activity = taskExecutor(dataSources, taskData, linkSinks, entitySinks)
+    val activity = taskExecutor(dataSources, taskData, sinks)
     context.child(activity, 0.0).startBlocking()
 
     log.info("Finished execution of " + operator.task)

@@ -27,7 +27,7 @@ import scala.xml.{Text, Node}
 /**
  * A dataset of entities.
  */
-case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[Double] = None, maxConfidence: Option[Double] = None) {
+case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[Double] = None, maxConfidence: Option[Double] = None) extends SinkTrait {
 
   private val log = Logger.getLogger(Dataset.getClass.getName)
 
