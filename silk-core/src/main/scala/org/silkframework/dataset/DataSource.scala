@@ -110,4 +110,10 @@ trait DataSource {
     val entities = retrieve(entityDesc)
     SampleUtil.sample(entities, size)
   }
+
+  def sampleEntities(entityDesc: SparqlEntitySchema,
+                     size: Int): Seq[Entity] = {
+    val entities = retrieveSparqlEntities(entityDesc)
+    SampleUtil.sample(entities, size)
+  }
 }

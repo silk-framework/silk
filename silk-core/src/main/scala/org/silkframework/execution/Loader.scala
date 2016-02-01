@@ -22,9 +22,12 @@ import org.silkframework.util.DPair
 
 /**
  * Loads the entity cache
+ *
+ * @param sampleSizeOpt Load all entities if set to None, else only load a sample of max. the configured size.
  */
 class Loader(sources: DPair[DataSource],
-             caches: DPair[EntityCache]) extends Activity[Unit] {
+             caches: DPair[EntityCache],
+             sampleSizeOpt: Option[Int] = None) extends Activity[Unit] {
 
   override def name = "Loading"
 
@@ -59,13 +62,22 @@ class Loader(sources: DPair[DataSource],
 
   override def cancelExecution() {
     canceled = true
-    if(sourceLoader != null) sourceLoader.interrupt()
-    if(targetLoader != null) targetLoader.interrupt()
+    if (sourceLoader != null) sourceLoader.interrupt()
+    if (targetLoader != null) targetLoader.interrupt()
   }
 
   class LoadingThread(context: ActivityContext[Unit], selectSource: Boolean) extends Thread {
     private val source = sources.select(selectSource)
     private val entityCache = caches.select(selectSource)
+
+    private def retrieveEntities = {
+      sampleSizeOpt match {
+        case Some(sampleSize) =>
+          source.sampleEntities(entityCache.entityDesc, sampleSize)
+        case None =>
+          source.retrieveSparqlEntities(entityCache.entityDesc)
+      }
+    }
 
     override def run() {
 
@@ -73,7 +85,7 @@ class Loader(sources: DPair[DataSource],
         context.status.update("Loading entities of dataset " + source.toString)
 
         entityCache.clear()
-        entityCache.write(source.retrieveSparqlEntities(entityCache.entityDesc))
+        entityCache.write(retrieveEntities)
         entityCache.close()
 
         context.status.update(s"Entities loaded [ dataset :: ${source.toString} ].")

@@ -36,11 +36,11 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
+  def runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
+
   class LinkPoolGenerator(inputs: Seq[DataSource],
                           linkSpec: LinkSpecification,
                           paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
-
-    private val runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
     private val maxLinks = 1000
 
