@@ -56,7 +56,7 @@ case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
   }
 
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
-  def entitiyDescs: DPair[SparqlEntitySchema] = {
+  def entityDescs: DPair[SparqlEntitySchema] = {
     (positive ++ negative ++ unlabeled).values.headOption match {
       case Some(entityPair) => entityPair.map(_.desc)
       case None => DPair.fill(SparqlEntitySchema.empty)
@@ -68,7 +68,9 @@ object ReferenceEntities {
 
   def empty = ReferenceEntities(Map.empty, Map.empty)
 
-  def fromEntities(positiveEntities: Traversable[DPair[Entity]], negativeEntities: Traversable[DPair[Entity]], unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty) = {
+  def fromEntities(positiveEntities: Traversable[DPair[Entity]],
+                   negativeEntities: Traversable[DPair[Entity]],
+                   unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty) = {
     ReferenceEntities(
       positive = positiveEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap,
       negative = negativeEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap,
@@ -133,7 +135,7 @@ object ReferenceEntities {
      */
     def write(entities: ReferenceEntities)(implicit prefixes: Prefixes): Node = {
       <Entities>
-        { Serialization.toXml(entities.entitiyDescs) }
+        { Serialization.toXml(entities.entityDescs) }
         <PositiveEntities>
           {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
           <Pair>
