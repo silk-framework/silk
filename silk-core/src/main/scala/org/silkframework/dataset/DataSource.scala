@@ -106,14 +106,16 @@ trait DataSource {
    * @return
    */
   def sampleEntities(entityDesc: EntitySchema,
-                     size: Int): Seq[Entity] = {
+                     size: Int,
+                     filterOpt: Option[Entity => Boolean]): Seq[Entity] = {
     val entities = retrieve(entityDesc)
-    SampleUtil.sample(entities, size)
+    SampleUtil.sample(entities, size, filterOpt)
   }
 
   def sampleEntities(entityDesc: SparqlEntitySchema,
-                     size: Int): Seq[Entity] = {
+                     size: Int,
+                     filterOpt: Option[Entity => Boolean]): Seq[Entity] = {
     val entities = retrieveSparqlEntities(entityDesc)
-    SampleUtil.sample(entities, size)
+    SampleUtil.sample(entities, size, filterOpt)
   }
 }

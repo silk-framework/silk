@@ -11,8 +11,8 @@ import org.silkframework.workspace.Project
 import org.silkframework.workspace.Task
 
 /**
-  * For each reference link, the reference entities cache holds all values of the linked entities.
-  */
+ * For each reference link, the reference entities cache holds all values of the linked entities.
+ */
 class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[ReferenceEntities] {
 
   @volatile
@@ -30,11 +30,11 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     canceled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
-    while(pathsCache.status().isRunning && !canceled)
+    while (pathsCache.status().isRunning && !canceled)
       Thread.sleep(1000)
-    if(pathsCache.status().failed)
-     throw new Exception(s"Cannot load reference entities cache for ${task.name}, because the paths cache could not be loaded.")
-    if(!Option(pathsCache.value()).exists(ed => ed.source.paths.nonEmpty || ed.target.paths.nonEmpty))
+    if (pathsCache.status().failed)
+      throw new Exception(s"Cannot load reference entities cache for ${task.name}, because the paths cache could not be loaded.")
+    if (!Option(pathsCache.value()).exists(ed => ed.source.paths.nonEmpty || ed.target.paths.nonEmpty))
       context.log.info(s"Could not load reference entities cache for ${task.name} as that paths cache does not define paths.")
     else {
       val entityLoader = new EntityLoader(context, pathsCache.value())
@@ -54,32 +54,33 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size + linkSpec.referenceLinks.unlabeled.size
       var loadedLinks = 0
       for (link <- linkSpec.referenceLinks.positive if !canceled) {
-        if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        for(l <- loadPositiveLink(link))
+        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
+        for (l <- loadPositiveLink(link))
           context.value() = context.value().withPositive(l)
         loadedLinks += 1
-        if(loadedLinks % 10 == 0)
+        if (loadedLinks % 10 == 0)
           context.status.update(0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- linkSpec.referenceLinks.negative if !canceled) {
-        if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        for(l <- loadNegativeLink(link))
+        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
+        for (l <- loadNegativeLink(link))
           context.value() = context.value().withNegative(l)
         loadedLinks += 1
-        if(loadedLinks % 10 == 0)
+        if (loadedLinks % 10 == 0)
           context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
 
       for (link <- linkSpec.referenceLinks.unlabeled if !canceled) {
-        if(Thread.currentThread.isInterrupted) throw new InterruptedException()
-        for(l <- loadUnlabeledLink(link))
+        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
+        for (l <- loadUnlabeledLink(link))
           context.value() = context.value().withUnlabeled(l)
         loadedLinks += 1
-        if(loadedLinks % 10 == 0)
+        if (loadedLinks % 10 == 0)
           context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
       }
     }
+
 
     private def loadPositiveLink(link: Link): Option[DPair[Entity]] = {
       link.entities match {
@@ -117,18 +118,18 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       }
     }
 
-    private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]]  = {
-       for(source <- sources.source.retrieveSparqlEntities(entityDescs.source, uris.source :: Nil).headOption;
-           target <-  sources.target.retrieveSparqlEntities(entityDescs.target, uris.target :: Nil).headOption) yield {
-         DPair(source, target)
-       }
+    private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]] = {
+      for (source <- sources.source.retrieveSparqlEntities(entityDescs.source, uris.source :: Nil).headOption;
+           target <- sources.target.retrieveSparqlEntities(entityDescs.target, uris.target :: Nil).headOption) yield {
+        DPair(source, target)
+      }
     }
 
     private def updateEntityPair(entities: DPair[Entity]): Option[DPair[Entity]] = {
       val source = updateEntity(entities.source, entityDescs.source, sources.source)
       val target = updateEntity(entities.target, entityDescs.target, sources.target)
       // If either source or target has been updated, we need to update the whole pair
-      if(source.isDefined || target.isDefined) {
+      if (source.isDefined || target.isDefined) {
         Some(DPair(
           source = source.getOrElse(entities.source),
           target = target.getOrElse(entities.target)
@@ -160,9 +161,9 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
 
         //Collect values from the existing and the new entity
         val completeValues =
-          for(path <- entityDesc.paths) yield {
+          for (path <- entityDesc.paths) yield {
             val pathIndex = entity.desc.paths.indexOf(path)
-            if(pathIndex != -1)
+            if (pathIndex != -1)
               entity.evaluate(pathIndex)
             else
               missingEntity.evaluate(path)
@@ -177,4 +178,5 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       }
     }
   }
+
 }
