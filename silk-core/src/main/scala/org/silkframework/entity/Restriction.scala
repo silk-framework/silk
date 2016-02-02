@@ -73,7 +73,7 @@ object Restriction {
   /**
    * A logical restriction operator.
    */
-  trait LogicalOperator extends Operator
+  sealed trait LogicalOperator extends Operator
 
   /**
    * A condition which evaluates to true if the provided path contains the given value.
