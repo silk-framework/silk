@@ -45,7 +45,7 @@ class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
 
   "SparqlRestrictionParser" should "convert simple patterns" in {
     val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a rdf:type dbpedia:Settlement")
-    val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), "dbpedia:Settlement")))
+    val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
 
     restrictionConverter(sparqlRestriction) should equal(restriction)
   }
@@ -60,7 +60,7 @@ class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
   "SparqlRestrictionParser" should "convert simple patterns with any variable name" in {
     val sparqlRestriction = SparqlRestriction.fromSparql("x", "?x rdf:type dbpedia:Settlement")
 
-    val restriction = Restriction(Some(Condition.resolve(Path.parse("?x/rdf:type"), "dbpedia:Settlement")))
+    val restriction = Restriction(Some(Condition(Path.parse("?x/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
 
     restrictionConverter(sparqlRestriction) should equal(restriction)
   }
@@ -68,7 +68,7 @@ class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
   "SparqlRestrictionParser" should "convert simple patterns with type alias" in {
     val sparqlRestriction = SparqlRestriction.fromSparql("a", "?a a dbpedia:Settlement")
 
-    val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), "dbpedia:Settlement")))
+    val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
 
     restrictionConverter(sparqlRestriction) should equal(restriction)
   }
@@ -85,9 +85,9 @@ class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
     """)
 
     val restriction = Restriction(Some(Or(
-      Condition.resolve(Path.parse("?b/rdf:type"), "lgdo:City") ::
-      Condition.resolve(Path.parse("?b/rdf:type"), "lgdo:Town") ::
-      Condition.resolve(Path.parse("?b/rdf:type"), "lgdo:Village") :: Nil
+      Condition(Path.parse("?b/rdf:type"), prefixes.resolve("lgdo:City")) ::
+      Condition(Path.parse("?b/rdf:type"), prefixes.resolve("lgdo:Town")) ::
+      Condition(Path.parse("?b/rdf:type"), prefixes.resolve("lgdo:Village")) :: Nil
     )))
 
     restrictionConverter(sparqlRestriction) should equal(restriction)

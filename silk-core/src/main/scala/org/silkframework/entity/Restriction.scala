@@ -14,8 +14,6 @@
 
 package org.silkframework.entity
 
-import org.silkframework.config.Prefixes
-
 /**
  * A restriction for filtering datasets.
 
@@ -85,16 +83,6 @@ object Restriction {
     def paths = Set(path)
 
     def serialize = s"$path = $value"
-  }
-
-  // TODO remove
-  object Condition {
-    def resolve(path: Path, value: String)(implicit prefixes: Prefixes) = {
-      if(value.startsWith("<"))
-        Condition(path, value.substring(1, value.length - 1))
-      else
-        Condition(path, prefixes.resolve(value))
-    }
   }
 
   /**

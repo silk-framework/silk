@@ -74,7 +74,7 @@ class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers 
   }
 
   def triplePattern = subject ~ predicate ~ objectt ^^ {
-    case v ~ p ~ o => Condition.resolve(Path.parse("?" + v + "/" + p), o)
+    case v ~ p ~ o => Condition(Path.parse("?" + v + "/" + p), prefixes.resolve(o))
   }
 
   def subject = "?" ~> idChars ^^ {

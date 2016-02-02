@@ -15,3 +15,5 @@
 -Dsbt.log.format=true
 
 -Dhttp.port=9000
+
+-Dfile.encoding=UTF8

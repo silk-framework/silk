@@ -21,7 +21,7 @@ class SparqlRestrictionBuilderTest extends FlatSpec with ShouldMatchers {
   val builder = new SparqlRestrictionBuilder("a")
 
   "SparqlRestrictionBuilder" should "convert single conditions" in {
-    val restriction = Restriction(Some(Condition.resolve(Path.parse("?a/rdf:type"), "dbpedia:Settlement")))
+    val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
     builder(restriction).toSparqlQualified should equal("{?a rdf:type dbpedia:Settlement} .")
   }
 }
