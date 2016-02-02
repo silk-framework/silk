@@ -52,65 +52,40 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       context.status.update("Loading entities", 0.0)
 
       val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size + linkSpec.referenceLinks.unlabeled.size
+
+      import linkSpec.referenceLinks.{negative, positive, unlabeled}
+      val links = Seq(negative, positive, unlabeled)
+      val loadLinkFns: Seq[Link => Option[DPair[Entity]]] = Seq(
+        link => context.value().negative.get(link),
+        link => context.value().positive.get(link),
+        link => context.value().unlabeled.get(link)
+      )
+      val updateEntityFNs: Seq[() => DPair[Entity] => ReferenceEntities] = Seq(
+        () => context.value().withNegative,
+        () => context.value().withPositive,
+        () => context.value().withUnlabeled
+      )
       var loadedLinks = 0
-      for (link <- linkSpec.referenceLinks.positive if !canceled) {
-        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
-        for (l <- loadPositiveLink(link))
-          context.value() = context.value().withPositive(l)
-        loadedLinks += 1
-        if (loadedLinks % 10 == 0)
-          context.status.update(0.5 * (loadedLinks.toDouble / linkCount))
-      }
 
-      for (link <- linkSpec.referenceLinks.negative if !canceled) {
-        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
-        for (l <- loadNegativeLink(link))
-          context.value() = context.value().withNegative(l)
-        loadedLinks += 1
-        if (loadedLinks % 10 == 0)
-          context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
-      }
-
-      for (link <- linkSpec.referenceLinks.unlabeled if !canceled) {
-        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
-        for (l <- loadUnlabeledLink(link))
-          context.value() = context.value().withUnlabeled(l)
-        loadedLinks += 1
-        if (loadedLinks % 10 == 0)
-          context.status.update(0.5 + 0.5 * (loadedLinks.toDouble / linkCount))
-      }
-    }
-
-
-    private def loadPositiveLink(link: Link): Option[DPair[Entity]] = {
-      link.entities match {
-        case Some(entities) => Some(entities)
-        case None => {
-          context.value().positive.get(link) match {
-            case None => retrieveEntityPair(link)
-            case Some(entityPair) => updateEntityPair(entityPair)
+      for(((links, loadLinkFn), updateEntityFN) <- links.zip(loadLinkFns).zip(updateEntityFNs) if !canceled) {
+        for (link <- links if !canceled) {
+          if (Thread.currentThread.isInterrupted) throw new InterruptedException()
+          for (l <- loadLink(link, loadLinkFn)) {
+            context.value() = updateEntityFN()(l)
           }
+          loadedLinks += 1
+          if (loadedLinks % 10 == 0)
+            context.status.update(0.5 * (loadedLinks.toDouble / linkCount))
         }
       }
     }
 
-    private def loadNegativeLink(link: Link): Option[DPair[Entity]] = {
+    private def loadLink(link: Link,
+                         getEntities: Link => Option[DPair[Entity]]): Option[DPair[Entity]] = {
       link.entities match {
         case Some(entities) => Some(entities)
         case None => {
-          context.value().negative.get(link) match {
-            case None => retrieveEntityPair(link)
-            case Some(entityPair) => updateEntityPair(entityPair)
-          }
-        }
-      }
-    }
-
-    private def loadUnlabeledLink(link: Link): Option[DPair[Entity]] = {
-      link.entities match {
-        case Some(entities) => Some(entities)
-        case None => {
-          context.value().unlabeled.get(link) match {
+          getEntities(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
           }
