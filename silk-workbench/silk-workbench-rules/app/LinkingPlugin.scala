@@ -60,8 +60,10 @@ case class LinkingPlugin() extends WorkbenchPlugin {
       Seq(
         ("Source", linkSpec.dataSelections.source.datasetId.toString),
         ("Target", linkSpec.dataSelections.target.datasetId.toString),
-        ("Source dataset", linkSpec.dataSelections.source.restriction.toString),
-        ("Target dataset", linkSpec.dataSelections.target.restriction.toString)
+        ("Source Type", linkSpec.dataSelections.source.typeUri.toString),
+        ("Target Type", linkSpec.dataSelections.target.typeUri.toString),
+        ("Source Restriction", linkSpec.dataSelections.source.restriction.toString),
+        ("Target Restriction", linkSpec.dataSelections.target.restriction.toString)
       )
     }
   }
