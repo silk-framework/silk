@@ -29,7 +29,7 @@ object ReferenceLinksManager extends Controller {
 
     val links = linkType match {
       case "positive" => {
-        for (link <- referenceLinks.positive.toSeq.view) yield entities.positive.get(link) match {
+        for (link <- referenceLinks.positive.toSeq.view) yield entities.positiveLinkToEntities(link) match {
           case Some(entities) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
@@ -51,7 +51,7 @@ object ReferenceLinksManager extends Controller {
         }
       }
       case "negative" => {
-        for (link <- referenceLinks.negative.toSeq.view) yield entities.negative.get(link) match {
+        for (link <- referenceLinks.negative.toSeq.view) yield entities.negativeLinkToEntities(link) match {
           case Some(entities) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
@@ -73,7 +73,7 @@ object ReferenceLinksManager extends Controller {
         }
       }
       case "unlabeled" => {
-        for (link <- referenceLinks.unlabeled.toSeq.view) yield entities.unlabeled.get(link) match {
+        for (link <- referenceLinks.unlabeled.toSeq.view) yield entities.unlabeledLinkToEntities(link) match {
           case Some(entities) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 

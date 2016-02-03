@@ -32,7 +32,7 @@ class CompatiblePathsGenerator(components: Components) {
   private val minFrequency = 0.01
   
   def apply(entities: ReferenceEntities, seed: Boolean): Traversable[ComparisonGenerator] = {
-    if(entities.positive.isEmpty) {
+    if(entities.positiveLinks.isEmpty) {
       Traversable.empty
     } else {
       //Get all paths except sameAs paths
@@ -83,7 +83,7 @@ class CompatiblePathsGenerator(components: Components) {
    */
   private object PathsRetriever {
     def apply(entities: ReferenceEntities) = {
-      val pair = entities.positive.values.head
+      val pair = entities.positiveEntities.head
       val allPaths = pair.map(e => Path(e.desc.variable, Nil) +: e.desc.paths)
       allPaths.map(_.filterNot(_.toString.contains("sameAs"))).map(_.filterNot(_.toString.contains("abstract"))).map(_.filterNot(_.toString.contains("comment")))
     }
@@ -94,8 +94,8 @@ class CompatiblePathsGenerator(components: Components) {
    */
   private object DuplicateRemover {
     def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
-      val sourceValues = entities.positive.values.map(_.source) ++ entities.negative.values.map(_.source)
-      val targetValues = entities.positive.values.map(_.target) ++ entities.negative.values.map(_.target)
+      val sourceValues = entities.positiveEntities.map(_.source) ++ entities.negativeEntities.map(_.source)
+      val targetValues = entities.positiveEntities.map(_.target) ++ entities.negativeEntities.map(_.target)
       
       DPair(
         source = removeDuplicatePaths(sourceValues, paths.source),
@@ -130,8 +130,8 @@ class CompatiblePathsGenerator(components: Components) {
     
     def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
       val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
-      val posEntities = entities.positive.values.map(transformEntities)
-      val negEntities = entities.negative.values.map(transformEntities)
+      val posEntities = entities.positiveEntities.map(transformEntities)
+      val negEntities = entities.negativeEntities.map(transformEntities)
 
       pathPairs.par.filter(pathValuesMatch(posEntities, negEntities, _)).seq
     }

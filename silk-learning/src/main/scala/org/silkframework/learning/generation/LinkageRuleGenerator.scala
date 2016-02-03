@@ -76,10 +76,11 @@ object LinkageRuleGenerator {
   }
 
   def apply(entities: ReferenceEntities, components: Components = Components()) = {
-    if(entities.positive.isEmpty)
+    val es = entities.positiveEntities
+    if(es.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {
-      val paths = entities.positive.values.head.map(_.desc.paths)
+      val paths = es.head.map(_.desc.paths)
       new LinkageRuleGenerator((new CompatiblePathsGenerator(components).apply(entities, components.compatibleOnly) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
     }
   }

@@ -50,7 +50,7 @@ object LinkingEditor extends Controller {
         error = "No score available as loading the entities that are referenced by the reference links failed. " +
                 "Reason: " + entitiesCache.status().message))
     // If there are no reference links
-    } else if (entitiesCache.value().positive.isEmpty || entitiesCache.value().negative.isEmpty) {
+    } else if (entitiesCache.value().positiveLinks.isEmpty || entitiesCache.value().negativeLinks.isEmpty) {
       Ok(views.html.editor.score(
         info = "No score available",
         error = "No score available as this project does not define any reference links."))

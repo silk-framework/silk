@@ -30,7 +30,7 @@ object LinkageRuleEvaluator {
     var positiveError = 0.0
     var negativeError = 0.0
 
-    for (entityPair <- entity.positive.values) {
+    for (entityPair <- entity.positiveEntities) {
       val confidence = rule(entityPair, threshold)
 
       if (confidence >= threshold) {
@@ -43,7 +43,7 @@ object LinkageRuleEvaluator {
       }
     }
 
-    for (entityPair <- entity.negative.values) {
+    for (entityPair <- entity.negativeEntities) {
       val confidence = rule(entityPair, threshold)
 
       if (confidence >= threshold) {

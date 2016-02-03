@@ -61,9 +61,9 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       val links = Seq(negative, positive, unlabeled)
       // Get load the different types of links
       val loadLinkEntitiesFNs: Seq[Link => Option[DPair[Entity]]] = Seq(
-        link => context.value().negative.get(link),
-        link => context.value().positive.get(link),
-        link => context.value().unlabeled.get(link)
+        context.value().negativeLinkToEntities,
+        context.value().positiveLinkToEntities,
+        context.value().unlabeledLinkToEntities
       )
       // The appropriate context update functions for each type
       val updateEntityFNs: Seq[() => DPair[Entity] => ReferenceEntities] = Seq(

@@ -15,7 +15,8 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.rule.LinkageRule
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Entity, Link}
+import org.silkframework.util.DPair
 import math.log
 import org.silkframework.evaluation.ReferenceEntities
 
@@ -30,8 +31,8 @@ class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends Link
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     val proj = projection(rules, referenceEntities)
 
-    val positiveLinks = for((link, entityPair) <- referenceEntities.positive) yield link.update(entities = Some(entityPair))
-    val negativeLinks = for((link, entityPair) <- referenceEntities.negative) yield link.update(entities = Some(entityPair))
+    val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink
+    val negativeLinks = referenceEntities.negativeEntities map LinkSelectorHelper.pairToLink
 
     val unlabeled = unlabeledLinks.map(proj)
     val positive = positiveLinks.map(proj)
