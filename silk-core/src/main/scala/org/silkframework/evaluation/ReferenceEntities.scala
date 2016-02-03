@@ -56,10 +56,10 @@ case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
   }
 
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
-  def entitiyDescs: DPair[SparqlEntitySchema] = {
+  def entitiyDescs: DPair[EntitySchema] = {
     (positive ++ negative ++ unlabeled).values.headOption match {
       case Some(entityPair) => entityPair.map(_.desc)
-      case None => DPair.fill(SparqlEntitySchema.empty)
+      case None => DPair.fill(EntitySchema.empty)
     }
   }
 }
@@ -84,7 +84,7 @@ object ReferenceEntities {
      * Deserialize a value from XML.
      */
     def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
-      val entityDescs = Serialization.fromXml[DPair[SparqlEntitySchema]]((node \ "Pair").head)
+      val entityDescs = Serialization.fromXml[DPair[EntitySchema]]((node \ "Pair").head)
       val posNode = node \ "PositiveEntities"
       val negNode = node \ "NegativeEntities"
       val unlabeledNode = node \ "UnlabeledEntities"

@@ -29,10 +29,10 @@ trait Input extends Operator {
   /**
    * Retrieves the values of this input for a given entity.
    *
-   * @param entities The pair of entities.
+   * @param entity The entity from which the values should be read.
    * @return The values.
    */
-  def apply(entities: DPair[Entity]): Seq[String]
+  def apply(entity: Entity): Seq[String]
 }
 
 object Input {

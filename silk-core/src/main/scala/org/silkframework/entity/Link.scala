@@ -73,7 +73,7 @@ class Link(source: String,
 }
 
 object Link {
-  def fromXML(node: Node, entityDescription: Option[SparqlEntitySchema]) = {
+  def fromXML(node: Node, entityDescription: Option[EntitySchema]) = {
     new Link(
       source = (node \ "Source").text,
       target = (node \ "Target").text,

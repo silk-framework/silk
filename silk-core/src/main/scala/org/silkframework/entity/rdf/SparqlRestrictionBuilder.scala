@@ -11,7 +11,7 @@ class SparqlRestrictionBuilder(subjectVar: String)(implicit prefixes: Prefixes) 
 
   def apply(restriction: Restriction): SparqlRestriction = {
     val sparql = restriction.operator.map(convertOperator).getOrElse("")
-    SparqlRestriction.fromSparql("subjectVar", sparql)
+    SparqlRestriction.fromSparql(subjectVar, sparql)
   }
 
   def convertOperator(op: Operator): String = op match {

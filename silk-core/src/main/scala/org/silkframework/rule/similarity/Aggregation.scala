@@ -70,13 +70,13 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  override def index(entity: Entity, threshold: Double): Index = {
+  override def index(entity: Entity, sourceOrTarget: Boolean, threshold: Double): Index = {
     val totalWeights = operators.map(_.weight).sum
 
     val indexSets = {
       for (op <- operators if op.indexing) yield {
         val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
-        val index = op.index(entity, opThreshold)
+        val index = op.index(entity, sourceOrTarget, opThreshold)
 
         if (op.required && index.isEmpty) return Index.empty
 

@@ -1,6 +1,7 @@
 package controllers.linking
 
 import org.silkframework.config.LinkSpecification
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.workspace.activity.linking.{ReferenceEntitiesCache, LinkingPathsCache}
 import play.api.mvc.Controller
@@ -29,7 +30,7 @@ object LinkingEditor extends Controller {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
     } else {
-      val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(SparqlEntitySchema.empty))
+      val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntitySchema.empty))
       val paths = entityDescs.map(_.paths.map(_.serialize(prefixes)))
       Ok(views.html.editor.paths(paths, onlySource = false))
     }

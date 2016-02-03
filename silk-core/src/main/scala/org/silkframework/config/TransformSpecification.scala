@@ -1,6 +1,6 @@
 package org.silkframework.config
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
 import org.silkframework.runtime.serialization.Serialization._
@@ -13,16 +13,15 @@ import scala.xml.Node
  * This class contains all the required parameters to execute a transform task.
  *
  * @since 2.6.1
- *
  * @see org.silkframework.execution.ExecuteTransform
  */
 case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty) {
 
-  def entityDescription = {
-    new SparqlEntitySchema(
-      variable = selection.variable,
-      restrictions = selection.restriction,
-      paths = rules.flatMap(_.paths).distinct.toIndexedSeq
+  def entitySchema = {
+    EntitySchema(
+      typeUri = selection.typeUri,
+      paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
+      filter = selection.restriction
     )
   }
 

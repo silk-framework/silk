@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.Dataset
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
@@ -19,7 +20,7 @@ case class LinkingPathsCacheFactory() extends TaskActivityFactory[LinkSpecificat
 
   override def autoRun = true
 
-  def apply(task: Task[LinkSpecification]): Activity[DPair[SparqlEntitySchema]] = {
+  def apply(task: Task[LinkSpecification]): Activity[DPair[EntitySchema]] = {
     new CachedActivity(
       activity =
         new LinkingPathsCache(

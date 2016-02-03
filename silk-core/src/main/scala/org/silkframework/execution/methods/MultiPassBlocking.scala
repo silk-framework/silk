@@ -11,7 +11,7 @@ import org.silkframework.execution.ExecutionMethod
   */
 class MultiPassBlocking(blockingKeys: Set[Path]) extends ExecutionMethod {
 
-   override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
+   override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
      val values = blockingKeys.flatMap(key => entity.evaluate(key))
      Index.oneDim(values.map(_.hashCode))
    }

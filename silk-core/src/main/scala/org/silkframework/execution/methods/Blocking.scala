@@ -16,8 +16,8 @@ import org.silkframework.rule.input.SimpleTransformer
  *  @param transformers A list of transformers that are applied to each value prior to blocking
   */
 case class Blocking(sourceKey: Path, targetKey: Path, q: Int = 100, transformers: List[SimpleTransformer] = SoundexTransformer() :: Nil) extends ExecutionMethod {
-   override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-     val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
+   override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
+     val key = if(sourceOrTarget) sourceKey else targetKey
      val values = entity.evaluate(key)
 
      Index.blocks(values.map(getBlock).toSet)

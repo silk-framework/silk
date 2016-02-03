@@ -2,6 +2,7 @@ package org.silkframework.execution
 
 import org.silkframework.config.DatasetSelection
 import org.silkframework.dataset.{EntitySink, DataSink, DataSource}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
@@ -26,13 +27,13 @@ class ExecuteTransform(input: DataSource,
   def run(context: ActivityContext[Unit]): Unit = {
     isCanceled = false
     // Retrieve entities
-    val entityDesc =
-      new SparqlEntitySchema(
-        variable = selection.variable,
-        restrictions = selection.restriction,
-        paths = rules.flatMap(_.paths).distinct.toIndexedSeq
+    val entitySchema =
+      EntitySchema(
+        typeUri = selection.typeUri,
+        paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
+        filter = selection.restriction
       )
-    val entities = input.retrieveSparqlEntities(entityDesc)
+    val entities = input.retrieve(entitySchema)
 
     try {
       // Open outputs

@@ -2,6 +2,7 @@ package controllers.workspace
 
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.User
@@ -54,8 +55,8 @@ object Datasets extends Controller {
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = SparqlEntitySchema("a", SparqlRestriction.empty, paths)
-    val entities = source.retrieveSparqlEntities(entityDesc).take(maxEntities).toList
+    val entityDesc = EntitySchema(firstTypes, paths)
+    val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
     Ok(views.html.workspace.dataset.table(context, paths, entities))
   }

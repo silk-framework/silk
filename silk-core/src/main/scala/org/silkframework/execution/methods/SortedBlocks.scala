@@ -13,8 +13,8 @@ case class SortedBlocks(sourceKey: Path, targetKey: Path, overlap: Double = 0.5)
 
   private val blockCount = pow((maxChar - minChar + 1), 2).toInt
 
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-    val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
+  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
+    val key = if(sourceOrTarget) sourceKey else targetKey
     val values = entity.evaluate(key)
 
     values.map(indexValue).reduce(_ merge _)

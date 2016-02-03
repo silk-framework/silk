@@ -14,10 +14,14 @@
 
 package org.silkframework.entity
 
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.rdf.SparqlRestriction
+
 /**
  * A restriction for filtering datasets.
+  *
 
- * @param operator The root operator.
+  * @param operator The root operator.
  */
 case class Restriction(operator: Option[Restriction.Operator]) {
 
@@ -26,6 +30,8 @@ case class Restriction(operator: Option[Restriction.Operator]) {
 
   /** Retrieves all paths that are used by this restriction. */
   def paths = operator.map(_.paths).getOrElse(Set.empty)
+
+  def serialize = operator.map(_.serialize).mkString
 
   override def toString = operator.mkString
 }
@@ -40,11 +46,21 @@ object Restriction {
    */
   def empty = Restriction(None)
 
+  def custom(restriction: String)(implicit prefixes: Prefixes) = {
+    val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction).toSparql
+    Restriction(Some(CustomOperator(sparqlRestriction)))
+  }
+
   /**
    * Parses a condition.
    * Currently all conditions are parsed into custom conditions.
    */
-  def parse(restriction: String) = Restriction(Some(CustomOperator(restriction)))
+  def parse(restriction: String)(implicit prefixes: Prefixes) = {
+    if(restriction.trim.isEmpty)
+      Restriction(None)
+    else
+      Restriction.custom(restriction)
+  }
 
   /**
    * Base trait for all restriction operators.

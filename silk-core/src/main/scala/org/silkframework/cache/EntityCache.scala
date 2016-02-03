@@ -17,7 +17,7 @@ package org.silkframework.cache
 import org.silkframework.entity.rdf.SparqlEntitySchema
 
 import xml.Node
-import org.silkframework.entity.{Index, Entity}
+import org.silkframework.entity.{EntitySchema, Index, Entity}
 
 /**
  * A cache of entities.
@@ -26,7 +26,7 @@ trait EntityCache {
   /**
    * The entity description of the entities in this cache.
    */
-  def entityDesc: SparqlEntitySchema
+  def entitySchema: EntitySchema
 
   /**
    * The index function according to which the entities are indexed.
@@ -106,7 +106,7 @@ trait EntityCache {
   /**
    * Reads entities from XML
    */
-  def fromXML(node: Node, entityDesc: SparqlEntitySchema) {
+  def fromXML(node: Node, entityDesc: EntitySchema) {
     val entities = new Traversable[Entity] {
       var currentBlock = 0
 

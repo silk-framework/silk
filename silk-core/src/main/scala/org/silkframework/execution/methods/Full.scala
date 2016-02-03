@@ -8,5 +8,5 @@ import org.silkframework.execution.ExecutionMethod
   * Full execution method.
   */
 case class Full() extends ExecutionMethod {
-   override def indexEntity(entity: Entity, rule: LinkageRule): Index = Index.default
+   override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = Index.default
  }

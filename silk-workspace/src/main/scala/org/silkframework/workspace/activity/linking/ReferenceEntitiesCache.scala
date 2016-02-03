@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.linking
 import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.{DataSource, Dataset}
 import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.entity.{EntitySchema, Entity, Link}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.DPair
@@ -42,7 +42,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     }
   }
 
-  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[SparqlEntitySchema]) {
+  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntitySchema]) {
 
     private val sources = task.data.dataSelections.map(ds => task.project.task[Dataset](ds.datasetId).data.source)
 
@@ -94,8 +94,8 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     }
 
     private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]] = {
-      for (source <- sources.source.retrieveSparqlEntities(entityDescs.source, uris.source :: Nil).headOption;
-           target <- sources.target.retrieveSparqlEntities(entityDescs.target, uris.target :: Nil).headOption) yield {
+      for (source <- sources.source.retrieveByUri(entityDescs.source, uris.source :: Nil).headOption;
+           target <- sources.target.retrieveByUri(entityDescs.target, uris.target :: Nil).headOption) yield {
         DPair(source, target)
       }
     }
@@ -118,7 +118,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
      * Updates an entity so that it conforms to a new entity description.
      * All property paths values which are not available in the given entity are loaded from the source.
      */
-    private def updateEntity(entity: Entity, entityDesc: SparqlEntitySchema, source: DataSource): Option[Entity] = {
+    private def updateEntity(entity: Entity, entityDesc: EntitySchema, source: DataSource): Option[Entity] = {
       if (entity.desc.paths == entityDesc.paths) {
         // No updated needed as the given entity already contains all paths in the correct order.
         None
@@ -129,8 +129,8 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
 
         //Retrieve an entity with all missing paths
         val missingEntity =
-          source.retrieveSparqlEntities(
-            entityDesc = entity.desc.copy(paths = missingPaths),
+          source.retrieveByUri(
+            entitySchema = entity.desc.copy(paths = missingPaths),
             entities = entity.uri :: Nil
           ).head
 

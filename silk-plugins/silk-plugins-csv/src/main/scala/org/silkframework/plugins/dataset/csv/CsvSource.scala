@@ -95,7 +95,26 @@ class CsvSource(file: Resource,
     }
   }
 
-  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None): Traversable[Entity] = {
+    if (entitySchema.filter.operator.isDefined) {
+      ??? // TODO: Implement Restriction handling!
+    }
+    val entities = retrieveEntities(entitySchema)
+    limitOpt match {
+      case Some(limit) =>
+        entities.take(limit)
+      case None =>
+        entities
+    }
+  }
+
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    val entities = retrieveEntities(entitySchema)
+    entities.toSeq
+  }
+
+
+  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
@@ -247,19 +266,6 @@ class CsvSource(file: Resource,
       props.toIndexedSeq
     } else {
       IndexedSeq.empty[Path]
-    }
-  }
-
-  override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None): Traversable[Entity] = {
-    if (entitySchema.filter.operator.isDefined) {
-      ??? // TODO: Implement Restriction handling!
-    }
-    val entities = retrieveSparqlEntities(SparqlEntitySchema(paths = entitySchema.paths))
-    limitOpt match {
-      case Some(limit) =>
-        entities.take(limit)
-      case None =>
-        entities
     }
   }
 

@@ -1,6 +1,6 @@
 package org.silkframework.learning.active
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.{EntitySchema, Link}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.util.DPair
 
@@ -10,7 +10,7 @@ import org.silkframework.util.DPair
  * @param entityDescs The schemata of the two data sources.
  * @param links The unlabeled link candidates.
  */
-case class UnlabeledLinkPool(entityDescs: DPair[SparqlEntitySchema], links: Traversable[Link]) {
+case class UnlabeledLinkPool(entityDescs: DPair[EntitySchema], links: Traversable[Link]) {
 
   def isEmpty = links.isEmpty
 
@@ -20,6 +20,6 @@ case class UnlabeledLinkPool(entityDescs: DPair[SparqlEntitySchema], links: Trav
 
 object UnlabeledLinkPool {
 
-  def empty = UnlabeledLinkPool(DPair.fill(SparqlEntitySchema.empty), Traversable.empty)
+  def empty = UnlabeledLinkPool(DPair.fill(EntitySchema.empty), Traversable.empty)
 
 }

@@ -112,19 +112,20 @@ class GenerateLinks(inputs: DPair[DataSource],
   }
 
   private def createCaches() = {
-    val indexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule)
+    val sourceIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = true)
+    val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = false)
 
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + linkSpec.id)
 
       DPair(
-        source = new FileEntityCache(entityDescs.source, indexFunction, cacheDir + "/source/", runtimeConfig),
-        target = new FileEntityCache(entityDescs.target, indexFunction, cacheDir + "/target/", runtimeConfig)
+        source = new FileEntityCache(entityDescs.source, sourceIndexFunction, cacheDir + "/source/", runtimeConfig),
+        target = new FileEntityCache(entityDescs.target, targetIndexFunction, cacheDir + "/target/", runtimeConfig)
       )
     } else {
       DPair(
-        source = new MemoryEntityCache(entityDescs.source, indexFunction, runtimeConfig),
-        target = new MemoryEntityCache(entityDescs.target, indexFunction, runtimeConfig)
+        source = new MemoryEntityCache(entityDescs.source, sourceIndexFunction, runtimeConfig),
+        target = new MemoryEntityCache(entityDescs.target, targetIndexFunction, runtimeConfig)
       )
     }
   }

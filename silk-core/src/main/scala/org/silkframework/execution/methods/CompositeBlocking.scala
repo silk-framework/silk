@@ -9,7 +9,7 @@ import org.silkframework.execution.ExecutionMethod
   */
 class CompositeBlocking(blockingKey1: Path, blockingKey2: Path) extends ExecutionMethod {
 
-   override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
+   override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
      val blocks =
        for(v1 <- entity.evaluate(blockingKey1);
            v2 <- entity.evaluate(blockingKey2)) yield {

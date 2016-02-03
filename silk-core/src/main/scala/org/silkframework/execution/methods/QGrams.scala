@@ -22,8 +22,8 @@ case class QGrams(sourceKey: Path, targetKey: Path, q: Int = 2, t: Double = 0.8)
   require(q > 0, "q > 0")
   require(0.0 <= t && t < 1.0, "0 <= t < 1")
 
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = {
-    val key = if(sourceKey.variable == entity.desc.variable) sourceKey else targetKey
+  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
+    val key = if(sourceOrTarget) sourceKey else targetKey
     val values = entity.evaluate(key)
 
     Index.blocks(values.flatMap(indexValue).toSet)

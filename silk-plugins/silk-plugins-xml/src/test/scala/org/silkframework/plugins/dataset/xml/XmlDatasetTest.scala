@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
-import org.silkframework.entity.Path
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.util.Uri
 
 @RunWith(classOf[JUnitRunner])
 class XmlDatasetTest extends FlatSpec with Matchers {
@@ -23,9 +24,8 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   val personValue = Path.parse("Properties/Property[Key = \"2\"]/Value")
 
   val entityDesc =
-    SparqlEntitySchema(
-      variable = "a",
-      restrictions = SparqlRestriction.empty,
+    EntitySchema(
+      typeUri = Uri(""),
       paths = IndexedSeq(personId, personName, personBirth, personDeath, personValue)
     )
 
@@ -62,6 +62,6 @@ class XmlDatasetTest extends FlatSpec with Matchers {
 
   private def entities(basePath: String = "") = {
     val source = new XmlDataset(resourceLoader.get("persons.xml"), basePath, "http://example.org/{ID}").source
-    source.retrieveSparqlEntities(entityDesc).toSeq
+    source.retrieve(entityDesc).toSeq
   }
 }

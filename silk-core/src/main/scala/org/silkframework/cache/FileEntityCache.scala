@@ -19,13 +19,13 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.RuntimeConfig
 import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.entity.{Entity, Index}
+import org.silkframework.entity.{EntitySchema, Entity, Index}
 import org.silkframework.util.FileUtils._
 
 /**
  * An entity cache, which caches the entities on the local file system.
  */
-class FileEntityCache(val entityDesc: SparqlEntitySchema,
+class FileEntityCache(val entitySchema: EntitySchema,
                       val indexFunction: (Entity => Index),
                       dir: File,
                       runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
@@ -59,7 +59,7 @@ class FileEntityCache(val entityDesc: SparqlEntitySchema,
       }
 
       val time = (System.currentTimeMillis - startTime) / 1000.0
-      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCount + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
+      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCount + " entities with type '" + entitySchema.typeUri + "' in " + time + " seconds")
     } finally {
       writing = false
     }
@@ -179,7 +179,7 @@ class FileEntityCache(val entityDesc: SparqlEntitySchema,
       val stream = new DataInputStream(new BufferedInputStream(new FileInputStream(blockDir + "/partition" + partition.toString)))
 
       try {
-        Partition.deserialize(stream, entityDesc)
+        Partition.deserialize(stream, entitySchema)
       }
       finally {
         stream.close()

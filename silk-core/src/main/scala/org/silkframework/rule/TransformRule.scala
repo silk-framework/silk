@@ -34,7 +34,7 @@ sealed trait TransformRule {
    * @return The transformed values.
    */
   def apply(entity: Entity): Seq[String] = {
-    operator(DPair.fill(entity))
+    operator(entity)
   }
 
   /**

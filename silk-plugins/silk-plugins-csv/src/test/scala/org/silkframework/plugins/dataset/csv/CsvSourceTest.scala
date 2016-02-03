@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.csv
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.scalatest.{Matchers, FlatSpec}
+import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {
 
@@ -26,16 +27,16 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   "For persons.csv, CsvParser" should "extract all columns" in {
-    val entityDesc = SparqlEntitySchema(paths = IndexedSeq(Path("ID"), Path("Name"), Path("Age")))
-    val persons = source.retrieveSparqlEntities(entityDesc).toIndexedSeq
+    val entityDesc = EntitySchema(typeUri = Uri(""), paths = IndexedSeq(Path("ID"), Path("Name"), Path("Age")))
+    val persons = source.retrieve(entityDesc).toIndexedSeq
     persons(0).values should equal (IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal (IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
     persons(2).values should equal (IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55")))
   }
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
-    val entityDesc = SparqlEntitySchema(paths = IndexedSeq(Path("Name"), Path("Age")))
-    val persons = source.retrieveSparqlEntities(entityDesc).toIndexedSeq
+    val entityDesc = EntitySchema(typeUri = Uri(""), paths = IndexedSeq(Path("Name"), Path("Age")))
+    val persons = source.retrieve(entityDesc).toIndexedSeq
     persons(0).values should equal (IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal (IndexedSeq(Seq("Markus G."), Seq("24")))
     persons(2).values should equal (IndexedSeq(Seq("John Doe"), Seq("55")))

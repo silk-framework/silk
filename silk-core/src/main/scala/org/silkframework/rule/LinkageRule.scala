@@ -54,9 +54,9 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  def index(entity: Entity, limit: Double = 0.0): Index = {
+  def index(entity: Entity, sourceOrTarget: Boolean, limit: Double = 0.0): Index = {
     operator match {
-      case Some(op) => op.index(entity, limit)
+      case Some(op) => op.index(entity, sourceOrTarget, limit)
       case None => Index.empty
     }
   }

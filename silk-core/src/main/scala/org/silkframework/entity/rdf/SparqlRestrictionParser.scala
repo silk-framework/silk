@@ -29,15 +29,19 @@ import scala.util.parsing.input.CharSequenceReader
 class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers {
 
   def apply(sparqlRestriction: SparqlRestriction): Restriction = {
+    apply(sparqlRestriction.toString)
+  }
+
+  def apply(sparqlRestriction: String): Restriction = {
     // Check if pattern is empty
     val ignored = ".{}".toSet
-    val isEmpty = sparqlRestriction.toString.filterNot(ignored).trim.isEmpty
+    val isEmpty = sparqlRestriction.filterNot(ignored).trim.isEmpty
     if(isEmpty) {
       // Pattern is empty
       Restriction.empty
     } else {
       // Parse nonempty pattern
-      parseAll(parser, new CharSequenceReader(sparqlRestriction.toString)) match {
+      parseAll(parser, new CharSequenceReader(sparqlRestriction)) match {
         case Success(parsedPath, _) => parsedPath
         case error: NoSuccess => throw new ValidationException(error.toString)
       }

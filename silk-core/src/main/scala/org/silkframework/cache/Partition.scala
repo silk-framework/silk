@@ -14,7 +14,7 @@
 
 package org.silkframework.cache
 
-import org.silkframework.entity.Entity
+import org.silkframework.entity.{EntitySchema, Entity}
 import java.io.{DataInput, DataOutput}
 
 import org.silkframework.entity.rdf.SparqlEntitySchema
@@ -50,7 +50,7 @@ object Partition {
     }
   }
 
-  def deserialize(stream: DataInput, desc: SparqlEntitySchema) = {
+  def deserialize(stream: DataInput, desc: EntitySchema) = {
     val partitionSize = stream.readInt()
     val entities = new Array[Entity](partitionSize)
     val indices = new Array[BitsetIndex](partitionSize)

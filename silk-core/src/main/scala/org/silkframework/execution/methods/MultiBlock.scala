@@ -8,5 +8,5 @@ import org.silkframework.execution.ExecutionMethod
   * MultiBlock execution method.
   */
 case class MultiBlock() extends ExecutionMethod {
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = rule.index(entity, 0.0)
+  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = rule.index(entity, sourceOrTarget, 0.0)
 }
