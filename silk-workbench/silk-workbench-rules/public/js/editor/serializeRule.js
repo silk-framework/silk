@@ -75,8 +75,7 @@ function parseOperator(xmlDoc, elementId, connections) {
   }
 
   // Parse id
-  var id = $(elementIdName + " > .content > .label").text();
-  if (!id) id = $(elementIdName + " > .content > .label-active > input.label-change").val();
+  var id = $(elementIdName + " .handler label").text();
   xml.setAttribute("id", id);
 
   // Parse children

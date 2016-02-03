@@ -139,7 +139,7 @@ $(function ()
         ui.helper.appendTo(this);
 
         // Set operator name to current id
-        $('#' + boxid + " > .content > .label").text(boxid);
+        $('#' + boxid + " .handler label").text(boxid);
 
         // Make operator draggable
         jsPlumb.draggable($('#' + boxid));
@@ -266,8 +266,9 @@ function generateNewElementId(currentId) {
 }
 
 function getCurrentElementName(elId) {
-  var elName = $("#" + elId + " .content > .label").text();
-  if (!elName) elName = $("#" + elId + " .content > .label-active > input.label-change").val();
+  var elName = $("#" + elId + " .handler label").text();
+//  var elName = $("#" + elId + " .content > .label").text();
+//  if (!elName) elName = $("#" + elId + " .content > .label-active > input.label-change").val();
   return elName;
 }
 
