@@ -48,7 +48,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
     for (element <- selectedElements.headOption.toSeq; // At the moment, we only retrieve the path from the first found element
          path <- collectPaths(element)) yield {
-      (Path(restriction.variable, path.toList), 1.0)
+      (Path(path.toList), 1.0)
     }
   }
 

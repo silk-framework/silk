@@ -16,7 +16,7 @@ class QGramsTest extends FlatSpec with ShouldMatchers {
   }
 
   private def subLists(str: String, q: Int, t: Double) = {
-    QGrams(Path("a", Nil), Path("b", Nil), q, t).generateSubLists(str)
+    QGrams(Path(Nil), Path(Nil), q, t).generateSubLists(str)
   }
 
   // All sub-lists with minimum length 5

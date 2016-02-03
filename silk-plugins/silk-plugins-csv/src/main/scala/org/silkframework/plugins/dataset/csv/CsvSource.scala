@@ -91,7 +91,7 @@ class CsvSource(file: Resource,
 
   override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
     for (property <- propertyList) yield {
-      (Path(restriction.variable, ForwardOperator(prefix + property) :: Nil), 1.0)
+      (Path(ForwardOperator(prefix + property) :: Nil), 1.0)
     }
   }
 

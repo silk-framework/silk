@@ -23,16 +23,18 @@ object LinkingEditor extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
+    val sourceNames = task.data.dataSelections.map(_.datasetId.toString)
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
-      ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg))
+      ServiceUnavailable(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg))
     } else if(pathsCache.status().failed) {
-      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
+      Ok(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
     } else {
+
       val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntitySchema.empty))
       val paths = entityDescs.map(_.paths.map(_.serialize(prefixes)))
-      Ok(views.html.editor.paths(paths, onlySource = false))
+      Ok(views.html.editor.paths(sourceNames, paths, onlySource = false))
     }
   }
 

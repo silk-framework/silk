@@ -21,7 +21,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes().head
     for (path <- XmlParser.collectPaths(xml)) yield {
-      (Path(restriction.variable, path.tail.toList), 1.0)
+      (Path(path.tail.toList), 1.0)
     }
   }
 

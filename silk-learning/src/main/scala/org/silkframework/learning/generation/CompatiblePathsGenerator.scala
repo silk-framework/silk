@@ -84,7 +84,7 @@ class CompatiblePathsGenerator(components: Components) {
   private object PathsRetriever {
     def apply(entities: ReferenceEntities) = {
       val pair = entities.positive.values.head
-      val allPaths = pair.map(e => Path("a", Nil) +: e.desc.paths)
+      val allPaths = pair.map(e => Path(Nil) +: e.desc.paths)
       allPaths.map(_.filterNot(_.toString.contains("sameAs"))).map(_.filterNot(_.toString.contains("abstract"))).map(_.filterNot(_.toString.contains("comment")))
     }
   }

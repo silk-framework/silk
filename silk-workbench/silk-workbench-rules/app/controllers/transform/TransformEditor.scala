@@ -27,15 +27,16 @@ object TransformEditor extends Controller {
     val task = project.task[TransformSpecification](taskName)
     val pathsCache = task.activity[TransformPathsCache].control
     val prefixes = project.config.prefixes
+    val sourceName = task.data.selection.datasetId.toString
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
-      ServiceUnavailable(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, loadingMsg = loadingMsg))
+      ServiceUnavailable(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, loadingMsg = loadingMsg))
     } else if(pathsCache.status().failed) {
-      Ok(views.html.editor.paths(DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message))
+      Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message))
     } else {
       val paths = DPair(pathsCache.value().paths.map(_.serialize(prefixes)), Seq.empty)
-      Ok(views.html.editor.paths(paths, onlySource = true))
+      Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true))
     }
   }
 
