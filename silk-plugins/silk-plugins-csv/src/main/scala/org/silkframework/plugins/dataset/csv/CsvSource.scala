@@ -12,6 +12,7 @@ import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.util.Uri
 
+import scala.collection.mutable
 import scala.collection.mutable.{HashMap => MMap}
 import scala.io.Codec
 
@@ -34,20 +35,21 @@ class CsvSource(file: Resource,
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
 
-  private lazy val propertyList: Seq[String] = {
+  private lazy val propertyList: IndexedSeq[String] = {
     val parser = new CsvParser(Seq.empty, csvSettings)
     if (!properties.trim.isEmpty)
-      parser.parseLine(properties)
+      parser.parseLine(properties).toIndexedSeq
     else {
       val source = getAndInitBufferedReaderForCsvFile()
       val firstLine = source.readLine()
       source.close()
       if (firstLine != null && firstLine != "") {
-        parser.parseLine(firstLine).
-            takeWhile(_ != null). // Break if a header field is null
-            map(s => URLEncoder.encode(s, "UTF8"))
+        parser.parseLine(firstLine)
+          .takeWhile(_ != null) // Break if a header field is null
+          .map(s => URLEncoder.encode(s, "UTF8"))
+          .toIndexedSeq
       } else {
-        Seq()
+        mutable.IndexedSeq()
       }
     }
   }
@@ -89,9 +91,9 @@ class CsvSource(file: Resource,
 
   override def toString = file.toString
 
-  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     for (property <- propertyList) yield {
-      (Path(ForwardOperator(prefix + property) :: Nil), 1.0)
+      Path(ForwardOperator(prefix + property) :: Nil)
     }
   }
 
@@ -258,17 +260,6 @@ class CsvSource(file: Resource,
     Seq((classUri, 1.0))
   }
 
-  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    if (classUri == t.uri) {
-      val props = for (property <- propertyList) yield {
-        Path(prefix + property)
-      }
-      props.toIndexedSeq
-    } else {
-      IndexedSeq.empty[Path]
-    }
-  }
-
   private def classUri = prefix + "CsvTable"
 }
 
@@ -363,7 +354,8 @@ object SeparatorDetector {
 
 /**
  * The return value of the separator detection
- * @param separator the character used for separating fields in CSV
+  *
+  * @param separator the character used for separating fields in CSV
  * @param numberOfFields the detected number of fields when splitting with this separator
  */
 case class DetectedSeparator(separator: Char, numberOfFields: Int, skipLinesBeginning: Int)

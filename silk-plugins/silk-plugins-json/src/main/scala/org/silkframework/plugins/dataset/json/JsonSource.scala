@@ -43,12 +43,12 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   /**
    * Retrieves the most frequent paths in this source.
    */
-  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     val json = load(file)(codec)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
-    for (element <- selectedElements.headOption.toSeq; // At the moment, we only retrieve the path from the first found element
+    for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
          path <- collectPaths(element)) yield {
-      (Path(path.toList), 1.0)
+      Path(path.toList)
     }
   }
 

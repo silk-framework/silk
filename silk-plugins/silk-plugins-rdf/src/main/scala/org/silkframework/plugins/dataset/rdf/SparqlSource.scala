@@ -39,16 +39,18 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     entityRetriever.retrieve(entitySchema, entities, None).toSeq
   }
 
-  override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+    val restrictions = SparqlRestriction.fromSparql("a", s"?a a <$t>.")
+
     //Create an endpoint which fails after 3 retries
     val failFastEndpoint = new RemoteSparqlEndpoint(params.copy(retryCount = 3, retryPause = 1000))
 
     try {
-      SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit).map(p => (p, 1.0))
+      SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)
     } catch {
       case ex: Exception =>
         log.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
-        SparqlSamplePathsCollector(sparqlEndpoint, restrictions, limit).map(p => (p, 1.0))
+        SparqlSamplePathsCollector(sparqlEndpoint, restrictions, limit).toIndexedSeq
     }
   }
 
