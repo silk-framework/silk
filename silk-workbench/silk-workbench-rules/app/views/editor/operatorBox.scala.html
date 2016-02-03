@@ -11,21 +11,28 @@
   <small class="name">@plugin.id</small>
   <small class="type">@opType</small>
   <h5 class="handler">
-    <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
-      @plugin.label (@opType)
-    </div>
+    <label class="edit_label">@id</label>
+    <input class="edit_label" type="text" value="@id" name="name" id="@id-name"/>
+    <!--<div class="clearfix"></div>-->
+    <!--<div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
+      @id-foo
+    </div>-->
     <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
     <img align="right" src="@Assets.at("img/undecided.png")" style="cursor:help;" title="@plugin.description"/>
   </h5>
   <div class="content">
-    name:
-    <span class="label">@id</span>
-    <br/>
+    <!--
+    <div class="param_element">
+      <label class="param_label" for="@id-name">Name</label>
+      <input class="param_value" type="text" name="name" value="@id" id="@id-name"/>
+    </div>
+    -->
     @additionalContent
     @for(((name, value), index) <- parameters.zipWithIndex) {
-      @if(index != 0) {<br/>}
-      @name:
-      <input type="text" name="@name" size="15" value="@value" />
+      <div class="param_element">
+        <label class="param_label">@name</label>
+        <input class="param_value" type="text" name="@name" value="@value"/>
+      </div>
     }
   </div>
 </div>

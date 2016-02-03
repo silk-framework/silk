@@ -316,3 +316,34 @@ body{
   color: rgb(113, 113, 113);
   line-height: 40px;
 }
+
+/* label and value formatting */
+
+.param_element {
+  width: 189px;
+}
+
+.param_label {
+  display: inline-block;
+  width: 60px;
+  text-align: right;
+  word-break:break-all;
+}
+
+input.param_value {
+  width: 119px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ddd;
+}
+
+label:hover {
+    background: #f2f5ff;
+    border-radius:5px;
+}
+
+input.edit_label {
+  display: none;
+  border-width: 0px;
+  margin: 0px;
+}
