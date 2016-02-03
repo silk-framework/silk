@@ -17,11 +17,11 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
-  override def retrieveSparqlPaths(restriction: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes().head
-    for (path <- XmlParser.collectPaths(xml)) yield {
-      (Path(path.tail.toList), 1.0)
+    for (path <- XmlParser.collectPaths(xml).toIndexedSeq) yield {
+      Path(path.tail.toList)
     }
   }
 

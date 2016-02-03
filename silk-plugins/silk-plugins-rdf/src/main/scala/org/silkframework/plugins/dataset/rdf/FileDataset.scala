@@ -85,9 +85,10 @@ case class FileDataset(
       EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
     }
 
-    override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
       load()
-      SparqlAggregatePathsCollector(endpoint, restrictions, limit).map(p => (p, 1.0))
+      val restrictions = SparqlRestriction.fromSparql("a", s"?a a <$t>.")
+      SparqlAggregatePathsCollector(endpoint, restrictions, limit)
     }
 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {

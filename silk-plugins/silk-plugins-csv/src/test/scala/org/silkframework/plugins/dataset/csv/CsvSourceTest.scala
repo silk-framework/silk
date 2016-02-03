@@ -22,7 +22,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val source = new CsvSource(resources.get("persons.csv"), settings)
 
   "For persons.csv, CsvParser" should "extract the schema" in {
-    val properties = source.retrieveSparqlPaths().map(_._1.propertyUri.get).toSet
+    val properties = source.retrievePaths("").map(_.propertyUri.get).toSet
     properties should equal (Set("ID", "Name", "Age"))
   }
 
