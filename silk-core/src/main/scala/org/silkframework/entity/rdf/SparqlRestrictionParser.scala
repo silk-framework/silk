@@ -102,7 +102,7 @@ class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers 
   }
 
   def rdfTypeReplacement = "a" ^^ {
-    _ => "rdf:type"
+    _ => "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
   }
 
   val idChars = """[a-zA-Z_]\w*""".r
