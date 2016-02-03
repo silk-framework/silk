@@ -47,23 +47,25 @@ object CompleteReferenceLinks {
     } 
 
     val positive = {
-      if(!referenceEntities.positive.isEmpty) {
-        referenceEntities.positive
+      val entities = referenceEntities.positiveEntities
+      if(!entities.isEmpty) {
+        entities
       } else {
         val maxLink = linksWithConfidence.maxBy(_.confidence)
-        Map(maxLink -> maxLink.entities.get)
+        Seq(maxLink.entities.get)
       }
     }
 
     val negative = {
-      if(!referenceEntities.negative.isEmpty) {
-        referenceEntities.negative
+      val entities = referenceEntities.negativeEntities
+      if(!entities.isEmpty) {
+        entities
       } else {
         val minLink = linksWithConfidence.minBy(_.confidence)
-        Map(minLink -> minLink.entities.get)
+        Seq(minLink.entities.get)
       }
     }
 
-    ReferenceEntities(positive, negative)
+    ReferenceEntities.fromEntities(positive, negative)
   }
 }

@@ -77,7 +77,7 @@ class ActiveLearning(config: LearningConfiguration,
     }
 
     //Assert that no reference links are in the pool
-    pool = pool.withoutLinks(referenceEntities.all.keySet)
+    pool = pool.withoutLinks(referenceEntities.all)
 
     // Update pool
     context.value() = context.value().copy(pool = pool)

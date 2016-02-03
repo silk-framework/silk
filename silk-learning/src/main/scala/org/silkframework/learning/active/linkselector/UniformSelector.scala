@@ -27,8 +27,8 @@ class UniformSelector() extends LinkSelector {
   def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     val proj = projection(rules, referenceEntities)
 
-    val positiveLinks = for((link, entityPair) <- referenceEntities.positive) yield link.update(entities = Some(entityPair))
-    val negativeLinks = for((link, entityPair) <- referenceEntities.negative) yield link.update(entities = Some(entityPair))
+    val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink
+    val negativeLinks = referenceEntities.negativeEntities map LinkSelectorHelper.pairToLink
 
     val unlabeled = unlabeledLinks.map(proj)
     val positive = positiveLinks.map(proj)

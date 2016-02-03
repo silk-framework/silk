@@ -1,14 +1,19 @@
 package org.silkframework.workspace.activity.linking
 
+import java.util
+
 import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.{DataSource, Dataset}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.entity.{EntitySchema, Entity, Link}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.util.DPair
+import org.silkframework.util.{Uri, DPair}
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.Task
+import scala.collection.JavaConverters
+import JavaConverters._
+
 
 /**
  * For each reference link, the reference entities cache holds all values of the linked entities.
@@ -55,11 +60,13 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
 
       import linkSpec.referenceLinks.{negative, positive, unlabeled}
       val links = Seq(negative, positive, unlabeled)
-      val loadLinkFns: Seq[Link => Option[DPair[Entity]]] = Seq(
-        link => context.value().negative.get(link),
-        link => context.value().positive.get(link),
-        link => context.value().unlabeled.get(link)
+      // Get load the different types of links
+      val loadLinkEntitiesFNs: Seq[Link => Option[DPair[Entity]]] = Seq(
+        context.value().negativeLinkToEntities,
+        context.value().positiveLinkToEntities,
+        context.value().unlabeledLinkToEntities
       )
+      // The appropriate context update functions for each type
       val updateEntityFNs: Seq[() => DPair[Entity] => ReferenceEntities] = Seq(
         () => context.value().withNegative,
         () => context.value().withPositive,
@@ -67,7 +74,22 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       )
       var loadedLinks = 0
 
-      for(((links, loadLinkFn), updateEntityFN) <- links.zip(loadLinkFns).zip(updateEntityFNs) if !canceled) {
+//      val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
+//      val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
+//      for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
+//        for (link <- links if !canceled) {
+//          if (Thread.currentThread.isInterrupted) throw new InterruptedException()
+//          for (l <- loadLink(link, loadLinkFn)) {
+//            collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, l.source, entityDescs.source)
+//            collectEntitiesNeedingUpdate(targetEntityUrisNeedingUpdate, l.target, entityDescs.target)
+//          }
+//        }
+//      }
+//
+//      val sourceEntities: Map[String, Entity] = getSourceEntities(sourceEntityUrisNeedingUpdate)
+//      val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
+
+      for (((links, loadLinkFn), updateEntityFN) <- links.zip(loadLinkEntitiesFNs).zip(updateEntityFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
           for (l <- loadLink(link, loadLinkFn)) {
@@ -80,12 +102,47 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       }
     }
 
+//    private def getSourceEntities(sourceEntityUrisNeedingUpdate: util.HashSet[String]): Map[String, Entity] = {
+//      getEntitiesByUri(
+//        sourceEntityUrisNeedingUpdate.asScala.toSeq,
+//        entityDescs.source,
+//        sources.source)
+//    }
+//
+//    private def getTargetEntities(targetEntityUrisNeedingUpdate: util.HashSet[String]): Map[String, Entity] = {
+//      getEntitiesByUri(
+//        targetEntityUrisNeedingUpdate.asScala.toSeq,
+//        entityDescs.target,
+//        sources.target)
+//    }
+//
+//    private def collectEntitiesNeedingUpdate(entities: util.HashSet[String],
+//                                             entity: Entity,
+//                                             entityDescription: SparqlEntitySchema): Unit = {
+//      if (entityMatchesDescription(entity, entityDescription)) {
+//        entities.add(entity.uri)
+//      }
+//    }
+//
+//    private def linkNeedsUpdate(link: Link,
+//                                loadLinkEntities: Link => Option[DPair[Entity]]): Boolean = {
+//      link.entities match {
+//        case Some(entities) => false
+//        case None => {
+//          loadLinkEntities(link) match {
+//            case None => retrieveEntityPair(link)
+//            case Some(entityPair) => updateEntityPair(entityPair)
+//          }
+//        }
+//      }
+//    }
+
     private def loadLink(link: Link,
-                         getEntities: Link => Option[DPair[Entity]]): Option[DPair[Entity]] = {
+                         loadLinkEntities: Link => Option[DPair[Entity]]): Option[DPair[Entity]] = {
       link.entities match {
         case Some(entities) => Some(entities)
         case None => {
-          getEntities(link) match {
+          loadLinkEntities(link) match {
             case None => retrieveEntityPair(link)
             case Some(entityPair) => updateEntityPair(entityPair)
           }
@@ -119,7 +176,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
      * All property paths values which are not available in the given entity are loaded from the source.
      */
     private def updateEntity(entity: Entity, entityDesc: EntitySchema, source: DataSource): Option[Entity] = {
-      if (entity.desc.paths == entityDesc.paths) {
+      if (entityMatchesDescription(entity, entityDesc)) {
         // No updated needed as the given entity already contains all paths in the correct order.
         None
       } else {
@@ -151,6 +208,20 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
           desc = entityDesc
         ))
       }
+    }
+
+    private def getEntitiesByUri(entityUris: Seq[Uri],
+                            entityDesc: EntitySchema,
+                            source: DataSource): Map[String, Entity] = {
+      val entities = source.retrieveByUri(
+        entitySchema = entityDesc,
+        entities = entityUris
+      )
+      entities map { e => (e.uri, e)} toMap
+    }
+
+    private def entityMatchesDescription(entity: Entity, entityDesc: EntitySchema): Boolean = {
+      entity.desc.paths == entityDesc.paths
     }
   }
 

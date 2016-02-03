@@ -22,45 +22,134 @@ import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
 import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
 import org.silkframework.util.DPair
-import scala.xml.Node
+import scala.xml.{NodeSeq, Node}
 
 /**
  * Holds the entities which correspond to a set of reference links.
  */
-case class ReferenceEntities(positive: Map[Link, DPair[Entity]] = Map.empty,
-                             negative: Map[Link, DPair[Entity]] = Map.empty,
-                             unlabeled: Map[Link, DPair[Entity]] = Map.empty) {
+case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
+                             targetEntities: Map[String, Entity] = Map.empty,
+                             positiveLinks: Set[Link] = Set.empty,
+                             negativeLinks: Set[Link] = Set.empty,
+                             unlabeledLinks: Set[Link] = Set.empty) {
 
   /** Returns positive and negative reference links. */
-  def all = positive ++ negative
+  def all = positiveLinks ++ negativeLinks
 
   /** True, if no entities are available. */
-  def isEmpty = positive.isEmpty && negative.isEmpty
+  def isEmpty = positiveLinks.isEmpty && negativeLinks.isEmpty
 
   /** True, if positive and negative entities are available. */
-  def isDefined = positive.nonEmpty && negative.nonEmpty
+  def isDefined = positiveLinks.nonEmpty && negativeLinks.nonEmpty
+
+  def positiveEntities: Traversable[DPair[Entity]] = {
+    linksToEntities(positiveLinks)
+  }
+
+  def negativeEntities: Traversable[DPair[Entity]] = {
+    linksToEntities(negativeLinks)
+  }
+
+  def unlabeledEntities: Traversable[DPair[Entity]] = {
+    linksToEntities(unlabeledLinks)
+  }
+
+  private def linkToEntities(link: Link): Option[DPair[Entity]] = {
+    for {
+      sourceEntity <- sourceEntities.get(link.source)
+      targetEntity <- targetEntities.get(link.target)
+    } yield {
+      DPair(sourceEntity, targetEntity)
+    }
+  }
+
+  /**
+   * If and only if the link is a positive link then return the pair of entity.
+   * @param link
+   * @return
+   */
+  def positiveLinkToEntities(link: Link): Option[DPair[Entity]] = {
+    if(positiveLinks.contains(link)) {
+      linkToEntities(link)
+    } else {
+      None
+    }
+  }
+
+  def negativeLinkToEntities(link: Link): Option[DPair[Entity]] = {
+    if(negativeLinks.contains(link)) {
+      linkToEntities(link)
+    } else {
+      None
+    }
+  }
+
+  def unlabeledLinkToEntities(link: Link): Option[DPair[Entity]] = {
+    if(unlabeledLinks.contains(link)) {
+      linkToEntities(link)
+    } else {
+      None
+    }
+  }
+
+  // Converts a link to the entity pair.
+  private def linksToEntities(links: Set[Link]): Set[DPair[Entity]] = {
+    links flatMap linkToEntities
+  }
 
   /** Merges this reference set with another reference set. */
-  def merge(ref: ReferenceEntities) =  ReferenceEntities(positive ++ ref.positive, negative ++ ref.negative, unlabeled ++ ref.unlabeled)
+  def merge(ref: ReferenceEntities) = ReferenceEntities(
+    sourceEntities ++ ref.sourceEntities,
+    targetEntities ++ ref.targetEntities,
+    positiveLinks ++ ref.positiveLinks,
+    negativeLinks ++ ref.negativeLinks,
+    unlabeledLinks ++ ref.unlabeledLinks
+  )
+
+  private def updateEntities(entityPair: DPair[Entity],
+                             referenceEntities: ReferenceEntities): ReferenceEntities = {
+    referenceEntities.copy(
+      sourceEntities = sourceEntities + (entityPair.source.uri -> entityPair.source),
+      targetEntities = targetEntities + (entityPair.target.uri -> entityPair.target)
+    )
+  }
 
   def withPositive(entityPair: DPair[Entity]) = {
-    copy(positive = positive + (new Link(entityPair.source.uri, entityPair.target.uri) -> entityPair))
+    updateEntities(
+      entityPair,
+      copy(
+        positiveLinks = positiveLinks + (new Link(entityPair.source.uri, entityPair.target.uri))
+      )
+    )
   }
 
   def withNegative(entityPair: DPair[Entity]) = {
-    copy(negative = negative + (new Link(entityPair.source.uri, entityPair.target.uri) -> entityPair))
+    updateEntities(
+      entityPair,
+      copy(
+        negativeLinks = negativeLinks + (new Link(entityPair.source.uri, entityPair.target.uri))
+      )
+    )
   }
 
   def withUnlabeled(entityPair: DPair[Entity]) = {
-    copy(unlabeled = unlabeled + (new Link(entityPair.source.uri, entityPair.target.uri) -> entityPair))
+    updateEntities(
+      entityPair,
+      copy(
+        unlabeledLinks = unlabeledLinks + (new Link(entityPair.source.uri, entityPair.target.uri))
+      )
+    )
   }
 
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
-  def entitiyDescs: DPair[EntitySchema] = {
-    (positive ++ negative ++ unlabeled).values.headOption match {
-      case Some(entityPair) => entityPair.map(_.desc)
-      case None => DPair.fill(EntitySchema.empty)
+  def entityDescs: DPair[EntitySchema] = {
+    for {
+      sourceEntityDesc <- sourceEntities.values.headOption map (_.desc)
+      targetEntityDesc <- targetEntities.values.headOption map (_.desc)
+    } {
+      return DPair(sourceEntityDesc, targetEntityDesc)
     }
+    DPair.fill(EntitySchema.empty)
   }
 }
 
@@ -68,11 +157,21 @@ object ReferenceEntities {
 
   def empty = ReferenceEntities(Map.empty, Map.empty)
 
-  def fromEntities(positiveEntities: Traversable[DPair[Entity]], negativeEntities: Traversable[DPair[Entity]], unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty) = {
+  def fromEntities(positiveEntities: Traversable[DPair[Entity]],
+                   negativeEntities: Traversable[DPair[Entity]],
+                   unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty) = {
+    def srcEnt(e: Traversable[DPair[Entity]]) = e map (_.source) toSet
+    def tgtEnt(e: Traversable[DPair[Entity]]) = e map (_.target) toSet
+
+    val sourceEntities = srcEnt(positiveEntities) ++ srcEnt(negativeEntities) ++ srcEnt(unlabeledEntities)
+    val targetEntities = tgtEnt(positiveEntities) ++ tgtEnt(negativeEntities) ++ tgtEnt(unlabeledEntities)
+
     ReferenceEntities(
-      positive = positiveEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap,
-      negative = negativeEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap,
-      unlabeled = unlabeledEntities.map(i => (new Link(i.source.uri, i.target.uri), i)).toMap
+      sourceEntities = sourceEntities map (e => (e.uri, e)) toMap,
+      targetEntities = targetEntities map (e => (e.uri, e)) toMap,
+      positiveLinks = positiveEntities.map(i => (new Link(i.source.uri, i.target.uri))).toSet,
+      negativeLinks = negativeEntities.map(i => (new Link(i.source.uri, i.target.uri))).toSet,
+      unlabeledLinks = unlabeledEntities.map(i => (new Link(i.source.uri, i.target.uri))).toSet
     )
   }
 
@@ -85,47 +184,27 @@ object ReferenceEntities {
      */
     def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
       val entityDescs = Serialization.fromXml[DPair[EntitySchema]]((node \ "Pair").head)
-      val posNode = node \ "PositiveEntities"
-      val negNode = node \ "NegativeEntities"
-      val unlabeledNode = node \ "UnlabeledEntities"
 
-      val positiveEntities: Traversable[DPair[Entity]] = {
-        if (posNode.isEmpty) {
-          Traversable.empty
-        } else {
-          for (pairNode <- (posNode \ "Pair").toList) yield {
-            DPair(
-              Entity.fromXML((pairNode \ "Source" \ "Entity").head, entityDescs.source),
-              Entity.fromXML((pairNode \ "Target" \ "Entity").head, entityDescs.target))
-          }
-        }
-      }
+      val sourceEntities = extractEntities(entityDescs.source, node \ "SourceEntities")
+      val targetEntities = extractEntities(entityDescs.target, node \ "TargetEntities")
+      val positiveLinks: Set[Link] = extractLinks(node \ "PositiveLinks")
+      val negativeLinks: Set[Link] = extractLinks(node \ "NegativeLinks")
+      val unlabeledLinks: Set[Link] = extractLinks(node \ "UnlabeledLinks")
 
-      val negativeEntities: Traversable[DPair[Entity]] = {
-        if (negNode.isEmpty) {
-          Traversable.empty
-        } else {
-          for (pairNode <- (negNode \ "Pair").toList) yield {
-            DPair(
-              Entity.fromXML((pairNode \ "Source" \ "Entity").head, entityDescs.source),
-              Entity.fromXML((pairNode \ "Target" \ "Entity").head, entityDescs.target))
-          }
-        }
-      }
+      ReferenceEntities(sourceEntities, targetEntities, positiveLinks, negativeLinks, unlabeledLinks)
+    }
 
-      val unlabeledEntities: Traversable[DPair[Entity]] = {
-        if (unlabeledNode.isEmpty) {
-          Traversable.empty
-        } else {
-          for (pairNode <- (unlabeledNode \ "Pair").toList) yield {
-            DPair(
-              Entity.fromXML((pairNode \ "Source" \ "Entity").head, entityDescs.source),
-              Entity.fromXML((pairNode \ "Target" \ "Entity").head, entityDescs.target))
-          }
-        }
-      }
+    private def extractEntities(entityDesc: EntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
+      (for (entityNode <- (srcEntNode \ "Entity")) yield {
+        val entity = Entity.fromXML(entityNode, entityDesc)
+        (entity.uri, entity)
+      }).toMap
+    }
 
-      ReferenceEntities.fromEntities(positiveEntities, negativeEntities, unlabeledEntities)
+    private def extractLinks(linksNode: NodeSeq): Set[Link] = {
+      (for (linkNode <- (linksNode \ "LinkCandidate")) yield {
+        Link.fromXML(linkNode, None)
+      }).toSet
     }
 
     /**
@@ -133,44 +212,35 @@ object ReferenceEntities {
      */
     def write(entities: ReferenceEntities)(implicit prefixes: Prefixes): Node = {
       <Entities>
-        { Serialization.toXml(entities.entitiyDescs) }
-        <PositiveEntities>
-          {for (DPair(sourceEntity, targetEntity) <- entities.positive.values) yield {
-          <Pair>
-            <Source>
-              {sourceEntity.toXML}
-            </Source>
-            <Target>
-              {targetEntity.toXML}
-            </Target>
-          </Pair>
-        }}
-        </PositiveEntities>
-        <NegativeEntities>
-          {for (DPair(sourceEntity, targetEntity) <- entities.negative.values) yield {
-          <Pair>
-            <Source>
-              {sourceEntity.toXML}
-            </Source>
-            <Target>
-              {targetEntity.toXML}
-            </Target>
-          </Pair>
-        }}
-        </NegativeEntities>
-        <UnlabeledEntities>
-          {for (DPair(sourceEntity, targetEntity) <- entities.unlabeled.values) yield {
-          <Pair>
-            <Source>
-              {sourceEntity.toXML}
-            </Source>
-            <Target>
-              {targetEntity.toXML}
-            </Target>
-          </Pair>
-        }}
-        </UnlabeledEntities>
+        {Serialization.toXml(entities.entityDescs)}<SourceEntities>
+        {toXML(entities.sourceEntities)}
+      </SourceEntities>
+        <TargetEntities>
+          {toXML(entities.targetEntities)}
+        </TargetEntities>
+        <PositiveLinks>
+          {toXML(entities.positiveLinks)}
+        </PositiveLinks>
+        <NegativeLinks>
+          {toXML(entities.negativeLinks)}
+        </NegativeLinks>
+        <UnlabeledLinks>
+          {toXML(entities.unlabeledLinks)}
+        </UnlabeledLinks>
       </Entities>
     }
+
+    private def toXML(links: Set[Link]) = {
+      for (link <- links) yield {
+        link.toXML
+      }
+    }
+
+    private def toXML(entities: Map[String, Entity]) = {
+      for ((uri, entity) <- entities) yield {
+        entity.toXML
+      }
+    }
   }
+
 }
