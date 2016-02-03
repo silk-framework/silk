@@ -2,9 +2,10 @@
 @import org.silkframework.workspace.Constants
 @import org.silkframework.config.LinkSpecification
 @import org.silkframework.dataset.Dataset
+@import org.silkframework.util.DPair
 @import controllers.rules.routes.Assets
 
-@(project: String, task: String)
+@(project: String, task: String, types: DPair[Seq[String]])
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
@@ -37,9 +38,20 @@
       </td>
     </tr>
     <tr>
+      <td>Source Type</td>
+      <td>
+        <input name="sourceType" title="Source Type" list="sourceTypes" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.toString" } style="width: 100%" />
+        <datalist id="sourceTypes">
+          @for(typeUri <- types.source) {
+            <option value="@typeUri" />
+          }
+        </datalist>
+      </td>
+    </tr>
+    <tr>
       <td>Source restriction</td>
       <td>
-        <input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="50"
+        <input name="sourceRestriction" title="Restrict source dataset using SPARQL clauses" size="50"
                value="@currentInputs.map(_.source.restriction.serialize).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
@@ -59,9 +71,20 @@
       </td>
     </tr>
     <tr>
+      <td>Target Type</td>
+      <td>
+        <input name="targetType" title="Target Type" list="targetTypes" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.toString" } style="width: 100%" />
+        <datalist id="targetTypes">
+        @for(typeUri <- types.target) {
+          <option value="@typeUri" />
+        }
+        </datalist>
+      </td>
+    </tr>
+    <tr>
       <td>Target restriction</td>
       <td>
-        <input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="50"
+        <input name="targetRestriction" title="Restrict target dataset using SPARQL clauses" size="50"
                value="@currentInputs.map(_.target.restriction.serialize).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
@@ -103,14 +126,11 @@
   function openRestrictionDialog(openSourceOrTarget) {
     // Set variables
     sourceOrTarget = openSourceOrTarget;
-    if(sourceOrTarget == 'source')
-     varName = '@Constants.SourceVariable';
-    else
-     varName = '@Constants.TargetVariable';
+    varName = 'a';
     sourceName = $("select[name='" + sourceOrTarget + "']").val();
-    sparqlRestriction = $("input[name='" + sourceOrTarget + "restriction']").val();
+    sparqlRestriction = $("input[name='" + sourceOrTarget + "Restriction']").val();
 
-    $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName,
+    $.get('@config.baseUrl/rules/dialogs/editRestriction/@project/' + sourceName,
           { varName: varName, restriction: sparqlRestriction },
           function(data) {
             $('#restrictionDialog').html(data);
@@ -118,7 +138,7 @@
   }
 
   function closeRestrictionDialog(newRestriction) {
-    $("input[name='" + sourceOrTarget + "restriction']").val(newRestriction);
+    $("input[name='" + sourceOrTarget + "Restriction']").val(newRestriction);
     $('#restrictionDialog').dialog('close');
     $('#restrictionDialog').empty();
     $('#restrictionDialog').dialog('destroy');
@@ -128,9 +148,11 @@
     var values = {
       name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
       source: $("select[name='source']").val(),
-      sourcerestriction: $("input[name='sourcerestriction']").val(),
+      sourceType: $("input[name='sourceType']").val(),
+      sourceRestriction: $("input[name='sourceRestriction']").val(),
       target: $("select[name='target']").val(),
-      targetrestriction: $("input[name='targetrestriction']").val(),
+      targetType: $("input[name='targetType']").val(),
+      targetRestriction: $("input[name='targetRestriction']").val(),
       output: $("select[name='output']").val()
     };
 

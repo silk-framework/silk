@@ -28,7 +28,7 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), "", Restriction.custom(values("restriction")))
+    val input = DatasetSelection(values("source"), values("type"), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
@@ -202,8 +202,8 @@ object TransformTaskApi extends Controller {
 
   /**
    * Transform entities bundled with the request according to the transformation task.
- *
-   * @param projectName
+    *
+    * @param projectName
    * @param taskName
    * @return If no sink is specified in the request then return results in N-Triples format with the response,
    *         else write triples to defined data sink.
