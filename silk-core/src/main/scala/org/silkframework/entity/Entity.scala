@@ -22,7 +22,7 @@ import java.io.{DataOutput, DataInput}
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: SparqlEntitySchema = SparqlEntitySchema.empty) {
+class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) {
   require(values.size == desc.paths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
   def evaluate(path: Path): Seq[String] = {
@@ -68,7 +68,7 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Spa
 }
 
 object Entity {
-  def fromXML(node: Node, desc: SparqlEntitySchema) = {
+  def fromXML(node: Node, desc: EntitySchema) = {
     new Entity(
       uri = (node \ "@uri").text.trim,
       values = {
@@ -80,7 +80,7 @@ object Entity {
     )
   }
 
-  def deserialize(stream: DataInput, desc: SparqlEntitySchema) = {
+  def deserialize(stream: DataInput, desc: EntitySchema) = {
     //Read URI
     val uri = stream.readUTF()
 

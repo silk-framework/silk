@@ -15,7 +15,7 @@ trait ExecutionMethod {
   /**
    * Generates an index for a single entity.
    */
-  def indexEntity(entity: Entity, rule: LinkageRule): Index = Index.default
+  def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = Index.default
 
   /**
    * Generates comparison pairs from two partitions.

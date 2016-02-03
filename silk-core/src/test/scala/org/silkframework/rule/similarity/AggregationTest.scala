@@ -69,7 +69,7 @@ class AggregationTest extends FlatSpec with ShouldMatchers {
   }
 
   private def index(ops: Seq[SimilarityOperator]) = {
-    Aggregation(operators = ops, aggregator = aggregator).index(null, 0.0)
+    Aggregation(operators = ops, aggregator = aggregator).index(null, true, 0.0)
   }
 
   private def operator(_weight: Int = 1, _required: Boolean = false, value: Option[Double] = None, indices: Index = Index.default) = {
@@ -79,7 +79,7 @@ class AggregationTest extends FlatSpec with ShouldMatchers {
       val required: Boolean = _required
       val indexing: Boolean = true
       def apply(entities: DPair[Entity], limit: Double): Option[Double] = value
-      def index(entity: Entity, limit: Double): Index = indices
+      def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = indices
       def toXML(implicit prefixes: Prefixes): Node = null
       def children = Seq.empty
       def withChildren(newChildren: Seq[Operator]): Operator = ???

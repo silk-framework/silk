@@ -34,7 +34,7 @@ sealed trait TransformRule {
    * @return The transformed values.
    */
   def apply(entity: Entity): Seq[String] = {
-    operator(DPair.fill(entity))
+    operator(entity)
   }
 
   /**
@@ -58,7 +58,7 @@ sealed trait TransformRule {
  * @param sourcePath The source path
  * @param targetProperty The target property
  */
-case class DirectMapping(name: Identifier = "transform", sourcePath: Path = Path("a", Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
+case class DirectMapping(name: Identifier = "transform", sourcePath: Path = Path(Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
 
   override val operator = PathInput(path = sourcePath)
 

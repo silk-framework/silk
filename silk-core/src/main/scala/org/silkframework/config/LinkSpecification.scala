@@ -17,7 +17,7 @@ package org.silkframework.config
 import java.util.logging.Logger
 
 import org.silkframework.dataset.{LinkSink, DataSink, DataSource, Dataset}
-import org.silkframework.entity.Path
+import org.silkframework.entity.{Restriction, EntitySchema, Path}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.rule.LinkageRule
@@ -47,41 +47,39 @@ case class LinkSpecification(id: Identifier = Identifier.random,
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
   
-  def entityDescriptions: DPair[SparqlEntitySchema] = {
-    val sourceVar = dataSelections.source.variable
-    val targetVar = dataSelections.target.variable
-
+  def entityDescriptions: DPair[EntitySchema] = {
     val sourceRestriction = dataSelections.source.restriction
     val targetRestriction = dataSelections.target.restriction
 
     val sourcePaths = rule.operator match {
-      case Some(operator) => collectPaths(sourceVar)(operator)
+      case Some(operator) => collectPaths(sourceOrTarget = true)(operator)
       case None => Set[Path]()
     }
 
     val targetPaths = rule.operator match {
-      case Some(operator) => collectPaths(targetVar)(operator)
+      case Some(operator) => collectPaths(sourceOrTarget = false)(operator)
       case None => Set[Path]()
     }
 
-    val sourceEntityDesc = new SparqlEntitySchema(sourceVar, sourceRestriction, sourcePaths.toIndexedSeq)
-    val targetEntityDesc = new SparqlEntitySchema(targetVar, targetRestriction, targetPaths.toIndexedSeq)
+    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq, sourceRestriction)
+    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq, targetRestriction)
 
     DPair(sourceEntityDesc, targetEntityDesc)
   }
 
-  private def collectPaths(variable: String)(operator: SimilarityOperator): Set[Path] = operator match {
-    case aggregation: Aggregation => aggregation.operators.flatMap(collectPaths(variable)).toSet
+  private def collectPaths(sourceOrTarget: Boolean)(operator: SimilarityOperator): Set[Path] = operator match {
+    case aggregation: Aggregation => aggregation.operators.flatMap(collectPaths(sourceOrTarget)).toSet
     case comparison: Comparison => {
-      val sourcePaths = collectPathsFromInput(variable)(comparison.inputs.source)
-      val targetPaths = collectPathsFromInput(variable)(comparison.inputs.target)
-      (sourcePaths ++ targetPaths).toSet
+      if(sourceOrTarget)
+        collectPathsFromInput(comparison.inputs.source)
+      else
+        collectPathsFromInput(comparison.inputs.target)
     }
   }
 
-  private def collectPathsFromInput(variable: String)(param: Input): Set[Path] = param match {
-    case p: PathInput if p.path.variable == variable && p.path.operators.nonEmpty => Set(p.path)
-    case p: TransformInput => p.inputs.flatMap(collectPathsFromInput(variable)).toSet
+  private def collectPathsFromInput(param: Input): Set[Path] = param match {
+    case p: PathInput if p.path.operators.nonEmpty => Set(p.path)
+    case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
     case _ => Set()
   }
 }

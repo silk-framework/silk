@@ -142,14 +142,14 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   }
 
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
-  def entityDescs: DPair[SparqlEntitySchema] = {
+  def entityDescs: DPair[EntitySchema] = {
     for {
       sourceEntityDesc <- sourceEntities.values.headOption map (_.desc)
       targetEntityDesc <- targetEntities.values.headOption map (_.desc)
     } {
       return DPair(sourceEntityDesc, targetEntityDesc)
     }
-    DPair.fill(SparqlEntitySchema.empty)
+    DPair.fill(EntitySchema.empty)
   }
 }
 
@@ -183,7 +183,7 @@ object ReferenceEntities {
      * Deserialize a value from XML.
      */
     def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
-      val entityDescs = Serialization.fromXml[DPair[SparqlEntitySchema]]((node \ "Pair").head)
+      val entityDescs = Serialization.fromXml[DPair[EntitySchema]]((node \ "Pair").head)
 
       val sourceEntities = extractEntities(entityDescs.source, node \ "SourceEntities")
       val targetEntities = extractEntities(entityDescs.target, node \ "TargetEntities")
@@ -194,7 +194,7 @@ object ReferenceEntities {
       ReferenceEntities(sourceEntities, targetEntities, positiveLinks, negativeLinks, unlabeledLinks)
     }
 
-    private def extractEntities(entityDesc: SparqlEntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
+    private def extractEntities(entityDesc: EntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
       (for (entityNode <- (srcEntNode \ "Entity")) yield {
         val entity = Entity.fromXML(entityNode, entityDesc)
         (entity.uri, entity)

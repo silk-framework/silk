@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.entity.{Entity, Path}
+import org.silkframework.entity.{EntitySchema, Entity, Path}
 import org.silkframework.util.Uri
 
 /**
@@ -36,27 +36,27 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
   /**
    * Retrieves entities with a given entity description.
    *
-   * @param entityDesc The entity description
+   * @param entitySchema The entity description
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entityDesc: SparqlEntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     canceled = false
-    if(entityDesc.paths.size <= 1)
-      new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entityDesc, entities, limit)
+    if(entitySchema.paths.size <= 1)
+      new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
     else
-      new EntityTraversable(entityDesc, entities, limit)
+      new EntityTraversable(entitySchema, entities, limit)
   }
 
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(entityDesc: SparqlEntitySchema, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
+  private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U) {
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entityDesc.paths) yield new PathRetriever(entityUris, entityDesc, path)
+      val pathRetrievers = for (path <- entitySchema.paths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema), path)
 
       pathRetrievers.foreach(_.start())
 
@@ -66,7 +66,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
 
           val uri = pathValues.head.uri
           if (pathValues.tail.forall(_.uri == uri)) {
-            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entityDesc))
+            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
             counter += 1
           }
           else {
@@ -77,11 +77,11 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       }
       catch {
         case ex: InterruptedException => {
-          logger.log(Level.INFO, "Canceled retrieving entities for '" + entityDesc.restrictions + "'")
+          logger.log(Level.INFO, "Canceled retrieving entities for '" + entitySchema.typeUri + "'")
           canceled = true
         }
         case ex: Exception => {
-          logger.log(Level.WARNING, "Failed to execute query for '" + entityDesc.restrictions + "'", ex)
+          logger.log(Level.WARNING, "Failed to execute query for '" + entitySchema.typeUri + "'", ex)
           canceled = true
         }
       }
@@ -90,13 +90,13 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
         if (!useOrderBy) {
           logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
           val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
-          val entities = entityRetriever.retrieve(entityDesc, entityUris, limit)
+          val entities = entityRetriever.retrieve(entitySchema, entityUris, limit)
           entities.drop(counter).foreach(f)
         }
         else {
           logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by. Falling back to serial querying.")
           val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
-          val entities = simpleEntityRetriever.retrieve(entityDesc, entityUris, limit)
+          val entities = simpleEntityRetriever.retrieve(entitySchema, entityUris, limit)
           entities.drop(counter).foreach(f)
         }
       }

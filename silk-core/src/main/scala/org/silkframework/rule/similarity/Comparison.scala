@@ -46,8 +46,8 @@ case class Comparison(id: Identifier = Operator.generateId,
    * @return The confidence as a value between -1.0 and 1.0.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val values1 = inputs.source(entities)
-    val values2 = inputs.target(entities)
+    val values1 = inputs.source(entities.source)
+    val values2 = inputs.target(entities.target)
 
     if (values1.isEmpty || values2.isEmpty)
       None
@@ -73,10 +73,8 @@ case class Comparison(id: Identifier = Operator.generateId,
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  override def index(entity: Entity, limit: Double): Index = {
-    val entityPair = DPair.fill(entity)
-
-    val values = inputs.source(entityPair) ++ inputs.target(entityPair)
+  override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
+    val values = if(sourceOrTarget) inputs.source(entity) else inputs.target(entity)
 
     val distanceLimit = threshold * (1.0 - limit)
 

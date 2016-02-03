@@ -11,7 +11,7 @@ class SparqlRestrictionBuilder(subjectVar: String)(implicit prefixes: Prefixes) 
 
   def apply(restriction: Restriction): SparqlRestriction = {
     val sparql = restriction.operator.map(convertOperator).getOrElse("")
-    SparqlRestriction.fromSparql("subjectVar", sparql)
+    SparqlRestriction.fromSparql(subjectVar, sparql)
   }
 
   def convertOperator(op: Operator): String = op match {
@@ -22,5 +22,6 @@ class SparqlRestrictionBuilder(subjectVar: String)(implicit prefixes: Prefixes) 
     }
     case And(ops) => ops.map(convertOperator).mkString("{", "\n", "}")
     case Or(ops) => ops.map(convertOperator).mkString("{", "\nUNION\n", "}")
+    case Not(ops) => throw new UnsupportedOperationException("The 'Not' Operator is currently not supported.")
   }
 }

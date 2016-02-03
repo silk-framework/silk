@@ -4,6 +4,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.DatasetSelection
 import org.silkframework.dataset.Dataset
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
@@ -28,12 +29,12 @@ class EvaluateTransform(source: Dataset,
   def execute(): Seq[DetailedEntity] = {
     // Retrieve entities
     val entityDesc =
-      new SparqlEntitySchema(
-        variable = dataSelection.variable,
-        restrictions = dataSelection.restriction,
-        paths = rules.flatMap(_.paths).toIndexedSeq
+      EntitySchema(
+        typeUri = null,
+        paths = rules.flatMap(_.paths).toIndexedSeq,
+        filter = dataSelection.restriction
       )
-    val entities = source.source.retrieveSparqlEntities(entityDesc)
+    val entities = source.source.retrieve(entityDesc)
 
     // Read all entities
     for(entity <- entities) {

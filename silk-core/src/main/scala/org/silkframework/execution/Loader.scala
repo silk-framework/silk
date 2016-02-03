@@ -73,9 +73,9 @@ class Loader(sources: DPair[DataSource],
     private def retrieveEntities = {
       sampleSizeOpt match {
         case Some(sampleSize) =>
-          source.sampleEntities(entityCache.entityDesc, sampleSize, None) // TODO: Add filter
+          source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter
         case None =>
-          source.retrieveSparqlEntities(entityCache.entityDesc)
+          source.retrieve(entityCache.entitySchema)
       }
     }
 

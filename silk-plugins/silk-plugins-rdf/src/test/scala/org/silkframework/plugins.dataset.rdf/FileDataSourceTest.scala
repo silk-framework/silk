@@ -18,9 +18,10 @@ import java.io.File
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.Path
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.util.Uri
 
 class FileDataSourceTest extends FlatSpec with Matchers {
 
@@ -37,18 +38,17 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDescCity =
-    SparqlEntitySchema(
-      variable = "a",
-      restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type do:City"),
+    EntitySchema(
+      typeUri = Uri("http://dbpedia.org/ontology/City"),
       paths = IndexedSeq(Path.parse("?a/rdfs:label"))
     )
 
   "FileDataSource" should "return all cities" in {
-    dataset.source.retrieveSparqlEntities(entityDescCity, Nil).size should equal (3)
+    dataset.source.retrieve(entityDescCity).size should equal (3)
   }
 
   "FileDataSource" should "return entities by uri" in {
-    dataset.source.retrieveSparqlEntities(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
+    dataset.source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
   }
 
   val pathPlaces = Path.parse("?a/do:place/rdfs:label")
@@ -58,13 +58,12 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val pathCities = Path.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""")
 
   val entityDescPerson =
-    SparqlEntitySchema(
-      variable = "a",
-      restrictions = SparqlRestriction.fromSparql("a", "?a rdf:type do:Person"),
+    EntitySchema(
+      typeUri = Uri("http://dbpedia.org/ontology/Person"),
       paths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
     )
 
-  val persons = dataset.source.retrieveSparqlEntities(entityDescPerson, Nil).toList
+  val persons = dataset.source.retrieve(entityDescPerson).toList
 
   "FileDataSource" should "work with filters" in {
     persons.size should equal (1)

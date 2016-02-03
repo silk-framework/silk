@@ -50,7 +50,7 @@ object DetailedEvaluator {
     val propertyRules = rules.filter(_.target.isDefined)
 
     val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-    val values = for(rule <- propertyRules) yield evaluateInput(rule.operator, DPair.fill(entity))
+    val values = for(rule <- propertyRules) yield evaluateInput(rule.operator, entity)
     DetailedEntity(uri, values, propertyRules)
   }
 
@@ -58,7 +58,7 @@ object DetailedEvaluator {
    * Evaluates a single transform rule.
    */
   def apply(rule: TransformRule, entity: Entity): Option[Value] = {
-    Some(evaluateInput(rule.operator, DPair.fill(entity)))
+    Some(evaluateInput(rule.operator, entity))
   }
 
   private def evaluateOperator(operator: SimilarityOperator, entities: DPair[Entity], threshold: Double) = operator match {
@@ -95,16 +95,16 @@ object DetailedEvaluator {
     ComparisonConfidence(
       score = comparison.apply(entities, threshold),
       comparison = comparison,
-      sourceValue = evaluateInput(comparison.inputs.source, entities),
-      targetValue = evaluateInput(comparison.inputs.target, entities)
+      sourceValue = evaluateInput(comparison.inputs.source, entities.source),
+      targetValue = evaluateInput(comparison.inputs.target, entities.target)
     )
   }
 
-  private def evaluateInput(input: Input, entities: DPair[Entity]): Value = input match {
+  private def evaluateInput(input: Input, entity: Entity): Value = input match {
     case ti: TransformInput =>
-      val children = ti.inputs.map(i => evaluateInput(i, entities))
+      val children = ti.inputs.map(i => evaluateInput(i, entity))
       TransformedValue(ti, ti.transformer(children.map(_.values)), children)
 
-    case pi: PathInput => InputValue(pi, input(entities))
+    case pi: PathInput => InputValue(pi, input(entity))
   }
 }

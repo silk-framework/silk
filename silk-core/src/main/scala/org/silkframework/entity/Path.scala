@@ -20,14 +20,14 @@ import ref.WeakReference
 /**
  * Represents an RDF path.
  */
-final class Path private(val variable: String, val operators: List[PathOperator]) extends Serializable {
+final class Path private(val operators: List[PathOperator]) extends Serializable {
 
   private val serializedFull = serialize()
 
   /**
    * Serializes this path using the Silk RDF path language.
    */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty) = "?" + variable + operators.map(_.serialize).mkString
+  def serialize(implicit prefixes: Prefixes = Prefixes.empty) = operators.map(_.serialize).mkString
 
   /**
    * Serializes this path using the simplified notation.
@@ -74,8 +74,8 @@ object Path {
    * Creates a new path.
    * Returns a cached copy if available.
    */
-  def apply(variable: String, operators: List[PathOperator]): Path = {
-    val path = new Path(variable, operators)
+  def apply(operators: List[PathOperator]): Path = {
+    val path = new Path(operators)
 
     val pathStr = path.serialize
 
@@ -93,15 +93,15 @@ object Path {
     }
   }
 
-  def unapply(path: Path): Option[(String, List[PathOperator])] = {
-    Some(path.variable, path.operators)
+  def unapply(path: Path): Option[List[PathOperator]] = {
+    Some(path.operators)
   }
 
   /**
    * Creates a path consisting of a single property
    */
   def apply(property: String): Path = {
-    apply("a", ForwardOperator(property) :: Nil)
+    apply(ForwardOperator(property) :: Nil)
   }
 
   /**

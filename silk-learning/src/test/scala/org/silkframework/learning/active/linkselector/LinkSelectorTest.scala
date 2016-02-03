@@ -17,7 +17,7 @@ package org.silkframework.learning.active.linkselector
 import org.silkframework.entity._
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.rule.similarity.{Aggregation, Comparison}
-import org.silkframework.util.DPair
+import org.silkframework.util.{Uri, DPair}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.LinkageRule
 import org.silkframework.plugins.aggegrator.MinimumAggregator
@@ -87,8 +87,8 @@ object LinkSelectorTest extends App {
   }
 
   def entities(label1: String, date1: String, label2: String, date2: String) = {
-    val sourceEntityDesc = SparqlEntitySchema("a", SparqlRestriction.empty, IndexedSeq(Path.parse("?a/<label>"), Path.parse("?a/<date>")))
-    val targetEntityDesc = SparqlEntitySchema("b", SparqlRestriction.empty, IndexedSeq(Path.parse("?b/<label>"), Path.parse("?b/<date>")))
+    val sourceEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(Path.parse("?a/<label>"), Path.parse("?a/<date>")))
+    val targetEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(Path.parse("?b/<label>"), Path.parse("?b/<date>")))
 
     DPair(
       source = new Entity(label1 + date1, IndexedSeq(Seq(label1), Seq(date1)), sourceEntityDesc),

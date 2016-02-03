@@ -40,7 +40,7 @@
       <td>Source restriction</td>
       <td>
         <input name="sourcerestriction" title="Restrict source dataset using SPARQL clauses" size="50"
-               value="@currentInputs.map(_.source.restriction).getOrElse("")"/>
+               value="@currentInputs.map(_.source.restriction.serialize).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
     </tr>
@@ -62,7 +62,7 @@
       <td>Target restriction</td>
       <td>
         <input name="targetrestriction" title="Restrict target dataset using SPARQL clauses" size="50"
-               value="@currentInputs.map(_.target.restriction).getOrElse("")"/>
+               value="@currentInputs.map(_.target.restriction.serialize).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('target')" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
     </tr>

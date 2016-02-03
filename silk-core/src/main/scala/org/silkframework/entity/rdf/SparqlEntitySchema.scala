@@ -48,9 +48,10 @@ object SparqlEntitySchema {
   def empty = SparqlEntitySchema("a", SparqlRestriction.empty, IndexedSeq.empty)
 
   def fromSchema(entitySchema: EntitySchema) = {
-    val sparqlRestriction = new SparqlRestrictionBuilder("a")(Prefixes.empty).apply(entitySchema.filter)
-    val typeRestriction = SparqlRestriction.fromSparql("a", s"?a a <${entitySchema.typ}>")
-    SparqlEntitySchema("a", sparqlRestriction merge typeRestriction, entitySchema.paths)
+    var sparqlRestriction = new SparqlRestrictionBuilder("a")(Prefixes.empty).apply(entitySchema.filter)
+    if(entitySchema.typeUri.uri.nonEmpty)
+      sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql("a", s"?a a <${entitySchema.typeUri}>")
+    SparqlEntitySchema("a", sparqlRestriction, entitySchema.paths)
   }
 
   /**

@@ -6,6 +6,7 @@ import com.hp.hpl.jena.rdf.model.Model
 import controllers.util.ProjectUtils._
 import org.silkframework.config.{DatasetSelection, TransformSpecification}
 import org.silkframework.dataset.{EntitySink, DataSource, DataSink}
+import org.silkframework.entity.Restriction
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
@@ -27,7 +28,7 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), SparqlRestriction.fromSparql(Constants.SourceVariable, values("restriction")))
+    val input = DatasetSelection(values("source"), "", Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
@@ -201,6 +202,7 @@ object TransformTaskApi extends Controller {
 
   /**
    * Transform entities bundled with the request according to the transformation task.
+ *
    * @param projectName
    * @param taskName
    * @return If no sink is specified in the request then return results in N-Triples format with the response,

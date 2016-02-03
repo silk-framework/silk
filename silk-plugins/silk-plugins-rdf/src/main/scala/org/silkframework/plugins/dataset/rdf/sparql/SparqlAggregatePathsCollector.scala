@@ -59,7 +59,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
-          (Path(variable, ForwardOperator(Uri.fromURI(result("p").value)) :: Nil),
+          (Path(ForwardOperator(Uri.fromURI(result("p").value)) :: Nil),
             result("count").value.toDouble / maxCount)
         }
       } else {
@@ -83,7 +83,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       if (!results.isEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
-          (Path(variable, BackwardOperator(Uri.fromURI(result("p").value)) :: Nil),
+          (Path(BackwardOperator(Uri.fromURI(result("p").value)) :: Nil),
             result("count").value.toDouble / maxCount)
         }
       } else {

@@ -43,12 +43,12 @@ class ComparisonTest extends FlatSpec with ShouldMatchers {
       threshold = threshold,
       metric = new DistanceMeasure { def apply(values1: Seq[String], values2: Seq[String], limit: Double) = distance },
       inputs = DPair.fill(DummyInput)
-    ).apply(null, -1.0).get
+    ).apply(DPair.fill(null), -1.0).get
   }
 
   private object DummyInput extends Input {
     val id = Identifier.random
-    def apply(entities: DPair[Entity]): Seq[String] = Seq("dummy")
+    def apply(entity: Entity): Seq[String] = Seq("dummy")
     def toXML(implicit prefixes: Prefixes): Node = null
     def children = Seq.empty
     def withChildren(newChildren: Seq[Operator]) = ???

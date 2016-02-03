@@ -1,7 +1,8 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.util.Uri
 
 /**
  * An empty data set.
@@ -17,7 +18,8 @@ private object EmptyDataset extends DatasetPlugin {
    * Returns an empty data source.
    */
   override def source: DataSource = new DataSource {
-    override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = Traversable.empty
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int]) = Traversable[Entity]()
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = Seq.empty
   }
 
   /**

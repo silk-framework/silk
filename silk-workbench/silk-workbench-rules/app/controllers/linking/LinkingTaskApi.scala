@@ -7,7 +7,7 @@ import controllers.workspace.WorkspaceApi._
 import org.apache.jena.riot.{RDFLanguages, Lang}
 import org.silkframework.config.{TransformSpecification, DatasetSelection, LinkSpecification}
 import org.silkframework.dataset.Dataset
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Restriction, Link}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity, ExecuteTransform}
@@ -39,8 +39,8 @@ object LinkingTaskApi extends Controller {
     implicit val prefixes = proj.config.prefixes
 
     val datasets =
-      DPair(DatasetSelection(values("source"), SparqlRestriction.fromSparql(Constants.SourceVariable, values("sourcerestriction"))),
-            DatasetSelection(values("target"), SparqlRestriction.fromSparql(Constants.TargetVariable, values("targetrestriction"))))
+      DPair(DatasetSelection(values("source"), "", Restriction.custom(values("sourcerestriction"))),
+            DatasetSelection(values("target"), "", Restriction.custom(values("targetrestriction"))))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {

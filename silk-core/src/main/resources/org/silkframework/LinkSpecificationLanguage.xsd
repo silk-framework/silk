@@ -151,6 +151,7 @@
             </xs:choice>
             <xs:attribute name="dataSource" type="xs:string" use="required"/>
             <xs:attribute name="var" type="xs:string" use="required"/>
+            <xs:attribute name="typeUri" type="xs:string" use="optional"/>
         </xs:complexType>
     </xs:element>
 
@@ -185,6 +186,7 @@
                         </xs:choice>
                         <xs:attribute name="dataSource" type="xs:string" use="required"/>
                         <xs:attribute name="var" type="xs:string" use="required"/>
+                        <xs:attribute name="typeUri" type="xs:string" use="optional"/>
                     </xs:complexType>
                 </xs:element>
 

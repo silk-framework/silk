@@ -4,7 +4,7 @@ import com.hp.hpl.jena.query.DatasetFactory
 import org.silkframework.dataset.rdf.RdfDatasetPlugin
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
-import org.silkframework.entity.Path
+import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
@@ -75,9 +75,14 @@ case class FileDataset(
     // Load dataset
     private var endpoint: JenaEndpoint = null
 
-    override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String]) = {
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
       load()
-      EntityRetriever(endpoint).retrieve(entityDesc, entities.map(Uri(_)), None)
+      EntityRetriever(endpoint).retrieve(entitySchema, Seq.empty, None)
+    }
+
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+      load()
+      EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
     }
 
     override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {

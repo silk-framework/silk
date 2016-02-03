@@ -15,7 +15,7 @@ case class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2, t
    * Generates an index for a single entity.
    * StringMap don't uses the indexing.
    */
-  override def indexEntity(entity: Entity, rule: LinkageRule): Index = Index.default
+  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = Index.default
 
   /**
    * Generates comparison pairs from two partitions.

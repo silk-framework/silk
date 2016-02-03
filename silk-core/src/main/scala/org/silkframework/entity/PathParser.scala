@@ -24,18 +24,17 @@ import org.silkframework.config.Prefixes
 /**
  * Parser for the Silk RDF path language.
  */
+//TODO variables have been removed from paths
 private class PathParser(prefixes: Prefixes) extends RegexParsers {
-
-  private val defaultVar = "a"
 
   def parse(pathStr: String): Path = {
     if(pathStr.isEmpty) {
-      Path(defaultVar, Nil)
+      Path(Nil)
     } else {
       // Complete path if a simplified syntax is used
       val completePath = pathStr.head match {
-        case '?' => pathStr // Path is already complete
-        case '/' | '\\' => "?" + defaultVar + pathStr // Variable has been left out
+        case '?' => pathStr // Path includes a variable
+        case '/' | '\\' => "?a" + pathStr // Variable has been left out
         case _ => "?a/" + pathStr // Variable and leading '/' have been left out
       }
       // Parse path
@@ -47,7 +46,7 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
   }
 
   private def path = variable ~ rep(forwardOperator | backwardOperator | filterOperator) ^^ {
-    case variable ~ operators => Path(variable, operators)
+    case variable ~ operators => Path(operators)
   }
 
   private def variable = "?" ~> identifier

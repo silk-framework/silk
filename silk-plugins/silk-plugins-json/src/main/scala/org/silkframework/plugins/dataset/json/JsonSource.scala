@@ -7,6 +7,7 @@ import org.silkframework.entity._
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.runtime.resource.Resource
 import JsonParser._
+import org.silkframework.util.Uri
 import play.api.libs.json._
 
 import scala.io.Codec
@@ -25,15 +26,18 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
-  /**
-   * Retrieves entities from this source which satisfy a specific entity description.
-   */
-  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val json = load(file)(codec)
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
-    new Entities(selectedElements, entityDesc, entities.toSet)
+    new Entities(selectedElements, entitySchema, Set.empty)
+  }
 
+  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    logger.log(Level.FINE, "Retrieving data from JSON.")
+    val json = load(file)(codec)
+    val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
+    new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet).toSeq
   }
 
   /**
@@ -44,11 +48,11 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
     for (element <- selectedElements.headOption.toSeq; // At the moment, we only retrieve the path from the first found element
          path <- collectPaths(element)) yield {
-      (Path(restriction.variable, path.toList), 1.0)
+      (Path(path.toList), 1.0)
     }
   }
 
-  private class Entities(elements: Seq[JsValue], entityDesc: SparqlEntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {
+  private class Entities(elements: Seq[JsValue], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((node, index) <- elements.zipWithIndex) {

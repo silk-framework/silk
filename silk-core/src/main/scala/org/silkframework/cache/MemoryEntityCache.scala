@@ -14,18 +14,17 @@
 
 package org.silkframework.cache
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
-
-import collection.mutable.ArrayBuffer
 import java.util.logging.{Level, Logger}
+
 import org.silkframework.config.RuntimeConfig
-import org.silkframework.entity.{Index, Entity}
-import java.lang.InterruptedException
+import org.silkframework.entity.{Entity, EntitySchema, Index}
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * An entity cache, which caches the entities in memory and allows adding new entities at runtime.
  */
-class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
+class MemoryEntityCache(val entitySchema: EntitySchema,
                         val indexFunction: (Entity => Index),
                         runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
 
@@ -57,7 +56,7 @@ class MemoryEntityCache(val entityDesc: SparqlEntitySchema,
       }
 
       val time = (System.currentTimeMillis - startTime) / 1000.0
-      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCounter + " entities with type '" + entityDesc.restrictions + "' in " + time + " seconds")
+      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCounter + " entities with type '" + entitySchema.typeUri + "' in " + time + " seconds")
     }
     finally {
       writing = false

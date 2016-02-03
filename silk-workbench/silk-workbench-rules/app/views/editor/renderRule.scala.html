@@ -1,12 +1,12 @@
-@(rule: org.silkframework.rule.Operator,
-  prefixes: org.silkframework.config.Prefixes)
 @import org.silkframework.workspace.Constants
-
 @import org.silkframework.rule.Operator
 @import org.silkframework.rule.input.TransformInput
 @import org.silkframework.rule.input.PathInput
 @import org.silkframework.rule.similarity.Aggregation
 @import org.silkframework.rule.similarity.Comparison
+
+@(rule: org.silkframework.rule.Operator,
+  prefixes: org.silkframework.config.Prefixes)
 
 @drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 150)
 
@@ -15,7 +15,7 @@
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
   @if(!ops.isEmpty) {
     @for((op, index) <- ops.zipWithIndex) {
-      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75)
+      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75, index == 0)
     }
     @drawLevel(ops.flatMap(getChildren), x - 250, height)
   }
@@ -52,7 +52,7 @@
   }
 }
 
-@drawOperator(op: Operator, x: Int, y: Int) = {
+@drawOperator(op: Operator, x: Int, y: Int, sourceOrTarget: Boolean) = {
   @op match {
     case Aggregation(id, required, weight, aggregator, operators) => {
       @aggregationBox(id, required, weight, aggregator.plugin, aggregator.parameters, x, y, true)
@@ -64,7 +64,7 @@
       @transformationBox(id, transformer.plugin, transformer.parameters, x, y, true)
     }
     case PathInput(id, path) => {
-      @pathBox(id, path.variable == Constants.SourceVariable, path.serialize(prefixes), x, y, true)
+      @pathBox(id, sourceOrTarget, path.serialize(prefixes), x, y, true)
     }
   }
 }

@@ -1,5 +1,6 @@
 package org.silkframework.config
 
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.{ScoringRule, TransformRule}
 import org.silkframework.util.Identifier
@@ -10,10 +11,10 @@ import org.silkframework.util.Identifier
 case class ScoringSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[ScoringRule], outputs: Seq[Identifier] = Seq.empty) {
 
   def entityDescription = {
-    new SparqlEntitySchema(
-      variable = selection.variable,
-      restrictions = selection.restriction,
-      paths = rules.flatMap(_.toTransform.paths).distinct.toIndexedSeq
+    EntitySchema(
+      typeUri = selection.typeUri,
+      paths = rules.flatMap(_.toTransform.paths).distinct.toIndexedSeq,
+      filter = selection.restriction
     )
   }
 

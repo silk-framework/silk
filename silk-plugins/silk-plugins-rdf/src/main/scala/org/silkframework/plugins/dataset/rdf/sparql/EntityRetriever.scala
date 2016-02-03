@@ -15,7 +15,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.Entity
+import org.silkframework.entity.{EntitySchema, Entity}
 import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.util.Uri
 
@@ -26,11 +26,11 @@ trait EntityRetriever {
   /**
    * Retrieves entities with a given entity description.
    *
-   * @param entityDesc The entity description
+   * @param entitySchema The entity schema
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  def retrieve(entityDesc: SparqlEntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity]
+  def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity]
 }
 
 /**

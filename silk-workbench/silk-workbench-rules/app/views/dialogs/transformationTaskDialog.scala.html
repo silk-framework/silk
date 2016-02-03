@@ -40,7 +40,7 @@
       <td>Restriction</td>
       <td>
         <input name="restriction" title="Restrict dataset using SPARQL clauses" size="50"
-               value="@currentInput.map(_.restriction).getOrElse("")"/>
+               value="@currentInput.map(_.restriction.serialize).getOrElse("")"/>
         <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog()" src="@Assets.at("img/wrench-screwdriver.png")" />
       </td>
     </tr>

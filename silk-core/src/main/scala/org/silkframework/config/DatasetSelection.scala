@@ -14,8 +14,10 @@
 
 package org.silkframework.config
 
-import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.util.{DPair, Identifier}
+import org.silkframework.entity.{Path, Restriction}
+import org.silkframework.entity.rdf.SparqlRestrictionParser
+import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.util.{Uri, DPair, Identifier}
 
 import scala.xml.Node
 
@@ -25,9 +27,7 @@ import scala.xml.Node
  * @param datasetId The id of the dataset
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSelection(datasetId: Identifier, restriction: SparqlRestriction) {
-
-  def variable = restriction.variable
+case class DatasetSelection(datasetId: Identifier, typeUri: Uri, restriction: Restriction = Restriction.empty) {
 
   /**
    * Serializes this dataset specification as XML.
@@ -36,16 +36,16 @@ case class DatasetSelection(datasetId: Identifier, restriction: SparqlRestrictio
    */
   def toXML(asSource: Boolean) = {
     if (asSource) {
-      <SourceDataset dataSource={datasetId} var={restriction.variable}>
+      <SourceDataset dataSource={datasetId} var="a" typeUri={typeUri.uri}>
         <RestrictTo>
-          {restriction.toSparql}
+          {restriction.serialize}
         </RestrictTo>
       </SourceDataset>
     }
     else {
-      <TargetDataset dataSource={datasetId} var={restriction.variable}>
+      <TargetDataset dataSource={datasetId} var="b" typeUri={typeUri.uri}>
         <RestrictTo>
-          {restriction.toSparql}
+          {restriction.serialize}
         </RestrictTo>
       </TargetDataset>
     }
@@ -59,17 +59,35 @@ object DatasetSelection {
   def fromXML(node: Node)(implicit prefixes: Prefixes = Prefixes.empty): DatasetSelection = {
     val variable = (node \ "@var").text
 
+    val restrictionText = (node \ "RestrictTo").text.trim
+    var typeUri = (node \ "@typeUri").text
+
+    // If the type Uri is not defined, try to parse if from the SPARQL restriction
+    if(typeUri.isEmpty) {
+      try {
+        val sourceRestriction = new SparqlRestrictionParser().apply(restrictionText)
+        sourceRestriction.operator match {
+          case Some(Restriction.Condition(path, uri)) if path.propertyUri.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#type") =>
+            typeUri = uri
+          case _ =>
+        }
+      } catch {
+        case _: ValidationException =>
+      }
+    }
+
     DatasetSelection(
       datasetId = (node \ "@dataSource").text,
-      restriction = SparqlRestriction.fromSparql(variable, (node \ "RestrictTo").text.trim)
+      typeUri = Uri(typeUri),
+      restriction = Restriction.parse(restrictionText)
     )
   }
 
-  def empty = DatasetSelection("EmptyDatasetSelection", SparqlRestriction.empty)
+  def empty = DatasetSelection("EmptyDatasetSelection", Uri(""), Restriction.empty)
 
   def emptyPair =
     DPair(
-      DatasetSelection("SourceDatasetSelection", SparqlRestriction.empty),
-      DatasetSelection("TargetDatasetSelection", SparqlRestriction.empty)
+      DatasetSelection("SourceDatasetSelection", Uri(""), Restriction.empty),
+      DatasetSelection("TargetDatasetSelection", Uri(""), Restriction.empty)
     )
 }

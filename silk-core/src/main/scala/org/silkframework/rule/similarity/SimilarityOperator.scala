@@ -53,7 +53,7 @@ trait SimilarityOperator extends Operator {
    *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
-  def index(entity: Entity, limit: Double): Index
+  def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index
 }
 
 object SimilarityOperator {

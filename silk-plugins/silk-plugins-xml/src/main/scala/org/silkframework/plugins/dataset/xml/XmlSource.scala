@@ -7,6 +7,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.util.Uri
 
 import scala.xml.{Node, NodeSeq, XML}
 
@@ -20,16 +21,18 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes().head
     for (path <- XmlParser.collectPaths(xml)) yield {
-      (Path(restriction.variable, path.tail.toList), 1.0)
+      (Path(path.tail.toList), 1.0)
     }
   }
 
-  override def retrieveSparqlEntities(entityDesc: SparqlEntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
-
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
-    new Entities(loadXmlNodes(), entityDesc)
+    new Entities(loadXmlNodes(), entitySchema)
+  }
 
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    throw new UnsupportedOperationException("Retrieving single entities from XML is currently not supported")
   }
 
   private def loadXmlNodes() = {
@@ -59,7 +62,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     currentNode
   }
 
-  private class Entities(xml: NodeSeq, entityDesc: SparqlEntitySchema) extends Traversable[Entity] {
+  private class Entities(xml: NodeSeq, entityDesc: EntitySchema) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((node, index) <- xml.zipWithIndex) {
