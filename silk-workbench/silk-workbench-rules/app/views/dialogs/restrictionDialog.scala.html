@@ -1,57 +1,17 @@
 @(project: org.silkframework.workspace.Project,
   varName: String,
-  restriction: String,
-  types: Set[String],
-  typesCache: Seq[(String, Double)])
+  restriction: String)
 
-@import org.silkframework.workspace.Constants
 @import controllers.workspace.routes.Assets
 
 <link rel="stylesheet" href="@Assets.at("restrictionDialog.css")" type="text/css" />
 <script src="@Assets.at("restrictionDialog.js")" type="text/javascript"></script>
 
-<div id="tabs">
-  <ul>
-    <li><a href="#tabs-1">Simple</a></li>
-    <li><a href="#tabs-2">Advanced</a></li>
-  </ul>
-  <div id="tabs-1">
-    @simpleEditor()
-  </div>
-  <div id="tabs-2">
-    @sparqlEditor()
-  </div>
+<div class="description">
+  Provide a SPARQL restriction that selects the entities that should be covered by this task. The entities are identified with the variable ?@varName.
+  Example: ?a ex:hasOrganisation org:MyOrg .
 </div>
 
-@simpleEditor() = {
+<textarea name="sparql_restriction" cols="50" rows="10">@restriction</textarea>
 
-   <div class="description">
-     Select all types that should be covered by this task.
-   </div>
-
-   <div id="typelist">
-     @for((uri, frequency) <- typesCache;
-          name = project.config.prefixes.shorten(uri)) {
-       <div class="type @if(types.contains(uri)) {selected}"
-            title="@name"
-            onclick="$(this).toggleClass('selected')">
-         @if(name.size < 40) {@name} else {...@name.takeRight(37)}
-       </div>
-     }
-   </div>
-
-   <button onclick="commitSimpleRestriction('@varName')" style="float:right">Ok</button>
-}
-
-@sparqlEditor() = {
-
-  <div class="description">
-    Provide a SPARQL restriction that selects the entities that should be covered by this task.
-  </div>
-
-  <textarea name="sparql_restriction" cols="50" rows="10">
-    @restriction
-  </textarea>
-
-  <button onclick="commitSparqlRestriction()" style="float:right">Ok</button>
-}
+<button onclick="commitSparqlRestriction()" style="float:right">Ok</button>
