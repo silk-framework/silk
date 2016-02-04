@@ -47,8 +47,12 @@ object Restriction {
   def empty = Restriction(None)
 
   def custom(restriction: String)(implicit prefixes: Prefixes) = {
-    val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction).toSparql
-    Restriction(Some(CustomOperator(sparqlRestriction)))
+    if(restriction.trim.nonEmpty) {
+      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction).toSparql
+      Restriction(Some(CustomOperator(sparqlRestriction)))
+    } else {
+      Restriction.empty
+    }
   }
 
   /**
@@ -57,7 +61,7 @@ object Restriction {
    */
   def parse(restriction: String)(implicit prefixes: Prefixes) = {
     if(restriction.trim.isEmpty)
-      Restriction(None)
+      Restriction.empty
     else
       Restriction.custom(restriction)
   }

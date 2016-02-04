@@ -4,7 +4,7 @@
 @import org.silkframework.workspace.User
 @import controllers.rules.routes.Assets
 
-@(project: String, task: String)
+@(project: String, task: String, types: Seq[String])
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
@@ -34,6 +34,17 @@
             }
           }
         </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>
+        <input name="type" title="Type" list="types" @for(t <- transformationTask) { value="@t.data.selection.typeUri.toString" } style="width: 100%" />
+        <datalist id="types">
+        @for(typeUri <- types) {
+          <option value="@typeUri" />
+        }
+        </datalist>
       </td>
     </tr>
     <tr>
@@ -81,7 +92,7 @@
     sourceName = $("select[name='source']").val();
     sparqlRestriction = $("input[name='restriction']").val();
 
-    $.get('@config.baseUrl/workspace/dialogs/editRestriction/@project/' + sourceName,
+    $.get('@config.baseUrl/rules/dialogs/editRestriction/@project/' + sourceName,
           { varName: varName, restriction: sparqlRestriction },
           function(data) {
             $('#restrictionDialog').html(data);
@@ -99,6 +110,7 @@
     var values = {
       name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
       source: $("select[name='source']").val(),
+      type: $("select[name='type']").val(),
       restriction: $("input[name='restriction']").val(),
       output: $("select[name='output']").val()
     };

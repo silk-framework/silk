@@ -75,8 +75,7 @@ function parseOperator(xmlDoc, elementId, connections) {
   }
 
   // Parse id
-  var id = $(elementIdName + " > .content > .label").text();
-  if (!id) id = $(elementIdName + " > .content > .label-active > input.label-change").val();
+  var id = $(elementIdName + " .handler label").text();
   xml.setAttribute("id", id);
 
   // Parse children
@@ -93,7 +92,7 @@ function parseOperator(xmlDoc, elementId, connections) {
     return xml;
 
   // Parse parameters
-  var params = $(elementIdName+" > div.content > input");
+  var params = $(elementIdName+" div.content input");
 
   for (var l = 0; l < params.length; l++) {
     if ($(params[l]).attr("name") == "required") {

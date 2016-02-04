@@ -1,0 +1,17 @@
+@(project: org.silkframework.workspace.Project,
+  varName: String,
+  restriction: String)
+
+@import controllers.workspace.routes.Assets
+
+<link rel="stylesheet" href="@Assets.at("restrictionDialog.css")" type="text/css" />
+<script src="@Assets.at("restrictionDialog.js")" type="text/javascript"></script>
+
+<div class="description">
+  Provide a SPARQL restriction that selects the entities that should be covered by this task. The entities are identified with the variable ?@varName.
+  Example: ?a ex:hasOrganisation org:MyOrg .
+</div>
+
+<textarea name="sparql_restriction" cols="50" rows="10">@restriction</textarea>
+
+<button onclick="commitSparqlRestriction()" style="float:right">Ok</button>

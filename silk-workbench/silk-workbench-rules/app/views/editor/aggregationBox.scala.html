@@ -5,10 +5,12 @@
   x: Int, y: Int, display: Boolean)
 
 @operatorBox("Aggregate", id, plugin, parameters, x, y, display) {
-    required:
-    <input type="checkbox" name="required"  @if(required) {checked="checked"}/>
-    <br/>
-    weight:
-    <input type="text" name="weight" size="2" value="@weight"/>
-    <br/>
+<div class="param_element">
+  <span class="param_label">Required</span>
+  <input type="checkbox" name="required" @if(required) {checked="checked"}/>
+</div>
+<div class="param_element">
+  <label class="param_label">Weight</label>
+  <input class="param_value" type="text" name="weight" value="@weight"/>
+</div>
 }

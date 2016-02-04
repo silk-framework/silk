@@ -11,6 +11,8 @@ import org.silkframework.util.DPair
 import org.silkframework.evaluation.LinkageRuleEvaluator
 import plugins.Context
 
+import scala.util.control.NonFatal
+
 object LinkingEditor extends Controller {
 
   def editor(project: String, task: String) = Action { request =>
@@ -59,9 +61,17 @@ object LinkingEditor extends Controller {
         error = "No score available as this project does not define any reference links."))
     // If everything needed for computing a score is available
     } else {
-      val result = LinkageRuleEvaluator(task.data.rule, entitiesCache.value())
-      val score = f"Precision: ${result.precision}%.2f | Recall: ${result.recall}%.2f | F-measure: ${result.fMeasure}%.2f"
-      Ok(views.html.editor.score(score))
+      try {
+        val result = LinkageRuleEvaluator(task.data.rule, entitiesCache.value())
+        val score = f"Precision: ${result.precision}%.2f | Recall: ${result.recall}%.2f | F-measure: ${result.fMeasure}%.2f"
+        Ok(views.html.editor.score(score))
+      } catch {
+        case NonFatal(ex) =>
+          Ok(views.html.editor.score(
+            info = "No score could be computed",
+            error = ex.getMessage
+          ))
+      }
     }
   }
 

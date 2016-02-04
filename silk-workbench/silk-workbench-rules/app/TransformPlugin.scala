@@ -51,7 +51,8 @@ case class TransformPlugin() extends WorkbenchPlugin {
       val transformSpec = task.asInstanceOf[TransformSpecification]
       Seq(
         ("Source", transformSpec.selection.datasetId.toString),
-        ("Dataset", transformSpec.selection.restriction.toString)
+        ("Type", transformSpec.selection.typeUri.toString),
+        ("Restriction", transformSpec.selection.restriction.toString)
       )
     }
   }

@@ -11,7 +11,6 @@ GET           /dialogs/importproject                                            
 GET           /dialogs/importlinkspec/:project                                  controllers.workspace.Workspace.importLinkSpecDialog(project: String)
 GET           /dialogs/prefixes/:project                                        controllers.workspace.Workspace.prefixDialog(project: String)
 GET           /dialogs/resources/:project                                       controllers.workspace.Workspace.resourcesDialog(project: String)
-GET           /dialogs/editRestriction/:project/:task                           controllers.workspace.Workspace.restrictionDialog(project: String, task: String, varName: String, restriction: String)
 GET           /dialogs/executeProject/:project                                  controllers.workspace.Workspace.executeProjectDialog(project: String)
 GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.Workspace.projectActivityConfigDialog(project: String, activity: String)
 GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.Workspace.taskActivityConfigDialog(project: String, task: String, activity: String)

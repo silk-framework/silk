@@ -59,7 +59,7 @@ object DatasetSelection {
   def fromXML(node: Node)(implicit prefixes: Prefixes = Prefixes.empty): DatasetSelection = {
     val variable = (node \ "@var").text
 
-    val restrictionText = (node \ "RestrictTo").text.trim
+    var restrictionText = (node \ "RestrictTo").text.trim
     var typeUri = (node \ "@typeUri").text
 
     // If the type Uri is not defined, try to parse if from the SPARQL restriction
@@ -68,6 +68,7 @@ object DatasetSelection {
         val sourceRestriction = new SparqlRestrictionParser().apply(restrictionText)
         sourceRestriction.operator match {
           case Some(Restriction.Condition(path, uri)) if path.propertyUri.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#type") =>
+            restrictionText = ""
             typeUri = uri
           case _ =>
         }
