@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ValidatingXMLReader, Serialization, XmlFormat}
 import org.silkframework.util.{DPair, Uri}
 
 import scala.xml.Node
@@ -78,7 +78,12 @@ object LinkageRule {
 
     import Serialization._
 
+    private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
+
     def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): LinkageRule = {
+      // Validate against XSD Schema
+      ValidatingXMLReader.validate(node, schemaLocation)
+
       val link = (node \ "@linkType").text.trim
       LinkageRule(
         operator = (node \ "_").find(_.label != "Filter").map(fromXml[SimilarityOperator]),
