@@ -11,7 +11,7 @@
     $('.sourcePaths, .targetPaths').draggable({
       helper: function() {
         var box = $(this).children('.dragDiv').clone(false);
-        box.attr("id", generateNewElementId("path"));
+        box.attr("id", generateNewElementId(box.attr("id")));
         box.show();
         return box;
       }
@@ -60,21 +60,5 @@
 }
 
 @pathExpanded(path: String, pathType: String) = {
-  <div class="dragDiv @{pathType.toLowerCase}Div" style="display: none;">
-    <small class="name">Path</small>
-    <small class="type">@pathType</small>
-    <h5 class="handler">
-      <div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
-        Path (@pathType)
-      </div>
-      <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
-      <img align="right" src="@Assets.at("img/undecided.png")" style="cursor:help;" title="Entity Path"/>
-    </h5>
-    <div class="content">
-      name:
-      <span class="label"></span>
-      <br/>
-      <input type="text" name="path" value="@path" style="width:100%" />
-    </div>
-  </div>
+  @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false)
 }
