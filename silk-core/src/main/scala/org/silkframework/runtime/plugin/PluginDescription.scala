@@ -54,7 +54,9 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
           try {
             parameter.dataType match {
               case Parameter.Type.String => v
-              case Parameter.Type.Char => Char.box(v(0))
+              case Parameter.Type.Char =>
+                if(v.length == 1) Char.box(v(0))
+                else throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a single character.")
               case Parameter.Type.Int => Int.box(v.toInt)
               case Parameter.Type.Double => Double.box(v.toDouble)
               case Parameter.Type.Boolean => v.toLowerCase match {
