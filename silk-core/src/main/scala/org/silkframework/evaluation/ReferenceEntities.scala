@@ -18,11 +18,11 @@ package org.silkframework.evaluation
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
 import org.silkframework.util.DPair
-import scala.xml.{NodeSeq, Node}
+
+import scala.xml.{Node, NodeSeq}
 
 /**
  * Holds the entities which correspond to a set of reference links.
@@ -54,6 +54,11 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     linksToEntities(unlabeledLinks)
   }
 
+  // Converts a link to the entity pair.
+  private def linksToEntities(links: Set[Link]): Set[DPair[Entity]] = {
+    links flatMap linkToEntities
+  }
+
   private def linkToEntities(link: Link): Option[DPair[Entity]] = {
     for {
       sourceEntity <- sourceEntities.get(link.source)
@@ -69,7 +74,7 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
    * @return
    */
   def positiveLinkToEntities(link: Link): Option[DPair[Entity]] = {
-    if(positiveLinks.contains(link)) {
+    if (positiveLinks.contains(link)) {
       linkToEntities(link)
     } else {
       None
@@ -77,7 +82,7 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   }
 
   def negativeLinkToEntities(link: Link): Option[DPair[Entity]] = {
-    if(negativeLinks.contains(link)) {
+    if (negativeLinks.contains(link)) {
       linkToEntities(link)
     } else {
       None
@@ -85,16 +90,11 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   }
 
   def unlabeledLinkToEntities(link: Link): Option[DPair[Entity]] = {
-    if(unlabeledLinks.contains(link)) {
+    if (unlabeledLinks.contains(link)) {
       linkToEntities(link)
     } else {
       None
     }
-  }
-
-  // Converts a link to the entity pair.
-  private def linksToEntities(links: Set[Link]): Set[DPair[Entity]] = {
-    links flatMap linkToEntities
   }
 
   /** Merges this reference set with another reference set. */
@@ -106,43 +106,22 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     unlabeledLinks ++ ref.unlabeledLinks
   )
 
-  private def updateEntities(entityPair: DPair[Entity],
-                             referenceEntities: ReferenceEntities): ReferenceEntities = {
-    referenceEntities.copy(
-      sourceEntities = sourceEntities + (entityPair.source.uri -> entityPair.source),
-      targetEntities = targetEntities + (entityPair.target.uri -> entityPair.target)
-    )
-  }
-
-  def withPositive(entityPair: DPair[Entity]) = {
-    updateEntities(
-      entityPair,
-      copy(
-        positiveLinks = positiveLinks + (new Link(entityPair.source.uri, entityPair.target.uri))
-      )
-    )
-  }
-
-  def withNegative(entityPair: DPair[Entity]) = {
-    updateEntities(
-      entityPair,
-      copy(
-        negativeLinks = negativeLinks + (new Link(entityPair.source.uri, entityPair.target.uri))
-      )
-    )
-  }
-
-  def withUnlabeled(entityPair: DPair[Entity]) = {
-    updateEntities(
-      entityPair,
-      copy(
-        unlabeledLinks = unlabeledLinks + (new Link(entityPair.source.uri, entityPair.target.uri))
-      )
+  def update(newSourceEntities: Traversable[Entity] = Traversable.empty,
+             newTargetEntities: Traversable[Entity] = Traversable.empty,
+             newPositiveLinks: Set[Link] = Set.empty,
+             newNegativeLinks: Set[Link] = Set.empty,
+             newUnlabeledLinks: Set[Link] = Set.empty) = {
+    this.copy(
+      sourceEntities = sourceEntities ++ newSourceEntities.map(e => (e.uri, e)),
+      targetEntities = targetEntities ++ newTargetEntities.map(e => (e.uri, e)),
+      positiveLinks = positiveLinks ++ newPositiveLinks,
+      negativeLinks = negativeLinks ++ newNegativeLinks,
+      unlabeledLinks = unlabeledLinks ++ newUnlabeledLinks
     )
   }
 
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
-  def entityDescs: DPair[EntitySchema] = {
+  def entitySchemas: DPair[EntitySchema] = {
     for {
       sourceEntityDesc <- sourceEntities.values.headOption map (_.desc)
       targetEntityDesc <- targetEntities.values.headOption map (_.desc)
@@ -212,7 +191,7 @@ object ReferenceEntities {
      */
     def write(entities: ReferenceEntities)(implicit prefixes: Prefixes): Node = {
       <Entities>
-        {Serialization.toXml(entities.entityDescs)}<SourceEntities>
+        {Serialization.toXml(entities.entitySchemas)}<SourceEntities>
         {toXML(entities.sourceEntities)}
       </SourceEntities>
         <TargetEntities>
@@ -242,5 +221,4 @@ object ReferenceEntities {
       }
     }
   }
-
 }
