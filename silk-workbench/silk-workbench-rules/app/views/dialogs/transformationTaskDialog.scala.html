@@ -4,7 +4,7 @@
 @import org.silkframework.workspace.User
 @import controllers.rules.routes.Assets
 
-@(project: String, task: String, types: Seq[String])
+@(project: String, task: String)
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
@@ -40,11 +40,6 @@
       <td>Type</td>
       <td>
         <input name="type" title="Type" list="types" @for(t <- transformationTask) { value="@t.data.selection.typeUri.toString" } style="width: 100%" />
-        <datalist id="types">
-        @for(typeUri <- types) {
-          <option value="@typeUri" />
-        }
-        </datalist>
       </td>
     </tr>
     <tr>
@@ -85,6 +80,19 @@
   var sourceName;
   // The currently edited sparql restriction.
   var sparqlRestriction;
+
+  $(function() {
+    // Add autocompletion
+    $("input[name='type']").autocomplete({
+      source: function( request, response ) {
+        var dataset = $("select[name='source']").val();
+        $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
+          response(data);
+        });
+      },
+      minLength: 0
+    }).focus(function() { $(this).autocomplete("search"); });
+  });
 
   function openRestrictionDialog() {
     // Set variables

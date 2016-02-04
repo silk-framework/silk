@@ -5,7 +5,7 @@
 @import org.silkframework.util.DPair
 @import controllers.rules.routes.Assets
 
-@(project: String, task: String, types: DPair[Seq[String]])
+@(project: String, task: String)
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
@@ -41,11 +41,6 @@
       <td>Source Type</td>
       <td>
         <input name="sourceType" title="Source Type" list="sourceTypes" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.toString" } style="width: 100%" />
-        <datalist id="sourceTypes">
-          @for(typeUri <- types.source) {
-            <option value="@typeUri" />
-          }
-        </datalist>
       </td>
     </tr>
     <tr>
@@ -74,11 +69,6 @@
       <td>Target Type</td>
       <td>
         <input name="targetType" title="Target Type" list="targetTypes" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.toString" } style="width: 100%" />
-        <datalist id="targetTypes">
-        @for(typeUri <- types.target) {
-          <option value="@typeUri" />
-        }
-        </datalist>
       </td>
     </tr>
     <tr>
@@ -122,6 +112,29 @@
   var sparqlRestriction;
 
   var sourceOrTarget;
+
+  $(function() {
+    // Add autocompletion
+    $("input[name='sourceType']").autocomplete({
+      source: function( request, response ) {
+        var dataset = $("select[name='source']").val();
+        $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
+          response(data);
+        });
+      },
+      minLength: 0
+    }).focus(function() { $(this).autocomplete("search"); });
+
+    $("input[name='targetType']").autocomplete({
+      source: function( request, response ) {
+        var dataset = $("select[name='target']").val();
+        $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
+          response(data);
+        });
+      },
+      minLength: 0
+    }).focus(function() { $(this).autocomplete("search"); });
+  });
 
   function openRestrictionDialog(openSourceOrTarget) {
     // Set variables
