@@ -11,15 +11,19 @@ object LinkingDialogs extends Controller {
 
   def linkingTaskDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    if(taskName.nonEmpty) {
+      val task = project.task[LinkSpecification](taskName)
 
-    val sourceDataset = project.task[Dataset](task.data.dataSelections.source.datasetId)
-    val targetDataset = project.task[Dataset](task.data.dataSelections.target.datasetId)
+      val sourceDataset = project.task[Dataset](task.data.dataSelections.source.datasetId)
+      val targetDataset = project.task[Dataset](task.data.dataSelections.target.datasetId)
 
-    val sourceTypes = sourceDataset.activity[TypesCache].value.types
-    val targetTypes = targetDataset.activity[TypesCache].value.types
+      val sourceTypes = sourceDataset.activity[TypesCache].value.types
+      val targetTypes = targetDataset.activity[TypesCache].value.types
 
-    Ok(views.html.dialogs.linkingTaskDialog(projectName, taskName, DPair(sourceTypes, targetTypes)))
+      Ok(views.html.dialogs.linkingTaskDialog(projectName, taskName, DPair(sourceTypes, targetTypes)))
+    } else {
+      Ok(views.html.dialogs.linkingTaskDialog(projectName, taskName, DPair(Seq.empty, Seq.empty)))
+    }
   }
 
 }

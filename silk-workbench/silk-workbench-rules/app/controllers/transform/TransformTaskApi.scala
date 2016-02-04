@@ -12,7 +12,7 @@ import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
-import org.silkframework.util.{CollectLogs, Identifier}
+import org.silkframework.util.{Uri, CollectLogs, Identifier}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Task, Constants, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -28,7 +28,7 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), values("type"), Restriction.custom(values("restriction")))
+    val input = DatasetSelection(values("source"), Uri(values.getOrElse("type", "")), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
