@@ -20,8 +20,12 @@ object XmlParser {
     // Generate paths for all children nodes
     val childNodes = node \ "_"
     val childPaths = childNodes.flatMap(child => collectPaths(child, path))
+    // Generate paths for all attributes
+    val attributes = node.attributes.asAttrMap.keys.toSeq
+    val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
+
     // We only want to generate paths for leave nodes
-    if (childPaths.isEmpty) Seq(path) else childPaths
+    if (childPaths.isEmpty) Seq(path) ++ attributesPaths else attributesPaths ++ childPaths
   }
 
 }
