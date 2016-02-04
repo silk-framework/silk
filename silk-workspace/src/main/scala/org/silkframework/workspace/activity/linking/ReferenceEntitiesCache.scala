@@ -56,8 +56,6 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     def load() = {
       context.status.update("Loading entities", 0.0)
 
-      val linkCount = linkSpec.referenceLinks.positive.size + linkSpec.referenceLinks.negative.size + linkSpec.referenceLinks.unlabeled.size
-
       import linkSpec.referenceLinks.{negative, positive, unlabeled}
       val links = Seq(negative, positive, unlabeled)
       // Get load the different types of links
@@ -66,76 +64,54 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
         context.value().positiveLinkToEntities,
         context.value().unlabeledLinkToEntities
       )
-      // The appropriate context update functions for each type
-      val updateEntityFNs: Seq[() => DPair[Entity] => ReferenceEntities] = Seq(
-        () => context.value().withNegative,
-        () => context.value().withPositive,
-        () => context.value().withUnlabeled
-      )
-      var loadedLinks = 0
 
-//      val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
-//      val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
-//      for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
-//        for (link <- links if !canceled) {
-//          if (Thread.currentThread.isInterrupted) throw new InterruptedException()
-//          for (l <- loadLink(link, loadLinkFn)) {
-//            collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, l.source, entityDescs.source)
-//            collectEntitiesNeedingUpdate(targetEntityUrisNeedingUpdate, l.target, entityDescs.target)
-//          }
-//        }
-//      }
-//
-//      val sourceEntities: Map[String, Entity] = getSourceEntities(sourceEntityUrisNeedingUpdate)
-//      val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
-
-      for (((links, loadLinkFn), updateEntityFN) <- links.zip(loadLinkEntitiesFNs).zip(updateEntityFNs) if !canceled) {
+      val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
+      val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
+      for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
           for (l <- loadLink(link, loadLinkFn)) {
-            context.value() = updateEntityFN()(l)
+            collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, l.source, entityDescs.source)
+            collectEntitiesNeedingUpdate(targetEntityUrisNeedingUpdate, l.target, entityDescs.target)
           }
-          loadedLinks += 1
-          if (loadedLinks % 10 == 0)
-            context.status.update(0.5 * (loadedLinks.toDouble / linkCount))
         }
       }
+      val sourceEntities: Map[String, Entity] = getSourceEntities(sourceEntityUrisNeedingUpdate)
+      context.status.update(0.5 * 0.5)
+      val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
+      context.status.update(0.5)
+
+      // Add new entities to reference entities
+      context.value() = context.value().update(
+        sourceEntities.values,
+        targetEntities.values,
+        positive,
+        negative,
+        unlabeled
+      )
     }
 
-//    private def getSourceEntities(sourceEntityUrisNeedingUpdate: util.HashSet[String]): Map[String, Entity] = {
-//      getEntitiesByUri(
-//        sourceEntityUrisNeedingUpdate.asScala.toSeq,
-//        entityDescs.source,
-//        sources.source)
-//    }
-//
-//    private def getTargetEntities(targetEntityUrisNeedingUpdate: util.HashSet[String]): Map[String, Entity] = {
-//      getEntitiesByUri(
-//        targetEntityUrisNeedingUpdate.asScala.toSeq,
-//        entityDescs.target,
-//        sources.target)
-//    }
-//
-//    private def collectEntitiesNeedingUpdate(entities: util.HashSet[String],
-//                                             entity: Entity,
-//                                             entityDescription: SparqlEntitySchema): Unit = {
-//      if (entityMatchesDescription(entity, entityDescription)) {
-//        entities.add(entity.uri)
-//      }
-//    }
-//
-//    private def linkNeedsUpdate(link: Link,
-//                                loadLinkEntities: Link => Option[DPair[Entity]]): Boolean = {
-//      link.entities match {
-//        case Some(entities) => false
-//        case None => {
-//          loadLinkEntities(link) match {
-//            case None => retrieveEntityPair(link)
-//            case Some(entityPair) => updateEntityPair(entityPair)
-//          }
-//        }
-//      }
-//    }
+    private def getSourceEntities(sourceEntityUrisNeedingUpdate: util.HashSet[String]): Map[String, Entity] = {
+      getEntitiesByUri(
+        sourceEntityUrisNeedingUpdate.asScala.toSeq,
+        entityDescs.source,
+        sources.source)
+    }
+
+    private def getTargetEntities(targetEntityUrisNeedingUpdate: util.HashSet[String]): Map[String, Entity] = {
+      getEntitiesByUri(
+        targetEntityUrisNeedingUpdate.asScala.toSeq,
+        entityDescs.target,
+        sources.target)
+    }
+
+    private def collectEntitiesNeedingUpdate(entities: util.HashSet[String],
+                                             entity: Entity,
+                                             entityDescription: EntitySchema): Unit = {
+      if (entityMatchesDescription(entity, entityDescription)) {
+        entities.add(entity.uri)
+      }
+    }
 
     private def loadLink(link: Link,
                          loadLinkEntities: Link => Option[DPair[Entity]]): Option[DPair[Entity]] = {
@@ -210,12 +186,12 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       }
     }
 
-    private def getEntitiesByUri(entityUris: Seq[Uri],
+    private def getEntitiesByUri(entityUris: Seq[String],
                             entityDesc: EntitySchema,
                             source: DataSource): Map[String, Entity] = {
       val entities = source.retrieveByUri(
         entitySchema = entityDesc,
-        entities = entityUris
+        entities = entityUris map Uri.apply
       )
       entities map { e => (e.uri, e)} toMap
     }
@@ -224,5 +200,4 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       entity.desc.paths == entityDesc.paths
     }
   }
-
 }
