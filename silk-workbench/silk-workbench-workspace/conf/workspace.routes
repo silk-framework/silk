@@ -28,6 +28,7 @@ GET           /dialogs/editDataset/:project/:task                               
 GET           /datasets/:project/:task/dataset                                  controllers.workspace.Datasets.dataset(project, task)
 GET           /datasets/:project/:task/table                                    controllers.workspace.Datasets.table(project, task, maxEntities: Int ?= 20)
 GET           /datasets/:project/:task/sparql                                   controllers.workspace.Datasets.sparql(project, task, query ?= "")
+GET           /datasets/:project/:task/types                                    controllers.workspace.Datasets.types(project, task, search)
 
 # API
 GET           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.getDataset(project: String, name: String)
