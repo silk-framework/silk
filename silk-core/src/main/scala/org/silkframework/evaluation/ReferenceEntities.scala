@@ -162,15 +162,30 @@ object ReferenceEntities {
      * Deserialize a value from XML.
      */
     def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
-      val entityDescs = Serialization.fromXml[DPair[EntitySchema]]((node \ "Pair").head)
+      val entityDescs = Serialization.fromXml[DPair[EntitySchema]]((checkAndGet(node,  "Pair").head))
 
-      val sourceEntities = extractEntities(entityDescs.source, node \ "SourceEntities")
-      val targetEntities = extractEntities(entityDescs.target, node \ "TargetEntities")
-      val positiveLinks: Set[Link] = extractLinks(node \ "PositiveLinks")
-      val negativeLinks: Set[Link] = extractLinks(node \ "NegativeLinks")
-      val unlabeledLinks: Set[Link] = extractLinks(node \ "UnlabeledLinks")
+      val sourceEntities = extractEntities(entityDescs.source, checkAndGet(node,  "SourceEntities"))
+      val targetEntities = extractEntities(entityDescs.target, checkAndGet(node, "TargetEntities"))
+      val positiveLinks: Set[Link] = extractLinks(checkAndGet(node,  "PositiveLinks"))
+      val negativeLinks: Set[Link] = extractLinks(checkAndGet(node,  "NegativeLinks"))
+      val unlabeledLinks: Set[Link] = extractLinks(checkAndGet(node,  "UnlabeledLinks"))
 
       ReferenceEntities(sourceEntities, targetEntities, positiveLinks, negativeLinks, unlabeledLinks)
+    }
+
+    private def checkAndGet(node: Node, elementName: String): NodeSeq = {
+      val elem = node \ elementName
+      if(elem.length == 0) {
+        throw new RuntimeException(s"Element $elementName not found in XML ReferenceEntities serialization!")
+      } else {
+        elem
+      }
+    }
+
+    private def checkNode(node: NodeSeq): Unit = {
+      if(node.length == 0) {
+        throw new RuntimeException("Mi")
+      }
     }
 
     private def extractEntities(entityDesc: EntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
