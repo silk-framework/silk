@@ -13,6 +13,7 @@ function endEdit(e) {
     }
     input.hide();
     label.show();
+    modifyLinkSpec();
 }
 
 // end editing by loosing focus

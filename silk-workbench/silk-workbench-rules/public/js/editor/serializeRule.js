@@ -92,7 +92,7 @@ function parseOperator(xmlDoc, elementId, connections) {
     return xml;
 
   // Parse parameters
-  var params = $(elementIdName+" > div.content > input");
+  var params = $(elementIdName+" div.content input");
 
   for (var l = 0; l < params.length; l++) {
     if ($(params[l]).attr("name") == "required") {

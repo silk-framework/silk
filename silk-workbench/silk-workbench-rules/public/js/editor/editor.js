@@ -198,7 +198,7 @@ $(function ()
   $(document).on('change', "input[type!='text']", function(info) {
     modifyLinkSpec();
   });
-  $(document).on('keyup', "input[type='text']", function(info) {
+  $(document).on('keyup', "input[type='text'].param_value", function(info) {
     modifyLinkSpec();
   });
 
