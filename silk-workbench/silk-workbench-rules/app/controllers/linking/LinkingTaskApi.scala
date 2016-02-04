@@ -18,7 +18,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
 import org.silkframework.util.Identifier._
 import ValidationException.ValidationError
-import org.silkframework.util.{Identifier, CollectLogs, DPair}
+import org.silkframework.util.{Uri, Identifier, CollectLogs, DPair}
 import org.silkframework.workspace.Constants
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
@@ -39,8 +39,8 @@ object LinkingTaskApi extends Controller {
     implicit val prefixes = proj.config.prefixes
 
     val datasets =
-      DPair(DatasetSelection(values("source"), values("sourceType"), Restriction.custom(values("sourceRestriction"))),
-            DatasetSelection(values("target"), values("targetType"), Restriction.custom(values("targetRestriction"))))
+      DPair(DatasetSelection(values("source"), Uri(values.getOrElse("sourceType", "")), Restriction.custom(values("sourceRestriction"))),
+            DatasetSelection(values("target"), Uri(values.getOrElse("targetType", "")), Restriction.custom(values("targetRestriction"))))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {

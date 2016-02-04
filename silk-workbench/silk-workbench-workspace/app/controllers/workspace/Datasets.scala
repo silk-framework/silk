@@ -6,6 +6,8 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.User
+import org.silkframework.workspace.activity.dataset.TypesCache
+import play.api.libs.json.{JsString, Json, JsArray}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
@@ -74,6 +76,14 @@ object Datasets extends Controller {
         Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
       case _ => BadRequest("This is not an RDF-Dataset.")
     }
+  }
+
+  def types(project: String, task: String, search: String = "") = Action { request =>
+    val context = Context.get[Dataset](project, task, request.path)
+    val types = context.task.activity[TypesCache].value.types
+    val filteredTypes = types.filter(_.contains(search))
+
+    Ok(JsArray(filteredTypes.map(JsString)))
   }
 
 }
