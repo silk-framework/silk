@@ -54,9 +54,11 @@ sealed trait OperatorTraverser {
   }
 
   /** Iterates through all descendant operators (i.e. the operator itself and all of its direct and indirect children) */
-  def iterateAll: Iterator[OperatorTraverser] = {
-    Iterator.single(this) ++ iterateChildren.flatMap(_.iterateAll)
+  def iterateAllChildren: Iterator[OperatorTraverser] = {
+    Iterator.single(this) ++ iterateChildren.flatMap(_.iterateAllChildren)
   }
+
+  def iterateParents: Iterator[OperatorTraverser] = iterate(_.moveUp)
 
   def iterate(f: OperatorTraverser => Option[OperatorTraverser]) = new Iterator[OperatorTraverser] {
 
