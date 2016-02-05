@@ -1,11 +1,10 @@
-@import org.silkframework.workspace.Constants
 @import org.silkframework.rule.Operator
 @import org.silkframework.rule.input.TransformInput
 @import org.silkframework.rule.input.PathInput
 @import org.silkframework.rule.similarity.Aggregation
 @import org.silkframework.rule.similarity.Comparison
+@import org.silkframework.rule.RuleTraverser
 
-@import org.silkframework.rule.OperatorTraverser
 @(rule: org.silkframework.rule.Operator,
   prefixes: org.silkframework.config.Prefixes)
 
@@ -65,7 +64,7 @@
       @transformationBox(id, transformer.plugin, transformer.parameters, x, y, true)
     }
     case PathInput(id, path) => {
-      @pathBox(id,isSourceInput(op), path.serialize(prefixes), x, y, true)
+      @pathBox(id, isSourceInput(op), path.serialize(prefixes), x, y, true)
     }
   }
 }
@@ -77,7 +76,7 @@
   var isSource = true
   for {
     // Get a traversable node for the given operator
-    inputNode <- OperatorTraverser(rule).iterateAllChildren.find(_.operator.id == op.id)
+    inputNode <- RuleTraverser(rule).iterateAllChildren.find(_.operator.id == op.id)
     // Find the root input, i.e., the one directly below a comparison
     rootInputNode <- inputNode.iterateParents.find(_.moveUp.exists(_.operator.isInstanceOf[Comparison]))
     // Get the comparison node
