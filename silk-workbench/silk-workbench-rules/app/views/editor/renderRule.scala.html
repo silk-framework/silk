@@ -16,7 +16,7 @@
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
   @if(!ops.isEmpty) {
     @for((op, index) <- ops.zipWithIndex) {
-      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75, index % 2 == 0)
+      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75)
     }
     @drawLevel(ops.flatMap(getChildren), x - 250, height)
   }
@@ -53,7 +53,7 @@
   }
 }
 
-@drawOperator(op: Operator, x: Int, y: Int, sourceOrTarget: Boolean) = {
+@drawOperator(op: Operator, x: Int, y: Int) = {
   @op match {
     case Aggregation(id, required, weight, aggregator, operators) => {
       @aggregationBox(id, required, weight, aggregator.plugin, aggregator.parameters, x, y, true)
