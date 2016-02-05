@@ -4,6 +4,7 @@
 @import org.silkframework.rule.similarity.Aggregation
 @import org.silkframework.rule.similarity.Comparison
 @import org.silkframework.rule.RuleTraverser
+@import views.editor.GenerateId
 
 @(rule: org.silkframework.rule.Operator,
   prefixes: org.silkframework.config.Prefixes)
@@ -115,8 +116,8 @@
       }
 
       @* Create endpoints *@
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointSimilarityTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointSimilaritySource);
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilarityTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       @for(op <- operators) {
@@ -132,8 +133,8 @@
       @connectOperator(inputs.target)
 
       @* Create endpoints *@
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointValueTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointSimilaritySource);
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       jsPlumb.connect({
@@ -151,8 +152,8 @@
         @connectOperator(input)
       }
 
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointValueTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointValueSource);
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
 
       @* Connect children *@
       @for(input <- inputs) {
@@ -163,7 +164,7 @@
       }
     }
     case PathInput(id, path) => {
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointValueSource);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
     }
   }
 }

@@ -1,3 +1,6 @@
+@import controllers.rules.routes.Assets
+@import views.editor.GenerateId
+
 @(opType: String,
   id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
@@ -5,9 +8,7 @@
   x: Int, y: Int,
   display: Boolean)(additionalContent: Html)
 
-@import controllers.rules.routes.Assets
-
-<div id="@id" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
+<div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
   <small class="name">@plugin.id</small>
   <small class="type">@opType</small>
   <h5 class="handler">
