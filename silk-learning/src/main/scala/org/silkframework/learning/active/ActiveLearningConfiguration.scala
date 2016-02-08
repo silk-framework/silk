@@ -14,9 +14,21 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector}
+import org.silkframework.learning.active.linkselector.{MaximumAgreementSelector, LinkSelectorCombinator, JensenShannonDivergenceSelector, LinkSelector}
 import org.silkframework.learning.active.poolgenerator.{SimpleLinkPoolGenerator, LinkPoolGenerator}
 
 
 case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = SimpleLinkPoolGenerator(),
-                                       selector: LinkSelector = JensenShannonDivergenceSelector())
+                                       selector: LinkSelector = ActiveLearningConfigurationDefaults.defaultLinkSelector)
+
+object ActiveLearningConfigurationDefaults {
+  val defaultLinkSelector = {
+    val max = MaximumAgreementSelector()
+    val jensen = JensenShannonDivergenceSelector()
+    LinkSelectorCombinator(
+      pickLinkSelector =  (_, _, entities) => {
+        if(entities.positiveLinks.size < 2) max else jensen
+      }
+    )
+  }
+}
