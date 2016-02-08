@@ -70,16 +70,20 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
-          for (l <- loadLink(link, loadLinkFn)) {
-            collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, l.source, entityDescs.source)
-            collectEntitiesNeedingUpdate(targetEntityUrisNeedingUpdate, l.target, entityDescs.target)
+          link.entities match {
+            case Some(entities) =>
+              collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, entities.source, entityDescs.source)
+              collectEntitiesNeedingUpdate(targetEntityUrisNeedingUpdate, entities.target, entityDescs.target)
+            case None =>
+              sourceEntityUrisNeedingUpdate.add(link.source)
+              targetEntityUrisNeedingUpdate.add(link.target)
           }
         }
       }
       val sourceEntities: Map[String, Entity] = getSourceEntities(sourceEntityUrisNeedingUpdate)
-      context.status.update(0.5 * 0.5)
-      val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
       context.status.update(0.5)
+      val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
+      context.status.update(0.99)
 
       // Add new entities to reference entities
       context.value() = context.value().update(

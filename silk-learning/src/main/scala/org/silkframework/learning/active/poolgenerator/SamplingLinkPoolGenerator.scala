@@ -13,4 +13,8 @@ class SamplingLinkPoolGenerator(sampleSize: Int) extends SimpleLinkPoolGenerator
     generateLinksWithEntities = true,
     sampleSizeOpt = Some(sampleSize)
   )
+
+  override def toString(): String = {
+    s"SamplingLinkPoolGenerator(sampleSize = $sampleSize)"
+  }
 }
