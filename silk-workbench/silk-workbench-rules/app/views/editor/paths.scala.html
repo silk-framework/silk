@@ -11,7 +11,8 @@
     $('.sourcePaths, .targetPaths').draggable({
       helper: function() {
         var box = $(this).children('.dragDiv').clone(false);
-        box.attr("id", generateNewElementId(box.attr("id")));
+        var id = box.find(".handler label").text();
+        box.attr("id", generateNewElementId(id));
         box.show();
         return box;
       }

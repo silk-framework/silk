@@ -41,7 +41,7 @@ function serializeRule(tagName) {
   var xmlDoc = document.implementation.createDocument('', 'root', null);
   var xml = xmlDoc.createElement(tagName);
   if (root != null) {
-    xml.appendChild(parseOperator(xmlDoc, root, connections));
+    xml.appendChild(parseOperator(xmlDoc, root, connections).xml);
   }
 
   return xml;
@@ -49,6 +49,10 @@ function serializeRule(tagName) {
 
 /**
  * Parses a single operator and returns the resulting XML.
+ *
+ * @return An object with two fields:
+ *   - xml: The generated xml
+ *   - inputType: The input type, either source or target. Undefined if the given operator is not an input
  */
 function parseOperator(xmlDoc, elementId, connections) {
   var elementIdName = "#"+elementId;
@@ -79,17 +83,36 @@ function parseOperator(xmlDoc, elementId, connections) {
   xml.setAttribute("id", id);
 
   // Parse children
+  var children = [];
   for (var i = 0; i < connections.length; i++) {
     var source = connections[i].sourceId;
     var target = connections[i].targetId;
     if (target == elementId) {
-      xml.appendChild(parseOperator(xmlDoc, source, connections));
+      children.push(parseOperator(xmlDoc, source, connections));
+    }
+  }
+
+  // Append children
+  if(elType == "Compare") {
+   // For comparisons, we need to append the children in the correct order
+   if(children[0].inputType == "Source") {
+     xml.appendChild(children[0].xml);
+     if(children.length > 1)
+       xml.appendChild(children[1].xml);
+   } else {
+     if(children.length > 1)
+       xml.appendChild(children[1].xml);
+     xml.appendChild(children[0].xml);
+   }
+  } else {
+    for (var i in children) {
+      xml.appendChild(children[i].xml)
     }
   }
 
   // If this is a path, we are finished. Otherwise the parameters still need to be parsed.
   if(elType == "Source" || elType == "Target")
-    return xml;
+    return { xml: xml, inputType: elType };
 
   // Parse parameters
   var params = $(elementIdName+" div.content input");
@@ -122,7 +145,12 @@ function parseOperator(xmlDoc, elementId, connections) {
     }
   }
 
-  return xml;
+  return {
+    xml: xml,
+    // For now we just select the type of the first child
+    // Todo verify for input trees that all do have the same input type
+    inputType: children[0].elType
+  };
 }
 
 /**

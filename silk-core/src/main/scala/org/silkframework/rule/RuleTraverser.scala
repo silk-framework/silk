@@ -17,35 +17,35 @@ package org.silkframework.rule
 /**
  * Allows to traverse through a rule tree while editing specific operators.
  */
-sealed trait OperatorTraverser {
+sealed trait RuleTraverser {
 
   /** The current operator. */
   val operator: Operator
 
   /** Updates the current operator. */
-  def update(updatedOperator: Operator): OperatorTraverser
+  def update(updatedOperator: Operator): RuleTraverser
 
   /** Moves one operator to the left. */
-  def moveLeft: Option[OperatorTraverser]
+  def moveLeft: Option[RuleTraverser]
 
   /** Moves one operator to the right. */
-  def moveRight: Option[OperatorTraverser]
+  def moveRight: Option[RuleTraverser]
 
   /** Moves one operator up. */
-  def moveUp: Option[OperatorTraverser]
+  def moveUp: Option[RuleTraverser]
 
   /** Moves one operator down. */
-  def moveDown: Option[OperatorTraverser] = {
+  def moveDown: Option[RuleTraverser] = {
     if (operator.children.isEmpty) {
       None
     }
     else {
-      Some(OperatorTraverser.Hole(operator.children.head, Nil, this, operator.children.tail))
+      Some(RuleTraverser.Hole(operator.children.head, Nil, this, operator.children.tail))
     }
   }
 
   /** Returns the root operator */
-  def root: OperatorTraverser = iterate(_.moveUp).toTraversable.last
+  def root: RuleTraverser = iterate(_.moveUp).toTraversable.last
 
   /** Iterates through all direct children */
   def iterateChildren = moveDown match {
@@ -54,13 +54,15 @@ sealed trait OperatorTraverser {
   }
 
   /** Iterates through all descendant operators (i.e. the operator itself and all of its direct and indirect children) */
-  def iterateAll: Iterator[OperatorTraverser] = {
-    Iterator.single(this) ++ iterateChildren.flatMap(_.iterateAll)
+  def iterateAllChildren: Iterator[RuleTraverser] = {
+    Iterator.single(this) ++ iterateChildren.flatMap(_.iterateAllChildren)
   }
 
-  def iterate(f: OperatorTraverser => Option[OperatorTraverser]) = new Iterator[OperatorTraverser] {
+  def iterateParents: Iterator[RuleTraverser] = iterate(_.moveUp)
 
-    private var currentOperator: Option[OperatorTraverser] = Some(OperatorTraverser.this)
+  def iterate(f: RuleTraverser => Option[RuleTraverser]) = new Iterator[RuleTraverser] {
+
+    private var currentOperator: Option[RuleTraverser] = Some(RuleTraverser.this)
 
     def hasNext = currentOperator.isDefined
 
@@ -76,7 +78,7 @@ sealed trait OperatorTraverser {
 /**
   * Allows to traverse through a rule tree while editing specific operators.
   */
-object OperatorTraverser {
+object RuleTraverser {
 
   /**
     * Creates a new rule traverser.
@@ -88,9 +90,9 @@ object OperatorTraverser {
   /**
     * Given a rule traverser, returns the current operator.
     */
-  def unapply(location: OperatorTraverser): Option[Operator] = Some(location.operator)
+  def unapply(location: RuleTraverser): Option[Operator] = Some(location.operator)
 
-  case class Root(override val operator: Operator) extends OperatorTraverser {
+  case class Root(override val operator: Operator) extends RuleTraverser {
 
     override def update(updatedOperator: Operator) = Root(updatedOperator)
 
@@ -101,7 +103,7 @@ object OperatorTraverser {
     override def moveUp = None
   }
 
-  case class Hole(override val operator: Operator, left: Seq[Operator], parent: OperatorTraverser, right: Seq[Operator]) extends OperatorTraverser {
+  case class Hole(override val operator: Operator, left: Seq[Operator], parent: RuleTraverser, right: Seq[Operator]) extends RuleTraverser {
 
     override def update(updatedOperator: Operator) = {
       val updatedParent = parent.update(parent.operator.withChildren(left ++ (updatedOperator +: right)))

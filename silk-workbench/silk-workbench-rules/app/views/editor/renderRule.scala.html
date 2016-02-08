@@ -1,9 +1,10 @@
-@import org.silkframework.workspace.Constants
 @import org.silkframework.rule.Operator
 @import org.silkframework.rule.input.TransformInput
 @import org.silkframework.rule.input.PathInput
 @import org.silkframework.rule.similarity.Aggregation
 @import org.silkframework.rule.similarity.Comparison
+@import org.silkframework.rule.RuleTraverser
+@import views.editor.GenerateId
 
 @(rule: org.silkframework.rule.Operator,
   prefixes: org.silkframework.config.Prefixes)
@@ -15,7 +16,7 @@
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
   @if(!ops.isEmpty) {
     @for((op, index) <- ops.zipWithIndex) {
-      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75, index == 0)
+      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75)
     }
     @drawLevel(ops.flatMap(getChildren), x - 250, height)
   }
@@ -52,7 +53,7 @@
   }
 }
 
-@drawOperator(op: Operator, x: Int, y: Int, sourceOrTarget: Boolean) = {
+@drawOperator(op: Operator, x: Int, y: Int) = {
   @op match {
     case Aggregation(id, required, weight, aggregator, operators) => {
       @aggregationBox(id, required, weight, aggregator.plugin, aggregator.parameters, x, y, true)
@@ -64,9 +65,28 @@
       @transformationBox(id, transformer.plugin, transformer.parameters, x, y, true)
     }
     case PathInput(id, path) => {
-      @pathBox(id, sourceOrTarget, path.serialize(prefixes), x, y, true)
+      @pathBox(id, isSourceInput(op), path.serialize(prefixes), x, y, true)
     }
   }
+}
+
+@**
+ * Determines if an operator is a source or target input.
+ *@
+@isSourceInput(op: Operator) = @{
+  var isSource = true
+  for {
+    // Get a traversable node for the given operator
+    inputNode <- RuleTraverser(rule).iterateAllChildren.find(_.operator.id == op.id)
+    // Find the root input, i.e., the one directly below a comparison
+    rootInputNode <- inputNode.iterateParents.find(_.moveUp.exists(_.operator.isInstanceOf[Comparison]))
+    // Get the comparison node
+    comparisonNode <- rootInputNode.moveUp
+  } {
+    // The operator is a source input if it is the first child of the comparison
+    isSource = comparisonNode.iterateChildren.next.operator.id == rootInputNode.operator.id
+  }
+  isSource
 }
 
 @connectOperators(op: Operator) = {
@@ -96,8 +116,8 @@
       }
 
       @* Create endpoints *@
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointSimilarityTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointSimilaritySource);
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilarityTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       @for(op <- operators) {
@@ -113,8 +133,8 @@
       @connectOperator(inputs.target)
 
       @* Create endpoints *@
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointValueTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointSimilaritySource);
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       jsPlumb.connect({
@@ -132,8 +152,8 @@
         @connectOperator(input)
       }
 
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@id', endpointValueTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointValueSource);
+      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
 
       @* Connect children *@
       @for(input <- inputs) {
@@ -144,7 +164,7 @@
       }
     }
     case PathInput(id, path) => {
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@id', endpointValueSource);
+      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
     }
   }
 }
