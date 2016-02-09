@@ -329,6 +329,9 @@ body{
   border-top: 0;
 }
 
+.operator_footer:hover {
+  box-shadow: 0 0 0 ;
+}
 
 .operator_footer.sourceDiv {
   background-color: rgb(242, 215, 255);
