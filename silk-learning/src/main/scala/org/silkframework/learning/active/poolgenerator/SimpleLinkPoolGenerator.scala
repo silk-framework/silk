@@ -23,7 +23,7 @@ import org.silkframework.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkageRule, Operator}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{ActivityControl, Activity, ActivityContext}
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.util.Random
@@ -44,7 +44,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
     private val maxLinks = 1000
 
-    private var generateLinksActivity: GenerateLinks = _
+    private var generateLinksActivity: ActivityControl[Linking] = _
 
     override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
       val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
@@ -52,16 +52,19 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
-      generateLinksActivity =
-        new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
-          override def entityDescs = entityDesc
-        }
+      val generateLinks = new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
+         override def entityDescs = entityDesc
+      }
+
+      generateLinksActivity = context.child(generateLinks, 0.8)
 
       val listener = (v: Linking) => {
-        if (v.links.size > maxLinks) generateLinksActivity.cancelExecution()
+        if (v.links.size > maxLinks) generateLinksActivity.cancel()
       }
       context.status.update(0.0)
-      context.executeBlocking(generateLinksActivity, 0.8, listener)
+
+      generateLinksActivity.value.onUpdate(listener)
+      generateLinksActivity.startBlocking()
 
       val generatedLinks = op.getLinks()
       assert(generatedLinks.nonEmpty, "Could not load any links")
@@ -102,7 +105,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
           }
 
           if (size > maxLinks && labelLinks > 100)
-            generateLinksActivity.cancelExecution()
+            generateLinksActivity.cancel()
         }
 
         None

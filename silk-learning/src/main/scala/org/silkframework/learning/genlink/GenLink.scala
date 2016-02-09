@@ -67,7 +67,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
 
   private def executeStep(activity: Activity[Population], context: ActivityContext[Result]) {
     // Update population
-    population = context.executeBlocking(activity)
+    population = context.child(activity).startBlockingAndGetValue()
 
     // Update number of iterations
     if(activity.isInstanceOf[Reproduction]) {
