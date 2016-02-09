@@ -1,11 +1,10 @@
 package org.silkframework.execution.methods
 
-import org.silkframework.entity.{Path, Index, Entity}
-import org.silkframework.rule.LinkageRule
-import org.silkframework.util.StringUtils._
-import math._
-import scala.BigInt
+import org.silkframework.entity.{Entity, Index, Path}
 import org.silkframework.execution.ExecutionMethod
+import org.silkframework.rule.LinkageRule
+
+import scala.math._
 
 /**
  * Q-Grams indexing as described in:

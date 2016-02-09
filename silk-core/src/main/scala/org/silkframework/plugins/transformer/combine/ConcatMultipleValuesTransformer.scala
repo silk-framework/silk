@@ -1,8 +1,9 @@
 package org.silkframework.plugins.transformer.combine
 
+import java.util.regex.Pattern
+
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
-import java.util.regex.Pattern
 
 /**
  * Transformer concatenating multiple values using a given glue string. Optionally removes duplicate values.

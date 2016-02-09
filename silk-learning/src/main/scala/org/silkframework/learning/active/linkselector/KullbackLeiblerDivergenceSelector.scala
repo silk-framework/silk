@@ -14,11 +14,11 @@
 
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.rule.LinkageRule
-import org.silkframework.entity.{Entity, Link}
-import org.silkframework.util.DPair
-import math.log
+import org.silkframework.entity.Link
 import org.silkframework.evaluation.ReferenceEntities
+import org.silkframework.rule.LinkageRule
+
+import scala.math.log
 
 /**
  * Selects links with the highest Kullback-Leibler divergence as suggested in:

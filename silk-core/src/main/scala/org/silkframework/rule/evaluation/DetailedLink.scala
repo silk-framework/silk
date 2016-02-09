@@ -14,11 +14,8 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.rule.similarity.{Comparison, Aggregation}
-import org.silkframework.util.DPair
 import org.silkframework.entity.{Entity, Link}
-import org.silkframework.rule.input.{TransformInput, PathInput}
-import xml.Node
+import org.silkframework.util.DPair
 
 class DetailedLink(source: String,
                    target: String,

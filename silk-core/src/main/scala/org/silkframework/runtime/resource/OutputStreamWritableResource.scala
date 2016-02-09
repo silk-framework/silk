@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource
 
-import java.io.{IOException, OutputStream, InputStream}
+import java.io.{IOException, InputStream, OutputStream}
 
 /**
  * Created by andreas on 1/27/16.

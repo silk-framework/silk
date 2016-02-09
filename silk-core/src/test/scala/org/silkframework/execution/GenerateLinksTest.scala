@@ -14,23 +14,19 @@
 
 package org.silkframework.execution
 
-import org.silkframework.config.LinkingConfig
-import org.silkframework.entity.{Path, Link}
-import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.serialization.Serialization
-import methods._
-import org.silkframework.plugins.CorePlugins
-import org.silkframework.evaluation.ReferenceLinksReader
-import scala.io.Source
-import java.util.logging.{Logger, Level}
-import org.silkframework.config.RuntimeConfig
-import methods.Blocking
-import methods.MultiBlock
-import methods.SortedBlocks
 import java.util.Locale
-import org.silkframework.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
-import org.silkframework.runtime.resource.ClasspathResourceLoader
+import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.{LinkingConfig, RuntimeConfig}
+import org.silkframework.entity.{Link, Path}
+import org.silkframework.evaluation.ReferenceLinksReader
+import org.silkframework.execution.methods.{Blocking, MultiBlock, SortedBlocks, _}
+import org.silkframework.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
+import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.resource.ClasspathResourceLoader
+import org.silkframework.runtime.serialization.Serialization
+
+import scala.io.Source
 import scala.xml.XML
 
 /**

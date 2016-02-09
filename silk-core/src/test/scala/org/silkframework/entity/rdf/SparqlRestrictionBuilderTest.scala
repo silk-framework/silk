@@ -1,9 +1,7 @@
 package org.silkframework.entity.rdf
 
 
-import org.scalatest.FlatSpec
-
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction.Condition
 import org.silkframework.entity.{Path, Restriction}

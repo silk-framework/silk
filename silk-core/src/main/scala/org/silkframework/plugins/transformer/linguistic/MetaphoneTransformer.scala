@@ -1,8 +1,8 @@
 package org.silkframework.plugins.transformer.linguistic
 
-import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.rule.input.SimpleTransformer
 import com.rockymadden.stringmetric.phonetic.MetaphoneAlgorithm
+import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
   id = "metaphone",

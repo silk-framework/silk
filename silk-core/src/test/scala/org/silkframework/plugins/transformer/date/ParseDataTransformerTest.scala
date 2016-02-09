@@ -15,9 +15,7 @@
 package org.silkframework.plugins.transformer.date
 
 
-import org.scalatest.FlatSpec
-
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 
 
 class ParseDataTransformerTest extends FlatSpec with Matchers {

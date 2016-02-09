@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.reproduction
 
+import org.silkframework.learning.individual.{AggregationNode, ComparisonNode, OperatorNode}
 import org.silkframework.util.DPair
-import org.silkframework.learning.individual.{AggregationNode, OperatorNode, ComparisonNode}
 
 /**
  * A crossover operator which combines the weights of two comparisons.

@@ -1,15 +1,14 @@
 package org.silkframework.learning.genlink
 
 import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import org.silkframework.learning.LinkageRuleLearner
-import org.silkframework.rule.LinkageRule
-import org.silkframework.learning.LearningConfiguration
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
-import LinkageRuleLearner.Result
-import org.silkframework.learning.individual.Population
-import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
-import org.silkframework.learning.reproduction.Reproduction
+import org.silkframework.learning.{LearningConfiguration, LinkageRuleLearner}
+import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.cleaning.CleanPopulationTask
+import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
+import org.silkframework.learning.individual.Population
+import org.silkframework.learning.reproduction.Reproduction
+import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[LinkageRule],
                       config: LearningConfiguration) extends Activity[Result] {

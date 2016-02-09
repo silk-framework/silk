@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.individual
 
+import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
 import org.silkframework.util.DPair
-import org.silkframework.rule.similarity.{DistanceMeasure, Comparison}
 
 case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, required: Boolean, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
   require(inputs.source.isSource && !inputs.target.isSource, "inputs.source.isSource && !inputs.target.isSource")

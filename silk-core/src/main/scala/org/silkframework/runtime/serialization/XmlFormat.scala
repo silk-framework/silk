@@ -1,7 +1,7 @@
 package org.silkframework.runtime.serialization
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
 import scala.xml.Node
 

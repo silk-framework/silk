@@ -16,14 +16,13 @@ package org.silkframework.config
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.{LinkSink, DataSink, DataSource, Dataset}
-import org.silkframework.entity.{Restriction, EntitySchema, Path}
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.dataset.{DataSource, Dataset, LinkSink}
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization._
 import org.silkframework.runtime.serialization.{ValidatingXMLReader, ValidationException, XmlFormat}
 import org.silkframework.util._

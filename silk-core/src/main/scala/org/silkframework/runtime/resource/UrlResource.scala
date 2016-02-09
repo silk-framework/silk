@@ -1,7 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io.{FileNotFoundException, InputStream}
-import java.net.{URLConnection, UnknownHostException, URL}
+import java.net.{URL, URLConnection, UnknownHostException}
 
 
 /**

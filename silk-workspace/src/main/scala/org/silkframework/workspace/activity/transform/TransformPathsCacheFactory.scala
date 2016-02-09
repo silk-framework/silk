@@ -1,7 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.TransformSpecification
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}

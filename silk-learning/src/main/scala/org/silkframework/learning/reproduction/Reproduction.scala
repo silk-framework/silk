@@ -14,13 +14,13 @@
 
 package org.silkframework.learning.reproduction
 
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
-
-import util.Random
-import org.silkframework.learning.individual.{Individual, Population}
-import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.LearningConfiguration
+import org.silkframework.learning.generation.LinkageRuleGenerator
+import org.silkframework.learning.individual.{Individual, Population}
 import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
+
+import scala.util.Random
 
 class Reproduction(population: Population,
                    fitnessFunction: (LinkageRule => Double),

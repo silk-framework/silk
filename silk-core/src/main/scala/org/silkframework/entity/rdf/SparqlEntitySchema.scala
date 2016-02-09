@@ -16,7 +16,7 @@ package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, Path}
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlFormat
 
 import scala.xml.Node

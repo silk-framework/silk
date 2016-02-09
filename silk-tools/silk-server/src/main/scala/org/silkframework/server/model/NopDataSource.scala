@@ -16,9 +16,9 @@
 package org.silkframework.server.model
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.entity.{Entity, Path}
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.entity.{Path, Entity}
 
 /**
   * ${DESCRIPTION}

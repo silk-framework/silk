@@ -14,11 +14,10 @@
 
 package org.silkframework.learning
 
-import java.util.logging.Level
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
 import org.silkframework.evaluation.LinkageRuleEvaluator
-import LinkageRuleLearner.Result
+import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.genlink.GenLinkLearner
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**
  * Learns a linkage rule from reference links.

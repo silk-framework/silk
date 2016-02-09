@@ -16,8 +16,8 @@ package org.silkframework.config
 
 import org.silkframework.runtime.serialization.ValidationException
 
-import scala.xml.Node
 import scala.language.implicitConversions
+import scala.xml.Node
 
 /**
  * Holds namespace prefixes.

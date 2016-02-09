@@ -14,8 +14,9 @@
 
 package org.silkframework.hadoop.impl
 
-import org.apache.hadoop.io.Writable
 import java.io.{DataInput, DataOutput}
+
+import org.apache.hadoop.io.Writable
 
 class EntityConfidence(var similarity : Double, var targetUri : String) extends Writable
 {

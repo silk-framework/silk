@@ -14,13 +14,13 @@
 
 package org.silkframework.rule.input
 
-import org.silkframework.entity.Entity
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
-import org.silkframework.util.DPair
 import org.silkframework.config.Prefixes
-import scala.xml.Node
+import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+
+import scala.xml.Node
 
 /**
  * An input that retrieves a set of values.

@@ -14,10 +14,7 @@
 
 package org.silkframework.plugins.transformer
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-
-
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.transformer.numeric.NumReduceTransformer
 
 

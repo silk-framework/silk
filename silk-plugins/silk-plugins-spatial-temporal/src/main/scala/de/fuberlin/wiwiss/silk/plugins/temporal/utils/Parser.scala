@@ -14,7 +14,6 @@
 
 package org.silkframework.plugins.temporal.utils
 
-import java.text.{ParseException, SimpleDateFormat}
 import java.util.Date
 import java.util.logging.Logger
 import javax.xml.datatype.DatatypeFactory

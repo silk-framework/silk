@@ -4,19 +4,16 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 import java.net.URL
 
 import controllers.core.{Stream, Widgets}
-import controllers.workspace.Datasets._
 import org.silkframework.config._
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
-import org.silkframework.runtime.resource.{UrlResource, InMemoryResourceManager}
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.{InMemoryResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.Serialization
-import org.silkframework.workspace.Task
-import org.silkframework.workspace.io.{SilkConfigExporter, WorkspaceIO, SilkConfigImporter}
 import org.silkframework.workspace.activity.ProjectExecutor
+import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
-import org.silkframework.workspace.{Project, User}
+import org.silkframework.workspace.{Project, Task, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global

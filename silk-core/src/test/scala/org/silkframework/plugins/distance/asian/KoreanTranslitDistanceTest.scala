@@ -14,8 +14,7 @@
 
 package org.silkframework.plugins.distance.asian
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 
 class KoreanTranslitDistanceTest extends FlatSpec with Matchers {
 

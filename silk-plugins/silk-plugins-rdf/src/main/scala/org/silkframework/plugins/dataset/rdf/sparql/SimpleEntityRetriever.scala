@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import org.silkframework.dataset.rdf.{Resource, RdfNode, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.entity.{EntitySchema, Entity, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
 /**

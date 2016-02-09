@@ -2,10 +2,8 @@ package org.silkframework.execution.methods
 
 
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Path
-import scala._
 
 
 class QGramsTest extends FlatSpec with Matchers {

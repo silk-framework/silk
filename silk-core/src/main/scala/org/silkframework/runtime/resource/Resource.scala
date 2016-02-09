@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream, InputStream}
+import java.io.{ByteArrayOutputStream, InputStream}
+
 import scala.io.{Codec, Source}
 
 /**

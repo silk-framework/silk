@@ -1,11 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-
-
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.util.Uri
 
 

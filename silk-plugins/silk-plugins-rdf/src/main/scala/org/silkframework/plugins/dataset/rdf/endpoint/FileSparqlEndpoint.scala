@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import com.hp.hpl.jena.query.DatasetFactory
-import org.silkframework.dataset.rdf.{SparqlResults, SparqlEndpoint}
+import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlResults}
 import org.silkframework.runtime.resource.Resource
-import org.apache.jena.riot.{RDFLanguages, Lang, RDFDataMgr}
 
 class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, format: Option[String] = None) extends SparqlEndpoint {
 

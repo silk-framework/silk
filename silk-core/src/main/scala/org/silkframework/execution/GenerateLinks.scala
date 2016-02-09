@@ -19,8 +19,8 @@ import java.util.logging.LogRecord
 
 import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
 import org.silkframework.config.{LinkSpecification, RuntimeConfig}
-import org.silkframework.dataset.{LinkSink, DataSink, DataSource, Dataset}
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.dataset.{DataSource, Dataset, LinkSink}
+import org.silkframework.entity.Entity
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status}
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair}

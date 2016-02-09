@@ -14,8 +14,8 @@
 
 package org.silkframework.hadoop.load
 
+import org.apache.hadoop.io.{NullWritable, Text}
 import org.apache.hadoop.mapreduce.Mapper
-import org.apache.hadoop.io.{Text, NullWritable}
 
 class QuadMap extends Mapper[NullWritable, Quad, Text, Quad]
 {

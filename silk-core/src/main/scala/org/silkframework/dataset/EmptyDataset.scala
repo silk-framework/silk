@@ -1,7 +1,6 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.{Entity, EntitySchema, Link}
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.util.Uri
 
 /**

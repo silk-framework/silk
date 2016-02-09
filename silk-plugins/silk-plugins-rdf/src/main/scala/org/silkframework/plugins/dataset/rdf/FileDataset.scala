@@ -1,17 +1,17 @@
 package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.query.DatasetFactory
-import org.silkframework.dataset.rdf.RdfDatasetPlugin
+import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.dataset.rdf.RdfDatasetPlugin
+import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{WritableResource, Resource}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
-import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 
 @Plugin(
   id = "file",

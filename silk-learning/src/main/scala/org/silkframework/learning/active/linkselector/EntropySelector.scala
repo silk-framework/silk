@@ -15,8 +15,9 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.Link
-import math.log
 import org.silkframework.evaluation.ReferenceEntities
+
+import scala.math.log
 
 /**
  * Link Selector which selects the links with the highest vote entropy.

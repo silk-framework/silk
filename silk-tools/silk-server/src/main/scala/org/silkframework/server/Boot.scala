@@ -14,10 +14,6 @@
 
 package bootstrap.liftweb
 
-import net.liftweb.http.LiftRules
-import org.silkframework.server.view.RestApi
-import org.silkframework.server.model.Server
-
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment

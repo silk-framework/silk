@@ -1,7 +1,8 @@
 package org.silkframework.rule.evaluation
 
+import org.silkframework.rule.similarity.{Aggregation, Comparison}
+
 import scala.xml.Node
-import org.silkframework.rule.similarity.{Comparison, Aggregation}
 
 sealed trait Confidence {
   def score: Option[Double]

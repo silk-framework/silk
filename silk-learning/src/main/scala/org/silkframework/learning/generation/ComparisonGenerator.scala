@@ -14,10 +14,11 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.util.DPair
-import util.Random
-import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.learning.individual._
+import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.util.DPair
+
+import scala.util.Random
 
 /**
  * Generates random comparisons.

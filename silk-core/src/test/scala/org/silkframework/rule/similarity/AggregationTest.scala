@@ -14,19 +14,13 @@
 
 package org.silkframework.rule.similarity
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.plugins.aggegrator.AverageAggregator
 import org.silkframework.rule.Operator
-import org.silkframework.rule.input.Input
 import org.silkframework.testutil.approximatelyEqualToOption
 import org.silkframework.util.{DPair, Identifier}
-import org.silkframework.entity.Entity
-import org.silkframework.entity.Index
-import org.silkframework.config.Prefixes
-
-
-
 
 import scala.xml.Node
 

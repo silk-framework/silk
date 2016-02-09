@@ -15,7 +15,6 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import org.silkframework.entity.Link
-import org.silkframework.runtime.plugin.Plugin
 
 /**
  * Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.

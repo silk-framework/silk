@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.rule.input.Input
-import org.silkframework.util.{Uri, Identifier}
+import org.silkframework.util.{Identifier, Uri}
 
 case class ScoringRule(name: Identifier = "score", operator: Input, target: Uri) {
 

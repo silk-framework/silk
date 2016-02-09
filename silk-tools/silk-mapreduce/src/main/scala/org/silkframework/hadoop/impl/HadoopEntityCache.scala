@@ -14,13 +14,14 @@
 
 package org.silkframework.hadoop.impl
 
-import java.util.logging.Logger
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.apache.hadoop.fs.{Path, FileSystem}
-import org.silkframework.entity._
 import java.io._
+import java.util.logging.Logger
+
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.silkframework.cache.{BitsetIndex, EntityCache, Partition}
 import org.silkframework.config.RuntimeConfig
-import org.silkframework.cache.{BitsetIndex, Partition, EntityCache}
+import org.silkframework.entity._
+import org.silkframework.entity.rdf.SparqlEntitySchema
 
 /**
  * An entity cache, which uses the Hadoop FileSystem API.

@@ -14,11 +14,12 @@
 
 package org.silkframework.plugins.distance.characterbased
 
-import org.silkframework.util.StringUtils._
-import scala.math.{min, max, abs}
-import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.entity.Index
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.util.StringUtils._
+
+import scala.math.{abs, max, min}
 
 @Plugin(
   id = "levenshteinDistance",

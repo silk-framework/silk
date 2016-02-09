@@ -15,10 +15,11 @@
 package org.silkframework.config
 
 import org.silkframework.dataset.Dataset
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
-import org.silkframework.runtime.serialization.{XmlFormat, Serialization, ValidatingXMLReader}
-import org.silkframework.util.Identifier
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.Serialization._
+import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
+import org.silkframework.util.Identifier
+
 import scala.xml.Node
 
 /**

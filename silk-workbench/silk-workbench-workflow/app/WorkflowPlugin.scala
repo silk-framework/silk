@@ -1,5 +1,5 @@
 import org.silkframework.workspace.activity.workflow.Workflow
-import plugins.WorkbenchPlugin.{TaskActions, Tab}
+import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
 /**

@@ -1,11 +1,11 @@
 package config
 
 import java.io.File
+
+import config.WorkbenchConfig.Tabs
+import org.silkframework.runtime.resource._
 import play.api.Play
 import play.api.Play.current
-import org.silkframework.runtime.resource._
-import WorkbenchConfig.Tabs
-import views.html.play20.welcome
 import org.silkframework.buildInfo.BuildInfo
 
 /**

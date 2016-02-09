@@ -15,7 +15,8 @@
 package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
-import ref.WeakReference
+
+import scala.ref.WeakReference
 
 /**
  * Represents an RDF path.

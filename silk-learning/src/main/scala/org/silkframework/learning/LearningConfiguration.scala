@@ -14,10 +14,10 @@
 
 package org.silkframework.learning
 
-import active.ActiveLearningConfiguration
-import individual.fitness.{MCCFitnessFunction, FitnessFunction}
-import reproduction.{ReproductionConfiguration}
 import org.silkframework.learning.LearningConfiguration._
+import org.silkframework.learning.active.ActiveLearningConfiguration
+import org.silkframework.learning.individual.fitness.{FitnessFunction, MCCFitnessFunction}
+import org.silkframework.learning.reproduction.ReproductionConfiguration
 
 case class LearningConfiguration(name: String = "Unamed",
                                  components: Components = Components(),

@@ -14,10 +14,12 @@
 
 package org.silkframework.plugins.distance.numeric
 
-import scala.math._
-import javax.xml.datatype.{DatatypeConstants, XMLGregorianCalendar, DatatypeFactory}
-import org.silkframework.runtime.plugin.Plugin
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
+
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
+
+import scala.math._
 
 @Plugin(
   id = "dateTime",

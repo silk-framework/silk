@@ -14,7 +14,7 @@
 
 package org.silkframework.cache
 
-import java.io.{DataOutput, DataInput}
+import java.io.{DataInput, DataOutput}
 
 /**
  * Efficient index.

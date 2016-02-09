@@ -1,7 +1,5 @@
 package org.silkframework.runtime.resource
 
-import java.io.OutputStream
-
 /**
  * A resource manager that does not provide any resources.
  */

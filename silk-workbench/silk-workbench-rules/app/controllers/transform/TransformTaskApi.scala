@@ -2,21 +2,19 @@ package controllers.transform
 
 import java.util.logging.{Level, Logger}
 
-import com.hp.hpl.jena.rdf.model.Model
 import controllers.util.ProjectUtils._
 import org.silkframework.config.{DatasetSelection, TransformSpecification}
-import org.silkframework.dataset.{EntitySink, DataSource, DataSink}
+import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.Restriction
-import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
-import org.silkframework.util.{Uri, CollectLogs, Identifier}
+import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{Task, Constants, User}
+import org.silkframework.workspace.{Task, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
-import play.api.mvc.{Result, Action, AnyContentAsXml, Controller}
+import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 object TransformTaskApi extends Controller {
 

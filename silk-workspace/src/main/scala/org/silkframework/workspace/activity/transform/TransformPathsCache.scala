@@ -3,12 +3,8 @@ package org.silkframework.workspace.activity.transform
 import org.silkframework.config.TransformSpecification
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
-import org.silkframework.workspace.Project
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.Task
-
-import scala.xml.Node
 
 /**
  * Holds the most frequent paths.

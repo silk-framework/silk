@@ -14,11 +14,12 @@
 
 package org.silkframework.plugins.distance.tokenbased
 
-import org.silkframework.runtime.plugin.Plugin
 import java.util.regex.Pattern
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+
 import org.silkframework.entity.Index
-import org.silkframework.plugins.distance.characterbased.{JaroWinklerDistance, JaroDistanceMetric, LevenshteinMetric}
+import org.silkframework.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
 
 /**
  * <p>

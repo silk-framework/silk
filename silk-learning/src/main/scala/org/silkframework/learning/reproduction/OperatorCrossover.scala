@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.reproduction
 
-import org.silkframework.util.DPair
 import org.silkframework.learning.individual.OperatorNode
+import org.silkframework.util.DPair
 
 /**
  * A crossover operator which combines the operators of two aggregations.

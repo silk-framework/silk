@@ -14,14 +14,10 @@
 
 package org.silkframework.server.model
 
-import org.silkframework.dataset.{DataSource, Source}
-import org.silkframework.plugins.Plugins
-import org.silkframework.plugins.dataset.rdf.RdfDataSource
-import org.silkframework.plugins.writer.NTriplesFormatter
-import org.silkframework.plugins.dataset.FileDataSource
+import java.util.logging.{Level, Logger}
+
 import org.silkframework.config.LinkingConfig
 import org.silkframework.entity.Link
-import java.util.logging.{Level, Logger}
 import org.silkframework.runtime.resource.FileResourceManager
 
 /**

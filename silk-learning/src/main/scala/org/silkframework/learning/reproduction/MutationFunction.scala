@@ -15,7 +15,7 @@
 package org.silkframework.learning.reproduction
 
 import org.silkframework.learning.generation.LinkageRuleGenerator
-import org.silkframework.learning.individual.{Individual, LinkageRuleNode}
+import org.silkframework.learning.individual.Individual
 
 /**
  * Mutates a linkage rule.

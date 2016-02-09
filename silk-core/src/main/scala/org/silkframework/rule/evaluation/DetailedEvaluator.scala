@@ -14,11 +14,11 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.util.DPair
-import org.silkframework.rule.similarity.{Comparison, Aggregation, SimilarityOperator}
-import org.silkframework.rule.input.{TransformInput, PathInput, Input}
-import org.silkframework.rule.{TransformRule, LinkageRule}
 import org.silkframework.entity.Entity
+import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.rule.{LinkageRule, TransformRule}
+import org.silkframework.util.DPair
 
 object DetailedEvaluator {
 

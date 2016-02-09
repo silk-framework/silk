@@ -14,7 +14,6 @@
 
 package org.silkframework.learning.individual
 
-import util.Random
 import javax.naming.OperationNotSupportedException
 
 trait Node {

@@ -17,7 +17,6 @@
 package org.silkframework.plugins.transformer.date
 
 import java.text.{ParseException, SimpleDateFormat}
-import javax.xml.datatype.DatatypeFactory
 
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin;

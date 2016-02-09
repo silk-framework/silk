@@ -16,8 +16,7 @@ package org.silkframework.plugins.distance.tokenbased
 
 
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
 

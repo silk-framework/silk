@@ -1,6 +1,6 @@
 package models.linking
 
-import org.silkframework.rule.evaluation.{SimpleConfidence, ComparisonConfidence, AggregatorConfidence, Confidence}
+import org.silkframework.rule.evaluation.{AggregatorConfidence, ComparisonConfidence, Confidence, SimpleConfidence}
 
 object LinkFilter {
   def apply(links: Seq[EvalLink], filter: String): Seq[EvalLink] = {

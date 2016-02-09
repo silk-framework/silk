@@ -14,8 +14,7 @@
 
 package org.silkframework.cache
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 
 class BitsetIndexTest extends FlatSpec with Matchers {
   val a1 = BitsetIndex.build(Set(1, 2, 3))

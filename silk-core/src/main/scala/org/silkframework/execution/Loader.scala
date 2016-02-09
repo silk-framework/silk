@@ -15,9 +15,10 @@
 package org.silkframework.execution
 
 import java.util.logging.Level
+
 import org.silkframework.cache.EntityCache
 import org.silkframework.dataset.DataSource
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.DPair
 
 /**

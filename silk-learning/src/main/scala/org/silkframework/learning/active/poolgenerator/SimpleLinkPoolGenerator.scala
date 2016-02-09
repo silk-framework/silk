@@ -23,7 +23,7 @@ import org.silkframework.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkageRule, Operator}
-import org.silkframework.runtime.activity.{ActivityControl, Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.util.Random

@@ -4,15 +4,14 @@ import java.util
 
 import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.{DataSource, Dataset}
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.entity.{EntitySchema, Entity, Link}
+import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.util.{Uri, DPair}
-import org.silkframework.workspace.Project
+import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.Task
+
 import scala.collection.JavaConverters
-import JavaConverters._
+import scala.collection.JavaConverters._
 
 
 /**

@@ -1,11 +1,9 @@
 package org.silkframework.rule.evaluation
 
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.util.DPair
-import org.silkframework.entity.{Index, Entity}
-import org.silkframework.rule.similarity.{Comparison, Aggregation, SimilarityOperator}
 import org.silkframework.rule.evaluation.DetailedIndex._
-import scala.Some
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 
 /**
  * In addition to the overall index built from an linkage rule, this indexer also retains

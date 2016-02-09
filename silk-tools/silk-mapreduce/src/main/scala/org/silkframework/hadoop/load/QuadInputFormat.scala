@@ -14,9 +14,9 @@
 
 package org.silkframework.hadoop.load
 
+import org.apache.hadoop.io.{LongWritable, NullWritable, Text}
 import org.apache.hadoop.mapreduce._
-import lib.input.TextInputFormat
-import org.apache.hadoop.io.{Text, LongWritable, NullWritable}
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
 
 class QuadInputFormat extends InputFormat[NullWritable, Quad]
 {

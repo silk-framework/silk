@@ -2,9 +2,9 @@ package controllers.workspace
 
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
-import org.silkframework.runtime.activity.{ActivityControl, Status}
-import org.silkframework.workspace.{Task, User, Project}
+import org.silkframework.runtime.activity.Status
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.{Project, Task, User}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag

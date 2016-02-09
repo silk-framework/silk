@@ -14,8 +14,9 @@
 
 package org.silkframework.learning.reproduction
 
-import util.Random
 import org.silkframework.learning.individual.Node
+
+import scala.util.Random
 
 private object Utils {
 

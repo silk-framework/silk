@@ -1,8 +1,5 @@
 package org.silkframework.plugins
 
-import org.silkframework.dataset.DatasetPlugin
-import org.silkframework.rule.input.Transformer
-import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.runtime.plugin._
 import org.silkframework.util.Table
 

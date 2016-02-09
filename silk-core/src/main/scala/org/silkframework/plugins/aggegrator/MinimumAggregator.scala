@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.aggegrator
 
+import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.Aggregator
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.entity.Index
 
 @Plugin(
   id = "min",

@@ -1,9 +1,9 @@
 package org.silkframework.execution.methods
 
-import org.silkframework.entity.{Index, Entity, Path}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.entity.{Entity, Index, Path}
 import org.silkframework.execution.ExecutionMethod
 import org.silkframework.plugins.transformer.linguistic.SoundexTransformer
+import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.SimpleTransformer
 
 /**

@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.transformer.numeric
 
+import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.StringUtils._
-import org.silkframework.rule.input.SimpleTransformer
 
 @Plugin(
   id = "logarithm",

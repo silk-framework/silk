@@ -1,8 +1,9 @@
 package controllers.core
 
-import org.silkframework.runtime.activity.{Observable, ActivityControl, Status}
 import models._
+import org.silkframework.runtime.activity.{ActivityControl, Observable, Status}
 import play.api.libs.iteratee.{Concurrent, Enumerator}
+
 import scala.collection.mutable
 
 object Stream {

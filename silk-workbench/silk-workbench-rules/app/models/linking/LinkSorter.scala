@@ -1,6 +1,6 @@
 package models.linking
 
-import EvalLink.{Unknown, Incorrect, Correct}
+import models.linking.EvalLink.{Correct, Incorrect, Unknown}
 
 object LinkSorter {
   private val sorters = {

@@ -2,15 +2,15 @@ package org.silkframework.runtime.plugin
 
 import java.io.File
 import java.net.{URL, URLClassLoader}
-import java.util.Map.Entry
 import java.util.ServiceLoader
 import java.util.logging.Logger
-import com.typesafe.config.ConfigValue
+
 import org.silkframework.config.Config
-import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+
+import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
-import scala.collection.JavaConversions._
 
 /**
  * Registry of all available plugins.

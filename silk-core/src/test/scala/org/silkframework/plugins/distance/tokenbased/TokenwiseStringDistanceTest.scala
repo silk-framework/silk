@@ -14,8 +14,7 @@
 
 package org.silkframework.plugins.distance.tokenbased
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 
 class TokenwiseStringDistanceTest extends FlatSpec with Matchers {
   val metric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs who", nonStopwordWeight = 0.1, stopwordWeight = 0.001)

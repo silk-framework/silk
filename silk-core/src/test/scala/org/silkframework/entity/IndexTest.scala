@@ -2,8 +2,7 @@ package org.silkframework.entity
 
 
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 
 
 class IndexTest extends FlatSpec with Matchers {

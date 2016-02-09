@@ -14,9 +14,10 @@
 
 package org.silkframework.learning.reproduction
 
+import org.silkframework.learning.individual.{InputNode, NodeTraverser}
 import org.silkframework.util.DPair
-import util.Random
-import org.silkframework.learning.individual.{NodeTraverser, InputNode}
+
+import scala.util.Random
 
 /**
  * A crossover operator which combines the transformations of two comparisons.

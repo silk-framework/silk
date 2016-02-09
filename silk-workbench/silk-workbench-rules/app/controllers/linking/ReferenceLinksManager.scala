@@ -1,15 +1,13 @@
 package controllers.linking
 
-import org.silkframework.config.LinkSpecification
-import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import play.api.mvc.Controller
-import play.api.mvc.Action
-import org.silkframework.rule.evaluation.DetailedEvaluator
-import models.linking.EvalLink
-import org.silkframework.entity.Link
 import models.linking.EvalLink._
+import models.linking.{EvalLink, LinkSorter}
+import org.silkframework.config.LinkSpecification
+import org.silkframework.entity.Link
+import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.workspace.User
-import models.linking.LinkSorter
+import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
+import play.api.mvc.{Action, Controller}
 import plugins.Context
 
 object ReferenceLinksManager extends Controller {

@@ -14,12 +14,7 @@
 
 package org.silkframework.plugins.spatial.distance
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-
-
-
-import org.silkframework.entity.Index
+import org.scalatest.{FlatSpec, Matchers}
 
 /**
  * Tests the MinDistance Metric.

@@ -14,13 +14,13 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.learning.individual.Population
-import org.silkframework.util.DPair._
-import org.silkframework.rule.{Operator, LinkageRule}
-import org.silkframework.rule.similarity.{Comparison, Aggregation}
-import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.entity.{Link, Path}
+import org.silkframework.learning.individual.Population
+import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.similarity.{Aggregation, Comparison}
+import org.silkframework.rule.{LinkageRule, Operator}
 import org.silkframework.util.DPair
+import org.silkframework.util.DPair._
 
 //TODO not used at the moment
 private object FilterPopulation {

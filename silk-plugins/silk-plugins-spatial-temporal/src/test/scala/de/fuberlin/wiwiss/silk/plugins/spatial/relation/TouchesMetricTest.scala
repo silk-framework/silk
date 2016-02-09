@@ -14,8 +14,7 @@
 
 package org.silkframework.plugins.spatial.relation
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 
 
 

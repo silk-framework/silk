@@ -14,7 +14,7 @@
 
 package models.linking
 
-import EvalLink.{LinkType, Correctness}
+import models.linking.EvalLink.{Correctness, LinkType}
 import org.silkframework.entity.Link
 import org.silkframework.rule.evaluation.DetailedLink
 

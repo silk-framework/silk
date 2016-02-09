@@ -14,14 +14,14 @@
 
 package org.silkframework.plugins.distance.asian
 
-import org.silkframework.util.StringUtils._
-import scala.math.{min, max, abs, floor}
-import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.entity.Index
-import Array._
-import scala.collection.mutable.HashMap
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.util.StringUtils._
+
+import scala.Array._
 import scala.collection.JavaConversions._
+import scala.math.{abs, max, min}
 
 @Plugin(
   id = "koreanPhonemeDistance",

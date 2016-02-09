@@ -1,7 +1,7 @@
 package org.silkframework.plugins.transformer.filter
 
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.Plugin
 
 /**
  * Removes all strings that do NOT match a regex.

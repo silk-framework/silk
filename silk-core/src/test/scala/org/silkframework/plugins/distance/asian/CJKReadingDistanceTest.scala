@@ -14,7 +14,7 @@
 
 package org.silkframework.plugins.distance.asian
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 
 class CJKReadingDistanceTest extends FlatSpec with Matchers {
 

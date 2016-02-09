@@ -14,9 +14,10 @@
 
 package org.silkframework.plugins.transformer.conversion
 
+import java.nio.charset.Charset
+
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
-import java.nio.charset.Charset
 
 @Plugin(
   id = "convertCharset",

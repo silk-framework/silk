@@ -2,16 +2,16 @@ package controllers.util
 
 import java.io.StringWriter
 
-import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import controllers.transform.TransformTaskApi._
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
-import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesRdfFormatter, NTriplesLinkFormatter, FormattedJenaLinkSink}
+import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.plugins.dataset.rdf.{SparqlParams, SparqlSink}
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization
-import org.silkframework.workspace.{User, Task, Project}
+import org.silkframework.workspace.{Project, Task, User}
 import play.api.mvc.Result
 
 import scala.reflect.ClassTag

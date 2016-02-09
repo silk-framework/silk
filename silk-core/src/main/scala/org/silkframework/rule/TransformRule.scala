@@ -2,11 +2,11 @@ package org.silkframework.rule
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Path}
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.plugins.transformer.value.ConstantTransformer
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat, ValidatingXMLReader}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
 import org.silkframework.util._
 
 import scala.xml.Node

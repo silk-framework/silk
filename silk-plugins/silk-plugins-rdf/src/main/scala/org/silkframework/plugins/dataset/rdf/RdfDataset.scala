@@ -3,8 +3,8 @@ package org.silkframework.plugins.dataset.rdf
 import java.io.StringReader
 
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import org.silkframework.dataset.{LinkSink, EntitySink, DataSource}
 import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlEndpoint}
+import org.silkframework.dataset.{DataSource, EntitySink, LinkSink}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.runtime.plugin.Plugin
 

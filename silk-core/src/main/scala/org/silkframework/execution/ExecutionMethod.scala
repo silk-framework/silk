@@ -1,11 +1,9 @@
 package org.silkframework.execution
 
-import org.silkframework.entity.{Path, Link, Index, Entity}
-import org.silkframework.rule.LinkageRule
 import org.silkframework.cache.Partition
+import org.silkframework.entity.{Entity, Index}
+import org.silkframework.rule.LinkageRule
 import org.silkframework.util.DPair
-import methods.MultiBlock
-import scala.math.{min, max, abs}
 
 /**
  * The execution method determines how a linkage rule is executed.

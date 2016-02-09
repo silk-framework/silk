@@ -1,11 +1,8 @@
 package org.silkframework.entity
 
-import java.io.{DataInputStream, ByteArrayInputStream, DataOutputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
-
-import org.scalatest.{Matchers, FlatSpec}
-
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.util.Uri
 
 

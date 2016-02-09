@@ -15,13 +15,12 @@
 package org.silkframework.learning.generation
 
 import org.silkframework.config.Prefixes
-import org.silkframework.evaluation.ReferenceEntities
-import org.silkframework.util.DPair
 import org.silkframework.entity.Path
-import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual._
 import org.silkframework.rule.input.Transformer
-import org.silkframework.learning.LearningConfiguration.Components
+import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.util.DPair
 
 class PatternGenerator(components: Components) {
 

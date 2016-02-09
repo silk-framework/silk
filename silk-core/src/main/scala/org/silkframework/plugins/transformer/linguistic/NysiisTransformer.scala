@@ -1,8 +1,8 @@
 package org.silkframework.plugins.transformer.linguistic
 
-import org.silkframework.runtime.plugin.Plugin
-import com.rockymadden.stringmetric.phonetic.{RefinedNysiisAlgorithm, NysiisAlgorithm}
+import com.rockymadden.stringmetric.phonetic.{NysiisAlgorithm, RefinedNysiisAlgorithm}
 import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
   id = "NYSIIS",

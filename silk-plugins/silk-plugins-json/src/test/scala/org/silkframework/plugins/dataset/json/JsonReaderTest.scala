@@ -14,11 +14,9 @@
 
 package org.silkframework.plugins.dataset.json
 
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Path
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-
-
-import org.scalatest.{FlatSpec, Matchers}
 
 
 class JsonReaderTest extends FlatSpec with Matchers {

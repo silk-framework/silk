@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.rule.input.{TransformInput, PathInput, Input}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 
 trait InputNode extends Node {
   def isSource: Boolean

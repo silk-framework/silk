@@ -15,9 +15,9 @@
 package org.silkframework.plugins.temporal.distance
 
 import org.silkframework.entity.Index
+import org.silkframework.plugins.temporal.utils._
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.plugins.temporal.utils._
 
 /**
  * Computes the distance in months between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).

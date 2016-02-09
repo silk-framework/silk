@@ -14,11 +14,7 @@
 
 package org.silkframework.plugins.temporal.distance
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-
-
-
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Index
 
 /**

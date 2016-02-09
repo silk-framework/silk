@@ -14,10 +14,10 @@
 
 package org.silkframework.config
 
-import org.silkframework.entity.{Path, Restriction}
+import org.silkframework.entity.Restriction
 import org.silkframework.entity.rdf.SparqlRestrictionParser
 import org.silkframework.runtime.serialization.ValidationException
-import org.silkframework.util.{Uri, DPair, Identifier}
+import org.silkframework.util.{DPair, Identifier, Uri}
 
 import scala.xml.Node
 

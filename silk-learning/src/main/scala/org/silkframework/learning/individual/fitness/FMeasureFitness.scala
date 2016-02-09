@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.individual.fitness
 
-import org.silkframework.rule.LinkageRule
 import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import org.silkframework.rule.LinkageRule
 
 case class FMeasureFitness() extends FitnessFunction {
 

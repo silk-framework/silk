@@ -14,7 +14,7 @@
 
 package org.silkframework.entity
 
-import math.{min, max}
+import scala.math.{max, min}
 
 class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[Int]) {
 

@@ -14,8 +14,9 @@
 
 package org.silkframework.rule
 
-import scala.xml.{Text, Node}
 import java.util.logging.Logger
+
+import scala.xml.{Node, Text}
 
 /**
  * A Link Filter specifies the parameters of the filtering phase.

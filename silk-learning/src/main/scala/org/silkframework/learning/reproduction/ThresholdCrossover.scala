@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.reproduction
 
-import org.silkframework.util.DPair
 import org.silkframework.learning.individual.ComparisonNode
+import org.silkframework.util.DPair
 
 /**
  * A crossover operator which combines the thresholds of two comparisons.

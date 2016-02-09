@@ -14,13 +14,11 @@
 
 package org.silkframework.server.model
 
-import org.silkframework.config.LinkingConfig
-import org.silkframework.dataset.Source
-import org.silkframework.config.LinkSpecification
-import org.silkframework.util.DPair
-import org.silkframework.entity.Link
 import org.silkframework.cache.MemoryEntityCache
-import org.silkframework.execution.{Matcher, Loader}
+import org.silkframework.config.{LinkSpecification, LinkingConfig}
+import org.silkframework.entity.Link
+import org.silkframework.execution.{Loader, Matcher}
+import org.silkframework.util.DPair
 
 /**
  * Holds the dataset of a link specification.

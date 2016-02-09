@@ -14,12 +14,11 @@
 
 package org.silkframework.hadoop.impl
 
-import org.apache.hadoop.mapreduce._
-import org.silkframework.hadoop.SilkConfiguration
 import org.apache.hadoop.io.NullWritable
-import collection.immutable.HashSet
-import org.silkframework.entity.Entity
+import org.apache.hadoop.mapreduce._
 import org.silkframework.cache.Partition
+
+import scala.collection.immutable.HashSet
 
 class SilkInputFormat extends InputFormat[NullWritable, EntityPair]
 {

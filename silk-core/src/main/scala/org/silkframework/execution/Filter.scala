@@ -14,12 +14,11 @@
 
 package org.silkframework.execution
 
-import java.util.logging.Logger
-
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
-import collection.mutable.ArrayBuffer
 import org.silkframework.entity.Link
 import org.silkframework.rule.LinkFilter
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Filters the links according to the link limit.

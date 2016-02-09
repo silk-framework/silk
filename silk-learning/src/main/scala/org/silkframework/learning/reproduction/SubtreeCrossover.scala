@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.reproduction
 
-import org.silkframework.util.DPair
 import org.silkframework.learning.individual.{FunctionNode, InputNode, Node}
+import org.silkframework.util.DPair
 
 case class SubtreeCrossover() extends NodePairCrossoverOperator[Node] {
 

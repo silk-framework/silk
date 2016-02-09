@@ -14,12 +14,8 @@
 
 package org.silkframework.plugins.aggregator
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.aggegrator.QuadraticMeanAggregator
-
-
-
 import org.silkframework.testutil.approximatelyEqualTo
 
 

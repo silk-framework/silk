@@ -14,8 +14,7 @@
 
 package org.silkframework.plugins.temporal.relation
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 
 
 

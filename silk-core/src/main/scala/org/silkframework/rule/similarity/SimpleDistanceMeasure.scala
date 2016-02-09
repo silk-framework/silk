@@ -14,8 +14,9 @@
 
 package org.silkframework.rule.similarity
 
-import math.min
 import org.silkframework.entity.Index
+
+import scala.math.min
 
 /**
  * A simple similarity measure, which compares pairs of values.

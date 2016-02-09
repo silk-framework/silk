@@ -14,10 +14,11 @@
 
 package org.silkframework.execution.methods
 
-import scala.io.Source
-import org.scalatest.{Matchers, FlatSpec}
-import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
+import org.scalatest.matchers.{BeMatcher, MatchResult}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.distance.characterbased.LevenshteinDistance
+
+import scala.io.Source
 
 class StringMapTest extends FlatSpec with Matchers {
 

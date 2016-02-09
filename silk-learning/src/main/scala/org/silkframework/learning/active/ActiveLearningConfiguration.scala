@@ -14,8 +14,8 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.learning.active.linkselector.{MaximumAgreementSelector, LinkSelectorCombinator, JensenShannonDivergenceSelector, LinkSelector}
-import org.silkframework.learning.active.poolgenerator.{SimpleLinkPoolGenerator, LinkPoolGenerator}
+import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector, LinkSelectorCombinator, MaximumAgreementSelector}
+import org.silkframework.learning.active.poolgenerator.{LinkPoolGenerator, SimpleLinkPoolGenerator}
 
 
 case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = SimpleLinkPoolGenerator(),

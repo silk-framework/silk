@@ -2,7 +2,7 @@ package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformRule
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.Serialization._
 import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.util.Identifier

@@ -19,7 +19,6 @@ import java.io.File
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, Path}
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.Uri
 

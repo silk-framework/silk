@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.runtime.plugin.{PluginFactory, AnyPlugin}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 case class FunctionNode[T <: AnyPlugin](id: String, parameters: List[ParameterNode], factory: PluginFactory[T]) extends Node {
   def build() = {

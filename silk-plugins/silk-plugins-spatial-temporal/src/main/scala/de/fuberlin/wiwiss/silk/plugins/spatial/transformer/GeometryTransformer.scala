@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.spatial.transformer
 
+import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.plugins.spatial.utils._
 
 /**
  * This plugin transforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).

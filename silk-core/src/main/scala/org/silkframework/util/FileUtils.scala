@@ -14,7 +14,8 @@
 
 package org.silkframework.util
 
-import java.io.{IOException, File}
+import java.io.{File, IOException}
+
 import scala.language.implicitConversions
 
 /**

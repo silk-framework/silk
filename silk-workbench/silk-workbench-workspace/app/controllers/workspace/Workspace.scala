@@ -1,18 +1,10 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
-import controllers.workspace.WorkspaceApi._
-import org.silkframework.dataset.Dataset
-import org.silkframework.entity.Restriction.{Condition, Operator, Or}
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
-import org.silkframework.entity.{ForwardOperator, Restriction}
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.runtime.serialization.ValidationException
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{PrefixRegistry, User}
-import play.Logger
 import play.api.mvc.{Action, Controller}
 
 object Workspace extends Controller {

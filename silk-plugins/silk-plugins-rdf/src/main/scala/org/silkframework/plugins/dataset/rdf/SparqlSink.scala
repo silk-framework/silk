@@ -1,13 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.{ByteArrayOutputStream, FileOutputStream}
+import java.io.ByteArrayOutputStream
 import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
-import org.silkframework.dataset.{LinkSink, EntitySink, DataSink}
 import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.{EntitySink, LinkSink}
 import org.silkframework.entity.Link
-import org.silkframework.plugins.dataset.rdf.formatters.{NTriplesLinkFormatter, RdfFormatter}
+import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**

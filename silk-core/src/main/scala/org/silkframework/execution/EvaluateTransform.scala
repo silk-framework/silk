@@ -5,7 +5,6 @@ import java.util.logging.Logger
 import org.silkframework.config.DatasetSelection
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 

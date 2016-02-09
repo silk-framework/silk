@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.TransformSpecification
-import org.silkframework.dataset.{SinkTrait, LinkSink, DataSource, EntitySink}
+import org.silkframework.dataset.{DataSource, SinkTrait}
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.workspace.activity.TaskExecutor
 

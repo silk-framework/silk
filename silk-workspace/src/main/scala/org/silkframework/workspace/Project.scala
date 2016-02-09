@@ -28,7 +28,6 @@ import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFac
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.util.{Success, Try}
 
 /**
  * A project.

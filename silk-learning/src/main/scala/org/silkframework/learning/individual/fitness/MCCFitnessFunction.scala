@@ -14,10 +14,11 @@
 
 package org.silkframework.learning.individual.fitness
 
-import org.silkframework.rule.LinkageRule
-import org.silkframework.rule.similarity.{Comparison, Aggregation, SimilarityOperator}
 import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import math.max
+import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+
+import scala.math.max
 
 case class MCCFitnessFunction(sizePenalty: Double = 0.005) extends FitnessFunction {
 

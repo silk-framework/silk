@@ -14,9 +14,7 @@
 
 package org.silkframework.plugins.transformer.combine
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-import org.silkframework.plugins.CorePlugins
+import org.scalatest.{FlatSpec, Matchers}
 
 
 

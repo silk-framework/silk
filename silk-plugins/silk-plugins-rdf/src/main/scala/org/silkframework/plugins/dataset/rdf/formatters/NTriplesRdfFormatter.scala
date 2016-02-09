@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
-import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import com.hp.hpl.jena.vocabulary.OWL
 import org.silkframework.entity.Link
 

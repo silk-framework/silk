@@ -15,8 +15,9 @@
 package org.silkframework.util
 
 import java.io._
-import scala.xml.{PrettyPrinter, NodeSeq}
-import language.implicitConversions
+
+import scala.language.implicitConversions
+import scala.xml.{NodeSeq, PrettyPrinter}
 
 /**
  * Defines additional methods on XML, which are missing in the standard library.

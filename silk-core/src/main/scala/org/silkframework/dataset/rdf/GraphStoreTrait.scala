@@ -4,8 +4,6 @@ import java.io.OutputStream
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Logger
 
-import scala.util.Try
-
 /**
  * Created by andreas on 1/28/16.
  */

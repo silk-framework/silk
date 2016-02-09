@@ -14,11 +14,8 @@
 
 package org.silkframework.plugins.transformer
 
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.transformer.normalize.AlphaReduceTransformer
-
-import org.scalatest.FlatSpec
-
-import org.scalatest.Matchers
 
 
 class AlphaReduceTransformerTest extends FlatSpec with Matchers {

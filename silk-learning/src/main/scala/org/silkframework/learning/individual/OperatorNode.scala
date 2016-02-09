@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.rule.similarity.{Comparison, Aggregation, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 
 trait OperatorNode extends Node {
 
