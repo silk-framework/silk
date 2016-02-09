@@ -8,4 +8,4 @@ The configuration is located in the `conf` folder in the root directory. The def
 
 If the Workbench is not running standalone, but packaged as War or Docker, the `conf` folder is not directly accessible. In that case, please set one of the above system properties to point to your custom external configuration file.
 
-The configuration is based on HOCON. More information on HOCON can be found at: [[https://github.com/typesafehub/config]]
+The configuration format is based on [HOCON](https://github.com/typesafehub/config).
