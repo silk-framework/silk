@@ -1,6 +1,6 @@
 # Configuration
 
-The configuration is located in the `conf` folder in the data-integration directory. The default configuration is shipped in the `reference.conf` file. The configuration can be customized by adding a `application.conf` file, which may override configuration options. By the default, the `application.conf` file is searched for in the `conf` folder.  A different search folder for `application.conf` can be configured using one of the following system properties:
+The configuration is located in the `conf` folder in the root directory. The default configuration is shipped in the `reference.conf` file. The configuration can be customized by adding a `application.conf` file, which may override configuration options. By the default, the `application.conf` file is searched for in the `conf` folder.  A different search folder for `application.conf` can be configured using one of the following system properties:
 
 - `config.resource` specifies a different file name than `application.conf`.
 - `config.file` specifies a filesystem path, including the full file name.
