@@ -20,7 +20,7 @@ import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 case class FileDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: WritableResource,
-  @Param("""Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle".""")
+  @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
   format: String,
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "") extends RdfDatasetPlugin {
