@@ -16,8 +16,8 @@ package org.silkframework.plugins.temporal.distance
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 
 import org.silkframework.entity.Index
 
@@ -26,7 +26,7 @@ import org.silkframework.entity.Index
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class MillisecsDistanceMetricTest extends FlatSpec with Matchers {
 
   val metric = new MillisecsDistanceMetric()

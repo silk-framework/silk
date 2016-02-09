@@ -16,15 +16,15 @@ package org.silkframework.plugins.spatial.relation
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 
 /**
  * Tests the Overlaps Metric.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class OverlapsMetricTest extends FlatSpec with Matchers {
 
   val metric = new OverlapsMetric()

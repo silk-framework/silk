@@ -14,15 +14,15 @@
 
 package org.silkframework.plugins.transformer
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.silkframework.plugins.CorePlugins
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.plugins.transformer.normalize.RemoveParentheses
 
-@RunWith(classOf[JUnitRunner])
-class RemoveParenthesesTest extends FlatSpec with ShouldMatchers {
+
+class RemoveParenthesesTest extends FlatSpec with Matchers {
 
   val transformer = new RemoveParentheses()
 

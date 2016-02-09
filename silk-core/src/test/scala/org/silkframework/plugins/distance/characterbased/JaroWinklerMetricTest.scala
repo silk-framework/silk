@@ -15,14 +15,14 @@
 package org.silkframework.plugins.distance.characterbased
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class JaroWinklerMetricTest extends FlatSpec with ShouldMatchers {
+
+class JaroWinklerMetricTest extends FlatSpec with Matchers {
   val metric = new JaroWinklerDistance()
 
   //Use cases from William E. Winkler : Overview of Record Linkage and Current Research Directions

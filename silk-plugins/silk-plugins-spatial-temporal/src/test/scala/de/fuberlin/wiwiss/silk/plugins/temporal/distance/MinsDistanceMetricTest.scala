@@ -16,15 +16,15 @@ package org.silkframework.plugins.temporal.distance
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 
 /**
  * Tests the MinsDistance Metric.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class MinsDistanceMetricTest extends FlatSpec with Matchers {
 
   val metric = new MinsDistanceMetric()

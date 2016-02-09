@@ -14,14 +14,14 @@
 
 package org.silkframework.plugins.distance.tokenbased
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class SoftJaccardDistanceTest extends FlatSpec with ShouldMatchers {
+
+class SoftJaccardDistanceTest extends FlatSpec with Matchers {
 
   val distance = SoftJaccardDistance(maxDistance = 1)
 

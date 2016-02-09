@@ -15,7 +15,7 @@
 package org.silkframework.rule.similarity
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.silkframework.plugins.aggegrator.AverageAggregator
 import org.silkframework.rule.Operator
 import org.silkframework.rule.input.Input
@@ -25,13 +25,13 @@ import org.silkframework.entity.Entity
 import org.silkframework.entity.Index
 import org.silkframework.config.Prefixes
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 
 import scala.xml.Node
 
-@RunWith(classOf[JUnitRunner])
-class AggregationTest extends FlatSpec with ShouldMatchers {
+
+class AggregationTest extends FlatSpec with Matchers {
   val aggregator = new AverageAggregator()
 
   "Aggregation with average aggregator" should "return the average if both operators return a value" in {

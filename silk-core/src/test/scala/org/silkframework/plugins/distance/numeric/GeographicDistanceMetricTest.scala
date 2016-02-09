@@ -14,14 +14,14 @@
 
 package org.silkframework.plugins.distance.numeric
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class GeographicDistanceMetricTest extends FlatSpec with ShouldMatchers {
+
+class GeographicDistanceMetricTest extends FlatSpec with Matchers {
 
   "GeographicDistanceMetric" should "return 0.0 if the coordinates are equal" in {
     val metric = new GeographicDistanceMetric()

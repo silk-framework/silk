@@ -16,15 +16,15 @@ package org.silkframework.plugins.temporal.relation
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 
 /**
  * Tests the IsStartedBy Metric.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class IsStartedByMetricTest extends FlatSpec with Matchers {
 
   val metric = new IsStartedByMetric()

@@ -14,10 +14,10 @@
 
 package org.silkframework.rule.similarity
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.silkframework.rule.Operator
 import org.silkframework.testutil.approximatelyEqualTo
 import org.silkframework.util.{DPair, Identifier}
@@ -26,8 +26,8 @@ import org.silkframework.config.Prefixes
 import scala.xml.Node
 import org.silkframework.rule.input.Input
 
-@RunWith(classOf[JUnitRunner])
-class ComparisonTest extends FlatSpec with ShouldMatchers {
+
+class ComparisonTest extends FlatSpec with Matchers {
   "Comparison" should "return the distance normalized to [-1, 1]" in {
     cmp(distance = 1.0, threshold = 1.0) should be(approximatelyEqualTo(0.0))
     cmp(distance = 4.0, threshold = 4.0) should be(approximatelyEqualTo(0.0))

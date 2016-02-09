@@ -14,14 +14,10 @@
 
 package org.silkframework.plugins.distance.tokenbased
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-@RunWith(classOf[JUnitRunner])
-class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
+class TokenwiseStringDistanceTest extends FlatSpec with Matchers {
   val metric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs who", nonStopwordWeight = 0.1, stopwordWeight = 0.001)
 
   "TokenwiseStringDistance" should "return distance 0 (several seditious scribes, several seditious scribes)" in {
@@ -34,13 +30,13 @@ class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
 
 
   "TokenwiseStringDistance" should "return distance 0.251 (several seditious scribes, several seditious scribes from caesarea)" in {
-    metric.evaluate("several seditious scribes", "several seditious scribes from caesarea", 1.0) should be(0.251 plusOrMinus 0.001)
-    metric.evaluate("several seditious scribes from caesarea", "several seditious scribes", 1.0) should be(0.251 plusOrMinus 0.001)
+    metric.evaluate("several seditious scribes", "several seditious scribes from caesarea", 1.0) should be(0.251 +- 0.001)
+    metric.evaluate("several seditious scribes from caesarea", "several seditious scribes", 1.0) should be(0.251 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return distance 0.09091 (several seditious scribes, several seditious scibes)" in {
-    metric.evaluate("several seditious scibes", "several seditious scribes", 1.0) should be(0.091 plusOrMinus 0.001)
-    metric.evaluate("several seditious scribes", "several seditious scibes", 1.0) should be(0.091 plusOrMinus 0.001)
+    metric.evaluate("several seditious scibes", "several seditious scribes", 1.0) should be(0.091 +- 0.001)
+    metric.evaluate("several seditious scribes", "several seditious scibes", 1.0) should be(0.091 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return distance 1.0 (,)" in {
@@ -53,20 +49,20 @@ class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
   }
 
   "TokenwiseStringDistance" should "return distance 0.001 (Hotel Hilton in Manhattan, hotel hilton manhattan)" in {
-    metric.evaluate("Hotel Hilton in Manhattan", "hotel hilton manhattan", 1.0) should be(0.001 plusOrMinus 0.001)
+    metric.evaluate("Hotel Hilton in Manhattan", "hotel hilton manhattan", 1.0) should be(0.001 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return different distances for similar terms if stopwords are involved" in {
     //both of these are stopwords - match score is high
-    metric.evaluate("the", "thy", 1.0) should be(0.5 plusOrMinus 0.001)
+    metric.evaluate("the", "thy", 1.0) should be(0.5 +- 0.001)
     //one of these is a stopword - match score is low
-    metric.evaluate("and", "any", 1.0) should be(0.9804 plusOrMinus 0.001)
+    metric.evaluate("and", "any", 1.0) should be(0.9804 +- 0.001)
     //none of these is a stopword - match score is high
-    metric.evaluate("war", "was", 1.0) should be(0.5 plusOrMinus 0.001)
+    metric.evaluate("war", "was", 1.0) should be(0.5 +- 0.001)
     //a match where the stopwords in both strings are matched - they don't contribute much to the result
-    metric.evaluate("Mr Doe", "Mrs Dow", 1.0) should be(0.5 plusOrMinus 0.001)
+    metric.evaluate("Mr Doe", "Mrs Dow", 1.0) should be(0.5 +- 0.001)
     //a match where the stopwords in both strings are matched - they don't contribute much to the result
-    metric.evaluate("Mr John Doe", "Mrs John Doe", 1.0) should be(0.0 plusOrMinus 0.0001)
+    metric.evaluate("Mr John Doe", "Mrs John Doe", 1.0) should be(0.0 +- 0.0001)
     //identical match containing stopwords:
     metric.evaluate("Mr John Doe", "Mr John Doe", 1.0) should equal(0.0)
     //all-stopwords matches in comparison (try this with normal stopword processing!):
@@ -76,17 +72,17 @@ class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
 
   "TokenwiseStringDistance" should "return distance 0.5 (Hotel Hotel, Hotel)" in {
     //test if only one of two identical tokens is matched
-    metric.evaluate("Hotel Hotel", "Hotel", 1.0) should be(0.5 plusOrMinus 0.001)
+    metric.evaluate("Hotel Hotel", "Hotel", 1.0) should be(0.5 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return distance 0.5 (Hotel Hotel, Hotel) if token length is taken into account" in {
     val myMetric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs", nonStopwordWeight = 0.1, stopwordWeight = 0.001, adjustByTokenLength = true)
-    myMetric.evaluate("Hotel Hotel", "Hotel", 1.0) should be(0.5 plusOrMinus 0.001)
+    myMetric.evaluate("Hotel Hotel", "Hotel", 1.0) should be(0.5 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return distance 0.667 (Hotel California, Hotel) if token length is taken into account" in {
     val myMetric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs", nonStopwordWeight = 0.1, stopwordWeight = 0.001, adjustByTokenLength = true)
-    myMetric.evaluate("Hotel California", "Hotel", 1.0) should be(0.667 plusOrMinus 0.001)
+    myMetric.evaluate("Hotel California", "Hotel", 1.0) should be(0.667 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return distance 0.5 (several seditious scribes, scribes seditious several) with orderingImpact of 0.5" in {
@@ -96,8 +92,8 @@ class TokenwiseStringDistanceTest extends FlatSpec with ShouldMatchers {
 
   "TokenwiseStringDistance" should "return different distances for when matchThreshold is used (several seditious scribes, several sedated scribes)" in {
     val myMetric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs", nonStopwordWeight = 0.1, stopwordWeight = 0.001, matchThreshold = 0.85)
-    metric.evaluate("several seditious scribes", "several sedated scribes", 1.0) should be(0.313 plusOrMinus 0.001)
-    myMetric.evaluate("several seditious scribes", "several sedated scribes", 1.0) should be(0.5 plusOrMinus 0.001)
+    metric.evaluate("several seditious scribes", "several sedated scribes", 1.0) should be(0.313 +- 0.001)
+    myMetric.evaluate("several seditious scribes", "several sedated scribes", 1.0) should be(0.5 +- 0.001)
   }
 
   "TokenwiseStringDistance" should "return 1.0 in (Sirenia + Niobeth, ould Sirenia and for Niobeth) with special settings" in {

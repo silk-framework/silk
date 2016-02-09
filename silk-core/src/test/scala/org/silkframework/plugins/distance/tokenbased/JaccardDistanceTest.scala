@@ -15,14 +15,14 @@
 package org.silkframework.plugins.distance.tokenbased
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class JaccardDistanceTest extends FlatSpec with ShouldMatchers {
+
+class JaccardDistanceTest extends FlatSpec with Matchers {
   val distance = new JaccardDistance()
 
   "JaccardDistance" should "return jaccard coefficient" in {

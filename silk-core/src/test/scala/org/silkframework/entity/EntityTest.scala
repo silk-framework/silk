@@ -3,12 +3,12 @@ package org.silkframework.entity
 import java.io.{DataInputStream, ByteArrayInputStream, DataOutputStream, ByteArrayOutputStream}
 
 import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.junit.runner.RunWith
+
 import org.scalatest.{Matchers, FlatSpec}
-import org.scalatest.junit.JUnitRunner
+
 import org.silkframework.util.Uri
 
-@RunWith(classOf[JUnitRunner])
+
 class EntityTest extends FlatSpec with Matchers {
 
   val schema = EntitySchema(typeUri = Uri(""), paths = IndexedSeq(Path("path1"), Path("path2")), filter = Restriction.empty)

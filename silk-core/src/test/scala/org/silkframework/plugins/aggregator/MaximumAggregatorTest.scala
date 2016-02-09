@@ -15,15 +15,15 @@
 package org.silkframework.plugins.aggregator
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.silkframework.plugins.aggegrator.MaximumAggregator
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class MaximumAggregatorTest extends FlatSpec with ShouldMatchers {
+
+class MaximumAggregatorTest extends FlatSpec with Matchers {
   val aggregator = new MaximumAggregator()
 
   "MaximumAggregator" should "return the maximum" in {

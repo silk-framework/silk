@@ -1,15 +1,15 @@
 package org.silkframework.entity.rdf
 
-import org.junit.runner.RunWith
+
 import org.scalatest.FlatSpec
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
+
+import org.scalatest.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction.Condition
 import org.silkframework.entity.{Path, Restriction}
 
-@RunWith(classOf[JUnitRunner])
-class SparqlRestrictionBuilderTest extends FlatSpec with ShouldMatchers {
+
+class SparqlRestrictionBuilderTest extends FlatSpec with Matchers {
 
   implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",

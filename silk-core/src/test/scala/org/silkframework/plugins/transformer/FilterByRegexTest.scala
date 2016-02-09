@@ -14,15 +14,15 @@
 
 package org.silkframework.plugins.transformer
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.silkframework.plugins.CorePlugins
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.plugins.transformer.filter.FilterByRegex
 
-@RunWith(classOf[JUnitRunner])
-class FilterByRegexTest extends FlatSpec with ShouldMatchers {
+
+class FilterByRegexTest extends FlatSpec with Matchers {
   // Filters all strings consisting of three letters
   val threeLettersFilter = new FilterByRegex(regex = "\\w\\w\\w")
 

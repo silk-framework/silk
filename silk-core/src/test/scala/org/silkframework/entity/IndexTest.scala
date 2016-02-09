@@ -1,12 +1,12 @@
 package org.silkframework.entity
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
 
-@RunWith(classOf[JUnitRunner])
-class IndexTest extends FlatSpec with ShouldMatchers {
+
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers
+
+
+class IndexTest extends FlatSpec with Matchers {
 
   "Index" should "combine single dimension indices disjunctively by offseting the second index values" in {
     Index.oneDim(Set(0), 10) disjunction Index.oneDim(Set(0), 10) should equal (Index.oneDim(Set(0, 10), 20))

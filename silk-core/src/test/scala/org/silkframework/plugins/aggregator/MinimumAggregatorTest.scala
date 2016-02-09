@@ -15,15 +15,15 @@
 package org.silkframework.plugins.aggregator
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.silkframework.plugins.aggegrator.MinimumAggregator
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class MinimumAggregatorTest extends FlatSpec with ShouldMatchers {
+
+class MinimumAggregatorTest extends FlatSpec with Matchers {
   val aggregator = new MinimumAggregator()
 
   "MinAggregator" should "return the minimum" in {

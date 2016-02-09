@@ -14,15 +14,15 @@
 
 package org.silkframework.plugins.transformer
 
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.silkframework.plugins.CorePlugins
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.silkframework.plugins.transformer.normalize.RemoveBlanksTransformer
 
-@RunWith(classOf[JUnitRunner])
-class RemoveBlanksTransformerTest extends FlatSpec with ShouldMatchers {
+
+class RemoveBlanksTransformerTest extends FlatSpec with Matchers {
 
   val transformer = new RemoveBlanksTransformer()
 
