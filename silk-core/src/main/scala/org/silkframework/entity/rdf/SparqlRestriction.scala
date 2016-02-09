@@ -52,13 +52,14 @@ object SparqlRestriction {
     var restrictionsFull = cleanedRestrictions
     var restrictionsQualified = cleanedRestrictions
     for ((id, namespace) <- prefixes.toSeq.sortBy(_._1.length).reverse) {
-      restrictionsFull = restrictionsFull.replaceAll(" " + id + ":" + "([^\\s\\{\\}+*]+)([+*]*\\s+\\.)?", " <" + namespace + "$1>$2")
+      // Replace prefixes in properties and types
+      restrictionsFull = restrictionsFull.replaceAll("([\\s^])" + id + ":" + "([^\\s\\{\\}+*]+)([+*]*\\s+\\.)?", "$1<" + namespace + "$2>$3")
       restrictionsQualified = restrictionsQualified.replaceAll("<" + namespace + "([^>]+)>", id + ":" + "$1")
     }
 
     //Check if a prefix is missing
-    val missingPrefixes = new Regex("[\\s\\{\\}][^<\\s\\{\\}]+:").findAllIn(restrictionsFull)
-    if (!missingPrefixes.isEmpty) {
+    val missingPrefixes = new Regex("[\\s\\{\\}][^<\\s\\{\\}\"]+:").findAllIn(restrictionsFull)
+    if (missingPrefixes.nonEmpty) {
       throw new IllegalArgumentException("The following prefixes are not defined: " + missingPrefixes.mkString(","))
     }
 
