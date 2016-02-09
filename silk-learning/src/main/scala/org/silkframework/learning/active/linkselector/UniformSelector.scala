@@ -23,7 +23,7 @@ import scala.math.log
 /**
  * Link Selector which distributes the links uniformly.
  */
-class UniformSelector() extends LinkSelector {
+case class UniformSelector() extends LinkSelector {
 
   def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     val proj = projection(rules, referenceEntities)

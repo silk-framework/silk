@@ -26,7 +26,7 @@ import scala.math.log
  *
  * @param normalize If set to true, the divergence is also normalized by substracting the divergence to the nearest reference link.
  */
-class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends LinkSelector {
+case class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends LinkSelector {
 
   override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     val proj = projection(rules, referenceEntities)
