@@ -12,17 +12,15 @@
  * limitations under the License.
  */
 
-package org.silkframework.util.convert
-
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
-import org.silkframework.config.Prefixes
-import org.silkframework.entity.{Path, Restriction}
-import org.silkframework.entity.Restriction.{Or, Condition}
+package org.silkframework.entity.rdf
 
 import org.junit.runner.RunWith
+import org.scalatest.FlatSpec
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.Restriction.{Condition, Or}
+import org.silkframework.entity.{Path, Restriction}
 
 @RunWith(classOf[JUnitRunner])
 class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
