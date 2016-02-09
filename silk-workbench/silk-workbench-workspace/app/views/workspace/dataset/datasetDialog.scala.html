@@ -12,12 +12,10 @@
   <script type="text/javascript">
     function submit(pluginId, name, parameters) {
       // Build dataset xml
-      var xml = '<Dataset id=\'' + name + '\'>';
-      xml += '  <DatasetPlugin type=\'' + pluginId + '\'>';
+      var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
       for(var i in parameters) {
-        xml += '    <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+        xml += '  <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
       }
-      xml += '  </DatasetPlugin>';
       xml += '</Dataset>';
 
       // Delete the old dataset in case its name changed
