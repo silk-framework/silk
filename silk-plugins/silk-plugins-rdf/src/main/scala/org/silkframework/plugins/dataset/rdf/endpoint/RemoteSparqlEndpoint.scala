@@ -78,6 +78,10 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
     connection.setRequestMethod("POST")
     connection.setDoOutput(true)
     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+    //Set authentication
+    for ((user, password) <- params.login) {
+      connection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
+    }
     val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
     writer.write("query=")
     writer.write(URLEncoder.encode(query, "UTF8"))
