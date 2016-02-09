@@ -141,12 +141,12 @@ body{
 }
 
 .dragDiv .content {
-  min-height: 14px;
+  /*min-height: 14px;*/
   padding: 5px 10px 5px 5px;
-  border-radius: 0 0 5px 5px;
+  /*border-radius: 0 0 5px 5px;*/
   border-left:1px solid #aeaeae;
   border-right:1px solid #aeaeae;
-  border-bottom:1px solid #aeaeae;
+  /*border-bottom:1px solid #aeaeae;*/
 }
 
 .dragDiv .content input {
@@ -317,6 +317,45 @@ body{
   line-height: 40px;
 }
 
+/* operator box footer */
+
+.operator_footer {
+  text-align: right;
+  padding: 2px 5px 2px 5px;
+  font-size: 80%;
+  border-radius: 0 0 5px 5px;
+  background-color: rgb(100, 100, 100);
+  border: 1px solid;
+  border-top: 0;
+}
+
+
+.operator_footer.sourceDiv {
+  background-color: rgb(242, 215, 255);
+  border-color: rgb(195, 84, 191);
+}
+
+.operator_footer.targetDiv {
+  background-color: rgb(255, 215, 215);
+  border-color: rgb(195, 84, 84);
+}
+
+.operator_footer.transformDiv {
+  background-color: rgb(214, 255, 240);
+  border-color: rgb(12, 196, 129);
+}
+
+.operator_footer.compareDiv {
+  background-color: rgb(255, 238, 214);
+  border-color: rgb(229, 152, 41);
+}
+
+.operator_footer.aggregateDiv {
+  background-color: rgb(214, 238, 255);
+  border-color: rgb(20, 132, 212);
+}
+
+
 /* label and value formatting */
 
 .param_element {
@@ -347,3 +386,4 @@ input.edit_label {
   border-width: 0px;
   margin: 0px;
 }
+
