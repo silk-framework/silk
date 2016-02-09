@@ -60,6 +60,9 @@ object DatasetSelection {
     val variable = (node \ "@var").text
 
     var restrictionText = (node \ "RestrictTo").text.trim
+    // Currently the entity is always expected to be referenced with the variable ?a. Older versions also allowed ?b, so we still support it.
+    restrictionText = restrictionText.replace("?b", "?a")
+
     var typeUri = (node \ "@typeUri").text
 
     // If the type Uri is not defined, try to parse if from the SPARQL restriction
