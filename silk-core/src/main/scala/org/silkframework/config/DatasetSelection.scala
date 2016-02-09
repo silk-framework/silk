@@ -57,11 +57,10 @@ object DatasetSelection {
    * Creates a DatasetSpecification from XML.
    */
   def fromXML(node: Node)(implicit prefixes: Prefixes = Prefixes.empty): DatasetSelection = {
-    val variable = (node \ "@var").text
-
     var restrictionText = (node \ "RestrictTo").text.trim
-    // Currently the entity is always expected to be referenced with the variable ?a. Older versions also allowed ?b, so we still support it.
-    restrictionText = restrictionText.replace("?b", "?a")
+    // Currently the entity is always expected to be referenced with the variable ?a.
+    val variable = (node \ "@var").text
+    restrictionText = restrictionText.replace("?" + variable, "?a")
 
     var typeUri = (node \ "@typeUri").text
 
