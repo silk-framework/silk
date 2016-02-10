@@ -18,7 +18,7 @@ case class CsvDataset
 (
     @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
     file: Resource,
-    @Param("Separated list of properties by the separator parameter. If not provided, the list of properties is read from the first line.")
+    @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
     properties: String = "",
     @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. '\t' for specifying tab-separated values, is also supported.")
     separator: String = ",",
@@ -74,7 +74,7 @@ case class CsvDataset
     val detectedSeparator = detectedSettings.separator.toString
     CsvDataset(
       file = file,
-      properties = csvSource.propertyList.mkString(detectedSeparator),
+      properties = csvSource.propertyList.mkString(","),
       separator = detectedSeparator,
       arraySeparator = arraySeparator,
       quote = quote,
