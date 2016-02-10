@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.rule.similarity.{Aggregator, Aggregation}
+import org.silkframework.rule.similarity.{Aggregation, Aggregator}
 
 case class AggregationNode(aggregation: String, weight: Int, required: Boolean, operators: List[OperatorNode]) extends OperatorNode {
   override val children = operators

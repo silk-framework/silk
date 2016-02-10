@@ -1,7 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.plugins.dataset.rdf.formatters.{AlignmentLinkFormatter, NTriplesLinkFormatter}
 import org.silkframework.runtime.plugin.PluginModule
 
 class RdfPlugins extends PluginModule {

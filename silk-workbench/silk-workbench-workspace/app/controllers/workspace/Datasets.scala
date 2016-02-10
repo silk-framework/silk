@@ -3,11 +3,10 @@ package controllers.workspace
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.dataset.TypesCache
-import play.api.libs.json.{JsString, Json, JsArray}
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
@@ -31,8 +30,8 @@ object Datasets extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = Serialization.fromXml[Dataset](xml.head)
-          project.updateTask(sourceTask.id, sourceTask)
+          val dataset = Serialization.fromXml[Dataset](xml.head)
+          project.updateTask(dataset.id, dataset)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)

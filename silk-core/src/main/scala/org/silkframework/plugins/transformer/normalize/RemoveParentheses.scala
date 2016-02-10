@@ -1,7 +1,7 @@
 package org.silkframework.plugins.transformer.normalize
 
+import org.silkframework.plugins.transformer.replace.RegexReplaceTransformerBase
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.plugins.transformer.replace.{RegexReplaceTransformerBase, RegexReplaceTransformer}
 
 @Plugin(
   id = "removeParentheses",

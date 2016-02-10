@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import com.hp.hpl.jena.query.{QueryExecution, QueryExecutionFactory}
-import com.hp.hpl.jena.update.{UpdateFactory, UpdateExecutionFactory, UpdateProcessor}
+import com.hp.hpl.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 
 /**
  * Executes all queries on a remote SPARQL endpoint using Jena.

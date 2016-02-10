@@ -1,5 +1,5 @@
 import org.silkframework.dataset.rdf.RdfDatasetPlugin
-import org.silkframework.dataset.{DatasetPlugin => DataPlugin, Dataset}
+import org.silkframework.dataset.{Dataset, DatasetPlugin => DataPlugin}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 

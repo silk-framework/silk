@@ -17,9 +17,9 @@
 package org.silkframework.evaluation.statistics
 
 
-import org.silkframework.rule.{Operator, LinkageRule}
-import org.silkframework.rule.similarity.{Comparison, Aggregation}
 import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.similarity.{Aggregation, Comparison}
+import org.silkframework.rule.{LinkageRule, Operator}
 
 /**
  * Complexity measures of a linkage rule.

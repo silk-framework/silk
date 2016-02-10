@@ -1,11 +1,11 @@
 package org.silkframework.plugins.distance.equality
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import java.util.Locale
-import org.silkframework.entity.Index
 import java.text.Collator
+import java.util.Locale
+
+import org.silkframework.entity.Index
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.runtime.plugin.Plugin._
 
 /**
  * Equality Metric with some fuzziness regarding case, accents, diereses, etc.

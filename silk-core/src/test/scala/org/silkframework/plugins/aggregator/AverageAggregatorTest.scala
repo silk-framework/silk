@@ -14,14 +14,11 @@
 
 package org.silkframework.plugins.aggregator
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.aggegrator.AverageAggregator
-
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
+
 class AverageAggregatorTest extends FlatSpec with Matchers {
   val aggregator = new AverageAggregator()
 

@@ -14,18 +14,14 @@
 
 package org.silkframework.hadoop
 
-import impl.HadoopEntityCache
-import org.silkframework.config.LinkingConfig
-import org.silkframework.plugins.Plugins
-import org.apache.hadoop.fs.{FileSystem, Path}
-import java.util.logging.Logger
-import org.silkframework.config.LinkSpecification
-import org.silkframework.entity.Entity
-import org.silkframework.util.DPair
-import org.silkframework.plugins.dataset.JenaPlugins
-import org.silkframework.execution.Loader
 import java.io.File
+import java.util.logging.Logger
+
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.silkframework.config.{LinkSpecification, LinkingConfig}
+import org.silkframework.execution.Loader
 import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.util.DPair
 
 /**
  * Populates the entity cache.

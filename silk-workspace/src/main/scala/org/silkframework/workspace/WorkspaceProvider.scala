@@ -2,9 +2,9 @@ package org.silkframework.workspace
 
 import java.io.{InputStream, OutputStream}
 
-import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.xml.XmlSerializer
+
 import scala.reflect.ClassTag
 
 trait WorkspaceProvider {

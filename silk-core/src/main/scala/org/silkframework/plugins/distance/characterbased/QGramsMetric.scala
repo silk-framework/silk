@@ -14,12 +14,13 @@
 
 package org.silkframework.plugins.distance.characterbased
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.util.StringUtils._
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.entity.Index
-import math.{min, max}
 import org.silkframework.plugins.distance.tokenbased.JaccardDistance
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.util.StringUtils._
+
+import scala.math.{max, min}
 
 /**
  * String similarity based on q-grams.

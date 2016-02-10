@@ -14,16 +14,12 @@
 
 package org.silkframework.plugins.aggregator
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.aggegrator.QuadraticMeanAggregator
-
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class QuadraticMeanAggregatorTest extends FlatSpec with ShouldMatchers {
+
+class QuadraticMeanAggregatorTest extends FlatSpec with Matchers {
   val aggregator = new QuadraticMeanAggregator()
 
   "QuadraticMeanAggregator" should "compute the weighted quadratic mean" in {

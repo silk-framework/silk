@@ -15,8 +15,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.{EntitySchema, Entity}
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.util.Uri
 
 /**

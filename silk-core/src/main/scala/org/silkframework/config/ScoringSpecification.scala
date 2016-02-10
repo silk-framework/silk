@@ -1,8 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.rule.{ScoringRule, TransformRule}
+import org.silkframework.rule.ScoringRule
 import org.silkframework.util.Identifier
 
 /**

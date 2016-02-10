@@ -15,7 +15,6 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity._
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.util.{SampleUtil, Uri}
 
 /**

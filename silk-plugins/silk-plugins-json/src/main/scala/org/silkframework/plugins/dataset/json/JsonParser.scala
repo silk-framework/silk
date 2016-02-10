@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.entity.{Path, PropertyFilter, ForwardOperator, PathOperator}
+import org.silkframework.entity.{ForwardOperator, Path, PathOperator, PropertyFilter}
 import org.silkframework.runtime.resource.Resource
 import play.api.libs.json._
 

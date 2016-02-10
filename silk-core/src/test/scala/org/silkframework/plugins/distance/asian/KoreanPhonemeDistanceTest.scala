@@ -14,10 +14,9 @@
 
 package org.silkframework.plugins.distance.asian
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FlatSpec, Matchers}
 
-class KoreanPhonemeDistanceTest extends FlatSpec with ShouldMatchers {
+class KoreanPhonemeDistanceTest extends FlatSpec with Matchers {
 
   val metric = new KoreanPhonemeDistance()
 

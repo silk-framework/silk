@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.distance.tokenbased
 
-import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.plugins.distance.characterbased.LevenshteinDistance
+import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
   id = "softjaccard",

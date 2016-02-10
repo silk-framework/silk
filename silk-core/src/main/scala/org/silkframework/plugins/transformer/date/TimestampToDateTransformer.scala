@@ -16,10 +16,12 @@
 
 package org.silkframework.plugins.transformer.date
 
-import org.silkframework.rule.input.SimpleTransformer;
-import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
+import java.text.SimpleDateFormat
+import java.util.GregorianCalendar
+
+import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
+
 import scala.math.BigInt;
 
 /**

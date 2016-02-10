@@ -14,11 +14,7 @@
 
 package org.silkframework.plugins.spatial.distance
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Index
 
 /**
@@ -26,7 +22,7 @@ import org.silkframework.entity.Index
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class CentroidDistanceMetricTest extends FlatSpec with Matchers {
 
   val metric = new CentroidDistanceMetric()

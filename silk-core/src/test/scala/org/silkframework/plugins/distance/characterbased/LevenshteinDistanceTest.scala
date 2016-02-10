@@ -14,13 +14,12 @@
 
 package org.silkframework.plugins.distance.characterbased
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
+import org.scalatest.{FlatSpec, Matchers}
 
-@RunWith(classOf[JUnitRunner])
-class LevenshteinDistanceTest extends FlatSpec with ShouldMatchers {
+
+
+
+class LevenshteinDistanceTest extends FlatSpec with Matchers {
 
   val metric = new LevenshteinDistance()
 

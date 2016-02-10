@@ -14,10 +14,11 @@
 
 package org.silkframework.plugins.aggegrator
 
-import org.silkframework.rule.similarity.Aggregator
-import scala.math._
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.entity.Index
+import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.runtime.plugin.Plugin
+
+import scala.math._
 
 /**
  * Computes the weighted geometric mean.

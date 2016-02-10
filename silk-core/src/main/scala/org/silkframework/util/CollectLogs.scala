@@ -14,7 +14,7 @@
 
 package org.silkframework.util
 
-import java.util.logging.{Handler, LogRecord, Logger, Level}
+import java.util.logging.{Handler, Level, LogRecord, Logger}
 
 /**
  * Collects all log message which occur in a specific scope.

@@ -1,7 +1,7 @@
 package org.silkframework.entity
 
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
-import org.scalatest.{Matchers, FlatSpec}
 
 class PathParserTest extends FlatSpec with Matchers {
 

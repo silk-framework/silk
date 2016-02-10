@@ -14,9 +14,10 @@
 
 package org.silkframework.hadoop.impl
 
-import org.apache.hadoop.mapreduce.InputSplit
 import java.io.{DataInput, DataOutput}
+
 import org.apache.hadoop.io.Writable
+import org.apache.hadoop.mapreduce.InputSplit
 
 class SilkInputSplit(var blockIndex : Int, var sourcePartition : Int, var targetPartition : Int, var size : Long, var hosts : Array[String]) extends InputSplit with Writable
 {

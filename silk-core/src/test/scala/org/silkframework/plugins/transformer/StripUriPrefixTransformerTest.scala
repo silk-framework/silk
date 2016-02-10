@@ -14,15 +14,11 @@
 
 package org.silkframework.plugins.transformer
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-import org.silkframework.plugins.CorePlugins
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.transformer.substring.StripUriPrefixTransformer
 
-@RunWith(classOf[JUnitRunner])
-class StripUriPrefixTransformerTest extends FlatSpec with ShouldMatchers {
+
+class StripUriPrefixTransformerTest extends FlatSpec with Matchers {
 
   val transformer = new StripUriPrefixTransformer()
 

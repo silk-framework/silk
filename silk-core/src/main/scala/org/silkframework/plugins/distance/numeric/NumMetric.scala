@@ -14,12 +14,14 @@
 
 package org.silkframework.plugins.distance.numeric
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.util.StringUtils._
-import scala.math._
 import java.util.logging.Logger
-import org.silkframework.runtime.plugin.Plugin
+
 import org.silkframework.entity.Index
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.util.StringUtils._
+
+import scala.math._
 
 @Plugin(
   id = "num",

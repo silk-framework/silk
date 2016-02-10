@@ -15,10 +15,11 @@
 package org.silkframework.learning.generation
 
 import org.silkframework.entity.Path
-import util.Random
+import org.silkframework.learning.individual.{FunctionNode, InputNode, PathInputNode, TransformNode}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.util.DPair
-import org.silkframework.learning.individual.{PathInputNode, InputNode, TransformNode, FunctionNode}
+
+import scala.util.Random
 
 /**
  * Generates random inputs.

@@ -14,12 +14,12 @@
 
 package org.silkframework.entity
 
-import org.silkframework.runtime.serialization.ValidationException
-
-import util.parsing.input.CharSequenceReader
-import util.parsing.combinator.RegexParsers
-import org.silkframework.util.Uri
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.util.Uri
+
+import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.input.CharSequenceReader
 
 /**
  * Parser for the Silk RDF path language.

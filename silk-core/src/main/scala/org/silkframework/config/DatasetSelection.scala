@@ -14,10 +14,10 @@
 
 package org.silkframework.config
 
-import org.silkframework.entity.{Path, Restriction}
+import org.silkframework.entity.Restriction
 import org.silkframework.entity.rdf.SparqlRestrictionParser
 import org.silkframework.runtime.serialization.ValidationException
-import org.silkframework.util.{Uri, DPair, Identifier}
+import org.silkframework.util.{DPair, Identifier, Uri}
 
 import scala.xml.Node
 
@@ -57,9 +57,11 @@ object DatasetSelection {
    * Creates a DatasetSpecification from XML.
    */
   def fromXML(node: Node)(implicit prefixes: Prefixes = Prefixes.empty): DatasetSelection = {
-    val variable = (node \ "@var").text
-
     var restrictionText = (node \ "RestrictTo").text.trim
+    // Currently the entity is always expected to be referenced with the variable ?a.
+    val variable = (node \ "@var").text
+    restrictionText = restrictionText.replace("?" + variable, "?a")
+
     var typeUri = (node \ "@typeUri").text
 
     // If the type Uri is not defined, try to parse if from the SPARQL restriction

@@ -1,7 +1,6 @@
 package org.silkframework.learning.active
 
 import org.silkframework.entity.{EntitySchema, Link}
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.util.DPair
 
 /**

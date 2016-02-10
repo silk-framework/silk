@@ -1,13 +1,13 @@
 package controllers.linking
 
 import controllers.core.{Stream, Widgets}
+import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
+import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.Dataset
 import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.workspace.User
-import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
-import models.linking.{EvalLink, LinkSorter}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 

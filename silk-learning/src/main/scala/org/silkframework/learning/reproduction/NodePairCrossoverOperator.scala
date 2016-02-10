@@ -14,10 +14,11 @@
 
 package org.silkframework.learning.reproduction
 
+import org.silkframework.learning.individual.{LinkageRuleNode, Node, NodeTraverser}
 import org.silkframework.util.DPair
+
 import scala.reflect.ClassTag
-import util.Random
-import org.silkframework.learning.individual.{NodeTraverser, Node, LinkageRuleNode}
+import scala.util.Random
 
 abstract class NodePairCrossoverOperator[NodeType <: Node : ClassTag] extends CrossoverOperator {
 

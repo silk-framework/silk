@@ -14,18 +14,13 @@
 
 package org.silkframework.plugins.spatial.utils
 
-import java.util.logging.Level
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.operation.distance.DistanceOp.closestPoints
-import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
-import com.vividsolutions.jts.simplify.DouglasPeuckerSimplifier
-import com.vividsolutions.jts.algorithm.MinimumBoundingCircle
-
-import org.geotools.geometry.jts.JTS.{ orthodromicDistance, transform }
-import org.geotools.referencing.CRS.{ findMathTransform, decode }
-
+import com.vividsolutions.jts.simplify.{DouglasPeuckerSimplifier, TopologyPreservingSimplifier}
+import org.geotools.geometry.jts.JTS.{orthodromicDistance, transform}
+import org.geotools.referencing.CRS.{decode, findMathTransform}
 import org.silkframework.entity.Index
 
 /**

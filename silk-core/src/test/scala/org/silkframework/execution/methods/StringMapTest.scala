@@ -14,15 +14,13 @@
 
 package org.silkframework.execution.methods
 
-import scala.io.Source
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
+import org.scalatest.matchers.{BeMatcher, MatchResult}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.distance.characterbased.LevenshteinDistance
 
-@RunWith(classOf[JUnitRunner])
-class StringMapTest extends FlatSpec with ShouldMatchers {
+import scala.io.Source
+
+class StringMapTest extends FlatSpec with Matchers {
 
   /** Load the source files used by the original authors from http://flamingo.ics.uci.edu/releases/4.1/ */
   val source1 = loadSource("names/source1.txt")

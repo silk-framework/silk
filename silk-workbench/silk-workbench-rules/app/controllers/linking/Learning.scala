@@ -1,17 +1,15 @@
 package controllers.linking
 
 import controllers.core.{Stream, Widgets}
+import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
+import models.linking._
 import org.silkframework.config.LinkSpecification
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
-import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
 import org.silkframework.util.Identifier._
-import org.silkframework.workspace.User
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.{Task, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
-import models.linking._
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 

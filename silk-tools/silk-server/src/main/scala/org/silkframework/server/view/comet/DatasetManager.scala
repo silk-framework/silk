@@ -14,11 +14,7 @@
 
 package org.silkframework.server.view.comet
 
-import xml.{Text, NodeSeq}
-import net.liftweb.common.{Full, Empty, Box}
-import net.liftweb.util.Helpers
-import net.liftweb.http.{SHtml, CometActor}
-import org.silkframework.server.model.{Dataset, Server}
+import scala.xml.{NodeSeq, Text}
 
 class DatasetManager extends CometActor {
   override def defaultPrefix = Full("comet")

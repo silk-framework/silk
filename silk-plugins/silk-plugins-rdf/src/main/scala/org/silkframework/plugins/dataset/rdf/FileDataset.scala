@@ -1,17 +1,17 @@
 package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.query.DatasetFactory
-import org.silkframework.dataset.rdf.RdfDatasetPlugin
+import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.dataset.rdf.RdfDatasetPlugin
+import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{WritableResource, Resource}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
-import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 
 @Plugin(
   id = "file",
@@ -20,7 +20,7 @@ import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 case class FileDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: WritableResource,
-  @Param("""Supported formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle".""")
+  @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
   format: String,
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "") extends RdfDatasetPlugin {

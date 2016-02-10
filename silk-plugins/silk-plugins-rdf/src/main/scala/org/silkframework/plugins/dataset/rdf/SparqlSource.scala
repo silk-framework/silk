@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.plugins.dataset.rdf.sparql._

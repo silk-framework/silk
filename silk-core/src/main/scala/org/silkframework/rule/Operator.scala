@@ -14,9 +14,11 @@
 
 package org.silkframework.rule
 
-import scala.xml.Node
-import org.silkframework.util.Identifier
 import java.util.concurrent.atomic.AtomicInteger
+
+import org.silkframework.util.Identifier
+
+import scala.xml.Node
 
 /**
  * Base class of all rule operators.

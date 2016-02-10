@@ -1,32 +1,25 @@
 package controllers.linking
 
 import java.util.logging.{Level, Logger}
-import controllers.transform.TransformTaskApi._
+
 import controllers.util.ProjectUtils._
-import controllers.workspace.WorkspaceApi._
-import org.apache.jena.riot.{RDFLanguages, Lang}
-import org.silkframework.config.{TransformSpecification, DatasetSelection, LinkSpecification}
+import org.silkframework.config.{DatasetSelection, LinkSpecification}
 import org.silkframework.dataset.Dataset
-import org.silkframework.entity.{Restriction, Link}
-import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.evaluation.ReferenceLinks
-import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity, ExecuteTransform}
+import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.serialization.ValidationException.ValidationError
 import org.silkframework.runtime.serialization.{Serialization, ValidationException}
 import org.silkframework.util.Identifier._
-import ValidationException.ValidationError
-import org.silkframework.util.{Uri, Identifier, CollectLogs, DPair}
-import org.silkframework.workspace.Constants
+import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
-import play.api.mvc.{Result, AnyContentAsXml, Action, Controller}
-import play.mvc.Http.Response
-
-import scala.util.Try
+import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 object LinkingTaskApi extends Controller {
 

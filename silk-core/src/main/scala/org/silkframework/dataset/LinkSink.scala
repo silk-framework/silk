@@ -1,7 +1,5 @@
 package org.silkframework.dataset
 
-import java.io.Closeable
-
 import org.silkframework.entity.Link
 
 /**

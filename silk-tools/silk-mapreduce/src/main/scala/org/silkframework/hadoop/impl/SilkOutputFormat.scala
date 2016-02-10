@@ -14,11 +14,11 @@
 
 package org.silkframework.hadoop.impl
 
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import java.io.DataOutputStream
-import org.apache.hadoop.mapreduce.{TaskAttemptContext, RecordWriter}
+
 import org.apache.hadoop.io.Text
-import org.silkframework.hadoop.SilkConfiguration
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
+import org.apache.hadoop.mapreduce.{RecordWriter, TaskAttemptContext}
 
 class SilkOutputFormat extends FileOutputFormat[Text, EntityConfidence]
 {

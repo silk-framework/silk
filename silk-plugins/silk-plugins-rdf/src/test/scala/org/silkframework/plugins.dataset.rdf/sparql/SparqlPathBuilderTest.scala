@@ -1,14 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import org.junit.runner.RunWith
-import org.scalatest.FlatSpec
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Path
 import org.silkframework.testutil.equalIgnoringWhitespace
 
-@RunWith(classOf[JUnitRunner])
-class SparqlPathBuilderTest extends FlatSpec with ShouldMatchers {
+class SparqlPathBuilderTest extends FlatSpec with Matchers {
 
   // Example properties
   val p1 = "<1>"

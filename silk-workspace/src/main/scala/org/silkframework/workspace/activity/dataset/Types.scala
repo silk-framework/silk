@@ -1,8 +1,9 @@
 package org.silkframework.workspace.activity.dataset
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlFormat
+
 import scala.xml.Node
 
 /**

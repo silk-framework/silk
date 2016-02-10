@@ -14,10 +14,9 @@
 
 package org.silkframework.cache
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.{Entity, EntitySchema, Index}
 
-import xml.Node
-import org.silkframework.entity.{EntitySchema, Index, Entity}
+import scala.xml.Node
 
 /**
  * A cache of entities.

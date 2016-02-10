@@ -16,7 +16,7 @@
 
 package org.silkframework.evaluation.statistics
 
-import math.abs
+import scala.math.abs
 
 /**
  * Statistics about a stochastic variable such as the fMeasure of a set of linkage rules.

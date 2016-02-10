@@ -14,11 +14,10 @@
 
 package org.silkframework.learning
 
-import java.util.logging.Level
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
 import org.silkframework.evaluation.LinkageRuleEvaluator
-import LinkageRuleLearner.Result
+import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.genlink.GenLinkLearner
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**
  * Learns a linkage rule from reference links.
@@ -48,8 +47,9 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
     stop = false
 
     // Execute linkage rule learner
-    val learnerActivity = learner.learn(input.trainingEntities, input.seedLinkageRules)
-    context.executeBlocking(learnerActivity, 1.0, updateValue(context))
+    val learnerActivity = context.child(learner.learn(input.trainingEntities, input.seedLinkageRules), 1.0)
+    learnerActivity.value.onUpdate(updateValue(context))
+    learnerActivity.startBlocking()
   }
 
   /**

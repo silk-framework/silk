@@ -14,8 +14,9 @@
 
 package org.silkframework.config
 
-import org.silkframework.execution.ExecutionMethod
 import java.util.logging.Level
+
+import org.silkframework.execution.ExecutionMethod
 
 /**
  * The linking runtime configuration.

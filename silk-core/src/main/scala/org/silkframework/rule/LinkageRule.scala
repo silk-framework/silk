@@ -17,8 +17,8 @@ package org.silkframework.rule
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.similarity.SimilarityOperator
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
-import org.silkframework.runtime.serialization.{ValidatingXMLReader, Serialization, XmlFormat}
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
 import org.silkframework.util.{DPair, Uri}
 
 import scala.xml.Node

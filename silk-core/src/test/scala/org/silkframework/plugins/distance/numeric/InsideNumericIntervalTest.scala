@@ -14,12 +14,12 @@
 
 package org.silkframework.plugins.distance.numeric
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
+
 class InsideNumericIntervalTest extends FlatSpec with Matchers {
 
   val m = new InsideNumericInterval()

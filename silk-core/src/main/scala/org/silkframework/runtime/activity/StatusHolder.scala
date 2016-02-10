@@ -1,7 +1,6 @@
 package org.silkframework.runtime.activity
 
-import java.net.URLEncoder
-import java.util.logging.{Logger, Level}
+import java.util.logging.{Level, Logger}
 
 /**
  * Holds the current status of an activity.

@@ -14,9 +14,6 @@
 
 package org.silkframework.plugins.temporal
 
-import java.util.logging.{Logger, Level}
-import org.silkframework.rule.similarity.{DistanceMeasure}
-
 import org.silkframework.plugins.temporal.distance._
 import org.silkframework.plugins.temporal.relation._
 import org.silkframework.runtime.plugin.PluginModule

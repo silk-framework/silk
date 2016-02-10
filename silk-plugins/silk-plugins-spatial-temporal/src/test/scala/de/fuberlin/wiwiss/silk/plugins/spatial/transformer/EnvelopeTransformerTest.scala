@@ -14,17 +14,16 @@
 
 package org.silkframework.plugins.spatial.transformer
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
+
+
 
 /**
  * Tests the Envelope Transformer.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class EnvelopeTransformerTest extends FlatSpec with Matchers {
 
   val transformer = new EnvelopeTransformer()

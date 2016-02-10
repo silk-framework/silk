@@ -14,12 +14,6 @@
 
 package org.silkframework.server.view
 
-import org.silkframework.plugins.dataset.rdf.RdfDataSource
-import net.liftweb.http._
-import net.liftweb.common.{Empty, Full}
-import org.silkframework.server.model.Server
-import org.silkframework.dataset.Source
-
 object RestApi {
   def dispatch : LiftRules.DispatchPF = {
     case req @ Req(List("api", "process"), "", PostRequest) => () => generateLinks(req)

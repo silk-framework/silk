@@ -1,9 +1,10 @@
 package org.silkframework.execution.methods
 
-import org.silkframework.entity.{Path, Index, Entity}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.entity.{Entity, Index, Path}
 import org.silkframework.execution.ExecutionMethod
-import scala.math.{min,max,pow}
+import org.silkframework.rule.LinkageRule
+
+import scala.math.{max, min, pow}
 
 case class SortedBlocks(sourceKey: Path, targetKey: Path, overlap: Double = 0.5) extends ExecutionMethod {
 

@@ -14,10 +14,10 @@
 
 package org.silkframework.execution
 
-import org.silkframework.dataset.{LinkSink, DataSink}
+import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.Uri
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
 
 /**
  * Writes the links to the output.

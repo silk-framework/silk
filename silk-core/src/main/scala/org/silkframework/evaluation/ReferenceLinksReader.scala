@@ -16,10 +16,12 @@
 
 package org.silkframework.evaluation
 
-import scala.io.Source
-import java.io.{InputStream, File}
-import scala.xml.{Node, XML}
+import java.io.{File, InputStream}
+
 import org.silkframework.entity.Link
+
+import scala.io.Source
+import scala.xml.{Node, XML}
 
 /**
  * Reads the alignment format specified at http://alignapi.gforge.inria.fr/format.html.

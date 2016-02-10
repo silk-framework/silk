@@ -14,10 +14,9 @@
 
 package org.silkframework.cache
 
-import org.silkframework.entity.{EntitySchema, Entity}
 import java.io.{DataInput, DataOutput}
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
 
 class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
   require(entities.length == indices.length, "entities.size == indices.size")

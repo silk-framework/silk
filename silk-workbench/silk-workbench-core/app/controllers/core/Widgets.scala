@@ -1,10 +1,10 @@
 package controllers.core
 
 import org.silkframework.runtime.activity.Status
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.Comet
-import play.api.libs.json._
 import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.json._
 
 object Widgets {
   val log = java.util.logging.Logger.getLogger(getClass.getName)

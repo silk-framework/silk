@@ -15,7 +15,7 @@
 package org.silkframework.hadoop
 
 import org.apache.hadoop.conf.Configured
-import org.apache.hadoop.util.{ToolRunner, Tool}
+import org.apache.hadoop.util.{Tool, ToolRunner}
 
 object Silk
 {

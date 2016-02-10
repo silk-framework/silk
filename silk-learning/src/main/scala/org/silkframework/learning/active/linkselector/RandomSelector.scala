@@ -16,7 +16,8 @@ package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.Link
 import org.silkframework.evaluation.ReferenceEntities
-import util.Random
+
+import scala.util.Random
 
 /**
  * Link Selector which selects a random link.

@@ -1,8 +1,9 @@
 package org.silkframework.plugins.transformer.linguistic
 
-import org.silkframework.rule.input.SimpleTransformer
 import java.text.Normalizer
 import java.util.regex.Pattern
+
+import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
 
 /**

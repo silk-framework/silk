@@ -14,9 +14,10 @@
 
 package org.silkframework.hadoop.impl
 
-import org.silkframework.entity.Entity
 import java.io._
+
 import org.apache.hadoop.io.Writable
+import org.silkframework.entity.Entity
 import org.silkframework.util.DPair
 
 /**

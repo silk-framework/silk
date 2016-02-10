@@ -14,13 +14,9 @@
 
 package org.silkframework.plugins.spatial
 
-import java.util.logging.{Logger, Level}
-import org.silkframework.rule.input.Transformer
-import org.silkframework.rule.similarity.{DistanceMeasure}
-
-import org.silkframework.plugins.spatial.transformer._
 import org.silkframework.plugins.spatial.distance._
 import org.silkframework.plugins.spatial.relation._
+import org.silkframework.plugins.spatial.transformer._
 import org.silkframework.runtime.plugin.PluginModule
 
 /**

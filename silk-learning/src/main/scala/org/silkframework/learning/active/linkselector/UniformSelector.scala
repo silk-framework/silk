@@ -15,14 +15,15 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.Link
-import math.{pow, sqrt, abs, log}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.rule.LinkageRule
+
+import scala.math.log
 
 /**
  * Link Selector which distributes the links uniformly.
  */
-class UniformSelector() extends LinkSelector {
+case class UniformSelector() extends LinkSelector {
 
   def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
     val proj = projection(rules, referenceEntities)

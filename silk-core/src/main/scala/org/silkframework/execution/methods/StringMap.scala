@@ -1,13 +1,13 @@
 package org.silkframework.execution.methods
 
-import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.execution.ExecutionMethod
 import org.silkframework.cache.Partition
-import org.silkframework.util.DPair
-import org.silkframework.entity.{Index, Path, Entity}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.entity.{Entity, Index, Path}
+import org.silkframework.execution.ExecutionMethod
 import org.silkframework.execution.methods.StringMap.Mapper
 import org.silkframework.plugins.distance.characterbased.LevenshteinDistance
+import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.util.DPair
 
 case class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2, thresholdPercentage: Double = 0.5) extends ExecutionMethod {
 

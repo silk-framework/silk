@@ -1,7 +1,9 @@
 package org.silkframework
 
 import java.io.File
+
 import org.scalatest.{FlatSpec, Matchers}
+
 import scala.io.Source
 
 class SilkTest extends FlatSpec with Matchers {

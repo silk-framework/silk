@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.runtime.plugin.PluginModule
 import org.silkframework.workspace.activity.dataset.TypesCacheFactory
 import org.silkframework.workspace.activity.linking._
-import org.silkframework.workspace.activity.transform.{TransformPathsCacheFactory, ExecuteTransformFactory}
+import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory}
 import org.silkframework.workspace.activity.workflow.WorkflowExecutorFactory
 import org.silkframework.workspace.xml.FileWorkspaceProvider
 

@@ -14,8 +14,7 @@
 
 package org.silkframework.plugins.spatial.utils
 
-import java.util.logging.Level
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader

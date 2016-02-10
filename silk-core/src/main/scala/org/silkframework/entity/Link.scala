@@ -14,8 +14,8 @@
 
 package org.silkframework.entity
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.util.DPair
+
 import scala.xml.Node
 
 /**

@@ -1,7 +1,5 @@
 package org.silkframework.plugins.transformer.date
 
-import javax.xml.datatype.DatatypeFactory
-
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.StringUtils.XSDDateLiteral

@@ -1,9 +1,8 @@
 package org.silkframework.execution
 
 import org.silkframework.config.DatasetSelection
-import org.silkframework.dataset.{EntitySink, DataSink, DataSource}
+import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 

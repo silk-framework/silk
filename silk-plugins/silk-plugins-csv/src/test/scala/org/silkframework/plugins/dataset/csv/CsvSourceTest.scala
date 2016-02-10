@@ -1,9 +1,8 @@
 package org.silkframework.plugins.dataset.csv
 
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.{EntitySchema, Path}
-import org.silkframework.entity.rdf.SparqlEntitySchema
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-import org.scalatest.{Matchers, FlatSpec}
 import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {

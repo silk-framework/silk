@@ -15,10 +15,11 @@
 package org.silkframework.learning.reproduction
 
 import org.silkframework.learning.LearningConfiguration.Components
-import org.silkframework.util.DPair
-import util.Random
-import org.silkframework.learning.individual.{Individual, LinkageRuleNode}
+import org.silkframework.learning.individual.Individual
 import org.silkframework.rule.LinkageRule
+import org.silkframework.util.DPair
+
+import scala.util.Random
 
 /**
  * Combines two linkage rules into a new one.

@@ -3,7 +3,6 @@ package org.silkframework.plugins.dataset.csv
 import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter, Writer}
 
 import org.silkframework.dataset.DataSink
-import org.silkframework.entity.Link
 import org.silkframework.runtime.resource.{FileResource, Resource}
 
 class CsvSink(file: Resource, settings: CsvSettings) extends DataSink {

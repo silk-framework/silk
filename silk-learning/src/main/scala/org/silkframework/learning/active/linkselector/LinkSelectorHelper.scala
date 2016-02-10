@@ -1,6 +1,6 @@
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.entity.{Link, Entity}
+import org.silkframework.entity.{Entity, Link}
 import org.silkframework.util.DPair
 
 /**

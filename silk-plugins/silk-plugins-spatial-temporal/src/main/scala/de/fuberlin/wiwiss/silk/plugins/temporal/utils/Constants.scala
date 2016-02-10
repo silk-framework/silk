@@ -14,8 +14,8 @@
 
 package org.silkframework.plugins.temporal.utils
 
-import javax.xml.datatype.DatatypeFactory
 import java.util.GregorianCalendar
+import javax.xml.datatype.DatatypeFactory
 
 /**
  * An object that contains all needed constants.

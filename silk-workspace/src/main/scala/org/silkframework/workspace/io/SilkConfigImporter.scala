@@ -14,8 +14,8 @@
 
 package org.silkframework.workspace.io
 
-import org.silkframework.workspace.Project
 import org.silkframework.config.LinkingConfig
+import org.silkframework.workspace.Project
 
 /**
  * Imports a Silk SilkConfig into a project.

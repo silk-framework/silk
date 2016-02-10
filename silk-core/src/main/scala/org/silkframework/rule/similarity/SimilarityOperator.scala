@@ -15,12 +15,13 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
-import scala.xml.Node
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
-import org.silkframework.entity.{Index, Entity}
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
 import org.silkframework.util.DPair
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+
+import scala.xml.Node
 
 /**
  * An operator which computes the similarity between two entities.

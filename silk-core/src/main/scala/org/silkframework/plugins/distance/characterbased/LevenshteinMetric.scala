@@ -15,8 +15,9 @@
 package org.silkframework.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import scala.math.max
 import org.silkframework.runtime.plugin.{Param, Plugin}
+
+import scala.math.max
 
 @Plugin(
   id = "levenshtein",

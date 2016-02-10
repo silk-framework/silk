@@ -14,17 +14,16 @@
 
 package org.silkframework.plugins.temporal.relation
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
+
+
 
 /**
  * Tests the IsFinishedBy Metric.
  * @author Panayiotis Smeros <psmeros@di.uoa.gr> (National and Kapodistrian University of Athens)
  */
 
-@RunWith(classOf[JUnitRunner])
+
 class IsFinishedByMetricTest extends FlatSpec with Matchers {
 
   val metric = new IsFinishedByMetric()

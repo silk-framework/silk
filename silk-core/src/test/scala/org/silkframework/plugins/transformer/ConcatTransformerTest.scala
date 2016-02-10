@@ -14,14 +14,12 @@
 
 package org.silkframework.plugins.transformer.combine
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-import org.silkframework.plugins.CorePlugins
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 
-@RunWith(classOf[JUnitRunner])
-class ConcatTransformerTest extends FlatSpec with ShouldMatchers {
+
+
+
+class ConcatTransformerTest extends FlatSpec with Matchers {
 
   val transformer = new ConcatTransformer()
 

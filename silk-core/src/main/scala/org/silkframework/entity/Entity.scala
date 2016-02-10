@@ -14,10 +14,9 @@
 
 package org.silkframework.entity
 
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import java.io.{DataInput, DataOutput}
 
 import scala.xml.Node
-import java.io.{DataOutput, DataInput}
 
 /**
  * A single entity.

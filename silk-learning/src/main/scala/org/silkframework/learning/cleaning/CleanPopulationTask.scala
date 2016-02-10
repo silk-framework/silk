@@ -14,11 +14,10 @@
 
 package org.silkframework.learning.cleaning
 
-import org.silkframework.evaluation.{ReferenceEntities, LinkageRuleEvaluator}
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
-import org.silkframework.learning.individual._
 import org.silkframework.learning.generation.LinkageRuleGenerator
+import org.silkframework.learning.individual._
 import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Activity[Population] {
 

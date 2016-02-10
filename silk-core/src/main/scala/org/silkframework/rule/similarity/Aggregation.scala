@@ -15,12 +15,13 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
-import org.silkframework.util.{Identifier, DPair}
-import scala.xml.Node
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
-import org.silkframework.entity.{Index, Entity}
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.util.{DPair, Identifier}
+
+import scala.xml.Node
 
 /**
  * An aggregation combines multiple similarity values into a single value.

@@ -14,8 +14,8 @@
 
 package org.silkframework.entity
 
-import org.silkframework.util.Uri
 import org.silkframework.config.Prefixes
+import org.silkframework.util.Uri
 
 /**
  * Represents an operator in an RDF path.

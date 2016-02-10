@@ -16,7 +16,6 @@ package org.silkframework.plugins.transformer.numeric
 
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
  * Counts the number of values.

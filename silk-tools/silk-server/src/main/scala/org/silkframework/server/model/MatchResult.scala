@@ -14,7 +14,7 @@
 
 package org.silkframework.server.model
 
-import org.silkframework.util.Uri
 import org.silkframework.entity.Link
+import org.silkframework.util.Uri
 
 case class MatchResult(links : Traversable[Link], linkType : Uri, unmatchedEntities : Set[String])

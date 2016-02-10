@@ -14,12 +14,10 @@
 
 package org.silkframework.plugins.distance.asian
 
-import org.silkframework.util.StringUtils._
-import scala.math.{min, max, abs}
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import Array._
-import scala.util.control._
+import org.silkframework.runtime.plugin.Plugin
+
+import scala.math.abs
 
 @Plugin(
   id = "koreanTranslitDistance",

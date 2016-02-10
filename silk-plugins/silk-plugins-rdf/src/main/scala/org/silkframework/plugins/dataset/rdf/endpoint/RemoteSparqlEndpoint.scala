@@ -14,17 +14,16 @@
 
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{OutputStreamWriter, IOException}
+import java.io.{IOException, OutputStreamWriter}
 import java.net._
-import java.util.logging.{Level, Logger}
+import java.util.logging.Logger
 import javax.xml.bind.DatatypeConverter
 
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.SparqlParams
 
-import scala.collection.immutable.SortedMap
 import scala.io.Source
-import scala.xml.{NodeSeq, Elem, XML}
+import scala.xml.{Elem, XML}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -78,6 +77,10 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
     connection.setRequestMethod("POST")
     connection.setDoOutput(true)
     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+    //Set authentication
+    for ((user, password) <- params.login) {
+      connection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
+    }
     val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
     writer.write("query=")
     writer.write(URLEncoder.encode(query, "UTF8"))

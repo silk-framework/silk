@@ -2,9 +2,10 @@
 import play.api.PlayException.ExceptionSource
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.{Logger, Application, GlobalSettings}
+import play.api.{Application, GlobalSettings}
 import play.core.Router.Routes
 import plugins.WorkbenchPlugins
+
 import scala.concurrent.Future
 
 trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractors {

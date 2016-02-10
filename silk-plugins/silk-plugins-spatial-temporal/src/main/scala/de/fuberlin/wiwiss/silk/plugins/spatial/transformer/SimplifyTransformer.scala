@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.spatial.transformer
 
+import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.plugins.spatial.utils._
 
 /**
  * This plugin simplifies a geometry according to a given distance tolerance (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

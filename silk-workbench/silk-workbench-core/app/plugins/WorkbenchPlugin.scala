@@ -3,6 +3,7 @@ package plugins
 import org.silkframework.workspace.Project
 import play.core.Router.Routes
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
+
 import scala.reflect.ClassTag
 
 /**

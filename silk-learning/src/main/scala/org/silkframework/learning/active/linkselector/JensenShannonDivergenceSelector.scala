@@ -14,11 +14,12 @@
 
 package org.silkframework.learning.active.linkselector
 
-import math.log
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.entity.{Entity, Link}
-import org.silkframework.util.DPair
+import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.rule.LinkageRule
+import org.silkframework.util.DPair
+
+import scala.math.log
 
 /**
  * Selects links based on the Jensen-Shannon divergence from the closest reference link.

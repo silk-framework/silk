@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.runtime.activity.{HasValue, Activity, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, HasValue}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.Task
 

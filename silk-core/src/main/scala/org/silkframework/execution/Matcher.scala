@@ -15,15 +15,15 @@
 package org.silkframework.execution
 
 import java.util.concurrent._
-import java.util.logging.{Logger, Level}
+import java.util.logging.{Level, Logger}
+
 import org.silkframework.cache.EntityCache
 import org.silkframework.config.RuntimeConfig
 import org.silkframework.entity.Link
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.activity.{ValueHolder, ActivityContext, Activity}
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.DPair
-import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, Buffer}
+
 import scala.math.{max, min}
 
 /**

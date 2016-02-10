@@ -1,7 +1,5 @@
 package org.silkframework.dataset
 
-import java.io.Closeable
-
 /**
  * An entity sink implements methods to write entities, e.g. the result of a transformation task.
  */

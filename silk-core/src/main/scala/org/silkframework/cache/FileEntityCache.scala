@@ -18,8 +18,7 @@ import java.io._
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.RuntimeConfig
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.entity.{EntitySchema, Entity, Index}
+import org.silkframework.entity.{Entity, EntitySchema, Index}
 import org.silkframework.util.FileUtils._
 
 /**

@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace.io
 
-import org.silkframework.config.{LinkSpecification, RuntimeConfig, LinkingConfig}
+import org.silkframework.config.{LinkSpecification, LinkingConfig, RuntimeConfig}
 import org.silkframework.dataset.Dataset
 import org.silkframework.workspace.Project
 

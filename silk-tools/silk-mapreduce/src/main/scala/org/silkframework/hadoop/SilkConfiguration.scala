@@ -14,12 +14,8 @@
 
 package org.silkframework.hadoop
 
-import impl.HadoopEntityCache
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.silkframework.plugins.Plugins
 import org.silkframework.config.LinkingConfig
-import org.silkframework.plugins.dataset.JenaPlugins
-import org.silkframework.runtime.resource.EmptyResourceManager
 
 object SilkConfiguration {
   val InputParam = "silk.inputpath"

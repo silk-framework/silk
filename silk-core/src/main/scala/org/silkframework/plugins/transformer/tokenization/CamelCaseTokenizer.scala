@@ -14,8 +14,9 @@
 
 package org.silkframework.plugins.transformer.tokenization
 
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.Plugin
+
 import scala.collection.mutable.HashSet
 
 @Plugin(

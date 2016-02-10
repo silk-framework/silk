@@ -1,9 +1,9 @@
 package org.silkframework.rule.evaluation
 
-import org.silkframework.entity.{Index, Link, Entity}
-import org.silkframework.rule.similarity.{Comparison, Aggregation}
-import org.silkframework.rule.input.{PathInput, TransformInput}
-import xml.Node
+import org.silkframework.entity.{Entity, Index}
+import org.silkframework.rule.similarity.{Aggregation, Comparison}
+
+import scala.xml.Node
 
 /**
  * Holds the indices from a linkage rule and all its suboperators.

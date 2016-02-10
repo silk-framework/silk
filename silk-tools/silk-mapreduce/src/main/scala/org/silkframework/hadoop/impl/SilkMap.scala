@@ -14,9 +14,8 @@
 
 package org.silkframework.hadoop.impl
 
-import org.apache.hadoop.mapreduce.Mapper
 import org.apache.hadoop.io.{NullWritable, Text}
-import org.silkframework.hadoop.SilkConfiguration
+import org.apache.hadoop.mapreduce.Mapper
 
 class SilkMap extends Mapper[NullWritable, EntityPair, Text, EntityConfidence]
 {

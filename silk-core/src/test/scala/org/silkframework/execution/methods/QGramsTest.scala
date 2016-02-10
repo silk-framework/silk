@@ -1,14 +1,12 @@
 package org.silkframework.execution.methods
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
-import org.silkframework.entity.Path
-import scala._
 
-@RunWith(classOf[JUnitRunner])
-class QGramsTest extends FlatSpec with ShouldMatchers {
+
+import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.entity.Path
+
+
+class QGramsTest extends FlatSpec with Matchers {
 
   "QGrams" should "generate the correct sublists" in {
     subLists("Miller", q = 2, t = 0.8) should equal (millerSubLists4)

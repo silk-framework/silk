@@ -14,15 +14,11 @@
 
 package org.silkframework.plugins.distance.equality
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class LowerThanMetricTest extends FlatSpec with ShouldMatchers {
+
+class LowerThanMetricTest extends FlatSpec with Matchers {
   val metric = new LowerThanMetric()
   val t = 1.0
 

@@ -14,15 +14,11 @@
 
 package org.silkframework.plugins.distance.tokenbased
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
-
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class DiceCoefficientTest extends FlatSpec with ShouldMatchers {
+
+class DiceCoefficientTest extends FlatSpec with Matchers {
   val distance = new DiceCoefficient()
 
   "DiceCoefficient" should "return dice coefficient" in {

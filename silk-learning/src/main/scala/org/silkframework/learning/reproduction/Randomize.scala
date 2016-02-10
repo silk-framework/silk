@@ -14,11 +14,11 @@
 
 package org.silkframework.learning.reproduction
 
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
+import org.silkframework.learning.LearningConfiguration
+import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
 import org.silkframework.rule.LinkageRule
-import org.silkframework.learning.generation.LinkageRuleGenerator
-import org.silkframework.learning.LearningConfiguration
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**
  * Randomizes the population by mutating its individuals.

@@ -14,13 +14,14 @@
 
 package org.silkframework.rule.input
 
-import org.silkframework.entity.{Entity, Path}
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.{Entity, Path}
 import org.silkframework.rule.Operator
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
-import org.silkframework.runtime.serialization.{XmlFormat, ValidationException}
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{ValidationException, XmlFormat}
+import org.silkframework.util.Identifier
+
 import scala.xml.Node
-import org.silkframework.util.{Identifier, DPair}
 
 /**
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.

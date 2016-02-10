@@ -12,20 +12,16 @@
  * limitations under the License.
  */
 
-package org.silkframework.util.convert
+package org.silkframework.entity.rdf
 
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlRestrictionParser}
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.Restriction.{Condition, Or}
 import org.silkframework.entity.{Path, Restriction}
-import org.silkframework.entity.Restriction.{Or, Condition}
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
-class SparqlRestrictionParserTest extends FlatSpec with ShouldMatchers {
+class SparqlRestrictionParserTest extends FlatSpec with Matchers {
   implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "dbpedia" -> "http://dbpedia.org/ontology/",

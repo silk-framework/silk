@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 
 class InMemoryResourceManagerTest extends FlatSpec with Matchers {
 

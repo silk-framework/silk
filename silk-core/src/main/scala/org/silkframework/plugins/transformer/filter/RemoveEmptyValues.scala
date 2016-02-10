@@ -14,8 +14,8 @@
 
 package org.silkframework.plugins.transformer.filter
 
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
   id = "removeEmptyValues",

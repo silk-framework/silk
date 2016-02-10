@@ -17,9 +17,9 @@ package org.silkframework.workspace
 import java.io.File
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.workspace.xml._
 import org.silkframework.config.Config
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.workspace.xml._
 
 class FileUser extends User {
 

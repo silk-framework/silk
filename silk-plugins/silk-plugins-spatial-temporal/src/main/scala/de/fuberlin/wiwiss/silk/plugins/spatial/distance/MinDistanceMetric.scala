@@ -15,9 +15,9 @@
 package org.silkframework.plugins.spatial.distance
 
 import org.silkframework.entity.Index
+import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.plugins.spatial.utils._
 
 /**
  * Computes the minimum distance between two geometries in meters (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset._
-import org.silkframework.plugins.dataset.rdf.formatters.{AlignmentLinkFormatter, FormattedEntitySink, FormattedLinkSink}
+import org.silkframework.plugins.dataset.rdf.formatters.{AlignmentLinkFormatter, FormattedLinkSink}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 

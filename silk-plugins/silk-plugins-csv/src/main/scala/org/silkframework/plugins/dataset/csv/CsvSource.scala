@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{File, BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, File, InputStreamReader}
 import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
@@ -8,7 +8,6 @@ import java.util.regex.Pattern
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.util.Uri
 

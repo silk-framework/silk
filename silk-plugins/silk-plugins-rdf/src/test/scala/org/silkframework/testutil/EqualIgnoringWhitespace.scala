@@ -1,6 +1,6 @@
 package org.silkframework.testutil
 
-import org.scalatest.matchers.{MatchResult, BeMatcher}
+import org.scalatest.matchers.{BeMatcher, MatchResult}
 
 /**
  * Matcher to test if 2 strings are equal when ignoring whitespaces.

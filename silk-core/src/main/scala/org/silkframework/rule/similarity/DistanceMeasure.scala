@@ -14,8 +14,8 @@
 
 package org.silkframework.rule.similarity
 
-import org.silkframework.runtime.plugin.{PluginFactory, AnyPlugin}
 import org.silkframework.entity.Index
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 trait DistanceMeasure extends AnyPlugin {
 

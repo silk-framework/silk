@@ -14,14 +14,11 @@
 
 package org.silkframework.plugins.distance.characterbased
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class QGramsMetricTest extends FlatSpec with ShouldMatchers {
+
+class QGramsMetricTest extends FlatSpec with Matchers {
   val metric = new QGramsMetric()
   val t = 0.9
 

@@ -1,14 +1,11 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.util.Uri
 
-@RunWith(classOf[JUnitRunner])
+
 class XmlDatasetTest extends FlatSpec with Matchers {
 
   val resourceLoader = new ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")

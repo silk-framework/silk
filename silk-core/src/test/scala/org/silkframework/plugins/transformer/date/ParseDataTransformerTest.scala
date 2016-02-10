@@ -14,13 +14,11 @@
 
 package org.silkframework.plugins.transformer.date
 
-import org.junit.runner.RunWith
-import org.scalatest.FlatSpec
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
-@RunWith(classOf[JUnitRunner])
-class ParseDataTransformerTest extends FlatSpec with ShouldMatchers {
+import org.scalatest.{FlatSpec, Matchers}
+
+
+class ParseDataTransformerTest extends FlatSpec with Matchers {
   val transformer = new ParseDateTransformer("dd.MM.yyyy")
 
   "ParseDataTransformer" should "parse dates" in {

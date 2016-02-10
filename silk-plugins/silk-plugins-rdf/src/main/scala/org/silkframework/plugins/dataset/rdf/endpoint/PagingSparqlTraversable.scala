@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io.IOException
-import java.util.logging.{Logger, Level}
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.SparqlParams

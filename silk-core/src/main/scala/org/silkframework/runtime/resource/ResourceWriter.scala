@@ -1,7 +1,5 @@
 package org.silkframework.runtime.resource
 
-import java.io.{OutputStream, InputStream}
-
 /**
  * Writes resources.
  */

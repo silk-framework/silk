@@ -1,7 +1,6 @@
 package org.silkframework.runtime.activity
 
-import java.util.logging.{Logger, Level}
-import scala.concurrent.ExecutionContext
+import java.util.logging.Logger
 
 private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,

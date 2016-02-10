@@ -14,10 +14,11 @@
 
 package org.silkframework.learning.generation
 
-import util.Random
-import org.silkframework.learning.individual.{LinkageRuleNode, AggregationNode}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.learning.LearningConfiguration.Components
+import org.silkframework.learning.individual.{AggregationNode, LinkageRuleNode}
+
+import scala.util.Random
 
 case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
   //require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")

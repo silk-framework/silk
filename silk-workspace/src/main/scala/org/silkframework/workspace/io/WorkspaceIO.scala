@@ -4,8 +4,8 @@ import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 

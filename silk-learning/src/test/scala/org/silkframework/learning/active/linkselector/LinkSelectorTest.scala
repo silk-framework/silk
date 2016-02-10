@@ -15,17 +15,12 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity._
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
-import org.silkframework.rule.similarity.{Aggregation, Comparison}
-import org.silkframework.util.{Uri, DPair}
-import org.silkframework.rule.input.PathInput
-import org.silkframework.rule.LinkageRule
-import org.silkframework.plugins.aggegrator.MinimumAggregator
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.plugins.aggegrator.MinimumAggregator
-import scala.Some
 import org.silkframework.plugins.distance.equality.EqualityMetric
-import org.silkframework.plugins.distance.equality.EqualityMetric
+import org.silkframework.rule.input.PathInput
+import org.silkframework.rule.similarity.{Aggregation, Comparison}
+import org.silkframework.util.{DPair, Uri}
 
 object LinkSelectorTest extends App {
   val selector1: LinkSelector = JensenShannonDivergenceSelector(fulfilledOnly = true)

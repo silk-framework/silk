@@ -14,7 +14,8 @@
 
 package org.silkframework.server.model
 
-import java.io.{FileNotFoundException, File}
+import java.io.{File, FileNotFoundException}
+
 import org.silkframework.util.StringUtils._
 
 /**

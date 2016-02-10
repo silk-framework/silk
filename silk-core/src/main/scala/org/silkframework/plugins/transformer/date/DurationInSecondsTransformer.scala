@@ -1,9 +1,10 @@
 package org.silkframework.plugins.transformer.date
 
-import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.rule.input.SimpleTransformer
+import java.util.Date
 import javax.xml.datatype.DatatypeFactory
-import java.util.{Date, Calendar}
+
+import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
   id = "durationInSeconds",

@@ -14,10 +14,10 @@
 
 package org.silkframework.plugins.spatial.relation
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils._
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.runtime.plugin.Plugin
 
 /**
  * Computes the relation \"overlaps\" between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).

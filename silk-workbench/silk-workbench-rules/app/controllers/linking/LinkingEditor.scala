@@ -2,13 +2,11 @@ package controllers.linking
 
 import org.silkframework.config.LinkSpecification
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.rdf.SparqlEntitySchema
-import org.silkframework.workspace.activity.linking.{ReferenceEntitiesCache, LinkingPathsCache}
-import play.api.mvc.Controller
-import play.api.mvc.Action
-import org.silkframework.workspace.User
-import org.silkframework.util.DPair
 import org.silkframework.evaluation.LinkageRuleEvaluator
+import org.silkframework.util.DPair
+import org.silkframework.workspace.User
+import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
+import play.api.mvc.{Action, Controller}
 import plugins.Context
 
 import scala.util.control.NonFatal

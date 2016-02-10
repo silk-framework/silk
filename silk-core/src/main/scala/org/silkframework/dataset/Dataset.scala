@@ -18,11 +18,11 @@ import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Link
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.util.Identifier
 
-import scala.xml.{Text, Node}
+import scala.xml.{Node, Text}
 
 /**
  * A dataset of entities.

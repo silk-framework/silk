@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.runtime.plugin.{PluginFactory, AnyPlugin}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 /**
  * Manages the access to a specific dataset.

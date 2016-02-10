@@ -14,15 +14,11 @@
 
 package org.silkframework.plugins.distance.numeric
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
-class DateTimeMetricTest extends FlatSpec with ShouldMatchers {
+
+class DateTimeMetricTest extends FlatSpec with Matchers {
   val metric = new DateTimeMetric()
 
   "DateTimeMetric" should "return 0.0 for equal values" in {

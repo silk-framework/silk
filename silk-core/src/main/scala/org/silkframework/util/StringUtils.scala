@@ -15,7 +15,8 @@
 package org.silkframework.util
 
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
-import language.implicitConversions
+
+import scala.language.implicitConversions
 
 object StringUtils {
   implicit def toStringUtils(str: String): StringUtils = new StringUtils(str)

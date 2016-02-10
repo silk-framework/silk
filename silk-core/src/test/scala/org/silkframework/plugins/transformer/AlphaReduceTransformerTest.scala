@@ -14,14 +14,11 @@
 
 package org.silkframework.plugins.transformer
 
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.transformer.normalize.AlphaReduceTransformer
-import org.junit.runner.RunWith
-import org.scalatest.FlatSpec
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 
-@RunWith(classOf[JUnitRunner])
-class AlphaReduceTransformerTest extends FlatSpec with ShouldMatchers {
+
+class AlphaReduceTransformerTest extends FlatSpec with Matchers {
 
   val transformer = new AlphaReduceTransformer()
 

@@ -1,7 +1,7 @@
 package controllers.workflow
 
 import org.silkframework.workspace.User
-import org.silkframework.workspace.activity.workflow.{WorkflowExecutor, Workflow}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutor}
 import play.api.mvc.{Action, Controller}
 
 object WorkflowApi extends Controller {

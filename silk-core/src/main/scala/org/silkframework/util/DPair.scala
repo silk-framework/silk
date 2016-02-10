@@ -15,7 +15,7 @@
 package org.silkframework.util
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{ResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
 
 import scala.language.implicitConversions

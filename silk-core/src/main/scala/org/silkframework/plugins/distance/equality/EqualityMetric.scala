@@ -14,9 +14,9 @@
 
 package org.silkframework.plugins.distance.equality
 
+import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.entity.Index
 
 @Plugin(
   id = "equality",

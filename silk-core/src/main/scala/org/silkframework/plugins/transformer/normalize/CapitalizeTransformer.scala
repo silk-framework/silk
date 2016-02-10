@@ -14,8 +14,8 @@
 
 package org.silkframework.plugins.transformer.normalize
 
-import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
   id = "capitalize",

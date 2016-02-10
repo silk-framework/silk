@@ -16,8 +16,9 @@
 
 package org.silkframework.evaluation
 
-import scala.xml.Node
 import org.silkframework.entity.Link
+
+import scala.xml.Node
 
 /**
  * A set of positive and negative reference links.

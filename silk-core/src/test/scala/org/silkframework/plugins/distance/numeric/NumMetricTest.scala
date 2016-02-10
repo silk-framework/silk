@@ -14,12 +14,12 @@
 
 package org.silkframework.plugins.distance.numeric
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+
+
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.testutil.approximatelyEqualTo
 
-@RunWith(classOf[JUnitRunner])
+
 class NumMetricTest extends FlatSpec with Matchers {
   val metric = new NumMetric(minValue = 0.0, maxValue = 1.0)
   val t = 0.9

@@ -14,8 +14,6 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.evaluation.EvaluationResult
-
 /**
  * An individual in the population.
  */

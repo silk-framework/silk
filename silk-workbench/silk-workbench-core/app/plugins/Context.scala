@@ -1,7 +1,7 @@
 package plugins
 
-import org.silkframework.workspace.{Project, User}
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.{Project, Task, User}
+
 import scala.reflect.ClassTag
 
 /**

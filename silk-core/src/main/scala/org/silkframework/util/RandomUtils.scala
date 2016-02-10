@@ -14,7 +14,7 @@
 
 package org.silkframework.util
 
-import util.Random
+import scala.util.Random
 
 object RandomUtils {
   def randomElement[T](traversable: Traversable[T]) = {

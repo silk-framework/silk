@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.entity.{ForwardOperator, PathOperator}
+
 import scala.xml.Node
 
 /**

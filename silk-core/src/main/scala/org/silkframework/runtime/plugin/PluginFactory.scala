@@ -14,7 +14,8 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.resource.{ResourceManager, EmptyResourceManager, ResourceLoader}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+
 import scala.reflect.ClassTag
 
 /**

@@ -14,11 +14,13 @@
 
 package org.silkframework.plugins.transformer.substring
 
-import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
-import math.max
 import java.net.URLDecoder
 import java.util.logging.{Level, Logger}
+
+import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.Plugin
+
+import scala.math.max
 
 @Plugin(
   id = "stripUriPrefix",

@@ -14,9 +14,9 @@
 
 package org.silkframework.learning.reproduction
 
-import org.silkframework.util.DPair
-import org.silkframework.runtime.plugin.{PluginFactory, AnyPlugin}
 import org.silkframework.learning.individual.LinkageRuleNode
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
+import org.silkframework.util.DPair
 
 //TODO implement operators: toggle required, change plugin
 

@@ -2,8 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.config.{LinkSpecification, RuntimeConfig}
 import org.silkframework.dataset.Dataset
-import org.silkframework.entity.Link
-import org.silkframework.execution.{Linking, GenerateLinks}
+import org.silkframework.execution.{GenerateLinks, Linking}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.Task

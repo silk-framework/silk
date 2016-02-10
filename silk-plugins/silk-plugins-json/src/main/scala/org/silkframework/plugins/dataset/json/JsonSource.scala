@@ -2,11 +2,11 @@ package org.silkframework.plugins.dataset.json
 
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
+
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.entity.rdf.{SparqlRestriction, SparqlEntitySchema}
+import org.silkframework.plugins.dataset.json.JsonParser._
 import org.silkframework.runtime.resource.Resource
-import JsonParser._
 import org.silkframework.util.Uri
 import play.api.libs.json._
 
