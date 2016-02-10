@@ -27,15 +27,16 @@ class CsvSource(file: Resource,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
-               // If the text file fails to be read because of a MalformedInputException, try other codecs
-                fallbackCodecs: List[Codec] = List()) extends DataSource {
+                // If the text file fails to be read because of a MalformedInputException, try other codecs
+                fallbackCodecs: List[Codec] = List(),
+                maxLinesToDetectCodec: Option[Int] = None) extends DataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
 
-  private lazy val propertyList: IndexedSeq[String] = {
+  lazy val propertyList: IndexedSeq[String] = {
     val parser = new CsvParser(Seq.empty, csvSettings)
     if (!properties.trim.isEmpty)
       parser.parseLine(properties).toIndexedSeq
@@ -46,8 +47,8 @@ class CsvSource(file: Resource,
       if (firstLine != null && firstLine != "") {
         parser.parseLine(firstLine)
           .takeWhile(_ != null) // Break if a header field is null
-          .map(s => URLEncoder.encode(s, "UTF8"))
-          .toIndexedSeq
+          .map(s => URLEncoder.encode(s, "UTF-8"))
+            .toIndexedSeq
       } else {
         mutable.IndexedSeq()
       }
@@ -58,7 +59,7 @@ class CsvSource(file: Resource,
   lazy val nrLines = {
     val reader = getBufferedReaderForCsvFile()
     var count = 0l
-    while(reader.readLine() != null) {
+    while (reader.readLine() != null) {
       count += 1
     }
     reader.close()
@@ -67,13 +68,18 @@ class CsvSource(file: Resource,
 
   lazy val (csvSettings, skipLinesAutomatic): (CsvSettings, Option[Int]) = {
     var csvSettings = settings
-    val detectedSeparator = detectSeparatorChar()
-    val separatorChar = detectedSeparator map (_.separator)
-    val skipLinesBeginningAutoDetected = detectedSeparator map (_.skipLinesBeginning)
+    lazy val detectedSeparator = detectSeparatorChar()
+    lazy val separatorChar = detectedSeparator map (_.separator)
+    lazy val skipLinesBeginningAutoDetected = detectedSeparator map (_.skipLinesBeginning)
     if (detectSeparator) {
       csvSettings = csvSettings.copy(separator = separatorChar getOrElse settings.separator)
     }
-    (csvSettings, skipLinesBeginningAutoDetected filter (_ => detectSkipLinesBeginning))
+    val skipNrLines = if (detectSkipLinesBeginning) {
+      skipLinesBeginningAutoDetected
+    } else {
+      None
+    }
+    (csvSettings, skipNrLines)
   }
 
   // automatically detect the separator, returns None if confidence is too low
@@ -92,8 +98,13 @@ class CsvSource(file: Resource,
   override def toString = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
-    for (property <- propertyList) yield {
-      Path(ForwardOperator(prefix + property) :: Nil)
+    try {
+      for (property <- propertyList) yield {
+        Path(ForwardOperator(prefix + property) :: Nil)
+      }
+    } catch {
+      case e: MalformedInputException =>
+        throw new RuntimeException("Exception in CsvSource " + file.name, e)
     }
   }
 
@@ -228,7 +239,7 @@ class CsvSource(file: Resource,
   }
 
   lazy val codecToUse: Codec = {
-    if(fallbackCodecs.isEmpty) {
+    if (fallbackCodecs.isEmpty) {
       codec
     } else {
       pickWorkingCodec
@@ -242,8 +253,10 @@ class CsvSource(file: Resource,
       // Test read
       try {
         var line = reader.readLine()
-        while (line != null) {
+        var lineCount = 0
+        while (line != null && maxLinesToDetectCodec.map(max => lineCount < max).getOrElse(true)) {
           line = reader.readLine()
+          lineCount += 1
         }
         return c
       } catch {
@@ -354,13 +367,13 @@ object SeparatorDetector {
 
 /**
  * The return value of the separator detection
-  *
-  * @param separator the character used for separating fields in CSV
+ *
+ * @param separator the character used for separating fields in CSV
  * @param numberOfFields the detected number of fields when splitting with this separator
  */
 case class DetectedSeparator(separator: Char, numberOfFields: Int, skipLinesBeginning: Int)
 
-object Test{
+object Test {
   def main(args: Array[String]): Unit = {
     val source = new CsvSource(new FileResource(new File("/tmp/loansAndStates.csv")))
     println(source.nrLines)

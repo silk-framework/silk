@@ -71,7 +71,9 @@ object Learning extends Controller {
         else
           new EvalLink(link, Unknown, Generated)
       }
-    }.sortBy(_.confidence.get.abs)
+    }
+
+    valLinks.sortBy(_.confidence.get.abs)
 
     Ok(views.html.widgets.linksTable(project, task, valLinks, None, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
   }

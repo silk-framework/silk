@@ -19,6 +19,13 @@ trait DatasetPlugin extends AnyPlugin with SinkTrait {
 
 }
 
+trait PluginAutoConfigurable[T <: AnyPlugin] {
+  /**
+   * returns an auto-configured version of this plugin
+   */
+  def autoConfigured: T
+}
+
 trait SinkTrait {
   /**
    * Returns a link sink for writing entity links to the data set.
