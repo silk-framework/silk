@@ -1,7 +1,7 @@
 package controllers.workspace
 
-import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
+import org.silkframework.dataset.{DatasetPluginAutoConfigurable, Dataset, DatasetPlugin}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.User
@@ -22,6 +22,21 @@ object Datasets extends Controller {
     val sourceXml = Serialization.toXml(task.data)
 
     Ok(sourceXml)
+  }
+
+  def getDatasetAutoConfigured(projectName: String, sourceName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[Dataset](sourceName)
+    val datasetPlugin = task.data.plugin
+    datasetPlugin match {
+      case autoConfigurable: DatasetPlugin with DatasetPluginAutoConfigurable[_] =>
+        val autoConfDataset = task.data.copy(plugin = autoConfigurable.autoConfiguredDatasetPlugin)
+        val sourceXml = Serialization.toXml(autoConfDataset)
+
+        Ok(sourceXml)
+      case _ =>
+        NotImplemented("The dataset type does not support auto-configuration.")
+    }
   }
 
   def putDataset(projectName: String, sourceName: String) = Action { implicit request => {

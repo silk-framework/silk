@@ -13,17 +13,23 @@ trait DatasetPlugin extends AnyPlugin with SinkTrait {
   def source: DataSource
 
   /**
-    * Makes sure that the next write will start from an empty dataset.
-    */
+   * Makes sure that the next write will start from an empty dataset.
+   */
   def clear(): Unit
 
 }
 
-trait PluginAutoConfigurable[T <: AnyPlugin] {
+trait DatasetPluginAutoConfigurable[T <: DatasetPlugin] {
   /**
    * returns an auto-configured version of this plugin
    */
   def autoConfigured: T
+
+  /**
+   * The Scala compiler cannot infer that T must always be a [[DatasetPlugin]], that's why this helper method must be used,
+   * if the type parameters must be blank, e.g. in pattern matching.
+   */
+  def autoConfiguredDatasetPlugin: DatasetPlugin = autoConfigured
 }
 
 trait SinkTrait {

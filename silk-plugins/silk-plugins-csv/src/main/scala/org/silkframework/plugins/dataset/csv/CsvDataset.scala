@@ -35,7 +35,7 @@ case class CsvDataset
     @Param("The file encoding, e.g., UTF8, ISO-8859-1")
     charset: String = "UTF-8",
     @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
-    linesToSkip: Int = 0) extends DatasetPlugin with PluginAutoConfigurable[CsvDataset] {
+    linesToSkip: Int = 0) extends DatasetPlugin with DatasetPluginAutoConfigurable[CsvDataset] {
 
   private val sepChar =
     if (separator == "\\t") '\t'
