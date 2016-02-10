@@ -184,20 +184,24 @@ object WorkspaceApi extends Controller {
     Ok(JsonSerializer.taskActivities(task))
   }
 
-  def startActivity(projectName: String, taskName: String, activityName: String) = Action {
+  def startActivity(projectName: String, taskName: String, activityName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val activity =
+    val config = activityConfig(request)
+    val activityControl =
       if(taskName.nonEmpty) {
-        val task = project.anyTask(taskName)
-        task.activity(activityName).control
+        val activity = project.anyTask(taskName).activity(activityName)
+        activity.update(config)
+        activity.control
       } else {
-        project.activity(activityName).control
+        val activity = project.activity(activityName)
+        activity.update(config)
+        activity.control
       }
 
-    if(activity.status().isRunning) {
+    if(activityControl.status().isRunning) {
       BadRequest(s"Cannot start activitiy '$activityName'. Already running.")
     } else {
-      activity.start()
+      activityControl.start()
       Ok
     }
   }
@@ -230,19 +234,18 @@ object WorkspaceApi extends Controller {
   }
 
   def postActivityConfig(projectName: String, taskName: String, activityName: String) = Action { request =>
-    request.body match {
-      case AnyContentAsFormUrlEncoded(values) =>
-        val config = values.mapValues(_.head)
-        val project = User().workspace.project(projectName)
-        if(taskName.nonEmpty) {
-          val task = project.anyTask(taskName)
-          task.activity(activityName).update(config)
-        } else {
-          project.activity(activityName).update(config)
-        }
-        Ok
-      case _ =>
-        BadRequest("No config supplied in body.")
+    val config = activityConfig(request)
+    if (config.nonEmpty) {
+      val project = User().workspace.project(projectName)
+      if (taskName.nonEmpty) {
+        val task = project.anyTask(taskName)
+        task.activity(activityName).update(config)
+      } else {
+        project.activity(activityName).update(config)
+      }
+      Ok
+    } else {
+      BadRequest("No config supplied.")
     }
   }
 
@@ -286,6 +289,15 @@ object WorkspaceApi extends Controller {
         Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = task.name, activity = activity.name)
 
     Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
+  }
+
+  private def activityConfig(request: Request[AnyContent]): Map[String, String] = {
+    request.body match {
+      case AnyContentAsFormUrlEncoded(values) =>
+        values.mapValues(_.head)
+      case _ =>
+        request.queryString.mapValues(_.head)
+    }
   }
 
 }
