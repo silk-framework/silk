@@ -29,14 +29,23 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val json = load(file)(codec)
-    val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
+    val selectedElements = select(json, basePathParts)
     new Entities(selectedElements, entitySchema, Set.empty)
+  }
+
+  private def basePathParts: Array[String] = {
+    val pureBasePath = basePath.stripPrefix("/").trim
+    if (pureBasePath == "") {
+      Array.empty[String]
+    } else {
+      pureBasePath.split('/')
+    }
   }
 
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val json = load(file)(codec)
-    val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
+    val selectedElements = select(json, basePathParts)
     new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet).toSeq
   }
 
@@ -45,7 +54,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
    */
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     val json = load(file)(codec)
-    val selectedElements = select(json, basePath.stripPrefix("/").split('/'))
+    val selectedElements = select(json, basePathParts)
     for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
          path <- collectPaths(element)) yield {
       Path(path.toList)
@@ -68,7 +77,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
             })
 
         // Check if this URI should be extracted
-        if(allowedUris.isEmpty || allowedUris.contains(uri)) {
+        if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
           val values = for (path <- entityDesc.paths) yield evaluate(node, path)
           f(new Entity(uri, values, entityDesc))
