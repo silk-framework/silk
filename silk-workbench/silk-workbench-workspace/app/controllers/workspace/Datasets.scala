@@ -30,8 +30,8 @@ object Datasets extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val sourceTask = Serialization.fromXml[Dataset](xml.head)
-          project.updateTask(sourceTask.id, sourceTask)
+          val dataset = Serialization.fromXml[Dataset](xml.head)
+          project.updateTask(dataset.id, dataset)
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)

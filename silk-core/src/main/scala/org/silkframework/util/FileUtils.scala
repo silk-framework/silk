@@ -32,7 +32,7 @@ class FileUtils(file: File) {
   /**
    * Deletes this directory and all sub directories.
    *
-   * @throws IOException if the directory or any of its sub directories could not be deleted
+   * @throws java.io.IOException if the directory or any of its sub directories could not be deleted
    */
   def deleteRecursive(): Unit = {
     if (file.isDirectory) {
