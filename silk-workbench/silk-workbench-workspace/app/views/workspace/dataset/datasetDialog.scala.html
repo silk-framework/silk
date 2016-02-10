@@ -1,32 +1,33 @@
-@(project: String, task: String)
-
+@import org.silkframework.workspace.Project
 @import org.silkframework.dataset.DatasetPlugin
 @import org.silkframework.dataset.Dataset
-@import org.silkframework.workspace.User
 
-@widgets.pluginDialog(name = task,
-                      plugins = DatasetPlugin.availablePlugins,
-                      currentObj = User().workspace.project(project).tasks[Dataset].find(_.name == task).map(_.data.plugin),
-                      resources = User().workspace.project(project).resources.list) {
+@(project: Project, datasetName: String, dataset: Option[Dataset])
 
-  <script type="text/javascript">
-    function submit(pluginId, name, parameters) {
-      // Build dataset xml
-      var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
-      for(var i in parameters) {
-        xml += '  <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
-      }
-      xml += '</Dataset>';
+  @widgets.pluginDialog(
+    name = datasetName,
+    plugins = DatasetPlugin.availablePlugins,
+    currentObj = dataset.map(_.plugin),
+    resources = project.resources.list) {
 
-      // Delete the old dataset in case its name changed
-      if(!@task.isEmpty) {
-        if(name != '@task') {
-          deleteTask('@config.baseUrl/workspace/projects/@project/datasets/@task');
+    <script type="text/javascript">
+      function submit(pluginId, name, parameters) {
+        // Build dataset xml
+        var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
+        for(var i in parameters) {
+          xml += '  <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
         }
-      }
+        xml += '</Dataset>';
 
-      // Submit data source
-      putTask('@config.baseUrl/workspace/projects/@project/datasets/' + name, xml);
-    }
-  </script>
-}
+        // Delete the old dataset in case its name changed
+        if(@dataset.nonEmpty) {
+          if(name != '@datasetName') {
+            deleteTask('@config.baseUrl/workspace/projects/@project.name/datasets/@datasetName');
+          }
+        }
+
+        // Submit data source
+        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml);
+      }
+    </script>
+  }

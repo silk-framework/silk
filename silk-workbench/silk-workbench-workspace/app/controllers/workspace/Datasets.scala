@@ -12,10 +12,6 @@ import plugins.Context
 
 object Datasets extends Controller {
 
-  def datasetDialog(project: String, task: String) = Action {
-    Ok(views.html.workspace.dataset.datasetDialog(project, task))
-  }
-
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
@@ -51,13 +47,35 @@ object Datasets extends Controller {
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
         }
-      case None => BadRequest("Expecting text/xml request body")
+      case None => BadRequest("Expecting dataset in request body as text/xml.")
     }
   }}
 
   def deleteDataset(project: String, source: String) = Action {
     User().workspace.project(project).removeTask[Dataset](source)
     Ok
+  }
+
+  def datasetDialog(projectName: String, taskName: String) = Action { request =>
+    val project = User().workspace.project(projectName)
+    val task = if(taskName.isEmpty) None else project.taskOption[Dataset](taskName).map(_.data)
+    Ok(views.html.workspace.dataset.datasetDialog(project, taskName, task))
+  }
+
+  def datasetDialogAutoConfigured(projectName: String, taskName: String) = Action { request =>
+    val project = User().workspace.project(projectName)
+    implicit val resources = project.resources
+    request.body.asXml match {
+      case Some(xml) =>
+        try {
+          val dataset = Serialization.fromXml[Dataset](xml.head)
+          Ok(views.html.workspace.dataset.datasetDialog(project, taskName, Some(dataset)))
+          Ok
+        } catch {
+          case ex: Exception => BadRequest(ex.getMessage)
+        }
+      case None => BadRequest("Expecting dataset in request body as text/xml.")
+    }
   }
 
   def dataset(project: String, task: String) = Action { request =>
