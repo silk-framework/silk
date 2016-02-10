@@ -23,9 +23,13 @@ object Config {
       fullConfig = eldsConfig.withFallback(fullConfig)
     }
     // Check if we are running as part of the Play Framework
-    val playConfig = new File(System.getProperty("user.home") + "/conf/reference.conf")
-    if(playConfig.exists()) {
-      fullConfig = ConfigFactory.parseFile(playConfig).withFallback(fullConfig)
+    val playConfig1 = new File(System.getProperty("user.home") + "/conf/reference.conf")
+    val playConfig2 = new File(System.getProperty("user.home") + "/conf/application.conf")
+    if(playConfig1.exists()) {
+      fullConfig = ConfigFactory.parseFile(playConfig1).withFallback(fullConfig)
+    }
+    if(playConfig2.exists()) {
+      fullConfig = ConfigFactory.parseFile(playConfig2).withFallback(fullConfig)
     }
     fullConfig.resolve()
   }
