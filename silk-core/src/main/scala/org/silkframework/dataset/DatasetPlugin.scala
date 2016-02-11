@@ -24,12 +24,6 @@ trait DatasetPluginAutoConfigurable[T <: DatasetPlugin] {
    * returns an auto-configured version of this plugin
    */
   def autoConfigured: T
-
-  /**
-   * The Scala compiler cannot infer that T must always be a [[DatasetPlugin]], that's why this helper method must be used,
-   * if the type parameters must be blank, e.g. in pattern matching.
-   */
-  def autoConfiguredDatasetPlugin: DatasetPlugin = autoConfigured
 }
 
 trait SinkTrait {

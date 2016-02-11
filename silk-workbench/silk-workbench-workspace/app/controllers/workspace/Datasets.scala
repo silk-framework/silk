@@ -25,8 +25,8 @@ object Datasets extends Controller {
     val task = project.task[Dataset](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
-      case autoConfigurable: DatasetPlugin with DatasetPluginAutoConfigurable[_] =>
-        val autoConfDataset = task.data.copy(plugin = autoConfigurable.autoConfiguredDatasetPlugin)
+      case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
+        val autoConfDataset = task.data.copy(plugin = autoConfigurable.autoConfigured)
         val sourceXml = Serialization.toXml(autoConfDataset)
 
         Ok(sourceXml)
