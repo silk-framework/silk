@@ -21,7 +21,7 @@ public @interface Param {
   String example() default "";
 
   /**
-   * True, if this is an advanced paramter that should not be shown by default.
+   * True, if this is an advanced parameter that should not be shown by default.
    */
   boolean advanced() default false;
 }
