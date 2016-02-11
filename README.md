@@ -24,10 +24,15 @@ Downloading and installing sbt is not necessary as it is available from this dir
 - Execute: `sbt "project workbench" run`
 - In your browser, navigate to 'http://localhost:9000'
 
-## Packaging the Silk Workbench
+## Packaging the Silk Workbench as archive
 
-- Execute: `sbt "project workbench" dist`
-- The package should be available in the folder silk-workbench/target/universal
+- Execute: `sbt "project workbench" universal:package-zip-tarball`
+- The package should be available in the folder `silk-workbench/target/universal`
+
+## Packaging the Silk Workbench as WAR
+
+- Execute: `sbt "project workbench" war`
+- The package should be available in the folder `silk-workbench/target/`
 
 ## Building a Silk Single Machine Jar
 
