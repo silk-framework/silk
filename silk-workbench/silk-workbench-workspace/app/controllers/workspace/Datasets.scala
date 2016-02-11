@@ -68,7 +68,7 @@ object Datasets extends Controller {
     val datasetPlugin = DatasetPlugin.apply(pluginId, datasetParams, project.resources)
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
-        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfiguredDatasetPlugin)))
+        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfigured)))
       case _ =>
         NotImplemented("This dataset plugin does not support auto-configuration.")
     }
