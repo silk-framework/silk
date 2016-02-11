@@ -1,6 +1,7 @@
 import java.io.File
 import java.util.logging.{ConsoleHandler, FileHandler, SimpleFormatter}
 
+import org.silkframework.runtime.activity.Activity
 import org.silkframework.workspace.{FileUser, User}
 import play.api.Play.current
 import play.api.{Application, Play}
@@ -9,12 +10,11 @@ import plugins.WorkbenchPlugins
 object Global extends WorkbenchGlobal {
 
   override def beforeStart(app: Application) {
+    // Use Play execution context for running activities
+    Activity.executionContext = play.api.libs.concurrent.Execution.defaultContext
+
     // Configure logging
     configureLogging(app)
-
-    // Initialize user manager
-    val user = new FileUser
-    User.userManager = () => user
 
     // Load Workbench plugins
     WorkbenchPlugins.register(DatasetPlugin())
