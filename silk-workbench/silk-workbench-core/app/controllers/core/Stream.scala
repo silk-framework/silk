@@ -23,22 +23,16 @@ object Stream {
   }
 
   def status(statusObservable: Observable[Status]): Enumerator[Status] = {
-    status(Traversable(statusObservable))
-  }
-
-  def status(statusObservables: Traversable[Observable[Status]]): Enumerator[Status] = {
     val (enumerator, channel) = Concurrent.broadcast[Status]
     val listener = new Listener[Status] {
       override def onUpdate(value: Status) {
         channel.push(value)
       }
     }
-    for(status <- statusObservables) {
-      // Push initial value
-      channel.push(status())
-      // Push updates
-      status.onUpdate(listener)
-    }
+    // Push initial value
+    channel.push(statusObservable())
+    // Push updates
+    statusObservable.onUpdate(listener)
     listeners.put(enumerator, listener)
     enumerator
   }
