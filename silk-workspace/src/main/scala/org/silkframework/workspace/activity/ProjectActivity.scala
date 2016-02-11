@@ -25,8 +25,13 @@ class ProjectActivity(val project: Project, initialFactory: ProjectActivityFacto
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)
 
   def update(config: Map[String, String]) = {
+    val oldControl = currentControl
     currentFactory = PluginDescription(currentFactory.getClass)(config)
     currentControl = Activity(currentFactory(project))
+    // Keep subscribers
+    for(subscriber <- oldControl.status.subscribers) {
+      currentControl.status.onUpdate(subscriber)
+    }
   }
 
   def activityType = currentFactory.activityType
