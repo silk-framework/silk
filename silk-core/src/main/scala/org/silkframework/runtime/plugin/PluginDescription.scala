@@ -27,6 +27,13 @@ import org.silkframework.util.Identifier
 class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
+    * The plugin class.
+    */
+  def pluginClass: Class[_ <: T] = {
+    constructor.getDeclaringClass
+  }
+
+  /**
    * Creates a new instance of this plugin.
    */
   def apply(parameterValues: Map[String, String] = Map.empty, resources: ResourceManager = EmptyResourceManager): T = {
