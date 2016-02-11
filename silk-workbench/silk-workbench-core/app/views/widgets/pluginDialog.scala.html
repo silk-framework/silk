@@ -42,11 +42,12 @@
         @createField(plugin.id, param)
       }
     </table>
-    <button onclick='@(plugin.id)_submit()'>Ok</button>
+    <button onclick='@(plugin.id)_submit(false)'>Ok</button>
+    <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
   </div>
 
   <script type="text/javascript">
-    function @(plugin.id)_submit() {
+    function @(plugin.id)_submit(onlyAutoConfigure) {
       // Retrieve the name of the plugin
       var name = $('[name=\'@(plugin.id)_name\']').val();
       if(name.length === 0) {
@@ -63,7 +64,11 @@
       ];
 
       // Submit dialog
-      submit('@plugin.id', name, parameters);
+      if(!onlyAutoConfigure) {
+        submit('@plugin.id', name, parameters);
+      } else {
+        autoConfigure('@plugin.id', name, parameters);
+      }
     }
   </script>
 }
