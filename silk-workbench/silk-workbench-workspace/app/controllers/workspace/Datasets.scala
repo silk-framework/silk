@@ -56,25 +56,21 @@ object Datasets extends Controller {
     Ok
   }
 
-  def datasetDialog(projectName: String, taskName: String) = Action { request =>
+  def datasetDialog(projectName: String, datasetName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = if(taskName.isEmpty) None else project.taskOption[Dataset](taskName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, taskName, task))
+    val datasetPlugin = if(datasetName.isEmpty) None else project.taskOption[Dataset](datasetName).map(_.data.plugin)
+    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin))
   }
 
-  def datasetDialogAutoConfigured(projectName: String, taskName: String) = Action { request =>
+  def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    implicit val resources = project.resources
-    request.body.asXml match {
-      case Some(xml) =>
-        try {
-          val dataset = Serialization.fromXml[Dataset](xml.head)
-          Ok(views.html.workspace.dataset.datasetDialog(project, taskName, Some(dataset)))
-          Ok
-        } catch {
-          case ex: Exception => BadRequest(ex.getMessage)
-        }
-      case None => BadRequest("Expecting dataset in request body as text/xml.")
+    val datasetParams = request.queryString.mapValues(_.head)
+    val datasetPlugin = DatasetPlugin.apply(pluginId, datasetParams, project.resources)
+    datasetPlugin match {
+      case ds: DatasetPluginAutoConfigurable[_] =>
+        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfiguredDatasetPlugin)))
+      case _ =>
+        NotImplemented("This dataset plugin does not support auto-configuration.")
     }
   }
 

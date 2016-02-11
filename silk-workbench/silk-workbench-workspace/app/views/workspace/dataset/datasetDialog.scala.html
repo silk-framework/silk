@@ -1,13 +1,12 @@
 @import org.silkframework.workspace.Project
 @import org.silkframework.dataset.DatasetPlugin
-@import org.silkframework.dataset.Dataset
 
-@(project: Project, datasetName: String, dataset: Option[Dataset])
+@(project: Project, datasetName: String, dataset: Option[DatasetPlugin])
 
   @widgets.pluginDialog(
     name = datasetName,
     plugins = DatasetPlugin.availablePlugins,
-    currentObj = dataset.map(_.plugin),
+    currentObj = dataset,
     resources = project.resources.list) {
 
     <script type="text/javascript">
@@ -28,6 +27,11 @@
 
         // Submit data source
         putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml);
+      }
+
+      function autoConfigure(pluginId, name, parameters) {
+        var queryString = $.param(parameters);
+        showDialog('@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.name/' + name + '/' + pluginId + '?' + queryString);
       }
     </script>
   }

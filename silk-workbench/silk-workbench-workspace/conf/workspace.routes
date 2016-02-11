@@ -23,6 +23,7 @@ POST          /:project/importExample                                           
 # Dialogs
 GET           /dialogs/newDataset/:project                                      controllers.workspace.Datasets.datasetDialog(project: String, task = "")
 GET           /dialogs/editDataset/:project/:task                               controllers.workspace.Datasets.datasetDialog(project: String, task: String)
+GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.Datasets.datasetDialogAutoConfigured(project, task, pluginId)
 
 # Tabs
 GET           /datasets/:project/:task/dataset                                  controllers.workspace.Datasets.dataset(project, task)
