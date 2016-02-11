@@ -1,6 +1,7 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.runtime.plugin.Parameter
 @import org.silkframework.runtime.plugin.AnyPlugin
+@import  org.silkframework.dataset.DatasetPluginAutoConfigurable
 @import controllers.core.routes.Assets
 
 @(name: String,
@@ -43,7 +44,9 @@
       }
     </table>
     <button onclick='@(plugin.id)_submit(false)'>Ok</button>
-    <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
+    @if(classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(plugin.pluginClass)) {
+      <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
+    }
   </div>
 
   <script type="text/javascript">
