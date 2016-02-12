@@ -59,6 +59,7 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
   def add(name: Identifier, taskData: TaskData) = {
     val task = new Task(name, taskData, this)
     provider.putTask(project.name, name, taskData)
+    task.init()
     cachedTasks += ((name, task))
   }
 
