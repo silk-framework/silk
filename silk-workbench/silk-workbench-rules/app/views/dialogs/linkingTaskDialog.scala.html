@@ -40,7 +40,7 @@
     <tr>
       <td>Source Type</td>
       <td>
-        <input name="sourceType" title="Source Type" list="sourceTypes" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.toString" } style="width: 100%" />
+        <input name="sourceType" title="Source Type" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.toString" } style="width: 100%" />
       </td>
     </tr>
     <tr>
@@ -68,7 +68,7 @@
     <tr>
       <td>Target Type</td>
       <td>
-        <input name="targetType" title="Target Type" list="targetTypes" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.toString" } style="width: 100%" />
+        <input name="targetType" title="Target Type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.toString" } style="width: 100%" />
       </td>
     </tr>
     <tr>
