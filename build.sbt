@@ -124,8 +124,8 @@ lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"
 
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules)
-    .aggregate(workbenchWorkspace, workbenchRules)
+    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow)
     .settings(commonSettings: _*)
     .settings(com.github.play2war.plugin.Play2WarPlugin.play2WarSettings: _*)
     .settings(

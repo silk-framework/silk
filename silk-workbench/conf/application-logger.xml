@@ -1,5 +1,7 @@
 <configuration>
-    
+
+  <property name="silk.home" value="${SILK_HOME:-${user.home}/.silk}" />
+
   <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
@@ -15,10 +17,10 @@
     </encoder>
   </appender>
   
-  <logger name="play" level="INFO" />
-  <logger name="application" level="INFO" />
+  <!--<logger name="play" level="INFO" />-->
+  <!--<logger name="application" level="INFO" />-->
 
-  <root level="ERROR">
+  <root level="INFO">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
   </root>
