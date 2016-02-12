@@ -36,8 +36,16 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)
 
   def update(config: Map[String, String]) = {
+    val oldControl = currentControl
     currentFactory = PluginDescription(currentFactory.getClass)(config)
     currentControl = Activity(currentFactory(task))
+    // Keep subscribers
+    for(subscriber <- oldControl.status.subscribers) {
+      currentControl.status.onUpdate(subscriber)
+    }
+    for(subscriber <- oldControl.value.subscribers) {
+      currentControl.value.onUpdate(subscriber)
+    }
   }
 
   def activityType: Class[_] = currentFactory.activityType

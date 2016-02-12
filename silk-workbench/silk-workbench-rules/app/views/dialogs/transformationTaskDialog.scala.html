@@ -39,7 +39,7 @@
     <tr>
       <td>Type</td>
       <td>
-        <input name="type" title="Type" list="types" @for(t <- transformationTask) { value="@t.data.selection.typeUri.toString" } style="width: 100%" />
+        <input name="sourceType" title="Type" @for(t <- transformationTask) { value="@t.data.selection.typeUri.toString" } style="width: 100%" />
       </td>
     </tr>
     <tr>
@@ -83,7 +83,7 @@
 
   $(function() {
     // Add autocompletion
-    $("input[name='type']").autocomplete({
+    $("input[name='sourceType']").autocomplete({
       source: function( request, response ) {
         var dataset = $("select[name='source']").val();
         $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
@@ -118,7 +118,7 @@
     var values = {
       name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
       source: $("select[name='source']").val(),
-      type: $("select[name='type']").val(),
+      sourceType: $("input[name='sourceType']").val(),
       restriction: $("input[name='restriction']").val(),
       output: $("select[name='output']").val()
     };

@@ -7,7 +7,7 @@ import sbt.Keys._
 
 lazy val commonSettings = Seq(
   organization := "com.silk-framework",
-  version := "2.7.0-SNAPSHOT",
+  version := "2.7.0",
   // Building
   scalaVersion := "2.11.7",
   javacOptions := Seq("-source", "1.7", "-target", "1.7"),
@@ -124,8 +124,8 @@ lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"
 
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules)
-    .aggregate(workbenchWorkspace, workbenchRules)
+    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow)
     .settings(commonSettings: _*)
     .settings(com.github.play2war.plugin.Play2WarPlugin.play2WarSettings: _*)
     .settings(
@@ -133,7 +133,7 @@ lazy val workbench = (project in file("silk-workbench"))
       com.github.play2war.plugin.Play2WarKeys.servletVersion := "3.0",
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server
-      version in Debian := "2.6.1",
+      version in Debian := "2.7.0",
       maintainer := "Robert Isele <silk-discussion@googlegroups.com>",
       packageSummary := "The Silk framework is a tool for discovering relationships between data items within different Linked Data sources.",
       packageDescription := "The Silk framework is a tool for discovering relationships between data items within different Linked Data sources."

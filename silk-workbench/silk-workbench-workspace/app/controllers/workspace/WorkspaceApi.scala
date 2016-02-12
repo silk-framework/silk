@@ -190,11 +190,13 @@ object WorkspaceApi extends Controller {
     val activityControl =
       if(taskName.nonEmpty) {
         val activity = project.anyTask(taskName).activity(activityName)
-        activity.update(config)
+        if(config.nonEmpty)
+          activity.update(config)
         activity.control
       } else {
         val activity = project.activity(activityName)
-        activity.update(config)
+        if(config.nonEmpty)
+          activity.update(config)
         activity.control
       }
 

@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.runtime.activity.HasValue
+import org.silkframework.runtime.activity.{Status, HasValue}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
@@ -70,7 +70,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
 
   def init() = {
     // Start autorun activities
-    for(activity <- taskActivities if activity.autoRun)
+    for(activity <- taskActivities if activity.autoRun && activity.status == Status.Idle)
       activity.control.start()
   }
 
