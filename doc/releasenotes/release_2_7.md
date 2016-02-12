@@ -1,5 +1,3 @@
-**Note:** This is a draft, version 2.7 has not been release yet!
-
 Hi all,
 
 we are happy to announce version 2.7 of the Silk Linked Data Integration Framework.
@@ -16,7 +14,7 @@ What’s new:
 
 - Panayiotis Smeros (National and Kapodistrian University of Athens) contributed plugins for a wide variety of spatial and temporal relations. Specifically, the spatial relations that were introduced derive from the Dimensionally Extended 9-Intersection, the Egenhofer’s and the OGC Simple Features Models and the Region Connection Calculus (e.g., Intersects, Touches, Contains etc.) whereas the temporal relations are based on the Allen’s Interval Calculus (e.g., Before, After, During etc.). Also, by pairing a spatial and a temporal relation, Silk is able to discover spatiotemporal relations between spatial objects that change over time or between moving objects.
 
-- TODO Robert: other updates
+- Many improvements to Silk Workbench.
 
 - Silk packages are now located in the package org.silkframework
 
