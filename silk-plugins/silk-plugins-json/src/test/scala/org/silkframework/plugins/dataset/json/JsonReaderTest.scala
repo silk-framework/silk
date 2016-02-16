@@ -48,7 +48,7 @@ class JsonReaderTest extends FlatSpec with Matchers {
   }
 
   it should "support backward paths" in {
-    evaluate(phoneNumbers, "\\persons/id") should equal (Seq("0", "1"))
+    evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "1"))
   }
 
   private def evaluate(values: Seq[JsValue], path: String): Seq[String] = {
