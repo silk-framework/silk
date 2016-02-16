@@ -149,7 +149,7 @@ function parseOperator(xmlDoc, elementId, connections) {
     xml: xml,
     // For now we just select the type of the first child
     // Todo verify for input trees that all do have the same input type
-    inputType: children[0].elType
+    inputType: children[0].inputType
   };
 }
 

@@ -35,6 +35,7 @@ GET           /:project/:task/learn/populationView/:page                        
 GET           /:project/:task/activeLearnDetails                                            controllers.linking.Learning.activeLearnDetails(project: String, task: String)
 
 # API
+GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String)
 PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.putLinkingTask(project: String, task: String)
 DELETE        /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.deleteLinkingTask(project: String, task: String)
 GET           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.getRule(project: String, task: String)
