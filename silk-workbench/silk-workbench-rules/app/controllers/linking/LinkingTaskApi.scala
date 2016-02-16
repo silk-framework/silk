@@ -25,6 +25,13 @@ object LinkingTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  def getLinkingTask(projectName: String, taskName: String) = Action {
+    val project: Project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+    val xml = Serialization.toXml(task.data)
+    Ok(xml)
+  }
+
   def putLinkingTask(project: String, task: String) = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
