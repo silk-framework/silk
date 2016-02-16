@@ -145,12 +145,17 @@ function parseOperator(xmlDoc, elementId, connections) {
     }
   }
 
-  return {
-    xml: xml,
-    // For now we just select the type of the first child
-    // Todo verify for input trees that all do have the same input type
-    inputType: children[0].inputType
-  };
+  if(children.length > 0) {
+    return {
+      xml: xml,
+      inputType: children[0].inputType // For now we just select the type of the first child
+    };
+  } else {
+    return {
+      xml: xml,
+      inputType: "Source"
+    };
+  }
 }
 
 /**
