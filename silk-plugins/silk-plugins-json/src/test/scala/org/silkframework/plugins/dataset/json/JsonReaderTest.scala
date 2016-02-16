@@ -24,12 +24,12 @@ class JsonReaderTest extends FlatSpec with Matchers {
 
   private val json = {
     val resources = new ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
-    JsonParser.load(resources.get("example.json"))
+    JsonTraverser(resources.get("example.json"))
   }
 
-  private val persons = JsonParser.select(json, "persons" :: Nil)
+  private val persons = json.select("persons" :: Nil)
 
-  private val phoneNumbers = JsonParser.select(json, "persons" :: "phoneNumbers" :: Nil)
+  private val phoneNumbers = json.select("persons" :: "phoneNumbers" :: Nil)
 
   "On example.json, JsonReader" should "return 2 persons" in {
     persons.size should equal (2)
@@ -48,10 +48,10 @@ class JsonReaderTest extends FlatSpec with Matchers {
   }
 
   it should "support backward paths" in {
-    evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "1"))
+    evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "0", "1"))
   }
 
-  private def evaluate(values: Seq[JsValue], path: String): Seq[String] = {
-    values.flatMap(value => JsonParser.evaluate(value, Path.parse(path)))
+  private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {
+    values.flatMap(value => value.evaluate(Path.parse(path)))
   }
 }
