@@ -149,14 +149,30 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
            .getOrElse(throw new NoSuchElementException(s"No task '$taskName' found in project '$name'"))
   }
 
+  /**
+    * Adds a new task to this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    * @tparam T The task type.
+    */
   def addTask[T: ClassTag](name: Identifier, taskData: T) = {
+    require(!allTasks.exists(_.name == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     module[T].add(name, taskData)
   }
 
+  /**
+    * Updates a task.
+    * If no task with the given name exists, a new task is created in the project.
+    *
+    * @param name The name of the task.
+    * @param taskData The task data.
+    * @tparam T The task type.
+    */
   def updateTask[T: ClassTag](name: Identifier, taskData: T) = {
     module[T].taskOption(name) match {
       case Some(task) => task.update(taskData)
-      case None => module[T].add(name, taskData)
+      case None => addTask[T](name, taskData)
     }
   }
 
