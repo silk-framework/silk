@@ -1,11 +1,16 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.workflow.Workflow.{WorkflowDataset, WorkflowOperator}
-
 import scala.xml.Node
 
 case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) {
+
+  def nodes: Seq[WorkflowNode] = operators ++ datasets
+
+  def node(name: String) = {
+    nodes.find(_.task == name)
+      .getOrElse(throw new NoSuchElementException(s"Cannot find node $name in the worklow."))
+  }
 
   def toXML = {
     <Workflow id={id.toString} >{
@@ -22,7 +27,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
         <Dataset
           posX={ds.position._1.toString}
           posY={ds.position._2.toString}
-          task={ds.task} />
+          task={ds.task}
+          inputs={ds.inputs.mkString(",")}
+          outputs={ds.outputs.mkString(",")} />
       }
     }</Workflow>
   }
@@ -48,17 +55,16 @@ object Workflow {
 
     val datasets =
       for(ds <- xml \ "Dataset") yield {
+        val inputStr = (ds \ "@inputs").text
+        val outputStr = (ds \ "@outputs").text
         WorkflowDataset(
+          inputs = if(inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
           task = (ds \ "@task").text,
+          outputs = if(outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
           position = ((ds \ "@posX").text.toInt, (ds \ "@posY").text.toInt)
         )
       }
 
     new Workflow(if(id.nonEmpty) Identifier(id) else Identifier.random, operators, datasets)
   }
-
-  case class WorkflowOperator(inputs: Seq[String], task: String, outputs: Seq[String], position: (Int, Int))
-
-  case class WorkflowDataset(task: String, position: (Int, Int))
-
 }

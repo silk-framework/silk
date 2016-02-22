@@ -105,8 +105,8 @@ object PluginRegistry {
   /**
    * Finds and registers all plugins in the classpath.
    */
-  def registerFromClasspath(): Unit = {
-    val loader = ServiceLoader.load(classOf[PluginModule])
+  def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
+    val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
     val iter = loader.iterator()
     while(iter.hasNext) {
       iter.next().pluginClasses.foreach(registerPlugin)

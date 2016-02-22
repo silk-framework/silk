@@ -6,7 +6,6 @@ import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.Task
-import org.silkframework.workspace.activity.workflow.Workflow.WorkflowOperator
 
 class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
 
