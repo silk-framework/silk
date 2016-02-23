@@ -7,6 +7,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.Config
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.util.Timer
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
@@ -106,11 +107,17 @@ object PluginRegistry {
    * Finds and registers all plugins in the classpath.
    */
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
+    // Load all plugin classes
     val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
-    val iter = loader.iterator()
-    while(iter.hasNext) {
-      iter.next().pluginClasses.foreach(registerPlugin)
-    }
+    val modules = loader.iterator().toList
+    val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
+
+    // Create a plugin description for each plugin class (can be done in parallel)
+    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription(pluginClass)
+
+    // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
+    for(pluginDesc <- pluginDescs.seq)
+      registerPlugin(pluginDesc)
   }
 
   /**
@@ -135,14 +142,22 @@ object PluginRegistry {
   }
 
   /**
+    * Registers a single plugin.
+    */
+  def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
+    for(superType <- getSuperTypes(pluginDesc.pluginClass)) {
+      val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
+      pluginTypes += ((superType.getName, pluginType))
+      pluginType.register(pluginDesc)
+    }
+  }
+
+  /**
    * Registers a single plugin.
    */
   def registerPlugin(implementingClass: Class[_]): Unit = {
-    for(superType <- getSuperTypes(implementingClass)) {
-      val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
-      pluginTypes += ((superType.getName, pluginType))
-      pluginType.register(implementingClass)
-    }
+    val pluginDesc = PluginDescription(implementingClass)
+    registerPlugin(pluginDesc)
   }
 
   private def getSuperTypes(clazz: Class[_]): Set[Class[_]] = {
@@ -184,8 +199,7 @@ object PluginRegistry {
     /**
      * Registers a new plugin of this plugin type.
      */
-    def register(pluginClass: Class[_]): Unit = {
-      val pluginDesc = PluginDescription(pluginClass)
+    def register(pluginDesc: PluginDescription[_]): Unit = {
       plugins += ((pluginDesc.id, pluginDesc))
     }
 
