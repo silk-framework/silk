@@ -45,7 +45,7 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.7.1")
+  println("Silk Link Discovery Framework - Version 2.7.2")
 
   // Initialize Log4j
   val ca = new ConsoleAppender()
