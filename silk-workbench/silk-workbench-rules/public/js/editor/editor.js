@@ -244,8 +244,8 @@ $(function ()
     UnTip();
   });
 
+  updateWindowSize();
   updateScore();
-
 });
 
 function confirmExit() {
