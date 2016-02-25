@@ -47,13 +47,18 @@ object Learning extends Controller {
     val activeLearn = context.task.activity[ActiveLearning].control
     var nextCandidateIndex = candidateIndex
 
+    // Assert that there is always a learning task running in the background
     if(!activeLearn.status().isRunning) {
       nextCandidateIndex = 0
       activeLearn.start()
     }
 
-    while(!activeLearn.status().isInstanceOf[Finished] && activeLearn.value().links.isEmpty) {
-      Thread.sleep(500)
+    // We only need to wait until the learning is finished if we do not have remaining link candidates
+    if(nextCandidateIndex >= activeLearn.value().links.size) {
+      nextCandidateIndex = 0
+      while(!activeLearn.status().isInstanceOf[Finished]) {
+        Thread.sleep(500)
+      }
     }
 
     val activeLearnState = context.task.activity[ActiveLearning].value

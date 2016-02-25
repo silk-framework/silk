@@ -14,7 +14,7 @@
     @table("target", values.select(false))
   </div>
 </div>
-<div style="clear: left">
+<div id="link-candidate-buttons" style="clear: left">
   <button onclick="confirm()" >Confirm</button>
   <button onclick="decline()" >Decline</button>
   <button onclick="pass()" >Pass</button>
@@ -73,10 +73,14 @@ Index: @candidateIndex
   }
 
   function nextLinkCandidate() {
+    var buttons = $("#link-candidate-buttons").find("button");
+    buttons.prop("disabled", true);
+
     $.get(
       '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, candidateIndex).url',
       function(data) {
         $('#link-candidate-wrapper').html(data);
+        buttons.prop("disabled", false);
       })
       .fail(function(request) { alert(request.responseText); })
   }

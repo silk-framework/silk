@@ -42,6 +42,9 @@ class ActiveLearning(config: LearningConfiguration,
   override def initialValue = Some(initialState)
 
   override def run(context: ActivityContext[ActiveLearningState]): Unit = {
+
+    Thread.sleep(10000)
+
     // Update unlabeled pool
     val pool = updatePool(context)
 
