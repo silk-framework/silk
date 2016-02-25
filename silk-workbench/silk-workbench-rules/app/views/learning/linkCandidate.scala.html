@@ -1,0 +1,80 @@
+@import org.silkframework.util.DPair
+@import org.silkframework.entity.Link
+@import plugins.Context
+@import org.silkframework.config.LinkSpecification
+@import controllers.linking.routes
+
+@(link: Link, values: DPair[(Seq[String], Seq[Seq[String]])], context: Context[LinkSpecification])
+
+<div>
+  <div style="float: left">
+    @table("source", values.select(true))
+  </div>
+  <div style="float: left">
+    @table("target", values.select(false))
+  </div>
+</div>
+<div style="clear: left">
+  <button onclick="confirm()" >Confirm</button>
+  <button onclick="decline()" >Decline</button>
+</div>
+
+@table(sourceOrTarget: String, pathValues: (Seq[String], Seq[Seq[String]])) = {
+  <table>
+    <thead>
+      <tr>
+        <th>Path</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for((path, pathValues) <- pathValues._1 zip pathValues._2) {
+        <tr>
+          <td><div class="@sourceOrTarget-path">@path</div></td>
+          <td>
+            @for(value <- pathValues) {
+              <div class="@sourceOrTarget-value" >@value</div>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+<script type="text/javascript">
+
+  function confirm() {
+    postLink('@routes.LinkingTaskApi.putReferenceLink(context.project.name, context.task.name, "positive", link.source, link.target).url');
+  }
+
+  function decline() {
+    postLink('@routes.LinkingTaskApi.putReferenceLink(context.project.name, context.task.name, "negative", link.source, link.target).url');
+  }
+
+  function postLink(url) {
+    $.ajax({
+      type: 'PUT',
+      url: url,
+      success: function(response) {
+        startLearning();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+
+  function startLearning() {
+    $.ajax({
+      type: 'PUT',
+      url: '@routes.LinkingTaskApi.activeLearningActivity(context.project.name, context.task.name)',
+      success: function(response) {
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+
+</script>
