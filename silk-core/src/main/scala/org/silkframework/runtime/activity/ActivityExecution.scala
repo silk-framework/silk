@@ -33,11 +33,7 @@ private class ActivityExecution[T](activity: Activity[T],
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   override def run(): Unit = synchronized {
-    // Reset
     val startTime = System.currentTimeMillis
-    status.update(Status.Started())
-
-    // Run
     try {
       activity.run(this)
       status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
@@ -58,14 +54,17 @@ private class ActivityExecution[T](activity: Activity[T],
     if(status().isRunning)
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     // Execute activity
+    status.update(Status.Started())
     Activity.executionContext.execute(this)
   }
 
   override def startBlocking(): Unit = {
+    status.update(Status.Started())
     run()
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T]): T = {
+    status.update(Status.Started())
     for(v <- initialValue)
       value.update(v)
     run()
