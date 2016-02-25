@@ -4,6 +4,7 @@ import controllers.core.{Stream, Widgets}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import org.silkframework.config.LinkSpecification
+import org.silkframework.entity.Path
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
@@ -67,24 +68,33 @@ object Learning extends Controller {
     } else {
       val linkCandidate = activeLearnState.links(nextCandidateIndex)
 
-      def paths(rule: LinkageRule, sourceOrTarget: Boolean) = {
+      /**
+        * Collects all paths of a single linkage rule.
+        */
+      def collectPaths(rule: LinkageRule, sourceOrTarget: Boolean): Iterator[Path] = {
         val comparisons = RuleTraverser(rule.operator.get).iterateAllChildren.filter(_.operator.isInstanceOf[Comparison])
         val inputs = comparisons.map(c => if (sourceOrTarget) c.iterateChildren.next() else c.iterateChildren.drop(1).next())
-        val paths = comparisons.flatMap(_.iterateChildren.next().iterateAllChildren.map(_.operator)).collect { case PathInput(_, path) => path }
+        val paths = inputs.flatMap(_.iterateAllChildren.map(_.operator)).collect { case PathInput(_, path) => path }
         paths
       }
 
-      def sortedValues(sourceOrTarget: Boolean): (Seq[String], Seq[Seq[String]]) = {
+      /**
+        * Collects paths of all linkage rules in the population, sorted by frequency
+        */
+      def sortedPaths(sourceOrTarget: Boolean): Seq[Path] = {
         val rules = activeLearnState.population.individuals.map(_.node.build)
-        val allSourcePaths = rules.map(rule => paths(rule, sourceOrTarget))
+        val allSourcePaths = rules.map(rule => collectPaths(rule, sourceOrTarget))
         val schemaPaths = activeLearnState.pool.entityDescs.select(sourceOrTarget).paths
         val sortedSchemaPaths = schemaPaths.sortBy(p => allSourcePaths.count(_ == p))
-        val values = sortedSchemaPaths.map(linkCandidate.entities.get.select(sourceOrTarget).evaluate)
-
-        (sortedSchemaPaths.map(_.serializeSimplified(prefixes)), values)
+        sortedSchemaPaths
       }
 
-      Ok(views.html.learning.linkCandidate(linkCandidate, nextCandidateIndex + 1, DPair.generate(sortedValues), context))
+      def values(sourceOrTarget: Boolean) = {
+        val paths = sortedPaths(sourceOrTarget)
+        (paths.map(_.serializeSimplified(prefixes)), paths.map(linkCandidate.entities.get.select(sourceOrTarget).evaluate))
+      }
+
+      Ok(views.html.learning.linkCandidate(linkCandidate, nextCandidateIndex + 1, DPair.generate(values), context))
     }
   }
 
