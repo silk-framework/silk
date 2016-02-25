@@ -33,7 +33,7 @@ GET           /:project/:task/learn/statusStream                                
 GET           /:project/:task/learn/population                                              controllers.linking.Learning.population(project: String, task: String)
 GET           /:project/:task/learn/populationView/:page                                    controllers.linking.Learning.populationView(project: String, task: String, page: Int)
 GET           /:project/:task/activeLearnDetails                                            controllers.linking.Learning.activeLearnDetails(project: String, task: String)
-GET           /:project/:task/activeLearn/candidate                                         controllers.linking.Learning.activeLearnCandidate(project: String, task: String)
+GET           /:project/:task/activeLearn/candidate/:index                                  controllers.linking.Learning.activeLearnCandidate(project: String, task: String, index: Int)
 
 # API
 GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String)

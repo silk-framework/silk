@@ -4,7 +4,7 @@
 @import org.silkframework.config.LinkSpecification
 @import controllers.linking.routes
 
-@(link: Link, values: DPair[(Seq[String], Seq[Seq[String]])], context: Context[LinkSpecification])
+@(link: Link, candidateIndex: Int, values: DPair[(Seq[String], Seq[Seq[String]])], context: Context[LinkSpecification])
 
 <div>
   <div style="float: left">
@@ -19,6 +19,8 @@
   <button onclick="decline()" >Decline</button>
   <button onclick="pass()" >Pass</button>
 </div>
+
+Index: @candidateIndex
 
 @table(sourceOrTarget: String, pathValues: (Seq[String], Seq[Seq[String]])) = {
   <table>
@@ -54,7 +56,7 @@
   }
 
   function pass() {
-    startLearning();
+    nextLinkCandidate();
   }
 
   function postLink(url) {
@@ -62,7 +64,7 @@
       type: 'PUT',
       url: url,
       success: function(response) {
-        startLearning();
+        nextLinkCandidate();
       },
       error: function(request) {
         alert(request.responseText);
@@ -70,17 +72,13 @@
     });
   }
 
-  function startLearning() {
-    $.ajax({
-      type: 'PUT',
-      url: '@routes.LinkingTaskApi.activeLearningActivity(context.project.name, context.task.name)',
-      success: function(response) {
-        showLinkCandidate();
-      },
-      error: function(request) {
-        alert(request.responseText);
-      }
-    });
+  function nextLinkCandidate() {
+    $.get(
+      '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, candidateIndex).url',
+      function(data) {
+        $('#link-candidate-wrapper').html(data);
+      })
+      .fail(function(request) { alert(request.responseText); })
   }
 
 </script>

@@ -49,7 +49,7 @@
 
     function showLinkCandidate() {
       $.get(
-        '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url',
+        '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, 0).url',
         function(data) {
           $('#link-candidate-wrapper').html(data);
         })

@@ -10,6 +10,7 @@ import org.silkframework.learning.individual.Population
 import org.silkframework.rule.{LinkageRule, RuleTraverser}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
+import org.silkframework.runtime.activity.Status.Finished
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
 import org.silkframework.workspace.{Task, User}
@@ -40,15 +41,26 @@ object Learning extends Controller {
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
-  def activeLearnCandidate(project: String, task: String) = Action { request =>
+  def activeLearnCandidate(project: String, task: String, candidateIndex: Int) = Action { request =>
     val context = Context.get[LinkSpecification](project, task, request.path)
     val prefixes = context.project.config.prefixes
-    val activeLearnState = context.task.activity[ActiveLearning].value
+    val activeLearn = context.task.activity[ActiveLearning].control
+    var nextCandidateIndex = candidateIndex
 
+    if(!activeLearn.status().isRunning) {
+      nextCandidateIndex = 0
+      activeLearn.start()
+    }
+
+    while(!activeLearn.status().isInstanceOf[Finished] && activeLearn.value().links.isEmpty) {
+      Thread.sleep(500)
+    }
+
+    val activeLearnState = context.task.activity[ActiveLearning].value
     if(activeLearnState.links.isEmpty) {
-      Ok("No link candidates yet")
+      Ok("No link candidates could be generated")
     } else {
-      val linkCandidate = activeLearnState.links.head
+      val linkCandidate = activeLearnState.links(nextCandidateIndex)
 
       def paths(rule: LinkageRule, sourceOrTarget: Boolean) = {
         val comparisons = RuleTraverser(rule.operator.get).iterateAllChildren.filter(_.operator.isInstanceOf[Comparison])
@@ -67,7 +79,7 @@ object Learning extends Controller {
         (sortedSchemaPaths.map(_.serializeSimplified(prefixes)), values)
       }
 
-      Ok(views.html.learning.linkCandidate(linkCandidate, DPair.generate(sortedValues), context))
+      Ok(views.html.learning.linkCandidate(linkCandidate, nextCandidateIndex + 1, DPair.generate(sortedValues), context))
     }
   }
 

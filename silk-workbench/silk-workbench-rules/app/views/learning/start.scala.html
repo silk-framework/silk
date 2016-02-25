@@ -22,17 +22,7 @@
     }
     
     function startActiveLearning() {
-      $.ajax({
-        type: 'PUT',
-        url: taskUrl + '/activeLearningTask',
-        data: '',
-        success: function(response) {
-          window.location = "activeLearn"
-        },
-        error: function(request) {
-          alert(request.responseText);
-        }
-      });
+      window.location = "activeLearn"
     }
   </script>
 }
