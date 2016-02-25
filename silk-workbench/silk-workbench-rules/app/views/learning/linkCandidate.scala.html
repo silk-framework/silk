@@ -17,6 +17,7 @@
 <div style="clear: left">
   <button onclick="confirm()" >Confirm</button>
   <button onclick="decline()" >Decline</button>
+  <button onclick="pass()" >Pass</button>
 </div>
 
 @table(sourceOrTarget: String, pathValues: (Seq[String], Seq[Seq[String]])) = {
@@ -52,6 +53,10 @@
     postLink('@routes.LinkingTaskApi.putReferenceLink(context.project.name, context.task.name, "negative", link.source, link.target).url');
   }
 
+  function pass() {
+    startLearning();
+  }
+
   function postLink(url) {
     $.ajax({
       type: 'PUT',
@@ -70,6 +75,7 @@
       type: 'PUT',
       url: '@routes.LinkingTaskApi.activeLearningActivity(context.project.name, context.task.name)',
       success: function(response) {
+        showLinkCandidate();
       },
       error: function(request) {
         alert(request.responseText);

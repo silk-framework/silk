@@ -28,8 +28,6 @@
       window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learnStart"
     }
 
-
-
     function next() {
       $.ajax({
         type: 'PUT',
@@ -48,6 +46,19 @@
       //TODO stop current task
       window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learn/population"
     }
+
+    function showLinkCandidate() {
+      $.get(
+        '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url',
+        function(data) {
+          $('#link-candidate-wrapper').html(data);
+        })
+        .fail(function(request) { alert(request.responseText); })
+    }
+
+    $(function() {
+      showLinkCandidate()
+    });
 
 
   </script>
@@ -93,8 +104,7 @@
       </div>
     </div>
 
-    <div id="links">
-      @widgets.autoReload("activeLearn/candidate", "learn/linksStream")
+    <div id="link-candidate-wrapper">
     </div>
 
   </div>
