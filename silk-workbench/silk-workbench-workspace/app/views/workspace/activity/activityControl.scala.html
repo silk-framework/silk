@@ -2,7 +2,7 @@
 @import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Workspace
 
-@(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showConfigButton: Boolean)
+@(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
 
 <div id="@id(project, task.getOrElse(""), activity)" class="activity-control">
 
@@ -16,6 +16,10 @@
   @if(showStartButton) {
     <button name="start" class="activity-button" onclick="startActivity()" title="Start @activity" >Start</button>
     <button name="stop" class="activity-button" onclick="stopActivity()" title="Stop @activity">Stop</button>
+  }
+
+  @if(showRestartButton) {
+    <button name="reset" class="activity-button" onclick="restartActivity()" title="Reset @activity to its initial value and restart." >Reset</button>
   }
 
   @if(showConfigButton && task.isDefined) {
@@ -64,8 +68,10 @@
 
     // Enable/Disable start/stop buttons
     var startButton = control.children("button[name='start']");
+    var resetButton = control.children("button[name='reset']");
     var stopButton = control.children("button[name='stop']");
     startButton.button("option", "disabled", status.isRunning);
+    resetButton.button("option", "disabled", status.isRunning);
     stopButton.button("option", "disabled", !status.isRunning);
   }
 
@@ -85,6 +91,18 @@
     $.ajax({
       type: 'POST',
       url: '@Html(WorkspaceApi.cancelActivity(project, task.getOrElse(""), activity).url)',
+      success: function(response) {
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+
+  function restartActivity() {
+    $.ajax({
+      type: 'POST',
+      url: '@Html(WorkspaceApi.restartActivity(project, task.getOrElse(""), activity).url)',
       success: function(response) {
       },
       error: function(request) {

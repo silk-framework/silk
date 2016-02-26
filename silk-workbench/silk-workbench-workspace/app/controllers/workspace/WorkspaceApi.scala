@@ -222,6 +222,21 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
+  def restartActivity(projectName: String, taskName: String, activityName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val activity =
+      if(taskName.nonEmpty) {
+        val task = project.anyTask(taskName)
+        task.activity(activityName).control
+      } else {
+        project.activity(activityName).control
+      }
+
+    activity.reset()
+    activity.start()
+    Ok
+  }
+
   def getActivityConfig(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
     val activityConfig =
