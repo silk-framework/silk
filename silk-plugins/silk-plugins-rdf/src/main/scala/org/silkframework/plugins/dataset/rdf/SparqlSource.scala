@@ -30,13 +30,17 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    val entityRetriever =
-      if(params.parallel)
-        new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
-      else
-        new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      val entityRetriever =
+        if (params.parallel)
+          new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
+        else
+          new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
 
-    entityRetriever.retrieve(entitySchema, entities, None).toSeq
+      entityRetriever.retrieve(entitySchema, entities, None).toSeq
+    }
   }
 
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {

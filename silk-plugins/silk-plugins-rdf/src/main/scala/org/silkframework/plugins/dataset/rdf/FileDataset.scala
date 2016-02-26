@@ -82,7 +82,10 @@ case class FileDataset(
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
       load()
-      EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
+      if(entities.isEmpty)
+        Seq.empty
+      else
+        EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
     }
 
     override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
