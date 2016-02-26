@@ -6,43 +6,43 @@
 
 @(link: Link, candidateIndex: Int, values: DPair[Seq[(String, Seq[String])]], context: Context[LinkSpecification])
 
-<div>
-  <div style="float: left">
-    @table("source", values.select(true))
-  </div>
-  <div style="float: left">
-    @table("target", values.select(false))
-  </div>
+<div id="link-candidate-buttons" style="text-align: center; margin-bottom: 20px;">
+  <button onclick="confirm()" title="Confirm this link candidate as correct." >Confirm</button>
+  <button onclick="decline()" title="Confirm this link candidate as incorrect." >Decline</button>
+  <button onclick="pass()" title="Show the next link." >Pass</button>
+  <button onclick="done()" title="Show generated linkage rules." >Done</button>
 </div>
-<div id="link-candidate-buttons" style="clear: left">
-  <button onclick="confirm()" >Confirm</button>
-  <button onclick="decline()" >Decline</button>
-  <button onclick="pass()" >Pass</button>
+
+<div style="clear: left">
+  @table("source", values.select(true))
+  @table("target", values.select(false))
 </div>
 
 Index: @candidateIndex
 
 @table(sourceOrTarget: String, selectedValues: Seq[(String, Seq[String])]) = {
-  <table>
-    <thead>
-      <tr>
-        <th>Path</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for((path, pathValues) <- selectedValues) {
+  <div style="float: left; width: 50%">
+    <table>
+      <thead>
         <tr>
-          <td><div class="@sourceOrTarget-path">@path</div></td>
-          <td>
-            @for(value <- pathValues) {
-              <div class="@sourceOrTarget-value" >@value</div>
-            }
-          </td>
+          <th>Path</th>
+          <th>Value</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for((path, pathValues) <- selectedValues) {
+          <tr>
+            <td><span class="@sourceOrTarget-path">@path</span></td>
+            <td>
+              @for(value <- pathValues) {
+                <span class="@sourceOrTarget-value" >@value</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 }
 
 <script type="text/javascript">
@@ -57,6 +57,10 @@ Index: @candidateIndex
 
   function pass() {
     nextLinkCandidate();
+  }
+
+  function done() {
+    window.location = "@routes.Learning.population(context.project.name, context.task.name).url"
   }
 
   function postLink(url) {

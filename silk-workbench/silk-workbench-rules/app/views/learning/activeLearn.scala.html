@@ -21,30 +21,8 @@
     var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/referenceLink';
     var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
 
-//    initLinks('learn', 'links');
-
     function back() {
-      //TODO stop current task
       window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learnStart"
-    }
-
-    function next() {
-      $.ajax({
-        type: 'PUT',
-        url: taskUrl + '/activeLearningTask',
-        data: '',
-        success: function(response) {
-          window.location = "activeLearn"
-        },
-        error: function(request) {
-          alert(request.responseText);
-        }
-      });
-    }
-
-    function finish() {
-      //TODO stop current task
-      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learn/population"
     }
 
     function showLinkCandidate() {
@@ -57,7 +35,7 @@
     }
 
     $(function() {
-      showLinkCandidate()
+      showLinkCandidate();
     });
 
 
@@ -71,12 +49,6 @@
     </li>
     <li>
       <button onclick="back()">Back</button>
-    </li>
-    <li>
-      <button onClick="next()">Continue</button>
-    </li>
-    <li>
-      <button onclick="finish()">Done</button>
     </li>
     <li>
       <button onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.name)')">Details</button>
@@ -108,8 +80,6 @@
     </div>
 
   </div>
-
-  @*<iframe src="learn/linksStream" frameborder="0" height="0" width="100%"></iframe>*@
 }
 
 @main(Some(context))(header)(toolbar)(content)
