@@ -79,7 +79,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val links = Array.fill(paths.source.size, paths.target.size)(Seq[Link]())
 
       def getLinks() = {
-        val a = links.flatten.flatten
+        val a = links.flatten.flatten.distinct
         //val c = a.groupBy(_.source).values.map(randomElement(_))
         //         .groupBy(_.target).values.map(randomElement(_))
         Random.shuffle(a.toSeq).take(maxLinks)
