@@ -26,12 +26,13 @@
     }
 
     function showLinkCandidate() {
+      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, 0).url';
       $.get(
-        '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, 0).url',
+        url,
         function(data) {
           $('#link-candidate-wrapper').html(data);
         })
-        .fail(function(request) { alert(request.responseText); })
+        .fail(errorHandler)
     }
 
     $(function() {

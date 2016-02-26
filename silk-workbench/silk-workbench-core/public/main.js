@@ -25,6 +25,7 @@ var dialog;
 var dialogPath;
 
 $(function() {
+  // Style all buttons with jQuery UI
   $("button[type!='radio'], input:submit, a.button").button();
 
   // Initialize window
@@ -40,9 +41,17 @@ $(function() {
   // Initialize dialog
   dialog = $('.dialog').dialog({
     autoOpen: false,
-    modal: true,
+    modal: true
   });
 });
+
+var errorHandler = function(request) {
+  if(request.responseText) {
+    alert(request.responseText);
+  } else {
+    alert(request.statusText)
+  }
+};
 
 /**
  * Opens a dialog.

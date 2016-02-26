@@ -70,9 +70,7 @@ Index: @candidateIndex
       success: function(response) {
         nextLinkCandidate();
       },
-      error: function(request) {
-        alert(request.responseText);
-      }
+      error: errorHandler
     });
   }
 
