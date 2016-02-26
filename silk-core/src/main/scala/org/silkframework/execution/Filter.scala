@@ -31,7 +31,7 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
     val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
-        context.status.update("Filtering output")
+        context.status.updateMessage("Filtering output")
         val linkBuffer = new ArrayBuffer[Link]()
         for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
           if(filter.unambiguous==Some(true)) {

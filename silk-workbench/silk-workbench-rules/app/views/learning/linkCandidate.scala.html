@@ -4,7 +4,7 @@
 @import org.silkframework.config.LinkSpecification
 @import controllers.linking.routes
 
-@(link: Link, candidateIndex: Int, values: DPair[(Seq[String], Seq[Seq[String]])], context: Context[LinkSpecification])
+@(link: Link, candidateIndex: Int, values: DPair[Seq[(String, Seq[String])]], context: Context[LinkSpecification])
 
 <div>
   <div style="float: left">
@@ -22,7 +22,7 @@
 
 Index: @candidateIndex
 
-@table(sourceOrTarget: String, pathValues: (Seq[String], Seq[Seq[String]])) = {
+@table(sourceOrTarget: String, selectedValues: Seq[(String, Seq[String])]) = {
   <table>
     <thead>
       <tr>
@@ -31,7 +31,7 @@ Index: @candidateIndex
       </tr>
     </thead>
     <tbody>
-      @for((path, pathValues) <- pathValues._1 zip pathValues._2) {
+      @for((path, pathValues) <- selectedValues) {
         <tr>
           <td><div class="@sourceOrTarget-path">@path</div></td>
           <td>

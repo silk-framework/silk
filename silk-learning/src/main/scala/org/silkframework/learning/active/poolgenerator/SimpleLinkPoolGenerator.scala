@@ -61,7 +61,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val listener = (v: Linking) => {
         if (v.links.size > maxLinks) generateLinksActivity.cancel()
       }
-      context.status.update(0.0)
+      context.status.updateProgress(0.0)
 
       generateLinksActivity.value.onUpdate(listener)
       generateLinksActivity.startBlocking()

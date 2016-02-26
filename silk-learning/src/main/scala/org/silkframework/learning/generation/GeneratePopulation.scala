@@ -28,7 +28,7 @@ class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule], generator: 
 
   override def run(context: ActivityContext[Population]): Unit = {
     val individuals = for(i <- (0 until config.params.populationSize).par) yield {
-      context.status.update(i.toDouble / config.params.populationSize)
+      context.status.updateProgress(i.toDouble / config.params.populationSize, logStatus = false)
       generateIndividual()
     }
     context.value.update(Population(individuals.seq))

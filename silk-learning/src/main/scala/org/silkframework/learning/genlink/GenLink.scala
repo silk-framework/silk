@@ -89,7 +89,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
 
     // Report result
     context.value.update(Result(population, iterations, learningStatus.toString))
-    context.status.update(iterations.toDouble / config.params.maxIterations)
+    context.status.updateProgress(iterations.toDouble / config.params.maxIterations)
   }
 
   /**

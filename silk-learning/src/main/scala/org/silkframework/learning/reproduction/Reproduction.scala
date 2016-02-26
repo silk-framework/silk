@@ -42,9 +42,7 @@ class Reproduction(population: Population,
     //Number of individuals to be generated
     val count = individuals.size - config.reproduction.elitismCount
 
-    val offspring = for(i <- (0 until count).par) yield {
-      context.status.update(i.toDouble / count); reproduce()
-    }
+    val offspring = for(i <- (0 until count).par) yield reproduce()
 
     context.value.update(Population(elite ++ offspring))
   }

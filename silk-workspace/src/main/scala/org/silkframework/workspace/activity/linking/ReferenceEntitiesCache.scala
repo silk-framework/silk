@@ -80,9 +80,9 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
         }
       }
       val sourceEntities: Map[String, Entity] = getSourceEntities(sourceEntityUrisNeedingUpdate)
-      context.status.update(0.5)
+      context.status.updateProgress(0.5)
       val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
-      context.status.update(0.99)
+      context.status.updateProgress(0.99)
 
       // Add new entities to reference entities
       context.value() = context.value().update(

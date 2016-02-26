@@ -71,7 +71,7 @@ class ActiveLearning(config: LearningConfiguration,
     //Build unlabeled pool
     val poolPaths = context.value().pool.entityDescs.map(_.paths)
     if(context.value().pool.isEmpty || poolPaths != paths) {
-      context.status.update("Loading pool")
+      context.status.updateMessage("Loading pool")
       val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, paths)
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
     }
@@ -97,22 +97,23 @@ class ActiveLearning(config: LearningConfiguration,
     if(population.isEmpty) {
       context.status.update("Generating population", 0.5)
       val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
-      population = context.child(new GeneratePopulation(seedRules, generator, config), 0.6).startBlockingAndGetValue()
+      population = context.child(new GeneratePopulation(seedRules, generator, config), 0.3).startBlockingAndGetValue()
     }
     context.value() = context.value().copy(population = population)
   }
   
   private def updatePopulation(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Updating population") {
+    context.status.update("Reproducing", 0.6)
     val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     var population = context.value().population
     for(i <- 0 until config.params.maxIterations
         if i > 0 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
-      val progress = 0.2 / config.params.maxIterations
-      population = context.child(new Reproduction(population, fitnessFunction, generator, config), progress).startBlockingAndGetValue()
+      population = context.child(new Reproduction(population, fitnessFunction, generator, config)).startBlockingAndGetValue()
       if(i % config.params.cleanFrequency == 0) {
         population = context.child(new CleanPopulationTask(population, fitnessFunction, generator)).startBlockingAndGetValue()
       }
+      context.status.updateProgress(0.6 + 0.2 / config.params.maxIterations, logStatus = false)
     }
     context.value() = context.value().copy(population = population)
   }

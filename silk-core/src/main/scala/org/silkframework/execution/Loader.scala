@@ -83,13 +83,13 @@ class Loader(sources: DPair[DataSource],
     override def run() {
 
       try {
-        context.status.update("Loading entities of dataset " + source.toString)
+        context.status.updateMessage("Loading entities of dataset " + source.toString)
 
         entityCache.clear()
         entityCache.write(retrieveEntities)
         entityCache.close()
 
-        context.status.update(s"Entities loaded [ dataset :: ${source.toString} ].")
+        context.status.updateMessage(s"Entities loaded [ dataset :: ${source.toString} ].")
 
       } catch {
         case _: InterruptedException =>

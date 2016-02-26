@@ -68,6 +68,8 @@ object Learning extends Controller {
     } else {
       val linkCandidate = activeLearnState.links(nextCandidateIndex)
 
+      println("TOP LINK: " + linkCandidate.entities.get)
+
       /**
         * Collects all paths of a single linkage rule.
         */
@@ -91,7 +93,7 @@ object Learning extends Controller {
 
       def values(sourceOrTarget: Boolean) = {
         val paths = sortedPaths(sourceOrTarget)
-        (paths.map(_.serializeSimplified(prefixes)), paths.map(linkCandidate.entities.get.select(sourceOrTarget).evaluate))
+        for(path <- paths) yield (path.serializeSimplified(prefixes), linkCandidate.entities.get.select(sourceOrTarget).evaluate(path))
       }
 
       Ok(views.html.learning.linkCandidate(linkCandidate, nextCandidateIndex + 1, DPair.generate(values), context))
