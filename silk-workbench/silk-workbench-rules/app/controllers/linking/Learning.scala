@@ -68,8 +68,6 @@ object Learning extends Controller {
     } else {
       val linkCandidate = activeLearnState.links(nextCandidateIndex)
 
-      println("TOP LINK: " + linkCandidate.entities.get)
-
       /**
         * Collects all paths of a single linkage rule.
         */
