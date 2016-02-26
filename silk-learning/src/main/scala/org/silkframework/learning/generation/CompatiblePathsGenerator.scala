@@ -75,7 +75,7 @@ class CompatiblePathsGenerator(components: Components) {
   private def createGenerators(pathPair: DPair[Path]) = {
     new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
         new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
-        new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::
+        // Substring is currently to slow new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::
         new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("date", Nil, DistanceMeasure), 1000.0) :: Nil
   }
 
