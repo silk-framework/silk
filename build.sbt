@@ -42,6 +42,7 @@ lazy val learning = (project in file("silk-learning"))
 
 lazy val workspace = (project in file("silk-workspace"))
   .dependsOn(core, learning)
+  .aggregate(core, learning)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace"
