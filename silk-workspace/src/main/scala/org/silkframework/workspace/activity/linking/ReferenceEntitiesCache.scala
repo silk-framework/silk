@@ -69,6 +69,7 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
+          // TODO if there are already entities attached to a link, we do not need to load the entities
           link.entities match {
             case Some(entities) =>
               collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, entities.source, entityDescs.source)

@@ -20,13 +20,15 @@ case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpecification
 
   def apply(task: Task[LinkSpecification]): Activity[ActiveLearningState] = {
     Activity.regenerating {
-      //TODO check if ReferenceEntitiesCache is loaded and contains all reference links
+      // Update reference entities cache
+      val entitiesCache = task.activity[ReferenceEntitiesCache].control
+      entitiesCache.waitUntilFinished()
+      entitiesCache.startBlocking()
 
-      val entitiesSize = task.activity[ReferenceEntitiesCache].value.positiveEntities.size + task.activity[ReferenceEntitiesCache].value.negativeEntities.size
+      // Check if all links have been loaded
+      val entitiesSize = entitiesCache.value().positiveEntities.size + entitiesCache.value().negativeEntities.size
       val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
-
-      if(entitiesSize != refSize)
-        println("XXXXX: " + entitiesSize + " - " + refSize)
+      assert(entitiesSize == refSize, "Reference Entities Cache has not been loaded correctly")
 
       new ActiveLearning(
         config = LearningConfiguration.default,

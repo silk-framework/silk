@@ -71,11 +71,6 @@ object Learning extends Controller {
       case LinkCandidateDecision.pass =>
     }
 
-    // Update reference entities cache
-    val entitiesCache = context.task.activity[ReferenceEntitiesCache].control
-    entitiesCache.waitUntilFinished()
-    entitiesCache.startBlocking()
-
     // Assert that a learning task is running
     val finished = !activeLearn.status().isRunning
     if(finished)
