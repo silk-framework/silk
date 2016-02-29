@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import org.silkframework.runtime.activity.Status.Finished
+
 /**
  * Holds the current state of the activity.
  */
@@ -61,4 +63,10 @@ trait ActivityControl[T] {
     * Returns the underlying activity.
     */
   def underlying: Activity[T]
+
+  def waitUntilFinished() = {
+    while(!status().isInstanceOf[Finished]) {
+      Thread.sleep(100)
+    }
+  }
 }

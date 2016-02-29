@@ -20,6 +20,14 @@ case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpecification
 
   def apply(task: Task[LinkSpecification]): Activity[ActiveLearningState] = {
     Activity.regenerating {
+      //TODO check if ReferenceEntitiesCache is loaded and contains all reference links
+
+      val entitiesSize = task.activity[ReferenceEntitiesCache].value.positiveEntities.size + task.activity[ReferenceEntitiesCache].value.negativeEntities.size
+      val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
+
+      if(entitiesSize != refSize)
+        println("XXXXX: " + entitiesSize + " - " + refSize)
+
       new ActiveLearning(
         config = LearningConfiguration.default,
         datasets = DPair.fromSeq(task.data.dataSelections.map(ds => task.project.tasks[Dataset].map(_.data).find(_.id == ds.datasetId).getOrElse(Dataset.empty).source)),

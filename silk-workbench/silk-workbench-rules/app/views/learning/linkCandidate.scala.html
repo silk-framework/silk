@@ -2,9 +2,10 @@
 @import org.silkframework.entity.Link
 @import plugins.Context
 @import org.silkframework.config.LinkSpecification
+@import models.linking.LinkCandidateDecision
 @import controllers.linking.routes
 
-@(link: Link, candidateIndex: Int, values: DPair[Seq[(String, Seq[String])]], context: Context[LinkSpecification])
+@(link: Link, values: DPair[Seq[(String, Seq[String])]], context: Context[LinkSpecification])
 
 <div id="link-candidate-buttons" style="text-align: center; margin-bottom: 20px;">
   <button onclick="confirm()" title="Confirm this link candidate as correct." >Confirm</button>
@@ -17,8 +18,6 @@
   @table("source", values.select(true))
   @table("target", values.select(false))
 </div>
-
-Index: @candidateIndex
 
 @table(sourceOrTarget: String, selectedValues: Seq[(String, Seq[String])]) = {
   <div style="float: left; width: 50%">
@@ -48,38 +47,27 @@ Index: @candidateIndex
 <script type="text/javascript">
 
   function confirm() {
-    postLink('@routes.LinkingTaskApi.putReferenceLink(context.project.name, context.task.name, "positive", link.source, link.target).url');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.positive, link.source, link.target).url');
   }
 
   function decline() {
-    postLink('@routes.LinkingTaskApi.putReferenceLink(context.project.name, context.task.name, "negative", link.source, link.target).url');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.negative, link.source, link.target).url');
   }
 
   function pass() {
-    nextLinkCandidate();
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.pass, link.source, link.target).url');
   }
 
   function done() {
     window.location = "@routes.Learning.population(context.project.name, context.task.name).url"
   }
 
-  function postLink(url) {
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      success: function(response) {
-        nextLinkCandidate();
-      },
-      error: errorHandler
-    });
-  }
-
-  function nextLinkCandidate() {
+  function nextLinkCandidate(url) {
     var buttons = $("#link-candidate-buttons").find("button");
     buttons.prop("disabled", true);
 
     $.get(
-      '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, candidateIndex).url',
+      url,
       function(data) {
         $('#link-candidate-wrapper').html(data);
         buttons.prop("disabled", false);

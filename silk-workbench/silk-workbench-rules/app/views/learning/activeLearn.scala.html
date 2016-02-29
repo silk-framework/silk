@@ -4,6 +4,7 @@
 @import org.silkframework.learning.active.ActiveLearning
 @import views.html.workspace.activity.taskActivityControl
 
+@import models.linking.LinkCandidateDecision
 @(context: plugins.Context[LinkSpecification])
 
 @header = {
@@ -26,7 +27,7 @@
     }
 
     function showLinkCandidate() {
-      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, 0).url';
+      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.pass, "_", "_").url';
       $.get(
         url,
         function(data) {

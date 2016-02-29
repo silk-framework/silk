@@ -116,19 +116,6 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
       }
     }
 
-    private def loadLink(link: Link,
-                         loadLinkEntities: Link => Option[DPair[Entity]]): Option[DPair[Entity]] = {
-      link.entities match {
-        case Some(entities) => Some(entities)
-        case None => {
-          loadLinkEntities(link) match {
-            case None => retrieveEntityPair(link)
-            case Some(entityPair) => updateEntityPair(entityPair)
-          }
-        }
-      }
-    }
-
     private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]] = {
       for (source <- sources.source.retrieveByUri(entityDescs.source, uris.source :: Nil).headOption;
            target <- sources.target.retrieveByUri(entityDescs.target, uris.target :: Nil).headOption) yield {

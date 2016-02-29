@@ -52,7 +52,7 @@ class ActiveLearning(config: LearningConfiguration,
     buildPopulation(generator, context)
 
     // Ensure that we got positive and negative reference links
-    val completeEntities = Timer("CompleteReferenceLinks") { CompleteReferenceLinks(referenceEntities, pool.links, context.value().population) }
+    val completeEntities = CompleteReferenceLinks(referenceEntities, pool.links, context.value().population)
     val fitnessFunction = config.fitnessFunction(completeEntities)
 
     // Learn new population
