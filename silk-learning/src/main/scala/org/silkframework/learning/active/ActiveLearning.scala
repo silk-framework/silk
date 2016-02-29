@@ -77,7 +77,7 @@ class ActiveLearning(config: LearningConfiguration,
     }
 
     //Assert that no reference links are in the pool
-    pool = pool.withoutLinks(referenceEntities.all)
+    pool = pool.withoutLinks(linkSpec.referenceLinks.positive ++ linkSpec.referenceLinks.negative)
 
     // Update pool
     context.value() = context.value().copy(pool = pool)
@@ -133,8 +133,8 @@ class ActiveLearning(config: LearningConfiguration,
     }
 
     val updatedLinks = config.active.selector(weightedRules, context.value().pool.links.toSeq, completeEntities)
-
     context.value() = context.value().copy(links = updatedLinks)
+    context.log.fine(s"Selected top link candidate ${updatedLinks.head} using ${config.active.selector.toString}")
   }
 
   private def cleanPopulation(generator: LinkageRuleGenerator, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]): Unit = {
