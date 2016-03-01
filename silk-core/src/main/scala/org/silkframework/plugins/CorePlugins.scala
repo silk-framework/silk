@@ -32,7 +32,7 @@ import org.silkframework.plugins.transformer.numeric._
 import org.silkframework.plugins.transformer.replace.{RegexReplaceTransformer, ReplaceTransformer}
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import org.silkframework.plugins.transformer.value.{ConstantTransformer, RandomNumberTransformer}
+import org.silkframework.plugins.transformer.value.{ConstantUriTransformer, ConstantTransformer, RandomNumberTransformer}
 import org.silkframework.runtime.plugin.PluginModule
 
 /**
@@ -47,92 +47,93 @@ class CorePlugins extends PluginModule {
 
   private def transformers =
     classOf[RemoveDuplicates] ::
-        classOf[ReplaceTransformer] ::
-        classOf[RegexReplaceTransformer] ::
-        classOf[ConcatTransformer] ::
-        classOf[RemoveBlanksTransformer] ::
-        classOf[LowerCaseTransformer] ::
-        classOf[UpperCaseTransformer] ::
-        classOf[CapitalizeTransformer] ::
-        classOf[UrlEncodeTransformer] ::
-        classOf[StemmerTransformer] ::
-        classOf[StripPrefixTransformer] ::
-        classOf[StripPostfixTransformer] ::
-        classOf[StripUriPrefixTransformer] ::
-        classOf[AlphaReduceTransformer] ::
-        classOf[RemoveSpecialCharsTransformer] ::
-        classOf[ConvertCharsetTransformer] ::
-        classOf[RemoveValues] ::
-        classOf[RemoveStopwords] ::
-        classOf[RemoveEmptyValues] ::
-        classOf[RemoveParentheses] ::
-        classOf[TrimTransformer] ::
-        classOf[Tokenizer] ::
-        classOf[ConcatMultipleValuesTransformer] ::
-        classOf[MergeTransformer] ::
-        classOf[SpotlightTextVectorTransformer] ::
-        classOf[CamelCaseTokenizer] ::
-        classOf[NormalizeCharsTransformer] ::
-        classOf[FilterByLength] ::
-        classOf[FilterByRegex] ::
-        classOf[UntilCharacterTransformer] ::
-        classOf[SubstringTransformer] ::
-        classOf[SoundexTransformer] ::
-        classOf[NysiisTransformer] ::
-        classOf[MetaphoneTransformer] ::
-        classOf[ConstantTransformer] ::
-        classOf[RandomNumberTransformer] ::
-        // Conditional
-        classOf[IfContains] ::
-        classOf[IfExists] ::
-        // Numeric
-        classOf[NumReduceTransformer] ::
-        classOf[NumOperationTransformer] ::
-        classOf[LogarithmTransformer] ::
-        classOf[AggregateNumbersTransformer] ::
-        classOf[CompareNumbersTransformer] ::
-        classOf[CountTransformer] ::
-        classOf[PhysicalQuantityExtractor] ::
-        // Date
-        classOf[TimestampToDateTransformer] ::
-        classOf[DateToTimestampTransformer] ::
-        classOf[DurationTransformer] ::
-        classOf[DurationInSecondsTransformer] ::
-        classOf[DurationInDaysTransformer] ::
-        classOf[CompareDatesTransformer] ::
-        classOf[NumberToDurationTransformer] ::
-        classOf[ParseDateTransformer] :: Nil
+    classOf[ReplaceTransformer] ::
+    classOf[RegexReplaceTransformer] ::
+    classOf[ConcatTransformer] ::
+    classOf[RemoveBlanksTransformer] ::
+    classOf[LowerCaseTransformer] ::
+    classOf[UpperCaseTransformer] ::
+    classOf[CapitalizeTransformer] ::
+    classOf[UrlEncodeTransformer] ::
+    classOf[StemmerTransformer] ::
+    classOf[StripPrefixTransformer] ::
+    classOf[StripPostfixTransformer] ::
+    classOf[StripUriPrefixTransformer] ::
+    classOf[AlphaReduceTransformer] ::
+    classOf[RemoveSpecialCharsTransformer] ::
+    classOf[ConvertCharsetTransformer] ::
+    classOf[RemoveValues] ::
+    classOf[RemoveStopwords] ::
+    classOf[RemoveEmptyValues] ::
+    classOf[RemoveParentheses] ::
+    classOf[TrimTransformer] ::
+    classOf[Tokenizer] ::
+    classOf[ConcatMultipleValuesTransformer] ::
+    classOf[MergeTransformer] ::
+    classOf[SpotlightTextVectorTransformer] ::
+    classOf[CamelCaseTokenizer] ::
+    classOf[NormalizeCharsTransformer] ::
+    classOf[FilterByLength] ::
+    classOf[FilterByRegex] ::
+    classOf[UntilCharacterTransformer] ::
+    classOf[SubstringTransformer] ::
+    classOf[SoundexTransformer] ::
+    classOf[NysiisTransformer] ::
+    classOf[MetaphoneTransformer] ::
+    classOf[ConstantTransformer] ::
+    classOf[ConstantUriTransformer] ::
+    classOf[RandomNumberTransformer] ::
+    // Conditional
+    classOf[IfContains] ::
+    classOf[IfExists] ::
+    // Numeric
+    classOf[NumReduceTransformer] ::
+    classOf[NumOperationTransformer] ::
+    classOf[LogarithmTransformer] ::
+    classOf[AggregateNumbersTransformer] ::
+    classOf[CompareNumbersTransformer] ::
+    classOf[CountTransformer] ::
+    classOf[PhysicalQuantityExtractor] ::
+    // Date
+    classOf[TimestampToDateTransformer] ::
+    classOf[DateToTimestampTransformer] ::
+    classOf[DurationTransformer] ::
+    classOf[DurationInSecondsTransformer] ::
+    classOf[DurationInDaysTransformer] ::
+    classOf[CompareDatesTransformer] ::
+    classOf[NumberToDurationTransformer] ::
+    classOf[ParseDateTransformer] :: Nil
 
   private def measures =
     classOf[LevenshteinMetric] ::
-        classOf[LevenshteinDistance] ::
-        classOf[JaroDistanceMetric] ::
-        classOf[JaroWinklerDistance] ::
-        classOf[InsideNumericInterval] ::
-        classOf[QGramsMetric] ::
-        classOf[SubStringDistance] ::
-        classOf[EqualityMetric] ::
-        classOf[InequalityMetric] ::
-        classOf[LowerThanMetric] ::
-        classOf[NumMetric] ::
-        classOf[DateMetric] ::
-        classOf[DateTimeMetric] ::
-        classOf[GeographicDistanceMetric] ::
-        classOf[JaccardDistance] ::
-        classOf[DiceCoefficient] ::
-        classOf[SoftJaccardDistance] ::
-        classOf[TokenwiseStringDistance] ::
-        classOf[RelaxedEqualityMetric] ::
-        classOf[CosineDistanceMetric] ::
-        classOf[KoreanPhonemeDistance] ::
-        classOf[KoreanTranslitDistance] ::
-        classOf[CJKReadingDistance] ::
-        classOf[ConstantMetric] :: Nil
+    classOf[LevenshteinDistance] ::
+    classOf[JaroDistanceMetric] ::
+    classOf[JaroWinklerDistance] ::
+    classOf[InsideNumericInterval] ::
+    classOf[QGramsMetric] ::
+    classOf[SubStringDistance] ::
+    classOf[EqualityMetric] ::
+    classOf[InequalityMetric] ::
+    classOf[LowerThanMetric] ::
+    classOf[NumMetric] ::
+    classOf[DateMetric] ::
+    classOf[DateTimeMetric] ::
+    classOf[GeographicDistanceMetric] ::
+    classOf[JaccardDistance] ::
+    classOf[DiceCoefficient] ::
+    classOf[SoftJaccardDistance] ::
+    classOf[TokenwiseStringDistance] ::
+    classOf[RelaxedEqualityMetric] ::
+    classOf[CosineDistanceMetric] ::
+    classOf[KoreanPhonemeDistance] ::
+    classOf[KoreanTranslitDistance] ::
+    classOf[CJKReadingDistance] ::
+    classOf[ConstantMetric] :: Nil
 
   private def aggregators =
     classOf[AverageAggregator] ::
-        classOf[MaximumAggregator] ::
-        classOf[MinimumAggregator] ::
-        classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] :: Nil
+    classOf[MaximumAggregator] ::
+    classOf[MinimumAggregator] ::
+    classOf[QuadraticMeanAggregator] ::
+    classOf[GeometricMeanAggregator] :: Nil
 }
