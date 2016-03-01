@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 /**
   * Represents a plugin parameter type and provides serialization.
   *
-  * @tparam T The underlying type of this datatype, e.g., java.lang.Integer
+  * @tparam T The underlying type of this datatype, e.g., Int
   */
 sealed abstract class ParameterType[T : ClassTag] {
 
