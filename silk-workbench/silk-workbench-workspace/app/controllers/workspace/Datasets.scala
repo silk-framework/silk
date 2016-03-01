@@ -64,8 +64,10 @@ object Datasets extends Controller {
 
   def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String) = Action { request =>
     val project = User().workspace.project(projectName)
+    implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
     val datasetParams = request.queryString.mapValues(_.head)
-    val datasetPlugin = DatasetPlugin.apply(pluginId, datasetParams, project.resources)
+    val datasetPlugin = DatasetPlugin.apply(pluginId, datasetParams)
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
         Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfigured)))

@@ -1,5 +1,6 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.runtime.plugin.Parameter
+@import org.silkframework.runtime.plugin.ParameterType
 @import org.silkframework.runtime.plugin.AnyPlugin
 @import  org.silkframework.dataset.DatasetPluginAutoConfigurable
 @import controllers.core.routes.Assets
@@ -81,7 +82,7 @@
  *@
 @createField(pluginId: String, param: Parameter) = @{
   param.dataType match {
-    case Parameter.Type.Resource | Parameter.Type.WritableResource => createResourceField(pluginId, param)
+    case ParameterType.ResourceType | ParameterType.WritableResourceType => createResourceField(pluginId, param)
     case _ => createTextField(pluginId, param)
   }
 }

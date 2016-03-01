@@ -14,11 +14,13 @@
 
 package org.silkframework.learning.individual
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
+import org.silkframework.runtime.resource.EmptyResourceManager
 
 case class FunctionNode[T <: AnyPlugin](id: String, parameters: List[ParameterNode], factory: PluginFactory[T]) extends Node {
   def build() = {
-    factory(id, parameters.map(p => (p.key, p.value)).toMap)
+    factory(id, parameters.map(p => (p.key, p.value)).toMap)(Prefixes.empty, EmptyResourceManager)
   }
 }
 

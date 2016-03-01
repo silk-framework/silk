@@ -63,7 +63,7 @@ object TransformInput {
       val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
 
       try {
-        val transformer = Transformer((node \ "@function").text, Operator.readParams(node), resources)
+        val transformer = Transformer((node \ "@function").text, Operator.readParams(node))
         TransformInput(id, transformer, inputs.toList)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")

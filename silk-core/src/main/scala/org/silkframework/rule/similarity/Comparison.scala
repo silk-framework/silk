@@ -108,7 +108,7 @@ object Comparison {
         val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
         val weightStr = (node \ "@weight").text
         val indexingStr = (node \ "@indexing").text
-        val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node), resources)
+        val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node))
 
         Comparison(
           id = id,

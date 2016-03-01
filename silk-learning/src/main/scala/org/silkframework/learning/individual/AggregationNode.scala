@@ -14,7 +14,9 @@
 
 package org.silkframework.learning.individual
 
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.similarity.{Aggregation, Aggregator}
+import org.silkframework.runtime.resource.EmptyResourceManager
 
 case class AggregationNode(aggregation: String, weight: Int, required: Boolean, operators: List[OperatorNode]) extends OperatorNode {
   override val children = operators
@@ -28,7 +30,7 @@ case class AggregationNode(aggregation: String, weight: Int, required: Boolean, 
       required = required,
       weight = weight,
       operators = operators.map(_.build),
-      aggregator = Aggregator(aggregation, Map.empty)
+      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager)
     )
   }
 }

@@ -7,9 +7,9 @@ import org.silkframework.runtime.serialization.ValidationException
 /**
   * Represents a plugin parameter type and provides serialization.
   *
-  * @tparam T The underlying type of this datatype, e.g., scala.Int
+  * @tparam T The underlying type of this datatype, e.g., java.lang.Integer
   */
-sealed trait ParameterType[T] {
+sealed trait ParameterType[T <: AnyRef] {
 
   /**
     * Parses a value from its string representation.
@@ -37,7 +37,22 @@ sealed trait ParameterType[T] {
   */
 object ParameterType {
 
-  val all = Seq(StringType, CharType, IntType, DoubleType, BooleanType, ResourceType, WritableResourceType)
+  val all: Seq[ParameterType[_ <: AnyRef]] = {
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, ResourceType, WritableResourceType)
+  }
+
+  def forClass(dataClass: Class[_]): ParameterType[_ <: AnyRef] = {
+    dataClass.getName match {
+      case "java.lang.String" => StringType
+      case "char" => CharType
+      case "int" => IntType
+      case "double" => DoubleType
+      case "boolean" => BooleanType
+      case "org.silkframework.runtime.resource.Resource" => ResourceType
+      case "org.silkframework.runtime.resource.WritableResource" => WritableResourceType
+      case name => throw new InvalidPluginException("Unsupported parameter type: " + name)
+    }
+  }
 
   object StringType extends ParameterType[String] {
 
@@ -47,34 +62,34 @@ object ParameterType {
 
   }
 
-  object CharType extends ParameterType[Char] {
+  object CharType extends ParameterType[Character] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Char = {
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Character = {
       if(str.length == 1) Char.box(str(0))
       else throw new ValidationException("Value must be a single character.")
     }
 
   }
 
-  object IntType extends ParameterType[Int] {
+  object IntType extends ParameterType[Integer] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Integer = {
       Int.box(str.toInt)
     }
 
   }
 
-  object DoubleType extends ParameterType[Double] {
+  object DoubleType extends ParameterType[java.lang.Double] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): java.lang.Double = {
       Double.box(str.toDouble)
     }
 
   }
 
-  object BooleanType extends ParameterType[Boolean] {
+  object BooleanType extends ParameterType[java.lang.Boolean] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Boolean = {
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): java.lang.Boolean = {
       str.toLowerCase match {
         case "true" | "1" => Boolean.box(true)
         case "false" | "0" => Boolean.box(false)

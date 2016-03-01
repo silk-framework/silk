@@ -44,6 +44,8 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
 
   private val taskActivities: Seq[TaskActivity[DataType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
+    implicit val prefixes = module.project.config.prefixes
+    implicit val resources = module.project.resources
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[DataType])
     var activities = List[TaskActivity[DataType, _ <: HasValue]]()
     for(factory <- factories) {

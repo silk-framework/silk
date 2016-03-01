@@ -14,6 +14,7 @@
 
 package org.silkframework.runtime.plugin
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
 import scala.reflect.ClassTag
@@ -26,8 +27,8 @@ class PluginFactory[T: ClassTag] {
   /**
    * Creates a new instance of a specific plugin.
    */
-  def apply(id: String, params: Map[String, String] = Map.empty, resources: ResourceManager = EmptyResourceManager): T = {
-    PluginRegistry.create(id, params, resources)
+  def apply(id: String, params: Map[String, String] = Map.empty)(implicit prefixes: Prefixes, resourceManager: ResourceManager): T = {
+    PluginRegistry.create(id, params)
   }
 
   /**

@@ -37,6 +37,8 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
 
   def update(config: Map[String, String]) = {
     val oldControl = currentControl
+    implicit val prefixes = task.project.config.prefixes
+    implicit val resources = task.project.resources
     currentFactory = PluginDescription(currentFactory.getClass)(config)
     currentControl = Activity(currentFactory(task))
     // Keep subscribers

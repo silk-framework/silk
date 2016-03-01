@@ -26,6 +26,8 @@ class ProjectActivity(val project: Project, initialFactory: ProjectActivityFacto
 
   def update(config: Map[String, String]) = {
     val oldControl = currentControl
+    implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
     currentFactory = PluginDescription(currentFactory.getClass)(config)
     currentControl = Activity(currentFactory(project))
     // Keep subscribers

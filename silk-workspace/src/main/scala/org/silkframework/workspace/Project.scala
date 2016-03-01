@@ -71,7 +71,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     var activities = List[ProjectActivity]()
     for(factory <- factories) {
       try {
-        activities ::= new ProjectActivity(this, factory())
+        activities ::= new ProjectActivity(this, factory()(config.prefixes, resources))
       } catch {
         case NonFatal(ex) => logger.log(Level.WARNING, s"Could not load project activity '$factory' in project '${initialConfig.id}'.", ex)
       }

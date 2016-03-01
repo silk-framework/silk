@@ -70,6 +70,8 @@ object WorkspaceApi extends Controller {
 
   def executeProject(projectName: String) = Action {
     val project = User().workspace.project(projectName)
+    implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
     if(projectExecutors.isEmpty)

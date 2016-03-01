@@ -111,7 +111,7 @@ object Aggregation {
       val requiredStr = (node \ "@required").text
       val weightStr = (node \ "@weight").text
 
-      val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node), resources)
+      val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node))
 
       Aggregation(
         id = Operator.readId(node),

@@ -136,7 +136,7 @@ object Dataset {
         val id = (node \ "@id").text
         new Dataset(
           id = if(id.nonEmpty) id else Identifier.random,
-          plugin = DatasetPlugin((node \ "@type").text, readParams(node), resources),
+          plugin = DatasetPlugin((node \ "@type").text, readParams(node)),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -147,7 +147,7 @@ object Dataset {
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new Dataset(
           id = if(id.nonEmpty) id else Identifier.random,
-          plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode), resources),
+          plugin = DatasetPlugin((sourceNode \ "@type").text, readParams(sourceNode)),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )

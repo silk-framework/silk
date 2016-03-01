@@ -17,9 +17,12 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{Constructor, InvocationTargetException}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.ValidationException
 import org.silkframework.util.Identifier
+
+import scala.util.control.NonFatal
 
 /**
  * Describes a plugin.
@@ -36,8 +39,8 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
   /**
    * Creates a new instance of this plugin.
    */
-  def apply(parameterValues: Map[String, String] = Map.empty, resources: ResourceManager = EmptyResourceManager): T = {
-    val parsedParameters = parseParameters(parameterValues, resources)
+  def apply(parameterValues: Map[String, String] = Map.empty)(implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager): T = {
+    val parsedParameters = parseParameters(parameterValues)
     try {
       constructor.newInstance(parsedParameters: _*)
     } catch {
@@ -54,29 +57,14 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
 
   override def toString = label
 
-  private def parseParameters(parameterValues: Map[String, String], resourceLoader: ResourceManager): Seq[AnyRef] = {
+  private def parseParameters(parameterValues: Map[String, String])(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.get(parameter.name) match {
         case Some(v) =>
           try {
-            parameter.dataType match {
-              case Parameter.Type.String => v
-              case Parameter.Type.Char =>
-                if(v.length == 1) Char.box(v(0))
-                else throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a single character.")
-              case Parameter.Type.Int => Int.box(v.toInt)
-              case Parameter.Type.Double => Double.box(v.toDouble)
-              case Parameter.Type.Boolean => v.toLowerCase match {
-                case "true" | "1" => Boolean.box(true)
-                case "false" | "0" => Boolean.box(false)
-                case _ => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be either 'true' or 'false'")
-              }
-              case Parameter.Type.Resource => resourceLoader.get(v, mustExist = false)
-              case Parameter.Type.WritableResource => resourceLoader.get(v, mustExist = false)
-            }
-          }
-          catch {
-            case ex: NumberFormatException => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be of type " + parameter.dataType, ex)
+            parameter.dataType.fromString(v)
+          } catch {
+            case NonFatal(ex) => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be of type " + parameter.dataType, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
@@ -152,16 +140,7 @@ object PluginDescription {
 
       val dataType = parType match {
         case parClass: Class[_] =>
-          parClass.getName match {
-            case "java.lang.String" => Parameter.Type.String
-            case "char" => Parameter.Type.Char
-            case "int" => Parameter.Type.Int
-            case "double" => Parameter.Type.Double
-            case "boolean" => Parameter.Type.Boolean
-            case "org.silkframework.runtime.resource.Resource" => Parameter.Type.Resource
-            case "org.silkframework.runtime.resource.WritableResource" => Parameter.Type.WritableResource
-            case _ => throw new InvalidPluginException("Unsupported parameter type: " + parType)
-          }
+          ParameterType.forClass(parClass)
         case _ =>
           throw new InvalidPluginException("Unsupported parameter type in plugin " + pluginClass.getName + ": " + parType)
       }

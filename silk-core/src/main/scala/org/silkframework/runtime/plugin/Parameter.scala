@@ -15,7 +15,7 @@
 package org.silkframework.runtime.plugin
 
 case class Parameter(name: String,
-                     dataType: Parameter.Type,
+                     dataType: ParameterType[_ <: AnyRef],
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
                      exampleValue: Option[AnyRef] = None) {
@@ -26,19 +26,4 @@ case class Parameter(name: String,
   def apply(obj: AnyRef): AnyRef = {
     obj.getClass.getMethod(name).invoke(obj)
   }
-}
-
-object Parameter {
-
-  object Type extends Enumeration {
-    val String = Value("String")
-    val Char = Value("Char")
-    val Int = Value("Int")
-    val Double = Value("Double")
-    val Boolean = Value("Boolean")
-    val Resource = Value("Resource")
-    val WritableResource = Value("WritableResource")
-  }
-
-  type Type = Type.Value
 }
