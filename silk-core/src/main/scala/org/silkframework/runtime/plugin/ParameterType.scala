@@ -15,10 +15,9 @@ import scala.reflect.ClassTag
 sealed abstract class ParameterType[T : ClassTag] {
 
   /**
-    * The underlying type of this datatype.
-    * Must be overwritten if a primitive type should be detected.
+    * The underlying type.
     */
-  def typeName = implicitly[ClassTag[T]].runtimeClass.getName
+  def dataType = implicitly[ClassTag[T]].runtimeClass
 
   /**
     * Parses a value from its string representation.
@@ -38,6 +37,11 @@ sealed abstract class ParameterType[T : ClassTag] {
     * @return The string representation of the value that can be parsed by calling fromString on the same datatype.
     */
   def toString(value: T): String = value.toString
+
+  /**
+    * Short name of this type.
+    */
+  override def toString = dataType.getSimpleName
 
 }
 
@@ -59,7 +63,7 @@ object ParameterType {
     * @throws InvalidPluginException If no parameter type is available for the given class.
     */
   def forClass(dataClass: Class[_]): ParameterType[_] = {
-    all.find(_.typeName == dataClass.getName)
+    all.find(_.dataType.getName == dataClass.getName)
        .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataClass))
   }
 
