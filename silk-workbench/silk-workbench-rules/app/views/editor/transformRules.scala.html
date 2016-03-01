@@ -196,7 +196,7 @@
             <input class="name" value="@rule.name" size="16" style="width:100%" />
           </td>
           <td style="padding-right: 10px">
-            <input class="type" value="@rule.typeUri" size="45" style="width:100%" />
+            <input class="type" value="@rule.typeUri.serialize(context.project.config.prefixes)" size="45" style="width:100%" />
           </td>
         </tr>
       </table>

@@ -3,7 +3,7 @@ package org.silkframework.rule
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Path}
 import org.silkframework.plugins.transformer.combine.ConcatTransformer
-import org.silkframework.plugins.transformer.value.ConstantTransformer
+import org.silkframework.plugins.transformer.value.{ConstantUriTransformer, ConstantTransformer}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
@@ -117,7 +117,7 @@ case class ObjectMapping(name: Identifier = "object", pattern: String = "http://
  */
 case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing") extends TransformRule {
 
-  override val operator = TransformInput(transformer = ConstantTransformer(typeUri.uri))
+  override val operator = TransformInput(transformer = ConstantUriTransformer(typeUri))
 
   override val target = Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
 }
@@ -177,6 +177,9 @@ object TransformRule {
       ObjectMapping(id, buildPattern(inputs), target)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))) =>
+      TypeMapping(id, typeUri)
+    // Type Mapping (old style, to be removed)
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))) =>
       TypeMapping(id, typeUri)
     // Complex Mapping
     case _ => complexMapping

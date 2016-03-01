@@ -215,7 +215,7 @@ function serializeTypeMapping(xmlDoc, name, type) {
 
   // Input is the constant type URI
   var transformXml = xmlDoc.createElement("TransformInput");
-  transformXml.setAttribute("function", "constant");
+  transformXml.setAttribute("function", "constantUri");
 
   var paramXml = xmlDoc.createElement("Param");
   paramXml.setAttribute("name", "value");
