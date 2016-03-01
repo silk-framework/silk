@@ -15,7 +15,7 @@
 package org.silkframework.runtime.plugin
 
 case class Parameter(name: String,
-                     dataType: ParameterType[_ <: AnyRef],
+                     dataType: ParameterType[_],
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
                      exampleValue: Option[AnyRef] = None) {

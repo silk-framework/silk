@@ -62,7 +62,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
       parameterValues.get(parameter.name) match {
         case Some(v) =>
           try {
-            parameter.dataType.fromString(v)
+            parameter.dataType.fromString(v).asInstanceOf[AnyRef]
           } catch {
             case NonFatal(ex) => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be of type " + parameter.dataType, ex)
           }

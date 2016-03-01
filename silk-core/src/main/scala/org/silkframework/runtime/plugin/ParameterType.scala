@@ -3,13 +3,22 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{WritableResource, Resource, EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.util.Uri
+
+import scala.reflect.ClassTag
 
 /**
   * Represents a plugin parameter type and provides serialization.
   *
   * @tparam T The underlying type of this datatype, e.g., java.lang.Integer
   */
-sealed trait ParameterType[T <: AnyRef] {
+sealed abstract class ParameterType[T : ClassTag] {
+
+  /**
+    * The underlying type of this datatype.
+    * Must be overwritten if a primitive type should be detected.
+    */
+  def typeName = implicitly[ClassTag[T]].runtimeClass.getName
 
   /**
     * Parses a value from its string representation.
@@ -37,21 +46,21 @@ sealed trait ParameterType[T <: AnyRef] {
   */
 object ParameterType {
 
-  val all: Seq[ParameterType[_ <: AnyRef]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, ResourceType, WritableResourceType)
+  /**
+    * All available paramter types.
+    */
+  val all: Seq[ParameterType[_]] = {
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, UriType, ResourceType, WritableResourceType)
   }
 
-  def forClass(dataClass: Class[_]): ParameterType[_ <: AnyRef] = {
-    dataClass.getName match {
-      case "java.lang.String" => StringType
-      case "char" => CharType
-      case "int" => IntType
-      case "double" => DoubleType
-      case "boolean" => BooleanType
-      case "org.silkframework.runtime.resource.Resource" => ResourceType
-      case "org.silkframework.runtime.resource.WritableResource" => WritableResourceType
-      case name => throw new InvalidPluginException("Unsupported parameter type: " + name)
-    }
+  /**
+    * Retrieves the parameter type for a specific underlying class.
+    *
+    * @throws InvalidPluginException If no parameter type is available for the given class.
+    */
+  def forClass(dataClass: Class[_]): ParameterType[_] = {
+    all.find(_.typeName == dataClass.getName)
+       .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataClass))
   }
 
   object StringType extends ParameterType[String] {
@@ -62,41 +71,48 @@ object ParameterType {
 
   }
 
-  object CharType extends ParameterType[Character] {
+  object CharType extends ParameterType[Char] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Character = {
-      if(str.length == 1) Char.box(str(0))
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Char = {
+      if(str.length == 1) str(0)
       else throw new ValidationException("Value must be a single character.")
     }
 
   }
 
-  object IntType extends ParameterType[Integer] {
+  object IntType extends ParameterType[Int] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Integer = {
-      Int.box(str.toInt)
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
+      str.toInt
     }
 
   }
 
-  object DoubleType extends ParameterType[java.lang.Double] {
+  object DoubleType extends ParameterType[Double] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): java.lang.Double = {
-      Double.box(str.toDouble)
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
+      str.toDouble
     }
 
   }
 
-  object BooleanType extends ParameterType[java.lang.Boolean] {
+  object BooleanType extends ParameterType[Boolean] {
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): java.lang.Boolean = {
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Boolean = {
       str.toLowerCase match {
-        case "true" | "1" => Boolean.box(true)
-        case "false" | "0" => Boolean.box(false)
+        case "true" | "1" => true
+        case "false" | "0" => false
         case _ => throw new ValidationException("Value must be either 'true' or 'false'")
       }
     }
 
+  }
+
+  object UriType extends ParameterType[Uri] {
+
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
+      Uri.fromQualifiedName(str, prefixes)
+    }
   }
 
   object ResourceType extends ParameterType[Resource] {
