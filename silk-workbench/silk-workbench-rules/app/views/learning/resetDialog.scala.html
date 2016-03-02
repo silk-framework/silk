@@ -1,0 +1,27 @@
+@import controllers.linking.routes
+
+@(project: String, task: String)
+
+@widgets.dialog(title = "Reset active learning", width = 500) {
+<div>
+  This will remove all reference links from this task and restart active learning!
+</div>
+<div>
+  <button title="Reset active learning" onclick='resetActiveLearning()'>Reset</button>
+</div>
+
+<script>
+  function resetActiveLearning() {
+    $.ajax({
+      type: 'POST',
+      url: '@routes.Learning.resetActiveLearning(project, task)',
+      success: function(data) {
+        window.location.reload();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    });
+  }
+  </script>
+}

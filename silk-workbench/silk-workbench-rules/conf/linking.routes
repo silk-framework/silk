@@ -34,6 +34,8 @@ GET           /:project/:task/learn/population                                  
 GET           /:project/:task/learn/populationView/:page                                    controllers.linking.Learning.populationView(project: String, task: String, page: Int)
 GET           /:project/:task/activeLearnDetails                                            controllers.linking.Learning.activeLearnDetails(project: String, task: String)
 GET           /:project/:task/activeLearn/candidate/:decision/:source/:target               controllers.linking.Learning.activeLearnCandidate(project: String, task: String, decision: String, source: String, target: String)
+GET           /:project/:task/activeLearn/resetDialog                                       controllers.linking.Learning.resetActiveLearningDialog(project: String, task: String)
+POST          /:project/:task/activeLearn/reset                                             controllers.linking.Learning.resetActiveLearning(project: String, task: String)
 
 # API
 GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String)

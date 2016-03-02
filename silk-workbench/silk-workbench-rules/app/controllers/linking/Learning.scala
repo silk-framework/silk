@@ -7,6 +7,7 @@ import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import org.silkframework.config.LinkSpecification
 import org.silkframework.entity.{Link, Path}
+import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
@@ -136,6 +137,24 @@ object Learning extends Controller {
     val population = getPopulation(task)
 
     Ok(views.html.learning.rule(population, referenceLinks))
+  }
+
+  def resetActiveLearningDialog(projectName: String, taskName: String) = Action {
+    Ok(views.html.learning.resetDialog(projectName, taskName))
+  }
+
+  def resetActiveLearning(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[LinkSpecification](taskName)
+
+    // Reset reference links
+    task.activity[ReferenceEntitiesCache].control.reset()
+    task.update(task.data.copy(referenceLinks = ReferenceLinks.empty))
+
+    // Reset active learning activity
+    task.activity[ActiveLearning].reset()
+
+    Ok
   }
 
   def ruleStream(projectName: String, taskName: String) = Action {

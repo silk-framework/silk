@@ -53,6 +53,9 @@
       <button onclick="back()">Back</button>
     </li>
     <li>
+      <button onclick="showDialog('@routes.Learning.resetActiveLearningDialog(context.project.name, context.task.name)')">Reset</button>
+    </li>
+    <li>
       <button onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.name)')">Details</button>
     </li>
   </ul>

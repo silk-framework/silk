@@ -36,17 +36,18 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)
 
   def reset() = {
-    implicit val prefixes = task.project.config.prefixes
-    implicit val resources = task.project.resources
-    currentFactory = PluginDescription(currentFactory.getClass)(config)
-    currentControl = Activity(currentFactory(task))
+    recreateControl()
   }
 
   def update(config: Map[String, String]) = {
-    val oldControl = currentControl
     implicit val prefixes = task.project.config.prefixes
     implicit val resources = task.project.resources
     currentFactory = PluginDescription(currentFactory.getClass)(config)
+    recreateControl()
+  }
+
+  private def recreateControl() = {
+    val oldControl = currentControl
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
     for(subscriber <- oldControl.status.subscribers) {
