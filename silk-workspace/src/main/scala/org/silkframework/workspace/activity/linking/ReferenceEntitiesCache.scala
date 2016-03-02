@@ -64,25 +64,37 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
         context.value().unlabeledLinkToEntities
       )
 
+      var sourceEntities = Map[String, Entity]()
+      var targetEntities = Map[String, Entity]()
+
       val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
       val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
       for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
-          // TODO if there are already entities attached to a link, we do not need to load the entities
           link.entities match {
             case Some(entities) =>
-              collectEntitiesNeedingUpdate(sourceEntityUrisNeedingUpdate, entities.source, entityDescs.source)
-              collectEntitiesNeedingUpdate(targetEntityUrisNeedingUpdate, entities.target, entityDescs.target)
+              // There are already entities attached to the link that we might reuse
+              if (entityMatchesDescription(entities.source, entityDescs.source)) {
+                sourceEntities += ((entities.source.uri, entities.source))
+              } else {
+                sourceEntityUrisNeedingUpdate.add(link.source)
+              }
+              if (entityMatchesDescription(entities.target, entityDescs.target)) {
+                targetEntities += ((entities.target.uri, entities.target))
+              } else {
+                targetEntityUrisNeedingUpdate.add(link.target)
+              }
             case None =>
               sourceEntityUrisNeedingUpdate.add(link.source)
               targetEntityUrisNeedingUpdate.add(link.target)
           }
         }
       }
-      val sourceEntities: Map[String, Entity] = getSourceEntities(sourceEntityUrisNeedingUpdate)
+
+      sourceEntities ++= getSourceEntities(sourceEntityUrisNeedingUpdate)
       context.status.updateProgress(0.5)
-      val targetEntities: Map[String, Entity] = getTargetEntities(targetEntityUrisNeedingUpdate)
+      targetEntities ++= getTargetEntities(targetEntityUrisNeedingUpdate)
       context.status.updateProgress(0.99)
 
       // Add new entities to reference entities
@@ -107,14 +119,6 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
         targetEntityUrisNeedingUpdate.asScala.toSeq,
         entityDescs.target,
         sources.target)
-    }
-
-    private def collectEntitiesNeedingUpdate(entities: util.HashSet[String],
-                                             entity: Entity,
-                                             entityDescription: EntitySchema): Unit = {
-      if (entityMatchesDescription(entity, entityDescription)) {
-        entities.add(entity.uri)
-      }
     }
 
     private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]] = {
