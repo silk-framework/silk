@@ -60,7 +60,11 @@ object Learning extends Controller {
     val context = Context.get[LinkSpecification](project, task, request.path)
     val prefixes = context.project.config.prefixes
     val activeLearn = context.task.activity[ActiveLearning].control
-    val linkCandidate = new Link(linkSource, linkTarget)
+    // Try to find the chosen link candidate in the pool, because the pool links have entities attached
+    val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
+      case Some(l) => l
+      case None => new Link(linkSource, linkTarget)
+    }
 
     // Commit link candidate
     decision match {
