@@ -42,6 +42,8 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
                           linkSpec: LinkSpecification,
                           paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
 
+    override val initialValue = Some(UnlabeledLinkPool.empty)
+
     private val maxLinks = 1000
 
     private var generateLinksActivity: ActivityControl[Linking] = _

@@ -24,12 +24,12 @@ import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
 import org.silkframework.rule.LinkageRule
+import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.{DPair, Timer}
 
 import scala.math.max
 
-//TODO support canceling
 class ActiveLearning(config: LearningConfiguration,
                      datasets: DPair[DataSource],
                      linkSpec: LinkSpecification,
@@ -107,6 +107,7 @@ class ActiveLearning(config: LearningConfiguration,
     val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     var population = context.value().population
     for(i <- 0 until config.params.maxIterations
+        if !context.status().isInstanceOf[Canceling]
         if i > 0 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
       population = context.child(new Reproduction(population, fitnessFunction, generator, config)).startBlockingAndGetValue()
@@ -118,27 +119,29 @@ class ActiveLearning(config: LearningConfiguration,
     context.value() = context.value().copy(population = population)
   }
 
-  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Selecting links") {
-    context.status.update("Selecting evaluation links", 0.8)
+  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]): Unit = Timer("Selecting links") {
+    if(!context.status().isInstanceOf[Canceling]) {
+      context.status.update("Selecting evaluation links", 0.8)
 
-    //TODO measure improvement of randomization
-    val randomizedPopulation = context.child(new Randomize(context.value().population, fitnessFunction, generator, config)).startBlockingAndGetValue()
+      //TODO measure improvement of randomization
+      val randomizedPopulation = context.child(new Randomize(context.value().population, fitnessFunction, generator, config)).startBlockingAndGetValue()
 
-    val weightedRules = {
-      val bestFitness = randomizedPopulation.bestIndividual.fitness
-      val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
-      for(individual <- topIndividuals) yield {
-        new WeightedLinkageRule(individual.node.build.operator, max(0.0001, individual.fitness))
+      val weightedRules = {
+        val bestFitness = randomizedPopulation.bestIndividual.fitness
+        val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
+        for (individual <- topIndividuals) yield {
+          new WeightedLinkageRule(individual.node.build.operator, max(0.0001, individual.fitness))
+        }
       }
-    }
 
-    val updatedLinks = config.active.selector(weightedRules, context.value().pool.links.toSeq, completeEntities)
-    context.value() = context.value().copy(links = updatedLinks)
-    context.log.fine(s"Selected top link candidate ${updatedLinks.head} using ${config.active.selector.toString}")
+      val updatedLinks = config.active.selector(weightedRules, context.value().pool.links.toSeq, completeEntities)
+      context.value() = context.value().copy(links = updatedLinks)
+      context.log.fine(s"Selected top link candidate ${updatedLinks.head} using ${config.active.selector.toString}")
+    }
   }
 
   private def cleanPopulation(generator: LinkageRuleGenerator, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]): Unit = {
-    if(referenceEntities.isDefined) {
+    if(referenceEntities.isDefined && !context.status().isInstanceOf[Canceling]) {
       val cleanedPopulation = context.child(new CleanPopulationTask(context.value().population, fitnessFunction, generator)).startBlockingAndGetValue()
       context.value() = context.value().copy(population = cleanedPopulation)
     }

@@ -26,6 +26,8 @@ import scala.util.Random
  */
 class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule], generator: LinkageRuleGenerator, config: LearningConfiguration) extends Activity[Population] {
 
+  override val initialValue = Some(Population.empty)
+
   override def run(context: ActivityContext[Population]): Unit = {
     val individuals = for(i <- (0 until config.params.populationSize).par) yield {
       context.status.updateProgress(i.toDouble / config.params.populationSize, logStatus = false)
