@@ -23,6 +23,7 @@ import org.silkframework.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkageRule, Operator}
+import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
 import org.silkframework.util.{DPair, Identifier}
 
@@ -69,11 +70,12 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       generateLinksActivity.startBlocking()
 
       val generatedLinks = op.getLinks()
-      assert(generatedLinks.nonEmpty, "Could not load any links")
+      assert(generatedLinks.nonEmpty || context.status().isInstanceOf[Canceling], "Could not load any links")
 
-      val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
-
-      context.value.update(UnlabeledLinkPool(entityDesc, generatedLinks ++ shuffledLinks))
+      if(generatedLinks.nonEmpty) {
+        val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
+        context.value.update(UnlabeledLinkPool(entityDesc, generatedLinks ++ shuffledLinks))
+      }
     }
 
     private class SampleOperator() extends SimilarityOperator {

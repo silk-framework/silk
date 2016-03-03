@@ -131,7 +131,7 @@ object Learning extends Controller {
       case Some(link) =>
         Ok(views.html.learning.linkCandidate(link, DPair.generate(values(link)), context))
       case None =>
-        Ok("No link candidate could be generated!")
+        Ok("No link candidate generated, please wait for completion or restart...")
     }
   }
 
