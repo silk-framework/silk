@@ -2,6 +2,8 @@ package org.silkframework.runtime.activity
 
 import java.util.logging.Logger
 
+import org.silkframework.runtime.activity.Status.Canceling
+
 private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,
                                    progressContribution: Double = 0.0) extends Runnable with ActivityControl[T] with ActivityContext[T] {
@@ -33,14 +35,16 @@ private class ActivityExecution[T](activity: Activity[T],
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   override def run(): Unit = synchronized {
-    val startTime = System.currentTimeMillis
-    try {
-      activity.run(this)
-      status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
-    } catch {
-      case ex: Throwable =>
-        status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
-        throw ex
+    if(!parent.exists(_.status().isInstanceOf[Canceling])) {
+      val startTime = System.currentTimeMillis
+      try {
+        activity.run(this)
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+      } catch {
+        case ex: Throwable =>
+          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
+          throw ex
+      }
     }
   }
 
