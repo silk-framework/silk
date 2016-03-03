@@ -16,7 +16,8 @@
       type: 'POST',
       url: '@routes.Learning.resetActiveLearning(project, task)',
       success: function(data) {
-        window.location.reload();
+        closeDialog();
+        showLinkCandidate();
       },
       error: function(request) {
         alert(request.responseText);

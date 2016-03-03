@@ -83,22 +83,22 @@ object Learning extends Controller {
 
     // Pick the next link candidate
     val links = activeLearn.value().links
-    val nextLinkCandidate =
+    val nextLinkCandidate: Option[Link] =
       if(links.isEmpty) {
         log.info("Selecting link candidate: No previous candidates available, waiting until learning task is finished.")
         activeLearn.waitUntilFinished()
-        activeLearn.value().links.head
+        activeLearn.value().links.headOption
       } else if(finished) {
         log.info("Selecting link candidate: A learning task finished, thus selecting its top link candidate (if it hasn't been selected just before).")
-        links.find(_ != linkCandidate).get
+        links.find(_ != linkCandidate)
       } else if(links.last == linkCandidate) {
         log.info("Selecting link candidate: No remaining link candidates in current learning task, waiting for the next task to finish.")
         activeLearn.waitUntilFinished()
-        activeLearn.value().links.head
+        activeLearn.value().links.headOption
       } else {
         val currentIndex = links.indexOf(linkCandidate)
         log.info(s"Selecting link candidate: Learning task still running, thus selecting next candidate with index ${currentIndex + 1} from list.")
-        links(currentIndex + 1)
+        Some(links(currentIndex + 1))
       }
 
     /**
@@ -122,14 +122,22 @@ object Learning extends Controller {
       sortedSchemaPaths
     }
 
-    def values(sourceOrTarget: Boolean) = {
+    def values(link: Link)(sourceOrTarget: Boolean) = {
       val paths = sortedPaths(sourceOrTarget)
-      for(path <- paths) yield (path.serializeSimplified(prefixes), nextLinkCandidate.entities.get.select(sourceOrTarget).evaluate(path))
+      for(path <- paths) yield (path.serializeSimplified(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
-    Ok(views.html.learning.linkCandidate(nextLinkCandidate, DPair.generate(values), context))
+    nextLinkCandidate match {
+      case Some(link) =>
+        Ok(views.html.learning.linkCandidate(link, DPair.generate(values(link)), context))
+      case None =>
+        Ok("No link candidate could be generated!")
+    }
   }
 
+  /**
+    * Renders the top linkage rule in the current population.
+    */
   def rule(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
@@ -139,10 +147,16 @@ object Learning extends Controller {
     Ok(views.html.learning.rule(population, referenceLinks))
   }
 
+  /**
+    * Shows the dialog for resetting the active learning activity.
+    */
   def resetActiveLearningDialog(projectName: String, taskName: String) = Action {
     Ok(views.html.learning.resetDialog(projectName, taskName))
   }
 
+  /**
+    * Resets the active learning activity.
+    */
   def resetActiveLearning(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)

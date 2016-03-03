@@ -36,6 +36,7 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)
 
   def reset() = {
+    currentControl.cancel()
     recreateControl()
   }
 

@@ -27,6 +27,9 @@
     }
 
     function showLinkCandidate() {
+      // Show pending icon
+      $('#link-candidate-wrapper').html('<img src="@Assets.at("img/pending.gif")" ></img>');
+      // Request next link candidate
       var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.pass, "_", "_").url';
       $.get(
         url,
