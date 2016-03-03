@@ -20,6 +20,7 @@ import org.silkframework.entity.{Entity, Index, Link, Path}
 import org.silkframework.execution.{GenerateLinks, Linking}
 import org.silkframework.learning.active.UnlabeledLinkPool
 import org.silkframework.plugins.distance.equality.EqualityMetric
+import org.silkframework.plugins.transformer.normalize.TrimTransformer
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkageRule, Operator}
@@ -70,7 +71,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       generateLinksActivity.startBlocking()
 
       val generatedLinks = op.getLinks()
-      assert(generatedLinks.nonEmpty || context.status().isInstanceOf[Canceling], "Could not load any links")
+      assert(generatedLinks.nonEmpty || context.status().isInstanceOf[Canceling], "The unlabeled pool generator could not find any link candidates")
 
       if(generatedLinks.nonEmpty) {
         val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
@@ -91,6 +92,8 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       val metric = EqualityMetric()
 
+      val transforms = Seq(TrimTransformer())
+
       val maxDistance = 0.0
 
       /** Maximum number of indices per property. If a property has more indices the remaining indices are ignored. */
@@ -99,8 +102,12 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       def apply(entities: DPair[Entity], limit: Double = 0.0): Option[Double] = {
         for ((sourcePath, sourceIndex) <- paths.source.zipWithIndex;
              (targetPath, targetIndex) <- paths.target.zipWithIndex) {
-          val sourceValues = entities.source.evaluate(sourcePath)
-          val targetValues = entities.target.evaluate(targetPath)
+          var sourceValues = entities.source.evaluate(sourcePath)
+          var targetValues = entities.target.evaluate(targetPath)
+          for(transform <- transforms) {
+            sourceValues = transform(Seq(sourceValues))
+            targetValues = transform(Seq(targetValues))
+          }
           val size = links(sourceIndex)(targetIndex).size
           val labelLinks = links(0)(0).size
 
@@ -130,7 +137,12 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
         val inputs = if(sourceOrTarget) sourceInputs else targetInputs
 
-        val index = inputs.map(i => i(entity)).map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
+        var inputValues = inputs.map(i => i(entity))
+        for(transform <- transforms) {
+          inputValues = inputValues.map(values => transform(Seq(values)))
+        }
+
+        val index = inputValues.map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
 
         index
       }
