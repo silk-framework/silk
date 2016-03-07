@@ -25,6 +25,7 @@ import org.silkframework.plugins.transformer.combine.{ConcatMultipleValuesTransf
 import org.silkframework.plugins.transformer.conditional.{IfContains, IfExists}
 import org.silkframework.plugins.transformer.conversion.ConvertCharsetTransformer
 import org.silkframework.plugins.transformer.date._
+import org.silkframework.plugins.transformer.extraction.RegexExtractionTransformer
 import org.silkframework.plugins.transformer.filter._
 import org.silkframework.plugins.transformer.linguistic._
 import org.silkframework.plugins.transformer.normalize._
@@ -49,6 +50,7 @@ class CorePlugins extends PluginModule {
     classOf[RemoveDuplicates] ::
     classOf[ReplaceTransformer] ::
     classOf[RegexReplaceTransformer] ::
+    classOf[RegexExtractionTransformer] ::
     classOf[ConcatTransformer] ::
     classOf[RemoveBlanksTransformer] ::
     classOf[LowerCaseTransformer] ::
