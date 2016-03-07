@@ -89,4 +89,15 @@ class CsvSourceTest extends FlatSpec with Matchers {
       noSeparatorSettings
     ) shouldBe None
   }
+
+  "CsvSourceHelper" should "escape and unescape standard fields correctly" in {
+    val input = """I said: "What, It escaped?""""
+    val line = CsvSourceHelper.serialize(Seq(input, input, input))
+    val back = CsvSourceHelper.parse(line)
+    for(str <- back) {
+      str shouldBe input
+    }
+    val normal = CsvSourceHelper.serialize(Seq("Just a normal string", "and, not normal"))
+    normal shouldBe "Just a normal string,\"and, not normal\""
+  }
 }
