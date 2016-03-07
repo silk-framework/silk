@@ -1,10 +1,8 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.File
-
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{FileResource, Resource}
+import org.silkframework.runtime.resource.Resource
 
 import scala.io.Codec
 
@@ -20,7 +18,7 @@ case class CsvDataset
     file: Resource,
     @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
     properties: String = "",
-    @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. '\t' for specifying tab-separated values, is also supported.")
+    @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. '\\t' for specifying tab-separated values, is also supported.")
     separator: String = ",",
     @Param("The character that is used to separate the parts of array values.")
     arraySeparator: String = "",
@@ -72,17 +70,19 @@ case class CsvDataset
       detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
+    // Skip one more line if header was detected and property list set
+    val skipHeader = if(csvSource.propertyList.size > 0) 1 else 0
     CsvDataset(
       file = file,
-      properties = csvSource.propertyList.mkString(","),
-      separator = detectedSeparator,
+      properties = CsvSourceHelper.serialize(csvSource.propertyList),
+      separator = if(detectedSeparator == "\t") "\\t" else detectedSeparator,
       arraySeparator = arraySeparator,
       quote = quote,
       prefix = prefix,
       uri = uri,
       regexFilter = regexFilter,
       charset = csvSource.codecToUse.name,
-      linesToSkip = csvSource.skipLinesAutomatic.getOrElse(linesToSkip)
+      linesToSkip = csvSource.skipLinesAutomatic.map(_ + skipHeader).getOrElse(linesToSkip)
     )
   }
 }

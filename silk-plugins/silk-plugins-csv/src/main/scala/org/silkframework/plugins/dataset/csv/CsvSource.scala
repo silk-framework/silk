@@ -38,15 +38,15 @@ class CsvSource(file: Resource,
   lazy val propertyList: IndexedSeq[String] = {
     val parser = new CsvParser(Seq.empty, csvSettings)
     if (!properties.trim.isEmpty)
-      parser.parseLine(properties).toIndexedSeq
+      CsvSourceHelper.parse(properties).toIndexedSeq
     else {
       val source = getAndInitBufferedReaderForCsvFile()
       val firstLine = source.readLine()
       source.close()
       if (firstLine != null && firstLine != "") {
         parser.parseLine(firstLine)
-          .takeWhile(_ != null) // Break if a header field is null
-          .map(s => URLEncoder.encode(s, "UTF-8"))
+            .takeWhile(_ != null) // Break if a header field is null
+            .map(s => URLEncoder.encode(s, "UTF-8"))
             .toIndexedSeq
       } else {
         mutable.IndexedSeq()
@@ -365,16 +365,35 @@ object SeparatorDetector {
 }
 
 /**
- * The return value of the separator detection
- *
- * @param separator the character used for separating fields in CSV
- * @param numberOfFields the detected number of fields when splitting with this separator
- */
+  * The return value of the separator detection
+  *
+  * @param separator      the character used for separating fields in CSV
+  * @param numberOfFields the detected number of fields when splitting with this separator
+  */
 case class DetectedSeparator(separator: Char, numberOfFields: Int, skipLinesBeginning: Int)
 
-object Test {
-  def main(args: Array[String]): Unit = {
-    val source = new CsvSource(new FileResource(new File("/tmp/loansAndStates.csv")))
-    println(source.nrLines)
+object CsvSourceHelper {
+  lazy val standardCsvParser = new CsvParser(
+    Seq.empty,
+    CsvSettings(separator = ',', quote = Some('"'))
+  )
+
+  def serialize(fields: Traversable[String]): String = {
+    fields.map { field =>
+      if (field.contains("\"") || field.contains(",")) {
+        escapeString(field)
+      } else {
+        field
+      }
+    }.mkString(",")
+  }
+
+  def parse(str: String): Seq[String] = {
+    standardCsvParser.parseLine(str)
+  }
+
+  def escapeString(str: String): String = {
+    val quoteReplaced = str.replaceAll("\"", "\"\"")
+    s"""\"$quoteReplaced\""""
   }
 }
