@@ -32,7 +32,7 @@ object PluginRegistry {
    * @param id The id of the plugin.
    * @param params The instantiation parameters.
    * @param resources The resource loader for retrieving referenced resources.
-   * @tparam T The based type of the plugin.
+   * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
   def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty)(implicit prefixes: Prefixes, resources: ResourceManager): T = {
@@ -186,7 +186,7 @@ object PluginRegistry {
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
      * @param resources The resource loader for retrieving referenced resources.
-     * @tparam T The based type of the plugin.
+     * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
     def create[T: ClassTag](id: String, params: Map[String, String])(implicit prefixes: Prefixes, resources: ResourceManager): T = {
