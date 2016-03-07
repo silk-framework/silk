@@ -33,7 +33,11 @@ case class CsvDataset
     @Param("The file encoding, e.g., UTF8, ISO-8859-1")
     charset: String = "UTF-8",
     @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
-    linesToSkip: Int = 0) extends DatasetPlugin with DatasetPluginAutoConfigurable[CsvDataset] {
+    linesToSkip: Int = 0,
+    @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
+    maxCharsPerColumn: Int = 4096,
+    @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
+    ignoreBadLines: Boolean = false) extends DatasetPlugin with DatasetPluginAutoConfigurable[CsvDataset] {
 
   private val sepChar =
     if (separator == "\\t") '\t'
@@ -52,9 +56,9 @@ case class CsvDataset
 
   private val codec = Codec(charset)
 
-  private val settings = CsvSettings(sepChar, arraySeparatorChar, quoteChar)
+  private val settings = CsvSettings(sepChar, arraySeparatorChar, quoteChar, maxCharsPerColumn = Some(maxCharsPerColumn))
 
-  override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec, skipLinesBeginning = linesToSkip)
+  override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
 
   override def linkSink: LinkSink = new CsvLinkSink(file, settings)
 
@@ -63,19 +67,19 @@ case class CsvDataset
   override def clear(): Unit = {}
 
   /**
-   * returns an auto-configured version of this plugin
-   */
+    * returns an auto-configured version of this plugin
+    */
   override def autoConfigured: CsvDataset = {
     val csvSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec,
       detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
     // Skip one more line if header was detected and property list set
-    val skipHeader = if(csvSource.propertyList.size > 0) 1 else 0
+    val skipHeader = if (csvSource.propertyList.size > 0) 1 else 0
     CsvDataset(
       file = file,
       properties = CsvSourceHelper.serialize(csvSource.propertyList),
-      separator = if(detectedSeparator == "\t") "\\t" else detectedSeparator,
+      separator = if (detectedSeparator == "\t") "\\t" else detectedSeparator,
       arraySeparator = arraySeparator,
       quote = quote,
       prefix = prefix,
