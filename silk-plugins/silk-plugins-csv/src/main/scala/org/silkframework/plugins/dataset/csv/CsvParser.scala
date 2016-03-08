@@ -7,6 +7,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   private val parserSettings = new CsvParserSettings()
   import settings._
   parserSettings.getFormat.setDelimiter(separator)
+
   for(quoteChar <- quote) {
     parserSettings.getFormat.setQuote(quoteChar)
   }
