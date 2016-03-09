@@ -15,6 +15,7 @@
 package org.silkframework.util
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.serialization.ValidationException
 
 /**
  * Represents a URI.
@@ -74,9 +75,13 @@ object Uri {
    * - someName
    */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty) = {
-    if (str.startsWith("<")) {
+    if(str.trim.isEmpty) {
+      throw new ValidationException("Value cannot be empty.")
+    } else if (str.startsWith("<")) {
       fromURI(str.substring(1, str.length - 1))
     } else if(!str.contains(':')) {
+      fromURI(str)
+    } else if(str.startsWith("http")) {
       fromURI(str)
     } else {
       fromQualifiedName(str, prefixes)

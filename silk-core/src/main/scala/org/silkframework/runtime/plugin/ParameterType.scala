@@ -115,7 +115,7 @@ object ParameterType {
   object UriType extends ParameterType[Uri] {
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
-      Uri.fromQualifiedName(str, prefixes)
+      Uri.parse(str, prefixes)
     }
   }
 

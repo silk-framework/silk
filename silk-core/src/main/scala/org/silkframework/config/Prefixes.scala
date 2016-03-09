@@ -48,29 +48,20 @@ class Prefixes(val prefixMap: Map[String, String]) {
   /**
    * Resolves a qualified name to its full URI.
    *
-   * @param name The qualified name e.g. rdf:label or a full URI enclosed in <> brackets.
+   * @param name The qualified name e.g. rdf:label.
    * @return The full URI e.g. http://www.w3.org/1999/02/22-rdf-syntax-ns#label
    * @see shorten
    */
-  def resolve(name: String) =
-    if(name.trim.isEmpty) {
-      throw new ValidationException("Value cannot be empty.")
-    } else if (name.startsWith("http")) {
-      name
-    } else if (name.startsWith("<") && name.endsWith(">")) {
-      name.substring(1, name.length - 1)
-    } else {
-      name.split(":", 2) match {
-        case Array(prefix, suffix) => prefixMap.get(prefix) match {
-          case Some(resolvedPrefix) => resolvedPrefix + suffix
-          case None => throw new ValidationException(
-            s"Unknown prefix: '$prefix'. Please add the missing prefix to the project " +
-             "or use a full URI, e.g., <http:/example.org/name>.")
-        }
-        case _ => throw new ValidationException(
-          s"Expected a prefixed name of the form 'prefix:name', but got '$name'. " +
-           "If you want to write a full URI, use angle brackets, e.g., <http:/example.org/name>.")
+  def resolve(name: String) = name.split(":", 2) match {
+    case Array(prefix, suffix) => prefixMap.get(prefix) match {
+      case Some(resolvedPrefix) => resolvedPrefix + suffix
+      case None => throw new ValidationException(
+        s"Unknown prefix: '$prefix'. Please add the missing prefix to the project " +
+         "or use a full URI, e.g., <http:/example.org/name>.")
     }
+    case _ => throw new ValidationException(
+      s"Expected a prefixed name of the form 'prefix:name', but got '$name'. " +
+       "If you want to write a full URI, use angle brackets, e.g., <http:/example.org/name>.")
   }
 
   /**
