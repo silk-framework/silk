@@ -75,9 +75,7 @@ object Uri {
    * - someName
    */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty) = {
-    if(str.trim.isEmpty) {
-      throw new ValidationException("Value cannot be empty.")
-    } else if (str.startsWith("<")) {
+    if (str.startsWith("<")) {
       fromURI(str.substring(1, str.length - 1))
     } else if(!str.contains(':')) {
       fromURI(str)
