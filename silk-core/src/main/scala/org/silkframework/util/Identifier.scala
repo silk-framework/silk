@@ -24,7 +24,7 @@ import scala.language.implicitConversions
  */
 class Identifier(private val name: String) extends Serializable {
   require(!name.isEmpty, "Identifier must not be empty.")
-  require(name.forall(c => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_') || (c == '-')),
+  require(name.forall(Identifier.isAllowed),
     "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + name + "'.")
 
   /** Returns the identifier itself. */
@@ -51,6 +51,20 @@ object Identifier {
    * Will throw an exception if the given String is no valid Identifier.
    */
   def apply(str: String) = new Identifier(str)
+
+  /**
+    * Checks if a given character is valid in identifiers.
+    */
+  def isAllowed(c: Char): Boolean = {
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_') || (c == '-')
+  }
+
+  /**
+    * Creates a new Identifier only from the allowed characters in a given string.
+    */
+  def fromAllowed(str: String) = {
+    new Identifier(str.filter(Identifier.isAllowed))
+  }
 
   /**
    * Generates a new random identifier.
