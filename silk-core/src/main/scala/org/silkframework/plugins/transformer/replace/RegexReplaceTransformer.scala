@@ -24,16 +24,11 @@ import scala.util.matching.Regex
   categories = Array("Replace"),
   label = "Regex replace",
   description = "Replace all occurrences of a regex \"regex\" with \"replace\" in a string.")
-case class RegexReplaceTransformer(regex: String, replace: String) extends RegexReplaceTransformerBase(regex, replace)
-
-class RegexReplaceTransformerBase(regex: String, replace: String) extends SimpleTransformer {
+case class RegexReplaceTransformer(regex: String, replace: String) extends SimpleTransformer{
   private val compiledRegex = new Regex(regex)
 
-  def this() {
-    this("","")
-  }
-
-  override def evaluate(value: String) = {
+  def evaluate(value: String) = {
     compiledRegex.replaceAllIn(value, replace)
   }
 }
+
