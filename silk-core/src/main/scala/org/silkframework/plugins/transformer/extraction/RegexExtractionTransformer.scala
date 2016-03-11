@@ -16,6 +16,10 @@ case class RegexExtractionTransformer(regex: String) extends RegexExtractionTran
 class RegexExtractionTransformerBase(regex: String) extends SimpleTransformer {
   lazy val r = regex.r
 
+  def this() {
+    this("")
+  }
+
   override def evaluate(value: String): String = {
     val matched = r.findAllIn(value).matchData.map { m =>
       if(m.groupCount <1) {

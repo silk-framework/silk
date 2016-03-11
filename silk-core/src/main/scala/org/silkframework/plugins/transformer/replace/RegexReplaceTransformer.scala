@@ -29,6 +29,10 @@ case class RegexReplaceTransformer(regex: String, replace: String) extends Regex
 class RegexReplaceTransformerBase(regex: String, replace: String) extends SimpleTransformer {
   private val compiledRegex = new Regex(regex)
 
+  def this() {
+    this("","")
+  }
+
   override def evaluate(value: String) = {
     compiledRegex.replaceAllIn(value, replace)
   }
