@@ -18,6 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction.{And, Condition, Operator, Or}
 import org.silkframework.entity.{Path, Restriction}
 import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.util.Uri
 
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.CharSequenceReader
@@ -78,7 +79,7 @@ class SparqlRestrictionParser(implicit prefixes: Prefixes) extends RegexParsers 
   }
 
   def triplePattern = subject ~ predicate ~ objectt ^^ {
-    case v ~ p ~ o => Condition(Path.parse("?" + v + "/" + p), prefixes.resolve(o))
+    case v ~ p ~ o => Condition(Path.parse("?" + v + "/" + p), Uri.parse(o, prefixes).toString)
   }
 
   def subject = "?" ~> idChars ^^ {
