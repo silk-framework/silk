@@ -17,7 +17,7 @@
 package org.silkframework.plugins.transformer.date
 
 import java.text.SimpleDateFormat
-import java.util.GregorianCalendar
+import java.util.{Date, GregorianCalendar}
 
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
@@ -35,13 +35,11 @@ import scala.math.BigInt;
   label = "Timestamp to date",
   description = "convert Unix timestamp to xsd:date"
 )
-case class TimestampToDateTransformer() extends SimpleTransformer {
+case class TimestampToDateTransformer(format: String = "yyyy-MM-dd") extends SimpleTransformer {
+  val sdf = new SimpleDateFormat(format)
+
   override def evaluate(value: String) = {
-    val cal = new GregorianCalendar()
-    cal.setTimeInMillis((BigInt.apply(value) * 1000).longValue())
-    val format = new SimpleDateFormat("yyyy-MM-dd")
-    val date = format.format(cal.getTime)
-    
-    date.toString
+    val date = new Date(value.toLong * 1000)
+    sdf.format(date)
   }
 }
