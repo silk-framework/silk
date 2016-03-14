@@ -78,7 +78,7 @@
   function startActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(WorkspaceApi.startActivity(project, task.getOrElse(""), activity).url)',
+      url: '@Html(WorkspaceApi.startActivity(project, task.getOrElse(""), activity, blocking = false).url)',
       success: function(response) {
       },
       error: function(request) {

@@ -137,7 +137,7 @@
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, "", activity.name, blocking = false).url')" />
     </div>
     <div class="activity-button-stop">
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, "", activity.name).url')" />
@@ -158,7 +158,7 @@
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name, blocking = false).url')" />
     </div>
     <div class="activity-button-stop">
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, task.name, activity.name).url')" />
