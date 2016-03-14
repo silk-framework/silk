@@ -26,6 +26,15 @@ trait WritableResource extends Resource{
   }
 
   /**
+    * Writes raw bytes.
+    */
+  def write(bytes: Array[Byte]): Unit = {
+    write { os =>
+      os.write(bytes)
+    }
+  }
+
+  /**
     * Writes a string.
     */
   def write(content: String): Unit = {
