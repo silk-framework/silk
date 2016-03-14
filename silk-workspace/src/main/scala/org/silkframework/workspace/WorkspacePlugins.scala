@@ -10,11 +10,15 @@ import org.silkframework.workspace.xml.FileWorkspaceProvider
 class WorkspacePlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
-    classOf[FileWorkspaceProvider] ::
+    workspaceProviders :::
     datasetActivities :::
     transformActivities :::
     linkingActivities :::
     workflowActivities
+
+  def workspaceProviders: List[Class[_]] =
+    classOf[FileWorkspaceProvider] ::
+    classOf[InMemoryWorkspaceProvider] :: Nil
 
   def datasetActivities: List[Class[_]] =
     classOf[TypesCacheFactory] :: Nil
