@@ -136,7 +136,7 @@ class CsvSource(file: Resource,
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
         val propertyIndex = propertyList.indexOf(property)
         if (propertyIndex == -1)
-          throw new Exception("Property " + path.toString + " not found in CSV")
+          throw new Exception("Property " + property + " not found in CSV. Available properties: " + propertyList.mkString(", "))
         propertyIndex
       }
 

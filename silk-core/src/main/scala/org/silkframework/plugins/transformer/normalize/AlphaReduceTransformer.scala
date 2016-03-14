@@ -14,8 +14,10 @@
 
 package org.silkframework.plugins.transformer.normalize
 
-import org.silkframework.plugins.transformer.replace.RegexReplaceTransformerBase
+import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
+
+import scala.util.matching.Regex
 
 @Plugin(
   id = "alphaReduce",
@@ -23,4 +25,10 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Alpha reduce",
   description = "Strips all non-alphabetic characters from a string. Spaces are retained."
 )
-case class AlphaReduceTransformer() extends RegexReplaceTransformerBase("[^\\s\\pL]+", "")
+case class AlphaReduceTransformer() extends SimpleTransformer {
+  private val compiledRegex = new Regex("[^\\s\\pL]+")
+
+  override def evaluate(value: String) = {
+    compiledRegex.replaceAllIn(value, "")
+  }
+}

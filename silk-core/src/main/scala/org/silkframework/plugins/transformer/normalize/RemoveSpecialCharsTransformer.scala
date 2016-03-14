@@ -14,8 +14,10 @@
 
 package org.silkframework.plugins.transformer.normalize
 
-import org.silkframework.plugins.transformer.replace.RegexReplaceTransformerBase
+import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
+
+import scala.util.matching.Regex
 
 @Plugin(
   id = "removeSpecialChars",
@@ -23,4 +25,10 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Remove special chars",
   description = "Remove special characters (including punctuation) from a string."
 )
-case class RemoveSpecialCharsTransformer() extends RegexReplaceTransformerBase("[^\\d\\pL\\w]+", "")
+case class RemoveSpecialCharsTransformer() extends SimpleTransformer {
+  private val compiledRegex = new Regex("[^\\d\\pL\\w]+")
+
+  def evaluate(value: String) = {
+    compiledRegex.replaceAllIn(value, "")
+  }
+}

@@ -77,5 +77,13 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       write(outputStream)
       resources += ((name, outputStream.toByteArray))
     }
+
+    /**
+      * Writes raw bytes.
+      * Overridden for performance.
+      */
+    override def write(bytes: Array[Byte]): Unit = {
+      resources += ((name, bytes))
+    }
   }
 }

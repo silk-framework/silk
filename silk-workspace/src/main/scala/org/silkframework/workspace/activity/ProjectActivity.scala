@@ -12,7 +12,7 @@ class ProjectActivity(val project: Project, initialFactory: ProjectActivityFacto
   @volatile
   private var currentFactory = initialFactory
 
-  def name = currentControl.name
+  def name = initialFactory.plugin.id
 
   def value = currentControl.value()
 

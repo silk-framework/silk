@@ -137,33 +137,38 @@ object WorkspaceApi extends Controller {
 
   def putResource(projectName: String, resourceName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
+    val resource = project.resources.get(resourceName)
 
-    request.body.asMultipartFormData match {
-      case Some(formData) if formData.files.nonEmpty =>
+    request.body match {
+      case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
-          project.resources.get(resourceName).write(inputStream)
+          resource.write(inputStream)
           inputStream.close()
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
         }
-      case Some(formData) if formData.dataParts.contains("resource-url") =>
+      case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
         try {
           val dataParts = formData.dataParts("resource-url")
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
           val inputStream = urlResource.load
-          project.resources.get(resourceName).write(inputStream)
+          resource.write(inputStream)
           inputStream.close()
           Ok
         } catch {
           case ex: Exception => BadRequest(ex.getMessage)
         }
-      case None =>
+      case AnyContentAsRaw(buffer) =>
+        val bytes = buffer.asBytes().getOrElse(Array[Byte]())
+        resource.write(bytes)
+        Ok
+      case _ =>
         // Put empty resource
-        project.resources.get(resourceName).write(new ByteArrayInputStream(Array[Byte]()))
+        resource.write(Array[Byte]())
         Ok
     }
   }}
@@ -203,9 +208,9 @@ object WorkspaceApi extends Controller {
       }
 
     if(activityControl.status().isRunning) {
-      BadRequest(s"Cannot start activitiy '$activityName'. Already running.")
+      BadRequest(s"Cannot start activity '$activityName'. Already running.")
     } else {
-      activityControl.start()
+      activityControl.startBlocking()
       Ok
     }
   }
