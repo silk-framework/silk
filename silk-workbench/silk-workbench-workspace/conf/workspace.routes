@@ -68,7 +68,8 @@ GET           /projects/:project/activities/:activity/status                    
 
 # Task Activities
 GET           /projects/:project/tasks/:task/activities                         controllers.workspace.WorkspaceApi.getTaskActivities(project: String, task: String)
-POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String)
+POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
+POST          /projects/:project/tasks/:task/activities/:activity/startBlocking controllers.workspace.WorkspaceApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
 POST          /projects/:project/tasks/:task/activities/:activity/cancel        controllers.workspace.WorkspaceApi.cancelActivity(project: String, task: String, activity: String)
 POST          /projects/:project/tasks/:task/activities/:activity/restart       controllers.workspace.WorkspaceApi.restartActivity(project: String, task: String, activity: String)
 GET           /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.WorkspaceApi.getActivityConfig(project: String, task: String, activity: String)
