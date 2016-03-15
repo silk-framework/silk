@@ -1,8 +1,12 @@
 package models
 
 import org.silkframework.runtime.validation.ValidationIssue
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 
+/**
+  * Formats errors as JSON.
+  * Should be used whenever a REST Call returns an error.
+  */
 object JsonError {
 
   def apply(message: String) = {
@@ -28,7 +32,7 @@ object JsonError {
     Json.obj(
       "type" -> msg.issueType,
       "message" -> msg.toString,
-      "id" -> msg.id.map(_.toString).getOrElse("")
+      "id" -> JsString(msg.id.map(_.toString).getOrElse(""))
     )
   }
 

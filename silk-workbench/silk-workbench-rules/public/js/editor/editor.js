@@ -269,8 +269,6 @@ function generateNewElementId(currentId) {
 
 function getCurrentElementName(elId) {
   var elName = $("#" + elId + " .handler label").text();
-//  var elName = $("#" + elId + " .content > .label").text();
-//  if (!elName) elName = $("#" + elId + " .content > .label-active > input.label-change").val();
   return elName;
 }
 
@@ -300,8 +298,9 @@ function validateLinkSpec() {
     var elName = getCurrentElementName(elId);
     if (elName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
       errorObj = new Object;
-      errorObj.id = elId;
-      errorObj.message = "Error in element with id '"+ elId +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + elName + "'.";
+      errorObj.type = "Error";
+      errorObj.id = elName;
+      errorObj.message = "Error in element with id '"+ elName +"': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + elName + "'.";
       errors.push(errorObj);
     }
     // count root elements
@@ -316,6 +315,7 @@ function validateLinkSpec() {
     // multiple root elements
     if (root_elements.length > 1) {
       errorObj = new Object();
+      errorObj.type = "Error";
       var elements = "";
       for (var i = 0; i<root_elements.length; i++) {
         elements += "'" + getCurrentElementName(root_elements[i]) + "'";
@@ -327,13 +327,12 @@ function validateLinkSpec() {
         highlightElement(root_elements[i], "Error: Multiple root elements found.");
       }
       errorObj.message = "Error: Multiple root elements found: " + elements;
-      errorObj.id = 0;
       errors.push(errorObj);
 
       // no root elements
     } else if (root_elements.length == 0 && totalNumberElements > 0) {
       errorObj = new Object;
-      errorObj.id = 0;
+      errorObj.type = "Error";
       errorObj.message = "Error: No root element found.";
       errors.push(errorObj);
 
@@ -342,7 +341,7 @@ function validateLinkSpec() {
       cycleCheck(root_elements[0]);
       if (cycleFound) {
         errorObj = new Object();
-        errorObj.id = 0;
+        errorObj.type = "Error";
         errorObj.message = "Error: A cycle was found in the linkage rule.";
         errors.push(errorObj);
       }
@@ -351,7 +350,7 @@ function validateLinkSpec() {
     // forest found
     if ((numberElements > 1) && (totalNumberElements > numberElements)) {
       errorObj = new Object();
-      errorObj.id = 0;
+      errorObj.type = "Error";
       errorObj.message = "Error: Multiple linkage rules found.";
       errors.push(errorObj);
     }
@@ -363,7 +362,7 @@ function validateLinkSpec() {
 
   if (errors.length > 0) {
     // display frontend errors
-    updateEditorStatus(errors, null, null);
+    updateEditorStatus(errors);
   } else {
     // send to server
     $.ajax({
@@ -374,14 +373,14 @@ function validateLinkSpec() {
       data: serializationFunction(),
       dataType: "json",
       success: function(response) {
-        updateEditorStatus(response.error, response.warning, response.info);
+        updateEditorStatus(response.issues);
         updateScore();
         confirmOnExit = false;
       },
       error: function(req) {
         console.log('Error committing rule: ' + req.responseText);
         var response = jQuery.parseJSON(req.responseText);
-        updateEditorStatus(response.error, response.warning, response.info);
+        updateEditorStatus(response.issues);
       }
     });
   }
@@ -394,29 +393,29 @@ function modifyLinkSpec() {
   modificationTimer = setTimeout(function() { validateLinkSpec(); }, 2000);
 }
 
-function updateEditorStatus(errorMessages, warningMessages, infoMessages) {
+function updateEditorStatus(messages) {
   // Update status icon
-  updateStatus(errorMessages, warningMessages, infoMessages);
+  updateStatus(messages);
   // Highlight elements
-  highlightElements(errorMessages);
+  highlightElements(messages);
 }
 
-function highlightElements(array) {
+function highlightElements(messages) {
   var c = 1;
-  for (var i = 0; i<array.length; i++) {
-    if (array[i].id) highlightElement(array[i].id, encodeHtml(array[i].message));
+  for (var i = 0; i<messages.length; i++) {
+    if (messages[i].id) highlightElement(messages[i].id, encodeHtml(messages[i].message));
     c++;
   }
 }
 
 function highlightElement(elId, message) {
-  var elementToHighlight;
-  $(".label:contains('" + elId + "')").each(function() {
-    if (elId.length == $(this).text().length) elementToHighlight = $(this).parent().parent();
+  $(".handler label").each(function() {
+    if ($(this).text() == elId) {
+      var elementToHighlight = $(this).parent().parent();
+      elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + encodeHtml(message) + '")').attr("onmouseout", "UnTip()");
+      jsPlumb.repaint(elementToHighlight);
+    }
   });
-  if (!elementToHighlight) elementToHighlight = $("#" + elId);
-  elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + encodeHtml(message) + '")').attr("onmouseout", "UnTip()");
-  jsPlumb.repaint(elementToHighlight);
 }
 
 function removeHighlighting() {
