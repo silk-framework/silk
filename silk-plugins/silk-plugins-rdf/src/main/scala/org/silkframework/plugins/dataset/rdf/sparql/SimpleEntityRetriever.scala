@@ -56,18 +56,19 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     }
     sparql += "\n"
 
-    //Graph
-    for (graph <- graphUri if !graph.isEmpty) sparql += "FROM <" + graph + ">\n"
-
     //Body
     sparql += "WHERE {\n"
+    //Graph
+    for (graph <- graphUri if !graph.isEmpty) sparql += "GRAPH <" + graph + "> {\n"
+
     if (!sparqlEntitySchema.restrictions.toSparql.isEmpty)
       sparql += sparqlEntitySchema.restrictions.toSparql + "\n"
     else
       sparql += "?" + sparqlEntitySchema.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
 
     sparql += SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
-    sparql += "}"
+    for (graph <- graphUri if !graph.isEmpty) sparql += "}\n" // END graph
+    sparql += "}" // END WHERE
     if(useOrderBy) sparql +=" ORDER BY ?" + sparqlEntitySchema.variable
 
     val sparqlResults = endpoint.select(sparql)
@@ -116,12 +117,12 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     }
     sparql += "\n"
 
-    //Graph
-    for (graph <- graphUri) sparql += "FROM <" + graph + ">\n"
-
     //Body
     sparql += "WHERE {\n"
+    //Graph
+    for (graph <- graphUri) sparql += "GRAPH <" + graph + "> {\n"
     sparql += SparqlPathBuilder(paths, "<" + entityUri + ">", "?" + varPrefix)
+    for (graph <- graphUri) sparql += "}\n"
     sparql += "}"
 
     endpoint.select(sparql).bindings

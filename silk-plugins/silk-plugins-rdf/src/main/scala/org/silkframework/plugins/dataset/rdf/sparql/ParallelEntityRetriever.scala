@@ -156,11 +156,11 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       }
       sparql += "?" + varPrefix + "0\n"
 
-      //Graph
-      for (graph <- graphUri if !graph.isEmpty) sparql += "FROM <" + graph + ">\n"
-
       //Body
       sparql += "WHERE {\n"
+      //Graph
+      for (graph <- graphUri if !graph.isEmpty) sparql += "GRAPH <" + graph + "> {\n"
+
       fixedSubject match {
         case Some(subjectUri) => {
           sparql += SparqlPathBuilder(path :: Nil, "<" + subjectUri + ">", "?" + varPrefix)
@@ -173,7 +173,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
           sparql += SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
         }
       }
-      sparql += "}"
+      for (graph <- graphUri if !graph.isEmpty) sparql += "}\n"
+      sparql += "}" // END WHERE
 
       if (useOrderBy && fixedSubject.isEmpty) {
         sparql += " ORDER BY " + "?" + entityDesc.variable
