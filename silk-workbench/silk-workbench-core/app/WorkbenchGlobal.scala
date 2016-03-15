@@ -1,4 +1,5 @@
 
+import models.JsonError
 import play.api.PlayException.ExceptionSource
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -49,9 +50,9 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 //
 //    Future.successful(res)
     if(ex.isInstanceOf[ExceptionSource] && ex.getCause != null) {
-      Future.successful(InternalServerError(ex.getCause.getMessage))
+      Future.successful(InternalServerError(JsonError(ex.getCause)))
     } else {
-      Future.successful(InternalServerError(ex.getMessage))
+      Future.successful(InternalServerError(JsonError(ex)))
     }
   }
 
