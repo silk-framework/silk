@@ -191,7 +191,7 @@ object WorkspaceApi extends Controller {
     Ok(JsonSerializer.taskActivities(task))
   }
 
-  def startActivity(projectName: String, taskName: String, activityName: String) = Action { request =>
+  def startActivity(projectName: String, taskName: String, activityName: String, blocking: Boolean) = Action { request =>
     val project = User().workspace.project(projectName)
     val config = activityConfig(request)
     val activityControl =
@@ -210,7 +210,10 @@ object WorkspaceApi extends Controller {
     if(activityControl.status().isRunning) {
       BadRequest(s"Cannot start activity '$activityName'. Already running.")
     } else {
-      activityControl.startBlocking()
+      if(blocking)
+        activityControl.startBlocking()
+      else
+        activityControl.start()
       Ok
     }
   }
