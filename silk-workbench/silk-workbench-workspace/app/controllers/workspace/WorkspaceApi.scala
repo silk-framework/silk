@@ -149,7 +149,7 @@ object WorkspaceApi extends Controller {
           inputStream.close()
           Ok
         } catch {
-          case ex: Exception => BadRequest(ex.getMessage)
+          case ex: Exception => BadRequest(JsonError(ex))
         }
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
         try {
@@ -161,7 +161,7 @@ object WorkspaceApi extends Controller {
           inputStream.close()
           Ok
         } catch {
-          case ex: Exception => BadRequest(ex.getMessage)
+          case ex: Exception => BadRequest(JsonError(ex))
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
@@ -209,7 +209,7 @@ object WorkspaceApi extends Controller {
       }
 
     if(activityControl.status().isRunning) {
-      BadRequest(s"Cannot start activity '$activityName'. Already running.")
+      BadRequest(JsonError(s"Cannot start activity '$activityName'. Already running."))
     } else {
       if(blocking)
         activityControl.startBlocking()
@@ -273,7 +273,7 @@ object WorkspaceApi extends Controller {
       }
       Ok
     } else {
-      BadRequest("No config supplied.")
+      BadRequest(JsonError("No config supplied."))
     }
   }
 
