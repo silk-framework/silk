@@ -20,7 +20,7 @@ import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 
-import org.silkframework.runtime.serialization.ValidationException.ValidationError
+import org.silkframework.runtime.validation.{ValidationError, ValidationException}
 import org.silkframework.util.Identifier
 import org.xml.sax.{Attributes, ErrorHandler, InputSource, SAXParseException}
 

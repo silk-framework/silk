@@ -12,9 +12,8 @@
  * limitations under the License.
  */
 
-package org.silkframework.runtime.serialization
+package org.silkframework.runtime.validation
 
-import org.silkframework.runtime.serialization.ValidationException.ValidationError
 import org.silkframework.util.Identifier
 
 /**
@@ -30,13 +29,4 @@ class ValidationException(val errors: Seq[ValidationError], cause: Throwable) ex
   def this(error: String, id: Identifier, elementType: String) = this(ValidationError(error, Some(id), Some(elementType)) :: Nil, null)
 
   def this(error: String) = this(ValidationError(error) :: Nil, null)
-}
-
-object ValidationException {
-  case class ValidationError(message: String, id: Option[Identifier] = None, elementType: Option[String] = None) {
-    override def toString = id match {
-      case Some(identifier) => "Validation error in " + elementType.getOrElse("element") + " with id '" + identifier + "': " + message
-      case None => message
-    }
-  }
 }

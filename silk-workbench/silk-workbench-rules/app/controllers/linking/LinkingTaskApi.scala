@@ -12,8 +12,8 @@ import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.serialization.ValidationException.ValidationError
-import org.silkframework.runtime.serialization.{Serialization, ValidationException}
+import org.silkframework.runtime.validation.{ValidationError, ValidationException}
+import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
@@ -190,6 +190,7 @@ object LinkingTaskApi extends Controller {
 
   /**
    * Delete all reference links of specific types.
+ *
    * @param projectName
    * @param taskName
    * @param positive if true
@@ -216,6 +217,7 @@ object LinkingTaskApi extends Controller {
 
   /**
    * Add a reference link to a specific linking task.
+ *
    * @param projectName
    * @param taskName
    * @param linkType E.g. "negative" or "positive"
@@ -245,6 +247,7 @@ object LinkingTaskApi extends Controller {
 
   /**
    * Delete a reference link
+ *
    * @param projectName
    * @param taskName
    * @param source source URI

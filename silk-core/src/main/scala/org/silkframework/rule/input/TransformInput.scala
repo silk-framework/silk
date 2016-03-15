@@ -18,7 +18,8 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, ValidationException, XmlFormat}
+import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
 import scala.xml.Node

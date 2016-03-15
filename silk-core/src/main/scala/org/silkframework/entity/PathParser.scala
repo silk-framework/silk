@@ -15,7 +15,7 @@
 package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.util.parsing.combinator.RegexParsers

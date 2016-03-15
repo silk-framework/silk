@@ -15,7 +15,7 @@
 package org.silkframework.util
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 
 /**
  * Represents a URI.

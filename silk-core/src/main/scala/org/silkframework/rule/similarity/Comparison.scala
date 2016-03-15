@@ -19,7 +19,8 @@ import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.input.Input
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, ValidationException, XmlFormat}
+import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.xml.Node
@@ -43,7 +44,6 @@ case class Comparison(id: Identifier = Operator.generateId,
    *
    * @param entities The entities to be compared.
    * @param limit The confidence limit.
-   *
    * @return The confidence as a value between -1.0 and 1.0.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
@@ -71,7 +71,6 @@ case class Comparison(id: Identifier = Operator.generateId,
    *
    * @param entity The entity to be indexed
    * @param limit The similarity threshold.
-   *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {

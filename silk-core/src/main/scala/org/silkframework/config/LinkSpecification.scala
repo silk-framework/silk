@@ -24,7 +24,8 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization._
-import org.silkframework.runtime.serialization.{ValidatingXMLReader, ValidationException, XmlFormat}
+import org.silkframework.runtime.serialization.{ValidatingXMLReader, XmlFormat}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 
 import scala.xml.Node

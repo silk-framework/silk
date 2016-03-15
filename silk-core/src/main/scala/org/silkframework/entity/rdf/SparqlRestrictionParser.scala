@@ -17,7 +17,7 @@ package org.silkframework.entity.rdf
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction.{And, Condition, Operator, Or}
 import org.silkframework.entity.{Path, Restriction}
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.util.parsing.combinator.RegexParsers

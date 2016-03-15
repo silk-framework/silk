@@ -2,7 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{WritableResource, Resource, EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.reflect.ClassTag

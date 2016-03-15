@@ -6,7 +6,7 @@ import org.silkframework.config.{DatasetSelection, Prefixes, TransformSpecificat
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization._
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 

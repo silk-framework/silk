@@ -16,7 +16,7 @@ package org.silkframework.config
 
 import org.silkframework.entity.Restriction
 import org.silkframework.entity.rdf.SparqlRestrictionParser
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier, Uri}
 
 import scala.xml.Node

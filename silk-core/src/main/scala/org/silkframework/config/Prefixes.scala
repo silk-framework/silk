@@ -14,7 +14,7 @@
 
 package org.silkframework.config
 
-import org.silkframework.runtime.serialization.ValidationException
+import org.silkframework.runtime.validation.ValidationException
 
 import scala.language.implicitConversions
 import scala.xml.Node
