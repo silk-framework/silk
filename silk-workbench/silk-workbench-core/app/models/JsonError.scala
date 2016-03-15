@@ -1,7 +1,7 @@
 package models
 
-import org.silkframework.runtime.validation.{ValidationError, ValidationException}
-import play.api.libs.json.{JsArray, JsObject, JsString, Json}
+import org.silkframework.runtime.validation.ValidationIssue
+import play.api.libs.json.Json
 
 object JsonError {
 
@@ -17,14 +17,18 @@ object JsonError {
     )
   }
 
-  def statusJson(message: String, errors: Seq[ValidationError] = Nil, warnings: Seq[String] = Nil, infos: Seq[String] = Nil) = {
-    /**Generates a Json expression from an error */
-    def errorToJsExp(error: ValidationError) = JsObject(("message", JsString(error.toString)) :: ("id", JsString(error.id.map(_.toString).getOrElse(""))) :: Nil)
+  def apply(message: String, issues: Seq[ValidationIssue]) = {
+    Json.obj(
+      "message" -> message,
+      "issues" -> issues.map(validationMessage)
+    )
+  }
 
-    JsObject(
-      ("errors", JsArray(errors.map(errorToJsExp))) ::
-      ("warnings", JsArray(warnings.map(JsString(_)))) ::
-      ("infos", JsArray(infos.map(JsString(_)))) :: Nil
+  private def validationMessage(msg: ValidationIssue) = {
+    Json.obj(
+      "type" -> msg.issueType,
+      "message" -> msg.toString,
+      "id" -> msg.id.map(_.toString).getOrElse("")
     )
   }
 
