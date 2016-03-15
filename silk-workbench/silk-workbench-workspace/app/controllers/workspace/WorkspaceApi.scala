@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 import java.net.URL
 
 import controllers.core.{Stream, Widgets}
+import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -26,7 +27,7 @@ object WorkspaceApi extends Controller {
 
   def newProject(project: String) = Action {
     if(User().workspace.projects.exists(_.name == project)) {
-      Conflict(JsonSerializer.errorJson(s"Project with name '$project' already exists. Creation failed."))
+      Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
     } else {
       val newProject = User().workspace.createProject(project)
       Created(JsonSerializer.projectJson(newProject))

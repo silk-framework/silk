@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import models.JsonError
 import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
 import org.silkframework.dataset.{DatasetPluginAutoConfigurable, Dataset, DatasetPlugin}
 import org.silkframework.entity.EntitySchema
@@ -31,7 +32,7 @@ object Datasets extends Controller {
 
         Ok(sourceXml)
       case _ =>
-        NotImplemented("The dataset type does not support auto-configuration.")
+        NotImplemented(JsonError("The dataset type does not support auto-configuration."))
     }
   }
 
@@ -45,9 +46,9 @@ object Datasets extends Controller {
           project.updateTask(dataset.id, dataset)
           Ok
         } catch {
-          case ex: Exception => BadRequest(ex.getMessage)
+          case ex: Exception => BadRequest(JsonError(ex))
         }
-      case None => BadRequest("Expecting dataset in request body as text/xml.")
+      case None => BadRequest(JsonError("Expecting dataset in request body as text/xml."))
     }
   }}
 
