@@ -114,7 +114,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @param activityName The name of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity(activityName: String): TaskActivity[DataType, _] = {
+  def activity(activityName: String): TaskActivity[DataType, _ <: HasValue] = {
     taskActivities.find(_.name == activityName)
       .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
                                                   s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))

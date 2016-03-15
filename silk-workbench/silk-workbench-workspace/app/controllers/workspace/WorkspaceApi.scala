@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{InMemoryResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.Serialization
-import org.silkframework.workspace.activity.ProjectExecutor
+import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, ProjectExecutor}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{Project, Task, User}
@@ -300,21 +300,21 @@ object WorkspaceApi extends Controller {
 
     def projectActivities(project: Project) =
       if (taskName.nonEmpty) Nil
-      else project.activities.map(_.control)
+      else project.activities
 
     def taskActivities(task: Task[_]) =
-      if (activityName.nonEmpty) task.activity(activityName).control :: Nil
-      else task.activities.map(_.control)
+      if (activityName.nonEmpty) task.activity(activityName) :: Nil
+      else task.activities
 
     val projectActivityStreams =
       for (project <- projects; activity <- projectActivities(project)) yield
-        Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = "", activity = activity.name)
+        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = "", activity = activity.name)
 
     val taskActivityStreams =
       for (project <- projects;
            task <- tasks(project);
            activity <- taskActivities(task)) yield
-        Widgets.statusStream(Enumerator(activity.status()) andThen Stream.status(activity.status), project = project.name, task = task.name, activity = activity.name)
+        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = task.name, activity = activity.name)
 
     Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
   }

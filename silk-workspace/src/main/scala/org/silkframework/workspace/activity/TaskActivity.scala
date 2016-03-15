@@ -21,7 +21,7 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
   @volatile
   private var currentFactory = initialFactory
 
-  def name = initialFactory.plugin.id
+  def name = currentFactory.plugin.id
 
   def value = currentControl.value()
 
