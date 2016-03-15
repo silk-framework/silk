@@ -318,13 +318,14 @@ function validateLinkSpec() {
       errorObj.type = "Error";
       var elements = "";
       for (var i = 0; i<root_elements.length; i++) {
-        elements += "'" + getCurrentElementName(root_elements[i]) + "'";
+        var currentElementName = getCurrentElementName(root_elements[i]);
+        elements += "'" + currentElementName + "'";
         if (i<root_elements.length-1) {
           elements += ", ";
         } else {
           elements += ".";
         }
-        highlightElement(root_elements[i], "Error: Multiple root elements found.");
+        highlightElement(currentElementName, "Error: Multiple root elements found.");
       }
       errorObj.message = "Error: Multiple root elements found: " + elements;
       errors.push(errorObj);
@@ -379,8 +380,7 @@ function validateLinkSpec() {
       },
       error: function(req) {
         console.log('Error committing rule: ' + req.responseText);
-        var response = jQuery.parseJSON(req.responseText);
-        updateEditorStatus(response.issues);
+        updateEditorStatus(req.responseJSON.issues);
       }
     });
   }
