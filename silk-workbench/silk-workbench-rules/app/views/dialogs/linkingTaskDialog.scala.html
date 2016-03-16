@@ -4,10 +4,13 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.util.DPair
 @import controllers.rules.routes.Assets
+@import org.silkframework.config.TransformSpecification
 
 @(project: String, task: String)
 
-@datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[Dataset] }
+
+@transformTasks = @{ User().workspace.project(project).tasks[TransformSpecification] }
 
 @linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.name == task) }
 
@@ -32,6 +35,13 @@
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>
+            }
+          }
+          @for(transform <- transformTasks) {
+            @if(currentInputs.isDefined && transform.name == currentInputs.get.source.datasetId) {
+              <option value="@transform.name" selected="selected">@transform.name</option>
+            } else {
+              <option value="@transform.name">@transform.name</option>
             }
           }
         </select>
@@ -60,6 +70,13 @@
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>
+            }
+          }
+          @for(transform <- transformTasks) {
+            @if(currentInputs.isDefined && transform.name == currentInputs.get.target.datasetId) {
+              <option value="@transform.name" selected="selected">@transform.name</option>
+            } else {
+              <option value="@transform.name">@transform.name</option>
             }
           }
         </select>

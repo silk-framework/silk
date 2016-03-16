@@ -21,11 +21,7 @@ case class LinkingPathsCacheFactory() extends TaskActivityFactory[LinkSpecificat
 
   def apply(task: Task[LinkSpecification]): Activity[DPair[EntitySchema]] = {
     new CachedActivity(
-      activity =
-        new LinkingPathsCache(
-          datasets = task.data.dataSelections.map(ds => task.project.task[Dataset](ds.datasetId).data),
-          linkSpec = task.data
-        ),
+      activity = new LinkingPathsCache(task),
       resource = task.project.cacheResources.child("linking").child(task.name).get(s"pathsCache.xml")
     )
   }
