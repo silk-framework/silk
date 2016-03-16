@@ -272,7 +272,7 @@ class CsvSource(file: Resource,
     Seq((classUri, 1.0))
   }
 
-  private def classUri = prefix + "CsvTable"
+  private def classUri = prefix + file.name
 }
 
 object SeparatorDetector {
