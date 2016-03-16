@@ -36,6 +36,7 @@ GET           /projects/:project/datasets/:name                                 
 GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.Datasets.getDatasetAutoConfigured(project: String, name: String)
 PUT           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.putDataset(project: String, name: String)
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
+GET           /projects/:project/datasets/:name/types                           controllers.workspace.Datasets.getDatasetTypes(project: String, name: String)
 
 ############################################################################################################################################
 # Workspace API
