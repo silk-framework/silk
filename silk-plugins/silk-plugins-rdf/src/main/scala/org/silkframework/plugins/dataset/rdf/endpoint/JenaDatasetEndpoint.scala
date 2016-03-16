@@ -6,7 +6,7 @@ import java.util.logging.Logger
 import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
 import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.apache.jena.riot.{Lang, RDFLanguages}
-import org.silkframework.dataset.rdf.GraphStoreTrait
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, GraphStoreTrait}
 
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.
@@ -32,6 +32,20 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
     val lang = Option(RDFLanguages.contentTypeToLang(contentType)).
         getOrElse(throw new IllegalArgumentException("Unknown content type: " + contentType))
     JenaDatasetWritingOutputStream(dataset, lang, graph)
+  }
+
+  /**
+    * @return the SPARQL related configuration of this SPARQL endpoint.
+    */
+  override def sparqlParams: SparqlParams = SparqlParams(pageSize = 0)
+
+  /**
+    *
+    * @param sparqlParams the new configuration of the SPARQL endpoint.
+    * @return A SPARQL endpoint configured with the new parameters.
+    */
+  override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
+    this // SPARQL parameters have no effect on this type of endpoint
   }
 }
 

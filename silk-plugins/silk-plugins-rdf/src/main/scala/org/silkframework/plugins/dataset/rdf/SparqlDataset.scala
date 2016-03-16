@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.dataset.rdf.RdfDatasetPlugin
+import org.silkframework.dataset.rdf.{SparqlParams, RdfDatasetPlugin}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
 

@@ -18,6 +18,17 @@ package org.silkframework.dataset.rdf
  * Represents a SPARQL endpoint and provides an interface to execute queries on it.
  */
 trait SparqlEndpoint {
+  /**
+    * @return the SPARQL related configuration of this SPARQL endpoint.
+    */
+  def sparqlParams: SparqlParams
+
+  /**
+    *
+    * @param sparqlParams the new configuration of the SPARQL endpoint.
+    * @return A SPARQL endpoint configured with the new parameters.
+    */
+  def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint
 
   /**
     * Executes a select query.

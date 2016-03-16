@@ -109,6 +109,7 @@ object Datasets extends Controller {
     }
   }
 
+  /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = "") = Action { request =>
     val context = Context.get[Dataset](project, task, request.path)
     val types = context.task.activity[TypesCache].value.types
@@ -117,4 +118,11 @@ object Datasets extends Controller {
     Ok(JsArray(filteredTypes.map(JsString)))
   }
 
+  /** Get all types of the dataset */
+  def getDatasetTypes(project: String, task: String) = Action { request =>
+    val context = Context.get[Dataset](project, task, request.path)
+    val types = context.task.activity[TypesCache].value.types
+
+    Ok(JsArray(types.map(JsString)))
+  }
 }
