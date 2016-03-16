@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{SparqlParams, SparqlEndpoint}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
@@ -47,7 +47,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     val restrictions = SparqlRestriction.fromSparql("a", s"?a a <$t>.")
 
     //Create an endpoint which fails after 3 retries
-    val failFastEndpoint = new RemoteSparqlEndpoint(params.copy(retryCount = 3, retryPause = 1000))
+    val failFastEndpoint = sparqlEndpoint.withSparqlParams(params.copy(retryCount = 3, retryPause = 1000))
 
     try {
       SparqlAggregatePathsCollector(failFastEndpoint, restrictions, limit)

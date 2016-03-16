@@ -6,9 +6,10 @@ import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import controllers.transform.TransformTaskApi._
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
-import org.silkframework.plugins.dataset.rdf.{SparqlParams, SparqlSink}
+import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.workspace.{Project, Task, User}
@@ -44,6 +45,7 @@ object ProjectUtils {
   /**
    * Returns the first dataset it can find in the DataSources element if datasetId is None
    * else returns the Dataset with the id defined by datasetId.
+ *
    * @param xmlRoot The element that contains the DataSources element
    * @param datasetIdOpt An optional id of the dataset.
    * @return
@@ -96,6 +98,7 @@ object ProjectUtils {
 
   /**
    * Reads all resource elements and load them into an in-memory resource manager
+ *
    * @param xmlRoot The element that contains the resource elements
    * @return
    */
@@ -113,6 +116,7 @@ object ProjectUtils {
   /**
    * If the model is null, we assume that the result was written to the specified sink.
    * If the model exists, then write the result into the response body.
+ *
    * @param model
    * @param noResponseBodyMessage The message that should be displayed if the model does not exist
    * @return

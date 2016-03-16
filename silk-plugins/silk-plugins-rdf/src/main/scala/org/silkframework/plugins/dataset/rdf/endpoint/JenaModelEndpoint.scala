@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import com.hp.hpl.jena.query.{QueryExecution, QueryExecutionFactory}
 import com.hp.hpl.jena.rdf.model.Model
 import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
-import org.silkframework.dataset.rdf.SparqlResults
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
 
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.
@@ -37,5 +37,19 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
     this.synchronized {
       super.update(query)
     }
+  }
+
+  /**
+    * @return the SPARQL related configuration of this SPARQL endpoint.
+    */
+  override def sparqlParams: SparqlParams = SparqlParams(pageSize = 0)
+
+  /**
+    *
+    * @param sparqlParams the new configuration of the SPARQL endpoint.
+    * @return A SPARQL endpoint configured with the new parameters.
+    */
+  override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
+    this // SPARQL parameters have no effect
   }
 }

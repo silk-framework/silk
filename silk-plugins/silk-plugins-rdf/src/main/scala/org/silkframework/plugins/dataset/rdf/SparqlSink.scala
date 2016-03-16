@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{SparqlParams, SparqlEndpoint}
 import org.silkframework.dataset.{EntitySink, LinkSink}
 import org.silkframework.entity.Link
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter

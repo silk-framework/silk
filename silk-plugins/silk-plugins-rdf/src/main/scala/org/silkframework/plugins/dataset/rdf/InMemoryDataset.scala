@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{SparqlParams, RdfDatasetPlugin, SparqlEndpoint}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.runtime.plugin.Plugin
 

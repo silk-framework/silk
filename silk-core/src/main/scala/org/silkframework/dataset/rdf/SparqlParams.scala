@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.dataset.rdf
 
 /**
  * Sparql parameters.

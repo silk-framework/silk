@@ -20,7 +20,6 @@ import java.util.logging.Logger
 import javax.xml.bind.DatatypeConverter
 
 import org.silkframework.dataset.rdf._
-import org.silkframework.plugins.dataset.rdf.SparqlParams
 
 import scala.io.Source
 import scala.xml.{Elem, XML}
@@ -29,26 +28,26 @@ import scala.xml.{Elem, XML}
  * Executes queries on a remote SPARQL endpoint.
  *
  */
-class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
+case class RemoteSparqlEndpoint(val sparqlParams: SparqlParams) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
-  override def toString = params.uri
+  override def toString = sparqlParams.uri
 
   override def select(query: String, limit: Int) = {
-    PagingSparqlTraversable(query, executeSelect, params, limit)
+    PagingSparqlTraversable(query, executeSelect, sparqlParams, limit)
   }
 
   /**
     * Executes a single select query.
     */
   def executeSelect(query: String): Elem = {
-    val queryUrl = params.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + params.queryParameters
+    val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
     httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
     //Set authentication
-    for ((user, password) <- params.login) {
+    for ((user, password) <- sparqlParams.login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
     }
 
@@ -73,12 +72,12 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
 
   override def update(query: String): Unit = {
     //Open a new HTTP connection
-    val connection = new URL(params.uri).openConnection().asInstanceOf[HttpURLConnection]
+    val connection = new URL(sparqlParams.uri).openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
     connection.setDoOutput(true)
     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
     //Set authentication
-    for ((user, password) <- params.login) {
+    for ((user, password) <- sparqlParams.login) {
       connection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
     }
     val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
@@ -91,14 +90,22 @@ class RemoteSparqlEndpoint(params: SparqlParams) extends SparqlEndpoint {
       val errorStream = connection.getErrorStream
       if (errorStream != null) {
         val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
-        throw new IOException("SPARQL/Update query on " + params.uri + " failed with error code " + connection.getResponseCode + ". Error Message: '" + errorMessage + "'. Failed query:\n" + query)
+        throw new IOException("SPARQL/Update query on " + sparqlParams.uri + " failed with error code " + connection.getResponseCode + ". Error Message: '" + errorMessage + "'. Failed query:\n" + query)
       }
       else {
-        throw new IOException("SPARQL/Update query on " + params.uri + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ". Failed query:\n" + query)
+        throw new IOException("SPARQL/Update query on " + sparqlParams.uri + " failed. Server response: " + connection.getResponseCode + " " + connection.getResponseMessage + ". Failed query:\n" + query)
       }
     }
   }
 
+  /**
+    *
+    * @param sparqlParams the new configuration of the SPARQL endpoint.
+    * @return A SPARQL endpoint configured with the new parameters.
+    */
+  override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
+    RemoteSparqlEndpoint(sparqlParams)
+  }
 }
 
 

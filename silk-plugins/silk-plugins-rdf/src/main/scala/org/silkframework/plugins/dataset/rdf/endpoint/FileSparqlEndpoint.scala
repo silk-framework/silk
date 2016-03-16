@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlResults}
+import org.silkframework.dataset.rdf.{SparqlParams, SparqlEndpoint, SparqlResults}
 import org.silkframework.runtime.resource.Resource
 
 class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, format: Option[String] = None) extends SparqlEndpoint {
@@ -53,5 +53,19 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
     * Executes an update query.
     */
   override def update(query: String): Unit = jenaEndpoint.update(query)
+
+  /**
+    * @return the SPARQL related configuration of this SPARQL endpoint.
+    */
+  override def sparqlParams: SparqlParams = SparqlParams(pageSize = 0)
+
+  /**
+    *
+    * @param sparqlParams the new configuration of the SPARQL endpoint.
+    * @return A SPARQL endpoint configured with the new parameters.
+    */
+  override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
+    this // No SPARQL parameters supported
+  }
 }
 

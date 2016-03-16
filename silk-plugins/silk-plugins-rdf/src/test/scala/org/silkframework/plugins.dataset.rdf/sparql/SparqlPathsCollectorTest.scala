@@ -16,8 +16,8 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
 
+import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.plugins.dataset.rdf.SparqlParams
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.util.Timer
 
