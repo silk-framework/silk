@@ -171,16 +171,19 @@ class CsvSource(file: Resource,
                   // However the user can specify a different URI pattern (in the *uri* property), which is then used to
                   // build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
                   // as defined in the *properties* field.
-                  val entityURI = if (uri.isEmpty)
-                    prefix + (index + 1)
-                  else
-                    "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
-                      val propName = m.group(1)
+                  val entityURI =
+                    if (uri.isEmpty && prefix.isEmpty)
+                      file.name + "/" + (index + 1)
+                    else if(uri.isEmpty)
+                      prefix + (index + 1)
+                    else
+                      "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
+                        val propName = m.group(1)
 
-                      assert(propertyList.contains(propName))
-                      val value = allValues(propertyList.indexOf(propName))
-                      URLEncoder.encode(value, "UTF-8")
-                    })
+                        assert(propertyList.contains(propName))
+                        val value = allValues(propertyList.indexOf(propName))
+                        URLEncoder.encode(value, "UTF-8")
+                      })
 
                   //Build entity
                   if (entities.isEmpty || entities.contains(entityURI)) {
