@@ -3,9 +3,10 @@ package org.silkframework.workspace.activity.linking
 import com.sun.xml.internal.bind.v2.runtime.output.FastInfosetStreamWriterOutput
 import org.silkframework.config.{TransformSpecification, LinkSpecification, RuntimeConfig}
 import org.silkframework.dataset.{DataSource, Dataset}
+import org.silkframework.entity.{Restriction, Path, Entity, EntitySchema}
 import org.silkframework.execution.{ExecuteTransform, GenerateLinks, Linking}
 import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.rule.TypeMapping
+import org.silkframework.rule.{TransformedDataSource, TransformRule, TypeMapping}
 import org.silkframework.runtime.activity.{ActivityContext, Activity}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.util.{Uri, Identifier}
@@ -59,25 +60,7 @@ class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: Runtim
     * @param context Holds the context in which the activity is executed.
     */
   override def run(context: ActivityContext[Linking]): Unit = {
-    var linkSpec = task.data
-    var usesTransforms = false
-
-    for(transformTask <- task.project.taskOption[TransformSpecification](linkSpec.dataSelections.source.datasetId)) {
-      for(TypeMapping(name, typeUri) <- transformTask.data.rules) {
-        linkSpec = linkSpec.copy(dataSelections = linkSpec.dataSelections.copy(source = linkSpec.dataSelections.source.copy(typeUri = typeUri)))
-        usesTransforms = true
-      }
-    }
-
-    for(transformTask <- task.project.taskOption[TransformSpecification](linkSpec.dataSelections.target.datasetId)) {
-      for(TypeMapping(name, typeUri) <- transformTask.data.rules) {
-        linkSpec = linkSpec.copy(dataSelections = linkSpec.dataSelections.copy(target = linkSpec.dataSelections.target.copy(typeUri = typeUri)))
-        usesTransforms = true
-      }
-    }
-
-    if(usesTransforms)
-      InternalDataset.default().clear()
+    val linkSpec = task.data
 
     val inputs = linkSpec.dataSelections.map(ds => getDataSource(ds.datasetId))
 
@@ -102,15 +85,8 @@ class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: Runtim
   private def getDataSource(sourceId: String): DataSource = {
     task.project.taskOption[TransformSpecification](sourceId) match {
       case Some(transformTask) =>
-        val executeTransform =
-          new ExecuteTransform(
-            input = task.project.task[Dataset](transformTask.data.selection.datasetId).data.source,
-            selection = transformTask.data.selection,
-            rules = transformTask.data.rules,
-            outputs = InternalDataset.default().entitySink :: Nil
-          )
-        Activity(executeTransform).startBlocking()
-        InternalDataset.default().source
+        val source = task.project.task[Dataset](transformTask.data.selection.datasetId).data.source
+        new TransformedDataSource(source, transformTask.data)
       case None =>
         task.project.task[Dataset](sourceId).data.source
     }

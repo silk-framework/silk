@@ -2,10 +2,11 @@ package org.silkframework.workspace.activity.linking
 
 import java.util
 
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.{TransformSpecification, LinkSpecification}
 import org.silkframework.dataset.{DataSource, Dataset}
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.evaluation.ReferenceEntities
+import org.silkframework.rule.TransformedDataSource
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.Task
@@ -48,9 +49,21 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
 
   private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntitySchema]) {
 
-    private val sources = task.data.dataSelections.map(ds => task.project.task[Dataset](ds.datasetId).data.source)
+    private val sources = {
+      task.data.dataSelections.map(ds => getDataSource(ds.datasetId))
+    }
 
     private val linkSpec = task.data
+
+    private def getDataSource(sourceId: String): DataSource = {
+      task.project.taskOption[TransformSpecification](sourceId) match {
+        case Some(transformTask) =>
+          val source = task.project.task[Dataset](transformTask.data.selection.datasetId).data.source
+          new TransformedDataSource(source, transformTask.data)
+        case None =>
+          task.project.task[Dataset](sourceId).data.source
+      }
+    }
 
     def load() = {
       context.status.update("Loading entities", 0.0)

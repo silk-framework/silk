@@ -15,6 +15,7 @@
 package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
+import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
 
@@ -41,8 +42,8 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
    * Returns the property URI, if this is a simple forward path of length 1.
    * Otherwise, returns none.
    */
-  def propertyUri: Option[String] = operators match {
-    case ForwardOperator(prop) :: Nil => Some(prop.uri)
+  def propertyUri: Option[Uri] = operators match {
+    case ForwardOperator(prop) :: Nil => Some(prop)
     case _ => None
   }
 
@@ -102,6 +103,13 @@ object Path {
    * Creates a path consisting of a single property
    */
   def apply(property: String): Path = {
+    apply(Uri(property))
+  }
+
+  /**
+    * Creates a path consisting of a single property
+    */
+  def apply(property: Uri): Path = {
     apply(ForwardOperator(property) :: Nil)
   }
 
