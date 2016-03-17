@@ -1,19 +1,14 @@
 package org.silkframework.workspace.activity.linking
 
-import com.sun.xml.internal.bind.v2.runtime.output.FastInfosetStreamWriterOutput
-import org.silkframework.config.{TransformSpecification, LinkSpecification, RuntimeConfig}
+import org.silkframework.config.{LinkSpecification, RuntimeConfig, TransformSpecification}
 import org.silkframework.dataset.{DataSource, Dataset}
-import org.silkframework.entity.{Restriction, Path, Entity, EntitySchema}
-import org.silkframework.execution.{ExecuteTransform, GenerateLinks, Linking}
-import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.rule.{TransformedDataSource, TransformRule, TypeMapping}
-import org.silkframework.runtime.activity.{ActivityContext, Activity}
+import org.silkframework.execution.{GenerateLinks, Linking}
+import org.silkframework.rule.TransformedDataSource
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.util.{Uri, Identifier}
 import org.silkframework.workspace.Task
 import org.silkframework.workspace.activity.TaskActivityFactory
-
-import scala.reflect.ClassTag
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 @Plugin(
   id = "GenerateLinks",
@@ -62,10 +57,10 @@ class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: Runtim
   override def run(context: ActivityContext[Linking]): Unit = {
     val linkSpec = task.data
 
-    val inputs = linkSpec.dataSelections.map(ds => getDataSource(ds.datasetId))
+    val inputs = task.dataSources
 
     val outputs =
-      if (writeOutputs) linkSpec.outputs.flatMap(o => task.project.taskOption[Dataset](o)).map(_.data.linkSink)
+      if (writeOutputs) task.linkSinks()
       else Nil
 
     generateLinks = Some(
@@ -81,15 +76,5 @@ class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: Runtim
   }
 
   override def cancelExecution() = generateLinks.foreach(_.cancelExecution())
-
-  private def getDataSource(sourceId: String): DataSource = {
-    task.project.taskOption[TransformSpecification](sourceId) match {
-      case Some(transformTask) =>
-        val source = task.project.task[Dataset](transformTask.data.selection.datasetId).data.source
-        new TransformedDataSource(source, transformTask.data)
-      case None =>
-        task.project.task[Dataset](sourceId).data.source
-    }
-  }
 
 }
