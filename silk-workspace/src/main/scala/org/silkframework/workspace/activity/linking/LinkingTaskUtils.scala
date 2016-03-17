@@ -17,7 +17,7 @@ object LinkingTaskUtils {
       * Retrieves both data sources for this linking task.
       */
     def dataSources: DPair[DataSource] = {
-      task.data.dataSelections.map(ds => dataSource(ds.datasetId))
+      task.data.dataSelections.map(ds => dataSource(ds.inputId))
     }
 
     /**
@@ -26,7 +26,7 @@ object LinkingTaskUtils {
     def dataSource(sourceId: String): DataSource = {
       task.project.taskOption[TransformSpecification](sourceId) match {
         case Some(transformTask) =>
-          val source = task.project.task[Dataset](transformTask.data.selection.datasetId).data.source
+          val source = task.project.task[Dataset](transformTask.data.selection.inputId).data.source
           new TransformedDataSource(source, transformTask.data)
         case None =>
           task.project.task[Dataset](sourceId).data.source

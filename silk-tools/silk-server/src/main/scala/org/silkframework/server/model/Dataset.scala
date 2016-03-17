@@ -26,7 +26,7 @@ import org.silkframework.util.DPair
 class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpecification, writeUnmatchedEntities: Boolean,
               matchOnlyInProvidedGraph: Boolean) {
 
-  private val sources = linkSpec.dataSelections.map(_.sourceId).map(config.source)
+  private val sources = linkSpec.dataSelections.map(_.inputId).map(config.source)
 
   private val entityDescs = linkSpec.entityDescriptions
 

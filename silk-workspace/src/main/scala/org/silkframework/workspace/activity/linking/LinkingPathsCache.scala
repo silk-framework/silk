@@ -45,12 +45,12 @@ class LinkingPathsCache(task: Task[LinkSpecification]) extends Activity[DPair[En
   }
 
   private def retrievePaths(datasetSelection: DatasetSelection) = {
-    task.project.taskOption[TransformSpecification](datasetSelection.datasetId) match {
+    task.project.taskOption[TransformSpecification](datasetSelection.inputId) match {
       case Some(transformTask) =>
         transformTask.data.rules.flatMap(_.target).map(Path(_)).distinct.toIndexedSeq
       case None =>
         // Retrieve the data source
-        val source = task.project.task[Dataset](datasetSelection.datasetId).data.source
+        val source = task.project.task[Dataset](datasetSelection.inputId).data.source
         //Retrieve most frequent paths
         source.retrievePaths(datasetSelection.typeUri, 1, Some(50))
     }

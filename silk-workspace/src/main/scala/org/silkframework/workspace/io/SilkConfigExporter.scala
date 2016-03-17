@@ -27,7 +27,7 @@ object SilkConfigExporter {
     LinkingConfig(
       prefixes = project.config.prefixes,
       runtime = new RuntimeConfig(),
-      sources = linkSpec.dataSelections.map(ds => datasets.find(_.id == ds.datasetId).get).toSeq,
+      sources = linkSpec.dataSelections.map(ds => datasets.find(_.id == ds.inputId).get).toSeq,
       linkSpecs = linkSpec :: Nil,
       outputs = linkSpec.outputs.map(id => datasets.find(_.id == id).get)
     )

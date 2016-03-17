@@ -23,7 +23,7 @@ object LinkingEditor extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
-    val sourceNames = task.data.dataSelections.map(_.datasetId.toString)
+    val sourceNames = task.data.dataSelections.map(_.inputId.toString)
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"

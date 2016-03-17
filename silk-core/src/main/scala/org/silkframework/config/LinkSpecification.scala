@@ -40,7 +40,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
                              referenceLinks: ReferenceLinks = ReferenceLinks.empty ) {
 
   def findSources(datasets: Traversable[Dataset]): DPair[DataSource] = {
-    DPair.fromSeq(dataSelections.map(_.datasetId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
+    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
   }
 
   def findOutputs(datasets: Traversable[Dataset]): Seq[LinkSink] = {

@@ -31,14 +31,14 @@
       <td>
         <select name="source" title="Source dataset">
           @for(dataset <- datasets) {
-            @if(currentInputs.isDefined && dataset.name == currentInputs.get.source.datasetId) {
+            @if(currentInputs.isDefined && dataset.name == currentInputs.get.source.inputId) {
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>
             }
           }
           @for(transform <- transformTasks) {
-            @if(currentInputs.isDefined && transform.name == currentInputs.get.source.datasetId) {
+            @if(currentInputs.isDefined && transform.name == currentInputs.get.source.inputId) {
               <option value="@transform.name" selected="selected">@transform.name</option>
             } else {
               <option value="@transform.name">@transform.name</option>
@@ -66,14 +66,14 @@
       <td>
         <select name="target" title="Target dataset">
           @for(dataset <- datasets) {
-            @if(currentInputs.isDefined && dataset.name == currentInputs.get.target.datasetId) {
+            @if(currentInputs.isDefined && dataset.name == currentInputs.get.target.inputId) {
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>
             }
           }
           @for(transform <- transformTasks) {
-            @if(currentInputs.isDefined && transform.name == currentInputs.get.target.datasetId) {
+            @if(currentInputs.isDefined && transform.name == currentInputs.get.target.inputId) {
               <option value="@transform.name" selected="selected">@transform.name</option>
             } else {
               <option value="@transform.name">@transform.name</option>

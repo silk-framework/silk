@@ -91,7 +91,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
   {
     val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
-    val sources = linkSpec.dataSelections.map(_.sourceId).map(config.source(_))
+    val sources = linkSpec.dataSelections.map(_.inputId).map(config.source(_))
 
     val entityDesc = linkSpec.entityDescriptions
 

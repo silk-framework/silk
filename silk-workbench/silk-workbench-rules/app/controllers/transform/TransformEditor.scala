@@ -27,7 +27,7 @@ object TransformEditor extends Controller {
     val task = project.task[TransformSpecification](taskName)
     val pathsCache = task.activity[TransformPathsCache].control
     val prefixes = project.config.prefixes
-    val sourceName = task.data.selection.datasetId.toString
+    val sourceName = task.data.selection.inputId.toString
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"

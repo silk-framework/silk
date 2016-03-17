@@ -19,7 +19,7 @@ class TransformPathsCache(task: Task[TransformSpecification]) extends Activity[E
    * Loads the most frequent paths.
    */
   override def run(context: ActivityContext[EntitySchema]) = {
-    val dataset = task.project.task[Dataset](task.data.selection.datasetId).data
+    val dataset = task.project.task[Dataset](task.data.selection.inputId).data
     val transform = task.data
 
     //Create an entity description from the transformation task

@@ -27,7 +27,7 @@
       <td>
         <select name="source" title="Source dataset">
           @for(dataset <- datasets) {
-            @if(currentInput.isDefined && dataset.name == currentInput.get.datasetId) {
+            @if(currentInput.isDefined && dataset.name == currentInput.get.inputId) {
               <option value="@dataset.name" selected="selected">@dataset.name</option>
             } else {
               <option value="@dataset.name">@dataset.name</option>

@@ -24,10 +24,10 @@ import scala.xml.Node
 /**
  * Defines a dataset.
  *
- * @param datasetId The id of the dataset
+ * @param inputId The id of the dataset or transformation to be used for retrieving entities.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSelection(datasetId: Identifier, typeUri: Uri, restriction: Restriction = Restriction.empty) {
+case class DatasetSelection(inputId: Identifier, typeUri: Uri, restriction: Restriction = Restriction.empty) {
 
   /**
    * Serializes this dataset specification as XML.
@@ -36,14 +36,14 @@ case class DatasetSelection(datasetId: Identifier, typeUri: Uri, restriction: Re
    */
   def toXML(asSource: Boolean) = {
     if (asSource) {
-      <SourceDataset dataSource={datasetId} var="a" typeUri={typeUri.uri}>
+      <SourceDataset dataSource={inputId} var="a" typeUri={typeUri.uri}>
         <RestrictTo>
           {restriction.serialize}
         </RestrictTo>
       </SourceDataset>
     }
     else {
-      <TargetDataset dataSource={datasetId} var="b" typeUri={typeUri.uri}>
+      <TargetDataset dataSource={inputId} var="b" typeUri={typeUri.uri}>
         <RestrictTo>
           {restriction.serialize}
         </RestrictTo>
@@ -80,7 +80,7 @@ object DatasetSelection {
     }
 
     DatasetSelection(
-      datasetId = (node \ "@dataSource").text,
+      inputId = (node \ "@dataSource").text,
       typeUri = Uri(typeUri),
       restriction = Restriction.parse(restrictionText)
     )
