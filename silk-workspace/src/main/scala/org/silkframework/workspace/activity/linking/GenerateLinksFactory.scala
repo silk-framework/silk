@@ -60,7 +60,7 @@ class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: Runtim
     val inputs = task.dataSources
 
     val outputs =
-      if (writeOutputs) task.linkSinks()
+      if (writeOutputs) task.linkSinks
       else Nil
 
     generateLinks = Some(
