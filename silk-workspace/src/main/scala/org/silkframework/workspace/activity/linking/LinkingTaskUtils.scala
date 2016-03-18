@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.linking
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.{Dataset, DataSource}
 import org.silkframework.rule.TransformedDataSource
-import org.silkframework.util.DPair
+import org.silkframework.util.{Identifier, DPair}
 import org.silkframework.workspace.Task
 
 /**
@@ -23,7 +23,7 @@ object LinkingTaskUtils {
     /**
       * Retrieves a specific data source for this linking task.
       */
-    def dataSource(sourceId: String): DataSource = {
+    def dataSource(sourceId: Identifier): DataSource = {
       task.project.taskOption[TransformSpecification](sourceId) match {
         case Some(transformTask) =>
           val source = task.project.task[Dataset](transformTask.data.selection.inputId).data.source
