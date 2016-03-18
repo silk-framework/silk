@@ -136,7 +136,7 @@ class CsvSource(file: Resource,
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
         val propertyIndex = propertyList.indexOf(property)
         if (propertyIndex == -1)
-          throw new Exception("Property " + property + " not found in CSV. Available properties: " + propertyList.mkString(", "))
+          throw new Exception("Property " + property + " not found in CSV "+ file.name +". Available properties: " + propertyList.mkString(", "))
         propertyIndex
       }
 
@@ -392,7 +392,9 @@ object CsvSourceHelper {
   }
 
   def parse(str: String): Seq[String] = {
-    standardCsvParser.parseLine(str)
+    standardCsvParser.synchronized {
+      standardCsvParser.parseLine(str)
+    }
   }
 
   def escapeString(str: String): String = {
