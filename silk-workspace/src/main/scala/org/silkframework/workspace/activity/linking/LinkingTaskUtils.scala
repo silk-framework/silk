@@ -36,7 +36,7 @@ object LinkingTaskUtils {
     /**
       * Retrieves all link sinks for this linking task.
       */
-    def linkSinks() = {
+    def linkSinks = {
       task.data.outputs.flatMap(o => task.project.taskOption[Dataset](o)).map(_.data.linkSink)
     }
   }
