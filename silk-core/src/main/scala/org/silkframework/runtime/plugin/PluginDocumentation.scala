@@ -1,6 +1,5 @@
-package org.silkframework.plugins
+package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.plugin._
 import org.silkframework.util.Table
 
 import scala.reflect.ClassTag
