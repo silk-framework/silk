@@ -15,7 +15,7 @@
 package org.silkframework.plugins.transformer.numeric
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
@@ -27,12 +27,12 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   id = "aggregateNumbers",
   categories = Array("Numeric"),
   label = "Aggregate Numbers",
-  description =
-    """ | Aggregates all numbers in this set using a mathematical operation.
-      | Accepts one paramter:
-      |   operator: One of '+', '*', 'min', 'max', 'average'"""
+  description = "Aggregates all numbers in this set using a mathematical operation."
 )
-case class AggregateNumbersTransformer(operator: String) extends Transformer {
+case class AggregateNumbersTransformer(
+  @Param("One of '+', '*', 'min', 'max', 'average'.")
+  operator: String) extends Transformer {
+
   require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
