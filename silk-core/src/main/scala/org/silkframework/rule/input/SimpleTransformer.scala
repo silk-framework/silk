@@ -15,7 +15,7 @@
 package org.silkframework.rule.input
 
 /**
- * Simple transformer which transforms all values of the first input.
+ * Simple transformer which transforms all values of all inputs.
  */
 abstract class SimpleTransformer extends Transformer {
 
