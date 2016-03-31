@@ -98,9 +98,16 @@ lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-sp
     resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
   )
 
+lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Plugins Asian"
+  )
+
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"

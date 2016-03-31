@@ -16,7 +16,6 @@ package org.silkframework.plugins
 
 import org.silkframework.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
 import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.plugins.distance.asian.{CJKReadingDistance, KoreanPhonemeDistance, KoreanTranslitDistance}
 import org.silkframework.plugins.distance.characterbased._
 import org.silkframework.plugins.distance.equality._
 import org.silkframework.plugins.distance.numeric._
@@ -127,9 +126,6 @@ class CorePlugins extends PluginModule {
     classOf[TokenwiseStringDistance] ::
     classOf[RelaxedEqualityMetric] ::
     classOf[CosineDistanceMetric] ::
-    classOf[KoreanPhonemeDistance] ::
-    classOf[KoreanTranslitDistance] ::
-    classOf[CJKReadingDistance] ::
     classOf[ConstantMetric] :: Nil
 
   private def aggregators =
