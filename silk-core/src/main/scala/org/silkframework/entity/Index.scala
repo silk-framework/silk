@@ -138,7 +138,7 @@ object Index {
   }
 
   def continuous(value: Double, minValue: Double, maxValue: Double, blockCount: Int, overlap: Double): Index = {
-    val block = (value - minValue) * blockCount
+    val block = ((value - minValue)/ (maxValue - minValue) ) * blockCount
     val blockIndex = block.toInt
 
     val indices =
