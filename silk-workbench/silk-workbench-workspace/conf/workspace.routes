@@ -44,6 +44,7 @@ GET           /projects/:project/datasets/:name/types                           
 
 # Projects
 GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
+GET           /projects/:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)
 PUT           /projects/:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
 DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
 POST          /projects/:project/import                                         controllers.workspace.WorkspaceApi.importProject(project: String)
