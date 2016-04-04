@@ -12,19 +12,17 @@
  * limitations under the License.
  */
 
-package org.silkframework.rule.input
+package org.silkframework.plugins.distance.asian
+
+import org.silkframework.runtime.plugin.PluginModule
 
 /**
- * Simple transformer which transforms all values of all inputs.
+ * Registers all default plugins.
  */
-abstract class SimpleTransformer extends Transformer {
+class AsianPlugins extends PluginModule {
 
-  override final def apply(values: Seq[Seq[String]]): Seq[String] = {
-    if(values.nonEmpty)
-      values.reduce(_ ++ _).map(evaluate)
-    else
-      Seq.empty
-  }
-
-  def evaluate(value: String): String
+  override def pluginClasses =
+    classOf[KoreanPhonemeDistance] ::
+    classOf[KoreanTranslitDistance] ::
+    classOf[CJKReadingDistance] :: Nil
 }

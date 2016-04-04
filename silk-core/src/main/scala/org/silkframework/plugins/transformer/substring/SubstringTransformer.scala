@@ -21,7 +21,6 @@ import org.silkframework.runtime.plugin.Plugin
 /**
  * Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive).
  *
- * @author Robert Isele
  */
 @Plugin(
   id = "substring",

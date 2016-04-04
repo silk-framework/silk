@@ -27,10 +27,14 @@ object LinkingTaskApi extends Controller {
   private val log = Logger.getLogger(getClass.getName)
 
   def getLinkingTask(projectName: String, taskName: String) = Action {
-    val project: Project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
-    val xml = Serialization.toXml(task.data)
-    Ok(xml)
+    try {
+      val project: Project = User().workspace.project(projectName)
+      val task = project.task[LinkSpecification](taskName)
+      val xml = Serialization.toXml(task.data)
+      Ok(xml)
+    } catch {
+      case ex: NoSuchElementException => NotFound(JsonError(ex))
+    }
   }
 
   def putLinkingTask(project: String, task: String) = Action { implicit request => {
