@@ -55,7 +55,7 @@ class SampleUtilTest extends FlatSpec with Matchers {
     val overallSize = sample.size
     for((k, vals) <- sampleByValue.toSeq.sortWith(_._1 < _._1)) {
       val valueRatio = vals.size.toDouble / overallSize
-      valueRatio shouldBe (0.1 +- 0.01) // It's practically impossible that a value will be lower/larger
+      valueRatio shouldBe (0.1 +- 0.015) // It's practically impossible that a value will be lower/larger
     }
   }
 }

@@ -10,7 +10,7 @@ class ClasspathResource(val path: String) extends Resource {
   val name: String = path.split(',').last
 
   def exists = {
-    getClass.getClassLoader.getResourceAsStream(path) == null
+    getClass.getClassLoader.getResourceAsStream(path) != null
   }
 
   override def load = {

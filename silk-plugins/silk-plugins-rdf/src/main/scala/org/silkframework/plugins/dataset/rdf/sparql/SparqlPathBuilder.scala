@@ -55,7 +55,7 @@ object SparqlPathBuilder {
     val operatorSparql = operators.head match {
       case ForwardOperator(property) => subject + " <" + property.uri + "> " + vars.newTempVar + " .\n"
       case BackwardOperator(property) => vars.newTempVar + " <" + property.uri + "> " + subject + " .\n"
-      case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " " + lang + ") . \n"
+      case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " '" + lang + "') . \n"
       case PropertyFilter(property, op, value) => subject + " <" + property.uri + "> " + vars.newFilterVar + " .\n" +
         "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
     }
