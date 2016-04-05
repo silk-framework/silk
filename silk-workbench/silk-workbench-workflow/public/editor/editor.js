@@ -51,12 +51,16 @@ $(function () {
           var box = $(this).children('.operator,.dataset').clone(false);
           // Generate a new id for the operator of the form operator_name
           var boxId = $(this).attr('id');
+          var taskId = 'operator' + boxId.substring(boxId.indexOf("_"))
           var suffix = '';
           if(counter > 1) {
-            suffix = '' + counter
+            while($('#' + taskId + counter).length > 0) {
+              // Count up because an operator with this id already exists
+              counter = counter + 1;
+            }
+            suffix = '' + counter;
           }
           counter = counter + 1;
-          var taskId = 'operator' + boxId.substring(boxId.indexOf("_"))
           box.attr('taskid', taskId)
           box.attr('id', taskId + suffix);
           box.show();
@@ -76,7 +80,7 @@ $(function () {
 
         // Hide operator in toolbox
         if(! $(ui).hasClass('operator')) {
-          ui.draggable.hide();
+//          ui.draggable.hide();
         }
 
         // Add operator to editor contents
