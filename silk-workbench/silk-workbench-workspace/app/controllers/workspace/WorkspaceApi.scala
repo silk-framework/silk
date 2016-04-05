@@ -26,13 +26,8 @@ object WorkspaceApi extends Controller {
   }
 
   def getProject(projectName: String) = Action {
-    try {
-      val project = User().workspace.project(projectName)
-      Ok(JsonSerializer.projectJson(project))
-    } catch {
-      case ex: ProjectNotFoundException =>
-        NotFound(JsonError(ex))
-    }
+    val project = User().workspace.project(projectName)
+    Ok(JsonSerializer.projectJson(project))
   }
 
   def newProject(project: String) = Action {

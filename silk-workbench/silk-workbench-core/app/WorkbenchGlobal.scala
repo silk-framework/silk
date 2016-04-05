@@ -1,5 +1,6 @@
 
 import models.JsonError
+import org.silkframework.workspace.{ProjectNotFoundException, TaskNotFoundException}
 import play.api.PlayException.ExceptionSource
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -53,10 +54,18 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 //      }
 //
 //    Future.successful(res)
-    if(ex.isInstanceOf[ExceptionSource] && ex.getCause != null) {
-      Future.successful(InternalServerError(JsonError(ex.getCause)))
-    } else {
-      Future.successful(InternalServerError(JsonError(ex)))
+
+    Future.successful(handleError(ex))
+  }
+
+  private def handleError(ex: Throwable): Result = {
+    ex match {
+      case _: ExceptionSource if ex.getCause != null =>
+        handleError(ex.getCause)
+      case _: ProjectNotFoundException | _: TaskNotFoundException =>
+        NotFound(JsonError(ex))
+      case _ =>
+        InternalServerError(JsonError(ex))
     }
   }
 
