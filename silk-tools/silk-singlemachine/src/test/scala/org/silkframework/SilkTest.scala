@@ -1,6 +1,7 @@
 package org.silkframework
 
 import java.io.File
+import java.net.URLDecoder
 
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -8,9 +9,9 @@ import scala.io.Source
 
 class SilkTest extends FlatSpec with Matchers {
 
-  val exampleDir = getClass.getClassLoader.getResource("org/silkframework/example/").getFile
-  val linkSpecFile = new File(exampleDir + "linkSpec.xml")
-  val outputFile = new File(exampleDir + "links.nt")
+  val exampleDir = URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/example/").getFile, "UTF-8")
+  val linkSpecFile = new File(exampleDir, "linkSpec.xml")
+  val outputFile = new File(exampleDir, "links.nt")
   outputFile.delete()
 
   "Silk" should "execute the example link spec" in {
