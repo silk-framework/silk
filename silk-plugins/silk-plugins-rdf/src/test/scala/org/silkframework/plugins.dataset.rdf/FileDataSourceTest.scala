@@ -15,6 +15,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import java.io.File
+import java.net.URLDecoder
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
@@ -32,7 +33,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val fileName = "test.nt"
 
-  val resourceLoader = new FileResourceManager(new File(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile))
+  val resourceLoader = new FileResourceManager(new File(URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile, "UTF-8")))
 
   val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
