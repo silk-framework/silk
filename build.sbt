@@ -9,7 +9,7 @@ lazy val commonSettings = Seq(
   organization := "org.silkframework",
   version := "2.7.2",
   // Building
-  scalaVersion := "2.11.7",
+  scalaVersion := "2.11.8",
   javacOptions := Seq("-source", "1.7", "-target", "1.7"),
   scalacOptions += "-target:jvm-1.7",
   // Testing
