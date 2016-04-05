@@ -20,7 +20,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
           posY={op.position._2.toString}
           task={op.task}
           inputs={op.inputs.mkString(",")}
-          outputs={op.outputs.mkString(",")} />
+          outputs={op.outputs.mkString(",")}
+          id={op.id}
+          />
       }
     }{
       for(ds <- datasets) yield {
@@ -49,7 +51,15 @@ object Workflow {
           inputs = if(inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
           task = (op \ "@task").text,
           outputs = if(outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
-          position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt)
+          position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt),
+          id = {
+            val node = ((op \ "@id"))
+            if(node.isEmpty) {
+              (op \ "@task").text
+            } else {
+              node.text
+            }
+          }
         )
       }
 

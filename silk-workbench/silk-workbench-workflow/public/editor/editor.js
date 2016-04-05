@@ -45,15 +45,27 @@ $(function () {
 
   // Make operators draggable
   $('.toolboxOperator').draggable({
-    helper: function() {
-      var box = $(this).children('.operator,.dataset').clone(false);
-      // Generate a new id for the operator of the form operator_name
-      var boxId = $(this).attr('id');
-      box.attr('id', 'operator' + boxId.substring(boxId.indexOf("_")));
-      box.show();
-      return box;
-    }
-  });
+      init: function() {
+        var counter = 1;
+        this.helper = function() {
+          var box = $(this).children('.operator,.dataset').clone(false);
+          // Generate a new id for the operator of the form operator_name
+          var boxId = $(this).attr('id');
+          var suffix = '';
+          if(counter > 1) {
+            suffix = '' + counter
+          }
+          counter = counter + 1;
+          var taskId = 'operator' + boxId.substring(boxId.indexOf("_"))
+          box.attr('taskid', taskId)
+          box.attr('id', taskId + suffix);
+          box.show();
+          return box;
+        }
+        return this;
+      }
+    }.init()
+  );
 
   // Handle dropped operators
   $("#editorContent").droppable({
@@ -63,7 +75,9 @@ $(function () {
         var id = ui.helper.attr('id');
 
         // Hide operator in toolbox
-        ui.draggable.hide();
+        if(! $(ui).hasClass('operator')) {
+          ui.draggable.hide();
+        }
 
         // Add operator to editor contents
         $.ui.ddmanager.current.cancelHelperRemoval = true;
