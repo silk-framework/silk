@@ -34,7 +34,7 @@ class Workspace(val provider: WorkspaceProvider) {
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
   def project(name: Identifier): Project = {
-    projects.find(_.name == name).getOrElse(throw new NoSuchElementException("Project '" + name + "' not found"))
+    projects.find(_.name == name).getOrElse(throw new ProjectNotFoundException(name))
   }
 
   def createProject(name: Identifier) = {

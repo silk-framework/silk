@@ -10,10 +10,10 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{InMemoryResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.Serialization
-import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, ProjectExecutor}
+import org.silkframework.workspace.activity.{ProjectActivity, ProjectExecutor, TaskActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
-import org.silkframework.workspace.{Project, Task, User}
+import org.silkframework.workspace.{Project, ProjectNotFoundException, Task, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc._
 
@@ -26,8 +26,13 @@ object WorkspaceApi extends Controller {
   }
 
   def getProject(projectName: String) = Action {
-    val project = User().workspace.project(projectName)
-    Ok(JsonSerializer.projectJson(project))
+    try {
+      val project = User().workspace.project(projectName)
+      Ok(JsonSerializer.projectJson(project))
+    } catch {
+      case ex: ProjectNotFoundException =>
+        NotFound(JsonError(ex))
+    }
   }
 
   def newProject(project: String) = Action {
