@@ -54,7 +54,12 @@ function serializeOperator(op, xml) {
   var operatorXml = xml.ownerDocument.createElement("Operator");
   operatorXml.setAttribute("posX", position.left);
   operatorXml.setAttribute("posY", position.top);
-  operatorXml.setAttribute("task", getId(op.id));
+  var taskId = $(op).attr("taskid");
+  if(taskId === undefined) {
+    taskId = op.id
+  }
+  operatorXml.setAttribute("task", getId(taskId));
+  operatorXml.setAttribute("id", op.id);
   operatorXml.setAttribute("inputs", sources);
   operatorXml.setAttribute("outputs", targets);
   xml.appendChild(operatorXml);
@@ -65,7 +70,11 @@ function serializeDataset(ds, xml) {
   var datasetXml = xml.ownerDocument.createElement("Dataset");
   datasetXml.setAttribute("posX", position.left);
   datasetXml.setAttribute("posY", position.top);
-  datasetXml.setAttribute("task", getId(ds.id));
+  var taskId = $(ds).attr("taskid");
+  if(taskId === undefined) {
+    taskId = ds.id
+  }
+  datasetXml.setAttribute("task", getId(taskId));
   xml.appendChild(datasetXml);
 }
 

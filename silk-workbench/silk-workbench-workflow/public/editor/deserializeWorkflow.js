@@ -26,12 +26,17 @@ function deserializeWorkflow(xml) {
   xmlRoot.find('Dataset').each(function() {
     var xml = $(this);
     var taskId = xml.attr('task');
+    var opId = xml.attr('id');
+    if(opId === undefined) {
+      opId = 'dataset_' + taskId
+    }
 
     var toolbox = $("#toolbox_" + taskId);
     toolbox.hide();
 
     var box = toolbox.children('.dataset').clone(false);
-    box.attr('id', 'dataset_' + taskId);
+    box.attr('taskId', 'dataset_' + taskId);
+    box.attr('id', opId)
     box.show();
     box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
     box.appendTo(editorContent);
@@ -40,20 +45,27 @@ function deserializeWorkflow(xml) {
     jsPlumb.draggable(box);
 
     // Add endpoints
-    sourceEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointSource);
-    targetEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointTarget);
+    sourceEndpoints[opId] = jsPlumb.addEndpoint(box, endpointSource);
+    targetEndpoints[opId] = jsPlumb.addEndpoint(box, endpointTarget);
   });
 
   // Deserialize all operators
   xmlRoot.find('Operator').each(function() {
     var xml = $(this);
     var taskId = xml.attr('task');
+    var opId = xml.attr('id');
+    if(opId === undefined) {
+      opId = 'operator_' + taskId
+    }
 
     var toolbox = $("#toolbox_" + taskId);
-    toolbox.hide();
+    // Don't hide, operators can be used multiple times
+//    toolbox.hide();
 
     var box = toolbox.children('.operator').clone(false);
-    box.attr('id', 'operator_' + taskId);
+    box.attr('taskid', 'operator_' + taskId);
+    console.log('opId ' + opId)
+    box.attr('id', opId)
     box.show();
     box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
     box.appendTo(editorContent);
@@ -62,14 +74,17 @@ function deserializeWorkflow(xml) {
     jsPlumb.draggable(box);
 
     // Add endpoints
-    sourceEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointSource);
-    targetEndpoints[taskId] = jsPlumb.addEndpoint(box, endpointTarget);
+    console.log('Blah: ' + box);
+    sourceEndpoints[opId] = jsPlumb.addEndpoint(box, endpointSource);
+    targetEndpoints[opId] = jsPlumb.addEndpoint(box, endpointTarget);
   });
 
   // Connect endpoints
   xmlRoot.find('Operator').each(function() {
     var xml = $(this);
-    var taskId = xml.attr('task');
+    console.log(xml.attr('id') + '   ' + xml.attr('task'));
+
+    var taskId = xml.attr('id');
     // Connect inputs
     $.each(xml.attr('inputs').split(','), function() {
       if(this != "") {
