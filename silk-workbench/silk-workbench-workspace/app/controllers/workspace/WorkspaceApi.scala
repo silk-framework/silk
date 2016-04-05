@@ -25,6 +25,11 @@ object WorkspaceApi extends Controller {
     Ok(JsonSerializer.projectsJson)
   }
 
+  def getProject(projectName: String) = Action {
+    val project = User().workspace.project(projectName)
+    Ok(JsonSerializer.projectJson(project))
+  }
+
   def newProject(project: String) = Action {
     if(User().workspace.projects.exists(_.name == project)) {
       Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
