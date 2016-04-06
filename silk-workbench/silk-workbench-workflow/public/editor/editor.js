@@ -77,10 +77,10 @@ $(function () {
       // Check if we still need to add endpoints to the dropped element
       if(jsPlumb.getEndpoints(ui.helper) === undefined) {
         var id = ui.helper.attr('id');
-
+        console.log(ui);
         // Hide operator in toolbox
-        if(! $(ui).hasClass('operator')) {
-//          ui.draggable.hide();
+        if($(ui.helper).hasClass('dataset')) {
+          ui.draggable.hide();
         }
 
         // Add operator to editor contents
