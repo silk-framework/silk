@@ -28,7 +28,7 @@ function deserializeWorkflow(xml) {
     var taskId = xml.attr('task');
     var opId = xml.attr('id');
     if(opId === undefined) {
-      opId = 'dataset_' + taskId
+      opId = taskId
     }
 
     var toolbox = $("#toolbox_" + taskId);
@@ -64,7 +64,6 @@ function deserializeWorkflow(xml) {
 
     var box = toolbox.children('.operator').clone(false);
     box.attr('taskid', 'operator_' + taskId);
-    console.log('opId ' + opId)
     box.attr('id', opId)
     box.show();
     box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
@@ -74,7 +73,6 @@ function deserializeWorkflow(xml) {
     jsPlumb.draggable(box);
 
     // Add endpoints
-    console.log('Blah: ' + box);
     sourceEndpoints[opId] = jsPlumb.addEndpoint(box, endpointSource);
     targetEndpoints[opId] = jsPlumb.addEndpoint(box, endpointTarget);
   });
@@ -82,7 +80,6 @@ function deserializeWorkflow(xml) {
   // Connect endpoints
   xmlRoot.find('Operator').each(function() {
     var xml = $(this);
-    console.log(xml.attr('id') + '   ' + xml.attr('task'));
 
     var taskId = xml.attr('id');
     // Connect inputs
