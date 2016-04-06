@@ -64,7 +64,8 @@ class GenerateLinks(inputs: DPair[DataSource],
 
       //Create activities
       loader = new Loader(inputs, caches, runtimeConfig.sampleSizeOpt)
-      matcher = new Matcher(linkSpec.rule, caches, runtimeConfig)
+      val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
+      matcher = new Matcher(linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget)
 
       //Load entities
       if (runtimeConfig.reloadCache) {

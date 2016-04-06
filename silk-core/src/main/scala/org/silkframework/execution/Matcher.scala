@@ -36,9 +36,9 @@ import scala.math.{max, min}
  * @param sourceEqualsTarget Can be set to true if the source and the target cache are equal to enable faster matching in that case.
  */
 class Matcher(linkageRule: LinkageRule,
-                caches: DPair[EntityCache],
-                runtimeConfig: RuntimeConfig = RuntimeConfig(),
-                sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
+              caches: DPair[EntityCache],
+              runtimeConfig: RuntimeConfig = RuntimeConfig(),
+              sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
 
   /** The name of this task. */
   override def name = "MatchTask"
