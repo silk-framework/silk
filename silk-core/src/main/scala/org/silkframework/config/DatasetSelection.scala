@@ -69,7 +69,7 @@ object DatasetSelection {
       try {
         val sourceRestriction = new SparqlRestrictionParser().apply(restrictionText)
         sourceRestriction.operator match {
-          case Some(Restriction.Condition(path, uri)) if path.propertyUri.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#type") =>
+          case Some(Restriction.Condition(path, uri)) if path.propertyUri.toString.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#type") =>
             restrictionText = ""
             typeUri = uri
           case _ =>

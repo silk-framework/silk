@@ -39,7 +39,7 @@ private class ActivityExecution[T](activity: Activity[T],
       val startTime = System.currentTimeMillis
       try {
         activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime, None))
       } catch {
         case ex: Throwable =>
           status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
