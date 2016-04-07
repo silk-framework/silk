@@ -23,7 +23,7 @@ case class SubStringDistance(@Param("The minimum length of a possible substring 
   private val n = granularity.toInt
 
   override def evaluate(str1: String, str2: String, threshold: Double) = {
-    val score = SubStringDistance.score(str1, str2)
+    val score = SubStringDistance.score(str1, str2, n)
     if (score < 0)
       1.0
     else
@@ -43,7 +43,7 @@ object SubStringDistance {
     str = normalizeString(str, '_')
     str = normalizeString(str, ' ')
     str = normalizeString(str, '-')
-    return str
+    str
   }
 
   // Find the largest common substring and return the start and stop indexes of both strings and the substring length
@@ -93,39 +93,39 @@ object SubStringDistance {
   // Remove the string between the start and end index of the given string
   private def removeSubString(_str: String, endSubStr: Int, startSubStr: Int): String = {
     var str: String = _str
-    var newString = new Array[Char](str.length - (endSubStr - startSubStr));
+    val newString = new Array[Char](str.length - (endSubStr - startSubStr))
 
     var j = 0
     for (i <- 0 until str.length()) {
       if (!((i >= startSubStr) && (i < endSubStr))) {
-        newString(j) = str.charAt(i);
+        newString(j) = str.charAt(i)
         j += 1
       }
     }
 
-    str = new String(newString);
+    str = new String(newString)
     str
   }
 
   // Compute the dissimilarity component
   private def computeDissimilarity(origStr1Len: Int, common: Double, origStr2Len: Int): Double = {
-    var dissimilarity = 0.0D;
+    var dissimilarity = 0.0D
 
-    val rest1 = origStr1Len - common;
-    val rest2 = origStr2Len - common;
+    val rest1 = origStr1Len - common
+    val rest2 = origStr2Len - common
 
-    var unmatchedS1 = math.max(rest1, 0.0D);
-    var unmatchedS2 = math.max(rest2, 0.0D);
-    unmatchedS1 = rest1 / origStr1Len;
-    unmatchedS2 = rest2 / origStr2Len;
+    var unmatchedS1 = math.max(rest1, 0.0D)
+    var unmatchedS2 = math.max(rest2, 0.0D)
+    unmatchedS1 = rest1 / origStr1Len
+    unmatchedS2 = rest2 / origStr2Len
 
-    val suma = unmatchedS1 + unmatchedS2;
-    val product = unmatchedS1 * unmatchedS2;
-    val p = 0.6D;
+    val suma = unmatchedS1 + unmatchedS2
+    val product = unmatchedS1 * unmatchedS2
+    val p = 0.6D
     if (suma - product == 0.0D)
-      dissimilarity = 0.0D;
+      dissimilarity = 0.0D
     else {
-      dissimilarity = product / (p + (1.0D - p) * (suma - product));
+      dissimilarity = product / (p + (1.0D - p) * (suma - product))
     }
     dissimilarity
   }
@@ -133,7 +133,8 @@ object SubStringDistance {
   /**
    * Calculates the similarity score [-1..1]
    */
-  def score(str1: String, str2: String): Double = {
+  def score(str1: String, str2: String, granularity: Int = 3): Double = {
+    val minMatchLength = math.max(granularity, 2)
     if (invalidStrings(str1, str2)) {
       return -1.0D
     }
@@ -156,18 +157,18 @@ object SubStringDistance {
       return 1.0
     }
 
-    val common = computeCommonSubStrings(s1, s2)
+    val common = computeCommonSubStrings(s1, s2, minMatchLength)
 
     val commonality = computeCommonality(common, origStr1Len, origStr2Len)
 
-    val winklerImprov: Double = winklerImprovement(str1, str2, commonality);
+    val winklerImprov = winklerImprovement(str1, str2, commonality)
 
-    val dissimilarity: Double = computeDissimilarity(origStr1Len, common, origStr2Len)
+    val dissimilarity = computeDissimilarity(origStr1Len, common, origStr2Len)
 
-    return commonality - dissimilarity + winklerImprov;
+    commonality - dissimilarity + winklerImprov
   }
 
-  private def computeCommonSubStrings(str1: String, str2: String): Double = {
+  private def computeCommonSubStrings(str1: String, str2: String, granularity: Int): Double = {
     var s1 = str1
     var s2 = str2
     var common = 0.0
@@ -177,25 +178,25 @@ object SubStringDistance {
 
       val r = findBestSubString(s1, s2, best)
       best = r._1
-      var startS1: Int = r._2
-      var endS1: Int = r._3
-      var startS2: Int = r._4
-      var endS2: Int = r._5
+      val startS1: Int = r._2
+      val endS1: Int = r._3
+      val startS2: Int = r._4
+      val endS2: Int = r._5
 
       s1 = removeSubString(s1, endS1, startS1)
       s2 = removeSubString(s2, endS2, startS2)
 
-      if (best > 2)
-        common += best;
+      if (best >= granularity)
+        common += best
       else {
-        best = 0;
+        best = 0
       }
     }
-    return common
+    common
   }
 
   private def computeCommonality(common: Double, str1Len: Int, str2Len: Int): Double = {
-    return 2.0D * common / (str1Len + str2Len);
+    2.0D * common / (str1Len + str2Len)
   }
 
   private def invalidStrings(str1: String, str2: String): Boolean = {
@@ -207,28 +208,28 @@ object SubStringDistance {
     val diffIndex = indexOfDifference(s1, s2)
     val commonPrefixLength = math.min(4, diffIndex)
 
-    return commonPrefixLength * 0.1D * (1.0D - commonality)
+    commonPrefixLength * 0.1D * (1.0D - commonality)
   }
 
   private def indexOfDifference(s1: String, s2: String): Int = {
     var i = 0
-    val n = math.min(s1.length(), s2.length());
+    val n = math.min(s1.length(), s2.length())
     while (i < n) {
-      if ((s1(i) != s2(i)))
+      if (s1(i) != s2(i))
         return i
       i += 1
     }
-    return n - 1
+    n - 1
   }
 
   def normalizeString(str: String, removeChar: Char): String = {
-    val strBuf = new StringBuilder();
+    val strBuf = new StringBuilder()
 
     for (character <- str)
       if (character != removeChar)
         strBuf.append(character)
 
-    return strBuf.toString();
+    strBuf.toString()
   }
 
   def getNgrams(str: String, n: Int = 3): Seq[String] = {
@@ -237,23 +238,5 @@ object SubStringDistance {
       return Seq(normString)
     for (i <- 0 to normString.length - n)
       yield normString.substring(i, i + n)
-  }
-
-  def main(args: Array[String]) {
-    println(score("aaabbb", "aaaBBB"))
-    println(score("numPersons", "personNumber"))
-    println(score("trythis", "trythat"))
-    println(score("aaaccc", "aaaBBB"))
-    println(score("aaabbbccc", "cccbbbaaa"))
-    println(score("gsdhgsdihgaaageigerer", "vmwnbifvsdaaafgsdhje"))
-    println(score("aopqrst", "rtpaopqs"))
-    println(score("NrPersons", "NumberPers"))
-    println(score("aabb", "bbaa"))
-    println(score("aaaaork", "efghaaaa"))
-    val lev = new LevenshteinDistance
-    println(lev.indexValue("aaaa", 0.0))
-    println('a'.toInt)
-    val isub = new SubStringDistance
-    println(isub.indexValue("abcdef", 0.0))
   }
 }
