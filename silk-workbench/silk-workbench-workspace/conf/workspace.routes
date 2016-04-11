@@ -42,6 +42,9 @@ GET           /projects/:project/datasets/:name/types                           
 # Workspace API
 ############################################################################################################################################
 
+# Reload Workspace
+POST          /reload                                                           controllers.workspace.WorkspaceApi.reload
+
 # Projects
 GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
 GET           /projects/:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)

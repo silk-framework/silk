@@ -59,6 +59,14 @@ function reloadWorkspace() {
   });
 }
 
+function reloadWorkspaceInBackend() {
+  $.post(baseUrl + '/workspace/reload', function(data) {
+    reloadWorkspace();
+  }).fail(function(request) {
+    alert("Error reloading workspace: " + request.responseText);
+  });
+}
+
 function workspaceDialog(relativePath) {
   showDialog(baseUrl + '/' + relativePath, reloadWorkspace);
 }

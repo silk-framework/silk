@@ -21,6 +21,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object WorkspaceApi extends Controller {
 
+  def reload = Action {
+    User().workspace.reload()
+    Ok
+  }
+  
   def projects = Action {
     Ok(JsonSerializer.projectsJson)
   }
