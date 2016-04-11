@@ -35,7 +35,7 @@ function deserializeWorkflow(xml) {
     toolbox.hide();
 
     var box = toolbox.children('.dataset').clone(false);
-    box.attr('taskId', 'dataset_' + taskId);
+    box.attr('taskId', taskId);
     box.attr('id', opId)
     box.show();
     box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
@@ -55,7 +55,7 @@ function deserializeWorkflow(xml) {
     var taskId = xml.attr('task');
     var opId = xml.attr('id');
     if(opId === undefined) {
-      opId = 'operator_' + taskId
+      opId = taskId
     }
 
     var toolbox = $("#toolbox_" + taskId);
@@ -63,7 +63,7 @@ function deserializeWorkflow(xml) {
 //    toolbox.hide();
 
     var box = toolbox.children('.operator').clone(false);
-    box.attr('taskid', 'operator_' + taskId);
+    box.attr('taskid', taskId);
     box.attr('id', opId)
     box.show();
     box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});

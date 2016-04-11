@@ -41,13 +41,13 @@ function serializeOperator(op, xml) {
   // Create a list of source ids
   var sources =
       $.map(incoming, function(connection) {
-        return getId(connection.sourceId);
+        return connection.sourceId;
       }).join(",");
 
   // Create a list of target ids
   var targets =
       $.map(outgoing, function(connection) {
-        return getId(connection.targetId);
+        return connection.targetId;
       }).join(",");
 
   // Assemble xml
@@ -58,7 +58,7 @@ function serializeOperator(op, xml) {
   if(taskId === undefined) {
     taskId = op.id
   }
-  operatorXml.setAttribute("task", getId(taskId));
+  operatorXml.setAttribute("task", taskId);
   operatorXml.setAttribute("id", op.id);
   operatorXml.setAttribute("inputs", sources);
   operatorXml.setAttribute("outputs", targets);
@@ -74,10 +74,6 @@ function serializeDataset(ds, xml) {
   if(taskId === undefined) {
     taskId = ds.id
   }
-  datasetXml.setAttribute("task", getId(taskId));
+  datasetXml.setAttribute("task", taskId);
   xml.appendChild(datasetXml);
-}
-
-function getId(id) {
-  return id.substring(id.indexOf("_") + 1)
 }
