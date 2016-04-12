@@ -14,7 +14,8 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext}
 class ExecuteTransform(input: DataSource,
                        selection: DatasetSelection,
                        rules: Seq[TransformRule],
-                       outputs: Seq[EntitySink] = Seq.empty) extends Activity[ExecuteTransformResult] {
+                       outputs: Seq[EntitySink] = Seq.empty,
+                       errorOutputs: Seq[EntitySink] = Seq.empty) extends Activity[ExecuteTransformResult] {
 
   require(rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -48,6 +49,9 @@ class ExecuteTransform(input: DataSource,
       // Open outputs
       val properties = propertyRules.map(_.target.get.uri)
       for (output <- outputs) output.open(properties)
+      val inputProperties = entitySchema.paths.map( p =>
+        p.propertyUri.map(_.uri).getOrElse(p.toString)).toIndexedSeq
+      for (errorOutput <- errorOutputs) errorOutput.open(inputProperties)
 
       // Transform all entities and write to outputs
       var count = 0
@@ -66,10 +70,14 @@ class ExecuteTransform(input: DataSource,
           }
         }
         if(success) {
-          for (output <- outputs)
+          for (output <- outputs) {
             output.writeEntity(uri, values)
+          }
         } else {
           entityErrorCounter += 1
+          for (output <- errorOutputs) {
+            output.writeEntity(uri, entity.values)
+          }
         }
         if (isCanceled)
           return
@@ -81,9 +89,11 @@ class ExecuteTransform(input: DataSource,
       }
       context.status.update(s"$count entities written to ${outputs.size} outputs", 1.0)
     } finally {
-      // Close outputs
+      // Set final value
       context.value.update(executeTransformResult(entityCounter, entityErrorCounter, ruleErrorCounter))
+      // Close outputs
       for (output <- outputs) output.close()
+      for (errorOutput <- errorOutputs) errorOutput.close()
     }
   }
 
