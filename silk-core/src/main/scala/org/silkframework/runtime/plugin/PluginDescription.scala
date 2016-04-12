@@ -107,7 +107,7 @@ object PluginDescription {
 
   private def createFromClass[T](pluginClass: Class[T]) = {
     new PluginDescription(
-      id = pluginClass.getSimpleName,
+      id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,
       categories = Set("Uncategorized"),
       description = "",
