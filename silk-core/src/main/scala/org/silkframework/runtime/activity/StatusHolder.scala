@@ -30,7 +30,7 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    * Holds the current status.
    */
   @volatile
-  private var status: Status = Status.Idle
+  private var status: Status = Status.Idle()
 
   /**
    * Retrieves the current status.
