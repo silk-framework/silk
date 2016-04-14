@@ -15,7 +15,7 @@ class ExecuteTransform(input: DataSource,
                        selection: DatasetSelection,
                        rules: Seq[TransformRule],
                        outputs: Seq[EntitySink] = Seq.empty,
-                       errorOutputs: Seq[EntitySink] = Seq.empty) extends Activity[ExecuteTransformResult] {
+                       errorOutputs: Seq[EntitySink]) extends Activity[ExecuteTransformResult] {
 
   require(rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 

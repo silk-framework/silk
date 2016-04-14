@@ -54,9 +54,14 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
     // Get the sinks for this operator
     val outputs = operator.outputs.map(project.anyTask(_).data)
     var sinks: Seq[SinkTrait] = outputs.collect { case ds: Dataset => ds }
+    val errorOutputs = operator.errorOutputs.map(project.anyTask(_).data)
+    var errorSinks: Seq[SinkTrait] = errorOutputs.collect { case ds: Dataset => ds }
 
     if(outputs.exists(!_.isInstanceOf[Dataset])) {
       sinks +:= internalDataset
+    }
+    if(errorOutputs.exists(!_.isInstanceOf[Dataset])) {
+      errorSinks +:= internalDataset
     }
 
     // Retrieve the task and its executor
@@ -65,7 +70,7 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
       .getOrElse(throw new Exception("Cannot execute task " + operator.task))
 
     // Execute the task
-    val activity = taskExecutor(dataSources, taskData, sinks)
+    val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
     context.child(activity, 0.0).startBlocking()
 
     log.info("Finished execution of " + operator.task)

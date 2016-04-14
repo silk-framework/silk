@@ -22,7 +22,8 @@ case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpecif
         input = task.dataSource,
         selection = task.data.selection,
         rules = task.data.rules,
-        outputs = task.entitySinks
+        outputs = task.entitySinks,
+        errorOutputs = task.errorEntitySinks
       )
     }
   }

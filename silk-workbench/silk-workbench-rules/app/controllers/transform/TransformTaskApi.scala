@@ -214,7 +214,7 @@ object TransformTaskApi extends Controller {
         implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
         val dataSource = createDataSource(xmlRoot, None)
         val (model, entitySink) = createEntitySink(xmlRoot)
-        executeTransform(task, entitySink, dataSource)
+        executeTransform(task, entitySink, dataSource, errorEntitySinkOpt = None)
         val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
         result(model, acceptedContentType, "Data transformed successfully!")
       case _ =>
@@ -222,8 +222,8 @@ object TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: Task[TransformSpecification], entitySink: EntitySink, dataSource: DataSource): Unit = {
-    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink))
+  private def executeTransform(task: Task[TransformSpecification], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
+    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink),errorEntitySinkOpt.toSeq)
     Activity(transform).startBlocking()
   }
 
