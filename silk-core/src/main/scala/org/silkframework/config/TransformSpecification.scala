@@ -7,15 +7,15 @@ import org.silkframework.runtime.serialization.Serialization._
 import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.util.Identifier
 
-import scala.xml.Node
+import scala.xml.{Null, Node}
 
 /**
- * This class contains all the required parameters to execute a transform task.
- *
- * @since 2.6.1
- * @see org.silkframework.execution.ExecuteTransform
- */
-case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty) {
+  * This class contains all the required parameters to execute a transform task.
+  *
+  * @since 2.6.1
+  * @see org.silkframework.execution.ExecuteTransform
+  */
+case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty, errorOutputs: Seq[Identifier] = Seq.empty) {
 
   def entitySchema = {
     EntitySchema(
@@ -28,8 +28,8 @@ case class TransformSpecification(id: Identifier = Identifier.random, selection:
 }
 
 /**
- * Static functions for the TransformSpecification class.
- */
+  * Static functions for the TransformSpecification class.
+  */
 object TransformSpecification {
 
   implicit object TransformSpecificationFormat extends XmlFormat[TransformSpecification] {
@@ -44,9 +44,10 @@ object TransformSpecification {
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
       val rules = (node \ "TransformRule").map(fromXml[TransformRule])
       val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
+      val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
 
       // Create and return a TransformSpecification instance.
-      TransformSpecification(id, datasetSelection, rules, sinks)
+      TransformSpecification(id, datasetSelection, rules, sinks, errorSinks)
     }
 
     /**
@@ -54,10 +55,15 @@ object TransformSpecification {
       */
     override def write(value: TransformSpecification)(implicit prefixes: Prefixes): Node = {
       <TransformSpec>
-        { value.rules.map(toXml[TransformRule]) }
-        <Outputs>
-          { value.outputs.map(o => <Output id={o}></Output>) }
-        </Outputs>
+        {value.rules.map(toXml[TransformRule])}<Outputs>
+        {value.outputs.map(o => <Output id={o}></Output>)}
+      </Outputs>{if (value.errorOutputs.isEmpty) {
+        Null
+      } else {
+        <ErrorOutputs>
+          {value.errorOutputs.map(o => <ErrorOutput id={o}></ErrorOutput>)}
+        </ErrorOutputs>
+      }}
       </TransformSpec>
     }
   }

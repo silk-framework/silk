@@ -168,7 +168,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {
     val input = config.source(transform.selection.inputId).source
-    Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.entitySink))).startBlocking()
+    Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.entitySink), Seq())).startBlocking() // TODO: Allow to set error output
   }
 
   /**
