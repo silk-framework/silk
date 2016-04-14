@@ -6,15 +6,16 @@ import java.net.URL
 import controllers.core.{Stream, Widgets}
 import models.JsonError
 import org.silkframework.config._
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, HasValue}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{InMemoryResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.Serialization
-import org.silkframework.workspace.activity.{ProjectActivity, ProjectExecutor, TaskActivity}
+import org.silkframework.workspace.activity.{ProjectActivity, ProjectExecutor, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import org.silkframework.workspace.{Project, ProjectNotFoundException, Task, User}
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.JsArray
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -297,6 +298,25 @@ object WorkspaceApi extends Controller {
       val activity = project.activity(activityName)
       Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status))
     }
+  }
+
+  def recentActivities(maxCount: Int) = Action {
+    // Get all projects and tasks
+    val projects = User().workspace.projects
+    val tasks: Seq[Task[_]] = projects.flatMap(_.allTasks)
+
+    // Get all activities
+    val projectActivities = projects.flatMap(_.activities)
+    val taskActivities = tasks.flatMap(_.activities.asInstanceOf[Seq[WorkspaceActivity]])
+    val allActivities = projectActivities ++ taskActivities
+
+    // Filter recent activities
+    val recentActivities = allActivities.sortBy(-_.status.timestamp).take(maxCount)
+
+    // Get all statuses
+    val statuses = recentActivities.map(JsonSerializer.activityStatus)
+
+    Ok(JsArray(statuses))
   }
 
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
