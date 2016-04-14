@@ -4,7 +4,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.Project
 
-class ProjectActivity(val project: Project, initialFactory: ProjectActivityFactory[_]) {
+class ProjectActivity(override val project: Project, initialFactory: ProjectActivityFactory[_]) extends WorkspaceActivity {
 
   @volatile
   private var currentControl: ActivityControl[_] = Activity(initialFactory(project))
@@ -12,11 +12,13 @@ class ProjectActivity(val project: Project, initialFactory: ProjectActivityFacto
   @volatile
   private var currentFactory = initialFactory
 
-  def name = currentFactory.plugin.id
+  override def name = currentFactory.plugin.id
+
+  override def taskOption = None
 
   def value = currentControl.value()
 
-  def status = currentControl.status()
+  override def status = currentControl.status()
 
   def control = currentControl
 

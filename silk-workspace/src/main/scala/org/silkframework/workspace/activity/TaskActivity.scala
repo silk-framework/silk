@@ -1,8 +1,8 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.runtime.activity.{Activity, HasValue}
+import org.silkframework.runtime.activity.{Activity, HasValue, Status}
 import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.{Project, Task}
 
 import scala.reflect.ClassTag
 
@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
   * @param initialFactory The initial activity factory for generating the activity.
   * @tparam DataType The type of the task.
   */
-class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val task: Task[DataType], initialFactory: TaskActivityFactory[DataType, ActivityType]) {
+class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val task: Task[DataType], initialFactory: TaskActivityFactory[DataType, ActivityType]) extends WorkspaceActivity {
 
   @volatile
   private var currentControl = Activity(initialFactory(task))
@@ -21,11 +21,15 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
   @volatile
   private var currentFactory = initialFactory
 
-  def name = currentFactory.plugin.id
+  override def name = currentFactory.plugin.id
+
+  override def project = task.project
+
+  override def taskOption = Option(task)
 
   def value = currentControl.value()
 
-  def status = currentControl.status()
+  override def status = currentControl.status()
 
   def autoRun = currentFactory.autoRun
 
