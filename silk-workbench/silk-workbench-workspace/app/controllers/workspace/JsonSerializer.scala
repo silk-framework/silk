@@ -3,6 +3,7 @@ package controllers.workspace
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.Status
+import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, Task, User}
 import play.api.libs.json._
@@ -66,6 +67,11 @@ object JsonSerializer {
       ((value \ "name").toString(), (value \ "value").toString)
   }.toMap
 
+
+  def activityStatus(activity: WorkspaceActivity): JsValue = {
+    activityStatus(activity.project.name, activity.taskOption.map(_.name.toString).getOrElse(""), activity.name, activity.status)
+  }
+
   def activityStatus(project: String, task: String, activity: String, status: Status): JsValue = {
     JsObject(
       ("project" -> JsString(project)) ::
@@ -75,7 +81,8 @@ object JsonSerializer {
       ("isRunning" -> JsBoolean(status.isRunning)) ::
       ("progress" -> JsNumber(status.progress * 100.0)) ::
       ("message" -> JsString(status.toString)) ::
-      ("failed" -> JsBoolean(status.failed)) :: Nil
+      ("failed" -> JsBoolean(status.failed)) ::
+      ("timestamp" -> JsNumber(status.timestamp)) :: Nil
     )
   }
 }
