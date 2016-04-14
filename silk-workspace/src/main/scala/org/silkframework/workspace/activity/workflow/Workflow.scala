@@ -21,6 +21,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
           task={op.task}
           inputs={op.inputs.mkString(",")}
           outputs={op.outputs.mkString(",")}
+          errorOutputs={op.errorOutputs.mkString(",")}
           id={op.id}
           />
       }
@@ -47,10 +48,12 @@ object Workflow {
       for(op <- xml \ "Operator") yield {
         val inputStr = (op \ "@inputs").text
         val outputStr = (op \ "@outputs").text
+        val errorOutputStr = (op \ "@errorOutputs").text
         WorkflowOperator(
           inputs = if(inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
           task = (op \ "@task").text,
           outputs = if(outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
+          errorOutputs = if(errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
           position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt),
           id = {
             val node = ((op \ "@id"))
