@@ -75,8 +75,8 @@ class ExecuteTransform(input: DataSource,
           }
         } else {
           entityErrorCounter += 1
-          for (output <- errorOutputs) {
-            output.writeEntity(uri, entity.values)
+          for (errorOutput <- errorOutputs) {
+            errorOutput.writeEntity(uri, entity.values)
           }
         }
         if (isCanceled)
