@@ -363,6 +363,9 @@ object WorkspaceApi extends Controller {
     }
   }
 
+  /**
+    * Holds the activities log.
+    */
   object ActivityLog extends java.util.logging.Handler {
 
     private val size = 100
