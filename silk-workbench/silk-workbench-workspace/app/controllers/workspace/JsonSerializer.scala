@@ -1,5 +1,7 @@
 package controllers.workspace
 
+import java.util.logging.LogRecord
+
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.Status
@@ -83,6 +85,19 @@ object JsonSerializer {
       ("message" -> JsString(status.toString)) ::
       ("failed" -> JsBoolean(status.failed)) ::
       ("timestamp" -> JsNumber(status.timestamp)) :: Nil
+    )
+  }
+
+  def logRecords(records: Seq[LogRecord]) = {
+    JsArray(records.map(logRecord))
+  }
+
+  def logRecord(record: LogRecord) = {
+    JsObject(
+      ("activity" -> JsString(record.getLoggerName.substring(record.getLoggerName.lastIndexOf('.') + 1))) ::
+      ("level" -> JsString(record.getLevel.getName)) ::
+      ("message" -> JsString(record.getMessage)) ::
+      ("timestamp" -> JsNumber(record.getMillis)) :: Nil
     )
   }
 }

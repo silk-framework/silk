@@ -17,7 +17,7 @@ private class ActivityExecution[T](activity: Activity[T],
     * The logger to be used by the activity.
     */
   override val log = parent match {
-    case None => Logger.getLogger("org.silkframework.runtime.activity." + name)
+    case None => Logger.getLogger(Activity.loggingPath + "." + name)
     case Some(p) => Logger.getLogger(p.log.getName + "." + name)
   }
 

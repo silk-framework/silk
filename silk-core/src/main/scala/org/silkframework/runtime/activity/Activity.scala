@@ -56,6 +56,11 @@ object Activity {
   var executionContext: ExecutionContext = ExecutionContext.global
 
   /**
+    * The base path into which all activity output is logged
+    */
+  val loggingPath = "org.silkframework.runtime.activity.log"
+
+  /**
    * Retrieves a control for an activity without executing it.
    * The [ActivityControl] instance can be used to start the execution of the activity.
    * After that it can be used to monitor the execution status as well as the current value and allows to request the cancellation of the execution.

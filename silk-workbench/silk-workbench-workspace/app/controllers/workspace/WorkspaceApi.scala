@@ -2,6 +2,7 @@ package controllers.workspace
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 import java.net.URL
+import java.util.logging.{Handler, LogRecord, Logger, MemoryHandler}
 
 import controllers.core.{Stream, Widgets}
 import models.JsonError
@@ -319,6 +320,10 @@ object WorkspaceApi extends Controller {
     Ok(JsArray(statuses))
   }
 
+  def activityLog() = Action {
+    Ok(JsonSerializer.logRecords(ActivityLog.records))
+  }
+
   def activityUpdates(projectName: String, taskName: String, activityName: String) = Action {
     val projects =
       if (projectName.nonEmpty) User().workspace.project(projectName) :: Nil
@@ -356,6 +361,47 @@ object WorkspaceApi extends Controller {
       case _ =>
         request.queryString.mapValues(_.head)
     }
+  }
+
+  object ActivityLog extends java.util.logging.Handler {
+
+    private val size = 100
+
+    private val buffer = Array.fill[LogRecord](size)(null)
+
+    private var start = 0
+
+    private var count = 0
+
+    Logger.getLogger(Activity.loggingPath).addHandler(this)
+
+    /**
+      * Retrieves the recent log records
+      */
+    def records: Seq[LogRecord] = {
+      for(i <- 0 until count) yield {
+        buffer((start + i) % buffer.length)
+      }
+    }
+
+    /**
+      * Adds a new log record.
+      */
+    override def publish(record: LogRecord): Unit = synchronized {
+      val ix = (start + count) % buffer.length
+      buffer(ix) = record
+      if (count < buffer.length) {
+        count += 1
+      }
+      else {
+        start += 1
+        start %= buffer.length
+      }
+    }
+
+    override def flush(): Unit = {}
+
+    override def close(): Unit = {}
   }
 
 }

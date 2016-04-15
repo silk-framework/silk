@@ -90,6 +90,7 @@ GET           /activities/config                                                
 POST          /activities/config                                                controllers.workspace.WorkspaceApi.postActivityConfig(project: String, task: String, activity: String)
 GET           /activities/status                                                controllers.workspace.WorkspaceApi.getActivityStatus(project: String, task: String, activity: String)
 GET           /activities/recent                                                controllers.workspace.WorkspaceApi.recentActivities(maxCount: Int ?= 10)
+GET           /activities/log                                                   controllers.workspace.WorkspaceApi.activityLog()
 GET           /activities/updates                                               controllers.workspace.WorkspaceApi.activityUpdates(project: String, task: String, activity: String)
 
 ############################################################################################################################################
