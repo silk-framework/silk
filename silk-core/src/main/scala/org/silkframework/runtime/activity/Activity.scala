@@ -58,7 +58,7 @@ object Activity {
   /**
     * The base path into which all activity output is logged
     */
-  val loggingPath = "org.silkframework.runtime.activity.log"
+  val loggingPath = "org.silkframework.runtime.activity"
 
   /**
    * Retrieves a control for an activity without executing it.
