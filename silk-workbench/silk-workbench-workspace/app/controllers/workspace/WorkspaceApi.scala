@@ -378,6 +378,8 @@ object WorkspaceApi extends Controller {
 
     Logger.getLogger(Activity.loggingPath).addHandler(this)
 
+    Logger.getLogger(getClass.getName).info("Logging of activities started.")
+
     /**
       * Retrieves the recent log records
       */
