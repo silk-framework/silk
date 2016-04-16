@@ -383,7 +383,7 @@ object WorkspaceApi extends Controller {
     /**
       * Retrieves the recent log records
       */
-    def records: Seq[LogRecord] = {
+    def records: Seq[LogRecord] = synchronized {
       for(i <- 0 until count) yield {
         buffer((start + i) % buffer.length)
       }
