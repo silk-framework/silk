@@ -363,50 +363,57 @@ object WorkspaceApi extends Controller {
     }
   }
 
-  /**
-    * Holds the activities log.
-    */
-  object ActivityLog extends java.util.logging.Handler {
+}
 
-    private val size = 100
+/**
+  * Holds the activities log.
+  */
+object ActivityLog extends java.util.logging.Handler {
 
-    private val buffer = Array.fill[LogRecord](size)(null)
+  private val size = 100
 
-    private var start = 0
+  private val buffer = Array.fill[LogRecord](size)(null)
 
-    private var count = 0
+  private var start = 0
 
+  private var count = 0
+
+  private val log = Logger.getLogger(getClass.getName)
+
+  init()
+
+  def init(): Unit = {
     Logger.getLogger(Activity.loggingPath).addHandler(this)
-
-    Logger.getLogger(getClass.getName).info("Logging of activities started.")
-
-    /**
-      * Retrieves the recent log records
-      */
-    def records: Seq[LogRecord] = synchronized {
-      for(i <- 0 until count) yield {
-        buffer((start + i) % buffer.length)
-      }
-    }
-
-    /**
-      * Adds a new log record.
-      */
-    override def publish(record: LogRecord): Unit = synchronized {
-      val ix = (start + count) % buffer.length
-      buffer(ix) = record
-      if (count < buffer.length) {
-        count += 1
-      }
-      else {
-        start += 1
-        start %= buffer.length
-      }
-    }
-
-    override def flush(): Unit = {}
-
-    override def close(): Unit = {}
+    log.fine("Logging of activities started.")
   }
 
+  /**
+    * Retrieves the recent log records
+    */
+  def records: Seq[LogRecord] = synchronized {
+    log.fine(s"Retrieving $count activity logs")
+    for(i <- 0 until count) yield {
+      buffer((start + i) % buffer.length)
+    }
+  }
+
+  /**
+    * Adds a new log record.
+    */
+  override def publish(record: LogRecord): Unit = synchronized {
+    log.fine(s"Adding activities log for '${record.getLoggerName}'")
+    val ix = (start + count) % buffer.length
+    buffer(ix) = record
+    if (count < buffer.length) {
+      count += 1
+    }
+    else {
+      start += 1
+      start %= buffer.length
+    }
+  }
+
+  override def flush(): Unit = {}
+
+  override def close(): Unit = {}
 }
