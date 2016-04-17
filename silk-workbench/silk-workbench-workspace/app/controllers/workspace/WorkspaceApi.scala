@@ -380,10 +380,12 @@ object ActivityLog extends java.util.logging.Handler {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  private val activitiesLogger = Logger.getLogger(Activity.loggingPath)
+
   init()
 
   def init(): Unit = {
-    Logger.getLogger(Activity.loggingPath).addHandler(this)
+    activitiesLogger.addHandler(this)
     log.fine("Logging of activities started.")
   }
 
