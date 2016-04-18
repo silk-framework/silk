@@ -29,10 +29,10 @@ import org.silkframework.plugins.transformer.filter._
 import org.silkframework.plugins.transformer.linguistic._
 import org.silkframework.plugins.transformer.normalize._
 import org.silkframework.plugins.transformer.numeric._
-import org.silkframework.plugins.transformer.replace.{RegexReplaceTransformer, ReplaceTransformer}
+import org.silkframework.plugins.transformer.replace.{MapTransformer, RegexReplaceTransformer, ReplaceTransformer}
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import org.silkframework.plugins.transformer.value.{ConstantUriTransformer, ConstantTransformer, RandomNumberTransformer}
+import org.silkframework.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, RandomNumberTransformer}
 import org.silkframework.runtime.plugin.PluginModule
 
 /**
@@ -50,6 +50,7 @@ class CorePlugins extends PluginModule {
     classOf[ReplaceTransformer] ::
     classOf[RegexReplaceTransformer] ::
     classOf[RegexExtractionTransformer] ::
+    classOf[MapTransformer] ::
     classOf[ConcatTransformer] ::
     classOf[RemoveBlanksTransformer] ::
     classOf[LowerCaseTransformer] ::
