@@ -23,8 +23,13 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Numeric reduce",
   description = "Strip all non-numeric characters from a string."
 )
-case class NumReduceTransformer() extends SimpleTransformer {
+case class NumReduceTransformer(keepPunctuation: Boolean = true) extends SimpleTransformer {
 
-  override def evaluate(value: String): String = value.filter(_.isDigit)
+  override def evaluate(value: String): String = {
+    if(keepPunctuation)
+      value.filter(c => c.isDigit || c == '.' || c == ',')
+    else
+      value.filter(_.isDigit)
+  }
 
 }
