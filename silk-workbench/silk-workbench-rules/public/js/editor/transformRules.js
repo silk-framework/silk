@@ -56,8 +56,8 @@ function save() {
   var names = $("#ruleContainer").find(".name").map(function() { return $(this).val() } ).toArray();
   var duplicateNames = $.grep(names, function(v, i) { return $.inArray(v, names) != i });
   if(duplicateNames.length > 0) {
-    var errors = duplicateNames.map(function(name) { return { message: "The following name is not unique: " + name }; } );
-    updateStatus(errors, null, null);
+    var errors = duplicateNames.map(function(name) { return { type: "Error", message: "The following name is not unique: " + name }; } );
+    updateStatus(errors);
     return;
   }
 
@@ -70,12 +70,12 @@ function save() {
     data: serializeRules(),
     success: function(response) {
       confirmOnExit = false;
-      updateStatus(null, null, null);
+      updateStatus([]);
     },
     error: function(req) {
       console.log('Error committing rule: ' + req.responseText);
-      var errors = [ { message: req.responseText } ];
-      updateStatus(errors, null, null);
+      var errors = [ { type: "Error", message: req.responseText } ];
+      updateStatus(errors);
     }
   });
 }
