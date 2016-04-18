@@ -24,8 +24,8 @@ sealed abstract class ParameterType[T : ClassTag] {
 
   def hasType(givenType: Type): Boolean = {
     givenType match {
-      case pt: ParameterizedType => pt.getRawType.getTypeName == dataType.getTypeName
-      case t => t.getTypeName == dataType.getTypeName
+      case pt: ParameterizedType => pt.getRawType.toString == dataType.toString
+      case t => t.toString == dataType.toString
     }
   }
 
