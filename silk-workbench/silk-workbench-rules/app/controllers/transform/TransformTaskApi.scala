@@ -3,6 +3,7 @@ package controllers.transform
 import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
+import models.JsonError
 import org.silkframework.config.{DatasetSelection, TransformSpecification}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.Restriction
@@ -10,7 +11,7 @@ import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.Serialization
-import org.silkframework.runtime.validation.{ValidationError, ValidationException}
+import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Task, User}
@@ -119,30 +120,19 @@ object TransformTaskApi extends Controller {
             project.updateTask(taskName, updatedTask)
           }
           // Return warnings
-          Ok(statusJson(warnings = warnings.map(_.getMessage)))
+          Ok(JsonError("Transform rule committed successfully", warnings.map(log => ValidationWarning(log.getMessage))))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid transformation rule", ex)
-            BadRequest(statusJson(errors = ex.errors))
+            BadRequest(JsonError("Invalid transformation rule", ex.errors))
           case ex: Exception =>
-            log.log(Level.WARNING, "Failed to save transformation rule", ex)
-            InternalServerError(statusJson(errors = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+            log.log(Level.WARNING, "Failed to commit transformation rule", ex)
+            InternalServerError(JsonError("Failed to commit transformation rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
         }
       case None =>
         BadRequest("Expecting text/xml request body")
     }
   }
-  }
-
-  private def statusJson(errors: Seq[ValidationError] = Nil, warnings: Seq[String] = Nil, infos: Seq[String] = Nil) = {
-    /** Generates a Json expression from an error */
-    def errorToJsExp(error: ValidationError) = JsObject(("message", JsString(error.toString)) ::("id", JsString(error.id.map(_.toString).getOrElse(""))) :: Nil)
-
-    JsObject(
-      ("error", JsArray(errors.map(errorToJsExp))) ::
-          ("warning", JsArray(warnings.map(JsString))) ::
-          ("info", JsArray(infos.map(JsString))) :: Nil
-    )
   }
 
   def reloadTransformCache(projectName: String, taskName: String) = Action {
