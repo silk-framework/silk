@@ -14,7 +14,7 @@
 
 package org.silkframework.runtime.plugin
 
-import java.lang.reflect.{Constructor, InvocationTargetException}
+import java.lang.reflect.{Constructor, InvocationTargetException, ParameterizedType}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
@@ -52,7 +52,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
    * Retrieves the parameters values of a given plugin instance.
    */
   def parameterValues(plugin: AnyRef): Map[String, String] = {
-    parameters.map(param => (param.name, Option(param(plugin)).getOrElse("").toString)).toMap
+    parameters.map(param => (param.name, param.stringValue(plugin))).toMap
   }
 
   override def toString = label
@@ -138,13 +138,7 @@ object PluginDescription {
         (pluginParam.value(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
-      val dataType = parType match {
-        case parClass: Class[_] =>
-          ParameterType.forClass(parClass)
-        case _ =>
-          throw new InvalidPluginException("Unsupported parameter type in plugin " + pluginClass.getName + ": " + parType)
-      }
-
+      val dataType = ParameterType.forType(parType)
       Parameter(parName, dataType, description, defaultValue, exampleValue)
     }
   }

@@ -84,7 +84,7 @@ object PluginRegistry {
     val desc = PluginDescription(pluginInstance.getClass)
     val parameters =
       for(param <- desc.parameters if param(pluginInstance) != null) yield
-        (param.name, param(pluginInstance).toString)
+        (param.name, param.stringValue(pluginInstance))
     (desc, parameters.toMap)
   }
 

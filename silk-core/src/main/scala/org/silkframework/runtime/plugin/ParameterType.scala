@@ -1,7 +1,10 @@
 package org.silkframework.runtime.plugin
 
+import java.lang.reflect.{ParameterizedType, Type}
+import java.net.URLEncoder
+
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{WritableResource, Resource, EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -17,7 +20,14 @@ sealed abstract class ParameterType[T : ClassTag] {
   /**
     * The underlying type.
     */
-  def dataType = implicitly[ClassTag[T]].runtimeClass
+  private val dataType = implicitly[ClassTag[T]].runtimeClass
+
+  def hasType(givenType: Type): Boolean = {
+    givenType match {
+      case pt: ParameterizedType => pt.getRawType.getTypeName == dataType.getTypeName
+      case t => t.getTypeName == dataType.getTypeName
+    }
+  }
 
   /**
     * Parses a value from its string representation.
@@ -36,7 +46,7 @@ sealed abstract class ParameterType[T : ClassTag] {
     * @param value The value to be serialized.
     * @return The string representation of the value that can be parsed by calling fromString on the same datatype.
     */
-  def toString(value: T): String = value.toString
+  def toString(value: T): String = if(value == null) "" else value.toString
 
   /**
     * Short name of this type.
@@ -51,20 +61,20 @@ sealed abstract class ParameterType[T : ClassTag] {
 object ParameterType {
 
   /**
-    * All available paramter types.
+    * All available parameter types.
     */
   val all: Seq[ParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, UriType, ResourceType, WritableResourceType)
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType)
   }
 
   /**
-    * Retrieves the parameter type for a specific underlying class.
+    * Retrieves the parameter type for a specific underlying type.
     *
     * @throws InvalidPluginException If no parameter type is available for the given class.
     */
-  def forClass(dataClass: Class[_]): ParameterType[_] = {
-    all.find(_.dataType.getName == dataClass.getName)
-       .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataClass))
+  def forType(dataType: Type): ParameterType[_] = {
+    all.find(_.hasType(dataType))
+       .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
   }
 
   object StringType extends ParameterType[String] {
@@ -108,6 +118,19 @@ object ParameterType {
         case "false" | "0" => false
         case _ => throw new ValidationException("Value must be either 'true' or 'false'")
       }
+    }
+
+  }
+
+  object StringMapType extends ParameterType[Map[String, String]] {
+
+    def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): Map[String, String] = {
+      str.split(',').map(_.split(':')).map(v => Tuple2(v(0), v(1))).toMap
+    }
+
+    override def toString(value: Map[String, String]): String = {
+      val strValues = for((k, v) <- value) yield URLEncoder.encode(k, "UTF8") + ":" + URLEncoder.encode(k, "UTF8")
+      strValues.mkString(",")
     }
 
   }
