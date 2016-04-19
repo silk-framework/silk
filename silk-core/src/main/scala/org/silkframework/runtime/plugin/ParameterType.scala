@@ -1,7 +1,7 @@
 package org.silkframework.runtime.plugin
 
 import java.lang.reflect.{ParameterizedType, Type}
-import java.net.URLEncoder
+import java.net.{URLDecoder, URLEncoder}
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
@@ -125,11 +125,11 @@ object ParameterType {
   object StringMapType extends ParameterType[Map[String, String]] {
 
     def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): Map[String, String] = {
-      str.split(',').map(_.split(':')).map(v => Tuple2(v(0), v(1))).toMap
+      str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), "UTF8"), URLDecoder.decode(v(1), "UTF8"))).toMap
     }
 
     override def toString(value: Map[String, String]): String = {
-      val strValues = for((k, v) <- value) yield URLEncoder.encode(k, "UTF8") + ":" + URLEncoder.encode(k, "UTF8")
+      val strValues = for((k, v) <- value) yield URLEncoder.encode(k, "UTF8") + ":" + URLEncoder.encode(v, "UTF8")
       strValues.mkString(",")
     }
 
