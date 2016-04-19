@@ -16,6 +16,7 @@
   <link type="text/css" href="@Assets.at("lib/mdl/material.css")" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link type="text/css" href="@Assets.at("stylesheets/editor/mdl-adjustments.css")" rel="stylesheet" />
+  <link type="text/css" href="@Assets.at("lib/mdl-selectfield-master/mdl-selectfield.min.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
@@ -25,6 +26,7 @@
   <script type="text/javascript" src="@Assets.at("js/editor/editableLabel.js")"></script>
   <!-- MDL inclusions: -->
   <script type="text/javascript" src="@Assets.at("lib/mdl/material.js")"></script>
+  <script type="text/javascript" src="@Assets.at("lib/mdl-selectfield-master/mdl-selectfield.min.js")"></script>
 
   <script type="text/javascript">
     var projectName = '@context.project.name';
@@ -51,14 +53,49 @@
       </button>
     </li>
     <li>
-      <a class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.name).url" target="_blank" title="Get Link Specification to be executed from the command line">
-        <i class="material-icons">file_download</i>
-      </a>
+      <div class="spacer"/>
     </li>
     <li>
-      <a class="mdl-button mdl-js-button mdl-button--icon" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">
+      <a id="button_get_linkspec" class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.name).url" target="_blank">
+        <i class="material-icons">file_download</i>
+      </a>
+      <div class="mdl-tooltip mdl-tooltip--large" for="button_get_linkspec">
+        Get Link Specification to be executed from the command line
+      </div>
+    </li>
+    <li>
+      <a id="button_editor_help" class="mdl-button mdl-js-button mdl-button--icon" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">
         <i class="material-icons">help_outline</i>
       </a>
+      <div class="mdl-tooltip mdl-tooltip--large" for="button_editor_help">
+        Show linkage rule editor documentation
+      </div>
+    </li>
+    <li>
+      <div class="spacer"/>
+    </li>
+    <li>
+      <label>Link Limit:</label>
+      <div id="select_link_limit" class="mdl-selectfield mdl-js-selectfield" style="width: 90px;">
+        <select id="linklimit" class="mdl-selectfield__select" onchange="modifyLinkSpec()">
+          <option value="unlimited">unlimited</option>
+          @for(i <- 1 to 10) {
+            <option value="@i" @if(context.task.data.rule.filter.limit == Some(i)) {selected="selected"}>@i</option>
+          }
+        </select>
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="select_link_limit">
+        Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering.
+      </div>
+    </li>
+    <li>
+      <div class="spacer"/>
+    </li>
+    <li>
+      <label>Link Type:</label>
+      <div id="input_link_type" class="mdl-textfield mdl-js-textfield">
+        <input id="linktype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
+      </div>
     </li>
   </ul>
 
@@ -100,7 +137,7 @@
           )
         }
       </div>
-
+<!--
       <div style="width: 180px; float: left;">
         Link Limit:
         <select id="linklimit" onchange="modifyLinkSpec()">
@@ -116,6 +153,9 @@
         Link Type:
         <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
       </div>
+
+-->
+
 
     </div>
 

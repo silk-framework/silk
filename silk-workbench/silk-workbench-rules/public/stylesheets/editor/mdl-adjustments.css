@@ -1,9 +1,60 @@
+/*
+* Linking Rule Editor Toolbar
+*/
+
 #toolbar {
-  padding-top: 5px;
-  padding-bottom: 5px;
+  margin-top: 2px;
   background: none;
 }
 
 #toolbar li {
-  margin-right: 10px;
+  margin-right: 5px;
+}
+
+/*
+#toolbar .mdl-button {
+  margin-top: 20px;
+}
+*/
+
+#toolbar .spacer {
+  width: 10px;
+}
+
+#select_link_limit {
+  width: 90px;
+}
+
+#input_link_type {
+  width: 150px;
+}
+
+#toolbar .mdl-textfield {
+  padding: 0px;
+}
+
+#toolbar .mdl-textfield__input {
+  font-size: 14px;
+  height: 17px;
+}
+
+#toolbar .mdl-selectfield {
+  padding: 0px;
+}
+
+#toolbar .mdl-selectfield__select {
+  font-size: 14px;
+}
+
+#toolbar label {
+  font-size: 12px;
+  color: blue;
+}
+
+/*
+* Linking Rule Editor Canvas
+*/
+
+#droppable h5 {
+  margin: 0px;
 }
