@@ -12,6 +12,10 @@
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
   <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
+  <!-- MDL inclusions: -->
+  <link type="text/css" href="@Assets.at("lib/mdl/material.css")" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link type="text/css" href="@Assets.at("stylesheets/editor/mdl-adjustments.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/jquery.jsPlumb-1.5.5.js")"></script>
@@ -19,6 +23,8 @@
   <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/serializeRule.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/editableLabel.js")"></script>
+  <!-- MDL inclusions: -->
+  <script type="text/javascript" src="@Assets.at("lib/mdl/material.js")"></script>
 
   <script type="text/javascript">
     var projectName = '@context.project.name';
@@ -35,16 +41,24 @@
 
   <ul>
     <li>
-      <button id="undo" onclick="undo();">Undo</button>
+      <button id="undo" class="mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">undo</i>
+      </button>
     </li>
     <li>
-      <button id="redo" onclick="redo();">Redo</button>
+      <button id="redo" class="mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">redo</i>
+      </button>
     </li>
     <li>
-      <a class="button" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.name).url" target="_blank" title="Get Link Specification to be executed from the command line">Get LinkSpec</a>
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.name).url" target="_blank" title="Get Link Specification to be executed from the command line">
+        <i class="material-icons">file_download</i>
+      </a>
     </li>
     <li>
-      <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">Help</a>
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">
+        <i class="material-icons">help_outline</i>
+      </a>
     </li>
   </ul>
 
