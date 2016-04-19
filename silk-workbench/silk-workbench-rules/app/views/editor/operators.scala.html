@@ -35,13 +35,15 @@ $(function() {
 
 <div class="boxheaders @{opType}Header">
   @name
-  <select id="@{opType}_category" name="category" style="font-size:0.9em;">
-    @for(category <- pluginsByCategory.keys.toSeq.sorted) {
-      <option value="@category" @if(category == "Recommended"){ selected="selected" } >
-        @category
-      </option>
-    }
-  </select>
+  <div class="mdl-selectfield mdl-js-selectfield">
+    <select id="@{opType}_category" class="mdl-selectfield__select" name="category" style="font-size:0.9em;">
+     @for(category <- pluginsByCategory.keys.toSeq.sorted) {
+        <option value="@category" @if(category == "Recommended"){ selected="selected" } >
+          @category
+        </option>
+      }
+    </select>
+  </div>
 </div>
 
 <div id="@{opType}box" class="scrollboxes" style="height: 67.9px;">

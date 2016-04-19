@@ -60,9 +60,21 @@
 }
 
 /*
-* Linking Rule Editor Component List
+* Operators / Linking Rule Editor Component List
 */
 
 #refresh {
   background: none;
+}
+
+#operators .boxheaders {
+  margin: 10px 0px 5px 0px;
+}
+
+#operators .mdl-selectfield {
+  padding: 0px;
+  margin-left: 5px;
+  width: auto;
+  color: #000000;
+  font-size: 14px;
 }
