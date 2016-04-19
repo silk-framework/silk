@@ -58,3 +58,11 @@
 #droppable h5 {
   margin: 0px;
 }
+
+/*
+* Linking Rule Editor Component List
+*/
+
+#refresh {
+  background: none;
+}
