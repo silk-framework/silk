@@ -1,0 +1,9 @@
+#toolbar {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: none;
+}
+
+#toolbar li {
+  margin-right: 10px;
+}
