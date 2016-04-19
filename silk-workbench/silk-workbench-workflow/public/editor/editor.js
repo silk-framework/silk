@@ -51,7 +51,6 @@ $(function () {
           var box = $(this).children('.operator,.dataset').clone(false);
           // Generate a new id for the operator of the form operator_name
           var boxId = $(this).attr('id');
-          console.log(boxId);
           var taskId = boxId.substring(boxId.indexOf("_") + 1)
           var suffix = '';
           if(counter > 1) {
