@@ -27,21 +27,22 @@
   <ul>
     <li>
       <div id="selectLinks">
-        <div id="selectLinks">
-          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showPositiveLinks">
-            <input type="radio" id="showPositiveLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('positive')" checked>
-            <span class="mdl-radio__label">Positive</span>
-          </label>
-          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showNegativeLinks">
-            <input type="radio" id="showNegativeLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('negative')">
-            <span class="mdl-radio__label">Negative</span>
-          </label>
-          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showUnlabeledLinks">
-            <input type="radio" id="showUnlabeledLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('unlabeled')">
-            <span class="mdl-radio__label">Unlabeled</span>
-          </label>
-        </div>
+        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showPositiveLinks">
+          <input type="radio" id="showPositiveLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('positive')" checked>
+          <span class="mdl-radio__label">Positive</span>
+        </label>
+        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showNegativeLinks">
+          <input type="radio" id="showNegativeLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('negative')">
+          <span class="mdl-radio__label">Negative</span>
+        </label>
+        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showUnlabeledLinks">
+          <input type="radio" id="showUnlabeledLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('unlabeled')">
+          <span class="mdl-radio__label">Unlabeled</span>
+        </label>
       </div>
+    </li>
+    <li>
+      <div class="spacer"/>
     </li>
     <li>
       <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('referenceLinks/addLinkDialog')">Add</button>
@@ -59,6 +60,9 @@
       <a class="mdl-button mdl-js-button mdl-button--icon" href="http://www.assembla.com/spaces/silk/wiki/Managing_Reference_Links" target="_help">
         <i class="material-icons">help_outline</i>
       </a>
+    </li>
+    <li>
+      <div class="spacer"/>
     </li>
     <li>
       @taskActivityControl(context.task.activity[ReferenceEntitiesCache], showButtons = true)
