@@ -151,7 +151,7 @@ function updateResultsWidth() {
 }
 
 $(function() {
-  $("#selectLinks").buttonset();
+  //$("#selectLinks").buttonset();
 
   $(document).on('click', ".link-header", function(e) {
     var link_id = $(this).parent().attr('id');
