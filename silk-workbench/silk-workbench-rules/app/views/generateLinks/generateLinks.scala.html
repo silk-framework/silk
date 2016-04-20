@@ -22,6 +22,10 @@
     var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
 
     initLinks('generateLinks', 'links');
+
+    $( window ).load(function() {
+     $("#links_stream_wrapper").append('<iframe src="generateLinks/linksStream" frameborder="0" height="0" width="100%"></iframe>');
+    });
   </script>
 }
 
@@ -55,7 +59,7 @@
 
   </div>
 
-  <iframe src="generateLinks/linksStream" frameborder="0" height="0" width="100%"></iframe>
+  <div id="links_stream_wrapper" style="display: none;"/>
 }
 
 @main(Some(context))(header)(toolbar)(content)

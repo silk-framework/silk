@@ -120,9 +120,13 @@
       }
     });
   }
+
+  $( window ).load(function() {
+    $("#activity_control_wrapper").append('<iframe src="@WorkspaceApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0">');
+  });
 </script>
 
-<iframe src="@WorkspaceApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0"></iframe>
+<div id="activity_control_wrapper" style="display: none"/>
 
 @id(project: String, task: String, activity: String) = @{
   "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
