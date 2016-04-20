@@ -11,11 +11,12 @@
   margin-right: 5px;
 }
 
-/*
+
 #toolbar .mdl-button {
-  margin-top: 20px;
+  font-size: 12px;
+  height: 31px;
+  padding: 0px 8px 0px 8px;
 }
-*/
 
 #toolbar .spacer {
   width: 10px;
