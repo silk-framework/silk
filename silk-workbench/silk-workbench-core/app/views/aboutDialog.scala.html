@@ -3,7 +3,7 @@
 @(content: Html)
 
 @widgets.dialog(title = "About", width = 500) {
-  <div id="about_dialog" style="background:url('@controllers.core.routes.Branding.logo') no-repeat right top">
+  <div id="about_dialog" style="background:url('@controllers.core.routes.Branding.logo') no-repeat right 30px">
     <p>@WorkbenchConfig.get.title, @WorkbenchConfig.get.version</p>
     @content
   </div>
