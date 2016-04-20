@@ -202,8 +202,8 @@ $(function ()
     modifyLinkSpec();
   });
 
-  $("#undo").button({ disabled: true });
-  $("#redo").button({ disabled: true });
+  $("#undo").attr("disabled", true);
+  $("#redo").attr("disabled", true);
 
   $(document).on('click', ".label", function() {
     var current_label = $(this).html();
@@ -568,14 +568,14 @@ function saveInstance() {
 
 function updateRevertButtons() {
   if (instanceIndex > 0) {
-    $("#undo").button("enable");
+    $("#undo").attr("disabled", false);
   } else {
-    $("#undo").button("disable");
+    $("#undo").attr("disabled", true);
   }
   if (instanceIndex  < instanceStack.length - 1) {
-    $("#redo").button("enable");
+    $("#redo").attr("disabled", false);
   } else {
-    $("#redo").button("disable");
+    $("#redo").attr("disabled", true);
   }
 }
 

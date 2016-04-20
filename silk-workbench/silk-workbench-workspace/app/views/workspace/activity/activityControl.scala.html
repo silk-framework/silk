@@ -70,9 +70,9 @@
     var startButton = control.children("button[name='start']");
     var resetButton = control.children("button[name='reset']");
     var stopButton = control.children("button[name='stop']");
-    startButton.button("option", "disabled", status.isRunning);
-    resetButton.button("option", "disabled", status.isRunning);
-    stopButton.button("option", "disabled", !status.isRunning);
+    startButton.attr("disabled", status.isRunning);
+    resetButton.attr("disabled", status.isRunning);
+    stopButton.attr("disabled", !status.isRunning);
   }
 
   function startActivity() {

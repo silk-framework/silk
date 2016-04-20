@@ -25,8 +25,6 @@ var dialog;
 var dialogPath;
 
 $(function() {
-  // Style all buttons with jQuery UI
-  $("button[type!='radio'], input:submit, a.button").button();
 
   // Initialize window
   var id;
