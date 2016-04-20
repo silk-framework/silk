@@ -27,12 +27,20 @@
   <ul>
     <li>
       <div id="selectLinks">
-        <input checked="checked" onchange="updateLinkType('positive')" id="showPositiveLinks" type="radio" name="selectLinks" />
-        <label for="showPositiveLinks">Positive</label>
-        <input onchange="updateLinkType('negative')" id="showNegativeLinks" type="radio" name="selectLinks" />
-        <label for="showNegativeLinks">Negative</label>
-        <input onchange="updateLinkType('unlabeled')" id="showUnlabeledLinks" type="radio" name="selectLinks" />
-        <label for="showUnlabeledLinks">Unlabeled</label>
+        <div id="selectLinks">
+          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showPositiveLinks">
+            <input type="radio" id="showPositiveLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('positive')" checked>
+            <span class="mdl-radio__label">Positive</span>
+          </label>
+          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showNegativeLinks">
+            <input type="radio" id="showNegativeLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('negative')">
+            <span class="mdl-radio__label">Negative</span>
+          </label>
+          <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="showUnlabeledLinks">
+            <input type="radio" id="showUnlabeledLinks" class="mdl-radio__button" name="selectLinks" onchange="updateLinkType('unlabeled')">
+            <span class="mdl-radio__label">Unlabeled</span>
+          </label>
+        </div>
       </div>
     </li>
     <li>
