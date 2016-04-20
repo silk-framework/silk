@@ -14,20 +14,30 @@
   }
 
   @if(showStartButton) {
-    <button name="start" class="activity-button" onclick="startActivity()" title="Start @activity" >Start</button>
-    <button name="stop" class="activity-button" onclick="stopActivity()" title="Stop @activity">Stop</button>
+    <button name="start" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="startActivity()" title="Start @activity" >
+      <i class="material-icons">play_arrow</i>
+    </button>
+    <button name="stop" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="stopActivity()" title="Stop @activity">
+      <i class="material-icons">stop</i>
+    </button>
   }
 
   @if(showRestartButton) {
-    <button name="reset" class="activity-button" onclick="restartActivity()" title="Reset @activity to its initial value and restart." >Reset</button>
+    <button name="reset" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="restartActivity()" title="Reset @activity to its initial value and restart." >
+      <i class="material-icons">replay</i>
+    </button>
   }
 
   @if(showConfigButton && task.isDefined) {
-    <button name="config" class="activity-button" onclick="showDialog('@Workspace.taskActivityConfigDialog(project, task.get, activity)')" >Config</button>
+    <button name="config" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="showDialog('@Workspace.taskActivityConfigDialog(project, task.get, activity)')" >
+      <i class="material-icons">settings</i>
+    </button>
   }
 
   @if(showConfigButton && task.isEmpty) {
-    <button name="config" class="activity-button" onclick="showDialog('@Workspace.projectActivityConfigDialog(project, activity)')" >Config</button>
+    <button name="config" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="showDialog('@Workspace.projectActivityConfigDialog(project, activity)')" >
+      <i class="material-icons">settings</i>
+    </button>
   }
 
 </div>
