@@ -15,7 +15,7 @@
 #toolbar .mdl-button {
   font-size: 12px;
   height: 31px;
-  padding: 0px 8px 0px 8px;
+  line-height: 33px;
 }
 
 #toolbar .spacer {
