@@ -36,19 +36,21 @@
       </div>
     </li>
     <li>
-      <button onclick="showDialog('referenceLinks/addLinkDialog')">Add</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('referenceLinks/addLinkDialog')">Add</button>
     </li>
     <li>
-      <button onclick="showDialog('referenceLinks/importDialog')">Import</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('referenceLinks/importDialog')">Import</button>
     </li>
     <li>
-      <button onclick="showDialog('referenceLinks/removeLinksDialog')">Remove</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('referenceLinks/removeLinksDialog')">Remove</button>
     </li>
     <li>
-      <button onclick="window.location = '@routes.LinkingTaskApi.getReferenceLinks(context.project.name, context.task.name).url'">Download</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@routes.LinkingTaskApi.getReferenceLinks(context.project.name, context.task.name).url'">Download</button>
     </li>
     <li>
-      <a class="button" href="http://www.assembla.com/spaces/silk/wiki/Managing_Reference_Links" target="_help">Help</a>
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="http://www.assembla.com/spaces/silk/wiki/Managing_Reference_Links" target="_help">
+        <i class="material-icons">help_outline</i>
+      </a>
     </li>
     <li>
       @taskActivityControl(context.task.activity[ReferenceEntitiesCache], showButtons = true)
