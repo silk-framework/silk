@@ -88,3 +88,15 @@
 #selectLinks {
   margin-top: 5px;
 }
+
+/*
+* Operator Styles
+*/
+
+.dragDiv h5 {
+  border-radius: 3px 3px 0px 0px;
+}
+
+.operator_footer {
+  border-radius: 0px 0px 3px 3px;
+}
