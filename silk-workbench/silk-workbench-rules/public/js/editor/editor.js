@@ -455,17 +455,18 @@ function removeElement(elementId) {
 
 function updateWindowSize() {
   // var height_diff = 165 // original
-  var height_diff = 111;
+  var header_height = $("#app_header").height();
   var window_width =  $(window).width();
   var window_height =  $(window).height();
+  var content_padding = 35;
   if (window_width > 1100) {
     $(".wrapperEditor").width(window_width-10);
     $("#droppable").width(window_width-290);
   }
   if (window_height > 600) {
-    $(".droppable_outer, #droppable").height(window_height - height_diff);
+    $(".droppable_outer, #droppable").height(window_height - header_height - content_padding);
     var scrollboxes = $(".scrollboxes");
-    //scrollboxes.height((window_height - height_diff)/scrollboxes.length - 25);
+    //scrollboxes.height((window_height - header_height)/scrollboxes.length - 25);
     scrollboxes.height(83);
   }
 }
