@@ -13,7 +13,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 )
 case class WorkflowExecutorFactory() extends TaskActivityFactory[Workflow, WorkflowExecutor] {
 
-  override def apply(task: Task[Workflow]): Activity[Unit] = {
+  override def apply(task: Task[Workflow]): Activity[WorkflowExecutionReport] = {
     new WorkflowExecutor(task)
   }
 
