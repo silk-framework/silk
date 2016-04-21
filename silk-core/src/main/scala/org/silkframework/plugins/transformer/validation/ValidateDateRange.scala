@@ -28,7 +28,7 @@ import org.silkframework.runtime.validation.ValidationException
   description = "Validates if dates are within a specified range."
 )
 case class ValidateDateRange(
-  @Param(value = "Earliest allowed date in YYYY-MM-DD", example = "1900-1-1")
+  @Param(value = "Earliest allowed date in YYYY-MM-DD", example = "1900-01-01")
   minDate: String,
   @Param(value = "Latest allowed data in YYYY-MM-DD", example = "2000-12-12")
   maxDate: String) extends SimpleTransformer {
