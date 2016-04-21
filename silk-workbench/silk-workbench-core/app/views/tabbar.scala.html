@@ -2,8 +2,7 @@
 
 @(context: Option[Context[_]], selectedTab: String)
 
-<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-  <!--<div id="title">@config.workbench.title</div>-->
+<div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
   <div class="mdl-tabs__tab-bar">
     <a href="@config.baseUrl/" onclick="window.location='@config.baseUrl/'" class="mdl-tabs__tab @if(selectedTab == "start") {is-active}">Start</a>
     <a href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>

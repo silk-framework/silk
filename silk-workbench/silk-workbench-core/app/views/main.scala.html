@@ -32,15 +32,24 @@
 
   </head>
   <body>
-    @tabbar(context, selectedTab)
-    <div id="toolbar">
-      @toolbar
-    </div>
-    <div id="content" class="mdl-tabs__panel is-active">
-      @content
-    </div>
-    <div id="dialogContainer">
-      <div class="dialog">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      @if(config.workbench.showHeader) {
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">@config.workbench.title</span>
+        </div>
+      </header>
+      }
+      @tabbar(context, selectedTab)
+      <div id="toolbar">
+        @toolbar
+      </div>
+      <div id="content" class="mdl-tabs__panel is-active">
+        @content
+      </div>
+      <div id="dialogContainer">
+        <div class="dialog">
+        </div>
       </div>
     </div>
  </body>
