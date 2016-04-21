@@ -1,7 +1,8 @@
 package controllers.workflow
 
+import org.silkframework.execution.ExecuteTransformResult
 import org.silkframework.workspace.User
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutor}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutor}
 import play.api.mvc.{Action, Controller}
 
 object WorkflowApi extends Controller {
@@ -41,8 +42,19 @@ object WorkflowApi extends Controller {
   def status(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val workflow = project.task[Workflow](taskName)
-    val activity = workflow.activity[WorkflowExecutor]
+    val report = workflow.activity[WorkflowExecutor].value
 
-    Ok(activity.value.toString)
+    var lines = Seq[String]()
+    lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
+
+    for{
+      (name, res: ExecuteTransformResult) <- report.taskReports
+      (column, count) <- res.ruleErrorCounter
+    } {
+      lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"
+    }
+
+    Ok(lines.mkString("\n"))
   }
+
 }
