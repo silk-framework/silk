@@ -12,12 +12,14 @@ import org.silkframework.buildInfo.BuildInfo
  * Workbench configuration.
  *
  * @param title The application title.
+ * @param showHeader Whether the header is shown
  * @param logo The application logo. Must point to a file in the conf directory.
  * @param welcome Welcome message. Must point to a file in the conf directory.
  * @param tabs The shown tabs.
  */
 case class WorkbenchConfig(title: String = "Silk Workbench",
                            version: String,
+                           showHeader: Boolean,
                            logo: Resource,
                            welcome: Resource,
                            about: Resource,
@@ -35,6 +37,7 @@ object WorkbenchConfig {
     WorkbenchConfig(
       title = config.getString("workbench.title").getOrElse("Silk Workbench"),
       version = BuildInfo.version,
+      showHeader = config.getBoolean("workbench.showHeader").getOrElse(true),
       logo = resourceLoader.get(config.getString("workbench.logo").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getString("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getString("workbench.about").getOrElse("about.html")),

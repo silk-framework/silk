@@ -51,7 +51,7 @@ $(function () {
           var box = $(this).children('.operator,.dataset').clone(false);
           // Generate a new id for the operator of the form operator_name
           var boxId = $(this).attr('id');
-          var taskId = 'operator' + boxId.substring(boxId.indexOf("_"))
+          var taskId = boxId.substring(boxId.indexOf("_") + 1)
           var suffix = '';
           if(counter > 1) {
             while($('#' + taskId + counter).length > 0) {
@@ -77,7 +77,6 @@ $(function () {
       // Check if we still need to add endpoints to the dropped element
       if(jsPlumb.getEndpoints(ui.helper) === undefined) {
         var id = ui.helper.attr('id');
-        console.log(ui);
         // Hide operator in toolbox
         if($(ui.helper).hasClass('dataset')) {
           ui.draggable.hide();

@@ -9,14 +9,14 @@
 @(rule: org.silkframework.rule.Operator,
   prefixes: org.silkframework.config.Prefixes)
 
-@drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 150)
+@drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 200)
 
 @connectOperators(rule)
 
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
   @if(!ops.isEmpty) {
     @for((op, index) <- ops.zipWithIndex) {
-      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 75)
+      @drawOperator(op, x, height * (index + 1) / (ops.size + 1) - 100)
     }
     @drawLevel(ops.flatMap(getChildren), x - 250, height)
   }

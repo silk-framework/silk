@@ -3,18 +3,23 @@ package org.silkframework.workspace.activity.workflow
 import java.util.logging.Logger
 
 import org.silkframework.dataset._
+import org.silkframework.execution.{ExecuteTransformResult, ExecutionReport}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.Task
 
-class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
+import scala.collection.immutable.ListMap
+
+class WorkflowExecutor(task: Task[Workflow]) extends Activity[WorkflowExecutionReport] {
 
   val log = Logger.getLogger(getClass.getName)
 
   @volatile
   private var canceled = false
 
-  override def run(context: ActivityContext[Unit]) = {
+  override def initialValue = Some(WorkflowExecutionReport())
+
+  override def run(context: ActivityContext[WorkflowExecutionReport]) = {
     canceled = false
     val project = task.project
     val operators = task.data.operators
@@ -39,7 +44,7 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
     canceled = true
   }
 
-  def executeOperator(operator: WorkflowOperator, internalDataset: InternalDataset, context: ActivityContext[Unit]) = {
+  def executeOperator(operator: WorkflowOperator, internalDataset: InternalDataset, context: ActivityContext[WorkflowExecutionReport]): Unit = {
     val project = task.project
 
     // Get the data sources of this operator
@@ -71,8 +76,8 @@ class WorkflowExecutor(task: Task[Workflow]) extends Activity[Unit] {
 
     // Execute the task
     val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
-    context.child(activity, 0.0).startBlocking()
-
+    val report = context.child(activity, 0.0).startBlockingAndGetValue()
+    context.value() = context.value().withReport(operator.id, report)
     log.info("Finished execution of " + operator.task)
   }
 }
