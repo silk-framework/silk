@@ -22,7 +22,10 @@
 @toolbar = {
   <ul>
     <li>
-      <button onclick="commitWorkflow()" >Save</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="commitWorkflow()" >Save</button>
+    </li>
+    <li>
+      <div class="spacer"/>
     </li>
     <li>
       @taskActivityControl(context.task.activity[WorkflowExecutor], showButtons = true)
