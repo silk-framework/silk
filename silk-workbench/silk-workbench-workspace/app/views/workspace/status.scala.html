@@ -18,7 +18,7 @@
   <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
-    $(function () {
+    $( window ).load(function () {
       $('#workspace_root').jstree()
       .on('before_open.jstree', function (e, data) {
         loadCometStream();
