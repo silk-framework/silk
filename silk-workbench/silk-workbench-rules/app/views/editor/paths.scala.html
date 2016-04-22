@@ -27,14 +27,14 @@
 
 @pathOperators(source: String, paths: Seq[String], pathType: String) = {
   <div style="padding-top: 4px">
-    <span style='font-weight: bold; color: #582271;'>@pathType:</span>
-    <span id='@{pathType.toLowerCase}_id'>@source</span>
+    <span style='font-weight: bold; color: #582271;' class="path_type">@pathType:</span>
+    <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
   </div>
 
   @*<div class="more">
     <span class='restriction'>
-      <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;'>Restriction: </span>
-      <span id='@{pathType.toLowerCase}_restriction'></span>
+      <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;' class="path_type">Restriction: </span>
+      <span id='@{pathType.toLowerCase}_restriction' class="path_id"></span>
     </span>
     <div style='clear: both;'></div>
   </div>*@

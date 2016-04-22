@@ -100,3 +100,26 @@
 .operator_footer {
   border-radius: 0px 0px 3px 3px;
 }
+
+
+/*
+* Linking Editor Paths
+*/
+
+.path_type {
+  display: block;
+  float: left;
+  width: 55px;
+}
+
+.path_id {
+  width: 172px;
+  word-wrap: break-word;
+  display: block;
+  margin: 0px 0px 5px 5px;
+  float: left;
+}
+
+#source_id, #target_id {
+  border-radius: 3px;
+}
