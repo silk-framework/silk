@@ -35,6 +35,8 @@
   background-color: #d6eeff;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.1) inset;
   border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Editor */
@@ -86,11 +88,14 @@
 
 .operatorContent {
   min-height: 14px;
+  min-width: 180px;
   padding: 5px;
   border-radius: 0 0 5px 5px;
   border-left:1px solid #1484d4;
   border-right:1px solid #1484d4;
   border-bottom:1px solid #1484d4;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .operator:hover {
