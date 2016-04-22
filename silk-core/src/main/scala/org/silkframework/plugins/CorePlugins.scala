@@ -103,9 +103,11 @@ class CorePlugins extends PluginModule {
     classOf[DurationTransformer] ::
     classOf[DurationInSecondsTransformer] ::
     classOf[DurationInDaysTransformer] ::
+    classOf[DurationInYearsTransformer] ::
     classOf[CompareDatesTransformer] ::
     classOf[NumberToDurationTransformer] ::
     classOf[ParseDateTransformer] ::
+    classOf[CurrentDateTransformer] ::
     // Validation
     classOf[ValidateDateRange] ::
     classOf[ValidateNumericRange] ::  Nil
