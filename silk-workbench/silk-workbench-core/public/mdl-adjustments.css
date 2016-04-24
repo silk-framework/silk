@@ -135,10 +135,14 @@
 * Aggregators:      #2196f3     #1976d2   (Blue)
 */
 
+.sourceDiv {
+  color: #ffffff;
+}
 .sourceDiv h5 {
   background-color: #7b1fa2;
 }
 .sourcePaths {
+  color: #ffffff;
   background-color: #9c27b0;
   border:1px dotted #7b1fa2;
 }
@@ -154,7 +158,7 @@
   border-color: #7b1fa2;
 }
 #source_id {
-  color: #502c4f;
+  color: #ffffff;
   border: 1px solid #7b1fa2;
   background-color: #9c27b0;
 }
