@@ -311,3 +311,18 @@
   box-shadow: 1px 1px 6px #d32f2f;
 }
 
+/*
+* General Editor/Workflow Colors
+*/
+
+.toolboxOperator {
+  background-color: #2196f3;
+}
+
+.operatorHeader {
+  background-color: #1976d2;
+}
+
+.operator:hover {
+  background-color: #2196f3;
+}
