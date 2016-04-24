@@ -259,5 +259,55 @@
 
 
 
+/*
+* New Colors for Transform Editor Overview
+*/
 
+.directMapping .ruleTitle {
+  background-color: #689f38;
+}
+
+.directMapping:hover {
+  background-color: #8bc34a;
+  box-shadow: 1px 1px 6px #689f38;
+}
+
+.uriMapping .ruleTitle {
+  background-color: #1976d2;
+}
+
+.uriMapping:hover {
+  background-color: #2196f3;
+  box-shadow: 1px 1px 6px #1976d2;
+}
+
+.objectMapping {
+  color: #ffffff;
+}
+.objectMapping .ruleTitle {
+  background-color: #7b1fa2;
+}
+
+.objectMapping:hover {
+  background-color: #9c27b0;
+  box-shadow: 1px 1px 6px #7b1fa2;
+}
+
+.typeMapping .ruleTitle {
+  background-color: #f57c00;
+}
+
+.typeMapping:hover {
+  background-color: #ff9800;
+  box-shadow: 1px 1px 6px #f57c00;
+}
+
+.complexMapping .ruleTitle {
+  background-color: #d32f2f;
+}
+
+.complexMapping:hover {
+  background-color: #f44336;
+  box-shadow: 1px 1px 6px #d32f2f;
+}
 
