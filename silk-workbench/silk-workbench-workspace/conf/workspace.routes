@@ -34,7 +34,7 @@ GET           /datasets/:project/:task/types                                    
 # API
 GET           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.getDataset(project: String, name: String)
 GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.Datasets.getDatasetAutoConfigured(project: String, name: String)
-PUT           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.putDataset(project: String, name: String)
+PUT           /projects/:project/datasets/:name                                 controllers.workspace.Datasets.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.Datasets.deleteDataset(project: String, name: String)
 GET           /projects/:project/datasets/:name/types                           controllers.workspace.Datasets.getDatasetTypes(project: String, name: String)
 

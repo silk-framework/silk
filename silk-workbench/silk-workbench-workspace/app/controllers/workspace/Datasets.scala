@@ -36,15 +36,25 @@ object Datasets extends Controller {
     }
   }
 
-  def putDataset(projectName: String, sourceName: String) = Action { implicit request => {
+  def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean) = Action { implicit request => {
     val project = User().workspace.project(projectName)
     implicit val resources = project.resources
     request.body.asXml match {
       case Some(xml) =>
         try {
           val dataset = Serialization.fromXml[Dataset](xml.head)
-          project.updateTask(dataset.id, dataset)
-          Ok
+          if(autoConfigure) {
+            dataset.plugin match {
+              case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
+                project.updateTask(dataset.id, dataset.copy(plugin = autoConfigurable.autoConfigured))
+                Ok
+              case _ =>
+                NotImplemented(JsonError("The dataset type does not support auto-configuration."))
+            }
+          } else {
+            project.updateTask(dataset.id, dataset)
+            Ok
+          }
         } catch {
           case ex: Exception => BadRequest(JsonError(ex))
         }
