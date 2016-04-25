@@ -53,13 +53,13 @@
       @taskActivityControl(context.task.activity[ActiveLearning])
     </li>
     <li>
-      <button onclick="back()">Back</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="back()">Back</button>
     </li>
     <li>
-      <button onclick="showDialog('@routes.Learning.resetActiveLearningDialog(context.project.name, context.task.name)')">Reset</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.resetActiveLearningDialog(context.project.name, context.task.name)')">Reset</button>
     </li>
     <li>
-      <button onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.name)')">Details</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.name)')">Details</button>
     </li>
   </ul>
 }

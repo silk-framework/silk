@@ -10,8 +10,11 @@
       $('#@id()').html(data);
     }).fail(function(request) { alert(request.responseText);  })
   }
-  reload();
+  $( window ).load(function () {
+    $("#comet_div").html('<iframe src="@streamPath" frameborder="0" height="0" width="100%"></iframe>');
+    reload();
+  }
 </script>
 
 <div id="@id()"></div>
-<iframe src="@streamPath" frameborder="0" height="0" width="100%"></iframe>
+<div id="comet_div"></div>
