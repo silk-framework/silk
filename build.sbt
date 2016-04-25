@@ -14,6 +14,7 @@ lazy val commonSettings = Seq(
   scalacOptions += "-target:jvm-1.7",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 )
 

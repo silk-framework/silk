@@ -21,6 +21,8 @@ import scala.language.implicitConversions
 object StringUtils {
   implicit def toStringUtils(str: String): StringUtils = new StringUtils(str)
 
+  val integerNumber = """^\s*[+-]?(?:(?:[1-9][0-9]*)|(?:0))\s*$""".r
+
   object IntLiteral {
     def apply(x: Int) = x.toString
 
