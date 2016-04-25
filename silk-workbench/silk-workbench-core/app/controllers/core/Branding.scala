@@ -17,4 +17,9 @@ object Branding extends Controller {
     Ok(views.html.aboutDialog(aboutHtml))
   }
 
+  def mdlStyle = Action {
+    val bytes = WorkbenchConfig.get.mdlStyle.get.loadAsBytes
+    Ok(bytes).as("text/css")
+  }
+
 }

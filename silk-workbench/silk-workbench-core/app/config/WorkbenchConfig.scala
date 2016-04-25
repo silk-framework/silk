@@ -23,6 +23,7 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
                            logo: Resource,
                            welcome: Resource,
                            about: Resource,
+                           mdlStyle: Option[Resource],
                            tabs: Tabs = Tabs()) {
 }
 
@@ -41,6 +42,7 @@ object WorkbenchConfig {
       logo = resourceLoader.get(config.getString("workbench.logo").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getString("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getString("workbench.about").getOrElse("about.html")),
+      mdlStyle = config.getString("workbench.mdlStyle").map(r=>resourceLoader.get(r)),
       tabs = Tabs(
                config.getBoolean("workbench.tabs.editor").getOrElse(true),
                config.getBoolean("workbench.tabs.generateLinks").getOrElse(true),
