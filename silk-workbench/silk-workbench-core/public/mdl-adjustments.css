@@ -6,7 +6,9 @@
   margin-right: 5px;
 }
 
-
+.mdl-tooltip {
+  word-wrap: break-word;
+}
 
 /*
 * Linking Rule Editor Toolbar
@@ -124,10 +126,16 @@
 
 .path_id {
   width: 172px;
-  word-wrap: break-word;
   display: block;
   margin: 0px 0px 5px 5px;
   float: left;
+/*
+  word-wrap: break-word;
+*/
+  white-space: nowrap;
+  word-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #source_id, #target_id {
