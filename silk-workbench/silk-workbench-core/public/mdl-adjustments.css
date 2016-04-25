@@ -1,4 +1,14 @@
 /*
+* Generic Stuff
+*/
+
+.button-set .mdl-button {
+  margin-right: 5px;
+}
+
+
+
+/*
 * Linking Rule Editor Toolbar
 */
 
@@ -325,4 +335,13 @@
 
 .operator:hover {
   background-color: #2196f3;
+}
+
+
+/*
+* Active Learning
+*/
+
+.learning_path_label {
+  font-weight: bold;
 }
