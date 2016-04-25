@@ -353,3 +353,18 @@
 .learning_path_label {
   font-weight: bold;
 }
+
+/*
+* Generate Links
+*/
+
+#results a {
+  color: #000000;
+}
+
+.source-value {
+  white-space: nowrap;
+  word-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
