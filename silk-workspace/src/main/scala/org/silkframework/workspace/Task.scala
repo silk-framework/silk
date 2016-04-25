@@ -72,7 +72,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
 
   def init() = {
     // Start autorun activities
-    for(activity <- taskActivities if activity.autoRun && activity.status == Status.Idle)
+    for(activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
       activity.control.start()
   }
 
