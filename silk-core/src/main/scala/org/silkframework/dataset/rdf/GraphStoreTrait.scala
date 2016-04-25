@@ -12,7 +12,8 @@ trait GraphStoreTrait {
 
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
-   * @param graph
+    *
+    * @param graph
    * @param contentType
    * @return
    */
@@ -51,7 +52,12 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
     try {
       outputStream.flush()
       outputStream.close()
-      log.fine("Finished with code " + connection.getResponseCode)
+      val responseCode = connection.getResponseCode
+      if(responseCode / 100 == 2) {
+        log.fine("Successfully written to output stream.")
+      } else {
+        throw new RuntimeException(s"Could not write to HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+      }
     } finally {
       connection.disconnect()
     }
