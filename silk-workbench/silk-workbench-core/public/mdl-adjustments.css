@@ -362,9 +362,6 @@
   color: #000000;
 }
 
-.source-value {
-  white-space: nowrap;
-  word-wrap: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+#link-candidate-wrapper .source-value, #link-candidate-wrapper .source-value {
+  word-wrap: break-word;
 }
