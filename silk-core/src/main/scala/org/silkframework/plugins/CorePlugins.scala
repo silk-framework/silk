@@ -32,7 +32,7 @@ import org.silkframework.plugins.transformer.numeric._
 import org.silkframework.plugins.transformer.replace.{MapTransformer, RegexReplaceTransformer, ReplaceTransformer}
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import org.silkframework.plugins.transformer.validation.{ValidateDateRange, ValidateNumericRange}
+import org.silkframework.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange}
 import org.silkframework.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, RandomNumberTransformer}
 import org.silkframework.runtime.plugin.PluginModule
 
@@ -110,7 +110,8 @@ class CorePlugins extends PluginModule {
     classOf[CurrentDateTransformer] ::
     // Validation
     classOf[ValidateDateRange] ::
-    classOf[ValidateNumericRange] ::  Nil
+    classOf[ValidateNumericRange] ::
+    classOf[ValidateDateAfter] ::  Nil
 
   private def measures =
     classOf[LevenshteinMetric] ::
