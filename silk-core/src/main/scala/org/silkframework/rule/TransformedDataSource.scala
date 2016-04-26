@@ -5,6 +5,8 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
+import scala.util.control.NonFatal
+
 /**
   * A data source that transforms all entities using a provided transformation.
   *
@@ -79,7 +81,13 @@ class TransformedDataSource(source: DataSource, transform: TransformSpecificatio
       val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
       val values =
         for(rules <- pathRules) yield {
-          rules.flatMap(rule => rule(entity))
+          try {
+            rules.flatMap(rule => rule(entity))
+          } catch {
+            case NonFatal(ex) =>
+              // TODO forward error
+              Seq.empty
+          }
         }
 
       new Entity(uri, values, entitySchema)
