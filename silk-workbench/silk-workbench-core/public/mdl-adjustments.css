@@ -1,4 +1,20 @@
 /*
+* Material Design Icon Font
+*/
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/core/assets/libs/md-iconfont/MaterialIcons-Regular.eot'); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url('/core/assets/libs/md-iconfont/MaterialIcons-Regular.woff2') format('woff2'),
+       url('/core/assets/libs/md-iconfont/MaterialIcons-Regular.woff') format('woff'),
+       url('/core/assets/libs/md-iconfont/MaterialIcons-Regular.ttf') format('truetype');
+}
+
+/*
 * Generic Stuff
 */
 
@@ -92,6 +108,14 @@
   font-size: 14px;
 }
 
+.draggables {
+  overflow: scroll;
+}
+
+.scrollboxes {
+  min-height: 82px;
+  max-height: 190px;
+}
 
 /*
 * Reference Links Toolbar
@@ -111,6 +135,7 @@
 
 .operator_footer {
   border-radius: 0px 0px 3px 3px;
+  line-height: 15px;
 }
 
 
@@ -362,6 +387,6 @@
   color: #000000;
 }
 
-#link-candidate-wrapper .source-value, #link-candidate-wrapper .source-value {
+#link-candidate-wrapper .source-value, #link-candidate-wrapper .target-value {
   word-wrap: break-word;
 }

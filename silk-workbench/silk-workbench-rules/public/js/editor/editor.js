@@ -461,13 +461,14 @@ function updateWindowSize() {
   var content_padding = 35;
   if (window_width > 1100) {
     $(".wrapperEditor").width(window_width-10);
-    $("#droppable").width(window_width-290);
+    $("#droppable").width(window_width-295);
   }
   if (window_height > 600) {
-    $(".droppable_outer, #droppable").height(window_height - header_height - content_padding);
-    var scrollboxes = $(".scrollboxes");
+    var height = window_height - header_height - content_padding;
+    $(".droppable_outer, #droppable").height(height);
+    $(".draggables").height(height);
+    //var scrollboxes = $(".scrollboxes");
     //scrollboxes.height((window_height - header_height)/scrollboxes.length - 25);
-    scrollboxes.height(83);
   }
 }
 
