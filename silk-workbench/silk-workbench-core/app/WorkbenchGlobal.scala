@@ -27,23 +27,25 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
       routes.setPrefix(context + prefix + "/")
   }
 
-//  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-//    if(request.method == "OPTIONS") {
-//      return super.onRouteRequest(request)
-//    }
-//
-//    // Route to start page
-//    if(request.path.stripSuffix("/") == context.stripSuffix("/")) {
-//      return core.Routes.handlerFor(request.copy(path = context.stripSuffix("/") + "/core/start"))
-//    }
-//
+  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
+    if(request.method == "OPTIONS") {
+      return super.onRouteRequest(request)
+    }
+
+    // Route to start page
+    if(request.path.stripSuffix("/") == context.stripSuffix("/")) {
+      return core.Routes.handlerFor(request.copy(path = context.stripSuffix("/") + "/core/start"))
+    }
+
+    super.onRouteRequest(request)
+
 //    // Route to registered modules
 //    val prefix = request.path.stripPrefix(context).stripPrefix("/").takeWhile(_ != '/')
 //    pluginRoutes.get(prefix) match {
 //      case Some(routes) => routes.handlerFor(request)
 //      case None => super.onRouteRequest(request)
 //    }
-//  }
+  }
 
   override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
 //TODO  Should return HTML pages if the accept header includes HTML
