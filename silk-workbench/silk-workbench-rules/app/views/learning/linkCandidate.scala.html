@@ -4,8 +4,10 @@
 @import org.silkframework.config.LinkSpecification
 @import models.linking.LinkCandidateDecision
 @import controllers.linking.routes
+@import models.learning.PathValue
+@import models.learning.PathValues
 
-@(link: Link, values: DPair[Seq[(String, Seq[String])]], context: Context[LinkSpecification])
+@(link: Link, sourceValues: Seq[PathValues], targetValues: Seq[PathValues],context: Context[LinkSpecification])
 
 <div id="link-candidate-buttons" class="button-set" style="text-align: center; margin-bottom: 20px;">
   <button class="mdl-button mdl-js-button mdl-button--raised" onclick="confirm()" title="Confirm this link candidate as correct." >Confirm</button>
@@ -15,11 +17,11 @@
 </div>
 
 <div class="mdl-grid" style="clear: left">
-  @table("source", values.select(true))
-  @table("target", values.select(false))
+  @table(sourceValues)
+  @table(targetValues)
 </div>
 
-@table(sourceOrTarget: String, selectedValues: Seq[(String, Seq[String])]) = {
+@table(selectedValues: Seq[PathValues]) = {
   <div class="mdl-cell mdl-cell--6-col">
     <table style="width: 100%;">
       <thead>
@@ -29,12 +31,12 @@
         </tr>
       </thead>
       <tbody>
-        @for((path, pathValues) <- selectedValues) {
+        @for(PathValues(path, pathValues) <- selectedValues) {
           <tr>
             <td><span class="learning_path_label">@path</span></td>
             <td>
-              @for(value <- pathValues) {
-                <span class="@sourceOrTarget-value" >@value</span>
+              @for(PathValue(value, similarityClass) <- pathValues) {
+                <span class="learning-value@similarityClass.getOrElse(0)" >@value</span>
               }
             </td>
           </tr>

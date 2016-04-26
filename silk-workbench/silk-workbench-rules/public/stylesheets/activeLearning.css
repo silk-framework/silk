@@ -1,0 +1,46 @@
+.learning-value0,
+.learning-value1,
+.learning-value2,
+.learning-value3,
+.learning-value4,
+.learning-value5 {
+  padding: 1px 3px;
+  margin-left: 3px;
+  border-radius: 5px;
+}
+
+.learning-value0 {
+  color: #161616;
+  border: 1px solid #5e5e5e;
+  background-color: #ffffff;
+}
+
+.learning-value1 {
+  color: #502c4f;
+  border: 1px solid #c6a0c4;
+  background-color: #f2d7ff;
+}
+
+.learning-value2 {
+    color: #4f2b2b;
+    border: 1px solid #c7a1a1;
+    background-color: #ffe8e8;
+}
+
+.learning-value3 {
+    color: #086341;
+    border: 1px solid #0cc481;
+    background-color: #d6fff0;
+}
+
+.learning-value4 {
+    color: #07263d;
+    border: 1px solid #1484d4;
+    background-color: #d6eeff;
+}
+
+.learning-value5 {
+    color: #694512;
+    border: 1px solid #e59829;
+    background-color: #ffeed6;
+}

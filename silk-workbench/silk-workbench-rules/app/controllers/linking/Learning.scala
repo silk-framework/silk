@@ -4,6 +4,7 @@ import java.util.logging.Logger
 
 import controllers.core.{Stream, Widgets}
 import models.JsonError
+import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import org.silkframework.config.LinkSpecification
@@ -13,7 +14,7 @@ import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
 import org.silkframework.rule.{LinkageRule, RuleTraverser}
-import org.silkframework.rule.input.PathInput
+import org.silkframework.rule.input.{Input, PathInput}
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
@@ -80,13 +81,60 @@ object Learning extends Controller {
       for(path <- paths) yield (path.serializeSimplified(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
+    ////////////////////////////////
+
+//    def findComparisons(rule: LinkageRule): Seq[DPair[Path]] = {
+//      val comparisons = RuleTraverser(rule.operator.get).iterateAllChildren.filter(_.operator.isInstanceOf[Comparison])
+//      for(comparison <- comparisons.toSeq) yield {
+//        val sourceInput = comparison.iterateChildren.next()
+//        val targetInput = comparison.iterateChildren.drop(1).next()
+//        val sourcePath = sourceInput.iterateAllChildren.map(_.operator).collect { case PathInput(_, path) => path }.next()
+//        val targetPath = targetInput.iterateAllChildren.map(_.operator).collect { case PathInput(_, path) => path }.next()
+//        DPair(sourcePath, targetPath)
+//      }
+//    }
+//
+//    val rules = activeLearn.value().population.individuals.map(_.node.build)
+//
+//    val comparisonsByCount = rules.flatMap(findComparisons).groupBy(identity).mapValues(_.size)
+//
+//    println(comparisonsByCount.toSeq.sortBy(_._2).mkString("\n"))
+
+    ////////////////////////////////////
+
+
+
     request.body.asFormUrlEncoded match {
       case Some(p) =>
         val params = p.mapValues(_.head)
         val nextLinkCandidate = nextActiveLearnCandidate(params("decision"), params("source"), params("target"), context)
         nextLinkCandidate match {
           case Some(link) =>
-            Ok(views.html.learning.linkCandidate(link, DPair.generate(values(link)), context))
+            // Generate all source values for this link
+            val sourceValues =
+              for((sourcePath, sourceValues) <- values(link)(sourceOrTarget = true)) yield {
+                PathValues(sourcePath, sourceValues.map(PathValue(_)))
+              }
+            // Generate all target values for this link
+            val targetValues =
+              for((targetPath, targetValues) <- values(link)(sourceOrTarget = false)) yield {
+                PathValues(targetPath, targetValues.map(PathValue(_)))
+              }
+            // Find matching values for highlighting
+            var currentIndex = 1
+            for(sourcePath <- sourceValues;
+                sourceValue <- sourcePath.values;
+                targetPath <- targetValues;
+                targetValue <- targetPath.values) {
+              if(sourceValue.value == targetValue.value && currentIndex <= 5) {
+                sourceValue.similarityClass = Some(currentIndex)
+                targetValue.similarityClass = Some(currentIndex)
+                currentIndex += 1
+              }
+
+            }
+
+            Ok(views.html.learning.linkCandidate(link, sourceValues, targetValues, context))
           case None =>
             Ok("No link candidate generated, please wait for completion or restart...")
         }
