@@ -20,6 +20,8 @@ import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOpe
 import org.silkframework.rule.{LinkageRule, TransformRule}
 import org.silkframework.util.DPair
 
+import scala.util.control.NonFatal
+
 object DetailedEvaluator {
 
   /**
@@ -103,7 +105,11 @@ object DetailedEvaluator {
   private def evaluateInput(input: Input, entity: Entity): Value = input match {
     case ti: TransformInput =>
       val children = ti.inputs.map(i => evaluateInput(i, entity))
-      TransformedValue(ti, ti.transformer(children.map(_.values)), children)
+      try {
+        TransformedValue(ti, ti.transformer(children.map(_.values)), children)
+      } catch {
+        case NonFatal(ex) => TransformedValue(ti, Seq.empty, children, Some(ex))
+      }
 
     case pi: PathInput => InputValue(pi, input(entity))
   }

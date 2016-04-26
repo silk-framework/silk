@@ -25,7 +25,7 @@ sealed trait Value {
 /**
  * An intermediate value of a transformation evaluation.
  */
-case class TransformedValue(input: TransformInput, values: Seq[String], children: Seq[Value]) extends Value
+case class TransformedValue(input: TransformInput, values: Seq[String], children: Seq[Value], error: Option[Throwable] = None) extends Value
 
 /**
  * An intermediate value of a path input evaluation.

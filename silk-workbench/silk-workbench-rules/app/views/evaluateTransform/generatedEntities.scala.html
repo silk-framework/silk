@@ -63,7 +63,7 @@
 }
 
 @renderValue(value: Value) = { @value match {
-  case TransformedValue(transform, values, children) => {
+  case TransformedValue(transform, values, children, error) => {
     <li>
       <span class="input">
     Transform:@transform.transformer.plugin.id (@transform.id)
