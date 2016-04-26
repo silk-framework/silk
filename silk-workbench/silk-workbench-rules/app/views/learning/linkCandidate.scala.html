@@ -47,27 +47,32 @@
 <script type="text/javascript">
 
   function confirm() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.positive, link.source, link.target).url');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url', '@LinkCandidateDecision.positive');
   }
 
   function decline() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.negative, link.source, link.target).url');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url', '@LinkCandidateDecision.negative');
   }
 
   function pass() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.pass, link.source, link.target).url');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url', '@LinkCandidateDecision.pass');
   }
 
   function done() {
     window.location = "@routes.Learning.population(context.project.name, context.task.name).url"
   }
 
-  function nextLinkCandidate(url) {
+  function nextLinkCandidate(url, decision) {
     var buttons = $("#link-candidate-buttons").find("button");
     buttons.prop("disabled", true);
 
-    $.get(
+    $.post(
       url,
+      {
+        source: "@link.source",
+        target: "@link.target",
+        decision: decision
+      },
       function(data) {
         $('#link-candidate-wrapper').html(data);
         buttons.prop("disabled", false);

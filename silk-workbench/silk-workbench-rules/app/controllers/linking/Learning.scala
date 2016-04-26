@@ -3,6 +3,7 @@ package controllers.linking
 import java.util.logging.Logger
 
 import controllers.core.{Stream, Widgets}
+import models.JsonError
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
 import org.silkframework.config.LinkSpecification
@@ -15,12 +16,12 @@ import org.silkframework.rule.{LinkageRule, RuleTraverser}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.Status
-import org.silkframework.runtime.activity.Status.{Idle, Finished}
+import org.silkframework.runtime.activity.Status.{Finished, Idle}
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
 import org.silkframework.workspace.{Task, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, Controller, Result}
 import plugins.Context
 
 object Learning extends Controller {
@@ -48,58 +49,10 @@ object Learning extends Controller {
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
-  /**
-    * Iterates the active learning and selects the next link candidate
-    *
-    * @param project project name
-    * @param task linking task name4
-    * @param decision The decision for the link candidate. One of [[LinkCandidateDecision]].
-    * @param linkSource source URI of the current link candidate
-    * @param linkTarget target URI of the current link candidate
-    */
-  def activeLearnCandidate(project: String, task: String, decision: String, linkSource: String, linkTarget: String) = Action { request =>
+  def activeLearnCandidate(project: String, task: String) = Action { request =>
     val context = Context.get[LinkSpecification](project, task, request.path)
     val prefixes = context.project.config.prefixes
     val activeLearn = context.task.activity[ActiveLearning].control
-    // Try to find the chosen link candidate in the pool, because the pool links have entities attached
-    val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
-      case Some(l) => l
-      case None => new Link(linkSource, linkTarget)
-    }
-
-    // Commit link candidate
-    decision match {
-      case LinkCandidateDecision.positive =>
-        context.task.update(context.task.data.copy(referenceLinks = context.task.data.referenceLinks.withPositive(linkCandidate)))
-      case LinkCandidateDecision.negative =>
-        context.task.update(context.task.data.copy(referenceLinks = context.task.data.referenceLinks.withNegative(linkCandidate)))
-      case LinkCandidateDecision.pass =>
-    }
-
-    // Assert that a learning task is running
-    val finished = !activeLearn.status().isRunning
-    if(finished)
-      activeLearn.start()
-
-    // Pick the next link candidate
-    val links = activeLearn.value().links
-    val nextLinkCandidate: Option[Link] =
-      if(links.isEmpty) {
-        log.info("Selecting link candidate: No previous candidates available, waiting until learning task is finished.")
-        activeLearn.waitUntilFinished()
-        activeLearn.value().links.headOption
-      } else if(finished) {
-        log.info("Selecting link candidate: A learning task finished, thus selecting its top link candidate (if it hasn't been selected just before).")
-        links.find(_ != linkCandidate)
-      } else if(links.last == linkCandidate) {
-        log.info("Selecting link candidate: No remaining link candidates in current learning task, waiting for the next task to finish.")
-        activeLearn.waitUntilFinished()
-        activeLearn.value().links.headOption
-      } else {
-        val currentIndex = links.indexOf(linkCandidate)
-        log.info(s"Selecting link candidate: Learning task still running, thus selecting next candidate with index ${currentIndex + 1} from list.")
-        Some(links(currentIndex + 1))
-      }
 
     /**
       * Collects all paths of a single linkage rule.
@@ -127,11 +80,68 @@ object Learning extends Controller {
       for(path <- paths) yield (path.serializeSimplified(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
-    nextLinkCandidate match {
-      case Some(link) =>
-        Ok(views.html.learning.linkCandidate(link, DPair.generate(values(link)), context))
+    request.body.asFormUrlEncoded match {
+      case Some(p) =>
+        val params = p.mapValues(_.head)
+        val nextLinkCandidate = nextActiveLearnCandidate(params("decision"), params("source"), params("target"), context)
+        nextLinkCandidate match {
+          case Some(link) =>
+            Ok(views.html.learning.linkCandidate(link, DPair.generate(values(link)), context))
+          case None =>
+            Ok("No link candidate generated, please wait for completion or restart...")
+        }
       case None =>
-        Ok("No link candidate generated, please wait for completion or restart...")
+        BadRequest(JsonError("query parameters missing"))
+    }
+  }
+
+  /**
+    * Iterates the active learning and selects the next link candidate
+    *
+    * @param decision The decision for the link candidate. One of [[LinkCandidateDecision]].
+    * @param linkSource source URI of the current link candidate
+    * @param linkTarget target URI of the current link candidate
+    */
+  private def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, context: Context[LinkSpecification]): Option[Link] = {
+    val activeLearn = context.task.activity[ActiveLearning].control
+    // Try to find the chosen link candidate in the pool, because the pool links have entities attached
+    val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
+      case Some(l) => l
+      case None => new Link(linkSource, linkTarget)
+    }
+
+    // Commit link candidate
+    decision match {
+      case LinkCandidateDecision.positive =>
+        context.task.update(context.task.data.copy(referenceLinks = context.task.data.referenceLinks.withPositive(linkCandidate)))
+      case LinkCandidateDecision.negative =>
+        context.task.update(context.task.data.copy(referenceLinks = context.task.data.referenceLinks.withNegative(linkCandidate)))
+      case LinkCandidateDecision.pass =>
+    }
+
+    // Assert that a learning task is running
+    val finished = !activeLearn.status().isRunning
+    if(finished)
+      activeLearn.start()
+
+    // Pick the next link candidate
+    val links = activeLearn.value().links
+
+    if(links.isEmpty) {
+      log.info("Selecting link candidate: No previous candidates available, waiting until learning task is finished.")
+      activeLearn.waitUntilFinished()
+      activeLearn.value().links.headOption
+    } else if(finished) {
+      log.info("Selecting link candidate: A learning task finished, thus selecting its top link candidate (if it hasn't been selected just before).")
+      links.find(_ != linkCandidate)
+    } else if(links.last == linkCandidate) {
+      log.info("Selecting link candidate: No remaining link candidates in current learning task, waiting for the next task to finish.")
+      activeLearn.waitUntilFinished()
+      activeLearn.value().links.headOption
+    } else {
+      val currentIndex = links.indexOf(linkCandidate)
+      log.info(s"Selecting link candidate: Learning task still running, thus selecting next candidate with index ${currentIndex + 1} from list.")
+      Some(links(currentIndex + 1))
     }
   }
 

@@ -30,9 +30,14 @@
       // Show pending icon
       $('#link-candidate-wrapper').html('<img src="@Assets.at("img/pending.gif")" ></img>');
       // Request next link candidate
-      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name, LinkCandidateDecision.pass, "_", "_").url';
-      $.get(
+      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url';
+      $.post(
         url,
+        {
+          source: "_",
+          target: "_",
+          decision: "@LinkCandidateDecision.pass"
+        },
         function(data) {
           $('#link-candidate-wrapper').html(data);
         })
