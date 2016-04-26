@@ -248,7 +248,6 @@ body{
 
 .scrollboxes {
   width: 230px;
-  height: 130px;
   overflow: auto;
   background: #fafafa;
   border: 1px dotted #c8c7c7;

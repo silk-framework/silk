@@ -108,6 +108,14 @@
   font-size: 14px;
 }
 
+.draggables {
+  overflow: scroll;
+}
+
+.scrollboxes {
+  min-height: 82px;
+  max-height: 190px;
+}
 
 /*
 * Reference Links Toolbar
