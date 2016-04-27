@@ -93,11 +93,15 @@
 
 @content = {
   <div class="draggables">
-    <div style="width:200px;">
-      <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
-      <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>
+    <div class="palette-header">
+      <div style="width:200px;">
+        <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
+        <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths">
+          <i class="material-icons">cached</i>
+        </div>
+      </div>
+      <div style="clear: both"></div>
     </div>
-    <div style="clear: both"></div>
     <div id="paths">
       <div id="loading" style="width:230px;">loading ...</div>
       <script type="text/javascript">
