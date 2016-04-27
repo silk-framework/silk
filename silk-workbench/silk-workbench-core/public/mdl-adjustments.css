@@ -81,6 +81,18 @@
 }
 
 /*
+* Transform Editor Toolbar
+*/
+
+#input_rulename {
+  width: 150px;
+}
+
+#input_targetproperty {
+  width: 150px;
+}
+
+/*
 * Linking Rule Editor Canvas
 */
 
