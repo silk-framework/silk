@@ -121,7 +121,8 @@
 }
 
 .scrollboxes {
-  overflow: scroll;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 .block-header {
