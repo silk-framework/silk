@@ -81,29 +81,6 @@ object Learning extends Controller {
       for(path <- paths) yield (path.serializeSimplified(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
-    ////////////////////////////////
-
-//    def findComparisons(rule: LinkageRule): Seq[DPair[Path]] = {
-//      val comparisons = RuleTraverser(rule.operator.get).iterateAllChildren.filter(_.operator.isInstanceOf[Comparison])
-//      for(comparison <- comparisons.toSeq) yield {
-//        val sourceInput = comparison.iterateChildren.next()
-//        val targetInput = comparison.iterateChildren.drop(1).next()
-//        val sourcePath = sourceInput.iterateAllChildren.map(_.operator).collect { case PathInput(_, path) => path }.next()
-//        val targetPath = targetInput.iterateAllChildren.map(_.operator).collect { case PathInput(_, path) => path }.next()
-//        DPair(sourcePath, targetPath)
-//      }
-//    }
-//
-//    val rules = activeLearn.value().population.individuals.map(_.node.build)
-//
-//    val comparisonsByCount = rules.flatMap(findComparisons).groupBy(identity).mapValues(_.size)
-//
-//    println(comparisonsByCount.toSeq.sortBy(_._2).mkString("\n"))
-
-    ////////////////////////////////////
-
-
-
     request.body.asFormUrlEncoded match {
       case Some(p) =>
         val params = p.mapValues(_.head)
@@ -127,11 +104,18 @@ object Learning extends Controller {
                 targetPath <- targetValues;
                 targetValue <- targetPath.values) {
               if(sourceValue.value == targetValue.value && currentIndex <= 5) {
-                sourceValue.similarityClass = Some(currentIndex)
-                targetValue.similarityClass = Some(currentIndex)
-                currentIndex += 1
+                // Check if this value already got an index
+                sourceValues.flatMap(_.values).find(_.value == sourceValue.value).flatMap(_.similarityClass) match {
+                  case Some(index) =>
+                    sourceValue.similarityClass = Some(index)
+                    targetValue.similarityClass = Some(index)
+                  case None if currentIndex <= 5 =>
+                    sourceValue.similarityClass = Some(currentIndex)
+                    targetValue.similarityClass = Some(currentIndex)
+                    currentIndex += 1
+                  case None =>
+                }
               }
-
             }
 
             Ok(views.html.learning.linkCandidate(link, sourceValues, targetValues, context))
