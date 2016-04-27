@@ -92,12 +92,12 @@
 * Operators / Linking Rule Editor Component List
 */
 
-#refresh {
-  background: none;
+.palette-block {
+  margin-top: 10px;
 }
 
-#operators .boxheaders {
-  margin: 10px 0px 5px 0px;
+#refresh {
+  background: none;
 }
 
 #operators .mdl-selectfield {
@@ -108,6 +108,20 @@
   font-size: 14px;
 }
 
+.scrollboxes {
+  overflow: scroll;
+}
+
+.block-header {
+  padding: 5px 0px 5px 0px;
+  height: 24px;
+}
+
+.operator-type {
+  font-weight: bold;
+}
+
+/*
 .draggables {
   overflow: scroll;
 }
@@ -116,6 +130,7 @@
   min-height: 82px;
   max-height: 190px;
 }
+*/
 
 /*
 * Reference Links Toolbar
@@ -152,7 +167,6 @@
 .path_id {
   width: 172px;
   display: block;
-  margin: 0px 0px 5px 5px;
   float: left;
 /*
   word-wrap: break-word;
