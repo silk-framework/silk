@@ -81,29 +81,6 @@ object Learning extends Controller {
       for(path <- paths) yield (path.serializeSimplified(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
-    ////////////////////////////////
-
-//    def findComparisons(rule: LinkageRule): Seq[DPair[Path]] = {
-//      val comparisons = RuleTraverser(rule.operator.get).iterateAllChildren.filter(_.operator.isInstanceOf[Comparison])
-//      for(comparison <- comparisons.toSeq) yield {
-//        val sourceInput = comparison.iterateChildren.next()
-//        val targetInput = comparison.iterateChildren.drop(1).next()
-//        val sourcePath = sourceInput.iterateAllChildren.map(_.operator).collect { case PathInput(_, path) => path }.next()
-//        val targetPath = targetInput.iterateAllChildren.map(_.operator).collect { case PathInput(_, path) => path }.next()
-//        DPair(sourcePath, targetPath)
-//      }
-//    }
-//
-//    val rules = activeLearn.value().population.individuals.map(_.node.build)
-//
-//    val comparisonsByCount = rules.flatMap(findComparisons).groupBy(identity).mapValues(_.size)
-//
-//    println(comparisonsByCount.toSeq.sortBy(_._2).mkString("\n"))
-
-    ////////////////////////////////////
-
-
-
     request.body.asFormUrlEncoded match {
       case Some(p) =>
         val params = p.mapValues(_.head)
