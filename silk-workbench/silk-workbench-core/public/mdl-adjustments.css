@@ -183,135 +183,132 @@
 
 /*
 * New Editor Component Colors
+* see https://www.google.com/design/spec/style/color.html#color-color-palette
 *
 *                   light       dark      MDL Name
-* Source:           #9c27b0     #7b1fa2   (Purple)
-* Target:           #f44336     #d32f2f   (Red)
-* Transformations:  #8bc34a     #689f38   (Light Green)
-* Comparators:      #ff9800     #f57c00   (Orange)
-* Aggregators:      #2196f3     #1976d2   (Blue)
+* Source:           #E1BEE7     #CE93D8   (Purple) 100-200
+* Target:           #C5CAE9     #9FA8DA   (Indigo) 100-200
+* Transformations:  #CFD8DC     #B0BEC5   (Blue Grey) 100-200
+* Comparators:      #BBDEFB     #90CAF9   (Blue) 100-200
+* Aggregators:      #B2DFDB     #80CBC4   (Teal) 100-200
 */
 
-.sourceDiv {
-  color: #ffffff;
-}
+
 .sourceDiv h5 {
-  background-color: #7b1fa2;
+  background-color: #CE93D8;
 }
 .sourcePaths {
-  color: #ffffff;
-  background-color: #9c27b0;
-  border:1px dotted #7b1fa2;
+  background-color: #E1BEE7;
+  border:1px dotted #CE93D8;
 }
 .sourceDiv .content {
-  border-color: #7b1fa2;
+  border-color: #CE93D8;
 }
 .sourceDiv:hover {
-  background-color:#9c27b0;
-  box-shadow: 1px 1px 6px #7b1fa2;
+  background-color:#E1BEE7;
+  box-shadow: 1px 1px 6px #CE93D8;
 }
 .operator_footer.sourceDiv {
-  background-color: #9c27b0;
-  border-color: #7b1fa2;
+  background-color: #E1BEE7;
+  border-color: #CE93D8;
 }
 #source_id {
-  color: #ffffff;
-  border: 1px solid #7b1fa2;
-  background-color: #9c27b0;
+  border: 1px solid #CE93D8;
+  background-color: #E1BEE7;
 }
 
 
 .targetDiv h5 {
-  background-color: #d32f2f;
+  background-color: #9FA8DA;
 }
 .targetPaths {
-  background-color: #f44336;
-  border:1px dotted #d32f2f;
+  background-color: #C5CAE9;
+  border:1px dotted #9FA8DA;
 }
 .targetDiv .content {
-  border-color: #d32f2f;
+  border-color: #9FA8DA;
 }
 .targetDiv:hover {
-  background-color: #f44336;
-  box-shadow: 1px 1px 6px #d32f2f;
+  background-color: #C5CAE9;
+  box-shadow: 1px 1px 6px #9FA8DA;
 }
 .operator_footer.targetDiv {
-  background-color: #f44336;
-  border-color: #d32f2f;
+  background-color: #C5CAE9;
+  border-color: #9FA8DA;
 }
 #target_id {
   color: #4f2b2b;
-  border: 1px solid #d32f2f;
-  background-color: #f44336;
+  border: 1px solid #9FA8DA;
+  background-color: #C5CAE9;
 }
 
 
 .transformHeader {
-  color: #689f38;
+  color: #B0BEC5;
 }
 .transformDiv h5 {
-  background-color: #689f38;
+  background-color: #B0BEC5;
 }
 .transformations {
-  background-color: #8bc34a;
-  border:1px dotted #689f38;
+  background-color: #CFD8DC;
+  border:1px dotted #B0BEC5;
 }
 .transformDiv .content {
-  border-color: #689f38;
+  border-color: #B0BEC5;
 }
 .transformDiv:hover {
-  background-color: #8bc34a;
-  box-shadow: 1px 1px 6px #689f38;
+  background-color: #CFD8DC;
+  box-shadow: 1px 1px 6px #B0BEC5;
 }
 .operator_footer.transformDiv {
-  background-color: #8bc34a;
-  border-color: #689f38;
+  background-color: #CFD8DC;
+  border-color: #B0BEC5;
 }
 
 
 .compareHeader {
-  color: #f57c00;
+  color: #90CAF9;
 }
 .compareDiv h5 {
-  background-color: #f57c00;
+  background-color: #90CAF9;
 }
 .comparators {
-  background-color: #ff9800;
-  border:1px dotted #f57c00;
+  background-color: #BBDEFB;
+  border:1px dotted #90CAF9;
 }
 .compareDiv .content {
-  border-color: #f57c00;
+  border-color: #90CAF9;
 }
 .compareDiv:hover {
-  background-color: #ff9800;
-  box-shadow: 1px 1px 6px #f57c00;
+  background-color: #BBDEFB;
+  box-shadow: 1px 1px 6px #90CAF9;
 }
 .operator_footer.compareDiv {
-  background-color: #ff9800;
-  border-color: #f57c00;
+  background-color: #BBDEFB;
+  border-color: #90CAF9;
 }
 
 
 .aggregateHeader {
-  color: #1976d2;
+  color: #80CBC4;
 }
 .aggregateDiv h5 {
-  background-color:#1976d2;
+  background-color:#80CBC4;
 }
 .aggregators {
-	background-color: #2196f3;
-	border:1px dotted #1976d2;
+	background-color: #B2DFDB;
+	border:1px dotted #80CBC4;
 }
 .aggregateDiv .content {
-  border-color: #1976d2;
+  border-color: #80CBC4;
 }
 .aggregateDiv:hover {
-  background-color: #2196f3;
-  box-shadow: 1px 1px 6px #1976d2;
+  background-color: #B2DFDB;
+  box-shadow: 1px 1px 6px #80CBC4;
 }
 .operator_footer.aggregateDiv {
-  background-color: #2196f3;
-  border-color: #1976d2;
+  background-color: #B2DFDB;
+  border-color: #80CBC4;
 }
 
 
@@ -321,51 +318,48 @@
 */
 
 .directMapping .ruleTitle {
-  background-color: #689f38;
+  background-color: #B0BEC5;
 }
 
 .directMapping:hover {
-  background-color: #8bc34a;
-  box-shadow: 1px 1px 6px #689f38;
+  background-color: #CFD8DC;
+  box-shadow: 1px 1px 6px #B0BEC5;
 }
 
 .uriMapping .ruleTitle {
-  background-color: #1976d2;
+  background-color: #80CBC4;
 }
 
 .uriMapping:hover {
-  background-color: #2196f3;
-  box-shadow: 1px 1px 6px #1976d2;
+  background-color: #B2DFDB;
+  box-shadow: 1px 1px 6px #80CBC4;
 }
 
-.objectMapping {
-  color: #ffffff;
-}
 .objectMapping .ruleTitle {
-  background-color: #7b1fa2;
+  background-color: #CE93D8;
 }
 
 .objectMapping:hover {
-  background-color: #9c27b0;
-  box-shadow: 1px 1px 6px #7b1fa2;
+  background-color: #E1BEE7;
+  box-shadow: 1px 1px 6px #CE93D8;
 }
 
 .typeMapping .ruleTitle {
-  background-color: #f57c00;
+  background-color: #90CAF9;
 }
 
 .typeMapping:hover {
-  background-color: #ff9800;
-  box-shadow: 1px 1px 6px #f57c00;
+  background-color: #BBDEFB;
+  box-shadow: 1px 1px 6px #90CAF9;
 }
 
 .complexMapping .ruleTitle {
-  background-color: #d32f2f;
+  background-color: #9FA8DA;
 }
 
 .complexMapping:hover {
-  background-color: #f44336;
-  box-shadow: 1px 1px 6px #d32f2f;
+  background-color: #C5CAE9;
+  box-shadow: 1px 1px 6px #9FA8DA;
 }
 
 /*
@@ -373,15 +367,15 @@
 */
 
 .toolboxOperator {
-  background-color: #2196f3;
+  background-color: #B2DFDB;
 }
 
 .operatorHeader {
-  background-color: #1976d2;
+  background-color: #80CBC4;
 }
 
 .operator:hover {
-  background-color: #2196f3;
+  background-color: #B2DFDB;
 }
 
 
