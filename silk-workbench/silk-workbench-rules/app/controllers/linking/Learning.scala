@@ -127,11 +127,18 @@ object Learning extends Controller {
                 targetPath <- targetValues;
                 targetValue <- targetPath.values) {
               if(sourceValue.value == targetValue.value && currentIndex <= 5) {
-                sourceValue.similarityClass = Some(currentIndex)
-                targetValue.similarityClass = Some(currentIndex)
-                currentIndex += 1
+                // Check if this value already got an index
+                sourceValues.flatMap(_.values).find(_.value == sourceValue.value).flatMap(_.similarityClass) match {
+                  case Some(index) =>
+                    sourceValue.similarityClass = Some(index)
+                    targetValue.similarityClass = Some(index)
+                  case None if currentIndex <= 5 =>
+                    sourceValue.similarityClass = Some(currentIndex)
+                    targetValue.similarityClass = Some(currentIndex)
+                    currentIndex += 1
+                  case None =>
+                }
               }
-
             }
 
             Ok(views.html.learning.linkCandidate(link, sourceValues, targetValues, context))
