@@ -10,8 +10,6 @@ lazy val commonSettings = Seq(
   version := "2.7.2",
   // Building
   scalaVersion := "2.11.8",
-  javacOptions := Seq("-source", "1.7", "-target", "1.7"),
-  scalacOptions += "-target:jvm-1.7",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
