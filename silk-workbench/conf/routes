@@ -2,4 +2,9 @@
 ->         /core             core.Routes
 ->         /workspace        workspace.Routes
 
+->         /rules          rules.Routes
+->         /linking        linking.Routes
+->         /transform      transform.Routes
+->         /workflow       workflow.Routes
+
 # Note: Plugin routes are handled automatically in the WorkbenchGlobal object
