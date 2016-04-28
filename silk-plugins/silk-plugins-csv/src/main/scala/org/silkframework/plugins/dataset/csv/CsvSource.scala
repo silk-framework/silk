@@ -157,7 +157,6 @@ class CsvSource(file: Resource,
           var index = 0
           while (line != null) {
             if (!(properties.trim.isEmpty && 0 == index) && (regexFilter.isEmpty || regex.matcher(line).matches())) {
-              logger.log(Level.FINER, s"Retrieving data from CSV [ line number :: ${index + 1} ].")
 
               //Split the line into values
               val allValues = parser.parseLine(line)
