@@ -6,7 +6,7 @@
 
 @(project: Project, task: Task[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
-<div class="operator" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
+<div class="operator" title="@task.name" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
   <div class="operatorHeader">
     <div class="operatorHeaderText">
       @taskActions.name

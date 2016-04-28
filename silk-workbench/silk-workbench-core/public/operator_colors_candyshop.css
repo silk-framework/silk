@@ -1,0 +1,204 @@
+/*
+* New Editor Component Colors
+*
+*                   light       dark      MDL Name
+* Source:           #9c27b0     #7b1fa2   (Purple)
+* Target:           #f44336     #d32f2f   (Red)
+* Transformations:  #8bc34a     #689f38   (Light Green)
+* Comparators:      #ff9800     #f57c00   (Orange)
+* Aggregators:      #2196f3     #1976d2   (Blue)
+*/
+
+.sourceDiv {
+  color: #ffffff;
+}
+.sourceDiv h5 {
+  background-color: #7b1fa2;
+}
+.sourcePaths {
+  color: #ffffff;
+  background-color: #9c27b0;
+  border:1px dotted #7b1fa2;
+}
+.sourceDiv .content {
+  border-color: #7b1fa2;
+}
+.sourceDiv:hover {
+  background-color:#9c27b0;
+  box-shadow: 1px 1px 6px #7b1fa2;
+}
+.operator_footer.sourceDiv {
+  background-color: #9c27b0;
+  border-color: #7b1fa2;
+}
+#source_id {
+  color: #ffffff;
+  border: 1px solid #7b1fa2;
+  background-color: #9c27b0;
+}
+
+
+.targetDiv h5 {
+  background-color: #d32f2f;
+}
+.targetPaths {
+  background-color: #f44336;
+  border:1px dotted #d32f2f;
+}
+.targetDiv .content {
+  border-color: #d32f2f;
+}
+.targetDiv:hover {
+  background-color: #f44336;
+  box-shadow: 1px 1px 6px #d32f2f;
+}
+.operator_footer.targetDiv {
+  background-color: #f44336;
+  border-color: #d32f2f;
+}
+#target_id {
+  color: #4f2b2b;
+  border: 1px solid #d32f2f;
+  background-color: #f44336;
+}
+
+
+.transformHeader {
+  color: #689f38;
+}
+.transformDiv h5 {
+  background-color: #689f38;
+}
+.transformations {
+  background-color: #8bc34a;
+  border:1px dotted #689f38;
+}
+.transformDiv .content {
+  border-color: #689f38;
+}
+.transformDiv:hover {
+  background-color: #8bc34a;
+  box-shadow: 1px 1px 6px #689f38;
+}
+.operator_footer.transformDiv {
+  background-color: #8bc34a;
+  border-color: #689f38;
+}
+
+
+.compareHeader {
+  color: #f57c00;
+}
+.compareDiv h5 {
+  background-color: #f57c00;
+}
+.comparators {
+  background-color: #ff9800;
+  border:1px dotted #f57c00;
+}
+.compareDiv .content {
+  border-color: #f57c00;
+}
+.compareDiv:hover {
+  background-color: #ff9800;
+  box-shadow: 1px 1px 6px #f57c00;
+}
+.operator_footer.compareDiv {
+  background-color: #ff9800;
+  border-color: #f57c00;
+}
+
+
+.aggregateHeader {
+  color: #1976d2;
+}
+.aggregateDiv h5 {
+  background-color:#1976d2;
+}
+.aggregators {
+	background-color: #2196f3;
+	border:1px dotted #1976d2;
+}
+.aggregateDiv .content {
+  border-color: #1976d2;
+}
+.aggregateDiv:hover {
+  background-color: #2196f3;
+  box-shadow: 1px 1px 6px #1976d2;
+}
+.operator_footer.aggregateDiv {
+  background-color: #2196f3;
+  border-color: #1976d2;
+}
+
+
+
+/*
+* New Colors for Transform Editor Overview
+*/
+
+.directMapping .ruleTitle {
+  background-color: #689f38;
+}
+
+.directMapping:hover {
+  background-color: #8bc34a;
+  box-shadow: 1px 1px 6px #689f38;
+}
+
+.uriMapping .ruleTitle {
+  background-color: #1976d2;
+}
+
+.uriMapping:hover {
+  background-color: #2196f3;
+  box-shadow: 1px 1px 6px #1976d2;
+}
+
+.objectMapping {
+  color: #ffffff;
+}
+.objectMapping .ruleTitle {
+  background-color: #7b1fa2;
+}
+
+.objectMapping:hover {
+  background-color: #9c27b0;
+  box-shadow: 1px 1px 6px #7b1fa2;
+}
+
+.typeMapping .ruleTitle {
+  background-color: #f57c00;
+}
+
+.typeMapping:hover {
+  background-color: #ff9800;
+  box-shadow: 1px 1px 6px #f57c00;
+}
+
+.complexMapping .ruleTitle {
+  background-color: #d32f2f;
+}
+
+.complexMapping:hover {
+  background-color: #f44336;
+  box-shadow: 1px 1px 6px #d32f2f;
+}
+
+/*
+* General Editor/Workflow Colors
+*/
+
+.toolboxOperator {
+  background-color: #2196f3;
+}
+
+.operatorHeader {
+  background-color: #1976d2;
+}
+
+.operator:hover {
+  background-color: #2196f3;
+}
+
+

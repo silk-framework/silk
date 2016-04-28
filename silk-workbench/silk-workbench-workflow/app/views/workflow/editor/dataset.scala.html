@@ -5,7 +5,7 @@
 @import org.silkframework.workspace.Task
 @(project: Project, task: Task[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
-<div class="dataset" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">
+<div class="dataset" title="@task.name" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">
   <div class="dataset-bottom"></div>
   <div class="dataset-contents">
     <div class="dataset-buttons">

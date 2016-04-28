@@ -26,38 +26,40 @@
 }
 
 @pathOperators(source: String, paths: Seq[String], pathType: String) = {
-  <div style="padding-top: 4px">
-    <span style='font-weight: bold; color: #582271;' class="path_type">@pathType:</span>
-    <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
-    <div class="mdl-tooltip" for="@{pathType.toLowerCase}_id">@source</div>
-  </div>
-
-  @*<div class="more">
-    <span class='restriction'>
-      <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;' class="path_type">Restriction: </span>
-      <span id='@{pathType.toLowerCase}_restriction' class="path_id"></span>
-    </span>
-    <div style='clear: both;'></div>
-  </div>*@
-
-  <div class="scrollboxes">
-    <div class="draggable @{pathType.toLowerCase}Paths">
-      <span></span>
-      <small></small>
-      <p>(custom path)</p>
-      @pathExpanded("", pathType)
+  <div class="palette-block">
+    <div class="block-header clearfix">
+      <span style='font-weight: bold; color: #582271;' class="path_type">@pathType:</span>
+      <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
+      <div class="mdl-tooltip" for="@{pathType.toLowerCase}_id">@source</div>
     </div>
 
-    @loadingMsg
-    @if(!warning.isEmpty) { <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" title="@warning"/> }
+    @*<div class="more">
+      <span class='restriction'>
+        <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;' class="path_type">Restriction: </span>
+        <span id='@{pathType.toLowerCase}_restriction' class="path_id"></span>
+      </span>
+      <div style='clear: both;'></div>
+    </div>*@
 
-    @for(path <- paths) {
-      <div class="draggable @{pathType.toLowerCase}Paths" title="@path">
+    <div class="scrollboxes">
+      <div class="draggable @{pathType.toLowerCase}Paths">
         <span></span>
-        <p style="white-space:nowrap; overflow:hidden;">@path</p>
-        @pathExpanded(path, pathType)
+        <small></small>
+        <p>(custom path)</p>
+        @pathExpanded("", pathType)
       </div>
-    }
+
+      @loadingMsg
+      @if(!warning.isEmpty) { <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" title="@warning"/> }
+
+      @for(path <- paths) {
+        <div class="draggable @{pathType.toLowerCase}Paths" title="@path">
+          <span></span>
+          <p style="white-space:nowrap; overflow:hidden;">@path</p>
+          @pathExpanded(path, pathType)
+        </div>
+      }
+    </div>
   </div>
 }
 

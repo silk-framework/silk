@@ -60,6 +60,30 @@
         <i class="material-icons">help_outline</i>
       </a>
     </li>
+    <li>
+      <div class="spacer"/>
+    </li>
+    <li>
+      <label>Name:</label>
+      <div id="input_rulename" class="mdl-textfield mdl-js-textfield">
+        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.name" />
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="input_rulename">
+        The name of this transformation rule.
+      </div>
+    </li>
+    <li>
+      <div class="spacer"/>
+    </li>
+    <li>
+      <label>Target Property:</label>
+      <div id="input_targetproperty" class="mdl-textfield mdl-js-textfield">
+        <input id="targetproperty" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="input_targetproperty">
+        The target property.
+      </div>
+    </li>
   </ul>
 
   @status()
@@ -69,11 +93,15 @@
 
 @content = {
   <div class="draggables">
-    <div style="width:200px;">
-      <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
-      <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths"></div>
+    <div class="palette-header">
+      <div style="width:200px;">
+        <span style="font-weight: bold; color: #582271; float: left;">Property Paths</span>
+        <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths">
+          <i class="material-icons">cached</i>
+        </div>
+      </div>
+      <div style="clear: both"></div>
     </div>
-    <div style="clear: both"></div>
     <div id="paths">
       <div id="loading" style="width:230px;">loading ...</div>
       <script type="text/javascript">
@@ -95,18 +123,6 @@
           rule = rule.operator,
           prefixes = context.project.config.prefixes
         )
-      </div>
-
-      <div style="float: left; margin-right: 20px">
-        Name:
-        <input type="text" size="40" id="rulename"  value="@rule.name" />
-        <img src="@Assets.at("img/help.png")" title="The name of this transformation rule." />
-      </div>
-
-      <div style="float: left;">
-        Target Property:
-        <input type="text" size="40" id="targetproperty"  value="@rule.target.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
-        <img src="@Assets.at("img/help.png")" title="The target property." />
       </div>
 
     </div>

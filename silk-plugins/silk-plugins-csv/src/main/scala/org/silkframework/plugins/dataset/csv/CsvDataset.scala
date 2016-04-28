@@ -23,7 +23,7 @@ case class CsvDataset
   @Param("The character that is used to separate the parts of array values.")
     arraySeparator: String = "",
   @Param("Character used to quote values.")
-    quote: String = "",
+    quote: String = "\"",
   @Param(" A URI prefix that should be used for generating schema entities like classes or properties, e.g. http://www4.wiwiss.fu-berlin.de/ontology/")
     prefix: String = "",
   @Param("A pattern used to construct the entity URI. If not provided the prefix + the line number is used. An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.")
