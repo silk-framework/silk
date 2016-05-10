@@ -260,7 +260,10 @@ function generateNewElementId(currentId) {
   do {
     nameExists = false;
     counter = counter + 1;
-    if($("#" + currentId + counter).length > 0) {
+    id = "#" + currentId + counter;
+    alternativeId = "#operator_" + currentId + counter;
+    console.log(id)
+    if($(id).length > 0 || $(alternativeId).length > 0) {
       nameExists = true;
     }
   } while (nameExists);
