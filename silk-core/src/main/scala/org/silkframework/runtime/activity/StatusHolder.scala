@@ -83,6 +83,18 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
   }
 
   /**
+    * Increases the progress.
+    *
+    * @param increase The amount by which the progress should be increased
+    */
+  def increaseProgress(increase: Double, logStatus: Boolean = true): Unit = {
+    val updatedStatus = synchronized {
+      Status.Running(status.message, status.progress + increase)
+    }
+    update(updatedStatus, logStatus)
+  }
+
+  /**
    * Updates the status.
    *
    * @param message The new status message
