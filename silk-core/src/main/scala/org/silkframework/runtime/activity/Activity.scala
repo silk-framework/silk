@@ -34,6 +34,11 @@ trait Activity[T] extends HasValue {
   def cancelExecution(): Unit = { }
 
   /**
+    * Can be overridden in implementing classes to implement reset behaviour in addition to resetting the activity value to its initial value.
+    */
+  def reset(): Unit = { }
+
+  /**
    * The initial value of this activity, if any.
    */
   def initialValue: Option[T] = None
@@ -83,6 +88,7 @@ object Activity {
         currentActivity = None
       }
       override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
+      override def reset() = currentActivity.foreach(_.reset())
     }
   }
 }

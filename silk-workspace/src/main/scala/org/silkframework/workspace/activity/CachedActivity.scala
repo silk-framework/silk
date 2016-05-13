@@ -28,6 +28,8 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
 
   override def cancelExecution() = activity.cancelExecution()
 
+  override def reset() = activity.reset()
+
   override def run(context: ActivityContext[T]): Unit = {
     if(!initialized) {
       initialized = true
