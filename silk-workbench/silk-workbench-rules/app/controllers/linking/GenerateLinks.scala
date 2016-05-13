@@ -30,9 +30,20 @@ object GenerateLinks extends Controller {
     val task = project.task[LinkSpecification](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
     val linking = task.activity[GenerateLinksActivity].value
+    val schemata = task.data.entityDescriptions
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
-    if(linking.links.headOption.exists(_.entities.nonEmpty)) {
+    val showLinks = {
+      linking.links.headOption.flatMap(_.entities) match {
+        case Some(entities) =>
+          // Check if the entities got all paths that are used in the linkage rule
+          schemata.source.paths.forall(entities.source.desc.paths.contains) &&
+          schemata.target.paths.forall(entities.target.desc.paths.contains)
+        case None => false
+      }
+    }
+
+    if(showLinks) {
       val referenceLinks = task.data.referenceLinks
       def links =
         for (link <- linking.links.view;
