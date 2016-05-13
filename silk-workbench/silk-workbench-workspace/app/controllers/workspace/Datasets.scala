@@ -122,8 +122,12 @@ object Datasets extends Controller {
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = "") = Action { request =>
     val context = Context.get[Dataset](project, task, request.path)
-    val types = context.task.activity[TypesCache].value.types
-    val filteredTypes = types.filter(_.contains(search))
+    val prefixes = context.project.config.prefixes
+
+    val typesFull = context.task.activity[TypesCache].value.types
+    val typesResolved = typesFull.map(prefixes.shorten)
+    val allTypes = (typesResolved ++ typesFull).distinct
+    val filteredTypes = allTypes.filter(_.contains(search))
 
     Ok(JsArray(filteredTypes.map(JsString)))
   }

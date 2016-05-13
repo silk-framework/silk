@@ -35,7 +35,7 @@ case class Uri(uri: String) {
    * - someName
    */
   def serialize(implicit prefixes: Prefixes): String = {
-    if(!uri.contains(':')) {
+    if(uri.startsWith("http") || !uri.contains(':')) {
       uri
     } else {
       for ((id, namespace) <- prefixes if uri.startsWith(namespace)) {

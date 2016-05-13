@@ -40,8 +40,8 @@ object LinkingTaskApi extends Controller {
     implicit val prefixes = proj.config.prefixes
 
     val datasets =
-      DPair(DatasetSelection(values("source"), Uri(values.getOrElse("sourceType", "")), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
-            DatasetSelection(values("target"), Uri(values.getOrElse("targetType", "")), Restriction.custom(values.getOrElse("targetRestriction", ""))))
+      DPair(DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
+            DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {

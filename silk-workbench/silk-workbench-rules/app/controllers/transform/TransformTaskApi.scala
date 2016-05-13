@@ -28,7 +28,7 @@ object TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), Uri(values.getOrElse("sourceType", "")), Restriction.custom(values("restriction")))
+    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[TransformSpecification].find(_.name == task) match {
