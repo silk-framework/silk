@@ -260,7 +260,9 @@ function generateNewElementId(currentId) {
   do {
     nameExists = false;
     counter = counter + 1;
-    if($("#" + currentId + counter).length > 0) {
+    id = "#" + currentId + counter;
+    alternativeId = "#operator_" + currentId + counter;
+    if($(id).length > 0 || $(alternativeId).length > 0) {
       nameExists = true;
     }
   } while (nameExists);
@@ -473,7 +475,6 @@ function updateWindowSize() {
     var draggables_border_height = 2;
     var palette_header_height = $("#palette-header").outerHeight();
     var height_diff = palette_header_height + draggables_padding_height + draggables_border_height;
-    console.log(height_diff);
     var palette_blocks = $(".palette-block");
     var palette_block_margin = parseInt(palette_blocks.css('margin-top'));
     palette_block_height = ((height - height_diff)/palette_blocks.length) - palette_block_margin;
