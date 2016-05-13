@@ -3,8 +3,9 @@ package controllers.linking
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.config.LinkSpecification
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.evaluation.DetailedEvaluator
+import org.silkframework.util.DPair
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller}
@@ -21,14 +22,21 @@ object ReferenceLinksManager extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
-    def linkageRule = task.data.rule
+    def linkSpec = task.data
+    def linkageRule = linkSpec.rule
     def entities = task.activity[ReferenceEntitiesCache].value
     val linkSorter = LinkSorter.fromId(sorting)
+
+    // Checks if a pair of entities provides values for all paths in the current linkage rule
+    def hasPaths(entities: DPair[Entity]): Boolean = {
+      linkSpec.entityDescriptions.source.paths.forall(entities.source.desc.paths.contains) &&
+      linkSpec.entityDescriptions.target.paths.forall(entities.target.desc.paths.contains)
+    }
 
     val links = linkType match {
       case "positive" => {
         for (link <- referenceLinks.positive.toSeq.view) yield entities.positiveLinkToEntities(link) match {
-          case Some(entities) => {
+          case Some(entities) if hasPaths(entities) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
             new EvalLink(
@@ -37,7 +45,7 @@ object ReferenceLinksManager extends Controller {
               linkType = Positive
             )
           }
-          case None => {
+          case _ => {
             val cleanLink = new Link(link.source, link.target)
 
             new EvalLink(
@@ -50,7 +58,7 @@ object ReferenceLinksManager extends Controller {
       }
       case "negative" => {
         for (link <- referenceLinks.negative.toSeq.view) yield entities.negativeLinkToEntities(link) match {
-          case Some(entities) => {
+          case Some(entities) if hasPaths(entities) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
             new EvalLink(
@@ -59,7 +67,7 @@ object ReferenceLinksManager extends Controller {
               linkType = Negative
             )
           }
-          case None => {
+          case _ => {
             val cleanLink = new Link(link.source, link.target)
 
             new EvalLink(
@@ -72,7 +80,7 @@ object ReferenceLinksManager extends Controller {
       }
       case "unlabeled" => {
         for (link <- referenceLinks.unlabeled.toSeq.view) yield entities.unlabeledLinkToEntities(link) match {
-          case Some(entities) => {
+          case Some(entities) if hasPaths(entities) => {
             val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
 
             new EvalLink(
@@ -81,7 +89,7 @@ object ReferenceLinksManager extends Controller {
               linkType = Unlabeled
             )
           }
-          case None => {
+          case _ => {
             val cleanLink = new Link(link.source, link.target)
 
             new EvalLink(

@@ -127,7 +127,10 @@
         @link.details.map { sim =>
           @renderConfidence(sim.score)
         }.getOrElse {
-          <div class="confidencebar">Missing</div>
+          <div id="@id(link, "missing")" class="confidencebar">Missing</div>
+          <div class="mdl-tooltip" for="@id(link, "missing")">
+            The cache does not provide all values for the linked entities. Try reloading the cache and this page.
+          </div>
         }
       </div>
 
