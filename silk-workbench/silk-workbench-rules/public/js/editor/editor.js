@@ -527,8 +527,8 @@ function loadInstance(index) {
       endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
     }
     else if (boxclass.search(/transform/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueSource);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueTarget);
+      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueTarget);
+      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
     }
     else if (boxclass.search(/source/) != -1 || boxclass.search(/target/) != -1) {
       endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
