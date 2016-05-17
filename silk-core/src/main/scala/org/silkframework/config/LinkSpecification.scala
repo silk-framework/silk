@@ -23,8 +23,8 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.serialization.Serialization._
-import org.silkframework.runtime.serialization.{ValidatingXMLReader, XmlFormat}
+import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 
@@ -99,7 +99,7 @@ object LinkSpecification {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): LinkSpecification = {
+    def read(node: Node)(implicit readContext: ReadContext): LinkSpecification = {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
 
@@ -131,7 +131,7 @@ object LinkSpecification {
     /**
      * Serialize a value to XML.
      */
-    def write(spec: LinkSpecification)(implicit prefixes: Prefixes = Prefixes.empty): Node =
+    def write(spec: LinkSpecification)(implicit writeContext: WriteContext[Node]): Node =
       <Interlink id={spec.id}>
         {spec.dataSelections.source.toXML(asSource = true)}
         {spec.dataSelections.target.toXML(asSource = false)}

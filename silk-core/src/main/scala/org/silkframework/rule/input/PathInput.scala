@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Path}
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -77,18 +77,18 @@ object PathInput {
    */
   implicit object PathInputFormat extends XmlFormat[PathInput] {
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): PathInput = {
+    def read(node: Node)(implicit readContext: ReadContext): PathInput = {
       val id = Operator.readId(node)
       try {
         val pathStr = (node \ "@path").text
-        val path = Path.parse(pathStr)
+        val path = Path.parse(pathStr)(readContext.prefixes)
         PathInput(id, path)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Path")
       }
     }
 
-    def write(value: PathInput)(implicit prefixes: Prefixes): Node = {
+    def write(value: PathInput)(implicit writeContext: WriteContext[Node]): Node = {
       <Input id={value.id} path={value.path.serialize}/>
     }
   }

@@ -19,7 +19,7 @@ package org.silkframework.evaluation
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.DPair
 
 import scala.xml.{Node, NodeSeq}
@@ -70,6 +70,7 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
 
   /**
    * If and only if the link is a positive link then return the pair of entity.
+ *
    * @param link
    * @return
    */
@@ -161,8 +162,8 @@ object ReferenceEntities {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
-      val entityDescs = Serialization.fromXml[DPair[EntitySchema]]((checkAndGet(node,  "Pair").head))
+    def read(node: Node)(implicit readContext: ReadContext) = {
+      val entityDescs = XmlSerialization.fromXml[DPair[EntitySchema]]((checkAndGet(node,  "Pair").head))
 
       val sourceEntities = extractEntities(entityDescs.source, checkAndGet(node,  "SourceEntities"))
       val targetEntities = extractEntities(entityDescs.target, checkAndGet(node, "TargetEntities"))
@@ -204,9 +205,9 @@ object ReferenceEntities {
     /**
      * Serialize a value to XML.
      */
-    def write(entities: ReferenceEntities)(implicit prefixes: Prefixes): Node = {
+    def write(entities: ReferenceEntities)(implicit writeContext: WriteContext[Node]): Node = {
       <Entities>
-        {Serialization.toXml(entities.entitySchemas)}<SourceEntities>
+        {XmlSerialization.toXml(entities.entitySchemas)}<SourceEntities>
         {toXML(entities.sourceEntities)}
       </SourceEntities>
         <TargetEntities>

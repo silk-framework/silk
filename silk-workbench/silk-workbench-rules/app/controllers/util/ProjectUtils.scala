@@ -11,7 +11,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.{Project, Task, User}
 import play.api.mvc.Result
 
@@ -63,7 +63,8 @@ object ProjectUtils {
     if (dataSource.isEmpty) {
       throw new IllegalArgumentException(s"No data source with id $datasetIdOpt specified")
     }
-    val dataset = Serialization.fromXml[Dataset](dataSource.head)
+    implicit val readContext = ReadContext(resourceLoader)
+    val dataset = XmlSerialization.fromXml[Dataset](dataSource.head)
     dataset
   }
 

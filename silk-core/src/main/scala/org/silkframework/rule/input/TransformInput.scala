@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -57,11 +57,13 @@ object TransformInput {
    */
   implicit object TransformInputFormat extends XmlFormat[TransformInput] {
 
-    import Serialization._
+    import XmlSerialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformInput = {
+    def read(node: Node)(implicit readContext: ReadContext): TransformInput = {
       val id = Operator.readId(node)
       val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
+      implicit val prefixes = readContext.prefixes
+      implicit val resourceManager = readContext.resources
 
       try {
         val transformer = Transformer((node \ "@function").text, Operator.readParams(node))
@@ -71,7 +73,7 @@ object TransformInput {
       }
     }
 
-    def write(value: TransformInput)(implicit prefixes: Prefixes): Node = {
+    def write(value: TransformInput)(implicit writeContext: WriteContext[Node]): Node = {
       value.transformer match {
         case Transformer(plugin, params) =>
           <TransformInput id={value.id} function={plugin.id}>

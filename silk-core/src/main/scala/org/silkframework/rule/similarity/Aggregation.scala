@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.xml.Node
@@ -43,7 +43,6 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *
    * @param entities The entities to be compared.
    * @param limit The similarity threshold.
-   *
    * @return The similarity as a value between -1.0 and 1.0.
    *         None, if no similarity could be computed.
    */
@@ -68,7 +67,6 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *
    * @param entity The entity to be indexed
    * @param threshold The similarity threshold.
-   *
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   override def index(entity: Entity, sourceOrTarget: Boolean, threshold: Double): Index = {
@@ -105,11 +103,13 @@ object Aggregation {
    */
   implicit object AggregationFormat extends XmlFormat[Aggregation] {
 
-    import Serialization._
+    import XmlSerialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Aggregation = {
+    def read(node: Node)(implicit readContext: ReadContext): Aggregation = {
       val requiredStr = (node \ "@required").text
       val weightStr = (node \ "@weight").text
+      implicit val prefixes = readContext.prefixes
+      implicit val resourceManager = readContext.resources
 
       val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node))
 
@@ -122,7 +122,7 @@ object Aggregation {
       )
     }
 
-    def write(value: Aggregation)(implicit prefixes: Prefixes): Node = {
+    def write(value: Aggregation)(implicit writeContext: WriteContext[Node]): Node = {
       value.aggregator match {
         case Aggregator(plugin, params) =>
           <Aggregate id={value.id} required={value.required.toString} weight={value.weight.toString} type={plugin.id}>

@@ -17,7 +17,7 @@ package org.silkframework.entity.rdf
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
 import scala.xml.Node
 
@@ -61,7 +61,7 @@ object SparqlEntitySchema {
     /**
      * Deserialize an EntityDescription from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
+    def read(node: Node)(implicit readContext: ReadContext) = {
       val variable = (node \ "Variable").text.trim
       new SparqlEntitySchema(
         variable = variable,
@@ -73,7 +73,7 @@ object SparqlEntitySchema {
     /**
      * Serialize an EntityDescription to XML.
      */
-    def write(desc: SparqlEntitySchema)(implicit prefixes: Prefixes): Node =
+    def write(desc: SparqlEntitySchema)(implicit writeContext: WriteContext[Node]): Node =
       <EntityDescription>
         <Variable>{desc.variable}</Variable>
         <Restrictions>{desc.restrictions.toSparql}</Restrictions>

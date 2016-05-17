@@ -10,7 +10,7 @@ import org.silkframework.entity.Restriction
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
@@ -58,7 +58,7 @@ object TransformTaskApi extends Controller {
     implicit val prefixes = project.config.prefixes
 
     Ok(<TransformRules>
-      {task.data.rules.map(Serialization.toXml[TransformRule])}
+      {task.data.rules.map(XmlSerialization.toXml[TransformRule])}
     </TransformRules>)
   }
 
@@ -67,12 +67,13 @@ object TransformTaskApi extends Controller {
     val task = project.task[TransformSpecification](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
+    implicit val readContext = ReadContext(resources, prefixes)
 
     request.body.asXml match {
       case Some(xml) =>
         try {
           //Parse transformation rules
-          val updatedRules = (xml \ "TransformRule").map(Serialization.fromXml[TransformRule])
+          val updatedRules = (xml \ "TransformRule").map(XmlSerialization.fromXml[TransformRule])
           //Update transformation task
           val updatedTask = task.data.copy(rules = updatedRules)
           project.updateTask(taskName, updatedTask)
@@ -97,7 +98,7 @@ object TransformTaskApi extends Controller {
     implicit val prefixes = project.config.prefixes
 
     task.data.rules.find(_.name == rule) match {
-      case Some(r) => Ok(Serialization.toXml(r))
+      case Some(r) => Ok(XmlSerialization.toXml(r))
       case None => NotFound(s"No rule named '$rule' found!")
     }
   }
@@ -107,6 +108,7 @@ object TransformTaskApi extends Controller {
     val task = project.task[TransformSpecification](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
+    implicit val readContext = ReadContext(resources, prefixes)
 
     request.body.asXml match {
       case Some(xml) =>
@@ -114,7 +116,7 @@ object TransformTaskApi extends Controller {
           //Collect warnings while parsing transformation rule
           val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
             //Load transformation rule
-            val updatedRule = Serialization.fromXml[TransformRule](xml.head)
+            val updatedRule = XmlSerialization.fromXml[TransformRule](xml.head)
             val updatedRules = task.data.rules.updated(ruleIndex, updatedRule)
             val updatedTask = task.data.copy(rules = updatedRules)
             project.updateTask(taskName, updatedTask)

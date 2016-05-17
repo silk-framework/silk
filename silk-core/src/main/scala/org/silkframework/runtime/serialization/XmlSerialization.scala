@@ -9,13 +9,13 @@ import scala.xml.Node
  * Serializes between classes and XML.
  * In order to be serializable a class needs to provide an implicit XmlFormat object.
  */
-object Serialization {
+object XmlSerialization {
 
-  def toXml[T](value: T)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty): Node = {
+  def toXml[T](value: T)(implicit format: XmlFormat[T], writeContext: WriteContext[Node] = WriteContext[Node]()): Node = {
     format.write(value)
   }
 
-  def fromXml[T](node: Node)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): T = {
+  def fromXml[T](node: Node)(implicit format: XmlFormat[T], readContext: ReadContext): T = {
     format.read(node)
   }
 }

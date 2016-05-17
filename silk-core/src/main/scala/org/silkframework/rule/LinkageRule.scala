@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
+import org.silkframework.runtime.serialization._
 import org.silkframework.util.{DPair, Uri}
 
 import scala.xml.Node
@@ -34,8 +34,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    *
    * @param entities The entities to be compared.
    * @param limit If the confidence is below this limit, it will be capped to -1.0.
-   *
-   * @return The confidence as a value between -1.0 and 1.0.
+    * @return The confidence as a value between -1.0 and 1.0.
    *         -1.0 for definitive non-matches.
    *         +1.0 for definitive matches.
    */
@@ -51,8 +50,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    *
    * @param entity The entity to be indexed
    * @param limit The confidence limit
-   *
-   * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
+    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, sourceOrTarget: Boolean, limit: Double = 0.0): Index = {
     operator match {
@@ -76,11 +74,11 @@ object LinkageRule {
    */
   implicit object LinkageRuleFormat extends XmlFormat[LinkageRule] {
 
-    import Serialization._
+    import XmlSerialization._
 
     private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): LinkageRule = {
+    def read(node: Node)(implicit readContext: ReadContext): LinkageRule = {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
 
@@ -88,12 +86,12 @@ object LinkageRule {
       LinkageRule(
         operator = (node \ "_").find(_.label != "Filter").map(fromXml[SimilarityOperator]),
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
-        linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, prefixes)
+        linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes)
       )
     }
 
-    def write(value: LinkageRule)(implicit prefixes: Prefixes): Node = {
-      <LinkageRule linkType={value.linkType.serialize}>
+    def write(value: LinkageRule)(implicit writeContext: WriteContext[Node]): Node = {
+      <LinkageRule linkType={value.linkType.serialize(writeContext.prefixes)}>
         {value.operator.toList.map(toXml[SimilarityOperator])}
         {value.filter.toXML}
       </LinkageRule>

@@ -2,7 +2,7 @@ package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -42,18 +42,18 @@ object EntitySchema {
     /**
       * Deserialize an EntitySchema from XML.
       */
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = {
+    def read(node: Node)(implicit readContext: ReadContext) = {
       EntitySchema(
         typeUri = Uri((node \ "Type").text),
         paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield Path.parse(pathNode.text.trim),
-        filter = Restriction.parse((node \ "Restriction").text)
+        filter = Restriction.parse((node \ "Restriction").text)(readContext.prefixes)
       )
     }
 
     /**
       * Serialize an EntitySchema to XML.
       */
-    def write(desc: EntitySchema)(implicit prefixes: Prefixes): Node =
+    def write(desc: EntitySchema)(implicit writeContext: WriteContext[Node]): Node =
       <EntityDescription>
         <Type>{desc.typeUri}</Type>
         <Restriction>{desc.filter.serialize}</Restriction>

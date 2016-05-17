@@ -24,7 +24,7 @@ import org.silkframework.execution.methods.{Blocking, MultiBlock, SortedBlocks, 
 import org.silkframework.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 
 import scala.io.Source
 import scala.xml.XML
@@ -78,8 +78,9 @@ object GenerateLinksTest {
    */
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
+      implicit val readContext = ReadContext()
       val xml = XML.load(resourceLoader.get(configFile).load)
-      Serialization.fromXml[LinkingConfig](xml)
+      XmlSerialization.fromXml[LinkingConfig](xml)
     }
 
     lazy val referenceLinks: Set[Link] = {

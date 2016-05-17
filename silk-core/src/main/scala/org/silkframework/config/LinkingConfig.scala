@@ -16,8 +16,8 @@ package org.silkframework.config
 
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.Serialization._
-import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
+import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.runtime.serialization._
 import org.silkframework.util.Identifier
 
 import scala.xml.Node
@@ -56,10 +56,8 @@ case class LinkingConfig(prefixes: Prefixes,
    * Get a link specification given an Identifier. This method is similar to *linkSpec* but returns an Option.
    *
    * @since 2.6.1
-   *
-   * @see linkSpec
-   *
-   * @param id The identifier.
+    * @see linkSpec
+    * @param id The identifier.
    * @return A LinkSpecification instance.
    */
   def interlink(id: Identifier) = linkSpecs.find(id == _.id)
@@ -68,8 +66,7 @@ case class LinkingConfig(prefixes: Prefixes,
    * Select a transform given an Id.
    *
    * @since 2.6.1
-   *
-   * @param id The transform identifier.
+    * @param id The transform identifier.
    * @return A transform instance or None.
    */
   def transform(id: Identifier) = transforms.find(id == _.id)
@@ -109,11 +106,16 @@ object LinkingConfig {
     /**
      * Deserializes a LinkingConfig from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): LinkingConfig = {
+    def read(node: Node)(implicit readContext: ReadContext): LinkingConfig = {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
 
       implicit val prefixes = Prefixes.fromXML((node \ "Prefixes").head)
+
+      readWithPrefixes(node)(readContext.copy(prefixes = prefixes))
+    }
+
+    private def readWithPrefixes(node: Node)(implicit readContext: ReadContext) = {
       val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[Dataset]).toSet
       val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[Dataset]).toSet
       val sources = oldSources ++ newSources
@@ -130,24 +132,23 @@ object LinkingConfig {
       val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[Dataset])
       val outputs = oldOutputs ++ newOutputs
 
-      LinkingConfig(prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
+      LinkingConfig(readContext.prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
     }
-
 
     /**
      * Serializes a LinkingConfig to XML.
      */
-    def write(value: LinkingConfig)(implicit prefixes: Prefixes): Node = {
+    def write(value: LinkingConfig)(implicit writeContext: WriteContext[Node]): Node = {
       <Silk>
         {value.prefixes.toXML}
         <DataSources>
           {value.sources.map(toXml[Dataset])}
         </DataSources>
         <Interlinks>
-          {value.linkSpecs.map(spec => Serialization.toXml(spec))}
+          {value.linkSpecs.map(spec => XmlSerialization.toXml(spec))}
         </Interlinks>
         <Transforms>
-          {value.transforms.map(spec => Serialization.toXml(spec))}
+          {value.transforms.map(spec => XmlSerialization.toXml(spec))}
         </Transforms>
         <Outputs>
           {value.outputs.map(toXml[Dataset])}

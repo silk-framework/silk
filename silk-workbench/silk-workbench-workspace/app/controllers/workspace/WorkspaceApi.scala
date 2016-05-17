@@ -10,7 +10,7 @@ import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, HasValue}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{InMemoryResourceManager, UrlResource}
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectExecutor, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.xml.XmlWorkspaceProvider
@@ -98,17 +98,17 @@ object WorkspaceApi extends Controller {
 
   def importLinkSpec(projectName: String) = Action { implicit request => {
     val project = User().workspace.project(projectName)
-    implicit val resources = project.resources
+    implicit val readContext = ReadContext(project.resources)
 
     request.body match {
       case AnyContentAsMultipartFormData(data) =>
         for(file <- data.files) {
-          val config = Serialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
+          val config = XmlSerialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
           SilkConfigImporter(config, project)
         }
         Ok
       case AnyContentAsXml(xml) =>
-        val config = Serialization.fromXml[LinkingConfig](xml.head)
+        val config = XmlSerialization.fromXml[LinkingConfig](xml.head)
         SilkConfigImporter(config, project)
         Ok
       case _ =>
@@ -123,7 +123,7 @@ object WorkspaceApi extends Controller {
 
     val silkConfig = SilkConfigExporter.build(project, task.data)
 
-    Ok(Serialization.toXml(silkConfig))
+    Ok(XmlSerialization.toXml(silkConfig))
   }
 
   def updatePrefixes(project: String) = Action { implicit request => {
