@@ -7,7 +7,6 @@ import scala.xml.Node
 
 /**
   * Utility class for serializing values.
-  * Currently supports XML.
   */
 object Serialization {
 
@@ -19,14 +18,17 @@ object Serialization {
 
   private val printer = new scala.xml.PrettyPrinter(120, 2)
 
-  def serialize(value: Any): String = {
+  def hasSerialization(value: Any, mimeType: String): Boolean = {
+    serializationFormats.exists(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType))
+  }
+
+  def serialize(value: Any, mimeType: String): String = {
     implicit val writeContext = WriteContext[Node]()
-    serializationFormats.find(_.serializedType == value.getClass) match {
+    serializationFormats.find(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType)) match {
       case Some(format) =>
-        val node = format.write(value)
-        printer.format(node)
+        format.format(value, mimeType)
       case None =>
-        throw new NoSuchElementException(s"No XML serialization format for type ${value.getClass} available.")
+        throw new NoSuchElementException(s"No serialization format for type ${value.getClass} for content type $mimeType available.")
     }
   }
 

@@ -285,12 +285,24 @@ object WorkspaceApi extends Controller {
     }
   }
 
-  def getActivityValue(projectName: String, taskName: String, activityName: String) = Action {
+  def getActivityValue(projectName: String, taskName: String, activityName: String) = Action { request =>
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
-    val serializeValue = Serialization.serialize(value)
 
-    Ok(serializeValue).as("application/xml")
+    val mimeTypes = request.acceptedTypes.map(t => t.mediaType + "/" + t.mediaSubType)
+    if(mimeTypes.isEmpty) {
+      // If no MIME type has been specified, we return XML
+      val serializeValue = Serialization.serialize(value, "application/xml")
+      Ok(serializeValue).as("application/xml")
+    } else {
+      mimeTypes.find(Serialization.hasSerialization(value, _)) match {
+        case Some(mimeType) =>
+          val serializeValue = Serialization.serialize(value, mimeType)
+          Ok(serializeValue).as(mimeType)
+        case None =>
+          NotAcceptable
+      }
+    }
   }
 
   def recentActivities(maxCount: Int) = Action {
