@@ -1,12 +1,18 @@
 package org.silkframework.runtime.serialization
 
+import scala.reflect.ClassTag
+
 /**
   * Implementing classes support the serialization and deserialization of a specific type.
   *
   * @tparam T The value type that can be serialized by an implementing class.
   * @tparam U The serialized type. For instance scala.xml.Node for XML serializations.
   */
-trait SerializationFormat[T, U] {
+abstract class SerializationFormat[T: ClassTag, U] {
+
+  def serializedType = {
+    implicitly[ClassTag[T]].runtimeClass
+  }
 
   def mimeTypes: Set[String]
 

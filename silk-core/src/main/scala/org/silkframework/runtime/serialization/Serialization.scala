@@ -10,9 +10,9 @@ import scala.xml.Node
   */
 object Serialization {
 
-  private lazy val serializationFormats: Seq[XmlFormat[Any]] = {
+  private lazy val serializationFormats: Seq[SerializationFormat[Any, Any]] = {
     implicit val prefixes = Prefixes.empty
-    val formatTypes = PluginRegistry.availablePlugins[XmlFormat[Any]]
+    val formatTypes = PluginRegistry.availablePlugins[SerializationFormat[Any, Any]]
     formatTypes.map(_.apply())
   }
 
@@ -23,7 +23,7 @@ object Serialization {
   }
 
   def serialize(value: Any, mimeType: String): String = {
-    implicit val writeContext = WriteContext[Node]()
+    implicit val writeContext = WriteContext[Any]()
     serializationFormats.find(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType)) match {
       case Some(format) =>
         format.format(value, mimeType)
