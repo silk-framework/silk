@@ -10,10 +10,16 @@ import scala.reflect.ClassTag
   */
 abstract class SerializationFormat[T: ClassTag, U] {
 
+  /**
+    * The type that is serialized by this format.
+    */
   def serializedType = {
     implicitly[ClassTag[T]].runtimeClass
   }
 
+  /**
+    * The MIME types that can be formatted.
+    */
   def mimeTypes: Set[String]
 
   /**

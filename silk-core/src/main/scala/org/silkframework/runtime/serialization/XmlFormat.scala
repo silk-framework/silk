@@ -8,8 +8,14 @@ import scala.xml.Node
  */
 abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
 
+  /**
+    * The MIME types that can be formatted.
+    */
   def mimeTypes = Set("text/xml", "application/xml")
 
+  /**
+    * Formats a value as string.
+    */
   def format(value: T, mimeType: String)(implicit writeContext: WriteContext[Node]): String = {
     val printer = new scala.xml.PrettyPrinter(120, 2)
     val node = write(value)
