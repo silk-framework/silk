@@ -29,6 +29,12 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     canceled = true
   }
 
+  override def reset(): Unit = {
+    val pathsCache = task.activity[LinkingPathsCache].control
+    pathsCache.reset()
+    pathsCache.start()
+  }
+
   override def run(context: ActivityContext[ReferenceEntities]) = {
     canceled = false
     context.status.update("Waiting for paths cache", 0.0)

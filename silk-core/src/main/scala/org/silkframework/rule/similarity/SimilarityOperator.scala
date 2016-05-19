@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.DPair
 
 import scala.xml.Node
@@ -40,8 +40,7 @@ trait SimilarityOperator extends Operator {
    *
    * @param entities The entities to be compared.
    * @param limit Only returns values if the confidence is higher than the limit
-   *
-   * @return The confidence as a value between -1.0 and 1.0.
+    * @return The confidence as a value between -1.0 and 1.0.
    *         None, if no similarity could be computed.
    */
   def apply(entities: DPair[Entity], limit: Double = 0.0): Option[Double]
@@ -51,8 +50,7 @@ trait SimilarityOperator extends Operator {
    *
    * @param entity The entity to be indexed
    * @param limit The confidence limit.
-   *
-   * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
+    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index
 }
@@ -64,16 +62,16 @@ object SimilarityOperator {
    */
   implicit object SimilarityOperatorFormat extends XmlFormat[SimilarityOperator] {
 
-    import Serialization._
+    import XmlSerialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): SimilarityOperator = {
+    def read(node: Node)(implicit readContext: ReadContext): SimilarityOperator = {
       node match {
         case node@ <Aggregate>{_*}</Aggregate> => fromXml[Aggregation](node)
         case node@ <Compare>{_*}</Compare> => fromXml[Comparison](node)
       }
     }
 
-    def write(value: SimilarityOperator)(implicit prefixes: Prefixes): Node = {
+    def write(value: SimilarityOperator)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
         case c: Comparison => toXml(c)
         case a: Aggregation => toXml(a)

@@ -9,7 +9,7 @@
 @import controllers.rules.routes.Assets
 @import org.silkframework.rule.{DirectMapping, TypeMapping, UriMapping, ObjectMapping}
 @import org.silkframework.rule.ComplexMapping
-@import org.silkframework.runtime.serialization.Serialization
+@import org.silkframework.runtime.serialization.XmlSerialization
 
 @(context: Context[TransformSpecification])
 
@@ -114,7 +114,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @Serialization.toXml[TransformRule](rule)
+      @XmlSerialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -142,7 +142,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @Serialization.toXml[TransformRule](rule)
+      @XmlSerialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -174,7 +174,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @Serialization.toXml[TransformRule](rule)
+      @XmlSerialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -202,7 +202,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @Serialization.toXml[TransformRule](rule)
+      @XmlSerialization.toXml[TransformRule](rule)
     </script>
   </div>
 }
@@ -234,7 +234,7 @@
       </table>
     </div>
     <script class="ruleXML" type="application/xml">
-      @Serialization.toXml[TransformRule](rule)
+      @XmlSerialization.toXml[TransformRule](rule)
     </script>
   </div>
 }

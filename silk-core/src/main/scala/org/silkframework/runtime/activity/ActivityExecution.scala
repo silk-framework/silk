@@ -85,6 +85,7 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def reset() = {
     activity.initialValue.foreach(value.update)
+    activity.reset()
   }
 
   override def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R] = {

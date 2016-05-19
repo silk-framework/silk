@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
 import scala.xml.Node
 
@@ -24,13 +24,13 @@ object Types {
    */
   implicit object TypesFormat extends XmlFormat[Types] {
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) = Types(
+    def read(node: Node)(implicit readContext: ReadContext) = Types(
       for (typeNode <- node \ "Type";
            frequencyNode <- typeNode \ "@frequency")
         yield (typeNode.text, frequencyNode.text.toDouble)
     )
 
-    def write(value: Types)(implicit prefixes: Prefixes): Node =
+    def write(value: Types)(implicit writeContext: WriteContext[Node]): Node =
       <Types>
       { for((uri, frequency) <- value.typesByFrequency) yield <Type frequency={frequency.toString}>{uri}</Type> }
       </Types>

@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.xml.Node
 
@@ -42,16 +42,16 @@ object Input {
    */
   implicit object InputFormat extends XmlFormat[Input] {
 
-    import Serialization._
+    import XmlSerialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Input = {
+    def read(node: Node)(implicit readContext: ReadContext): Input = {
       node match {
         case node @ <Input/> => fromXml[PathInput](node)
         case node @ <TransformInput>{_*}</TransformInput> => fromXml[TransformInput](node)
       }
     }
 
-    def write(value: Input)(implicit prefixes: Prefixes): Node = {
+    def write(value: Input)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
         case path: PathInput => toXml(path)
         case transform: TransformInput => toXml(transform)

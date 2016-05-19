@@ -15,7 +15,8 @@
 package org.silkframework.util
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.validation.ValidationException
+
+import scala.language.implicitConversions
 
 /**
  * Represents a URI.

@@ -96,6 +96,16 @@ object PluginRegistry {
   }
 
   /**
+    * Returns a list of all available plugins of a specific runtime type.
+    */
+  def availablePluginsForClass(pluginClass: Class[_]): Seq[PluginDescription[_]] = {
+    pluginTypes.get(pluginClass.getName) match {
+      case Some(pluginType) => pluginType.availablePlugins
+      case None => Seq.empty
+    }
+  }
+
+  /**
    * Returns a map of all plugins grouped by category
    */
   def pluginsByCategoty[T: ClassTag]: Map[String, Seq[PluginDescription[_]]] = {

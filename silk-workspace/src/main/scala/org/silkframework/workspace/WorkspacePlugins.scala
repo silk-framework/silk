@@ -1,7 +1,8 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.workspace.activity.dataset.TypesCacheFactory
+import org.silkframework.workspace.activity.dataset.Types.TypesFormat
+import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
 import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory}
 import org.silkframework.workspace.activity.workflow.WorkflowExecutorFactory
@@ -14,7 +15,8 @@ class WorkspacePlugins extends PluginModule {
     datasetActivities :::
     transformActivities :::
     linkingActivities :::
-    workflowActivities
+    workflowActivities :::
+    xmlFormats
 
   def workspaceProviders: List[Class[_]] =
     classOf[FileWorkspaceProvider] ::
@@ -36,4 +38,8 @@ class WorkspacePlugins extends PluginModule {
 
   def workflowActivities: List[Class[_]] =
     classOf[WorkflowExecutorFactory] :: Nil
+
+  def xmlFormats = {
+    TypesFormat.getClass :: Nil
+  }
 }

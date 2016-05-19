@@ -14,6 +14,8 @@
 
 @currentOutput = @{ transformationTask.flatMap(_.data.outputs.headOption) }
 
+@prefixes = @{ User().workspace.project(project).config.prefixes }
+
 @widgets.dialog(title = "Transformation Task") {
   <table border="0">
     @if(task.isEmpty) {
@@ -39,7 +41,7 @@
     <tr>
       <td>Type</td>
       <td>
-        <input name="sourceType" title="Type" @for(t <- transformationTask) { value="@t.data.selection.typeUri.toString" } style="width: 100%" />
+        <input name="sourceType" title="Type" @for(t <- transformationTask) { value="@t.data.selection.typeUri.serialize(prefixes)" } style="width: 100%" />
       </td>
     </tr>
     <tr>

@@ -1,22 +1,25 @@
 package org.silkframework.runtime.serialization
 
-import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
  * XML serialization format.
  */
-trait XmlFormat[T] {
+abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
 
   /**
-   * Deserialize a value from XML.
-   */
-  def read(node: Node)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): T
+    * The MIME types that can be formatted.
+    */
+  def mimeTypes = Set("text/xml", "application/xml")
 
   /**
-   * Serialize a value to XML.
-   */
-  def write(value: T)(implicit prefixes: Prefixes = Prefixes.empty): Node
+    * Formats a value as string.
+    */
+  def format(value: T, mimeType: String)(implicit writeContext: WriteContext[Node]): String = {
+    val printer = new scala.xml.PrettyPrinter(120, 2)
+    val node = write(value)
+    printer.format(node)
+  }
+
 }

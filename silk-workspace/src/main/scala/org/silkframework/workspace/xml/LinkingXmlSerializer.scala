@@ -19,7 +19,8 @@ import java.util.logging.Logger
 import org.silkframework.config.{LinkSpecification, Prefixes}
 import org.silkframework.evaluation.ReferenceLinksReader
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.Serialization._
+import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
@@ -49,6 +50,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
    */
   private def loadTask(taskResources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val resources = projectResources
+    implicit val readContext = ReadContext(resources)
     val linkSpec = fromXml[LinkSpecification](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
     (linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks))

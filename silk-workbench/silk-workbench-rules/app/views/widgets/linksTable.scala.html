@@ -127,7 +127,10 @@
         @link.details.map { sim =>
           @renderConfidence(sim.score)
         }.getOrElse {
-          <div class="confidencebar">Missing</div>
+          <div id="@id(link, "missing")" class="confidencebar">Missing</div>
+          <div class="mdl-tooltip" for="@id(link, "missing")">
+            The cache does not provide all values for the linked entities. Try reloading the cache and this page.
+          </div>
         }
       </div>
 
@@ -245,11 +248,21 @@
     <li>
       <span class="input">
         Input: @input.path.serializeSimplified(project.config.prefixes) (@input.id)
-        @values.map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
+        @for(v <- values) {
+          <span class="@(divClassPrefix)-value">@convertToLinkIfDetected(v)</span>
+        }
       </span>
     </li>
   }
 }}
+
+@convertToLinkIfDetected(valueString: String) = {
+  @if(valueString.startsWith("http://") || valueString.startsWith("https://")) {
+    <a target="_blank" href="@valueString">@valueString</a>
+  } else {
+    @valueString
+  }
+}
 
 @renderConfidence(value: Option[Double]) = { @value match {
   case Some(v) => {

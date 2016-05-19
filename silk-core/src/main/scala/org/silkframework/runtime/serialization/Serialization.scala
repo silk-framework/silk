@@ -1,21 +1,35 @@
 package org.silkframework.runtime.serialization
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.PluginRegistry
 
 import scala.xml.Node
 
 /**
- * Serializes between classes and XML.
- * In order to be serializable a class needs to provide an implicit XmlFormat object.
- */
+  * Utility class for serializing values.
+  */
 object Serialization {
 
-  def toXml[T](value: T)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty): Node = {
-    format.write(value)
+  private lazy val serializationFormats: Seq[SerializationFormat[Any, Any]] = {
+    implicit val prefixes = Prefixes.empty
+    val formatTypes = PluginRegistry.availablePlugins[SerializationFormat[Any, Any]]
+    formatTypes.map(_.apply())
   }
 
-  def fromXml[T](node: Node)(implicit format: XmlFormat[T], prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): T = {
-    format.read(node)
+  private val printer = new scala.xml.PrettyPrinter(120, 2)
+
+  def hasSerialization(value: Any, mimeType: String): Boolean = {
+    serializationFormats.exists(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType))
   }
+
+  def serialize(value: Any, mimeType: String): String = {
+    implicit val writeContext = WriteContext[Any]()
+    serializationFormats.find(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType)) match {
+      case Some(format) =>
+        format.format(value, mimeType)
+      case None =>
+        throw new NoSuchElementException(s"No serialization format for type ${value.getClass} for content type $mimeType available.")
+    }
+  }
+
 }

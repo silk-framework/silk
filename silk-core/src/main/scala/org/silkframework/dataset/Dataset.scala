@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Link
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 
 import scala.xml.{Node, Text}
@@ -129,7 +129,10 @@ object Dataset {
    */
   implicit object DatasetFormat extends XmlFormat[Dataset] {
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Dataset = {
+    def read(node: Node)(implicit readContext: ReadContext): Dataset = {
+      implicit val prefixes = readContext.prefixes
+      implicit val resources = readContext.resources
+
       // Check if the data source still uses the old outdated XML format
       if(node.label == "DataSource" || node.label == "Output") {
         // Read old format
@@ -158,7 +161,7 @@ object Dataset {
       (element \ "Param" map (p => ((p \ "@name").text, (p \ "@value").text))).toMap
     }
 
-    def write(value: Dataset)(implicit prefixes: Prefixes): Node = {
+    def write(value: Dataset)(implicit writeContext: WriteContext[Node]): Node = {
       val minConfidenceNode = value.minConfidence.map(c => Text(c.toString))
       val maxConfidenceNode = value.maxConfidence.map(c => Text(c.toString))
 

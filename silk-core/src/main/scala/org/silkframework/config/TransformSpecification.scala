@@ -3,11 +3,11 @@ package org.silkframework.config
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.Serialization._
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 
-import scala.xml.{Null, Node}
+import scala.xml.{Node, Null}
 
 /**
   * This class contains all the required parameters to execute a transform task.
@@ -36,7 +36,7 @@ object TransformSpecification {
     /**
       * Deserialize a value from XML.
       */
-    override def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformSpecification = {
+    override def read(node: Node)(implicit readContext: ReadContext): TransformSpecification = {
       // Get the Id.
       val id = (node \ "@id").text
 
@@ -53,7 +53,7 @@ object TransformSpecification {
     /**
       * Serialize a value to XML.
       */
-    override def write(value: TransformSpecification)(implicit prefixes: Prefixes): Node = {
+    override def write(value: TransformSpecification)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
         {value.rules.map(toXml[TransformRule])}<Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}

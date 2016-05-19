@@ -19,7 +19,7 @@ import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.input.Input
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}
 
@@ -95,12 +95,14 @@ object Comparison {
    */
   implicit object ComparisonFormat extends XmlFormat[Comparison] {
 
-    import Serialization._
+    import XmlSerialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): Comparison = {
+    def read(node: Node)(implicit readContext: ReadContext): Comparison = {
       val id = Operator.readId(node)
       val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
       if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
+      implicit val prefixes = readContext.prefixes
+      implicit val resourceManager = readContext.resources
 
       try {
         val requiredStr = (node \ "@required").text
@@ -123,7 +125,7 @@ object Comparison {
       }
     }
 
-    def write(value: Comparison)(implicit prefixes: Prefixes): Node = {
+    def write(value: Comparison)(implicit writeContext: WriteContext[Node]): Node = {
       value.metric match {
         case DistanceMeasure(plugin, params) =>
           <Compare id={value.id} required={value.required.toString} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>

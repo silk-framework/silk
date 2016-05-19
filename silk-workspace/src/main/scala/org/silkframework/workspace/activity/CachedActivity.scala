@@ -4,8 +4,8 @@ import java.util.logging.Level
 
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.runtime.resource.{ResourceNotFoundException, WritableResource}
-import org.silkframework.runtime.serialization.Serialization._
-import org.silkframework.runtime.serialization.XmlFormat
+import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.runtime.serialization.{ReadContext, XmlFormat}
 import org.silkframework.util.XMLUtils._
 
 import scala.xml.XML
@@ -27,6 +27,8 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
   override def initialValue = activity.initialValue
 
   override def cancelExecution() = activity.cancelExecution()
+
+  override def reset() = activity.reset()
 
   override def run(context: ActivityContext[T]): Unit = {
     if(!initialized) {
@@ -60,6 +62,7 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
   private def readValue(context: ActivityContext[T]): Option[T] = {
     try {
       val xml = XML.load(resource.load)
+      implicit val readContext = ReadContext()
       val value = fromXml[T](xml)
       context.log.info(s"Cache read from $resource")
       Some(value)

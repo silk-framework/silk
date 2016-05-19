@@ -2,9 +2,9 @@ package controllers.workspace
 
 import models.JsonError
 import org.silkframework.dataset.rdf.{RdfDatasetPlugin, SparqlResults}
-import org.silkframework.dataset.{DatasetPluginAutoConfigurable, Dataset, DatasetPlugin}
+import org.silkframework.dataset.{Dataset, DatasetPlugin, DatasetPluginAutoConfigurable}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json.{JsArray, JsString}
@@ -16,7 +16,7 @@ object Datasets extends Controller {
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    val sourceXml = Serialization.toXml(task.data)
+    val sourceXml = XmlSerialization.toXml(task.data)
 
     Ok(sourceXml)
   }
@@ -28,7 +28,7 @@ object Datasets extends Controller {
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = task.data.copy(plugin = autoConfigurable.autoConfigured)
-        val sourceXml = Serialization.toXml(autoConfDataset)
+        val sourceXml = XmlSerialization.toXml(autoConfDataset)
 
         Ok(sourceXml)
       case _ =>
@@ -38,11 +38,11 @@ object Datasets extends Controller {
 
   def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean) = Action { implicit request => {
     val project = User().workspace.project(projectName)
-    implicit val resources = project.resources
+    implicit val readContext = ReadContext(project.resources)
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val dataset = Serialization.fromXml[Dataset](xml.head)
+          val dataset = XmlSerialization.fromXml[Dataset](xml.head)
           if(autoConfigure) {
             dataset.plugin match {
               case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
@@ -122,8 +122,12 @@ object Datasets extends Controller {
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = "") = Action { request =>
     val context = Context.get[Dataset](project, task, request.path)
-    val types = context.task.activity[TypesCache].value.types
-    val filteredTypes = types.filter(_.contains(search))
+    val prefixes = context.project.config.prefixes
+
+    val typesFull = context.task.activity[TypesCache].value.types
+    val typesResolved = typesFull.map(prefixes.shorten)
+    val allTypes = (typesResolved ++ typesFull).distinct
+    val filteredTypes = allTypes.filter(_.contains(search))
 
     Ok(JsArray(filteredTypes.map(JsString)))
   }

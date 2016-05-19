@@ -13,8 +13,8 @@ import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.validation.{ValidationWarning, ValidationError, ValidationException}
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
@@ -29,7 +29,7 @@ object LinkingTaskApi extends Controller {
   def getLinkingTask(projectName: String, taskName: String) = Action {
     val project: Project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
-    val xml = Serialization.toXml(task.data)
+    val xml = XmlSerialization.toXml(task.data)
     Ok(xml)
   }
 
@@ -40,8 +40,8 @@ object LinkingTaskApi extends Controller {
     implicit val prefixes = proj.config.prefixes
 
     val datasets =
-      DPair(DatasetSelection(values("source"), Uri(values.getOrElse("sourceType", "")), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
-            DatasetSelection(values("target"), Uri(values.getOrElse("targetType", "")), Restriction.custom(values.getOrElse("targetRestriction", ""))))
+      DPair(DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
+            DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
     proj.tasks[LinkSpecification].find(_.name == task) match {
@@ -76,7 +76,7 @@ object LinkingTaskApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
-    val ruleXml = Serialization.toXml(task.data.rule)
+    val ruleXml = XmlSerialization.toXml(task.data.rule)
 
     Ok(ruleXml)
   }
@@ -86,6 +86,7 @@ object LinkingTaskApi extends Controller {
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
+    implicit val readContext = ReadContext(resources, prefixes)
 
     request.body.asXml match {
       case Some(xml) =>
@@ -93,7 +94,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing linkage rule
           val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
             //Load linkage rule
-            val updatedRule = Serialization.fromXml[LinkageRule](xml.head)
+            val updatedRule = XmlSerialization.fromXml[LinkageRule](xml.head)
             //Update linking task
             val updatedLinkSpec = task.data.copy(rule = updatedRule)
             project.updateTask(taskName, updatedLinkSpec)
@@ -117,7 +118,7 @@ object LinkingTaskApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
-    val linkSpecXml = Serialization.toXml(task.data)
+    val linkSpecXml = XmlSerialization.toXml(task.data)
 
     Ok(linkSpecXml)
   }
@@ -127,6 +128,7 @@ object LinkingTaskApi extends Controller {
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
+    implicit val readContext = ReadContext(resources, prefixes)
 
     request.body.asXml match {
       case Some(xml) => {
@@ -134,7 +136,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing link spec
           val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkspec") {
             //Load link specification
-            val newLinkSpec = Serialization.fromXml[LinkSpecification](xml.head)
+            val newLinkSpec = XmlSerialization.fromXml[LinkSpecification](xml.head)
             //Update linking task
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           }

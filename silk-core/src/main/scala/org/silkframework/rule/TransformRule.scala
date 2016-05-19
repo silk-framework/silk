@@ -3,10 +3,10 @@ package org.silkframework.rule
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Path}
 import org.silkframework.plugins.transformer.combine.ConcatTransformer
-import org.silkframework.plugins.transformer.value.{ConstantUriTransformer, ConstantTransformer}
+import org.silkframework.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, ValidatingXMLReader, XmlFormat}
+import org.silkframework.runtime.serialization._
 import org.silkframework.util._
 
 import scala.xml.Node
@@ -141,21 +141,21 @@ object TransformRule {
    */
   implicit object TransformRuleFormat extends XmlFormat[TransformRule] {
 
-    import Serialization._
+    import XmlSerialization._
 
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager): TransformRule = {
+    def read(node: Node)(implicit readContext: ReadContext): TransformRule = {
       ValidatingXMLReader.validate(node, "org/silkframework/LinkSpecificationLanguage.xsd")
       val target = (node \ "@targetProperty").text
       val complex =
         ComplexMapping(
           name = (node \ "@name").text,
           operator = fromXml[Input]((node \ "_").head),
-          target = if(target.isEmpty) None else Some(Uri.parse(target, prefixes))
+          target = if(target.isEmpty) None else Some(Uri.parse(target, readContext.prefixes))
         )
       simplify(complex)
     }
 
-    def write(value: TransformRule)(implicit prefixes: Prefixes): Node = {
+    def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformRule name={value.name} targetProperty={value.target.map(_.uri).getOrElse("")}>
         { toXml(value.operator) }
       </TransformRule>

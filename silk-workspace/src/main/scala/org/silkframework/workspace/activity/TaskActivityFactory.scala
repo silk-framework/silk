@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.runtime.activity.{Activity, HasValue}
 import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.workspace.Task
 
 import scala.reflect.ClassTag

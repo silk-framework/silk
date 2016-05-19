@@ -16,7 +16,7 @@ package org.silkframework.util
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{Serialization, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.language.implicitConversions
 import scala.xml.Node
@@ -85,19 +85,19 @@ object DPair {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit prefixes: Prefixes, resources: ResourceManager) =
+    def read(node: Node)(implicit readContext: ReadContext) =
       DPair(
-        Serialization.fromXml[T]((node \ "Source" \ "_").head),
-        Serialization.fromXml[T]((node \ "Target" \ "_").head)
+        XmlSerialization.fromXml[T]((node \ "Source" \ "_").head),
+        XmlSerialization.fromXml[T]((node \ "Target" \ "_").head)
       )
 
     /**
      * Serialize a value to XML.
      */
-    def write(pair: DPair[T])(implicit prefixes: Prefixes): Node =
+    def write(pair: DPair[T])(implicit writeContext: WriteContext[Node]): Node =
       <Pair>
-        <Source>{Serialization.toXml(pair.source)}</Source>
-        <Target>{Serialization.toXml(pair.target)}</Target>
+        <Source>{XmlSerialization.toXml(pair.source)}</Source>
+        <Target>{XmlSerialization.toXml(pair.target)}</Target>
       </Pair>
   }
 }

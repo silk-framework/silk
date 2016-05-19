@@ -22,7 +22,7 @@ import org.silkframework.config.{Config, LinkSpecification, LinkingConfig, Trans
 import org.silkframework.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.CollectLogs
 import org.silkframework.util.StringUtils._
 
@@ -101,8 +101,8 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    implicit val resourceLoader = new FileResourceManager(configFile.getAbsoluteFile.getParentFile)
-    val config = Serialization.fromXml[LinkingConfig](XML.loadFile(configFile))
+    implicit val readContext = ReadContext(new FileResourceManager(configFile.getAbsoluteFile.getParentFile))
+    val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }
 
@@ -163,7 +163,6 @@ object Silk {
    * Execute a transform with the provided transform specification.
    *
    * @since 2.6.1
-   *
    * @param transform The transform specification.
    */
   private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {

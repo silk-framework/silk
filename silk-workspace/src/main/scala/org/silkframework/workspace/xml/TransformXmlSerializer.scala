@@ -5,7 +5,8 @@ import java.util.logging.Logger
 import org.silkframework.config.{DatasetSelection, Prefixes, TransformSpecification}
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.Serialization._
+import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
@@ -47,6 +48,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpecificatio
   private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager) = {
     try {
       implicit val resources = projectResources
+      implicit val readContext = ReadContext(resources)
       val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
       val rulesXml = XML.load(taskResources.get("rules.xml").load)
       val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])

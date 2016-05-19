@@ -18,6 +18,8 @@
 
 @currentOutput = @{ linkingTask.flatMap(_.data.outputs.headOption) }
 
+@prefixes = @{ User().workspace.project(project).config.prefixes }
+
 @widgets.dialog(title = "Linking Task") {
   <table border="0">
     @if(task.isEmpty) {
@@ -50,7 +52,7 @@
     <tr>
       <td>Source Type</td>
       <td>
-        <input name="sourceType" title="Source Type" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.toString" } style="width: 100%" />
+        <input name="sourceType" title="Source Type" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.serialize(prefixes)" } style="width: 100%" />
       </td>
     </tr>
     <tr>
@@ -85,7 +87,7 @@
     <tr>
       <td>Target Type</td>
       <td>
-        <input name="targetType" title="Target Type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.toString" } style="width: 100%" />
+        <input name="targetType" title="Target Type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.serialize(prefixes)" } style="width: 100%" />
       </td>
     </tr>
     <tr>
