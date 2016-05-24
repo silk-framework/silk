@@ -53,7 +53,6 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
       stream.writeInt(valueSet.size)
       for (value <- valueSet) {
         stream.writeUTF(value)
-        value.getBytes
       }
     }
   }
