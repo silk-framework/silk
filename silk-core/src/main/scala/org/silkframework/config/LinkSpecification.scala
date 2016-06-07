@@ -61,8 +61,8 @@ case class LinkSpecification(id: Identifier = Identifier.random,
       case None => Set[Path]()
     }
 
-    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq, sourceRestriction)
-    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq, targetRestriction)
+    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, (sourcePaths ++ sourceRestriction.paths).toIndexedSeq.distinct, sourceRestriction)
+    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, (targetPaths ++ targetRestriction.paths).toIndexedSeq.distinct, targetRestriction)
 
     DPair(sourceEntityDesc, targetEntityDesc)
   }
