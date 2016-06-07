@@ -32,16 +32,15 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     """ | Applies a numeric operation to the values of multiple input operators.
         | Each input operator is expected to provide one numeric value.
         | If an input operator provides multiple values, all of its values are summed up before the operation.
-        | Accepts two paramters:
-        |   operator: One of '+', '-', '*', '/'
-        |   operand: Final operand that is added/subtracted/etc. after all inputs. """
+        | Accepts one paramter:
+        |   operator: One of '+', '-', '*', '/'"""
 )
-case class NumOperationTransformer(operator: String, operand: Double) extends Transformer {
+case class NumOperationTransformer(operator: String) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val operands = values.map(_.map(parse).sum) :+ operand
+    val operands = values.map(_.map(parse).sum)
     Seq(operands.reduce(operation).toString)
   }
 

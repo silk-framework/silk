@@ -102,6 +102,8 @@ The threshold is used to convert the computed distance to a confidence between -
 
 ![Threshold](img/linking_threshold.png)
 
+If distance measures generate multiple distance scores the lowest is used to generate the confidence.
+
 ### Character-Based Distance Measures
 
 Character-based distance measures compare strings on the character level. They are well suited for handling typographical errors.

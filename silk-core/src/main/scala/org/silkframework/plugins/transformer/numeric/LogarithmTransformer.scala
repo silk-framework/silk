@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.StringUtils._
 
 @Plugin(
-  id = "logarithm",
+  id = "log",
   categories = Array("Numeric"),
   label = "Logarithm",
   description = "Transforms all numbers by applying the logarithm function. Non-numeric values are left unchanged."
