@@ -30,6 +30,7 @@ import org.silkframework.plugins.transformer.linguistic._
 import org.silkframework.plugins.transformer.normalize._
 import org.silkframework.plugins.transformer.numeric._
 import org.silkframework.plugins.transformer.replace.{MapTransformer, RegexReplaceTransformer, ReplaceTransformer}
+import org.silkframework.plugins.transformer.sequence.GetValueByIndexTransformer
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange}
@@ -37,8 +38,8 @@ import org.silkframework.plugins.transformer.value.{ConstantTransformer, Constan
 import org.silkframework.runtime.plugin.PluginModule
 
 /**
- * Registers all default plugins.
- */
+  * Registers all default plugins.
+  */
 class CorePlugins extends PluginModule {
 
   override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators
@@ -48,98 +49,101 @@ class CorePlugins extends PluginModule {
 
   private def transformers =
     classOf[RemoveDuplicates] ::
-    classOf[ReplaceTransformer] ::
-    classOf[RegexReplaceTransformer] ::
-    classOf[RegexExtractionTransformer] ::
-    classOf[MapTransformer] ::
-    classOf[ConcatTransformer] ::
-    classOf[RemoveBlanksTransformer] ::
-    classOf[LowerCaseTransformer] ::
-    classOf[UpperCaseTransformer] ::
-    classOf[CapitalizeTransformer] ::
-    classOf[UrlEncodeTransformer] ::
-    classOf[StemmerTransformer] ::
-    classOf[StripPrefixTransformer] ::
-    classOf[StripPostfixTransformer] ::
-    classOf[StripUriPrefixTransformer] ::
-    classOf[AlphaReduceTransformer] ::
-    classOf[RemoveSpecialCharsTransformer] ::
-    classOf[ConvertCharsetTransformer] ::
-    classOf[RemoveValues] ::
-    classOf[RemoveStopwords] ::
-    classOf[RemoveEmptyValues] ::
-    classOf[RemoveParentheses] ::
-    classOf[TrimTransformer] ::
-    classOf[Tokenizer] ::
-    classOf[ConcatMultipleValuesTransformer] ::
-    classOf[MergeTransformer] ::
-    classOf[SpotlightTextVectorTransformer] ::
-    classOf[CamelCaseTokenizer] ::
-    classOf[NormalizeCharsTransformer] ::
-    classOf[FilterByLength] ::
-    classOf[FilterByRegex] ::
-    classOf[UntilCharacterTransformer] ::
-    classOf[SubstringTransformer] ::
-    classOf[SoundexTransformer] ::
-    classOf[NysiisTransformer] ::
-    classOf[MetaphoneTransformer] ::
-    classOf[ConstantTransformer] ::
-    classOf[ConstantUriTransformer] ::
-    classOf[RandomNumberTransformer] ::
-    // Conditional
-    classOf[IfContains] ::
-    classOf[IfExists] ::
-    // Numeric
-    classOf[NumReduceTransformer] ::
-    classOf[NumOperationTransformer] ::
-    classOf[LogarithmTransformer] ::
-    classOf[AggregateNumbersTransformer] ::
-    classOf[CompareNumbersTransformer] ::
-    classOf[CountTransformer] ::
-    classOf[PhysicalQuantityExtractor] ::
-    // Date
-    classOf[TimestampToDateTransformer] ::
-    classOf[DateToTimestampTransformer] ::
-    classOf[DurationTransformer] ::
-    classOf[DurationInSecondsTransformer] ::
-    classOf[DurationInDaysTransformer] ::
-    classOf[DurationInYearsTransformer] ::
-    classOf[CompareDatesTransformer] ::
-    classOf[NumberToDurationTransformer] ::
-    classOf[ParseDateTransformer] ::
-    classOf[CurrentDateTransformer] ::
-    // Validation
-    classOf[ValidateDateRange] ::
-    classOf[ValidateNumericRange] ::
-    classOf[ValidateDateAfter] ::  Nil
+        classOf[ReplaceTransformer] ::
+        classOf[RegexReplaceTransformer] ::
+        classOf[RegexExtractionTransformer] ::
+        classOf[MapTransformer] ::
+        classOf[ConcatTransformer] ::
+        classOf[RemoveBlanksTransformer] ::
+        classOf[LowerCaseTransformer] ::
+        classOf[UpperCaseTransformer] ::
+        classOf[CapitalizeTransformer] ::
+        classOf[UrlEncodeTransformer] ::
+        classOf[StemmerTransformer] ::
+        classOf[StripPrefixTransformer] ::
+        classOf[StripPostfixTransformer] ::
+        classOf[StripUriPrefixTransformer] ::
+        classOf[AlphaReduceTransformer] ::
+        classOf[RemoveSpecialCharsTransformer] ::
+        classOf[ConvertCharsetTransformer] ::
+        classOf[RemoveValues] ::
+        classOf[RemoveStopwords] ::
+        classOf[RemoveEmptyValues] ::
+        classOf[RemoveParentheses] ::
+        classOf[TrimTransformer] ::
+        classOf[Tokenizer] ::
+        classOf[ConcatMultipleValuesTransformer] ::
+        classOf[MergeTransformer] ::
+        classOf[SpotlightTextVectorTransformer] ::
+        classOf[CamelCaseTokenizer] ::
+        classOf[NormalizeCharsTransformer] ::
+        classOf[FilterByLength] ::
+        classOf[FilterByRegex] ::
+        classOf[UntilCharacterTransformer] ::
+        classOf[SubstringTransformer] ::
+        classOf[SoundexTransformer] ::
+        classOf[NysiisTransformer] ::
+        classOf[MetaphoneTransformer] ::
+        classOf[ConstantTransformer] ::
+        classOf[ConstantUriTransformer] ::
+        classOf[RandomNumberTransformer] ::
+        // Conditional
+        classOf[IfContains] ::
+        classOf[IfExists] ::
+        // Numeric
+        classOf[NumReduceTransformer] ::
+        classOf[NumOperationTransformer] ::
+        classOf[LogarithmTransformer] ::
+        classOf[AggregateNumbersTransformer] ::
+        classOf[CompareNumbersTransformer] ::
+        classOf[CountTransformer] ::
+        classOf[PhysicalQuantityExtractor] ::
+        // Date
+        classOf[TimestampToDateTransformer] ::
+        classOf[DateToTimestampTransformer] ::
+        classOf[DurationTransformer] ::
+        classOf[DurationInSecondsTransformer] ::
+        classOf[DurationInDaysTransformer] ::
+        classOf[DurationInYearsTransformer] ::
+        classOf[CompareDatesTransformer] ::
+        classOf[NumberToDurationTransformer] ::
+        classOf[ParseDateTransformer] ::
+        classOf[CurrentDateTransformer] ::
+        // Validation
+        classOf[ValidateDateRange] ::
+        classOf[ValidateNumericRange] ::
+        classOf[ValidateDateAfter] ::
+        // Sequence
+        classOf[GetValueByIndexTransformer] ::
+        Nil
 
   private def measures =
     classOf[LevenshteinMetric] ::
-    classOf[LevenshteinDistance] ::
-    classOf[JaroDistanceMetric] ::
-    classOf[JaroWinklerDistance] ::
-    classOf[InsideNumericInterval] ::
-    classOf[QGramsMetric] ::
-    classOf[SubStringDistance] ::
-    classOf[EqualityMetric] ::
-    classOf[InequalityMetric] ::
-    classOf[LowerThanMetric] ::
-    classOf[NumMetric] ::
-    classOf[DateMetric] ::
-    classOf[DateTimeMetric] ::
-    classOf[GeographicDistanceMetric] ::
-    classOf[JaccardDistance] ::
-    classOf[DiceCoefficient] ::
-    classOf[SoftJaccardDistance] ::
-    classOf[TokenwiseStringDistance] ::
-    classOf[RelaxedEqualityMetric] ::
-    classOf[CosineDistanceMetric] ::
-    classOf[ConstantMetric] :: Nil
+        classOf[LevenshteinDistance] ::
+        classOf[JaroDistanceMetric] ::
+        classOf[JaroWinklerDistance] ::
+        classOf[InsideNumericInterval] ::
+        classOf[QGramsMetric] ::
+        classOf[SubStringDistance] ::
+        classOf[EqualityMetric] ::
+        classOf[InequalityMetric] ::
+        classOf[LowerThanMetric] ::
+        classOf[NumMetric] ::
+        classOf[DateMetric] ::
+        classOf[DateTimeMetric] ::
+        classOf[GeographicDistanceMetric] ::
+        classOf[JaccardDistance] ::
+        classOf[DiceCoefficient] ::
+        classOf[SoftJaccardDistance] ::
+        classOf[TokenwiseStringDistance] ::
+        classOf[RelaxedEqualityMetric] ::
+        classOf[CosineDistanceMetric] ::
+        classOf[ConstantMetric] :: Nil
 
   private def aggregators =
     classOf[AverageAggregator] ::
-    classOf[MaximumAggregator] ::
-    classOf[MinimumAggregator] ::
-    classOf[QuadraticMeanAggregator] ::
-    classOf[GeometricMeanAggregator] :: Nil
+        classOf[MaximumAggregator] ::
+        classOf[MinimumAggregator] ::
+        classOf[QuadraticMeanAggregator] ::
+        classOf[GeometricMeanAggregator] :: Nil
 }
