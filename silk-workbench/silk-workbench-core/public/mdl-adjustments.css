@@ -134,11 +134,11 @@
   font-weight: bold;
 }
 
-/*
-.draggables {
-  overflow: scroll;
-}
 
+.draggables {
+  border: 1px solid #d9d9d9;
+}
+/*
 .scrollboxes {
   min-height: 82px;
   max-height: 190px;

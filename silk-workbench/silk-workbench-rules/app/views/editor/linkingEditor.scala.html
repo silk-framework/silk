@@ -97,7 +97,7 @@
 }
 
 @content = {
-  <div class="draggables">
+  <div class="draggables mdl-shadow--2dp">
     <div id="palette-header">
       <div style="width:200px;">
         <span style="font-weight: bold; color: #582271; float: left; padding-top: 6px;">Property Paths</span>
@@ -125,7 +125,7 @@
 
     <div class="droppable_outer">
 
-      <div id="droppable">
+      <div id="droppable" class="mdl-shadow--2dp">
         @for(op <- context.task.data.rule.operator) {
           @renderRule(
             rule = op,
