@@ -1,15 +1,18 @@
 package org.silkframework.plugins.dataset.rdf
 
 import java.io.ByteArrayOutputStream
+import java.net.URI
 import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
-import org.silkframework.dataset.rdf.{SparqlParams, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{EntitySink, LinkSink}
 import org.silkframework.entity.Link
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.util.StringUtils
 import org.silkframework.util.StringUtils.DoubleLiteral
+
+import scala.util.Try
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
@@ -99,7 +102,7 @@ class SparqlSink(params: SparqlParams,
   def buildStatementString(subject: String, property: String, value: String): String = {
     value match {
       // Check if value is an URI
-      case v if value.startsWith("http:") || value.startsWith("https:") =>
+      case v if value.startsWith("http") && Try(URI.create(value)).isSuccess =>
         "<" + subject + "> <" + property + "> <" + v + "> ."
       // Check if value is a number
       case StringUtils.integerNumber() =>
