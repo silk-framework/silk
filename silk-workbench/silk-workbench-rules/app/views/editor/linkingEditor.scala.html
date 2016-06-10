@@ -48,6 +48,14 @@
       <div class="spacer"/>
     </li>
     <li>
+      <button id="button_reload_paths" class="mdl-button mdl-js-button mdl-button--icon" onclick="reloadPropertyPaths();">
+        <i class="material-icons">cached</i>
+      </button>
+      <div class="mdl-tooltip mdl-tooltip--large" for="button_reload_paths">
+        Reload Property Paths
+      </div>
+    </li>
+    <li>
       <a id="button_get_linkspec" class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.name).url" target="_blank">
         <i class="material-icons">file_download</i>
       </a>
@@ -99,13 +107,6 @@
 @content = {
   <div class="draggables mdl-shadow--2dp">
     <div id="palette-header">
-      <div style="width:200px;">
-        <span style="font-weight: bold; color: #582271; float: left; padding-top: 6px;">Property Paths</span>
-        <div id="refresh" onclick="reloadPropertyPaths();" title="refresh property paths">
-          <i class="material-icons">cached</i>
-        </div>
-      </div>
-      <div style="clear: both"></div>
     </div>
     <div id="paths">
       <div id="loading" style="width:230px;">loading ...</div>

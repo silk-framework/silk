@@ -62,11 +62,14 @@ $(function() {
  * A single operator in the toolbox.
  *@
 @operatorIcon(plugin: PluginDescription[_], category: String) = {
-  <div id="@{opType}_@{category}_@plugin.id" class="draggable @name.toLowerCase" title="@plugin.description">
+  <div id="@{opType}_@{category}_@plugin.id" class="draggable @name.toLowerCase">
     <span></span>
     <small>@plugin.label</small>
     <p>@plugin.label</p>
     @operatorExpanded(plugin)
+  </div>
+  <div class="mdl-tooltip mdl-tooltip--right" for="@{opType}_@{category}_@plugin.id">
+    @plugin.description
   </div>
 }
 
