@@ -53,11 +53,12 @@
       @if(!warning.isEmpty) { <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" title="@warning"/> }
 
       @for(path <- paths) {
-        <div class="draggable @{pathType.toLowerCase}Paths" title="@path">
+        <div id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}" class="draggable @{pathType.toLowerCase}Paths">
           <span></span>
-          <p style="white-space:nowrap; overflow:hidden;">@path</p>
+          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">@path</p>
           @pathExpanded(path, pathType)
         </div>
+        <div class="mdl-tooltip mdl-tooltip--right" for="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}">@path</div>
       }
     </div>
   </div>
