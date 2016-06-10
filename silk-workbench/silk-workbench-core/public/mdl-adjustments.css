@@ -174,11 +174,11 @@
 .path_type {
   display: block;
   float: left;
-  width: 55px;
+  width: 100px;
 }
 
 .path_id {
-  width: 172px;
+  width: 132px;
   display: block;
   float: left;
 /*
