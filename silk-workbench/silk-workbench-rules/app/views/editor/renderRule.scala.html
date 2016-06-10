@@ -96,13 +96,13 @@
       var dropArea = $('#droppable');
       jsPlumb.draggable(dropArea.find('.dragDiv')); //TODO move
 
-      jsPlumb.setSuspendEvents(true);
-      jsPlumb.setSuspendDrawing(true);
+      //jsPlumb.setSuspendEvents(true);
+      //jsPlumb.setSuspendDrawing(true);
 
       @connectOperator(op)
 
-      jsPlumb.setSuspendDrawing(false, true);
-      jsPlumb.setSuspendEvents(false);
+      //jsPlumb.setSuspendDrawing(false, true);
+      //jsPlumb.setSuspendEvents(false);
 
       saveInstance();
     });
