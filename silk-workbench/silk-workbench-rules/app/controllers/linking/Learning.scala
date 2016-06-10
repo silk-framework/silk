@@ -180,13 +180,15 @@ object Learning extends Controller {
   /**
     * Renders the top linkage rule in the current population.
     */
-  def rule(projectName: String, taskName: String) = Action {
+  def rule(projectName: String, taskName: String) = Action { request =>
+    val context = Context.get[LinkSpecification](projectName, taskName, request.path)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
     val population = getPopulation(task)
 
-    Ok(views.html.learning.rule(population, referenceLinks))
+
+    Ok(views.html.learning.rule(population, referenceLinks, context))
   }
 
   /**
