@@ -1,5 +1,9 @@
+@import plugins.Context
+@import org.silkframework.config.LinkSpecification
+
 @(population: org.silkframework.learning.individual.Population,
-  referenceLinks: org.silkframework.evaluation.ReferenceLinks)
+  referenceLinks: org.silkframework.evaluation.ReferenceLinks,
+  context: Context[LinkSpecification])
 
 <script type="text/javascript">
   initTrees();
@@ -11,6 +15,7 @@
   <div>
     Fitness: @{"%.1f".format((population.bestIndividual.fitness) * 100)} (based on @referenceLinks.positive.size positive and @referenceLinks.negative.size negative reference links)
     <br/>
-    @ruleTree(population.bestIndividual.node.build)
+    @* @ruleTree(population.bestIndividual.node.build) *@
+    @ruleGraph(population.bestIndividual.node.build, context)
   </div>
 }
