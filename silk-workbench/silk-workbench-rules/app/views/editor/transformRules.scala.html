@@ -49,7 +49,7 @@
 }
 
 @content = {
-  <div id="ruleContainer">
+  <div id="ruleContainer" class="mdl-shadow--2dp">
     @for(rule <- context.task.data.rules) {
       @renderRule(rule)
     }

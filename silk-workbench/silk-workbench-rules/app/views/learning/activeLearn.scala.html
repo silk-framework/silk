@@ -75,28 +75,32 @@
 }
 
 @content = {
-  <div class="wrapper-header">
-    Learned Linkage Rule
+  <div class="mdl-shadow--2dp">
+    <div class="wrapper-header">
+      Learned Linkage Rule
+    </div>
+
+    <div class="wrapper">
+      @widgets.autoReload("learn/rule", "learn/ruleStream")
+    </div>
+
   </div>
 
-  <div class="wrapper">
-    @widgets.autoReload("learn/rule", "learn/ruleStream")
-  </div>
+  <div class="mdl-shadow--2dp">
+    <div class="wrapper-header">
+      Uncertain links
+    </div>
 
-  <div class="wrapper-header">
-    Uncertain links
-  </div>
+    <div class="wrapper" style="overflow: auto;">
+      <div id="tree-header">
+        <div class="middle">
+          <div class="navigation"></div>
+        </div>
+      </div>
 
-  <div class="wrapper" style="overflow: auto;">
-    <div id="tree-header">
-      <div class="middle">
-        <div class="navigation"></div>
+      <div id="link-candidate-wrapper">
       </div>
     </div>
-
-    <div id="link-candidate-wrapper">
-    </div>
-
   </div>
 }
 

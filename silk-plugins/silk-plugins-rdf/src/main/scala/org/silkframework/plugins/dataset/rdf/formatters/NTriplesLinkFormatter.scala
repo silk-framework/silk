@@ -14,8 +14,12 @@
 
 package org.silkframework.plugins.dataset.rdf.formatters
 
+import java.net.URI
+
 import org.silkframework.entity.Link
 import org.silkframework.util.StringUtils.DoubleLiteral
+
+import scala.util.Try
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
 
@@ -26,7 +30,7 @@ case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
   override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
     value match {
       // Check if value is an URI
-      case v if value.startsWith("http:") || value.startsWith("https:") =>
+      case v if value.startsWith("http") && Try(URI.create(value)).isSuccess =>
         "<" + subject + "> <" + predicate + "> <" + v + "> .\n"
       // Check if value is a number
       case DoubleLiteral(d) =>

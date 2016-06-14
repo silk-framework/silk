@@ -14,11 +14,9 @@
 
 package org.silkframework.rule.similarity
 
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.input.Input
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}

@@ -134,11 +134,11 @@
   font-weight: bold;
 }
 
-/*
-.draggables {
-  overflow: scroll;
-}
 
+.draggables {
+  border: 1px solid #d9d9d9;
+}
+/*
 .scrollboxes {
   min-height: 82px;
   max-height: 190px;
@@ -174,11 +174,11 @@
 .path_type {
   display: block;
   float: left;
-  width: 55px;
+  width: 100px;
 }
 
 .path_id {
-  width: 172px;
+  width: 132px;
   display: block;
   float: left;
 /*

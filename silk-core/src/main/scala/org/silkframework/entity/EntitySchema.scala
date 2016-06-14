@@ -15,7 +15,7 @@ import scala.xml.Node
  * @param filter A filter for restricting the entity set
  */
 case class EntitySchema(typeUri: Uri, paths: IndexedSeq[Path], filter: Restriction = Restriction.empty) {
-  require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
+  //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
    * Retrieves the index of a given path.

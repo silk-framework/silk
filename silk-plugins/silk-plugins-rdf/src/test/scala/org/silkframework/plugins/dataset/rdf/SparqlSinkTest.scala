@@ -16,5 +16,6 @@ class SparqlSinkTest extends FlatSpec with Matchers with MockitoSugar {
     sink.buildStatementString("http://a", "http://b", "123") should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#integer> .")
     sink.buildStatementString("http://a", "http://b", "123.45") should endWith (" \"123.45\"^^<http://www.w3.org/2001/XMLSchema#double> .")
     sink.buildStatementString("http://a", "http://b", "http://url.org") should endWith (" <http://url.org> .")
+    sink.buildStatementString("http://a", "http://b", "http://url.org Some Text") should endWith (" \"http://url.org Some Text\" .")
   }
 }
