@@ -176,7 +176,9 @@ $(function ()
     }
   });
 
-  $('body').attr('onresize', 'updateWindowSize();');
+  if (inEditorEnv) {
+    $('body').attr('onresize', 'updateWindowSize();');
+  }
   $('body').attr('onunload', 'jsPlumb.unload();');  // TODO: What is this supposed to do? "jsPlumb.unload is not a function"
 
   // Delete connections on clicking them
@@ -244,8 +246,8 @@ $(function ()
     UnTip();
   });
 
-  updateWindowSize();
   if (inEditorEnv) {
+    updateWindowSize();
     updateScore();
   }
 });
