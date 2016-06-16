@@ -1,0 +1,22 @@
+.droppable_outer {
+  height: 300px;
+  margin: 0px;
+  width: 100%;
+}
+
+#droppable {
+  height: 300px;
+}
+
+.dragDiv img {
+  display: none;
+}
+
+label:hover {
+    background: none;
+}
+
+.aggregateDiv:hover {
+  background-color: none;
+  box-shadow: none;
+}
