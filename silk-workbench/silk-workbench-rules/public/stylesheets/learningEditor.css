@@ -5,13 +5,19 @@
 
 
 .droppable_outer {
-  height: 300px;
+  height: auto;
   margin: 0px;
   width: 100%;
 }
 
 #droppable {
   height: 300px;
+  padding: 0px;
+  margin: 0px;
+}
+
+#learning_tab_panels {
+  height: 310px;
 }
 
 .dragDiv img {
@@ -53,3 +59,4 @@ label:hover {
 .no-pointer {
   pointer-events:none;
 }
+
