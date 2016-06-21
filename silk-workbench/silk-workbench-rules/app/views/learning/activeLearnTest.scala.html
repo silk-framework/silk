@@ -15,6 +15,7 @@
 <link type="text/css" href="@Assets.at("stylesheets/linkageRuleTree.css")" rel="stylesheet" />
 <link type="text/css" href="@Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
 <link type="text/css" href="@Assets.at("stylesheets/learningEditor.css")" rel="stylesheet" />
+<link type="text/css" href="@Assets.at("stylesheets/verticalMdlTabs.css")" rel="stylesheet" />
 
 <script src="@Assets.at("js/jquery.pagination.js")" type="text/javascript"></script>
   <script src="@Assets.at("js/jquery.treeview.js")" type="text/javascript"></script>
@@ -41,15 +42,62 @@
     Learned Linkage Rule
   </div>
 
-  <div class="wrapper" style="">
+  <div class="wrapper">
     <div class="clearfix">
       Fitness: 543534 (based on 5634 positive and 4356 negative reference links)
-      <br/>
-        @*  @ruleTree(context.task.data.rule) *@
-        @ruleGraph(context.task.data.rule, context)
+      <div class="mdl-tabs vertical-mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+      <table class="vertical-mdl-tabs__table">
+        <tr>
+          <td class="vertical-mdl-tabs__nav">
+            <div class="mdl-tabs__tab-bar">
+              <a href="#rule_graph_panel" class="mdl-tabs__tab is-active">
+                Graph
+              </a>
+              <a href="#rule_tree_panel" class="mdl-tabs__tab">
+                Tree
+              </a>
+            </div>
+          </td>
+          <td class="vertical-mdl-tabs__panel">
+            <div id="learning_tab_panels">
+              <div class="mdl-tabs__panel is-active clearfix" id="rule_graph_panel">
+                @ruleGraph(context.task.data.rule, context)
+              </div>
+              <div class="mdl-tabs__panel clearfix" id="rule_tree_panel">
+                <h1>Tree Foo!</h1>
+                @*  @ruleTree(context.task.data.rule) *@
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      </div>
+      <!--
+      <div class="mdl-tabs vertical-mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+        <div class="mdl-grid mdl-grid--no-spacing">
+          <div class="mdl-cell mdl-cell--1-col">
+            <div class="mdl-tabs__tab-bar">
+              <a href="#rule_graph_panel" class="mdl-tabs__tab is-active">
+                Graph
+              </a>
+              <a href="#rule_tree_panel" class="mdl-tabs__tab">
+                Tree
+              </a>
+            </div>
+          </div>
+          <div class="mdl-cell mdl-cell--11-col" id="learning_tab_panels">
+            <div class="mdl-tabs__panel is-active" id="rule_graph_panel">
+              @* @ruleGraph(context.task.data.rule, context) *@
+            </div>
+            <div class="mdl-tabs__panel" id="rule_tree_panel">
+              <h1>Tree Foo!</h1>
+              @*  @ruleTree(context.task.data.rule) *@
+            </div>
+          </div>
+        </div>
+      </div>
+      -->
     </div>
-
-    &nbsp;
 
   </div>
 
