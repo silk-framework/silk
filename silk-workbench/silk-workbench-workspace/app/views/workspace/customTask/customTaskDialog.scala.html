@@ -1,12 +1,12 @@
 @import org.silkframework.workspace.Project
-@import org.silkframework.config.CustomTaskSpecification
+@import org.silkframework.config.CustomTaskPlugin
 @import org.silkframework.runtime.plugin.PluginRegistry
 
-@(project: Project, taskName: String, taskPlugin: Option[CustomTaskSpecification])
+@(project: Project, taskName: String, taskPlugin: Option[CustomTaskPlugin])
 
   @widgets.pluginDialog(
     name = taskName,
-    plugins = PluginRegistry.availablePlugins[CustomTaskSpecification],
+    plugins = PluginRegistry.availablePlugins[CustomTaskPlugin],
     currentObj = taskPlugin,
     resources = project.resources.list) {
 

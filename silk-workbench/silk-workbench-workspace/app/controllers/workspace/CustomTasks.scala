@@ -2,7 +2,6 @@ package controllers.workspace
 
 import models.JsonError
 import org.silkframework.config.CustomTaskSpecification
-import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
@@ -42,7 +41,7 @@ object CustomTasks extends Controller {
 
   def taskDialog(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val customTask = if(taskName.isEmpty) None else project.taskOption[CustomTaskSpecification](taskName).map(p => p.data)
+    val customTask = if(taskName.isEmpty) None else project.taskOption[CustomTaskSpecification](taskName).map(p => p.data.plugin)
     Ok(views.html.workspace.customTask.customTaskDialog(project, taskName, customTask))
   }
 }

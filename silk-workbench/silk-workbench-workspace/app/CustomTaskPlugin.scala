@@ -38,7 +38,7 @@ case class CustomTaskPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any): Seq[(String, String)] = {
-      val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTaskSpecification])
+      val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTaskSpecification].plugin)
       params.toSeq
     }
   }
