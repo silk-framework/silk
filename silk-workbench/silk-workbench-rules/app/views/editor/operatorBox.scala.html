@@ -30,7 +30,7 @@
     -->
     @additionalContent
     @for(((name, value), index) <- parameters.zipWithIndex) {
-      <div class="param_element">
+      <div class="param_element plugin_param">
         <label class="param_label">@name</label>
         <input class="param_value" type="text" name="@name" value="@value"/>
       </div>
