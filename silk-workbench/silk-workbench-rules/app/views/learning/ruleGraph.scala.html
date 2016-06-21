@@ -75,14 +75,7 @@
 
       jsPlumb.repaintEverything();
 
-      // make jsPlumb uneditable:
-      $.each($('.dragDiv'), function(i, operator) {
-        jsPlumb.setDraggable(operator, false); // element is no longer draggable
-      });
-      jsPlumb.unbind("click"); // click on connection does nothing
-      jsPlumb.selectEndpoints().setEnabled(false);
-      jsPlumb.select().setHoverPaintStyle({ });
-
+      make_uneditable();
 
       function fillColumns(columns, column_index, element) {
         if (columns.length <= column_index) {
@@ -122,6 +115,28 @@
         return array.reduce(function(a, b) {
           return a + b;
         });
+      }
+
+      function make_uneditable() {
+        // select all operators
+        var operators = $('.dragDiv');
+
+        // no highlighting on hover over operators
+        operators.addClass("no-pointer");
+
+        // disable draggable operators
+        $.each($(operators, function(i, operator) {
+          jsPlumb.setDraggable(operator, false);
+        });
+
+        // disable delete connection on click
+        jsPlumb.unbind("click");
+
+        // disable endpoints
+        jsPlumb.selectEndpoints().setEnabled(false);
+
+        // disable highlighting on hover over connections
+        jsPlumb.select().setHoverPaintStyle(null);
       }
 
     });

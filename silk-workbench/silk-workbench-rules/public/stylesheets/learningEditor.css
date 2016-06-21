@@ -49,3 +49,7 @@ label:hover {
 .operator_footer {
   display: none;
 }
+
+.no-pointer {
+  pointer-events:none;
+}
