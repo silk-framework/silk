@@ -16,7 +16,7 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{LinkSpecification, TransformSpecification}
+import org.silkframework.config.{CustomTaskSpecification, LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -54,6 +54,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   registerModule[TransformSpecification]()
   registerModule[LinkSpecification]()
   registerModule[Workflow]()
+  registerModule[CustomTaskSpecification]()
 
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())

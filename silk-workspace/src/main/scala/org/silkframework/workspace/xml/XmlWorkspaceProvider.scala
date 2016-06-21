@@ -25,6 +25,7 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
   registerModule(new LinkingXmlSerializer())
   registerModule(new TransformXmlSerializer())
   registerModule(new WorkflowXmlSerializer())
+  registerModule(new CustomTaskXmlSerializer())
 
   def registerModule[T: ClassTag](plugin: XmlSerializer[T]) = {
     val clazz = implicitly[ClassTag[T]].runtimeClass

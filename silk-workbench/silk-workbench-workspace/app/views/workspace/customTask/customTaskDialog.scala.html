@@ -1,0 +1,33 @@
+@import org.silkframework.workspace.Project
+@import org.silkframework.config.CustomTaskSpecification
+@import org.silkframework.runtime.plugin.PluginRegistry
+
+@(project: Project, taskName: String, taskPlugin: Option[CustomTaskSpecification])
+
+  @widgets.pluginDialog(
+    name = taskName,
+    plugins = PluginRegistry.availablePlugins[CustomTaskSpecification],
+    currentObj = taskPlugin,
+    resources = project.resources.list) {
+
+    <script type="text/javascript">
+      function submit(pluginId, name, parameters) {
+        // Build dataset xml
+        var xml = '<CustomTask id=\'' + name + '\' type=\'' + pluginId + '\'>';
+        for(var i in parameters) {
+          xml += '  <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+        }
+        xml += '</CustomTask>';
+
+        // Delete the old task in case its name changed
+        if(@taskPlugin.nonEmpty) {
+          if(name != '@taskName') {
+            deleteTask('@config.baseUrl/workspace/projects/@project.name/customTasks/@taskName');
+          }
+        }
+
+        // Submit task
+        putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml);
+      }
+    </script>
+  }
