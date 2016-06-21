@@ -14,6 +14,8 @@
 
 <div class="droppable_outer">
 
+
+
   <div id="droppable">
     @Logger.info("rule Graph")
     @Logger.info(rule.operator.toString)
@@ -25,4 +27,103 @@
     }
   </div>
 
+  <script type="text/javascript">
+    $( document ).ready(function() {
+      $("#droppable input").prop("disabled", true);
+
+      const vertical_spacing = 50;
+      const horizontal_spacing = 60;
+      const padding_top = 10;
+
+      var connections = jsPlumb.getAllConnections();
+      var graph = connections.reduce(
+        function(map, obj) {
+          var parents = map[obj.targetId] || [] ;
+          parents.push(obj.sourceId);
+          map[obj.targetId] = parents ;
+          return map ; } ,
+        {}
+      );
+      var sources = $.unique($.map(graph, function(target, source) { return source; }));
+      var targets = $.unique($.map(graph, function(target, source) { return target; }));
+
+      var root_nodes = [];
+      $.each(sources, function(index, element) {
+        if ($.inArray(element, targets) == -1) root_nodes.push(element);
+      });
+
+      columns = [];
+      $.each(root_nodes, function(index, node) {
+        index = 0;
+        fillColumns(columns, index, node);
+      });
+
+      columns = columns.reverse();
+
+      const max_column_height = maxHeight(columns);
+
+      $.each(columns, function(i, column) {
+        total_height = get_total_height(column);
+        spacing_top = (max_column_height - total_height) / 2 + padding_top;
+        var y = spacing_top;
+        $.each(column, function(i, element_id) {
+          var element = $('#' + element_id);
+          element.css('top', y);
+          y = y + element.height() + horizontal_spacing;
+        });
+      });
+
+      jsPlumb.repaintEverything();
+
+      // make jsPlumb uneditable:
+      $.each($('.dragDiv'), function(i, operator) {
+        jsPlumb.setDraggable(operator, false); // element is no longer draggable
+      });
+      jsPlumb.unbind("click"); // click on connection does nothing
+      jsPlumb.selectEndpoints().setEnabled(false);
+      jsPlumb.select().setHoverPaintStyle({ });
+
+
+      function fillColumns(columns, column_index, element) {
+        if (columns.length <= column_index) {
+          columns.push([]);
+        }
+        columns[column_index].push(element);
+        if (typeof graph[element] !== 'undefined') {
+          $.each(graph[element], function(i, parent) {
+            fillColumns(columns, column_index + 1, parent);
+          });
+        }
+      }
+
+      function maxHeight(columns) {
+        var max = 0;
+        $.each(columns, function(i, column) {
+          total_height = get_total_height(column);
+          if (total_height > max) max = total_height;
+        });
+        return max;
+      }
+
+      function get_total_height(column) {
+        var spacing_total = (column.length - 1) * horizontal_spacing;
+        var heights = get_heights(column);
+        var total_heights = array_sum(heights);
+        return total_heights + spacing_total;
+      }
+
+      function get_heights(column) {
+        return $.map(column, function(element_id, i) {
+            return $('#' + element_id).height();
+        });
+      }
+
+      function array_sum(array) {
+        return array.reduce(function(a, b) {
+          return a + b;
+        });
+      }
+
+    });
+  </script>
 </div>
