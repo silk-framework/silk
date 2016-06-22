@@ -118,11 +118,19 @@
 }
 
 @**
- * Retrieves the value of a specific paramter
+ * Retrieves the value of a specific parameter
  *@
 @value(pluginId: String, param: Parameter) = @{
-  currentObj match {
-    case Some(obj) if obj.plugin.id.toString == pluginId => Option(param(obj)).getOrElse("").toString
-    case _ => param.defaultValue.flatMap(Option(_)).getOrElse("").toString
-  }
+  // Retrieve parameter value as Object
+  val paramObj =
+    currentObj match {
+      case Some(obj) if obj.plugin.id.toString == pluginId =>
+        Option(param(obj))
+      case _ =>
+        param.defaultValue.flatMap(Option(_))
+    }
+  // Convert parameter value to string
+  val paramType = param.dataType.asInstanceOf[ParameterType[AnyRef]]
+  val paramStr = paramObj.map(paramType.toString(_)).getOrElse("")
+  paramStr
 }
