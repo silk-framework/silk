@@ -3,10 +3,10 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, TaskReference}
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.reflect.ClassTag
 
@@ -64,7 +64,7 @@ object ParameterType {
     * All available parameter types.
     */
   val all: Seq[ParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType)
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType, TaskReferenceType)
   }
 
   /**
@@ -154,6 +154,18 @@ object ParameterType {
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): WritableResource = {
       resourceLoader.get(str, mustExist = false)
+    }
+
+  }
+
+  object TaskReferenceType extends ParameterType[TaskReference] {
+
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TaskReference = {
+      TaskReference(Identifier(str))
+    }
+
+    override def toString(value: TaskReference): String = {
+      value.id
     }
 
   }

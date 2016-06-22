@@ -18,7 +18,7 @@ case class CustomTaskPlugin() extends WorkbenchPlugin {
     override def name: String = "Other"
 
     /** Path to the task icon */
-    override def icon: String = "img/server.png"
+    override def icon: String = "img/task.png"
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
