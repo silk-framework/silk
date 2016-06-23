@@ -29,9 +29,24 @@ trait Observable[T] {
   private var updatePublished = false
 
   /**
+    * Checks if a value is defined.
+    */
+  def isDefined: Boolean = true
+
+  /**
    * Retrieves the current value.
    */
   def apply(): T
+
+  /**
+    * Retrieves the value as Option
+    */
+  def get: Option[T] = {
+    if(isDefined)
+      Some(apply())
+    else
+      None
+  }
 
   /**
    * True, if an update has been published.
