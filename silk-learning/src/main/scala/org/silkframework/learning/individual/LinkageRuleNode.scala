@@ -15,6 +15,7 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.rule.LinkageRule
+import org.silkframework.util.IdentifierGenerator
 
 case class LinkageRuleNode(aggregation: Option[OperatorNode]) extends Node {
   override val children = aggregation.toList
@@ -23,7 +24,10 @@ case class LinkageRuleNode(aggregation: Option[OperatorNode]) extends Node {
     LinkageRuleNode(children.headOption.map(_.asInstanceOf[OperatorNode]))
   }
 
-  def build = LinkageRule(aggregation.map(_.build))
+  def build = {
+    implicit val identifiers = new IdentifierGenerator()
+    LinkageRule(aggregation.map(_.build))
+  }
 
   override def toString = build.toString
 }

@@ -15,7 +15,7 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, IdentifierGenerator}
 
 case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, required: Boolean, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
   require(inputs.source.isSource && !inputs.target.isSource, "inputs.source.isSource && !inputs.target.isSource")
@@ -30,13 +30,14 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
     ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, required, metricNode)
   }
 
-  override def build = {
+  override def build(implicit identifiers: IdentifierGenerator) = {
     Comparison(
+      identifiers.generate(metric.id),
       required = required,
       threshold = threshold,
       weight = weight,
       inputs = inputs.map(_.build),
-      metric = metric.build()
+      metric = metric.build
     )
   }
 }

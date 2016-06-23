@@ -16,8 +16,16 @@ package org.silkframework.learning.individual
 
 import org.silkframework.entity.Path
 import org.silkframework.rule.input.PathInput
+import org.silkframework.util.IdentifierGenerator
+
 case class PathInputNode(path: Path, isSource: Boolean) extends InputNode {
-  def build = PathInput(path = path)
+
+  def build(implicit identifiers: IdentifierGenerator) = {
+    PathInput(
+      id = identifiers.generate(if(isSource) "sourcePath" else "targetPath"),
+      path = path
+    )
+  }
 }
 
 object PathInputNode {
