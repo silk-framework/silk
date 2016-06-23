@@ -63,13 +63,21 @@
   position: relative;
   left: 478px;
   height: 18px;
-  top: -37px;
+  top: -40px;
 }
 
 .activity-button-edit {
   position: relative;
   left: 500px;
   height: 18px;
-  top: -55px;
+  top: -58px;
+  font-size: 9px;
+}
+
+.activity-button-value {
+  position: relative;
+  left: 522px;
+  height: 18px;
+  top: -76px;
   font-size: 9px;
 }

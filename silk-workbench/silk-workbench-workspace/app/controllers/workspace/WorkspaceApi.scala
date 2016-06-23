@@ -300,7 +300,7 @@ object WorkspaceApi extends Controller {
           val serializeValue = Serialization.serialize(value, mimeType)
           Ok(serializeValue).as(mimeType)
         case None =>
-          NotAcceptable
+          NotAcceptable(value.toString)
       }
     }
   }

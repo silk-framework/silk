@@ -1,5 +1,7 @@
 package org.silkframework.workspace.activity
 
+import java.lang.reflect.ParameterizedType
+
 import org.silkframework.runtime.activity.{Activity, HasValue, Status}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.{Project, Task}
@@ -64,4 +66,17 @@ class TaskActivity[DataType: ClassTag, ActivityType <: HasValue : ClassTag](val 
   }
 
   def activityType: Class[_] = currentFactory.activityType
+
+  /**
+    * Retrieves the value type of the activity.
+    */
+  def valueType: Class[_] = {
+    val activityInterface = activityType.getGenericInterfaces.find(_.getTypeName.startsWith(classOf[Activity[_]].getName)).get.asInstanceOf[ParameterizedType]
+    val valueType = activityInterface.getActualTypeArguments.apply(0)
+    val valueClass = valueType match {
+      case pt: ParameterizedType => pt.getRawType.asInstanceOf[Class[_]]
+      case t => t.asInstanceOf[Class[_]]
+    }
+    valueClass
+  }
 }

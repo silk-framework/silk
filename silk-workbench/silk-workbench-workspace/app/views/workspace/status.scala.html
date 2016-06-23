@@ -3,6 +3,7 @@
 @import org.silkframework.workspace.Workspace
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.workspace.activity.TaskActivity
+@import scala.runtime.BoxedUnit
 @import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Workspace
 @import controllers.workspace.routes.Assets
@@ -163,11 +164,16 @@
     <div class="activity-button-stop">
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, task.name, activity.name).url')" />
     </div>
-    @if(activity.config.nonEmpty) {
-      <div class="activity-button-edit">
+    <div class="activity-button-edit">
+      @if(activity.config.nonEmpty) {
         <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.taskActivityConfigDialog(project.name, task.name, activity.name).url')" />
-      </div>
-    }
+      }
+    </div>
+    <div class="activity-button-value">
+      @if(activity.valueType != classOf[BoxedUnit]) {
+        <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@WorkspaceApi.getActivityValue(project.name, task.name, activity.name).url', '_blank')" />
+      }
+    </div>
   </li>
 }
 
