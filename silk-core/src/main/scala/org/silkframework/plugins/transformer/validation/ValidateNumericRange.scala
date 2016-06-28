@@ -36,9 +36,9 @@ case class ValidateNumericRange(
   override def evaluate(value: String) = {
     val num = value.toDouble
     if(num < min) {
-      throw new ValidationException(s"Number $num is larger than allowed minimum $min")
+      throw new ValidationException(s"Number $num is smaller than allowed minimum $min")
     } else if(num > max) {
-      throw new ValidationException(s"Number $num is smaller than allowed maximum $max")
+      throw new ValidationException(s"Number $num is larger than allowed maximum $max")
     } else {
       value
     }

@@ -43,9 +43,9 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val resultStats = executeTransformResultHolder()
     resultStats.entityCounter shouldBe 2
     resultStats.entityErrorCounter shouldBe 1
-    resultStats.ruleErrorCounter.size shouldBe 2
-    resultStats.ruleErrorCounter("propTransform") shouldBe 1
-    resultStats.ruleErrorCounter("prop2Transform") shouldBe 0
+    resultStats.ruleResults.size shouldBe 2
+    resultStats.ruleResults("propTransform").errorCount shouldBe 1
+    resultStats.ruleResults("prop2Transform").errorCount shouldBe 0
   }
 
   private def transformerWithExceptions(): Transformer = {

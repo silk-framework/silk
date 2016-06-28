@@ -1,0 +1,55 @@
+@import plugins.Context
+@import org.silkframework.config.TransformSpecification
+@import org.silkframework.execution.ExecuteTransformResult
+@import org.silkframework.execution.ExecuteTransformResult.RuleResult
+@import org.silkframework.execution.ExecuteTransformResult.RuleError
+
+@(context: Context[TransformSpecification], statistics: ExecuteTransformResult)
+
+@header = {
+}
+
+@toolbar = {
+  <ul>
+    <li>
+    </li>
+    <li>
+    </li>
+  </ul>
+}
+
+@content = {
+  <table class="mdl-data-table mdl-js-data-table">
+    <thead>
+      <tr>
+        <th>Rule</th>
+        <th>Entity</th>
+        <th>Values</th>
+        <th>Error</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    @for((ruleName, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
+      <tr>
+        <td>@ruleName</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+
+      @for(RuleError(entity, values, exception) <- sampleErrors) {
+        <tr>
+          <td></td>
+          <td>@context.project.config.prefixes.shorten(entity)</td>
+          <td>@values.flatten.mkString(", ")</td>
+          <td>@exception.getMessage</td>
+        </tr>
+      }
+    }
+
+    </tbody>
+  </table>
+}
+
+@main(Some(context))(header)(toolbar)(content)
