@@ -2,8 +2,9 @@ package controllers.workspace
 
 import config.WorkbenchConfig
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.xml.XmlWorkspaceProvider
+import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlWorkspaceProvider}
 import org.silkframework.workspace.{PrefixRegistry, User}
 import play.api.mvc.{Action, Controller}
 
@@ -46,13 +47,10 @@ object Workspace extends Controller {
   }
 
   def importExample(project: String) = Action {
-    // Import example into an XML workspace
-    val xmlWorkspace = new XmlWorkspaceProvider(new InMemoryResourceManager())
+    val workspaceProvider = User().workspace.provider
     val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").load
-    xmlWorkspace.importProject(project, inputStream)
-    inputStream.close()
-    // Transfer into current workspace
-    WorkspaceIO.copyProjects(xmlWorkspace, User().workspace.provider)
+    workspaceProvider.importProjectMarshaled(Identifier(project), inputStream, XmlZipProjectMarshaling())
+
     User().workspace.reload()
 
     Ok
