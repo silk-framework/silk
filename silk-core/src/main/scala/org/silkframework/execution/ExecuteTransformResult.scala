@@ -58,7 +58,7 @@ object ExecuteTransformResult {
   /**
     * A single transformation error.
     *
-    * @param entity The URI of the entity for which the error occured.
+    * @param entity The URI of the entity for which the error occurred.
     * @param value The erroneous value
     * @param exception The cause
     */
