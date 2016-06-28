@@ -64,6 +64,7 @@ GET           /projects/:project                                                
 PUT           /projects/:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
 DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
 POST          /projects/:project/import                                         controllers.workspace.WorkspaceApi.importProject(project: String)
+POST          /projects/:project/import/:importPlugin                           controllers.workspace.WorkspaceApi.importProjectViaPlugin(project: String, importPlugin: String)
 GET           /projects/:project/export                                         controllers.workspace.WorkspaceApi.exportProject(project: String)
 GET           /projects/:project/export/:exportPlugin                           controllers.workspace.WorkspaceApi.exportProjectViaPlugin(project: String, exportPlugin: String)
 GET           /projects/:project/marshallingPlugins                             controllers.workspace.WorkspaceApi.availableProjectMarshallingPlugins(project: String)
