@@ -22,6 +22,7 @@
   <table style="width:100%">
     <tr>
       <th>Rule</th>
+      <th>Entity</th>
       <th>Values</th>
       <th>Error</th>
     </tr>
@@ -31,11 +32,13 @@
         <td>@ruleName</td>
         <td></td>
         <td></td>
+        <td></td>
       </tr>
 
       @for(RuleError(entity, values, exception) <- sampleErrors) {
         <tr>
           <td></td>
+          <td>@context.project.config.prefixes.shorten(entity)</td>
           <td>@values.flatten.mkString(", ")</td>
           <td>@exception.getMessage</td>
         </tr>
