@@ -15,7 +15,7 @@ import scala.xml.{Node, Null}
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
-case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty, errorOutputs: Seq[Identifier] = Seq.empty) {
+case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty, errorOutputs: Seq[Identifier] = Seq.empty) extends TaskSpecification {
 
   def entitySchema = {
     EntitySchema(

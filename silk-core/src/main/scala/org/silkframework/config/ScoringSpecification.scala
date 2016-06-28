@@ -7,7 +7,7 @@ import org.silkframework.util.Identifier
 /**
  * This class contains all the required parameters to execute a scoring task.
  */
-case class ScoringSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[ScoringRule], outputs: Seq[Identifier] = Seq.empty) {
+case class ScoringSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[ScoringRule], outputs: Seq[Identifier] = Seq.empty) extends TaskSpecification {
 
   def entityDescription = {
     EntitySchema(
