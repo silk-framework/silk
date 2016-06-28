@@ -25,6 +25,7 @@ GET           /:project/:task/referenceLinks/:linkType/:sorting/:filter/:page   
 GET           /:project/:task/learnStart                                                    controllers.linking.Learning.start(project: String, task: String)
 GET           /:project/:task/learn                                                         controllers.linking.Learning.learn(project: String, task: String)
 GET           /:project/:task/activeLearn                                                   controllers.linking.Learning.activeLearn(project: String, task: String)
+GET           /:project/:task/activeLearnTest                                               controllers.linking.Learning.activeLearnTest(project: String, task: String)
 GET           /:project/:task/learn/rule                                                    controllers.linking.Learning.rule(project: String, task: String)
 GET           /:project/:task/learn/ruleStream                                              controllers.linking.Learning.ruleStream(project: String, task: String)
 GET           /:project/:task/learn/links/:sorting/:filter/:page                            controllers.linking.Learning.links(project: String, task: String, sorting: String, filter: String, page: Int)

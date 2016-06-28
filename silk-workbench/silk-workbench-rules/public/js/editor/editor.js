@@ -176,8 +176,10 @@ $(function ()
     }
   });
 
-  $('body').attr('onresize', 'updateWindowSize();');
-  $('body').attr('onunload', 'jsPlumb.unload();');
+  if (inEditorEnv) {
+    $('body').attr('onresize', 'updateWindowSize();');
+  }
+  $('body').attr('onunload', 'jsPlumb.unload();');  // TODO: What is this supposed to do? "jsPlumb.unload is not a function"
 
   // Delete connections on clicking them
   jsPlumb.bind("click", function(conn, originalEvent) {
@@ -244,8 +246,10 @@ $(function ()
     UnTip();
   });
 
-  updateWindowSize();
-  updateScore();
+  if (inEditorEnv) {
+    updateWindowSize();
+    updateScore();
+  }
 });
 
 function confirmExit() {

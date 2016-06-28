@@ -44,6 +44,11 @@ object Learning extends Controller {
     Ok(views.html.learning.activeLearn(context))
   }
 
+  def activeLearnTest(project: String, task: String) = Action { request =>
+    val context = Context.get[LinkSpecification](project, task, request.path)
+    Ok(views.html.learning.activeLearnTest(context))
+  }
+
   def activeLearnDetails(project: String, task: String) = Action { request =>
     val context = Context.get[LinkSpecification](project, task, request.path)
     val activeLearnState = context.task.activity[ActiveLearning].value
@@ -180,13 +185,15 @@ object Learning extends Controller {
   /**
     * Renders the top linkage rule in the current population.
     */
-  def rule(projectName: String, taskName: String) = Action {
+  def rule(projectName: String, taskName: String) = Action { request =>
+    val context = Context.get[LinkSpecification](projectName, taskName, request.path)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val referenceLinks = task.data.referenceLinks
     val population = getPopulation(task)
 
-    Ok(views.html.learning.rule(population, referenceLinks))
+
+    Ok(views.html.learning.rule(population, referenceLinks, context))
   }
 
   /**
