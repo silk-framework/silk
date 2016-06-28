@@ -8,13 +8,13 @@ import controllers.core.{Stream, Widgets}
 import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{InMemoryResourceManager, UrlResource}
+import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
+import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
-import org.silkframework.workspace.xml.XmlWorkspaceProvider
-import org.silkframework.workspace.{Project, Task, User}
+import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlWorkspaceProvider}
+import org.silkframework.workspace.{ProjectMarshallingTrait, Project, Task, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
@@ -27,7 +27,7 @@ object WorkspaceApi extends Controller {
     User().workspace.reload()
     Ok
   }
-  
+
   def projects = Action {
     Ok(JsonSerializer.projectsJson)
   }
@@ -38,7 +38,7 @@ object WorkspaceApi extends Controller {
   }
 
   def newProject(project: String) = Action {
-    if(User().workspace.projects.exists(_.name == project)) {
+    if (User().workspace.projects.exists(_.name == project)) {
       Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
     } else {
       val newProject = User().workspace.createProject(project)
@@ -51,34 +51,108 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
-  def importProject(project: String) = Action { implicit request => {
-    for(data <- request.body.asMultipartFormData;
-        file <- data.files) {
+  def importProject(project: String) = Action { implicit request =>
+    for (data <- request.body.asMultipartFormData;
+         file <- data.files) {
       // Read the project from the received file
       val inputStream = new FileInputStream(file.ref.file)
-      if(file.filename.endsWith(".zip")) {
-        // We assume that this is a project using the default XML serialization.
-        val xmlWorkspace = new XmlWorkspaceProvider(new InMemoryResourceManager())
-        xmlWorkspace.importProject(project, inputStream)
-        WorkspaceIO.copyProjects(xmlWorkspace, User().workspace.provider)
-        User().workspace.reload()
-      } else {
-        // Try to import the project using the current workspaces import mechanism (if overloaded)
-        User().workspace.importProject(project, inputStream)
+      val dotIndex = file.filename.lastIndexOf('.')
+      if (dotIndex < 0) {
+        throw new IllegalArgumentException("No recognizable file name suffix in uploaded file.")
       }
-      inputStream.close()
+      val suffix = file.filename.substring(dotIndex + 1)
+      val marshallers = marshallingPluginsByFileHandler()
+      try {
+        marshallers.get(suffix) match {
+          case Some(marshaller) =>
+            val marshaller = marshallers(suffix)
+            val workspace = User().workspace
+            workspace.importProject(project, inputStream, marshaller)
+          case _ =>
+            throw new IllegalArgumentException("No handler found for " + suffix + " files")
+        }
+      } finally {
+        inputStream.close()
+      }
     }
     Ok
-  }}
+  }
 
-  def exportProject(project: String) = Action {
+  /**
+    * importProject variant with explicit marshaller parameter
+    * @param project
+    * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
+    * @return
+    */
+  def importProjectViaPlugin(project: String, marshallerId: String) = Action { implicit request =>
+    val marshallerOpt = marshallingPlugins().filter(_.id == marshallerId).headOption
+    marshallerOpt match {
+      case Some(marshaller) =>
+        for (data <- request.body.asMultipartFormData;
+             file <- data.files) {
+          // Read the project from the received file
+          val inputStream = new FileInputStream(file.ref.file)
+          try {
+            val workspace = User().workspace
+            workspace.importProject(project, inputStream, marshaller)
+          } finally {
+            inputStream.close()
+          }
+        }
+        Ok
+      case _ =>
+        BadRequest("No plugin '" + marshallerId + "' found for importing project.")
+    }
+  }
+
+  def marshallingPluginsByFileHandler(): Map[String, ProjectMarshallingTrait] = {
+    marshallingPlugins().map { mp =>
+      mp.suffix.map(s => (s, mp))
+    }.flatten.toMap
+  }
+
+  def marshallingPlugins(): Seq[ProjectMarshallingTrait] = {
+    implicit val prefixes = Prefixes.empty
+    implicit val resources = EmptyResourceManager
+    val pluginConfigs = PluginRegistry.availablePluginsForClass(classOf[ProjectMarshallingTrait])
+    pluginConfigs.map(pc =>
+      PluginRegistry.create[ProjectMarshallingTrait](pc.id)
+    )
+  }
+
+  def exportProject(projectName: String) = Action {
+    val marshallers = marshallingPlugins()
+    val marshaller = marshallers.filter(_.id == "xmlZip").head
     // Export the project into a byte array
     val outputStream = new ByteArrayOutputStream()
-    val fileName = User().workspace.exportProject(project, outputStream)
+    val fileName = User().workspace.exportProject(projectName, outputStream, marshaller)
     val bytes = outputStream.toByteArray
     outputStream.close()
 
     Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+  }
+
+  def availableProjectMarshallingPlugins(p: String) = Action {
+    val marshaller = marshallingPlugins()
+    Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
+  }
+
+  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String) = Action {
+    val project = User().workspace.project(projectName)
+    val marshallerOpt = marshallingPlugins().filter(_.id == marshallerPluginId).headOption
+    marshallerOpt match {
+      case Some(marshaller) =>
+        // Export the project into a byte array
+        val outputStream = new ByteArrayOutputStream()
+        val fileName = User().workspace.exportProject(projectName, outputStream, marshaller)
+        val bytes = outputStream.toByteArray
+        outputStream.close()
+
+        Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      case _ =>
+        BadRequest("No plugin '" + marshallerPluginId + "' found for exporting project.")
+    }
+
   }
 
   def executeProject(projectName: String) = Action {
@@ -87,7 +161,7 @@ object WorkspaceApi extends Controller {
     implicit val resources = project.resources
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
-    if(projectExecutors.isEmpty)
+    if (projectExecutors.isEmpty)
       BadRequest("No project executor available")
     else {
       val projectExecutor = projectExecutors.head()
@@ -102,7 +176,7 @@ object WorkspaceApi extends Controller {
 
     request.body match {
       case AnyContentAsMultipartFormData(data) =>
-        for(file <- data.files) {
+        for (file <- data.files) {
           val config = XmlSerialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
           SilkConfigImporter(config, project)
         }
@@ -114,7 +188,8 @@ object WorkspaceApi extends Controller {
       case _ =>
         UnsupportedMediaType("Link spec must be provided either as Multipart form data or as XML. Please set the Content-Type header accordingly, e.g. to application/xml")
     }
-  }}
+  }
+  }
 
   def exportLinkSpec(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -132,7 +207,8 @@ object WorkspaceApi extends Controller {
     projectObj.config = projectObj.config.copy(prefixes = Prefixes(prefixMap))
 
     Ok
-  }}
+  }
+  }
 
   def getResources(projectName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -184,7 +260,8 @@ object WorkspaceApi extends Controller {
         resource.write(Array[Byte]())
         Ok
     }
-  }}
+  }
+  }
 
   def deleteResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -208,22 +285,22 @@ object WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     val config = activityConfig(request)
     val activityControl =
-      if(taskName.nonEmpty) {
+      if (taskName.nonEmpty) {
         val activity = project.anyTask(taskName).activity(activityName)
-        if(config.nonEmpty)
+        if (config.nonEmpty)
           activity.update(config)
         activity.control
       } else {
         val activity = project.activity(activityName)
-        if(config.nonEmpty)
+        if (config.nonEmpty)
           activity.update(config)
         activity.control
       }
 
-    if(activityControl.status().isRunning) {
+    if (activityControl.status().isRunning) {
       BadRequest(JsonError(s"Cannot start activity '$activityName'. Already running."))
     } else {
-      if(blocking)
+      if (blocking)
         activityControl.startBlocking()
       else
         activityControl.start()
@@ -247,7 +324,7 @@ object WorkspaceApi extends Controller {
   def getActivityConfig(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
     val activityConfig =
-      if(taskName.nonEmpty) {
+      if (taskName.nonEmpty) {
         val task = project.anyTask(taskName)
         task.activity(activityName).config
       } else {
@@ -275,7 +352,7 @@ object WorkspaceApi extends Controller {
 
   def getActivityStatus(projectName: String, taskName: String, activityName: String) = Action {
     val project = User().workspace.project(projectName)
-    if(taskName.nonEmpty) {
+    if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
       val activity = task.activity(activityName)
       Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status))
@@ -290,7 +367,7 @@ object WorkspaceApi extends Controller {
     val value = activity.value()
 
     val mimeTypes = request.acceptedTypes.map(t => t.mediaType + "/" + t.mediaSubType)
-    if(mimeTypes.isEmpty) {
+    if (mimeTypes.isEmpty) {
       // If no MIME type has been specified, we return XML
       val serializeValue = Serialization.serialize(value, "application/xml")
       Ok(serializeValue).as("application/xml")
@@ -360,7 +437,7 @@ object WorkspaceApi extends Controller {
 
   private def activityControl(projectName: String, taskName: String, activityName: String): ActivityControl[_] = {
     val project = User().workspace.project(projectName)
-    if(taskName.nonEmpty) {
+    if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
       task.activity(activityName).control
     } else {
@@ -408,7 +485,7 @@ object ActivityLog extends java.util.logging.Handler {
     */
   def records: Seq[LogRecord] = synchronized {
     log.fine(s"Retrieving $count activity logs")
-    for(i <- 0 until count) yield {
+    for (i <- 0 until count) yield {
       buffer((start + i) % buffer.length)
     }
   }

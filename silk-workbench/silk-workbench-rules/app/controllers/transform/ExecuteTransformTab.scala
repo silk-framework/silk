@@ -15,6 +15,12 @@ object ExecuteTransformTab extends Controller {
     Ok(views.html.executeTransform.executeTransform(context))
   }
 
+  def executeStatistics(project: String, task: String) = Action { request =>
+    val context = Context.get[TransformSpecification](project, task, request.path)
+    val status = context.task.activity[ExecuteTransform].value
+    Ok(views.html.executeTransform.transformStatistics(context, status))
+  }
+
   def executeDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val outputs = project.tasks[Dataset].toSeq.map(_.name.toString())

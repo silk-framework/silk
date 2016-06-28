@@ -1,9 +1,11 @@
 package org.silkframework.workspace.activity.workflow
 
+import org.silkframework.config.TaskSpecification
 import org.silkframework.util.Identifier
+
 import scala.xml.Node
 
-case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) {
+case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpecification {
 
   def nodes: Seq[WorkflowNode] = operators ++ datasets
 

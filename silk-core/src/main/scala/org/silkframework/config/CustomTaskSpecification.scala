@@ -8,7 +8,7 @@ import scala.xml.Node
 /**
   * A custom task specification provided by a plugin.
   */
-case class CustomTaskSpecification(id: Identifier, plugin: CustomTaskPlugin)
+case class CustomTaskSpecification(id: Identifier, plugin: CustomTaskPlugin) extends TaskSpecification
 
 object CustomTaskSpecification {
 

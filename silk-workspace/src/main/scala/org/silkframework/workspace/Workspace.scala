@@ -52,12 +52,14 @@ class Workspace(val provider: WorkspaceProvider) {
     cacbedProjects = cacbedProjects.filterNot(_.name == name)
   }
 
-  def exportProject(name: Identifier, outputStream: OutputStream): String = {
-    provider.exportProject(name, outputStream)
+  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
+    provider.exportProject(name, outputStream, marshaller)
   }
 
-  def importProject(name: Identifier, inputStream: InputStream, resources: ResourceLoader = EmptyResourceManager) {
-    provider.importProject(name, inputStream, resources)
+  def importProject(name: Identifier,
+                    inputStream: InputStream,
+                    marshaller: ProjectMarshallingTrait) {
+    provider.importProjectMarshaled(name, inputStream, marshaller)
     reload()
   }
 

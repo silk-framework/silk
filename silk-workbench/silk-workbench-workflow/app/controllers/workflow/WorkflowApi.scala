@@ -1,6 +1,7 @@
 package controllers.workflow
 
 import org.silkframework.execution.ExecuteTransformResult
+import org.silkframework.execution.ExecuteTransformResult.RuleResult
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutor}
 import play.api.mvc.{Action, Controller}
@@ -49,7 +50,7 @@ object WorkflowApi extends Controller {
 
     for{
       (name, res: ExecuteTransformResult) <- report.taskReports
-      (column, count) <- res.ruleErrorCounter
+      (column, RuleResult(count, _)) <- res.ruleResults
     } {
       lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"
     }

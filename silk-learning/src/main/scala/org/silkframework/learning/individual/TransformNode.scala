@@ -15,6 +15,7 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.util.IdentifierGenerator
 
 case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer: FunctionNode[Transformer]) extends InputNode {
   override val children = transformer :: inputs
@@ -30,10 +31,11 @@ case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer
     TransformNode(isSource, newInputs, newTransformer)
   }
 
-  def build = {
+  def build(implicit identifiers: IdentifierGenerator) = {
     TransformInput(
+      id = identifiers.generate(transformer.id),
       inputs = inputs.map(_.build),
-      transformer = transformer.build()
+      transformer = transformer.build
     )
   }
 }

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicLong
 import org.silkframework.config.DatasetSelection
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.execution.ExecuteTransformResult.RuleError
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
@@ -34,7 +35,7 @@ class ExecuteTransform(input: DataSource,
     )
   }
 
-  override val initialValue = Some(ExecuteTransformResult(0l, 0l, Map()))
+  override val initialValue = Some(ExecuteTransformResult())
 
   def run(context: ActivityContext[ExecuteTransformResult]): Unit = {
     isCanceled = false
@@ -42,9 +43,9 @@ class ExecuteTransform(input: DataSource,
     val entities = input.retrieve(entitySchema)
 
     // Transform statistics
-    var entityCounter = 0l
-    var entityErrorCounter = 0l
-    val ruleErrorCounter = propertyRules.map(pr => (pr.name.toString, new AtomicLong(0))).toMap
+    var entityCounter = 0L
+    var entityErrorCounter = 0L
+    var errorResults = ExecuteTransformResult.initial(propertyRules)
     try {
       // Open outputs
       val properties = propertyRules.map(_.target.get.uri)
@@ -63,9 +64,10 @@ class ExecuteTransform(input: DataSource,
           try {
             r(entity)
           } catch {
-            case e: Exception =>
+            case ex: Exception =>
               success = false
-              ruleErrorCounter(r.name.toString).incrementAndGet()
+              val values = r.paths.map(entity.evaluate)
+              errorResults = errorResults.withError(r.name, RuleError(uri, values, ex))
               Seq()
           }
         }
@@ -83,27 +85,18 @@ class ExecuteTransform(input: DataSource,
           return
         count += 1
         if (count % 1000 == 0) {
-          context.value.update(executeTransformResult(entityCounter, entityErrorCounter, ruleErrorCounter))
+          context.value.update(errorResults.copy(entityCounter, entityErrorCounter, errorResults.ruleResults))
           context.status.updateMessage(s"Executing ($count Entities)")
         }
       }
       context.status.update(s"$count entities written to ${outputs.size} outputs", 1.0)
     } finally {
       // Set final value
-      context.value.update(executeTransformResult(entityCounter, entityErrorCounter, ruleErrorCounter))
+      context.value.update(errorResults.copy(entityCounter, entityErrorCounter, errorResults.ruleResults))
       // Close outputs
       for (output <- outputs) output.close()
       for (errorOutput <- errorOutputs) errorOutput.close()
     }
-  }
-
-  private def executeTransformResult(entityCounter: Long,
-                                     entityErrorCounter: Long,
-                                     ruleErrorCounter: Map[String, AtomicLong]): ExecuteTransformResult = {
-    val ruleErrorCountLong = ruleErrorCounter.map { case (name, counter) =>
-      (name, counter.get())
-    }
-    ExecuteTransformResult(entityCounter, entityErrorCounter, ruleErrorCountLong)
   }
 
   override def cancelExecution(): Unit = {

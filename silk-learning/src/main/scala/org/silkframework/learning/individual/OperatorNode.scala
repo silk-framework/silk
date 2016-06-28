@@ -15,6 +15,7 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.util.IdentifierGenerator
 
 trait OperatorNode extends Node {
 
@@ -22,7 +23,7 @@ trait OperatorNode extends Node {
 
   def required: Boolean
 
-  def build: SimilarityOperator
+  def build(implicit identifiers: IdentifierGenerator): SimilarityOperator
 }
 
 object OperatorNode {

@@ -5,9 +5,10 @@ import java.util.logging.LogRecord
 import org.silkframework.config.{LinkSpecification, TransformSpecification}
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.Status
+import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Project, Task, User}
+import org.silkframework.workspace.{ProjectMarshallingTrait, Project, Task, User}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -18,7 +19,7 @@ import scala.reflect.ClassTag
 object JsonSerializer {
 
   def projectsJson = {
-    JsArray (
+    JsArray(
       for (project <- User().workspace.projects) yield {
         projectJson(project)
       }
@@ -29,11 +30,11 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-          "dataset" -> tasksJson[Dataset](project),
-          "transform" -> tasksJson[TransformSpecification](project),
-          "linking" -> tasksJson[LinkSpecification](project),
-          "workflow" -> tasksJson[Workflow](project)
-        )
+        "dataset" -> tasksJson[Dataset](project),
+        "transform" -> tasksJson[TransformSpecification](project),
+        "linking" -> tasksJson[LinkSpecification](project),
+        "workflow" -> tasksJson[Workflow](project)
+      )
     )
   }
 
@@ -48,24 +49,24 @@ object JsonSerializer {
   }
 
   def projectActivities(project: Project) = JsArray(
-    for(activity <- project.activities) yield {
+    for (activity <- project.activities) yield {
       JsString(activity.name)
     }
   )
 
   def taskActivities(task: Task[_]) = JsArray(
-    for(activity <- task.activities) yield {
+    for (activity <- task.activities) yield {
       JsString(activity.name)
     }
   )
 
   def activityConfig(config: Map[String, String]) = JsArray(
-    for((name, value) <- config.toSeq) yield
+    for ((name, value) <- config.toSeq) yield
       Json.obj("name" -> name, "value" -> value)
   )
 
   def readActivityConfig(json: JsValue): Map[String, String] = {
-    for(value <- json.as[JsArray].value) yield
+    for (value <- json.as[JsArray].value) yield
       ((value \ "name").toString(), (value \ "value").toString)
   }.toMap
 
@@ -77,14 +78,14 @@ object JsonSerializer {
   def activityStatus(project: String, task: String, activity: String, status: Status): JsValue = {
     JsObject(
       ("project" -> JsString(project)) ::
-      ("task" -> JsString(task)) ::
-      ("activity" -> JsString(activity)) ::
-      ("statusName" -> JsString(status.name)) ::
-      ("isRunning" -> JsBoolean(status.isRunning)) ::
-      ("progress" -> JsNumber(status.progress * 100.0)) ::
-      ("message" -> JsString(status.toString)) ::
-      ("failed" -> JsBoolean(status.failed)) ::
-      ("timestamp" -> JsNumber(status.timestamp)) :: Nil
+          ("task" -> JsString(task)) ::
+          ("activity" -> JsString(activity)) ::
+          ("statusName" -> JsString(status.name)) ::
+          ("isRunning" -> JsBoolean(status.isRunning)) ::
+          ("progress" -> JsNumber(status.progress * 100.0)) ::
+          ("message" -> JsString(status.toString)) ::
+          ("failed" -> JsBoolean(status.failed)) ::
+          ("timestamp" -> JsNumber(status.timestamp)) :: Nil
     )
   }
 
@@ -95,9 +96,26 @@ object JsonSerializer {
   def logRecord(record: LogRecord) = {
     JsObject(
       ("activity" -> JsString(record.getLoggerName.substring(record.getLoggerName.lastIndexOf('.') + 1))) ::
-      ("level" -> JsString(record.getLevel.getName)) ::
-      ("message" -> JsString(record.getMessage)) ::
-      ("timestamp" -> JsNumber(record.getMillis)) :: Nil
+          ("level" -> JsString(record.getLevel.getName)) ::
+          ("message" -> JsString(record.getMessage)) ::
+          ("timestamp" -> JsNumber(record.getMillis)) :: Nil
+    )
+  }
+
+  def pluginConfig(pluginConfig: PluginDescription[_]) = {
+    JsObject(
+      ("id" -> JsString(pluginConfig.id)) ::
+          ("label" -> JsString(pluginConfig.label)) ::
+          ("description" -> JsString(pluginConfig.description)) ::
+          Nil
+    )
+  }
+
+  def marshaller(marshaller: ProjectMarshallingTrait) = {
+    JsObject(
+      ("id" -> JsString(marshaller.id)) ::
+          ("label" -> JsString(marshaller.name)) ::
+          Nil
     )
   }
 }

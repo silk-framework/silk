@@ -40,14 +40,14 @@ sealed trait TransformRule {
   /**
    * Collects all paths in this rule.
    */
-  def paths: Set[Path] = {
-    def collectPaths(param: Input): Set[Path] = param match {
-      case p: PathInput if p.path.operators.isEmpty => Set()
-      case p: PathInput => Set(p.path)
-      case p: TransformInput => p.inputs.flatMap(collectPaths).toSet
+  def paths: Seq[Path] = {
+    def collectPaths(param: Input): Seq[Path] = param match {
+      case p: PathInput if p.path.operators.isEmpty => Seq()
+      case p: PathInput => Seq(p.path)
+      case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 
-    collectPaths(operator)
+    collectPaths(operator).distinct
   }
 }
 

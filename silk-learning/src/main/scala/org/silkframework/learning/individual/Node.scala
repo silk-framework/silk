@@ -14,8 +14,6 @@
 
 package org.silkframework.learning.individual
 
-import javax.naming.OperationNotSupportedException
-
 trait Node {
   val children: List[Node] = Nil
 
@@ -24,7 +22,7 @@ trait Node {
       this
     }
     else {
-      throw new OperationNotSupportedException("Cannot have any child nodes")
+      throw new IllegalArgumentException("Cannot have any child nodes")
     }
   }
 }
