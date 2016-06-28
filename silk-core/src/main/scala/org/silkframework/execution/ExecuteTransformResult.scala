@@ -23,10 +23,14 @@ case class ExecuteTransformResult(entityCounter: Long = 0L, entityErrorCounter: 
 
 object ExecuteTransformResult {
 
+  // The maximum number of erroneous values to be held for each rule.
   val maxSampleErrors = 10
 
-  def initial(ruleNames: Seq[TransformRule]) = {
-    ExecuteTransformResult(0L, 0L, ruleNames.map(rule => (rule.name, RuleResult())).toMap)
+  /**
+    * Generates the initial transform state for a given set of rules.
+    */
+  def initial(rules: Seq[TransformRule]) = {
+    ExecuteTransformResult(0L, 0L, rules.map(rule => (rule.name, RuleResult())).toMap)
   }
 
   /**
