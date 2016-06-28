@@ -19,13 +19,16 @@
 }
 
 @content = {
-  <table style="width:100%">
-    <tr>
-      <th>Rule</th>
-      <th>Entity</th>
-      <th>Values</th>
-      <th>Error</th>
-    </tr>
+  <table class="mdl-data-table mdl-js-data-table">
+    <thead>
+      <tr>
+        <th>Rule</th>
+        <th>Entity</th>
+        <th>Values</th>
+        <th>Error</th>
+      </tr>
+    </thead>
+    <tbody>
 
     @for((ruleName, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
       <tr>
@@ -45,6 +48,7 @@
       }
     }
 
+    </tbody>
   </table>
 }
 
