@@ -44,3 +44,23 @@
     border: 1px solid #e59829;
     background-color: #ffeed6;
 }
+
+#learning_fitness_info {
+  float: right;
+  margin-right: 15px;
+  font-weight: normal;
+}
+
+.toggle_graph_button {
+  float: right;
+  margin-right: 5px !important;
+}
+
+.wrapper-header {
+  height: 32px;
+  line-height: 32px;
+}
+
+.wrapper-title {
+  float: left;
+}
