@@ -45,7 +45,7 @@ class ExecuteTransform(input: DataSource,
     // Transform statistics
     var entityCounter = 0L
     var entityErrorCounter = 0L
-    var errorResults = ExecuteTransformResult()
+    var errorResults = ExecuteTransformResult.initial(propertyRules)
     try {
       // Open outputs
       val properties = propertyRules.map(_.target.get.uri)
@@ -67,7 +67,7 @@ class ExecuteTransform(input: DataSource,
             case ex: Exception =>
               success = false
               val values = r.paths.map(entity.evaluate)
-              errorResults = errorResults.withError(r.name, RuleError(values, ex))
+              errorResults = errorResults.withError(r.name, RuleError(uri, values, ex))
               Seq()
           }
         }

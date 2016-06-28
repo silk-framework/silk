@@ -33,10 +33,10 @@
         <td></td>
       </tr>
 
-      @for(RuleError(errorValues, exception) <- sampleErrors) {
+      @for(RuleError(entity, values, exception) <- sampleErrors) {
         <tr>
           <td></td>
-          <td>@errorValues.flatten.mkString(", ")</td>
+          <td>@values.flatten.mkString(", ")</td>
           <td>@exception.getMessage</td>
         </tr>
       }

@@ -1,6 +1,8 @@
 package org.silkframework.execution
 
 import org.silkframework.execution.ExecuteTransformResult._
+import org.silkframework.rule.TransformRule
+import org.silkframework.util.Identifier
 
 /**
   * Holds the state of the transform execution.
@@ -10,9 +12,9 @@ import org.silkframework.execution.ExecuteTransformResult._
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
 case class ExecuteTransformResult(entityCounter: Long = 0L, entityErrorCounter: Long = 0L,
-                                  ruleResults: Map[String, RuleResult] = Map.empty) extends ExecutionReport {
+                                  ruleResults: Map[Identifier, RuleResult] = Map.empty) extends ExecutionReport {
 
-  def withError(ruleName: String, ruleError: RuleError) = {
+  def withError(ruleName: Identifier, ruleError: RuleError) = {
     val updatedRuleResult = ruleResults.getOrElse(ruleName, RuleResult()).withError(ruleError)
     copy(ruleResults = ruleResults + ((ruleName, updatedRuleResult)))
   }
@@ -22,6 +24,10 @@ case class ExecuteTransformResult(entityCounter: Long = 0L, entityErrorCounter: 
 object ExecuteTransformResult {
 
   val maxSampleErrors = 10
+
+  def initial(ruleNames: Seq[TransformRule]) = {
+    ExecuteTransformResult(0L, 0L, ruleNames.map(rule => (rule.name, RuleResult())).toMap)
+  }
 
   /**
     * The transformation statistics for a single mapping rule.
@@ -48,9 +54,10 @@ object ExecuteTransformResult {
   /**
     * A single transformation error.
     *
+    * @param entity The URI of the entity for which the error occured.
     * @param value The erroneous value
     * @param exception The cause
     */
-  case class RuleError(value: Seq[Seq[String]], exception: Exception)
+  case class RuleError(entity: String, value: Seq[Seq[String]], exception: Exception)
 
 }
