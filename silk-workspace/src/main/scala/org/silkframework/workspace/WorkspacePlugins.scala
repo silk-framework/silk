@@ -6,7 +6,7 @@ import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
 import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory}
 import org.silkframework.workspace.activity.workflow.WorkflowExecutorFactory
-import org.silkframework.workspace.xml.FileWorkspaceProvider
+import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, FileWorkspaceProvider}
 
 class WorkspacePlugins extends PluginModule {
 
@@ -16,6 +16,7 @@ class WorkspacePlugins extends PluginModule {
     transformActivities :::
     linkingActivities :::
     workflowActivities :::
+    projectMarshaller :::
     xmlFormats
 
   def workspaceProviders: List[Class[_]] =
@@ -41,5 +42,9 @@ class WorkspacePlugins extends PluginModule {
 
   def xmlFormats = {
     TypesFormat.getClass :: Nil
+  }
+
+  def projectMarshaller = {
+    classOf[XmlZipProjectMarshaling] :: Nil
   }
 }

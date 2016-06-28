@@ -65,6 +65,8 @@ PUT           /projects/:project                                                
 DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
 POST          /projects/:project/import                                         controllers.workspace.WorkspaceApi.importProject(project: String)
 GET           /projects/:project/export                                         controllers.workspace.WorkspaceApi.exportProject(project: String)
+GET           /projects/:project/export/:exportPlugin                           controllers.workspace.WorkspaceApi.exportProjectViaPlugin(project: String, exportPlugin: String)
+GET           /projects/:project/marshallingPlugins                             controllers.workspace.WorkspaceApi.availableProjectMarshallingPlugins(project: String)
 POST          /projects/:project/importLinkSpec                                 controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
 GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
 PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
