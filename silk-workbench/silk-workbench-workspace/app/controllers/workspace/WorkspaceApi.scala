@@ -112,11 +112,9 @@ object WorkspaceApi extends Controller {
 
   def exportProjectViaPlugin(projectName: String, marshallerPluginId: String) = Action {
     val project = User().workspace.project(projectName)
-    val pluginConfigs = marshallingPlugins()
-    val pluginConfigOpt = pluginConfigs.filter(_.id == marshallerPluginId).headOption
-    pluginConfigOpt match {
-      case Some(pluginConfig) =>
-        val marshaller = PluginRegistry.create[ProjectMarshallingTrait](pluginConfig.id)
+    val marshallerOpt = marshallingPlugins().filter(_.id == marshallerPluginId).headOption
+    marshallerOpt match {
+      case Some(marshaller) =>
         // Export the project into a byte array
         val outputStream = new ByteArrayOutputStream()
         val fileName = User().workspace.exportProject(projectName, outputStream, marshaller)
