@@ -78,6 +78,33 @@ object WorkspaceApi extends Controller {
     Ok
   }
 
+  /**
+    * importProject variant with explicit marshaller parameter
+    * @param project
+    * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
+    * @return
+    */
+  def importProjectViaPlugin(project: String, marshallerId: String) = Action { implicit request =>
+    val marshallerOpt = marshallingPlugins().filter(_.id == marshallerId).headOption
+    marshallerOpt match {
+      case Some(marshaller) =>
+        for (data <- request.body.asMultipartFormData;
+             file <- data.files) {
+          // Read the project from the received file
+          val inputStream = new FileInputStream(file.ref.file)
+          try {
+            val workspace = User().workspace
+            workspace.importProject(project, inputStream, marshaller)
+          } finally {
+            inputStream.close()
+          }
+        }
+        Ok
+      case _ =>
+        BadRequest("No plugin '" + marshallerId + "' found for importing project.")
+    }
+  }
+
   def marshallingPluginsByFileHandler(): Map[String, ProjectMarshallingTrait] = {
     marshallingPlugins().map { mp =>
       mp.suffix.map(s => (s, mp))

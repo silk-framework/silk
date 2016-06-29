@@ -37,7 +37,7 @@ case class LinkSpecification(id: Identifier = Identifier.random,
                              dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
                              rule: LinkageRule = LinkageRule(),
                              outputs: Seq[Identifier] = Seq.empty,
-                             referenceLinks: ReferenceLinks = ReferenceLinks.empty ) {
+                             referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpecification {
 
   def findSources(datasets: Traversable[Dataset]): DPair[DataSource] = {
     DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
