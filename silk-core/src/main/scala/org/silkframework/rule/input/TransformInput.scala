@@ -74,13 +74,13 @@ object TransformInput {
     }
 
     def write(value: TransformInput)(implicit writeContext: WriteContext[Node]): Node = {
-      value.transformer match {
-        case Transformer(plugin, params) =>
-          <TransformInput id={value.id} function={plugin.id}>
-            { value.inputs.map(toXml[Input]) }
-            { params.map { case (name, v) => <Param name={name} value={v}/>  } }
-          </TransformInput>
-      }
+      val plugin = value.transformer.plugin
+      val params = value.transformer.parameters
+
+      <TransformInput id={value.id} function={plugin.id}>
+        { value.inputs.map(toXml[Input]) }
+        { params.map { case (name, v) => <Param name={name} value={v}/>  } }
+      </TransformInput>
     }
   }
 }

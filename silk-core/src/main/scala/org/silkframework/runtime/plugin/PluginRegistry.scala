@@ -127,6 +127,9 @@ object PluginRegistry {
     // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
     for(pluginDesc <- pluginDescs.seq)
       registerPlugin(pluginDesc)
+
+    // Load modules
+    modules.foreach(_.load())
   }
 
   /**
@@ -146,7 +149,9 @@ object PluginRegistry {
     val loader = ServiceLoader.load(classOf[PluginModule], jarClassLoader)
     val iter = loader.iterator()
     while(iter.hasNext) {
-      iter.next().pluginClasses.foreach(registerPlugin)
+      val module = iter.next()
+      module.pluginClasses.foreach(registerPlugin)
+      module.load()
     }
   }
 
