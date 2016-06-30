@@ -4,6 +4,21 @@ pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_])
 
 @import org.silkframework.runtime.plugin.PluginDescription
 
+<script type="text/javascript">
+// Initialization
+$(function() {
+  // Make operators draggable
+  $('.@name.toLowerCase').draggable({
+    helper: function() {
+      var box = $(this).children('.@{opType}Div').clone(false);
+      var id = box.find(".handler label").text();
+      box.attr("id", generateNewElementId(id));
+      box.show();
+      return box;
+    }
+  });
+});
+</script>
 
 @for(plugin <- pluginGroup.availablePlugins) {
   <div class="operator plugin">
@@ -13,9 +28,23 @@ pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_])
     <div id="@{opType}_@{plugin.categories.head}_@{plugin.id}" class="draggable @name.toLowerCase">
       <small>@plugin.label</small>
       <p class="non-breaking-label">@plugin.label</p>
+      @operatorExpanded(plugin)
     </div>
     <div class="mdl-tooltip mdl-tooltip--right" for="@{opType}_@{plugin.categories.head}_@{plugin.id}">
       @plugin.description
     </div>
   </div>
+}
+
+@operatorExpanded(plugin: PluginDescription[_]) = {
+  @opType match {
+    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false) }
+    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false) }
+    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false) }
+  }
+}
+
+@parameterValues(plugin: PluginDescription[_]) = @{
+  val values = for(p <- plugin.parameters) yield (p.name, p.defaultValue.getOrElse("").toString)
+  values.toMap
 }
