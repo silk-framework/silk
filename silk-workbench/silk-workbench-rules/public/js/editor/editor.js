@@ -610,14 +610,20 @@ function encodeHtml(value) {
   return encodedHtml;
 }
 
-function getPropertyPaths() {
+/**
+ * Replaces targetElement with the list of paths.
+ * @targetElement jQuery selector to define the target element
+ * @groupPath boolean - true if we want the grouped list, false if we want an ungrouped list (for the keyword search results)
+ */
+function getPropertyPaths(targetElement, groupPaths) {
   $.ajax({
     type: 'get',
     url: editorUrl + '/widgets/paths',
+    data: { groupPaths: groupPaths },
     complete: function(response, status) {
-      $("#paths").html(response.responseText);
+      $(targetElement).html(response.responseText);
       if(status == "error") {
-        setTimeout('getPropertyPaths()', 2000);
+        setTimeout('getPropertyPaths(' + targetElement + ')', 2000);
       } else {
         updateWindowSize();
       }
@@ -638,7 +644,7 @@ function reloadCache() {
     url: apiUrl + '/reloadCache',
     dataType: "xml",
     success: function() {
-      getPropertyPaths();
+      getPropertyPaths('#paths');
       updateScore();
     }
   });

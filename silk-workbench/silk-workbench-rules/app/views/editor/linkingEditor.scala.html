@@ -118,7 +118,7 @@
       <div id="paths">
         <div id="loading" style="width:230px;">loading ...</div>
         <script type="text/javascript">
-          getPropertyPaths();
+          getPropertyPaths("#paths");
         </script>
       </div>
 
@@ -131,6 +131,12 @@
 
     <div id="operators-search-result" style="display: none;">
       <div id="operatorList" class="scrollboxes" style="height: 100%;">
+        <div id="paths_search">
+          ...loading paths
+          <script type="text/javascript">
+            getPropertyPaths("#paths_search", false);
+          </script>
+        </div>
         @operatorsAll("Transformations", "transform", Transformer)
         @operatorsAll("Comparators", "compare", DistanceMeasure)
         @operatorsAll("Aggregators", "aggregate", Aggregator)
