@@ -487,8 +487,10 @@ function updateWindowSize() {
     // resize scroll-boxes
     var block_header_height = 34;
     var scrollbox_height = palette_block_height - block_header_height;
-    var scrollboxes = $('.scrollboxes');
-    scrollboxes.height(scrollbox_height);
+    var scrollboxes_grouped = $('#operators-grouped .scrollboxes');
+    scrollboxes_grouped.height(scrollbox_height);
+    var scrollboxes_search = $('#operators-search-result .scrollboxes');
+    scrollboxes_search.height($(".draggables").height() - height_diff);
   }
 }
 

@@ -108,20 +108,37 @@
 @content = {
   <div class="draggables mdl-shadow--2dp">
     <div id="palette-header">
-    </div>
-    <div id="paths">
-      <div id="loading" style="width:230px;">loading ...</div>
-      <script type="text/javascript">
-        getPropertyPaths();
-      </script>
+      <div id="operatorSearchField" class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="text" id="operator_search_term">
+        <label class="mdl-textfield__label" for="operator_search_term">Search term...</label>
+      </div>
     </div>
 
-    <div id="operators">
-      @operators("Transformations", "transform", Transformer.pluginsByCategory)
-      @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
-      @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+    <div id="operators-grouped">
+      <div id="paths">
+        <div id="loading" style="width:230px;">loading ...</div>
+        <script type="text/javascript">
+          getPropertyPaths();
+        </script>
+      </div>
+
+      <div id="operators">
+        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+        @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
+        @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+      </div>
+    </div>
+
+    <div id="operators-search-result" style="display: none;">
+      <div id="operatorList" class="scrollboxes" style="height: 100%;">
+        @operatorsAll("Transformations", "transform", Transformer)
+        @operatorsAll("Comparators", "compare", DistanceMeasure)
+        @operatorsAll("Aggregators", "aggregate", Aggregator)
+      </div>
     </div>
   </div>
+  <script type="text/javascript" src="@Assets.at("js/jquery.mark.min.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/operatorSearch.js")"></script>
 
   <div class="wrapperEditor">
 

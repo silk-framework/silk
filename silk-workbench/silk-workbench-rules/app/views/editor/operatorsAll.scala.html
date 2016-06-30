@@ -1,0 +1,21 @@
+@(name: String,
+opType: String,
+pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_])
+
+@import org.silkframework.runtime.plugin.PluginDescription
+
+
+@for(plugin <- pluginGroup.availablePlugins) {
+  <div class="plugin">
+    <div class="operator-index">
+      @plugin.label
+    </div>
+    <div id="@{opType}_@{plugin.categories.head}_@{plugin.id}" class="draggable @name.toLowerCase">
+      <small>@plugin.label</small>
+      <p class="non-breaking-label">@plugin.label</p>
+    </div>
+    <div class="mdl-tooltip mdl-tooltip--right" for="@{opType}_@{plugin.categories.head}_@{plugin.id}">
+      @plugin.description
+    </div>
+  </div>
+}
