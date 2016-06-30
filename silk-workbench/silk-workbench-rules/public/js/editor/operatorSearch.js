@@ -10,6 +10,10 @@ $('#operator_search_term').keyup(function(){
     // show ungrouped list of operators if we have a non-empty search term
     $('#operators-grouped').hide();
     $('#operators-search-result').show();
+
+    $('#no_match_alert').show();
+    $('#operatorList').hide();
+
     $('#operatorList .operator').each(function() {
       var text = $(this).find('.operator-index').text().toLowerCase(); // the operator's index terms to match against
       if (text.indexOf(searchTerm) >= 0) {
@@ -18,6 +22,9 @@ $('#operator_search_term').keyup(function(){
         if (searchTerm.length > 1) { // to improve performance, only highlight for searchTerms longer than 1
           $("#operators-search-result .operator p").mark(searchTerm, {"exclude": [ ".search-invisible" ] });
         }
+
+        $('#no_match_alert').hide();
+        $('#operatorList').show();
       } else {
         $(this).addClass('search-invisible');
       }

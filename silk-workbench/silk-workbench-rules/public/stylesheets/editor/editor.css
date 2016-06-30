@@ -398,7 +398,7 @@ input.edit_label {
   margin: 0px;
 }
 
-/* filter-search */
+/* operator search */
 #operatorSearchField {
   margin-left: 10px;
   width: 220px;
@@ -409,5 +409,9 @@ input.edit_label {
 }
 
 .search-invisible {
+  display: none;
+}
+
+#no_match_alert {
   display: none;
 }

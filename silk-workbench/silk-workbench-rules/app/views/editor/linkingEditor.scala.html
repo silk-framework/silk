@@ -130,9 +130,12 @@
     </div>
 
     <div id="operators-search-result" style="display: none;">
+      <div id="no_match_alert" class="alert alert-info">
+        <strong>No matching operators</strong>
+      </div>
       <div id="operatorList" class="scrollboxes" style="height: 100%;">
         <div id="paths_search">
-          ...loading paths
+          loading paths ...
           <script type="text/javascript">
             getPropertyPaths("#paths_search", false);
           </script>
