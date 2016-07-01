@@ -4,7 +4,7 @@
 
 GET           /                                                                 controllers.workspace.Workspace.index
 GET           /tree                                                             controllers.workspace.Workspace.tree
-GET           /status                                                           controllers.workspace.Workspace.status
+GET           /allActivities                                                    controllers.workspace.Workspace.activities
 
 GET           /dialogs/newproject                                               controllers.workspace.Workspace.newProjectDialog()
 GET           /dialogs/importproject                                            controllers.workspace.Workspace.importProjectDialog()
