@@ -1,16 +1,30 @@
+@import plugins.Context
+@import org.silkframework.config.LinkSpecification
+
 @(population: org.silkframework.learning.individual.Population,
-  referenceLinks: org.silkframework.evaluation.ReferenceLinks)
+  referenceLinks: org.silkframework.evaluation.ReferenceLinks,
+  context: Context[LinkSpecification])
 
-<script type="text/javascript">
-  initTrees();
-</script>
+@defining(3) { threshold =>
 
-@if(population.isEmpty) {
-  No linkage rule learned yet.
-} else {
-  <div>
-    Fitness: @{"%.1f".format((population.bestIndividual.fitness) * 100)} (based on @referenceLinks.positive.size positive and @referenceLinks.negative.size negative reference links)
-    <br/>
-    @ruleTree(population.bestIndividual.node.build)
-  </div>
+  @if(population.isEmpty) {
+    <div class="alert alert-info"><strong>No linkage rule learned yet.</strong></div>
+  } else {
+    @if(referenceLinks.positive.size >= threshold) {
+      @ruleGraph(population.bestIndividual.node.build, context)
+      <script type="text/javascript">
+        $("#hide_graph_button").prop('disabled', false);
+      </script>
+    } else {
+      <div class="alert alert-info"><strong>You need to confirm at least @{threshold} resource pairs, before a candidate rule can be shown.</strong></div>
+    }
+
+    <script type="text/javascript">
+      @if(!population.isEmpty) {
+        $("#learning_fitness_info").html("Fitness: @{"%.1f".format((population.bestIndividual.fitness) * 100)} (based on @referenceLinks.positive.size positive and @referenceLinks.negative.size negative reference links)");
+      }
+    </script>
+
+  }
+
 }

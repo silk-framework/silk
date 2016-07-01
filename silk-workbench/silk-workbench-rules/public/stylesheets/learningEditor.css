@@ -1,0 +1,58 @@
+/**
+* Additional CSS rules for displaying the editor's graph view of a rule on the learning tab.
+* Several UI elements are not to be shown, or shown differently.
+**/
+
+
+.droppable_outer {
+  height: auto;
+  margin: 0px;
+  width: 100%;
+}
+
+#droppable {
+  height: 300px;
+  padding: 0px;
+  margin: 0px;
+}
+
+.dragDiv img {
+  display: none;
+}
+
+.dragDiv .content {
+  border-bottom: 1px solid;
+  border-radius: 0px 0px 3px 3px;
+  padding: 0px 10px 0px 5px;
+}
+
+label:hover {
+    background: none;
+}
+
+.aggregateDiv:hover {
+  background-color: none;
+  box-shadow: none;
+}
+
+.plugin_param {
+  display: none;
+}
+
+#droppable input {
+  border: none;
+  background-color: transparent;
+}
+
+.param_value {
+  font-weight: bold;
+}
+
+.operator_footer {
+  display: none;
+}
+
+.no-pointer {
+  pointer-events:none;
+}
+
