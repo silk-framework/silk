@@ -11,6 +11,10 @@ class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
   @volatile
   private var initialized: Boolean = false
 
+  override def isDefined: Boolean = {
+    initialized || initialValue.isDefined
+  }
+
   override def apply(): T = {
     if(!initialized) {
       if(initialValue.isDefined) {

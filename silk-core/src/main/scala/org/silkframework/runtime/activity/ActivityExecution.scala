@@ -32,6 +32,9 @@ private class ActivityExecution[T](activity: Activity[T],
   override val status = new StatusHolder(log, parent.map(_.status), progressContribution)
 
   @volatile
+  private var user: UserContext = UserContext.Empty
+
+  @volatile
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   override def run(): Unit = synchronized {
@@ -53,21 +56,24 @@ private class ActivityExecution[T](activity: Activity[T],
     childControls
   }
 
-  override def start(): Unit = {
+  override def start()(implicit user: UserContext): Unit = {
     // Check if the current activity is still running
     if(status().isRunning)
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     // Execute activity
+    this.user = user
     status.update(Status.Started())
     Activity.executionContext.execute(this)
   }
 
-  override def startBlocking(): Unit = {
+  override def startBlocking()(implicit user: UserContext): Unit = {
+    this.user = user
     status.update(Status.Started())
     run()
   }
 
-  override def startBlockingAndGetValue(initialValue: Option[T]): T = {
+  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
+    this.user = user
     status.update(Status.Started())
     for(v <- initialValue)
       value.update(v)
