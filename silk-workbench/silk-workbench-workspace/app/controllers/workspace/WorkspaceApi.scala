@@ -4,6 +4,9 @@ import java.io.{ByteArrayOutputStream, FileInputStream}
 import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
+import controllers.util.ProjectUtils
+import controllers.util.ProjectUtils._
+
 import controllers.core.{Stream, Widgets}
 import models.JsonError
 import org.silkframework.config._
@@ -11,6 +14,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlWorkspaceProvider}
@@ -80,6 +84,7 @@ object WorkspaceApi extends Controller {
 
   /**
     * importProject variant with explicit marshaller parameter
+    *
     * @param project
     * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
     * @return
@@ -505,6 +510,22 @@ object ActivityLog extends java.util.logging.Handler {
       start %= buffer.length
     }
   }
+
+
+//  def postVariableWorkflowInput(projectName: String, workflowTaskName: String) = Action { request =>
+//    val (_, task) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+//    request.body match {
+//      case AnyContentAsXml(xmlRoot) =>
+//        implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
+//        val dataSource = createDataSource(xmlRoot, None)
+//        val (model, entitySink) = createEntitySink(xmlRoot)
+//        executeTransform(task, entitySink, dataSource, errorEntitySinkOpt = None)
+//        val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
+//        result(model, acceptedContentType, "Data transformed successfully!")
+//      case _ =>
+//        UnsupportedMediaType("Only XML supported")
+//    }
+//  }
 
   override def flush(): Unit = {}
 
