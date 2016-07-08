@@ -21,26 +21,39 @@
         <th>Rule</th>
         <th>Entity</th>
         <th>Values</th>
-        <th>Error</th>
+        <th>Issue</th>
       </tr>
     </thead>
     <tbody>
 
     @for((ruleName, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
-      <tr>
-        <td>@ruleName</td>
+      <tr class="mdl-color--blue-grey-100">
+        <td><b>@ruleName</b></td>
         <td></td>
         <td></td>
         <td></td>
       </tr>
 
-      @for(RuleError(entity, values, exception) <- sampleErrors) {
+      @if(sampleErrors.isEmpty) {
         <tr>
           <td></td>
-          <td>@context.project.config.prefixes.shorten(entity)</td>
-          <td>@values.flatten.mkString(", ")</td>
-          <td>@exception.getMessage</td>
+          <td>
+            No issues
+          </td>
+          <td></td>
+          <td></td>
         </tr>
+      } else {
+        @for(RuleError(entity, values, exception) <- sampleErrors) {
+          <tr>
+            <td></td>
+            <td>
+              <a href="@entity" target="_blank" >@context.project.config.prefixes.shorten(entity)</a>
+            </td>
+            <td>@values.flatten.mkString(", ")</td>
+            <td>@exception.getMessage</td>
+          </tr>
+        }
       }
     }
 
