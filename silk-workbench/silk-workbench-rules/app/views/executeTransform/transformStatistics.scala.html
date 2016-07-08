@@ -6,19 +6,15 @@
 
 @(context: Context[TransformSpecification], statistics: ExecuteTransformResult)
 
-@header = {
+@if(statistics.ruleResults.isEmpty) {
+  <div>
+    No validation issues
+  </div>
+} else {
+  @issueTable
 }
 
-@toolbar = {
-  <ul>
-    <li>
-    </li>
-    <li>
-    </li>
-  </ul>
-}
-
-@content = {
+@issueTable = {
   <table class="mdl-data-table mdl-js-data-table">
     <thead>
       <tr>
@@ -51,5 +47,3 @@
     </tbody>
   </table>
 }
-
-@main(Some(context))(header)(toolbar)(content)
