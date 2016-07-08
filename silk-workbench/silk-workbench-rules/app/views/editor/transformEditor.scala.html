@@ -99,15 +99,18 @@
   <div class="draggables mdl-shadow--2dp">
     <div class="palette-header">
     </div>
-    <div id="paths">
-      <div id="loading" style="width:230px;">loading ...</div>
-      <script type="text/javascript">
-        getPropertyPaths('#paths');
-      </script>
-    </div>
 
-    <div id="operators">
-      @operators("Transformations", "transform", Transformer.pluginsByCategory)
+    <div id="operators-grouped">
+      <div id="paths">
+        <div id="loading" style="width:230px;">loading ...</div>
+        <script type="text/javascript">
+          getPropertyPaths('#paths');
+        </script>
+      </div>
+
+      <div id="operators">
+        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+      </div>
     </div>
   </div>
 
