@@ -161,25 +161,6 @@
           )
         }
       </div>
-<!--
-      <div style="width: 180px; float: left;">
-        Link Limit:
-        <select id="linklimit" onchange="modifyLinkSpec()">
-          <option>unlimited</option>
-          @for(i <- 1 to 10) {
-            <option @if(context.task.data.rule.filter.limit == Some(i)) {selected="selected"}>@i</option>
-          }
-        </select>
-        <img src="@Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
-      </div>
-
-      <div style="width: 300px; float: left;">
-        Link Type:
-        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
-      </div>
-
--->
-
 
     </div>
 
