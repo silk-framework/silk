@@ -66,6 +66,10 @@ class WorkflowExecutor(task: Task[Workflow],
     if ((variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet).size > 0) {
       throw new scala.Exception("Cannot use variable dataset as input AND output!")
     }
+    val notCoveredVariableDatasets = variableDatasetsUsedInInput.filter(!replaceDataSources.contains(_))
+    if(notCoveredVariableDatasets.size > 0) {
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets provided: " + notCoveredVariableDatasets.mkString(", "))
+    }
   }
 
   override def cancelExecution(): Unit = {
@@ -77,12 +81,8 @@ class WorkflowExecutor(task: Task[Workflow],
 
     // Get the data sources of this operator
     // Either it reads the data from a dataset or directly from another operator in which case the internal data set is used.
-    val inputs = operator.inputs.map(project.anyTask(_).data)
-    val dataSources =
-      if (inputs.forall(_.isInstanceOf[Dataset]))
-        inputs.collect { case ds: Dataset => ds.source }
-      else
-        Seq(internalDataset.source)
+    val inputs = operator.inputs
+    val dataSources = inputDatasources(internalDataset, inputs)
 
     // Get the sinks for this operator
     val outputs = operator.outputs.map(project.anyTask(_).data)
@@ -107,5 +107,23 @@ class WorkflowExecutor(task: Task[Workflow],
     val report = context.child(activity, 0.0).startBlockingAndGetValue()
     context.value() = context.value().withReport(operator.id, report)
     log.info("Finished execution of " + operator.task)
+  }
+
+  private def inputDatasources(internalDataset: InternalDataset, inputIdentifiers: Seq[String]): Seq[DataSource] = {
+    val inputs = inputIdentifiers.map(task.project.anyTask(_).data)
+    if (inputs.forall(_.isInstanceOf[Dataset])) {
+      inputs.collect {
+        case ds: Dataset if ds.plugin.isInstanceOf[VariableDataset] =>
+          replaceDataSources.get(ds.id.toString) match {
+            case Some(dataSource) => dataSource
+            case None =>
+              throw new IllegalArgumentException("No input found for variable dataset " + ds.id.toString)
+          }
+        case ds: Dataset =>
+          ds.source
+      }
+    } else {
+      Seq(internalDataset.source)
+    }
   }
 }

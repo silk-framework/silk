@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.Plugin
   id = "variableDataset",
   label = "Variable Dataset",
   description = "Dataset that acts as a placeholder in Silk workflows and is replaced at request time.")
-class VariableDataset extends DatasetPlugin {
+final class VariableDataset extends DatasetPlugin {
   /**
     * Returns a data source for reading entities from the data set.
     */
