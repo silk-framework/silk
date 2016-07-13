@@ -411,3 +411,21 @@
 #link-candidate-wrapper .source-value, #link-candidate-wrapper .target-value {
   word-wrap: break-word;
 }
+
+
+/*
+* Dialogs
+*/
+
+.mdl-dialog {
+  /* overwriting the fixed width in eccenca_style.css */
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+
+}
+
+.mdl-dialog__title .mdl-spinner {
+  float: right;
+  display: none;
+}
