@@ -1,20 +1,15 @@
 @()
 
-@widgets.dialog(title = "New Project", width = 400) {
-  <table border="0">
-    <tr>
-      <td>Name</td>
-      <td><input name="name" title="Project Name" size="30" value="unnamed"/></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td align="right"><button onclick='submit()'>Ok</button></td>
-    </tr>
-  </table>
+@widgets.dialog(title = "New Project", submitLabel = "Create") {
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="project_name" name="project_name"/>
+    <label class="mdl-textfield__label" for="project_name">Name</label>
+  </div>
 
   <script>//<![CDATA[
     function submit() {
-      var name = $("input[name='name']").val();
+      console.log("submit()");
+      var name = $("input[name='project_name']").val();
 
       $.ajax({
         type: 'PUT',
