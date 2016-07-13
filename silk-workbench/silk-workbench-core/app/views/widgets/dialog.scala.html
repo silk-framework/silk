@@ -1,10 +1,23 @@
-@(title: String, width: Int = 700)(content: Html)
+@(title: String, width: Int = 700, submitLabel: String = "OK")(content: Html)
 
-@content
+<div class="mdl-dialog__title">
+  <strong class="mdl-dialog__title-text">@title</strong>
+  <div id="dialog-progress-spinner" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+</div>
 
-<script type="text/javascript">
-  $(function() {
-    dialog.dialog('option', 'title', '@title');
-    dialog.dialog('option', 'width', @width);
-  })
+<form action="javascript:submit();">
+  <div class="mdl-dialog__content">
+  @content
+  </div>
+  <div class="mdl-dialog__actions">
+    <button id="dialog-submit-button" type="submit" class="mdl-button mdl-js-button mdl-button--accent">@submitLabel</button>
+    <button id="dialog-cancel-button" type="button" class="mdl-button mdl-js-button mdl-button--accent close">Cancel</button>
+  </div>
+</form>
+<script>
+  var mdl_dialog = document.querySelector('dialog');
+  mdl_dialog.querySelector('.close').addEventListener('click', function() {
+    mdl_dialog.close();
+  });
 </script>
+
