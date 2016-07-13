@@ -57,9 +57,21 @@ var errorHandler = function(request) {
 function showDialog(path) {
   dialogPath = path;
   $.get(path, function(data) {
+    // inject dialog content into dialog container
+    $(mdl_dialog).html(data);
+    // enable MDL JS for dynamically added components
+    componentHandler.upgradeAllRegistered();
+  }).success(function() {
+    mdl_dialog.showModal();
+  }).fail(function(request) {
+    alert(request.responseText);
+  });
+/*
+  $.get(path, function(data) {
     dialog.html(data);
   }).success(function() { dialog.dialog('open'); } )
     .fail(function(request) { alert(request.responseText);  })
+*/
 }
 
 /**
@@ -75,7 +87,7 @@ function reloadDialog() {
  * Closes current dialog.
  */
 function closeDialog() {
-  dialog.dialog('close');
+  mdl_dialog.close();
 }
 
 /**
