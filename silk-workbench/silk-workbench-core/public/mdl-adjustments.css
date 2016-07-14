@@ -422,10 +422,16 @@
   width: -webkit-fit-content;
   width: -moz-fit-content;
   width: fit-content;
+  min-width: 320px;
+
 
 }
 
 .mdl-dialog__title .mdl-spinner {
   float: right;
   display: none;
+}
+
+.delete-dialog-resource {
+  font-weight: bold;
 }

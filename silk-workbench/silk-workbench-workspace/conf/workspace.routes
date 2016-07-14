@@ -8,6 +8,7 @@ GET           /allActivities                                                    
 
 GET           /dialogs/newproject                                               controllers.workspace.Workspace.newProjectDialog()
 GET           /dialogs/importproject                                            controllers.workspace.Workspace.importProjectDialog()
+GET           /dialogs/removeresource/:name/:path                               controllers.workspace.Workspace.removeResourceDialog(name: String, path: String)
 GET           /dialogs/importlinkspec/:project                                  controllers.workspace.Workspace.importLinkSpecDialog(project: String)
 GET           /dialogs/prefixes/:project                                        controllers.workspace.Workspace.prefixDialog(project: String)
 GET           /dialogs/resources/:project                                       controllers.workspace.Workspace.resourcesDialog(project: String)

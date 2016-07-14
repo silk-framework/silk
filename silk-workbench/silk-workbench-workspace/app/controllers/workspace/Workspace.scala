@@ -30,6 +30,10 @@ object Workspace extends Controller {
     Ok(views.html.workspace.importProjectDialog())
   }
 
+  def removeResourceDialog(name: String, path: String) = Action {
+    Ok(views.html.workspace.removeResourceDialog(name, path))
+  }
+
   def importLinkSpecDialog(project: String) = Action {
     Ok(views.html.workspace.importLinkSpecDialog(project))
   }

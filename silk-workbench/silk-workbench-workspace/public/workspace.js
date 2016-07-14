@@ -102,29 +102,5 @@ function deleteTask(path) {
 }
 
 function deleteTaskConfirm(name, path) {
-  var confirmDialog = document.createElement("div");
-  $(confirmDialog).attr("title",'Delete')
-      .attr("id",'dialog');
-  var dialogText = document.createElement("p");
-  $(dialogText).text("Delete resource: " + name);
-  $(confirmDialog).append(dialogText);
-
-  $("#content").append(confirmDialog);
-
-  $("#dialog").dialog({width: 400,
-    modal: true,
-    resizable: false,
-    buttons: {
-      "Yes, delete it": function() {
-        deleteTask(path);
-        $(this).dialog("close");
-      },
-      "Cancel": function() {
-        $(this).dialog("close");
-      }
-    }
-  });
-
-
-
+  showDialog(baseUrl + '/workspace/dialogs/removeresource/' + name + "/" + encodeURIComponent(path));
 }
