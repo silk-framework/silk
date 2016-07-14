@@ -15,7 +15,7 @@ final class VariableDataset extends DatasetPlugin {
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source: DataSource = error()
+  override def source: DataSource = EmptyDataset.source// TODO: error()
 
   /**
     * Makes sure that the next write will start from an empty dataset.

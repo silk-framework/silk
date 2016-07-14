@@ -2,7 +2,7 @@ package controllers.util
 
 import java.io.StringWriter
 
-import com.hp.hpl.jena.rdf.model.{ModelFactory, Model}
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.SparqlParams
@@ -11,7 +11,6 @@ import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, Task, User}
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
@@ -56,10 +55,34 @@ object ProjectUtils {
     * @param xmlRoot
     * @return
     */
-  def createDataSources(xmlRoot: NodeSeq)
+  def createDataSources(xmlRoot: NodeSeq,
+                        dataSourceIds: Option[Set[String]])
                        (implicit resourceLoader: ResourceManager): Map[String, DataSource] = {
-    val datasets = createAllDatasets(xmlRoot)
-    datasets.map{ ds => (ds.id.toString, ds.source) }.toMap
+    val datasets = createAllDatasets(xmlRoot, "DataSources", dataSourceIds)
+    datasets.map { ds => (ds.id.toString, ds.source) }.toMap
+  }
+
+  /**
+    * Creates in-memory sink version of the selected datasets.
+    * This does only work with [[DatasetPlugin]] that implement the [[WritableResourceDatasetPlugin]] trait.
+    * @param sinkIds The dataset ids (keys) for which sinks should be created, the values of the map
+    *                are the resource ids of the resource manager that should be used for each dataset.
+    */
+  def createInMemorySink(xmlRoot: NodeSeq,
+                         sinkIds: Map[String, String])
+                        (implicit resourceLoader: ResourceManager): Map[String, SinkTrait] = {
+    val datasets = createAllDatasets(xmlRoot, "Sinks", Some(sinkIds.map(_._1).toSet))
+//    val datasetPlugins = datasets.map { ds =>
+//      val ds.plugin match {
+//        case plugin: DatasetPlugin with WritableResourceDatasetPlugin =>
+//          val writableResource = resourceLoader.get(sinkIds(ds.id.toString))
+//          plugin.replaceWritableResource(writableResource)
+//        case p =>
+//          val datasetId = ds.id.toString
+//          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
+//      }
+//    }
+    datasets.map { ds => (ds.id.toString, ds) }.toMap
   }
 
   /**
@@ -89,13 +112,16 @@ object ProjectUtils {
   }
 
   /** Creates all datasets found in the XML document */
-  private def createAllDatasets(xmlRoot: NodeSeq)
-                              (implicit resourceLoader: ResourceManager): Seq[Dataset] = {
-    val dataSources = xmlRoot \ "DataSources" \ "_"
+  private def createAllDatasets(xmlRoot: NodeSeq,
+                                xmlElementName: String,
+                                datasetIds: Option[Set[String]])
+                               (implicit resourceLoader: ResourceManager): Seq[Dataset] = {
+    val dataSources = xmlRoot \ xmlElementName \ "_"
     implicit val readContext = ReadContext(resourceLoader)
-    for(dataSource <- dataSources) yield {
+    val datasets = for (dataSource <- dataSources) yield {
       XmlSerialization.fromXml[Dataset](dataSource)
     }
+    datasets.filter(ds => datasetIds.map(_.contains(ds.id.toString)).getOrElse(true))
   }
 
   // Create a data sink as specified in a REST request

@@ -9,7 +9,7 @@ import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{EmptyResourceManager, UrlResource}
+import org.silkframework.runtime.resource.{ResourceNotFoundException, EmptyResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
@@ -218,7 +218,7 @@ object WorkspaceApi extends Controller {
 
   def getResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val resource = project.resources.get(resourceName)
+    val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.load)
 
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")

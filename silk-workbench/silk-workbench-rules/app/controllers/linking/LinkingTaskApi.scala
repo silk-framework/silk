@@ -42,7 +42,7 @@ object LinkingTaskApi extends Controller {
     val datasets =
       DPair(DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
             DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
-    val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
+    val outputs = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten
 
     proj.tasks[LinkSpecification].find(_.name == task) match {
       //Update existing task

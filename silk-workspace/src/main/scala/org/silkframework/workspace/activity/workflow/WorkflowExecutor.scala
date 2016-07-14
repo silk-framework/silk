@@ -11,9 +11,12 @@ import org.silkframework.workspace.{Project, Task}
 import scala.collection.immutable.ListMap
 
 class WorkflowExecutor(task: Task[Workflow],
-                       replaceDataSources: Map[String, DataSource] = Map.empty) extends Activity[WorkflowExecutionReport] {
+                       replaceDataSources: Map[String, DataSource] = Map.empty,
+                       replaceSinks: Map[String, SinkTrait] = Map.empty) extends Activity[WorkflowExecutionReport] {
 
   val log = Logger.getLogger(getClass.getName)
+  private val workflow = task.data
+  private val project = task.project
 
   @volatile
   private var canceled = false
@@ -22,14 +25,13 @@ class WorkflowExecutor(task: Task[Workflow],
 
   override def run(context: ActivityContext[WorkflowExecutionReport]) = {
     canceled = false
-    val project = task.project
-    val operators = task.data.operators
+    val operators = workflow.operators
     val internalDataset = InternalDataset()
     internalDataset.clear()
 
-    clearInternalDatasets(project, operators)
+    clearInternalDatasets(operators)
 
-    checkVariableDatasets(project, operators)
+    checkVariableDatasets()
 
     // Preliminary: Just execute the operators from left to right
     for ((op, index) <- operators.sortBy(_.position.x).zipWithIndex if !canceled) {
@@ -38,7 +40,7 @@ class WorkflowExecutor(task: Task[Workflow],
     }
   }
 
-  private def clearInternalDatasets(project: Project, operators: Seq[WorkflowOperator]): Unit = {
+  private def clearInternalDatasets(operators: Seq[WorkflowOperator]): Unit = {
     // Clear all internal datasets used as output before writing
     for (datasetId <- operators.flatMap(_.outputs).distinct;
          dataset <- project.taskOption[Dataset](datasetId)
@@ -48,27 +50,15 @@ class WorkflowExecutor(task: Task[Workflow],
   }
 
   // Return error if VariableDataset is used in output and input
-  private def checkVariableDatasets(project: Project, operators: Seq[WorkflowOperator]): Unit = {
-    val variableDatasetsUsedInOutput =
-      for (datasetId <- operators.flatMap(_.outputs).distinct;
-           dataset <- project.taskOption[Dataset](datasetId)
-           if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
-        datasetId
-      }
-
-    val variableDatasetsUsedInInput =
-      for (datasetId <- operators.flatMap(_.inputs).distinct;
-           dataset <- project.taskOption[Dataset](datasetId)
-           if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
-        datasetId
-      }
-
-    if ((variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet).size > 0) {
-      throw new scala.Exception("Cannot use variable dataset as input AND output!")
-    }
-    val notCoveredVariableDatasets = variableDatasetsUsedInInput.filter(!replaceDataSources.contains(_))
+  private def checkVariableDatasets(): Unit = {
+    val variableDatasets = workflow.variableDatasets(project)
+    val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if(notCoveredVariableDatasets.size > 0) {
-      throw new scala.IllegalArgumentException("No replacement for following variable datasets provided: " + notCoveredVariableDatasets.mkString(", "))
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " + notCoveredVariableDatasets.mkString(", "))
+    }
+    val notCoveredVariableSinks = variableDatasets.sinks.filter(!replaceSinks.contains(_))
+    if(notCoveredVariableSinks.size > 0) {
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " + notCoveredVariableSinks.mkString(", "))
     }
   }
 
@@ -86,7 +76,7 @@ class WorkflowExecutor(task: Task[Workflow],
 
     // Get the sinks for this operator
     val outputs = operator.outputs.map(project.anyTask(_).data)
-    var sinks: Seq[SinkTrait] = outputs.collect { case ds: Dataset => ds }
+    var sinks: Seq[SinkTrait] = outputSinks(outputs)
     val errorOutputs = operator.errorOutputs.map(project.anyTask(_).data)
     var errorSinks: Seq[SinkTrait] = errorOutputs.collect { case ds: Dataset => ds }
 
@@ -107,6 +97,19 @@ class WorkflowExecutor(task: Task[Workflow],
     val report = context.child(activity, 0.0).startBlockingAndGetValue()
     context.value() = context.value().withReport(operator.id, report)
     log.info("Finished execution of " + operator.task)
+  }
+
+  private def outputSinks(outputs: Seq[Any]): Seq[SinkTrait] = {
+    outputs.collect {
+      case ds: Dataset if ds.plugin.isInstanceOf[VariableDataset] =>
+        replaceSinks.get(ds.id.toString) match {
+          case Some(dataSource) => dataSource
+          case None =>
+            throw new IllegalArgumentException("No output found for variable dataset " + ds.id.toString)
+        }
+      case ds: Dataset =>
+        ds
+    }
   }
 
   private def inputDatasources(internalDataset: InternalDataset, inputIdentifiers: Seq[String]): Seq[DataSource] = {

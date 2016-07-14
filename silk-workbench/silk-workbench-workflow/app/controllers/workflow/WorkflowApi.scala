@@ -1,14 +1,16 @@
 package controllers.workflow
 
 import controllers.util.ProjectUtils._
-import controllers.workspace.WorkspaceApi._
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{SinkTrait, DataSource}
 import org.silkframework.execution.ExecuteTransformResult
 import org.silkframework.execution.ExecuteTransformResult.RuleResult
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutor}
 import org.silkframework.workspace.{Task, User}
-import org.silkframework.workspace.activity.workflow.{WorkflowExecutorFactory, Workflow, WorkflowExecutionReport, WorkflowExecutor}
-import play.api.mvc.{AnyContentAsXml, Action, Controller}
+import play.api.mvc.{Action, AnyContentAsXml, Controller}
+
+import scala.xml.Elem
 
 object WorkflowApi extends Controller {
 
@@ -36,7 +38,7 @@ object WorkflowApi extends Controller {
     val project = User().workspace.project(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[WorkflowExecutor].control
-    if(activity.status().isRunning)
+    if (activity.status().isRunning)
       PreconditionFailed
     else {
       activity.start()
@@ -52,7 +54,7 @@ object WorkflowApi extends Controller {
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
 
-    for{
+    for {
       (name, res: ExecuteTransformResult) <- report.taskReports
       (column, RuleResult(count, _)) <- res.ruleResults
     } {
@@ -71,23 +73,38 @@ object WorkflowApi extends Controller {
     * @return
     */
   def postVariableWorkflowInput(projectName: String, workflowTaskName: String) = Action { request =>
-    val (_, workflow) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
+        val workflow = workflowTask.data
+        val variableDatasets = workflow.variableDatasets(project)
         implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
-        val dataSources = createDataSources(xmlRoot)
-        val (model, entitySink) = createEntitySink(xmlRoot)
-        executeVariableWorkflow(workflow, dataSources)
-        val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
-        result(model, acceptedContentType, "Data transformed successfully!")
+        // Create data sources from request payload
+        val dataSources = createDataSources(xmlRoot, Some(variableDatasets.dataSources.toSet))
+        // Create sinks and resources for variable datasets, all resources are returned in the response
+        val sink2ResourceMap = variableDatasets.sinks.map(s => (s, s + "_file_resource")).toMap
+        val sinks = createInMemorySink(xmlRoot, sink2ResourceMap)
+        executeVariableWorkflow(workflowTask, dataSources, sinks)
+        Ok(variableSinkResultXML(resourceManager, sink2ResourceMap))
       case _ =>
         UnsupportedMediaType("Only XML supported")
     }
   }
 
+  /** Generate result XML for all variable sinks in the workflow. */
+  private def variableSinkResultXML(resourceManager: ResourceManager, sink2ResourceMap: Map[String, String]): Elem = {
+    <WorkflowResults>
+      {for ((sinkId, resourceId) <- sink2ResourceMap) yield {
+      val resource = resourceManager.get(resourceId, mustExist = true)
+      <Result sinkId={sinkId}>{resource.loadAsString}</Result>
+    }}
+    </WorkflowResults>
+  }
+
   private def executeVariableWorkflow(task: Task[Workflow],
-                                      replaceDataSources: Map[String, DataSource]): Unit = {
-    val executor = new WorkflowExecutor(task, replaceDataSources)
+                                      replaceDataSources: Map[String, DataSource],
+                                      replaceSinks: Map[String, SinkTrait]): Unit = {
+    val executor = new WorkflowExecutor(task, replaceDataSources, replaceSinks)
     Activity(executor).startBlocking()
   }
 }

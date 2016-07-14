@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{WritableResource, Resource}
 
 @Plugin(
   id = "xml",
