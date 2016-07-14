@@ -3,20 +3,43 @@
   knownPrefixes: org.silkframework.config.Prefixes)
 
 @widgets.dialog(title = "Edit Prefixes") {
-  <table id=prefixTable>
-    @for(prefix <- prefixes) {
+  <table id="prefixTable" class="mdl-data-table mdl-js-data-table">
+    <thead>
       <tr>
-        <td><input class="prefix" value="@prefix._1: @prefix._2" style="width:550px"></td>
-        <td><button onclick="$(this).parent().parent().remove()">Remove</button></td>
+        <th class="mdl-data-table__cell--non-numeric">Prefix</th>
+        <th class="mdl-data-table__cell--non-numeric">URI</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    @for(prefix <- prefixes) {
+      <tr class="prefix_dialog-row">
+        <td class="mdl-data-table__cell--non-numeric">
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix">
+            <input class="mdl-textfield__input" type="text" value="@prefix._1"/>
+          </div>
+        <td class="mdl-data-table__cell--non-numeric">
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-uri">
+            <input class="mdl-textfield__input" type="text" value="@prefix._2"/>
+          </div>
+        <td>
+          <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="$(this).parent().parent().remove()">
+            <i class="material-icons">remove</i>
+          </button>
+        </td>
       </tr>
     }
-    <tr>
-      <td></td>
-      <td><button onclick="addRow()">Add</button></td>
-    </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td>
+          <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="addRow()">
+            <i class="material-icons">add</i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
   </table>
-
-  <button onclick="submit()">Ok</button>
 
   <script>
     //Array which contains all known prefixes
@@ -30,27 +53,48 @@
 
     //Adds a new prefix row
     function addRow() {
-      $('#prefixTable tr').last().before("<tr><td><input class='prefix' value='' style='width:550px'></td><td><button onclick='$(this).parent().parent().remove()'>Remove</button></td></tr>");
-      $(".prefix").autocomplete({ source: availablePrefixes });
+      console.log("addRow");
+      var row = '<tr class="prefix_dialog-row"> \
+        <td class="mdl-data-table__cell--non-numeric"> \
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix"> \
+            <input class="mdl-textfield__input" type="text" value=""/> \
+          </div> \
+        </td> \
+        <td class="mdl-data-table__cell--non-numeric"> \
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-uri"> \
+            <input class="mdl-textfield__input" type="text" value=""/> \
+          </div> \
+        </td> \
+        <td> \
+          <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="$(this).parent().parent().remove()"> \
+            <i class="material-icons">remove</i> \
+          </button> \
+        </td> \
+      </tr>';
+      $('#prefixTable tbody tr').last().before(row);
+      // $(".prefix").autocomplete({ source: availablePrefixes });
     }
 
     function submit() {
-      var data = $('#prefixTable input').map(function(index, input) {
-        var value = input.value;
-        var i = input.value.indexOf(':');
-        return { name: value.substr(0, i).trim(), value: value.substr(i + 1).trim() };
+      console.log("submit");
+      var data = $('#prefixTable .prefix_dialog-row').map(function() {
+        var prefix = $(this).find(".prefix_dialog-prefix input").val();
+        var uri = $(this).find(".prefix_dialog-uri input").val();
+        return { name: prefix.trim(), value: uri.trim() };
       });
 
+      console.log(data);
+
       $.ajax({
-       type: 'PUT',
-       url: '@config.baseUrl/workspace/projects/@project/prefixes',
-       data: data,
-       success: function(data) {
-          $('.dialog').dialog('close');
-         },
-       error: function(request) {
+        type: 'PUT',
+        url: '@config.baseUrl/workspace/projects/@project/prefixes',
+        data: data,
+        success: function(data) {
+          closeDialog();
+        },
+        error: function(request) {
           alert(request.responseText);
-         }
+        }
       });
     }
   </script>

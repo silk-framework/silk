@@ -423,8 +423,23 @@
   width: -moz-fit-content;
   width: fit-content;
   min-width: 320px;
+}
 
+.mdl-dialog .mdl-data-table {
+  border: none;
+}
 
+.mdl-dialog .mdl-data-table td .mdl-textfield {
+  padding: 0px;
+}
+
+.mdl-dialog .mdl-data-table td {
+  border: none;
+  padding-top: 0px;
+}
+
+.mdl-dialog .mdl-data-table td, .mdl-dialog .mdl-data-table th {
+  padding: 0 18px 0 0;
 }
 
 .mdl-dialog__title .mdl-spinner {
@@ -434,4 +449,12 @@
 
 .delete-dialog-resource {
   font-weight: bold;
+}
+
+.prefix_dialog-prefix {
+  width: 100px;
+}
+
+.prefix_dialog-uri {
+  width: 400px;
 }
