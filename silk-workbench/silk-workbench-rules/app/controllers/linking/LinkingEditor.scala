@@ -18,7 +18,7 @@ object LinkingEditor extends Controller {
     Ok(views.html.editor.linkingEditor(context))
   }
 
-  def paths(projectName: String, taskName: String) = Action {
+  def paths(projectName: String, taskName: String, groupPaths: Boolean) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpecification](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
@@ -34,7 +34,11 @@ object LinkingEditor extends Controller {
 
       val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntitySchema.empty))
       val paths = entityDescs.map(_.paths.map(_.serialize(prefixes)))
-      Ok(views.html.editor.paths(sourceNames, paths, onlySource = false))
+      if (groupPaths) {
+        Ok(views.html.editor.paths(sourceNames, paths, onlySource = false))
+      } else {
+        Ok(views.html.editor.pathsList(sourceNames, paths, onlySource = false))
+      }
     }
   }
 

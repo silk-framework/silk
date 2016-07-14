@@ -1,0 +1,45 @@
+@import org.silkframework.util.DPair
+
+@(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "")
+
+@import controllers.rules.routes.Assets
+
+<script type="text/javascript">
+  // Initialization
+  $(function() {
+    // Make operators draggable
+    $('.sourcePaths, .targetPaths').draggable({
+      helper: function() {
+        var box = $(this).children('.dragDiv').clone(false);
+        var id = box.find(".handler label").text();
+        box.attr("id", generateNewElementId(id));
+        box.show();
+        return box;
+      }
+    });
+  })
+</script>
+
+@pathOperators(sources.source, paths.source, "Source")
+@pathOperators(sources.target, paths.target, "Target")
+
+@pathOperators(source: String, paths: Seq[String], pathType: String) = {
+  @for(path <- paths) {
+  <div class="operator path">
+    <div class="operator-index">
+      @path
+    </div>
+    <div id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}" class="draggable @{pathType.toLowerCase}Paths">
+      <p class="non-breaking-label">@path</p>
+      @pathExpanded(path, pathType)
+    </div>
+    <div class="mdl-tooltip mdl-tooltip--right" for="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}">
+      @path
+    </div>
+  </div>
+  }
+}
+
+@pathExpanded(path: String, pathType: String) = {
+  @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false)
+}

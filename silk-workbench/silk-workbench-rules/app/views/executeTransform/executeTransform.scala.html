@@ -2,10 +2,16 @@
 @import org.silkframework.config.TransformSpecification
 @import org.silkframework.execution.ExecuteTransform
 @import views.html.workspace.activity.taskActivityControl
+@import controllers.transform.routes.ExecuteTransformTab
 
 @(context: Context[TransformSpecification])
 
 @header = {
+  <script type="text/javascript">
+    function updateStatistics() {
+      $( "#statistics_wrapper" ).load('@ExecuteTransformTab.executeStatistics(context.project.name, context.task.name).url');
+    }
+  </script>
 }
 
 @toolbar = {
@@ -14,11 +20,16 @@
       @taskActivityControl(context.task.activity[ExecuteTransform], showButtons = true)
     </li>
     <li>
+      <button id="button_statistics" class="mdl-button mdl-js-button mdl-button--raised" onclick="updateStatistics()">Validation Report</button>
+      <div class="mdl-tooltip mdl-tooltip--large" for="button_statistics">
+        Loads the validation report about the current transform execution.
+      </div>
     </li>
   </ul>
 }
 
 @content = {
+  <div id="statistics_wrapper"></div>
 }
 
 @main(Some(context))(header)(toolbar)(content)

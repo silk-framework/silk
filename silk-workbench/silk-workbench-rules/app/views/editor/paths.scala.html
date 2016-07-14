@@ -55,7 +55,7 @@
       @for(path <- paths) {
         <div id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}" class="draggable @{pathType.toLowerCase}Paths">
           <span></span>
-          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">@path</p>
+          <p class="non-breaking-label">@path</p>
           @pathExpanded(path, pathType)
         </div>
         <div class="mdl-tooltip mdl-tooltip--right" for="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}">@path</div>

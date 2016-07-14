@@ -108,20 +108,46 @@
 @content = {
   <div class="draggables mdl-shadow--2dp">
     <div id="palette-header">
-    </div>
-    <div id="paths">
-      <div id="loading" style="width:230px;">loading ...</div>
-      <script type="text/javascript">
-        getPropertyPaths();
-      </script>
+      <div id="operatorSearchField" class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="text" id="operator_search_term">
+        <label class="mdl-textfield__label" for="operator_search_term">Search term...</label>
+      </div>
     </div>
 
-    <div id="operators">
-      @operators("Transformations", "transform", Transformer.pluginsByCategory)
-      @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
-      @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+    <div id="operators-grouped">
+      <div id="paths">
+        <div id="loading" style="width:230px;">loading ...</div>
+        <script type="text/javascript">
+          getPropertyPaths("#paths");
+        </script>
+      </div>
+
+      <div id="operators">
+        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+        @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
+        @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+      </div>
+    </div>
+
+    <div id="operators-search-result" style="display: none;">
+      <div id="no_match_alert" class="alert alert-info">
+        <strong>No matching operators</strong>
+      </div>
+      <div id="operatorList" class="scrollboxes" style="height: 100%;">
+        <div id="paths_search">
+          loading paths ...
+          <script type="text/javascript">
+            getPropertyPaths("#paths_search", false);
+          </script>
+        </div>
+        @operatorsAll("Transformations", "transform", Transformer)
+        @operatorsAll("Comparators", "compare", DistanceMeasure)
+        @operatorsAll("Aggregators", "aggregate", Aggregator)
+      </div>
     </div>
   </div>
+  <script type="text/javascript" src="@Assets.at("js/jquery.mark.min.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/operatorSearch.js")"></script>
 
   <div class="wrapperEditor">
 
@@ -135,25 +161,6 @@
           )
         }
       </div>
-<!--
-      <div style="width: 180px; float: left;">
-        Link Limit:
-        <select id="linklimit" onchange="modifyLinkSpec()">
-          <option>unlimited</option>
-          @for(i <- 1 to 10) {
-            <option @if(context.task.data.rule.filter.limit == Some(i)) {selected="selected"}>@i</option>
-          }
-        </select>
-        <img src="@Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
-      </div>
-
-      <div style="width: 300px; float: left;">
-        Link Type:
-        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
-      </div>
-
--->
-
 
     </div>
 

@@ -4,7 +4,7 @@ GET           /dialogs/editLinkingTask/:project/:task                           
 
 # Linkage Rule Editor
 GET           /:project/:task/editor                                                        controllers.linking.LinkingEditor.editor(project: String, task: String)
-GET           /:project/:task/editor/widgets/paths                                          controllers.linking.LinkingEditor.paths(project: String, task: String)
+GET           /:project/:task/editor/widgets/paths                                          controllers.linking.LinkingEditor.paths(project: String, task: String, groupPaths: Boolean ?= true)
 GET           /:project/:task/editor/widgets/score                                          controllers.linking.LinkingEditor.score(project: String, task: String)
 
 # Generate Links

@@ -16,7 +16,7 @@
 @drawLevel(ops: Seq[Operator], x: Int, height: Int) = {
   @if(!ops.isEmpty) {
     @for((op, index) <- ops.zipWithIndex) {
-      @drawOperator(op, x + 20, height * (index + 1) / (ops.size + 1) - 100)
+      @drawOperator(op, x + 20, height * (index + 1) / (ops.size + 1) - 80)
     }
     @drawLevel(ops.flatMap(getChildren), x - 250, height)
   }

@@ -19,7 +19,8 @@ package org.silkframework.plugins.transformer.date
 import java.text.{ParseException, SimpleDateFormat}
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin;
+import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.validation.ValidationException;
 
 /**
  * Parses a date, returning an xsd:date.
@@ -49,7 +50,8 @@ case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transform
       Seq(xsdDate)
     }
     catch {
-      case ex: ParseException => Seq.empty
+      case ex: ParseException =>
+        throw new ValidationException(s"Misformatted date. Expected format: $format", ex)
     }
   }
 }

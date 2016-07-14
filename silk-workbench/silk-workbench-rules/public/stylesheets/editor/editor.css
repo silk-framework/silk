@@ -18,6 +18,7 @@ body{
   background-color: #ffffff;
   border:1px dashed #d9d9d9;
   padding:5px;
+  width: 238px;
 }
 
 .wrapperEditor {
@@ -316,6 +317,14 @@ body{
   line-height: 40px;
 }
 
+/* operator draggables */
+.non-breaking-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 /* operator box footer */
 
 .operator_footer {
@@ -389,3 +398,20 @@ input.edit_label {
   margin: 0px;
 }
 
+/* operator search */
+#operatorSearchField {
+  margin-left: 10px;
+  width: 220px;
+}
+
+.operator-index {
+  display: none;
+}
+
+.search-invisible {
+  display: none;
+}
+
+#no_match_alert {
+  display: none;
+}
