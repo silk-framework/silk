@@ -2,7 +2,7 @@
   prefixes: org.silkframework.config.Prefixes,
   knownPrefixes: org.silkframework.config.Prefixes)
 
-@widgets.dialog(title = "Edit Prefixes") {
+@widgets.dialog(title = "Edit Prefixes", submitLabel = "Save Prefixes") {
   <table id="prefixTable" class="mdl-data-table mdl-js-data-table">
     <thead>
       <tr>
@@ -42,18 +42,17 @@
   </table>
 
   <script>
-    //Array which contains all known prefixes
-    var availablePrefixes = [
-      @for(prefix <- knownPrefixes) {
-        "@prefix._1: @prefix._2",
-      }
-    ];
+    // Array which contains all known prefixes
+    // var availablePrefixes = [
+    //  @for(prefix <- knownPrefixes) {
+    //    "@prefix._2",
+    //  }
+    //];
 
-    $(".prefix").autocomplete({ source: availablePrefixes });
+    // $(".prefix_dialog-uri input").autocomplete({ source: availablePrefixes });
 
     //Adds a new prefix row
     function addRow() {
-      console.log("addRow");
       var row = '<tr class="prefix_dialog-row"> \
         <td class="mdl-data-table__cell--non-numeric"> \
           <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix"> \
@@ -72,18 +71,15 @@
         </td> \
       </tr>';
       $('#prefixTable tbody tr').last().before(row);
-      // $(".prefix").autocomplete({ source: availablePrefixes });
+      // $(".prefix_dialog-uri input").autocomplete({ source: availablePrefixes });
     }
 
     function submit() {
-      console.log("submit");
       var data = $('#prefixTable .prefix_dialog-row').map(function() {
         var prefix = $(this).find(".prefix_dialog-prefix input").val();
         var uri = $(this).find(".prefix_dialog-uri input").val();
         return { name: prefix.trim(), value: uri.trim() };
       });
-
-      console.log(data);
 
       $.ajax({
         type: 'PUT',
