@@ -11,26 +11,31 @@
   resources: List[String])(contents: Html)
 
 @dialog(title = "Edit Properties", width = 500) {
-  <div id="plugintabs">
-    <ul>
-      @for(plugin <- plugins) {
-        <li><a href='#@plugin.id'>@plugin.label</a></li>
-      }
-    </ul>
-    @for(plugin <- plugins) {
-      @createTab(plugin)
-    }
+  <div id="plugintabs" class="mdl-tabs vertical-mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+    <div class="mdl-grid mdl-grid--no-spacing">
+      <div class="mdl-cell mdl-cell--2-col">
+        <div class="mdl-tabs__tab-bar">
+          @for(plugin <- plugins) {
+          <a href="#@plugin.id" class="mdl-tabs__tab">@plugin.label</a>
+          }
+        </div>
+      </div>
+      <div class="mdl-cell mdl-cell--10-col">
+        @for(plugin <- plugins) {
+          @createTab(plugin)
+        }
+      </div>
+    </div>
   </div>
   <script>
-    $(function() {
-      $('#plugintabs').tabs({ @for(obj <- currentObj) { active: @(plugins.indexWhere(_.id == obj.plugin.id)) } });
-    });
+    $("#plugintabs .mdl-tabs__tab").first().addClass("is-active");
+    $("#plugintabs .mdl-tabs__panel").first().addClass("is-active");
   </script>
   @contents
 }
 
 @createTab(plugin: PluginDescription[_]) = {
-  <div id='@plugin.id'>
+  <div id="@plugin.id" class="mdl-tabs__panel">
     @for(line <- plugin.description.split('\n')) {
       @line
       <br/>
