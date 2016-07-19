@@ -6,24 +6,18 @@
 @workflowTask = @{ User().workspace.project(project).tasks[Workflow].find(_.name == task) }
 
 @widgets.dialog(title = "Workflow Task") {
-  <table border="0">
-    @if(task.isEmpty) {
-      <tr>
-        <td>Name</td>
-        <td><input name="name" title="Name" size="60"/></td>
-      </tr>
-    }
-    <tr>
-      <td></td>
-      <td align="right"><button onclick='submit()'>Ok</button></td>
-    </tr>
-  </table>
+  @if(task.isEmpty) {
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="workflow_name" name="workflow_name"/>
+      <label class="mdl-textfield__label" for="workflow_name">Name</label>
+    </div>
+  }
 }
 
 <script type="text/javascript">
   function submit() {
     var values = {
-      name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
+      name: @if(!task.isEmpty) {'@task'} else {$("input[name='workflow_name']").val()},
     };
 
     if(values.name.length === 0) {
