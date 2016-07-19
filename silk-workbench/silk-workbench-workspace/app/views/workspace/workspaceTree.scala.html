@@ -30,7 +30,7 @@
   <li id="project_@project.name" >
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
-    @button("Resources", "Manager resources", "wrench.png", s"editResources('${project.name}')")
+    @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.name}')")
     @for(plugin <- WorkbenchPlugins();
          taskActions <- plugin.tasks;
          path <- taskActions.createDialog(project.name)) {
