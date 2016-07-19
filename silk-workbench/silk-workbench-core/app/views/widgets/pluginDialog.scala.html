@@ -13,14 +13,14 @@
 @dialog(title = "Edit Properties", width = 500) {
   <div id="plugintabs" class="mdl-tabs vertical-mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-grid mdl-grid--no-spacing">
-      <div class="mdl-cell mdl-cell--2-col">
+      <div class="mdl-cell mdl-cell--3-col">
         <div class="mdl-tabs__tab-bar">
           @for(plugin <- plugins) {
           <a href="#@plugin.id" class="mdl-tabs__tab">@plugin.label</a>
           }
         </div>
       </div>
-      <div class="mdl-cell mdl-cell--10-col">
+      <div class="mdl-cell mdl-cell--9-col">
         @for(plugin <- plugins) {
           @createTab(plugin)
         }
@@ -36,19 +36,19 @@
 
 @createTab(plugin: PluginDescription[_]) = {
   <div id="@plugin.id" class="mdl-tabs__panel">
-    @for(line <- plugin.description.split('\n')) {
-      @line
-      <br/>
+    <p>
+      @plugin.description
+    </p>
+
+
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"/>
+      <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
+    </div>
+
+    @for(param <- plugin.parameters) {
+      @createField(plugin.id, param)
     }
-    <table>
-      <tr>
-        <td>name</td>
-        <td><input type="text" name='@(plugin.id)_name' value='@name'/></td>
-      </tr>
-      @for(param <- plugin.parameters) {
-        @createField(plugin.id, param)
-      }
-    </table>
     <button onclick='@(plugin.id)_submit(false)'>Ok</button>
     @if(classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(plugin.pluginClass)) {
       <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
@@ -93,33 +93,31 @@
 }
 
 @createTextField(pluginId: String, param: Parameter) = {
-  <tr>
-    <td>@param.name</td>
-    <td>
-      <input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/>
-      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
-    </td>
-  </tr>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
+    <label class="mdl-textfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
+    <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
+      @param.description
+    </div>
+ </div>
 }
 
 @createResourceField(pluginId: String, param: Parameter) = {
-  <tr>
-    <td>@param.name</td>
-    <td>
-      @if(resources.isEmpty) {
-        <div style="text-align:center">
-          No resources found!
-        </div>
-      } else {
-        <select name='@(pluginId)_@(param.name)' title='@param.description'>
-          @for(resource <- resources) {
-            <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
-          }
-        </select>
-        <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
+  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+    <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
+      <option value=""></option>
+      @for(resource <- resources) {
+        <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
       }
-    </td>
-  </tr>
+    </select>
+    <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
+    <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
+      @param.description
+    </div>
+    @if(resources.isEmpty) {
+      <span class="no-data-avaliable">No resources found!</span>
+    }
+  </div>
 }
 
 @**

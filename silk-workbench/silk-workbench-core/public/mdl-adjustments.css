@@ -458,3 +458,18 @@
 .prefix_dialog-uri {
   width: 400px;
 }
+
+.mdl-tabs__tab {
+  outline:none;
+}
+
+/* Plugin Dialog */
+
+#plugintabs .mdl-tabs__panel {
+  width: 400px;
+}
+
+.no-data-avaliable {
+  color: red;
+  font-style: italic;
+}
