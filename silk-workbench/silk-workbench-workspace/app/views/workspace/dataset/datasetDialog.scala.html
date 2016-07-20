@@ -10,7 +10,7 @@
     resources = project.resources.list) {
 
     <script type="text/javascript">
-      function submit(pluginId, name, parameters) {
+      function savePlugin(pluginId, name, parameters) {
         // Build dataset xml
         var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
         for(var i in parameters) {
