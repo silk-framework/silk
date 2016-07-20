@@ -20,24 +20,45 @@
       </select>
       <label class="mdl-selectfield__label" for="resource_type_select">Resource Type</label>
     </div>
+    <script>
+      var plugin_dialog_submit_delegates = {};
+      // object to hold the different submit functions for each plugin type (e.g., CSV dataset, XML dataset, etc.)
+    </script>
     @for(plugin <- plugins) {
       @createTab(plugin)
     }
   </div>
   <script>
 
-    function switch_resource_tab(type_id) {
-      $(".resource-tab").hide();
-      $("#" + type_id).show();
+    $(function() {
+      function switch_resource_tab(type_id) {
+        $(".resource-tab").hide();
+        $("#" + type_id).show();
+      }
+
+      $("#resource_type_select").change(function() {
+        var selected_value = $("#resource_type_select option:selected").val();
+        switch_resource_tab(selected_value);
+      });
+
+      @for(obj <- currentObj) {
+        $("#resource_type_select").val("@obj.plugin.id").change();
+      }
+      @if(currentObj.isEmpty) {
+        var first_plugin_id = '@plugins.head.id';
+        $("#resource_type_select").val(first_plugin_id).change();
+      } else {
+        $("#resource_type_select").prop("disabled", "true");
+      }
+    });
+
+    function submit() {
+      var selected_resource_type = $("#resource_type_select").val();
+      if (plugin_dialog_submit_delegates[selected_resource_type](false)) {
+        closeDialog();
+        reloadWorkspace();
+      }
     }
-
-    $("#resource_type_select").change(function() {
-      var selected_value = $("#resource_type_select option:selected").val();
-      console.log(selected_value);
-      switch_resource_tab(selected_value);
-    })
-
-    $("#resource_type_select").val("eccencaDataPlatform").change();
 
   </script>
   @contents
@@ -49,7 +70,6 @@
       @plugin.description
     </p>
 
-
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"/>
       <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
@@ -58,7 +78,7 @@
     @for(param <- plugin.parameters) {
       @createField(plugin.id, param)
     }
-    <button onclick='@(plugin.id)_submit(false)'>Ok</button>
+
     @if(classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(plugin.pluginClass)) {
       <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
     }
@@ -70,7 +90,7 @@
       var name = $('[name=\'@(plugin.id)_name\']').val();
       if(name.length === 0) {
         alert("Name is empty.");
-        return;
+        return false;
       }
 
       // Retrieve all plugin parameters
@@ -83,11 +103,16 @@
 
       // Submit dialog
       if(!onlyAutoConfigure) {
-        submit('@plugin.id', name, parameters);
+        savePlugin('@plugin.id', name, parameters);
       } else {
         autoConfigure('@plugin.id', name, parameters);
       }
+
+      return true;
     }
+
+    plugin_dialog_submit_delegates['@plugin.id'] = @(plugin.id)_submit
+
   </script>
 }
 
