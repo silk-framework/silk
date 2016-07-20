@@ -8,13 +8,12 @@ import controllers.core.{Stream, Widgets}
 import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
-import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
-import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, UrlResource}
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.{ResourceNotFoundException, EmptyResourceManager, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
-import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
-import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlWorkspaceProvider}
-import org.silkframework.workspace.{ProjectMarshallingTrait, Project, Task, User}
+import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, Task, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
@@ -80,6 +79,7 @@ object WorkspaceApi extends Controller {
 
   /**
     * importProject variant with explicit marshaller parameter
+    *
     * @param project
     * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
     * @return
@@ -218,7 +218,7 @@ object WorkspaceApi extends Controller {
 
   def getResource(projectName: String, resourceName: String) = Action {
     val project = User().workspace.project(projectName)
-    val resource = project.resources.get(resourceName)
+    val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.load)
 
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
@@ -453,7 +453,6 @@ object WorkspaceApi extends Controller {
         request.queryString.mapValues(_.head)
     }
   }
-
 }
 
 /**

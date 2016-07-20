@@ -130,7 +130,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore)
+  .dependsOn(workbenchCore, pluginsRdf)
   .aggregate(workbenchCore)
   .settings(commonSettings: _*)
   .settings(
@@ -148,7 +148,7 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace, pluginsRdf)
+  .dependsOn(workbenchWorkspace)
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

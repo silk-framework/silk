@@ -14,6 +14,7 @@
 
 package org.silkframework.plugins
 
+import org.silkframework.dataset.VariableDataset
 import org.silkframework.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.plugins.distance.characterbased._
@@ -45,7 +46,9 @@ class CorePlugins extends PluginModule {
   override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators
 
   private def datasets =
-    classOf[InternalDataset] :: Nil
+    classOf[InternalDataset] ::
+        classOf[VariableDataset] ::
+        Nil
 
   private def transformers =
     classOf[RemoveDuplicates] ::

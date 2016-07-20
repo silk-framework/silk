@@ -15,7 +15,7 @@ import org.silkframework.runtime.validation.{ValidationError, ValidationExceptio
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Task, User}
-import play.api.libs.json.{JsArray, JsObject, JsString}
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 object TransformTaskApi extends Controller {
