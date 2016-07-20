@@ -1,7 +1,7 @@
 package org.silkframework.config
 
-import org.silkframework.entity.EntitySchema
-import org.silkframework.rule.TransformRule
+import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.rule.{TransformRule, TypeMapping}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -22,6 +22,17 @@ case class TransformSpecification(id: Identifier = Identifier.random, selection:
       typeUri = selection.typeUri,
       paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
       filter = selection.restriction
+    )
+  }
+
+  override def inputSchemata = Seq(entitySchema)
+
+  override def outputSchema = {
+    Some(
+      EntitySchema(
+        typeUri = rules.collect{ case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
+        paths = rules.flatMap(_.target).map(Path(_)).toIndexedSeq
+      )
     )
   }
 
