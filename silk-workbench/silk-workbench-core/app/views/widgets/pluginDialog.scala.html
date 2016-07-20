@@ -80,7 +80,7 @@
     }
 
     @if(classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(plugin.pluginClass)) {
-      <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
+      <button type="button" onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
     }
   </div>
 
@@ -97,7 +97,8 @@
       var parameters = [
         @for(param <- plugin.parameters) {
           { name: '@param.name',
-            value: $('[name=\'@(plugin.id)_@(param.name)\']').val() },
+            value: $('[name=\'@(plugin.id)_@(param.name)\']').val()
+          },
         }
       ];
 
