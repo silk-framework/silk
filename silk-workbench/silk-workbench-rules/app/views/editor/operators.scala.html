@@ -82,6 +82,5 @@ $(function() {
 }
 
 @parameterValues(plugin: PluginDescription[_]) = @{
-  val values = for(p <- plugin.parameters) yield (p.name, p.defaultValue.getOrElse("").toString)
-  values.toMap
+  for(p <- plugin.parameters) yield p.defaultValue.getOrElse("").toString
 }
