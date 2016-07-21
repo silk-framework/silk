@@ -22,8 +22,8 @@ POST          /:project/importExample                                           
 ############################################################################################################################################
 
 # Dialogs
-GET           /dialogs/newDataset/:project                                      controllers.workspace.Datasets.datasetDialog(project: String, task = "")
-GET           /dialogs/editDataset/:project/:task                               controllers.workspace.Datasets.datasetDialog(project: String, task: String)
+GET           /dialogs/newDataset/:project                                      controllers.workspace.Datasets.datasetDialog(project: String, task = "", title = "Create Dataset")
+GET           /dialogs/editDataset/:project/:task                               controllers.workspace.Datasets.datasetDialog(project: String, task: String, title = "Edit Dataset")
 GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.Datasets.datasetDialogAutoConfigured(project, task, pluginId)
 
 # Tabs
