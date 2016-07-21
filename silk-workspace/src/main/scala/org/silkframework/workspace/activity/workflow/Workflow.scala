@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.TaskSpecification
 import org.silkframework.dataset.{VariableDataset, Dataset}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Task, Project}
 
 import scala.xml.Node
 
@@ -42,6 +42,31 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   }
 
   /**
+    * Returns a topologically sorted sequence of [[WorkflowOperator]] used in this workflow.
+    */
+  def topologicalSortedOperators(project: Project): Seq[WorkflowOperator] = {
+    val inputs = inputDatasets(project)
+    val outputs = outputDatasets(project)
+    val pureInputDatasets = inputs.map(_.name.toString).toSet -- outputs.map(_.name.toString)
+    var done = pureInputDatasets
+    var sortedOperators = Vector.empty[WorkflowOperator]
+    var operatorsToSort = operators
+    while(operatorsToSort.size > 0) {
+      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
+      if(satisfied.size == 0) {
+        throw new RuntimeException("Cannot topologically sort operators in workflow " + id.toString + "!")
+      }
+      sortedOperators ++= satisfied
+      done ++= satisfied.map(_.id)
+      operatorsToSort = unsatisfied
+      // Add datasets to 'done' that are not written to by the remaining operators
+      val satisfiedDatasets = outputs.filter(ds => operatorsToSort.forall(op => !op.outputs.contains(ds.name.toString)))
+      done ++= satisfiedDatasets.map(_.name.toString)
+    }
+    sortedOperators
+  }
+
+  /**
     * Returns all variable datasets and how they are used in the workflow.
     * @param project
     * @return
@@ -49,23 +74,35 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     */
   def variableDatasets(project: Project): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
-      for (datasetId <- operators.flatMap(_.outputs).distinct;
-           dataset <- project.taskOption[Dataset](datasetId)
+      for (dataset <- outputDatasets(project)
            if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
-        datasetId
+        dataset.name.toString
       }
 
     val variableDatasetsUsedInInput =
-      for (datasetId <- operators.flatMap(_.inputs).distinct;
-           dataset <- project.taskOption[Dataset](datasetId)
+      for (dataset <- inputDatasets(project)
            if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
-        datasetId
+        dataset.name.toString
       }
     val bothInAndOut = variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet
     if (bothInAndOut.size > 0) {
       throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
     }
     AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
+  }
+
+  def inputDatasets(project: Project): Seq[Task[Dataset]] = {
+    for (datasetId <- operators.flatMap(_.inputs).distinct;
+         dataset <- project.taskOption[Dataset](datasetId)) yield {
+      dataset
+    }
+  }
+
+  def outputDatasets(project: Project): Seq[Task[Dataset]] = {
+    for (datasetId <- operators.flatMap(_.outputs).distinct;
+         dataset <- project.taskOption[Dataset](datasetId)) yield {
+      dataset
+    }
   }
 
   case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])

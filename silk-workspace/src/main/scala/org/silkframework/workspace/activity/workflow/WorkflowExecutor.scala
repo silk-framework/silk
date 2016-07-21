@@ -3,12 +3,9 @@ package org.silkframework.workspace.activity.workflow
 import java.util.logging.Logger
 
 import org.silkframework.dataset._
-import org.silkframework.execution.{ExecuteTransformResult, ExecutionReport}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.workspace.{Project, Task}
-
-import scala.collection.immutable.ListMap
+import org.silkframework.workspace.Task
 
 class WorkflowExecutor(task: Task[Workflow],
                        replaceDataSources: Map[String, DataSource] = Map.empty,
