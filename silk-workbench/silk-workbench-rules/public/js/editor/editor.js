@@ -409,7 +409,7 @@ function highlightElement(elId, message) {
   $(".handler label").each(function() {
     if ($(this).text() == elId) {
       var elementToHighlight = $(this).parent().parent();
-      elementToHighlight.addClass('highlighted');//.attr('onmouseover', 'Tip("' + encodeHtml(message) + '")').attr("onmouseout", "UnTip()");
+      elementToHighlight.addClass('highlighted');
       highlightId = elementToHighlight.attr('id');
       tooltipId = highlightId + "_tooltip";
       $('#' + tooltipId).text(encodeHtml(message));
@@ -452,7 +452,6 @@ function removeElement(elementId) {
   setTimeout(function() {
     jsPlumb.removeAllEndpoints(elementId);
     $('#' + elementId).remove();
-    UnTip();
     modifyLinkSpec();
   }, 100);
 }
