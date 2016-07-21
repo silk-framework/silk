@@ -70,6 +70,11 @@
       }
     }
 
+    function dialog_secondary() {
+      var selected_resource_type = $("#resource_type_select").val();
+      plugin_dialog_submit_delegates[selected_resource_type](true);
+    }
+
   </script>
   @contents
 }
@@ -152,7 +157,6 @@
 @createResourceField(pluginId: String, param: Parameter) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
-      <option value=""></option>
       @for(resource <- resources) {
         <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
       }
