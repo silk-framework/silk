@@ -52,7 +52,8 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
       try {
         activities ::= new TaskActivity(this, factory)
       } catch {
-        case NonFatal(ex) => log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$name' in project '${module.project.name}'.", ex)
+        case NonFatal(ex) =>
+          log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$name' in project '${module.project.name}'.", ex)
       }
     }
     activities.reverse

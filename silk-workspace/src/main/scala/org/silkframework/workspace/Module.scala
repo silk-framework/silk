@@ -1,11 +1,13 @@
 package org.silkframework.workspace
 
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
   * A module holds all tasks of a specific type.
@@ -24,6 +26,17 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
    */
   @volatile
   private var cachedTasks: TreeMap[Identifier, Task[TaskData]] = null
+
+  /**
+    * Holds all issues that occured during loading.
+    */
+  @volatile
+  private var error: Option[ValidationException] = None
+
+  /**
+    * Returns a validation exception if an error occured during task loading.
+    */
+  def loadingError: Option[ValidationException] = error
 
   def hasTaskType[T : ClassTag]: Boolean = {
     implicitly[ClassTag[T]].runtimeClass == implicitly[ClassTag[TaskData]].runtimeClass
@@ -74,8 +87,17 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
 
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
-      val tasks = provider.readTasks(project.name)
-      cachedTasks = TreeMap()(TaskOrdering) ++ { for((name, data) <- tasks) yield (name, new Task(name, data, this)) }
+      try {
+        val tasks = provider.readTasks(project.name)
+        cachedTasks = TreeMap()(TaskOrdering) ++ {
+          for ((name, data) <- tasks) yield (name, new Task(name, data, this))
+        }
+      } catch {
+        case NonFatal(ex) =>
+          cachedTasks = TreeMap()(TaskOrdering)
+          error = Some(new ValidationException(s"Error loading tasks of type $taskType", ex))
+          logger.log(Level.WARNING, s"Error loading tasks of type $taskType", ex)
+      }
     }
   }
 

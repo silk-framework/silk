@@ -20,6 +20,7 @@ import org.silkframework.config.{CustomTaskSpecification, LinkSpecification, Tra
 import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
 import org.silkframework.workspace.activity.transform._
@@ -49,6 +50,12 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   @volatile
   private var executors = Map[String, TaskExecutor[_]]()
 
+  /**
+    * Holds all issues that occurred during loading project activities.
+    */
+  @volatile
+  private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
+
   // Register all default modules
   registerModule[Dataset]()
   registerModule[TransformSpecification]()
@@ -67,6 +74,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     */
   def name = cachedConfig.id
 
+  /**
+    * Retrieves all errors that occured during loading this project.
+    */
+  def loadingErrors: Seq[ValidationException] = modules.flatMap(_.loadingError) ++ activityLoadingErrors
+
   private val projectActivities = {
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList
     var activities = List[ProjectActivity]()
@@ -74,7 +86,10 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       try {
         activities ::= new ProjectActivity(this, factory()(config.prefixes, resources))
       } catch {
-        case NonFatal(ex) => logger.log(Level.WARNING, s"Could not load project activity '$factory' in project '${initialConfig.id}'.", ex)
+        case NonFatal(ex) =>
+          val errorMsg = s"Could not load project activity '$factory' in project '${initialConfig.id}'."
+          activityLoadingErrors :+= new ValidationException(errorMsg, ex)
+          logger.log(Level.WARNING, errorMsg, ex)
       }
     }
     activities.reverse
@@ -115,7 +130,9 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Retrieves all tasks in this project.
    */
-  def allTasks: Seq[Task[_]] = for(module <- modules; task <- module.tasks) yield task.asInstanceOf[Task[_]]
+  def allTasks: Seq[Task[_]] = {
+    for(module <- modules; task <- module.tasks) yield task.asInstanceOf[Task[_]]
+  }
 
   /**
    * Retrieves all tasks of a specific type.
