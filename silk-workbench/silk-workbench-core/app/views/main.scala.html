@@ -42,9 +42,27 @@
   </head>
   <body>
 
-    <dialog class="mdl-dialog mdl-dialog--modal">
+    <dialog id="primary_dialog" class="mdl-dialog mdl-dialog--modal">
       <div class="mdl-dialog__title">
-        <strong class="mdl-dialog__title-text">Modal Dialog</strong>
+        <strong class="mdl-dialog__title-text">Primary Modal Dialog</strong>
+      </div>
+      <div class="mdl-dialog__content">
+        <p>
+          This modal dialog needs to be filled with some actual content.
+        </p>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="sample3">
+          <label class="mdl-textfield__label" for="sample3">Text...</label>
+        </div>
+      </div>
+      <div class="mdl-dialog__actions">
+        <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent submit">Agree</button></span>
+        <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent close">Disagree</button></span>
+      </div>
+    </dialog>
+    <dialog id="secondary_dialog" class="mdl-dialog mdl-dialog--modal">
+      <div class="mdl-dialog__title">
+        <strong class="mdl-dialog__title-text">Secondary Modal Dialog</strong>
       </div>
       <div class="mdl-dialog__content">
         <p>
@@ -61,12 +79,19 @@
       </div>
     </dialog>
     <script>
-      var mdl_dialog = document.querySelector('dialog');
+      var mdl_dialog = document.querySelector('#primary_dialog');
       if (! mdl_dialog.showModal) {
         dialogPolyfill.registerDialog(mdl_dialog);
       }
       mdl_dialog.querySelector('.close').addEventListener('click', function() {
         mdl_dialog.close();
+      });
+      var secondary_mdl_dialog = document.querySelector('#secondary_dialog');
+      if (! secondary_mdl_dialog.showModal) {
+        dialogPolyfill.registerDialog(secondary_mdl_dialog);
+      }
+      secondary_mdl_dialog.querySelector('.close').addEventListener('click', function() {
+        secondary_mdl_dialog.close();
       });
     </script>
 
