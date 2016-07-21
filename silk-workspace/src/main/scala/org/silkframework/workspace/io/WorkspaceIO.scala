@@ -35,7 +35,7 @@ object WorkspaceIO {
     copyTasks[Workflow](inputWorkspace, outputWorkspace, project.id)
   }
 
-  private def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
+  def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
     // Copy resources at the current path
     for(resourceName <- inputResources.list) {
       val input = inputResources.get(resourceName)

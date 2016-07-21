@@ -88,7 +88,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load project activity '$factory' in project '${initialConfig.id}'."
-          activityLoadingErrors :+= new ValidationException(errorMsg, ex)
+          activityLoadingErrors :+= new ValidationException(errorMsg + "Details: " + ex.getMessage, ex)
           logger.log(Level.WARNING, errorMsg, ex)
       }
     }

@@ -95,7 +95,7 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
       } catch {
         case NonFatal(ex) =>
           cachedTasks = TreeMap()(TaskOrdering)
-          error = Some(new ValidationException(s"Error loading tasks of type $taskType", ex))
+          error = Some(new ValidationException(s"Error loading tasks of type $taskType. Details: ${ex.getMessage}", ex))
           logger.log(Level.WARNING, s"Error loading tasks of type $taskType", ex)
       }
     }

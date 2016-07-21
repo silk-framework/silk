@@ -27,7 +27,7 @@
 </div>
 
 @project(project: Project) = {
-  <li id="project_@project.name" >
+  <li id="project_@project.name" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manager resources", "wrench.png", s"editResources('${project.name}')")
@@ -50,6 +50,13 @@
       }
     </ul>
   </li>
+}
+
+@projectIcon(project: Project) = @{
+  if(project.loadingErrors.isEmpty)
+    "img/project.png"
+  else
+   "img/project-error.png"
 }
 
 @task(project: Project, task: Task[_], taskActions: TaskActions[_]) = {
