@@ -9,6 +9,7 @@
   display: Boolean)(additionalContent: Html)
 
 <div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
+  <div id="@GenerateId(id, display)_tooltip" for="@GenerateId(id, display)" class="mdl-tooltip operator-tooltip" style="display: none;">tooltip</div>
   <small class="name">@plugin.id</small>
   <small class="type">@opType</small>
   <h5 class="handler">
