@@ -30,13 +30,13 @@ function showValidIcon() {
 }
 
 function showInvalidIcon(numberMessages) {
-  $("#exclamation > .number-messages").html(numberMessages);
+  $("#exclamation").attr("data-badge", numberMessages);
   $("#tick, #warning, #pending").css("display", "none");
   $("#exclamation").css("display", "block");
 }
 
 function showWarningIcon(numberMessages) {
-  $("#warning > .number-messages").html(numberMessages);
+  $("#warning").attr("data-badge", numberMessages);
   $("#tick, #exclamation, #pending").css("display", "none");
   $("#warning").css("display", "block");
 }
