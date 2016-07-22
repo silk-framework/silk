@@ -149,12 +149,14 @@ object GenerateLinksTest {
 
     private def run(runtimeConfig: RuntimeConfig): Set[Link] = {
       val config = dataset.config
+      val linkTask = config.linkSpecs.head
 
       // Execute Matching
       val activity =
         GenerateLinks.fromSources(
+          id = linkTask.id,
           datasets = config.sources,
-          linkSpec = config.linkSpecs.head,
+          linkSpec = linkTask.data,
           runtimeConfig = runtimeConfig
         )
 

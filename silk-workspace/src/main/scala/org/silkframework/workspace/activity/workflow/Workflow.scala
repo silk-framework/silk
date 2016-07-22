@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpecification
-import org.silkframework.dataset.{VariableDataset, Dataset}
+import org.silkframework.dataset.{Dataset, DatasetPlugin, VariableDataset}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
@@ -50,15 +50,15 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   def variableDatasets(project: Project): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
       for (datasetId <- operators.flatMap(_.outputs).distinct;
-           dataset <- project.taskOption[Dataset](datasetId)
-           if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
+           dataset <- project.taskOption[DatasetPlugin](datasetId)
+           if dataset.data.isInstanceOf[VariableDataset]) yield {
         datasetId
       }
 
     val variableDatasetsUsedInInput =
       for (datasetId <- operators.flatMap(_.inputs).distinct;
-           dataset <- project.taskOption[Dataset](datasetId)
-           if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
+           dataset <- project.taskOption[DatasetPlugin](datasetId)
+           if dataset.data.isInstanceOf[VariableDataset]) yield {
         datasetId
       }
     val bothInAndOut = variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet

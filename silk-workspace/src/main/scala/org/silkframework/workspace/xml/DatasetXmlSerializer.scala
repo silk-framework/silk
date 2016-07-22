@@ -16,7 +16,8 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.Task
+import org.silkframework.dataset.{Dataset, DatasetPlugin}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
@@ -27,7 +28,7 @@ import scala.xml.XML
 /**
  * The source module which encapsulates all data sources.
  */
-private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
+private class DatasetXmlSerializer extends XmlSerializer[DatasetPlugin] {
 
   private val logger = Logger.getLogger(classOf[DatasetXmlSerializer].getName)
 
@@ -36,7 +37,7 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, Dataset] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, DatasetPlugin] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     var tasks = for (name <- names) yield {
@@ -61,14 +62,14 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
     val dataset = XmlSerialization.fromXml[Dataset](XML.load(resources.get(name).load))
-    (dataset.id, dataset)
+    (dataset.id, dataset.plugin)
   }
 
   /**
    * Writes an updated task.
    */
-  override def writeTask(data: Dataset, resources: ResourceManager): Unit = {
-    resources.get(data.id.toString + ".xml").write{ os => XmlSerialization.toXml(data).write(os) }
+  override def writeTask(task: Task[DatasetPlugin], resources: ResourceManager): Unit = {
+    resources.get(task.id.toString + ".xml").write{ os => XmlSerialization.toXml(new Dataset(task.id, task.data)).write(os) }
   }
 
   /**

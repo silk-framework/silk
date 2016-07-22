@@ -1,7 +1,7 @@
 package controllers.transform
 
 import org.silkframework.config.TransformSpecification
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, DatasetPlugin}
 import org.silkframework.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
@@ -21,7 +21,7 @@ object EvaluateTransform extends Controller {
     // Create execution task
     val evaluateTransform =
       new EvaluateTransformTask(
-        source = project.task[Dataset](task.data.selection.inputId).data,
+        source = new Dataset(task.data.selection.inputId, project.task[DatasetPlugin](task.data.selection.inputId).data),
         dataSelection = task.data.selection,
         rules = task.data.rules,
         maxEntities = offset + limit

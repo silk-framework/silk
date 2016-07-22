@@ -9,7 +9,7 @@ object Global extends WorkbenchGlobal {
     Activity.executionContext = play.api.libs.concurrent.Execution.defaultContext
 
     // Load Workbench plugins
-    WorkbenchPlugins.register(DatasetPlugin())
+    WorkbenchPlugins.register(WorkbenchDatasetPlugin())
     WorkbenchPlugins.register(TransformPlugin())
     WorkbenchPlugins.register(LinkingPlugin())
     WorkbenchPlugins.register(WorkflowPlugin())

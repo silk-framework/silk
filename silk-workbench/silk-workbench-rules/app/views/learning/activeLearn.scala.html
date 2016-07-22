@@ -20,18 +20,18 @@
 
   <script type="text/javascript">
     var inEditorEnv = false;
-    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/referenceLink';
-    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id/referenceLink';
+    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
 
     function back() {
-      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.name/learnStart"
+      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.id/learnStart"
     }
 
     function showLinkCandidate() {
       // Show pending icon
       $('#link-candidate-wrapper').html('<img src="@Assets.at("img/pending.gif")" ></img>');
       // Request next link candidate
-      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url';
+      var url = '@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url';
       $.post(
         url,
         {
@@ -62,10 +62,10 @@
       <button class="mdl-button mdl-js-button mdl-button--raised" onclick="back()">Back</button>
     </li>
     <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.resetActiveLearningDialog(context.project.name, context.task.name)')">Reset</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.resetActiveLearningDialog(context.project.name, context.task.id)')">Reset</button>
     </li>
     <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.name)')">Details</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.activeLearnDetails(context.project.name, context.task.id)')">Details</button>
     </li>
   </ul>
 }

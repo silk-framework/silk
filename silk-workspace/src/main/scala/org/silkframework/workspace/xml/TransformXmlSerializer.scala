@@ -2,7 +2,7 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{DatasetSelection, Prefixes, TransformSpecification}
+import org.silkframework.config.{DatasetSelection, Prefixes, Task, TransformSpecification}
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
@@ -25,7 +25,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpecificatio
   /**
    * Writes an updated task.
    */
-  override def writeTask(data: TransformSpecification, resources: ResourceManager): Unit = {
+  override def writeTask(data: Task[TransformSpecification], resources: ResourceManager): Unit = {
     val taskResources = resources.child(data.id)
 
     //Don't use any prefixes
@@ -53,7 +53,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpecificatio
       val rulesXml = XML.load(taskResources.get("rules.xml").load)
       val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
       val outputs = (rulesXml \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
-      (name, TransformSpecification(name, dataset, rules, outputs))
+      (name, TransformSpecification(dataset, rules, outputs))
     } catch {
       case ex: ValidationException =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)

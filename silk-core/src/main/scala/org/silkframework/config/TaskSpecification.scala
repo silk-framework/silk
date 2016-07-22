@@ -1,17 +1,13 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.util.Identifier
 
 /**
   * Base trait of all task specifications.
   */
 trait TaskSpecification {
-
-  /**
-    * The identifier for this task.
-    */
-  def id: Identifier
 
   /**
     * The schemata of the input data for this task.

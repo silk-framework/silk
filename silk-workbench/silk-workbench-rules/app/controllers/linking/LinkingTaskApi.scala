@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.util.ProjectUtils._
 import models.JsonError
 import org.silkframework.config.{DatasetSelection, LinkSpecification}
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, DatasetPlugin}
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
@@ -44,7 +44,7 @@ object LinkingTaskApi extends Controller {
             DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
     val outputs = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten
 
-    proj.tasks[LinkSpecification].find(_.name == task) match {
+    proj.tasks[LinkSpecification].find(_.id == task) match {
       //Update existing task
       case Some(oldTask) => {
         val updatedLinkSpec = oldTask.data.copy(dataSelections = datasets, outputs = outputs)
@@ -54,7 +54,6 @@ object LinkingTaskApi extends Controller {
       case None => {
         val linkSpec =
           LinkSpecification(
-            id = task,
             dataSelections = datasets,
             rule = LinkageRule(None),
             outputs = outputs
@@ -286,12 +285,12 @@ object LinkingTaskApi extends Controller {
     val params = request.body.asFormUrlEncoded.get
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[Dataset](posOutputName.head).data.linkSink
+      val posOutput = project.task[DatasetPlugin](posOutputName.head).data.linkSink
       posOutput.writeLinks(task.data.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[Dataset](negOutputName.head).data.linkSink
+      val negOutput = project.task[DatasetPlugin](negOutputName.head).data.linkSink
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 
@@ -333,7 +332,7 @@ object LinkingTaskApi extends Controller {
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)
-          val link = new GenerateLinksActivity(DPair(linkSource, linkTarget), task.data, Seq(linkSink))
+          val link = new GenerateLinksActivity(taskName, DPair(linkSource, linkTarget), task.data, Seq(linkSink))
           Activity(link).startBlocking()
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
           result(model, acceptedContentType, "Successfully generated links")

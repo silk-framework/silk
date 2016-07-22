@@ -2,6 +2,7 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.TaskSpecification
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -16,8 +17,8 @@ import scala.util.control.NonFatal
   * @param project The project this module belongs to
   * @tparam TaskData The task type held by this module
   */
-class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvider,
-                                 private[workspace] val project: Project) {
+class Module[TaskData <: TaskSpecification: ClassTag](private[workspace] val provider: WorkspaceProvider,
+                                                      private[workspace] val project: Project) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 
@@ -25,7 +26,7 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
    * Caches all tasks of this module in memory.
    */
   @volatile
-  private var cachedTasks: TreeMap[Identifier, Task[TaskData]] = null
+  private var cachedTasks: TreeMap[Identifier, ProjectTask[TaskData]] = null
 
   /**
     * Holds all issues that occured during loading.
@@ -49,7 +50,7 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
   /**
    * Retrieves all tasks in this module.
    */
-  def tasks: Seq[Task[TaskData]] = {
+  def tasks: Seq[ProjectTask[TaskData]] = {
     load()
     cachedTasks.values.toSeq
   }
@@ -59,18 +60,18 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
    *
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
-  def task(name: Identifier): Task[TaskData] = {
+  def task(name: Identifier): ProjectTask[TaskData] = {
     load()
     cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType))
   }
 
-  def taskOption(name: Identifier): Option[Task[TaskData]] = {
+  def taskOption(name: Identifier): Option[ProjectTask[TaskData]] = {
     load()
     cachedTasks.get(name)
   }
 
   def add(name: Identifier, taskData: TaskData) = {
-    val task = new Task(name, taskData, this)
+    val task = new ProjectTask(name, taskData, this)
     provider.putTask(project.name, name, taskData)
     task.init()
     cachedTasks += ((name, task))
@@ -90,7 +91,7 @@ class Module[TaskData: ClassTag](private[workspace] val provider: WorkspaceProvi
       try {
         val tasks = provider.readTasks(project.name)
         cachedTasks = TreeMap()(TaskOrdering) ++ {
-          for ((name, data) <- tasks) yield (name, new Task(name, data, this))
+          for ((name, data) <- tasks) yield (name, new ProjectTask(name, data, this))
         }
       } catch {
         case NonFatal(ex) =>

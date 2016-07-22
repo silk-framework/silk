@@ -2,7 +2,7 @@ package controllers.transform
 
 import controllers.core.{Stream, Widgets}
 import org.silkframework.config.TransformSpecification
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, DatasetPlugin}
 import org.silkframework.execution.ExecuteTransform
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
@@ -23,7 +23,7 @@ object ExecuteTransformTab extends Controller {
 
   def executeDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[Dataset].toSeq.map(_.name.toString())
+    val outputs = project.tasks[DatasetPlugin].toSeq.map(_.id.toString())
     Ok(views.html.executeTransform.executeTransformDialog(projectName, taskName, outputs))
   }
 

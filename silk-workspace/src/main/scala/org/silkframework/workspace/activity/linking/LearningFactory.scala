@@ -4,7 +4,7 @@ import org.silkframework.config.LinkSpecification
 import org.silkframework.learning.{LearningActivity, LearningConfiguration, LearningInput, LearningResult}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
@@ -15,7 +15,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 )
 case class LearningFactory() extends TaskActivityFactory[LinkSpecification, LearningActivity] {
 
-  def apply(task: Task[LinkSpecification]): Activity[LearningResult] = {
+  def apply(task: ProjectTask[LinkSpecification]): Activity[LearningResult] = {
     Activity.regenerating {
       val input =
         LearningInput(

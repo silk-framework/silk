@@ -13,7 +13,7 @@ import org.silkframework.runtime.resource.{ResourceNotFoundException, EmptyResou
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, Task, User}
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
@@ -196,7 +196,7 @@ object WorkspaceApi extends Controller {
     val task = project.task[LinkSpecification](taskName)
     implicit val prefixes = project.config.prefixes
 
-    val silkConfig = SilkConfigExporter.build(project, task.data)
+    val silkConfig = SilkConfigExporter.build(project, task.task)
 
     Ok(XmlSerialization.toXml(silkConfig))
   }
@@ -385,7 +385,7 @@ object WorkspaceApi extends Controller {
   def recentActivities(maxCount: Int) = Action {
     // Get all projects and tasks
     val projects = User().workspace.projects
-    val tasks: Seq[Task[_]] = projects.flatMap(_.allTasks)
+    val tasks: Seq[ProjectTask[_]] = projects.flatMap(_.allTasks)
 
     // Get all activities
     val projectActivities = projects.flatMap(_.activities)
@@ -418,7 +418,7 @@ object WorkspaceApi extends Controller {
       if (taskName.nonEmpty) Nil
       else project.activities
 
-    def taskActivities(task: Task[_]) =
+    def taskActivities(task: ProjectTask[_ <: TaskSpecification]) =
       if (activityName.nonEmpty) task.activity(activityName) :: Nil
       else task.activities
 
@@ -430,7 +430,7 @@ object WorkspaceApi extends Controller {
       for (project <- projects;
            task <- tasks(project);
            activity <- taskActivities(task)) yield
-        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = task.name, activity = activity.name)
+        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = task.id, activity = activity.name)
 
     Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
   }

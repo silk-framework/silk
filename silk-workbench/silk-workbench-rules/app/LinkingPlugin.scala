@@ -17,7 +17,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     var tabs = List[Tab]()
     if(context.task.data.isInstanceOf[LinkSpecification]) {
       val p = context.project.name
-      val t = context.task.name
+      val t = context.task.id
       if (config.workbench.tabs.editor)
         tabs ::= Tab("Editor", s"linking/$p/$t/editor")
       if (config.workbench.tabs.generateLinks)

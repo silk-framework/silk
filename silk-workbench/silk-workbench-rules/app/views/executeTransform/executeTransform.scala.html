@@ -9,7 +9,7 @@
 @header = {
   <script type="text/javascript">
     function updateStatistics() {
-      $( "#statistics_wrapper" ).load('@ExecuteTransformTab.executeStatistics(context.project.name, context.task.name).url');
+      $( "#statistics_wrapper" ).load('@ExecuteTransformTab.executeStatistics(context.project.name, context.task.id).url');
     }
   </script>
 }

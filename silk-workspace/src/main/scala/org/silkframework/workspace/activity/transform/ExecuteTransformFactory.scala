@@ -4,7 +4,7 @@ import org.silkframework.config.TransformSpecification
 import org.silkframework.execution.{ExecuteTransformResult, ExecuteTransform}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
@@ -16,7 +16,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 )
 case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpecification, ExecuteTransform] {
 
-  def apply(task: Task[TransformSpecification]): Activity[ExecuteTransformResult] = {
+  def apply(task: ProjectTask[TransformSpecification]): Activity[ExecuteTransformResult] = {
     Activity.regenerating {
       new ExecuteTransform(
         input = task.dataSource,

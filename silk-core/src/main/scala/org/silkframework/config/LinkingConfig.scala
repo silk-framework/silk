@@ -34,9 +34,9 @@ import scala.xml.Node
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeConfig,
                          sources: Traversable[Dataset],
-                         linkSpecs: Traversable[LinkSpecification],
+                         linkSpecs: Traversable[Task[LinkSpecification]],
                          outputs: Seq[Dataset] = Seq.empty,
-                         transforms: Traversable[TransformSpecification] = Seq.empty) {
+                         transforms: Traversable[Task[TransformSpecification]] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
@@ -123,8 +123,8 @@ object LinkingConfig {
         case Some(blockingNode) => Blocking.fromXML(blockingNode)
         case None => Blocking()
       }
-      val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[LinkSpecification](p))
-      val transforms = (node \ "Transforms" \ "Transform").map(p => fromXml[TransformSpecification](p))
+      val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[Task[LinkSpecification]](p))
+      val transforms = (node \ "Transforms" \ "Transform").map(p => fromXml[Task[TransformSpecification]](p))
 
       implicit val globalThreshold = None
 

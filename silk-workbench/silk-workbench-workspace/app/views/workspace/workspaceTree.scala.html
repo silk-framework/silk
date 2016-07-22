@@ -5,8 +5,9 @@
 @import org.silkframework.runtime.plugin.PluginRegistry
 @import controllers.workspace.routes.Assets
 @import org.silkframework.workspace.Workspace
-@import org.silkframework.workspace.Task
+@import org.silkframework.workspace.ProjectTask
 
+@import org.silkframework.config.TaskSpecification
 @(workspace: Workspace)
 
 <script type="application/javascript" >
@@ -59,17 +60,17 @@
    "img/project-error.png"
 }
 
-@task(project: Project, task: Task[_], taskActions: TaskActions[_]) = {
-  <li id="task_@{project.name}_@task.name" data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
-    @task.name
-    @for(path <- taskActions.propertiesDialog(project.name, task.name)) {
+@task(project: Project, task: ProjectTask[_ <: TaskSpecification], taskActions: TaskActions[_ <: TaskSpecification]) = {
+  <li id="task_@{project.name}_@task.id" data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
+    @task.id
+    @for(path <- taskActions.propertiesDialog(project.name, task.id)) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
-    @for(path <- taskActions.open(project.name, task.name)) {
+    @for(path <- taskActions.open(project.name, task.id)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
     }
-    @for(path <- taskActions.delete(project.name, task.name)) {
-      @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${task.name}', '${config.baseUrl}/$path')")
+    @for(path <- taskActions.delete(project.name, task.id)) {
+      @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${task.id}', '${config.baseUrl}/$path')")
     }
     <ul>
       @for((key, value) <- taskActions.properties(task.data) if !value.isEmpty) {

@@ -4,6 +4,7 @@ import java.io.StringWriter
 
 import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
+import org.silkframework.config.TaskSpecification
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.plugins.dataset.rdf.SparqlSink
@@ -11,7 +12,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.workspace.{Project, Task, User}
+import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 
@@ -22,7 +23,7 @@ import scala.xml.{Node, NodeSeq}
   * Created by andreas on 12/10/15.
   */
 object ProjectUtils {
-  def getProjectAndTask[T: ClassTag](projectName: String, taskName: String): (Project, Task[T]) = {
+  def getProjectAndTask[T <: TaskSpecification : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
     val project = User().workspace.project(projectName)
     val task = project.task[T](taskName)
     (project, task)
@@ -65,6 +66,7 @@ object ProjectUtils {
   /**
     * Creates in-memory sink version of the selected datasets.
     * This does only work with [[DatasetPlugin]] that implement the [[WritableResourceDatasetPlugin]] trait.
+ *
     * @param sinkIds The dataset ids (keys) for which sinks should be created, the values of the map
     *                are the resource ids of the resource manager that should be used for each dataset.
     */

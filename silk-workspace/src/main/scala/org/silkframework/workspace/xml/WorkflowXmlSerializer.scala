@@ -1,5 +1,6 @@
 package org.silkframework.workspace.xml
 
+import org.silkframework.config.Task
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
@@ -29,8 +30,8 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(data: Workflow, resources: ResourceManager): Unit = {
-    resources.get(data.id.toString + ".xml").write { os => data.toXML.write(os) }
+  override def writeTask(task: Task[Workflow], resources: ResourceManager): Unit = {
+    resources.get(task.id.toString + ".xml").write { os => task.toXML.write(os) }
   }
 
   /**

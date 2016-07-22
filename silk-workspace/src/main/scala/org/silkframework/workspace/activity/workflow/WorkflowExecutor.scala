@@ -6,11 +6,11 @@ import org.silkframework.dataset._
 import org.silkframework.execution.{ExecuteTransformResult, ExecutionReport}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.workspace.{Project, Task}
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.collection.immutable.ListMap
 
-class WorkflowExecutor(task: Task[Workflow],
+class WorkflowExecutor(task: ProjectTask[Workflow],
                        replaceDataSources: Map[String, DataSource] = Map.empty,
                        replaceSinks: Map[String, SinkTrait] = Map.empty) extends Activity[WorkflowExecutionReport] {
 
@@ -43,8 +43,8 @@ class WorkflowExecutor(task: Task[Workflow],
   private def clearInternalDatasets(operators: Seq[WorkflowOperator]): Unit = {
     // Clear all internal datasets used as output before writing
     for (datasetId <- operators.flatMap(_.outputs).distinct;
-         dataset <- project.taskOption[Dataset](datasetId)
-         if dataset.data.plugin.isInstanceOf[InternalDataset]) {
+         dataset <- project.taskOption[DatasetPlugin](datasetId)
+         if dataset.data.isInstanceOf[InternalDataset]) {
       dataset.data.clear()
     }
   }

@@ -7,7 +7,7 @@ import org.silkframework.execution.ExecuteTransformResult.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutor}
-import org.silkframework.workspace.{Task, User}
+import org.silkframework.workspace.{ProjectTask, User}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 import scala.xml.Elem
@@ -101,7 +101,7 @@ object WorkflowApi extends Controller {
     </WorkflowResults>
   }
 
-  private def executeVariableWorkflow(task: Task[Workflow],
+  private def executeVariableWorkflow(task: ProjectTask[Workflow],
                                       replaceDataSources: Map[String, DataSource],
                                       replaceSinks: Map[String, SinkTrait]): Unit = {
     val executor = new WorkflowExecutor(task, replaceDataSources, replaceSinks)

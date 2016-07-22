@@ -16,7 +16,7 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{Prefixes, TaskSpecification}
+import org.silkframework.config.{Prefixes, Task, TaskSpecification}
 import org.silkframework.entity.Link
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -27,7 +27,7 @@ import scala.xml.{Node, Text}
 /**
  * A dataset of entities.
  */
-case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[Double] = None, maxConfidence: Option[Double] = None) extends SinkTrait with TaskSpecification {
+class Dataset(id: Identifier, val plugin: DatasetPlugin, val minConfidence: Option[Double] = None, val maxConfidence: Option[Double] = None) extends Task(id, plugin) with SinkTrait {
 
   private val log = Logger.getLogger(Dataset.getClass.getName)
 
@@ -120,8 +120,10 @@ case class Dataset(id: Identifier, plugin: DatasetPlugin, minConfidence: Option[
 
 object Dataset {
 
+  implicit def fromTask(task: Task[DatasetPlugin]): Dataset = new Dataset(task.id, task.data)
+
   def empty = {
-    Dataset("empty", EmptyDataset)
+    new Dataset("empty", EmptyDataset)
   }
 
   /**

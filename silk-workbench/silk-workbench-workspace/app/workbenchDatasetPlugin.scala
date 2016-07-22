@@ -1,18 +1,17 @@
-package views.workspace
-
+import org.silkframework.config.TaskSpecification
 import org.silkframework.dataset.rdf.RdfDatasetPlugin
-import org.silkframework.dataset.{Dataset, DatasetPlugin => DataPlugin}
+import org.silkframework.dataset.{Dataset, DatasetPlugin}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
 /**
  * The data plugin adds data sources and outputs.
  */
-case class CustomTaskPlugin() extends WorkbenchPlugin {
+case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
   /**
    * The task types to be added to the Workspace.
    */
-  override def tasks: Seq[TaskActions[_]] =
+  override def tasks: Seq[TaskActions[_ <: TaskSpecification]] =
     Seq(DatasetActions)
 
   /**
@@ -20,7 +19,7 @@ case class CustomTaskPlugin() extends WorkbenchPlugin {
    */
   override def tabs(context: Context[_]): Seq[Tab] = {
     val p = context.project.name
-    val t = context.task.name
+    val t = context.task.id
     context.task.data match {
       case dataset: Dataset =>
         var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
@@ -34,7 +33,7 @@ case class CustomTaskPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[Dataset] {
+  object DatasetActions extends TaskActions[DatasetPlugin] {
 
     /** The name of the task type */
     override def name: String = "Dataset"
@@ -60,8 +59,8 @@ case class CustomTaskPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any): Seq[(String, String)] = {
-      taskData.asInstanceOf[Dataset].plugin match {
-        case DataPlugin(_, params) => params.toSeq
+      taskData.asInstanceOf[DatasetPlugin] match {
+        case DatasetPlugin(_, params) => params.toSeq
       }
     }
   }

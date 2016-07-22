@@ -18,7 +18,7 @@ import java.io.{File, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
 
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
-import org.silkframework.config.{Config, LinkSpecification, LinkingConfig, TransformSpecification}
+import org.silkframework.config._
 import org.silkframework.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
@@ -148,9 +148,10 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  private def executeLinkSpec(config: LinkingConfig, linkSpec: LinkSpecification, numThreads: Int = DefaultThreads, reload: Boolean = true): Unit = {
+  private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpecification], numThreads: Int = DefaultThreads, reload: Boolean = true): Unit = {
     val generateLinks =
       new GenerateLinks(
+        id = linkSpec.id,
         inputs = linkSpec.findSources(config.sources),
         linkSpec = linkSpec,
         outputs = config.outputs.map(_.linkSink),
@@ -165,7 +166,7 @@ object Silk {
    * @since 2.6.1
    * @param transform The transform specification.
    */
-  private def executeTransform(config: LinkingConfig, transform: TransformSpecification): Unit = {
+  private def executeTransform(config: LinkingConfig, transform: Task[TransformSpecification]): Unit = {
     val input = config.source(transform.selection.inputId).source
     Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.entitySink), Seq())).startBlocking() // TODO: Allow to set error output
   }

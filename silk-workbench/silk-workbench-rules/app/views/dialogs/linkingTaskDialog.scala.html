@@ -1,18 +1,18 @@
 @import org.silkframework.workspace.User
 @import org.silkframework.workspace.Constants
 @import org.silkframework.config.LinkSpecification
-@import org.silkframework.dataset.Dataset
+@import org.silkframework.dataset.DatasetPlugin
 @import org.silkframework.util.DPair
 @import controllers.rules.routes.Assets
 @import org.silkframework.config.TransformSpecification
 
 @(project: String, task: String)
 
-@datasets = @{ User().workspace.project(project).tasks[Dataset] }
+@datasets = @{ User().workspace.project(project).tasks[DatasetPlugin] }
 
 @transformTasks = @{ User().workspace.project(project).tasks[TransformSpecification] }
 
-@linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.name == task) }
+@linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.id == task) }
 
 @currentInputs = @{ linkingTask.map(_.data.dataSelections) }
 
@@ -33,17 +33,17 @@
       <td>
         <select name="source" title="Source dataset">
           @for(dataset <- datasets) {
-            @if(currentInputs.isDefined && dataset.name == currentInputs.get.source.inputId) {
-              <option value="@dataset.name" selected="selected">@dataset.name</option>
+            @if(currentInputs.isDefined && dataset.id == currentInputs.get.source.inputId) {
+              <option value="@dataset.id" selected="selected">@dataset.id</option>
             } else {
-              <option value="@dataset.name">@dataset.name</option>
+              <option value="@dataset.id">@dataset.id</option>
             }
           }
           @for(transform <- transformTasks) {
-            @if(currentInputs.isDefined && transform.name == currentInputs.get.source.inputId) {
-              <option value="@transform.name" selected="selected">@transform.name</option>
+            @if(currentInputs.isDefined && transform.id == currentInputs.get.source.inputId) {
+              <option value="@transform.id" selected="selected">@transform.id</option>
             } else {
-              <option value="@transform.name">@transform.name</option>
+              <option value="@transform.id">@transform.id</option>
             }
           }
         </select>
@@ -68,17 +68,17 @@
       <td>
         <select name="target" title="Target dataset">
           @for(dataset <- datasets) {
-            @if(currentInputs.isDefined && dataset.name == currentInputs.get.target.inputId) {
-              <option value="@dataset.name" selected="selected">@dataset.name</option>
+            @if(currentInputs.isDefined && dataset.id == currentInputs.get.target.inputId) {
+              <option value="@dataset.id" selected="selected">@dataset.id</option>
             } else {
-              <option value="@dataset.name">@dataset.name</option>
+              <option value="@dataset.id">@dataset.id</option>
             }
           }
           @for(transform <- transformTasks) {
-            @if(currentInputs.isDefined && transform.name == currentInputs.get.target.inputId) {
-              <option value="@transform.name" selected="selected">@transform.name</option>
+            @if(currentInputs.isDefined && transform.id == currentInputs.get.target.inputId) {
+              <option value="@transform.id" selected="selected">@transform.id</option>
             } else {
-              <option value="@transform.name">@transform.name</option>
+              <option value="@transform.id">@transform.id</option>
             }
           }
         </select>
@@ -104,10 +104,10 @@
         <select name="output" title="Output">
           <option value="" @if(currentOutput.isEmpty) {selected="selected"}></option>
           @for(dataset <- datasets) {
-            @if(currentOutput.isDefined && dataset.name == currentOutput.get) {
-              <option value="@dataset.name" selected="selected">@dataset.name</option>
+            @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
+              <option value="@dataset.id" selected="selected">@dataset.id</option>
             } else {
-              <option value="@dataset.name">@dataset.name</option>
+              <option value="@dataset.id">@dataset.id</option>
             }
           }
         </select>

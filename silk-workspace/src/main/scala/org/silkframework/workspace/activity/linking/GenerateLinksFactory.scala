@@ -6,7 +6,7 @@ import org.silkframework.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.TransformedDataSource
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
@@ -28,7 +28,7 @@ case class GenerateLinksFactory(
   @Param("Write the generated links to the configured output of this task.")
   writeOutputs: Boolean = true) extends TaskActivityFactory[LinkSpecification, GenerateLinks] {
 
-  def apply(task: Task[LinkSpecification]): Activity[Linking] = {
+  def apply(task: ProjectTask[LinkSpecification]): Activity[Linking] = {
     val runtimeConfig =
       RuntimeConfig(
         includeReferenceLinks = includeReferenceLinks,
@@ -40,7 +40,7 @@ case class GenerateLinksFactory(
   }
 }
 
-class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: RuntimeConfig, writeOutputs: Boolean) extends Activity[Linking] {
+class GenerateLinksActivity(task: ProjectTask[LinkSpecification], runtimeConfig: RuntimeConfig, writeOutputs: Boolean) extends Activity[Linking] {
 
   @volatile
   private var generateLinks: Option[GenerateLinks] = None
@@ -65,6 +65,7 @@ class GenerateLinksActivity(task: Task[LinkSpecification], runtimeConfig: Runtim
 
     generateLinks = Some(
       new GenerateLinks(
+        task.id,
         inputs = inputs,
         linkSpec = linkSpec,
         outputs = outputs,

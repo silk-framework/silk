@@ -1,5 +1,5 @@
 @import org.silkframework.workspace.{User, Project}
-@import org.silkframework.workspace.Task
+@import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workspace.Workspace
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.workspace.activity.TaskActivity
@@ -11,6 +11,7 @@
 @**
  * Overview page of all activities and their status
  *@
+@import org.silkframework.config.TaskSpecification
 @()
 
 @header = {
@@ -119,9 +120,9 @@
   </li>
 }
 
-@taskActivities(project: Project, task: Task[_]) = {
-  <li id="task_@{project.name}_@task.name" class="jstree-open">
-    @task.name
+@taskActivities(project: Project, task: ProjectTask[_ <: TaskSpecification]) = {
+  <li id="task_@{project.name}_@task.id" class="jstree-open">
+    @task.id
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)
@@ -151,27 +152,27 @@
   </li>
 }
 
-@taskActivityStatus(project: Project, task: Task[_], activity: TaskActivity[_, _]) = {
-  <li id="@id(project.name, task.name, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
+@taskActivityStatus(project: Project, task: ProjectTask[_ <: TaskSpecification], activity: TaskActivity[_, _]) = {
+  <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.name, activity.name, blocking = false).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@WorkspaceApi.startActivity(project.name, task.id, activity.name, blocking = false).url')" />
     </div>
     <div class="activity-button-stop">
-      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, task.name, activity.name).url')" />
+      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@WorkspaceApi.cancelActivity(project.name, task.id, activity.name).url')" />
     </div>
     <div class="activity-button-edit">
       @if(activity.config.nonEmpty) {
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.taskActivityConfigDialog(project.name, task.name, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
       }
     </div>
     <div class="activity-button-value">
       @if(activity.valueType != classOf[BoxedUnit]) {
-        <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@WorkspaceApi.getActivityValue(project.name, task.name, activity.name).url', '_blank')" />
+        <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@WorkspaceApi.getActivityValue(project.name, task.id, activity.name).url', '_blank')" />
       }
     </div>
   </li>

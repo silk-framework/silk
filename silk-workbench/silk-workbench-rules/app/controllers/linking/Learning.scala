@@ -20,7 +20,7 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
-import org.silkframework.workspace.{Task, User}
+import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller, Result}
 import plugins.Context
@@ -284,7 +284,7 @@ object Learning extends Controller {
     Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value))
   }
 
-  private def getPopulation(task: Task[LinkSpecification]): Population = {
+  private def getPopulation(task: ProjectTask[LinkSpecification]): Population = {
     val population1 = task.activity[ActiveLearning].value.population
     val population2 = task.activity[LearningActivity].value.population
     if(population1.isEmpty)

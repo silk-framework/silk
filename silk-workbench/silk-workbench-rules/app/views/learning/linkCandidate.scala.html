@@ -49,19 +49,19 @@
 <script type="text/javascript">
 
   function confirm() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url', '@LinkCandidateDecision.positive');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url', '@LinkCandidateDecision.positive');
   }
 
   function decline() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url', '@LinkCandidateDecision.negative');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url', '@LinkCandidateDecision.negative');
   }
 
   function pass() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.name).url', '@LinkCandidateDecision.pass');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url', '@LinkCandidateDecision.pass');
   }
 
   function done() {
-    window.location = "@routes.Learning.population(context.project.name, context.task.name).url"
+    window.location = "@routes.Learning.population(context.project.name, context.task.id).url"
   }
 
   function nextLinkCandidate(url, decision) {

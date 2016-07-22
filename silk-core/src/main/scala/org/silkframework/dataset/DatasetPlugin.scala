@@ -1,11 +1,12 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.TaskSpecification
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 /**
  * Manages the access to a specific dataset.
  */
-trait DatasetPlugin extends AnyPlugin with SinkTrait {
+trait DatasetPlugin extends TaskSpecification with AnyPlugin with SinkTrait {
 
   /**
    * Returns a data source for reading entities from the data set.

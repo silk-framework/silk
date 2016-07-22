@@ -23,10 +23,10 @@
   <script type="text/javascript">
     var inEditorEnv = true;
     var projectName = '@context.project.name';
-    var taskName = '@context.task.name';
+    var taskName = '@context.task.id';
     var ruleIndex = '/@context.task.data.rules.indexOf(rule)';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
   </script>
 }

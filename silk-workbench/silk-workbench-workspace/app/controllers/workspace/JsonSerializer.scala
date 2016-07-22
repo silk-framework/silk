@@ -2,13 +2,13 @@ package controllers.workspace
 
 import java.util.logging.LogRecord
 
-import org.silkframework.config.{LinkSpecification, TransformSpecification}
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.{LinkSpecification, TaskSpecification, TransformSpecification}
+import org.silkframework.dataset.{Dataset, DatasetPlugin}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{ProjectMarshallingTrait, Project, Task, User}
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -30,7 +30,7 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-        "dataset" -> tasksJson[Dataset](project),
+        "dataset" -> tasksJson[DatasetPlugin](project),
         "transform" -> tasksJson[TransformSpecification](project),
         "linking" -> tasksJson[LinkSpecification](project),
         "workflow" -> tasksJson[Workflow](project)
@@ -38,9 +38,9 @@ object JsonSerializer {
     )
   }
 
-  def tasksJson[T: ClassTag](project: Project) = JsArray(
+  def tasksJson[T <: TaskSpecification : ClassTag](project: Project) = JsArray(
     for (task <- project.tasks[T]) yield {
-      JsString(task.name)
+      JsString(task.id)
     }
   )
 
@@ -54,7 +54,7 @@ object JsonSerializer {
     }
   )
 
-  def taskActivities(task: Task[_]) = JsArray(
+  def taskActivities(task: ProjectTask[_ <: TaskSpecification]) = JsArray(
     for (activity <- task.activities) yield {
       JsString(activity.name)
     }
@@ -72,7 +72,7 @@ object JsonSerializer {
 
 
   def activityStatus(activity: WorkspaceActivity): JsValue = {
-    activityStatus(activity.project.name, activity.taskOption.map(_.name.toString).getOrElse(""), activity.name, activity.status)
+    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.status)
   }
 
   def activityStatus(project: String, task: String, activity: String, status: Status): JsValue = {

@@ -16,7 +16,7 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{LinkSpecification, Prefixes}
+import org.silkframework.config.{LinkSpecification, Prefixes, Task}
 import org.silkframework.evaluation.ReferenceLinksReader
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
@@ -51,9 +51,9 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
   private def loadTask(taskResources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val resources = projectResources
     implicit val readContext = ReadContext(resources)
-    val linkSpec = fromXml[LinkSpecification](XML.load(taskResources.get("linkSpec.xml").load))
+    val linkSpec = fromXml[Task[LinkSpecification]](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
-    (linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks))
+    (linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks))
   }
 
   /**
@@ -66,7 +66,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
   /**
    * Writes an updated task.
    */
-  def writeTask(data: LinkSpecification, resources: ResourceManager) = {
+  def writeTask(data: Task[LinkSpecification], resources: ResourceManager) = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 

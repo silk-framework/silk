@@ -33,8 +33,7 @@ import scala.xml.Node
 /**
  * Represents a Silk Link Specification.
  */
-case class LinkSpecification(id: Identifier = Identifier.random,
-                             dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
+case class LinkSpecification(dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
                              rule: LinkageRule = LinkageRule(),
                              outputs: Seq[Identifier] = Seq.empty,
                              referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpecification {
@@ -103,18 +102,14 @@ object LinkSpecification {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
 
-      //Read id
-      val id = (node \ "@id").text
-
       //Read linkage rule node
       val linkConditionNode = (node \ "LinkCondition").headOption
       val linkageRuleNode = (node \ "LinkageRule").headOption.getOrElse(linkConditionNode.get)
 
-      if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
+      if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification")
       if (linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
       LinkSpecification(
-        id = id,
         dataSelections = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
           DatasetSelection.fromXML((node \ "TargetDataset").head)),
         rule = fromXml[LinkageRule](linkageRuleNode),
@@ -132,7 +127,7 @@ object LinkSpecification {
      * Serialize a value to XML.
      */
     def write(spec: LinkSpecification)(implicit writeContext: WriteContext[Node]): Node =
-      <Interlink id={spec.id}>
+      <Interlink>
         {spec.dataSelections.source.toXML(asSource = true)}
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}

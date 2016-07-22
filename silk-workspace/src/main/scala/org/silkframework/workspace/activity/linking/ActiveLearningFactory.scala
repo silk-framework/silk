@@ -5,7 +5,7 @@ import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.active.{ActiveLearning, ActiveLearningState}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 )
 case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpecification, ActiveLearning] {
 
-  def apply(task: Task[LinkSpecification]): Activity[ActiveLearningState] = {
+  def apply(task: ProjectTask[LinkSpecification]): Activity[ActiveLearningState] = {
     Activity.regenerating {
       // Update reference entities cache
       val entitiesCache = task.activity[ReferenceEntitiesCache].control

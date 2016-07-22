@@ -14,7 +14,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
     var tabs = List[Tab]()
     if(context.task.data.isInstanceOf[TransformSpecification]) {
       val p = context.project.name
-      val t = context.task.name
+      val t = context.task.id
       tabs ::= Tab("Editor", s"transform/$p/$t/editor")
       tabs ::= Tab("Evaluate", s"transform/$p/$t/evaluate")
       tabs ::= Tab("Execute", s"transform/$p/$t/execute")

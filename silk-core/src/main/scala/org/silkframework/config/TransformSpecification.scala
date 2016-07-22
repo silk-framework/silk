@@ -15,7 +15,7 @@ import scala.xml.{Node, Null}
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
-case class TransformSpecification(id: Identifier = Identifier.random, selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty, errorOutputs: Seq[Identifier] = Seq.empty) extends TaskSpecification {
+case class TransformSpecification(selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty, errorOutputs: Seq[Identifier] = Seq.empty) extends TaskSpecification {
 
   def entitySchema = {
     EntitySchema(
@@ -48,9 +48,6 @@ object TransformSpecification {
       * Deserialize a value from XML.
       */
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpecification = {
-      // Get the Id.
-      val id = (node \ "@id").text
-
       // Get the required parameters from the XML configuration.
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
       val rules = (node \ "TransformRule").map(fromXml[TransformRule])
@@ -58,7 +55,7 @@ object TransformSpecification {
       val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
 
       // Create and return a TransformSpecification instance.
-      TransformSpecification(id, datasetSelection, rules, sinks, errorSinks)
+      TransformSpecification(datasetSelection, rules, sinks, errorSinks)
     }
 
     /**

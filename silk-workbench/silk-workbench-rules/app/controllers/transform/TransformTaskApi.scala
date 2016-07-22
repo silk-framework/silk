@@ -14,7 +14,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{Task, User}
+import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
@@ -31,7 +31,7 @@ object TransformTaskApi extends Controller {
     val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
-    proj.tasks[TransformSpecification].find(_.name == task) match {
+    proj.tasks[TransformSpecification].find(_.id == task) match {
       //Update existing task
       case Some(oldTask) => {
         val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs)
@@ -39,7 +39,7 @@ object TransformTaskApi extends Controller {
       }
       //Create new task with no rule
       case None => {
-        val transformSpec = TransformSpecification(task, input, Seq.empty, outputs)
+        val transformSpec = TransformSpecification(input, Seq.empty, outputs)
         proj.updateTask(task, transformSpec)
       }
     }
@@ -214,7 +214,7 @@ object TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: Task[TransformSpecification], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
+  private def executeTransform(task: ProjectTask[TransformSpecification], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
     val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink),errorEntitySinkOpt.toSeq)
     Activity(transform).startBlocking()
   }
