@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.TaskSpecification
-import org.silkframework.dataset.{Dataset, DatasetPlugin, VariableDataset}
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.{Dataset, DatasetTask, VariableDataset}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
 import scala.xml.Node
 
-case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpecification {
+case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
 
   def nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -43,6 +43,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
 
   /**
     * Returns all variable datasets and how they are used in the workflow.
+    *
     * @param project
     * @return
     * @throws Exception if a variable dataset is used as input and output, which is not allowed.
@@ -50,14 +51,14 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   def variableDatasets(project: Project): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
       for (datasetId <- operators.flatMap(_.outputs).distinct;
-           dataset <- project.taskOption[DatasetPlugin](datasetId)
+           dataset <- project.taskOption[Dataset](datasetId)
            if dataset.data.isInstanceOf[VariableDataset]) yield {
         datasetId
       }
 
     val variableDatasetsUsedInInput =
       for (datasetId <- operators.flatMap(_.inputs).distinct;
-           dataset <- project.taskOption[DatasetPlugin](datasetId)
+           dataset <- project.taskOption[Dataset](datasetId)
            if dataset.data.isInstanceOf[VariableDataset]) yield {
         datasetId
       }

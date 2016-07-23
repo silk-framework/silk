@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import java.lang.reflect.ParameterizedType
 
-import org.silkframework.config.TaskSpecification
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, HasValue, Status}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
   * @param initialFactory The initial activity factory for generating the activity.
   * @tparam DataType The type of the task.
   */
-class TaskActivity[DataType <: TaskSpecification : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType], initialFactory: TaskActivityFactory[DataType, ActivityType]) extends WorkspaceActivity {
+class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType], initialFactory: TaskActivityFactory[DataType, ActivityType]) extends WorkspaceActivity {
 
   @volatile
   private var currentControl = Activity(initialFactory(task))

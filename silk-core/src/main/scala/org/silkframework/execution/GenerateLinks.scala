@@ -18,8 +18,8 @@ import java.io.File
 import java.util.logging.LogRecord
 
 import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
-import org.silkframework.config.{LinkSpecification, RuntimeConfig, Task}
-import org.silkframework.dataset.{DataSource, Dataset, LinkSink}
+import org.silkframework.config.{LinkSpec, RuntimeConfig}
+import org.silkframework.dataset.{DataSource, DatasetTask, LinkSink}
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status}
 import org.silkframework.util.FileUtils._
@@ -30,7 +30,7 @@ import org.silkframework.util.{CollectLogs, DPair, Identifier}
  */
 class GenerateLinks(id: Identifier,
                     inputs: DPair[DataSource],
-                    linkSpec: LinkSpecification,
+                    linkSpec: LinkSpec,
                     outputs: Seq[LinkSink],
                     runtimeConfig: RuntimeConfig = RuntimeConfig()) extends Activity[Linking] {
 
@@ -137,13 +137,13 @@ class GenerateLinks(id: Identifier,
 object GenerateLinks {
 
   def fromSources(id: Identifier,
-                  datasets: Traversable[Dataset],
-                  linkSpec: LinkSpecification,
+                  datasets: Traversable[DatasetTask],
+                  linkSpec: LinkSpec,
                   runtimeConfig: RuntimeConfig = RuntimeConfig()) = {
     val sourcePair = linkSpec.findSources(datasets)
     val outputs = linkSpec.outputs.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
     new GenerateLinks(id, sourcePair, linkSpec, outputs, runtimeConfig)
   }
 
-  def empty = new GenerateLinks(Identifier.random, DPair.empty, LinkSpecification(), Seq.empty)
+  def empty = new GenerateLinks(Identifier.random, DPair.empty, LinkSpec(), Seq.empty)
 }

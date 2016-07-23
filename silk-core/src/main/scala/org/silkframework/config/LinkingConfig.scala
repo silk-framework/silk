@@ -14,10 +14,11 @@
 
 package org.silkframework.config
 
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.DatasetTask
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization._
+import org.silkframework.task.TransformSpec
 import org.silkframework.util.Identifier
 
 import scala.xml.Node
@@ -33,10 +34,10 @@ import scala.xml.Node
  */
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeConfig,
-                         sources: Traversable[Dataset],
-                         linkSpecs: Traversable[Task[LinkSpecification]],
-                         outputs: Seq[Dataset] = Seq.empty,
-                         transforms: Traversable[Task[TransformSpecification]] = Seq.empty) {
+                         sources: Traversable[DatasetTask],
+                         linkSpecs: Traversable[Task[LinkSpec]],
+                         outputs: Seq[DatasetTask] = Seq.empty,
+                         transforms: Traversable[Task[TransformSpec]] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
@@ -116,20 +117,20 @@ object LinkingConfig {
     }
 
     private def readWithPrefixes(node: Node)(implicit readContext: ReadContext) = {
-      val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[Dataset]).toSet
-      val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[Dataset]).toSet
+      val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[DatasetTask]).toSet
+      val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[DatasetTask]).toSet
       val sources = oldSources ++ newSources
       val blocking = (node \ "Blocking").headOption match {
         case Some(blockingNode) => Blocking.fromXML(blockingNode)
         case None => Blocking()
       }
-      val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[Task[LinkSpecification]](p))
-      val transforms = (node \ "Transforms" \ "Transform").map(p => fromXml[Task[TransformSpecification]](p))
+      val linkSpecifications = (node \ "Interlinks" \ "Interlink").map(p => fromXml[Task[LinkSpec]](p))
+      val transforms = (node \ "Transforms" \ "Transform").map(p => fromXml[Task[TransformSpec]](p))
 
       implicit val globalThreshold = None
 
-      val oldOutputs = (node \ "Outputs" \ "Output").map(fromXml[Dataset])
-      val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[Dataset])
+      val oldOutputs = (node \ "Outputs" \ "Output").map(fromXml[DatasetTask])
+      val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[DatasetTask])
       val outputs = oldOutputs ++ newOutputs
 
       LinkingConfig(readContext.prefixes, RuntimeConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
@@ -142,7 +143,7 @@ object LinkingConfig {
       <Silk>
         {value.prefixes.toXML}
         <DataSources>
-          {value.sources.map(toXml[Dataset])}
+          {value.sources.map(toXml[DatasetTask])}
         </DataSources>
         <Interlinks>
           {value.linkSpecs.map(spec => XmlSerialization.toXml(spec))}
@@ -151,7 +152,7 @@ object LinkingConfig {
           {value.transforms.map(spec => XmlSerialization.toXml(spec))}
         </Transforms>
         <Outputs>
-          {value.outputs.map(toXml[Dataset])}
+          {value.outputs.map(toXml[DatasetTask])}
         </Outputs>
       </Silk>
     }

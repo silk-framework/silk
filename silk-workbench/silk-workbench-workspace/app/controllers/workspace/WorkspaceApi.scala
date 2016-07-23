@@ -9,8 +9,9 @@ import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceNotFoundException, EmptyResourceManager, UrlResource}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
+import org.silkframework.task.TaskSpec
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -193,7 +194,7 @@ object WorkspaceApi extends Controller {
 
   def exportLinkSpec(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
     val silkConfig = SilkConfigExporter.build(project, task.task)
@@ -418,7 +419,7 @@ object WorkspaceApi extends Controller {
       if (taskName.nonEmpty) Nil
       else project.activities
 
-    def taskActivities(task: ProjectTask[_ <: TaskSpecification]) =
+    def taskActivities(task: ProjectTask[_ <: TaskSpec]) =
       if (activityName.nonEmpty) task.activity(activityName) :: Nil
       else task.activities
 

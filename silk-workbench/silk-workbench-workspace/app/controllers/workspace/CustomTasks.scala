@@ -1,8 +1,9 @@
 package controllers.workspace
 
 import models.JsonError
-import org.silkframework.config.{CustomTaskPlugin, Task}
+import org.silkframework.config.{CustomTask, Task}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.task.Task
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 
@@ -10,7 +11,7 @@ object CustomTasks extends Controller {
 
   def getTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[CustomTaskPlugin](taskName)
+    val task = project.task[CustomTask](taskName)
     val xml = XmlSerialization.toXml(task.data)
 
     Ok(xml)
@@ -22,7 +23,7 @@ object CustomTasks extends Controller {
     request.body.asXml match {
       case Some(xml) =>
         try {
-          val task = XmlSerialization.fromXml[Task[CustomTaskPlugin]](xml.head)
+          val task = XmlSerialization.fromXml[Task[CustomTask]](xml.head)
           project.updateTask(task.id, task.data)
           Ok
         } catch {
@@ -35,13 +36,13 @@ object CustomTasks extends Controller {
   }}
 
   def deleteTask(project: String, source: String) = Action {
-    User().workspace.project(project).removeTask[CustomTaskPlugin](source)
+    User().workspace.project(project).removeTask[CustomTask](source)
     Ok
   }
 
   def taskDialog(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val customTask = if(taskName.isEmpty) None else project.taskOption[CustomTaskPlugin](taskName).map(p => p.data)
+    val customTask = if(taskName.isEmpty) None else project.taskOption[CustomTask](taskName).map(p => p.data)
     Ok(views.html.workspace.customTask.customTaskDialog(project, taskName, customTask))
   }
 }

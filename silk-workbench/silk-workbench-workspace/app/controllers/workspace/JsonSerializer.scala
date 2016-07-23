@@ -2,10 +2,11 @@ package controllers.workspace
 
 import java.util.logging.LogRecord
 
-import org.silkframework.config.{LinkSpecification, TaskSpecification, TransformSpecification}
-import org.silkframework.dataset.{Dataset, DatasetPlugin}
+import org.silkframework.config.{LinkSpec, TaskSpec, TransformSpec}
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.task.TransformSpec
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -30,15 +31,15 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-        "dataset" -> tasksJson[DatasetPlugin](project),
-        "transform" -> tasksJson[TransformSpecification](project),
-        "linking" -> tasksJson[LinkSpecification](project),
+        "dataset" -> tasksJson[Dataset](project),
+        "transform" -> tasksJson[TransformSpec](project),
+        "linking" -> tasksJson[LinkSpec](project),
         "workflow" -> tasksJson[Workflow](project)
       )
     )
   }
 
-  def tasksJson[T <: TaskSpecification : ClassTag](project: Project) = JsArray(
+  def tasksJson[T <: TaskSpec : ClassTag](project: Project) = JsArray(
     for (task <- project.tasks[T]) yield {
       JsString(task.id)
     }
@@ -54,7 +55,7 @@ object JsonSerializer {
     }
   )
 
-  def taskActivities(task: ProjectTask[_ <: TaskSpecification]) = JsArray(
+  def taskActivities(task: ProjectTask[_ <: TaskSpec]) = JsArray(
     for (activity <- task.activities) yield {
       JsString(activity.name)
     }

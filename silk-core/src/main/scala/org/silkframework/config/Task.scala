@@ -2,9 +2,10 @@ package org.silkframework.config
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
+
 import scala.xml._
 
-case class Task[+TaskType <: TaskSpecification](id: Identifier, data: TaskType) {
+case class Task[+TaskType <: TaskSpec](id: Identifier, data: TaskType) {
 
 }
 
@@ -13,19 +14,19 @@ object Task {
   /**
     * Implicitly converts a task to its specification.
     */
-  implicit def taskData[T <: TaskSpecification](task: Task[T]): T = task.data
+  implicit def taskData[T <: TaskSpec](task: Task[T]): T = task.data
 
   /**
     * Returns the xml serialization format for a Task.
     *
     * @param xmlFormat The xml serialization format for type T.
     */
-  implicit def taskFormat[T <: TaskSpecification](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
+  implicit def taskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
 
   /**
     * XML serialization format.
     */
-  private class TaskFormat[T <: TaskSpecification](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
+  private class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
     /**
       * Deserialize a value from XML.
       */

@@ -14,8 +14,9 @@
 
 package org.silkframework.workspace.io
 
-import org.silkframework.config.{LinkSpecification, LinkingConfig, RuntimeConfig, Task}
-import org.silkframework.dataset.{Dataset, DatasetPlugin}
+import org.silkframework.config.{LinkSpec, LinkingConfig, RuntimeConfig, Task}
+import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.task.Task
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -23,11 +24,11 @@ import org.silkframework.workspace.{Project, ProjectTask}
  * Builds a Silk configuration from the current Linking Task.
  */
 object SilkConfigExporter {
-  def build(project: Project, linkSpec: Task[LinkSpecification]): LinkingConfig = {
-    val datasets = project.tasks[DatasetPlugin]
+  def build(project: Project, linkSpec: Task[LinkSpec]): LinkingConfig = {
+    val datasets = project.tasks[Dataset]
 
-    def findDataset(id: Identifier): Dataset = {
-      new Dataset(id, datasets.find(_.id == id).get.data)
+    def findDataset(id: Identifier): DatasetTask = {
+      new DatasetTask(id, datasets.find(_.id == id).get.data)
     }
 
     LinkingConfig(

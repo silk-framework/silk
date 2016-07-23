@@ -2,7 +2,6 @@ package org.silkframework.workspace.activity.linking
 
 import java.util
 
-import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.evaluation.ReferenceEntities
@@ -10,13 +9,15 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
+import org.silkframework.config.LinkSpec
+
 import scala.collection.JavaConverters._
 
 
 /**
  * For each reference link, the reference entities cache holds all values of the linked entities.
  */
-class ReferenceEntitiesCache(task: ProjectTask[LinkSpecification]) extends Activity[ReferenceEntities] {
+class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[ReferenceEntities] {
 
   @volatile
   private var canceled = false

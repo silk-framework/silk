@@ -16,7 +16,7 @@ case class XmlDataset(
   @Param("The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
   basePath: String = "",
   @Param("A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements")
-  uriPattern: String = "") extends DatasetPlugin {
+  uriPattern: String = "") extends Dataset {
 
   override def source: DataSource = new XmlSource(file, basePath, uriPattern)
 

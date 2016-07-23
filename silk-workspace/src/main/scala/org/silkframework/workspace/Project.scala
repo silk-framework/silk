@@ -17,10 +17,11 @@ package org.silkframework.workspace
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetPlugin}
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.task.TransformSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
 import org.silkframework.workspace.activity.transform._
@@ -45,7 +46,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var cachedConfig: ProjectConfig = initialConfig
 
   @volatile
-  private var modules = Seq[Module[_ <: TaskSpecification]]()
+  private var modules = Seq[Module[_ <: TaskSpec]]()
 
   @volatile
   private var executors = Map[String, TaskExecutor[_]]()
@@ -57,11 +58,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
 
   // Register all default modules
-  registerModule[DatasetPlugin]()
-  registerModule[TransformSpecification]()
-  registerModule[LinkSpecification]()
+  registerModule[Dataset]()
+  registerModule[TransformSpec]()
+  registerModule[LinkSpec]()
   registerModule[Workflow]()
-  registerModule[CustomTaskPlugin]()
+  registerModule[CustomTask]()
 
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
@@ -130,14 +131,14 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Retrieves all tasks in this project.
    */
-  def allTasks: Seq[ProjectTask[_ <: TaskSpecification]] = {
-    for(module <- modules; task <- module.tasks) yield task.asInstanceOf[ProjectTask[_ <: TaskSpecification]]
+  def allTasks: Seq[ProjectTask[_ <: TaskSpec]] = {
+    for(module <- modules; task <- module.tasks) yield task.asInstanceOf[ProjectTask[_ <: TaskSpec]]
   }
 
   /**
    * Retrieves all tasks of a specific type.
    */
-  def tasks[T <: TaskSpecification : ClassTag]: Seq[ProjectTask[T]] = {
+  def tasks[T <: TaskSpec : ClassTag]: Seq[ProjectTask[T]] = {
     module[T].tasks
   }
 
@@ -148,11 +149,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @tparam T The task type
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
-  def task[T <: TaskSpecification : ClassTag](taskName: Identifier): ProjectTask[T] = {
+  def task[T <: TaskSpec : ClassTag](taskName: Identifier): ProjectTask[T] = {
     module[T].task(taskName)
   }
 
-  def taskOption[T <: TaskSpecification : ClassTag](taskName: Identifier): Option[ProjectTask[T]] = {
+  def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier): Option[ProjectTask[T]] = {
     module[T].taskOption(taskName)
   }
 
@@ -162,8 +163,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @param taskName The name of the task
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
-  def anyTask(taskName: Identifier): ProjectTask[_ <: TaskSpecification] = {
-    modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpecification]]]).headOption
+  def anyTask(taskName: Identifier): ProjectTask[_ <: TaskSpec] = {
+    modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpec]]]).headOption
            .getOrElse(throw new NoSuchElementException(s"No task '$taskName' found in project '$name'"))
   }
 
@@ -174,7 +175,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpecification : ClassTag](name: Identifier, taskData: T) = {
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T) = {
     require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     module[T].add(name, taskData)
   }
@@ -187,7 +188,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpecification : ClassTag](name: Identifier, taskData: T) = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T) = {
     module[T].taskOption(name) match {
       case Some(task) => task.update(taskData)
       case None => addTask[T](name, taskData)
@@ -200,7 +201,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @param taskName The name of the task
    * @tparam T The task type
    */
-  def removeTask[T <: TaskSpecification : ClassTag](taskName: Identifier): Unit = {
+  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = {
     module[T].remove(taskName)
   }
 
@@ -217,7 +218,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @tparam T The task type
    * @throws java.util.NoSuchElementException If no module for the given task type has been registered
    */
-  private def module[T <: TaskSpecification : ClassTag]: Module[T] = {
+  private def module[T <: TaskSpec : ClassTag]: Module[T] = {
     modules.find(_.hasTaskType[T]) match {
       case Some(m) => m.asInstanceOf[Module[T]]
       case None =>
@@ -229,7 +230,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpecification : ClassTag]() = {
+  def registerModule[T <: TaskSpec : ClassTag]() = {
     modules = modules :+ new Module[T](provider, this)
   }
 

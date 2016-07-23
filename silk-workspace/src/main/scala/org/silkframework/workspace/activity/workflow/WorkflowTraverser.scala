@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.TaskSpecification
+import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -16,7 +16,7 @@ class WorkflowTraverser(operator: WorkflowNode)(implicit workflow: ProjectTask[W
 
   def task: ProjectTask[_] = workflow.project.anyTask(operator.task)
 
-  def taskOption[T <: TaskSpecification : ClassTag](taskName: Identifier): Option[ProjectTask[T]] = {
+  def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier): Option[ProjectTask[T]] = {
     workflow.project.taskOption[T](taskName)
   }
 

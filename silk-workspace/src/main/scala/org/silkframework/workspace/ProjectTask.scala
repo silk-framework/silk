@@ -17,9 +17,10 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{Task, TaskSpecification}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.task.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -32,8 +33,8 @@ import scala.util.control.NonFatal
  *
  * @tparam TaskType The data type that specifies the properties of this task.
  */
-class ProjectTask[TaskType <: TaskSpecification : ClassTag](val id: Identifier, initialData: TaskType,
-                                                           module: Module[TaskType]) {
+class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier, initialData: TaskType,
+                                                   module: Module[TaskType]) {
 
   private val log = Logger.getLogger(getClass.getName)
 

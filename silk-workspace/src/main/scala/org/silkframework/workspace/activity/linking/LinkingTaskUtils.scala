@@ -1,8 +1,9 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.{LinkSpecification, TransformSpecification}
-import org.silkframework.dataset.{DataSource, Dataset, DatasetPlugin}
+import org.silkframework.config.{LinkSpec, TransformSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetTask}
 import org.silkframework.rule.TransformedDataSource
+import org.silkframework.task.TransformSpec
 import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.workspace.ProjectTask
 
@@ -11,7 +12,7 @@ import org.silkframework.workspace.ProjectTask
   */
 object LinkingTaskUtils {
 
-  implicit class LinkingTask(task: ProjectTask[LinkSpecification]) {
+  implicit class LinkingTask(task: ProjectTask[LinkSpec]) {
 
     /**
       * Retrieves both data sources for this linking task.
@@ -24,12 +25,12 @@ object LinkingTaskUtils {
       * Retrieves a specific data source for this linking task.
       */
     def dataSource(sourceId: Identifier): DataSource = {
-      task.project.taskOption[TransformSpecification](sourceId) match {
+      task.project.taskOption[TransformSpec](sourceId) match {
         case Some(transformTask) =>
-          val source = task.project.task[DatasetPlugin](transformTask.data.selection.inputId).data.source
+          val source = task.project.task[Dataset](transformTask.data.selection.inputId).data.source
           new TransformedDataSource(source, transformTask.data)
         case None =>
-          task.project.task[DatasetPlugin](sourceId).data.source
+          task.project.task[Dataset](sourceId).data.source
       }
     }
 
@@ -37,7 +38,7 @@ object LinkingTaskUtils {
       * Retrieves all link sinks for this linking task.
       */
     def linkSinks = {
-      task.data.outputs.flatMap(o => task.project.taskOption[DatasetPlugin](o)).map(_.data.linkSink)
+      task.data.outputs.flatMap(o => task.project.taskOption[Dataset](o)).map(_.data.linkSink)
     }
   }
 

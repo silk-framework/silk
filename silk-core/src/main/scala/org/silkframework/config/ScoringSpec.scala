@@ -7,7 +7,7 @@ import org.silkframework.util.Identifier
 /**
  * This class contains all the required parameters to execute a scoring task.
  */
-case class ScoringSpecification(selection: DatasetSelection, rules: Seq[ScoringRule], outputs: Seq[Identifier] = Seq.empty) extends TaskSpecification {
+case class ScoringSpec(selection: DatasetSelection, rules: Seq[ScoringRule], outputs: Seq[Identifier] = Seq.empty) extends TaskSpec {
 
   def entityDescription = {
     EntitySchema(
@@ -19,10 +19,10 @@ case class ScoringSpecification(selection: DatasetSelection, rules: Seq[ScoringR
 
 }
 
-object ScoringSpecification {
+object ScoringSpec {
 
-  def fromTransform(task: TransformSpecification) =
-    ScoringSpecification(
+  def fromTransform(task: TransformSpec) =
+    ScoringSpec(
       selection = task.selection,
       rules = task.rules.map(ScoringRule.fromTransform),
       outputs = task.outputs

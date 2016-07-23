@@ -4,8 +4,8 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import models.JsonError
-import org.silkframework.config.{DatasetSelection, LinkSpecification}
-import org.silkframework.dataset.{Dataset, DatasetPlugin}
+import org.silkframework.config.{DatasetSelection, LinkSpec}
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
@@ -15,6 +15,7 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.task.LinkSpec
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
@@ -28,7 +29,7 @@ object LinkingTaskApi extends Controller {
 
   def getLinkingTask(projectName: String, taskName: String) = Action {
     val project: Project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val xml = XmlSerialization.toXml(task.data)
     Ok(xml)
   }
@@ -44,7 +45,7 @@ object LinkingTaskApi extends Controller {
             DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
     val outputs = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten
 
-    proj.tasks[LinkSpecification].find(_.id == task) match {
+    proj.tasks[LinkSpec].find(_.id == task) match {
       //Update existing task
       case Some(oldTask) => {
         val updatedLinkSpec = oldTask.data.copy(dataSelections = datasets, outputs = outputs)
@@ -53,7 +54,7 @@ object LinkingTaskApi extends Controller {
       //Create new task
       case None => {
         val linkSpec =
-          LinkSpecification(
+          LinkSpec(
             dataSelections = datasets,
             rule = LinkageRule(None),
             outputs = outputs
@@ -66,14 +67,14 @@ object LinkingTaskApi extends Controller {
   }}
 
   def deleteLinkingTask(project: String, task: String) = Action {
-    User().workspace.project(project).removeTask[LinkSpecification](task)
+    User().workspace.project(project).removeTask[LinkSpec](task)
     Ok
   }
 
 
   def getRule(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
     val ruleXml = XmlSerialization.toXml(task.data.rule)
 
@@ -82,7 +83,7 @@ object LinkingTaskApi extends Controller {
 
   def putRule(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
@@ -115,7 +116,7 @@ object LinkingTaskApi extends Controller {
 
   def getLinkSpec(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
     val linkSpecXml = XmlSerialization.toXml(task.data)
 
@@ -124,7 +125,7 @@ object LinkingTaskApi extends Controller {
 
   def putLinkSpec(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
@@ -135,7 +136,7 @@ object LinkingTaskApi extends Controller {
           //Collect warnings while parsing link spec
           val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkspec") {
             //Load link specification
-            val newLinkSpec = XmlSerialization.fromXml[LinkSpecification](xml.head)
+            val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
             //Update linking task
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           }
@@ -156,7 +157,7 @@ object LinkingTaskApi extends Controller {
 
   def getReferenceLinks(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val referenceLinksXml = task.data.referenceLinks.toXML
 
     Ok(referenceLinksXml).withHeaders("Content-Disposition" -> s"attachment; filename=referenceLinks.xml")
@@ -164,7 +165,7 @@ object LinkingTaskApi extends Controller {
 
   def putReferenceLinks(projectName: String, taskName: String, generateNegative: Boolean) = Action { implicit request => {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
@@ -189,7 +190,7 @@ object LinkingTaskApi extends Controller {
    */
   def deleteReferenceLinks(projectName: String, taskName: String, positive: Boolean, negative: Boolean, unlabeled: Boolean) = Action { implicit request => {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
 
     val newReferenceLinks =
@@ -217,7 +218,7 @@ object LinkingTaskApi extends Controller {
   def putReferenceLink(projectName: String, taskName: String, linkType: String, source: String, target: String) = Action {
     log.info(s"Adding $linkType reference link: $source - $target")
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val link = new Link(source, target)
 
     linkType match {
@@ -245,7 +246,7 @@ object LinkingTaskApi extends Controller {
    */
   def deleteReferenceLink(projectName: String, taskName: String, source: String, target: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val link = new Link(source, target)
     
     val updatedTask = task.data.copy(referenceLinks = task.data.referenceLinks.without(link))
@@ -256,7 +257,7 @@ object LinkingTaskApi extends Controller {
 
   def reloadLinkingCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
     referenceEntitiesCache.reset()
     referenceEntitiesCache.start()
@@ -265,7 +266,7 @@ object LinkingTaskApi extends Controller {
 
   def startGenerateLinksTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val generateLinksActivity = task.activity[GenerateLinksActivity].control
     generateLinksActivity.start()
     Ok
@@ -273,7 +274,7 @@ object LinkingTaskApi extends Controller {
 
   def stopGenerateLinksTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val generateLinksActivity = task.activity[GenerateLinksActivity].control
     generateLinksActivity.cancel()
     Ok
@@ -281,16 +282,16 @@ object LinkingTaskApi extends Controller {
 
   def writeReferenceLinks(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val params = request.body.asFormUrlEncoded.get
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[DatasetPlugin](posOutputName.head).data.linkSink
+      val posOutput = project.task[Dataset](posOutputName.head).data.linkSink
       posOutput.writeLinks(task.data.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[DatasetPlugin](negOutputName.head).data.linkSink
+      val negOutput = project.task[Dataset](negOutputName.head).data.linkSink
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 
@@ -299,14 +300,14 @@ object LinkingTaskApi extends Controller {
 
   def learningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     task.activity[LearningActivity].control.start()
     Ok
   }
 
   def activeLearningActivity(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val learningActivity = task.activity[ActiveLearning]
 
     if(task.data.referenceLinks.unlabeled.isEmpty) {
@@ -320,7 +321,7 @@ object LinkingTaskApi extends Controller {
 
   // Get the project and linking task
   private def projectAndTask(projectName: String, taskName: String)  = {
-    getProjectAndTask[LinkSpecification](projectName, taskName)
+    getProjectAndTask[LinkSpec](projectName, taskName)
   }
 
   def postLinkDatasource(projectName: String, taskName: String) = Action { request =>

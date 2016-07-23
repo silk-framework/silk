@@ -3,8 +3,9 @@ package org.silkframework.workspace.xml
 import java.io._
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
-import org.silkframework.config.{Prefixes, Task, TaskSpecification}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
+import org.silkframework.task.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
@@ -27,7 +28,7 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
   registerModule(new WorkflowXmlSerializer())
   registerModule(new CustomTaskXmlSerializer())
 
-  def registerModule[T <: TaskSpecification : ClassTag](plugin: XmlSerializer[T]) = {
+  def registerModule[T <: TaskSpec : ClassTag](plugin: XmlSerializer[T]) = {
     val clazz = implicitly[ClassTag[T]].runtimeClass
     plugins += (clazz -> plugin)
   }
@@ -66,15 +67,15 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     res.child(name)
   }
 
-  override def readTasks[T <: TaskSpecification : ClassTag](project: Identifier): Seq[(Identifier, T)] = {
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier): Seq[(Identifier, T)] = {
     plugin[T].loadTasks(res.child(project).child(plugin[T].prefix), res.child(project).child("resources")).toSeq
   }
 
-  override def putTask[T <: TaskSpecification : ClassTag](project: Identifier, task: Identifier, data: T): Unit = {
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier, data: T): Unit = {
     plugin[T].writeTask(Task(task, data), res.child(project).child(plugin[T].prefix))
   }
 
-  override def deleteTask[T <: TaskSpecification : ClassTag](project: Identifier, task: Identifier): Unit = {
+  override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier): Unit = {
     plugin[T].removeTask(task, res.child(project).child(plugin[T].prefix))
   }
 
@@ -132,7 +133,7 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     zip.close()
   }
 
-  private def plugin[T <: TaskSpecification : ClassTag] = {
+  private def plugin[T <: TaskSpec : ClassTag] = {
     plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlSerializer[T]]
   }
 }

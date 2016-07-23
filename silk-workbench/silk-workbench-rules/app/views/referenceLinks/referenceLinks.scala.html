@@ -1,11 +1,11 @@
 @import plugins.Context
-@import org.silkframework.config.LinkSpecification
 @import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 @import views.html.workspace.activity.taskActivityControl
 @import controllers.rules.routes.Assets
 @import controllers.linking.routes
+@import org.silkframework.config.LinkSpec
 
-@(context: Context[LinkSpecification])
+@(context: Context[LinkSpec])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

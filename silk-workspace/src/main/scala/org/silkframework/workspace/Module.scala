@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.TaskSpecification
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -17,8 +17,8 @@ import scala.util.control.NonFatal
   * @param project The project this module belongs to
   * @tparam TaskData The task type held by this module
   */
-class Module[TaskData <: TaskSpecification: ClassTag](private[workspace] val provider: WorkspaceProvider,
-                                                      private[workspace] val project: Project) {
+class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: WorkspaceProvider,
+                                             private[workspace] val project: Project) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 

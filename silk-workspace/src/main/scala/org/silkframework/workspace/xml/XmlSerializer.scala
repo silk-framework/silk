@@ -1,13 +1,14 @@
 package org.silkframework.workspace.xml
 
-import org.silkframework.config.{Task, TaskSpecification}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
+import org.silkframework.task.TaskSpec
 import org.silkframework.util.Identifier
 
 /**
  * A plugin that adds a new module to the workspace.
  */
-private trait XmlSerializer[TaskType <: TaskSpecification] {
+private trait XmlSerializer[TaskType <: TaskSpec] {
 
   /**
    * A prefix that uniquely identifies this module.

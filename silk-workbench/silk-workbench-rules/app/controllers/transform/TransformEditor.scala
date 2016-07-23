@@ -1,6 +1,6 @@
 package controllers.transform
 
-import org.silkframework.config.TransformSpecification
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.DPair
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.TransformPathsCache
@@ -10,12 +10,12 @@ import plugins.Context
 object TransformEditor extends Controller {
 
   def start(project: String, task: String) = Action { request =>
-    val context = Context.get[TransformSpecification](project, task, request.path)
+    val context = Context.get[TransformSpec](project, task, request.path)
     Ok(views.html.editor.transformRules(context))
   }
 
   def editor(project: String, task: String, rule: String) = Action { request =>
-    val context = Context.get[TransformSpecification](project, task, request.path)
+    val context = Context.get[TransformSpec](project, task, request.path)
     context.task.data.rules.find(_.name == rule) match {
       case Some(r) => Ok(views.html.editor.transformEditor(context, r))
       case None => NotFound(s"No rule named '$rule' found!")
@@ -24,7 +24,7 @@ object TransformEditor extends Controller {
 
   def paths(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     val pathsCache = task.activity[TransformPathsCache].control
     val prefixes = project.config.prefixes
     val sourceName = task.data.selection.inputId.toString

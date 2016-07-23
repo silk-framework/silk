@@ -1,6 +1,6 @@
 package controllers.linking
 
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.LinkSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.evaluation.LinkageRuleEvaluator
 import org.silkframework.util.DPair
@@ -14,13 +14,13 @@ import scala.util.control.NonFatal
 object LinkingEditor extends Controller {
 
   def editor(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.editor.linkingEditor(context))
   }
 
   def paths(projectName: String, taskName: String, groupPaths: Boolean) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
     val sourceNames = task.data.dataSelections.map(_.inputId.toString)
@@ -44,7 +44,7 @@ object LinkingEditor extends Controller {
 
   def score(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val entitiesCache = task.activity[ReferenceEntitiesCache].control
 
     // If the entity cache is still loading

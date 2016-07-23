@@ -2,12 +2,12 @@ package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{SparqlParams, RdfDatasetPlugin, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{SparqlParams, RdfDataset, SparqlEndpoint}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(id = "inMemory", label = "in-memory", description = "A Dataset that holds all data in-memory.")
-case class InMemoryDataset() extends RdfDatasetPlugin {
+case class InMemoryDataset() extends RdfDataset {
 
   private val model = ModelFactory.createDefaultModel()
 

@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpecification
+import org.silkframework.config.TransformSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.ProjectTask
@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 /**
  * Holds the most frequent paths.
  */
-class TransformPathsCache(task: ProjectTask[TransformSpecification]) extends Activity[EntitySchema] {
+class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[EntitySchema] {
 
   override def name = s"Paths cache ${task.id}"
 

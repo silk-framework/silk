@@ -1,13 +1,13 @@
 @import org.silkframework.util.DPair
 @import org.silkframework.entity.Link
 @import plugins.Context
-@import org.silkframework.config.LinkSpecification
 @import models.linking.LinkCandidateDecision
 @import controllers.linking.routes
 @import models.learning.PathValue
 @import models.learning.PathValues
+@import org.silkframework.config.LinkSpec
 
-@(link: Link, sourceValues: Seq[PathValues], targetValues: Seq[PathValues],context: Context[LinkSpecification])
+@(link: Link, sourceValues: Seq[PathValues], targetValues: Seq[PathValues],context: Context[LinkSpec])
 
 <div id="link-candidate-buttons" class="button-set" style="text-align: center; margin-bottom: 20px;">
   <button class="mdl-button mdl-js-button mdl-button--raised" onclick="confirm()" title="Confirm this link candidate as correct." >Confirm</button>

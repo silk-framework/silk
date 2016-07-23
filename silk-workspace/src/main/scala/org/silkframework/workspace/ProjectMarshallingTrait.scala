@@ -2,8 +2,8 @@ package org.silkframework.workspace
 
 import java.io.{InputStream, OutputStream}
 
-import org.silkframework.config.{LinkSpecification, TransformSpecification}
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.LinkSpec
+import org.silkframework.dataset.DatasetTask
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.io.WorkspaceIO

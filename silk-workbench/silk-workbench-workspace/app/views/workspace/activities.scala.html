@@ -1,17 +1,17 @@
-@import org.silkframework.workspace.{User, Project}
+@import org.silkframework.workspace.{Project, User}
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workspace.Workspace
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.workspace.activity.TaskActivity
+
 @import scala.runtime.BoxedUnit
 @import controllers.workspace.routes.WorkspaceApi
 @import controllers.workspace.routes.Workspace
 @import controllers.workspace.routes.Assets
-
+@import org.silkframework.config.TaskSpec
 @**
  * Overview page of all activities and their status
  *@
-@import org.silkframework.config.TaskSpecification
 @()
 
 @header = {
@@ -120,7 +120,7 @@
   </li>
 }
 
-@taskActivities(project: Project, task: ProjectTask[_ <: TaskSpecification]) = {
+@taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
     @task.id
     <ul>
@@ -152,7 +152,7 @@
   </li>
 }
 
-@taskActivityStatus(project: Project, task: ProjectTask[_ <: TaskSpecification], activity: TaskActivity[_, _]) = {
+@taskActivityStatus(project: Project, task: ProjectTask[_ <: TaskSpec], activity: TaskActivity[_, _]) = {
   <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div class="activity-progress-small">

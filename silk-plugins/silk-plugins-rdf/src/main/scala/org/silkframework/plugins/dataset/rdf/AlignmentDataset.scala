@@ -13,7 +13,7 @@ import org.silkframework.runtime.resource.WritableResource
 )
 case class AlignmentDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
-  file: WritableResource) extends DatasetPlugin with WritableResourceDatasetPlugin {
+  file: WritableResource) extends Dataset with WritableResourceDataset {
 
   /**
    * Returns a data source for reading entities from the data set.
@@ -32,7 +32,7 @@ case class AlignmentDataset(
 
   override def clear(): Unit = { }
 
-  override def replaceWritableResource(writableResource: WritableResource): WritableResourceDatasetPlugin = {
+  override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
     this.copy(file = writableResource)
   }
 }

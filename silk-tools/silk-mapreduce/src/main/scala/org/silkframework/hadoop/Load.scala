@@ -18,7 +18,7 @@ import java.io.File
 import java.util.logging.Logger
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.silkframework.config.{LinkSpecification, LinkingConfig}
+import org.silkframework.config.{LinkSpec, LinkingConfig}
 import org.silkframework.execution.Loader
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.DPair
@@ -87,7 +87,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
     }
   }
 
-  private def write(config : LinkingConfig, linkSpec : LinkSpecification, entityCachePath : Path)
+  private def write(config : LinkingConfig, linkSpec : LinkSpec, entityCachePath : Path)
   {
     val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 

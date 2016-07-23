@@ -4,10 +4,9 @@
 @import plugins.WorkbenchPlugin.TaskActions
 @import org.silkframework.runtime.plugin.PluginRegistry
 @import controllers.workspace.routes.Assets
+@import org.silkframework.config.TaskSpec
 @import org.silkframework.workspace.Workspace
 @import org.silkframework.workspace.ProjectTask
-
-@import org.silkframework.config.TaskSpecification
 @(workspace: Workspace)
 
 <script type="application/javascript" >
@@ -60,7 +59,7 @@
    "img/project-error.png"
 }
 
-@task(project: Project, task: ProjectTask[_ <: TaskSpecification], taskActions: TaskActions[_ <: TaskSpecification]) = {
+@task(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
     @task.id
     @for(path <- taskActions.propertiesDialog(project.name, task.id)) {

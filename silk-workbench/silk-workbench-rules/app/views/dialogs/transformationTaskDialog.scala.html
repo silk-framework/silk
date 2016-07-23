@@ -1,14 +1,14 @@
-@import org.silkframework.config.TransformSpecification
 @import org.silkframework.workspace.Constants
-@import org.silkframework.dataset.DatasetPlugin
+@import org.silkframework.dataset.Dataset
 @import org.silkframework.workspace.User
 @import controllers.rules.routes.Assets
+@import org.silkframework.config.TransformSpec
 
 @(project: String, task: String)
 
-@datasets = @{ User().workspace.project(project).tasks[DatasetPlugin].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
-@transformationTask = @{ User().workspace.project(project).tasks[TransformSpecification].find(_.id == task) }
+@transformationTask = @{ User().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
 
 @currentInput = @{ transformationTask.map(_.data.selection) }
 

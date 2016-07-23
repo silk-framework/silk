@@ -2,11 +2,11 @@
 @import org.silkframework.rule.input.Transformer
 @import org.silkframework.rule.similarity.Aggregator
 @import org.silkframework.rule.similarity.DistanceMeasure
-@import org.silkframework.config.LinkSpecification
 @import controllers.workspace.routes
 @import controllers.rules.routes.Assets
+@import org.silkframework.config.LinkSpec
 
-@(context: Context[LinkSpecification])
+@(context: Context[LinkSpec])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />

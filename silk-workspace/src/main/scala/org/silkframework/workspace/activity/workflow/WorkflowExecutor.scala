@@ -43,7 +43,7 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
   private def clearInternalDatasets(operators: Seq[WorkflowOperator]): Unit = {
     // Clear all internal datasets used as output before writing
     for (datasetId <- operators.flatMap(_.outputs).distinct;
-         dataset <- project.taskOption[DatasetPlugin](datasetId)
+         dataset <- project.taskOption[Dataset](datasetId)
          if dataset.data.isInstanceOf[InternalDataset]) {
       dataset.data.clear()
     }
@@ -78,12 +78,12 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     val outputs = operator.outputs.map(project.anyTask(_).data)
     var sinks: Seq[SinkTrait] = outputSinks(outputs)
     val errorOutputs = operator.errorOutputs.map(project.anyTask(_).data)
-    var errorSinks: Seq[SinkTrait] = errorOutputs.collect { case ds: Dataset => ds }
+    var errorSinks: Seq[SinkTrait] = errorOutputs.collect { case ds: DatasetTask => ds }
 
-    if (outputs.exists(!_.isInstanceOf[Dataset])) {
+    if (outputs.exists(!_.isInstanceOf[DatasetTask])) {
       sinks +:= internalDataset
     }
-    if (errorOutputs.exists(!_.isInstanceOf[Dataset])) {
+    if (errorOutputs.exists(!_.isInstanceOf[DatasetTask])) {
       errorSinks +:= internalDataset
     }
 
@@ -101,28 +101,28 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
 
   private def outputSinks(outputs: Seq[Any]): Seq[SinkTrait] = {
     outputs.collect {
-      case ds: Dataset if ds.plugin.isInstanceOf[VariableDataset] =>
+      case ds: DatasetTask if ds.plugin.isInstanceOf[VariableDataset] =>
         replaceSinks.get(ds.id.toString) match {
           case Some(dataSource) => dataSource
           case None =>
             throw new IllegalArgumentException("No output found for variable dataset " + ds.id.toString)
         }
-      case ds: Dataset =>
+      case ds: DatasetTask =>
         ds
     }
   }
 
   private def inputDatasources(internalDataset: InternalDataset, inputIdentifiers: Seq[String]): Seq[DataSource] = {
     val inputs = inputIdentifiers.map(task.project.anyTask(_).data)
-    if (inputs.forall(_.isInstanceOf[Dataset])) {
+    if (inputs.forall(_.isInstanceOf[DatasetTask])) {
       inputs.collect {
-        case ds: Dataset if ds.plugin.isInstanceOf[VariableDataset] =>
+        case ds: DatasetTask if ds.plugin.isInstanceOf[VariableDataset] =>
           replaceDataSources.get(ds.id.toString) match {
             case Some(dataSource) => dataSource
             case None =>
               throw new IllegalArgumentException("No input found for variable dataset " + ds.id.toString)
           }
-        case ds: Dataset =>
+        case ds: DatasetTask =>
           ds.source
       }
     } else {

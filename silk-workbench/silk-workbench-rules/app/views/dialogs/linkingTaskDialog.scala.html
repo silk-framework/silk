@@ -1,18 +1,19 @@
 @import org.silkframework.workspace.User
 @import org.silkframework.workspace.Constants
-@import org.silkframework.config.LinkSpecification
-@import org.silkframework.dataset.DatasetPlugin
+@import org.silkframework.dataset.Dataset
 @import org.silkframework.util.DPair
 @import controllers.rules.routes.Assets
-@import org.silkframework.config.TransformSpecification
+@import org.silkframework.task.TransformSpec
 
+@import org.silkframework.config.LinkSpec
+@import org.silkframework.config.TransformSpec
 @(project: String, task: String)
 
-@datasets = @{ User().workspace.project(project).tasks[DatasetPlugin] }
+@datasets = @{ User().workspace.project(project).tasks[Dataset] }
 
-@transformTasks = @{ User().workspace.project(project).tasks[TransformSpecification] }
+@transformTasks = @{ User().workspace.project(project).tasks[TransformSpec] }
 
-@linkingTask = @{ User().workspace.project(project).tasks[LinkSpecification].find(_.id == task) }
+@linkingTask = @{ User().workspace.project(project).tasks[LinkSpec].find(_.id == task) }
 
 @currentInputs = @{ linkingTask.map(_.data.dataSelections) }
 

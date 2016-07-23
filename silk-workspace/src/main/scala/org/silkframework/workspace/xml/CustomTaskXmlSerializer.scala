@@ -16,11 +16,12 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{CustomTaskPlugin, Prefixes, Task}
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.{CustomTask, Prefixes, Task}
+import org.silkframework.dataset.DatasetTask
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.task.Task
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
@@ -29,7 +30,7 @@ import scala.xml.XML
 /**
  * Holds custom tasks.
  */
-private class CustomTaskXmlSerializer extends XmlSerializer[CustomTaskPlugin] {
+private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
 
   private val logger = Logger.getLogger(classOf[CustomTaskXmlSerializer].getName)
 
@@ -38,7 +39,7 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTaskPlugin] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, CustomTaskPlugin] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, CustomTask] = {
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     val tasks = for (name <- names) yield {
       loadTask(name, resources, projectResources)
@@ -50,14 +51,14 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTaskPlugin] {
   private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    val taskSpec = XmlSerialization.fromXml[Task[CustomTaskPlugin]](XML.load(resources.get(name).load))
+    val taskSpec = XmlSerialization.fromXml[Task[CustomTask]](XML.load(resources.get(name).load))
     (taskSpec.id, taskSpec.data)
   }
 
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[CustomTaskPlugin], resources: ResourceManager): Unit = {
+  override def writeTask(task: Task[CustomTask], resources: ResourceManager): Unit = {
     resources.get(task.id.toString + ".xml").write{ os => XmlSerialization.toXml(task).write(os) }
   }
 

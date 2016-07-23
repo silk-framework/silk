@@ -1,6 +1,6 @@
-import org.silkframework.config.TaskSpecification
-import org.silkframework.dataset.rdf.RdfDatasetPlugin
-import org.silkframework.dataset.{Dataset, DatasetPlugin}
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -11,7 +11,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
   /**
    * The task types to be added to the Workspace.
    */
-  override def tasks: Seq[TaskActions[_ <: TaskSpecification]] =
+  override def tasks: Seq[TaskActions[_ <: TaskSpec]] =
     Seq(DatasetActions)
 
   /**
@@ -21,9 +21,9 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     val p = context.project.name
     val t = context.task.id
     context.task.data match {
-      case dataset: Dataset =>
+      case dataset: DatasetTask =>
         var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
-        if (dataset.plugin.isInstanceOf[RdfDatasetPlugin] ) {
+        if (dataset.plugin.isInstanceOf[RdfDataset] ) {
           tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$p/$t/sparql")
         } else {
           tabs = tabs :+ Tab("Tableview", s"workspace/datasets/$p/$t/table")
@@ -33,7 +33,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[DatasetPlugin] {
+  object DatasetActions extends TaskActions[Dataset] {
 
     /** The name of the task type */
     override def name: String = "Dataset"
@@ -59,8 +59,8 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any): Seq[(String, String)] = {
-      taskData.asInstanceOf[DatasetPlugin] match {
-        case DatasetPlugin(_, params) => params.toSeq
+      taskData.asInstanceOf[Dataset] match {
+        case Dataset(_, params) => params.toSeq
       }
     }
   }

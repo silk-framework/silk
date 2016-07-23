@@ -1,4 +1,4 @@
-import org.silkframework.config.TransformSpecification
+import org.silkframework.config.TransformSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -12,7 +12,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
 
   override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.data.isInstanceOf[TransformSpecification]) {
+    if(context.task.data.isInstanceOf[TransformSpec]) {
       val p = context.project.name
       val t = context.task.id
       tabs ::= Tab("Editor", s"transform/$p/$t/editor")
@@ -22,7 +22,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
     tabs.reverse
   }
 
-  object TransformTaskActions extends TaskActions[TransformSpecification] {
+  object TransformTaskActions extends TaskActions[TransformSpec] {
 
     /** The name of the task type */
     override def name: String = "Transform Task"
@@ -48,7 +48,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(task: Any): Seq[(String, String)] = {
-      val transformSpec = task.asInstanceOf[TransformSpecification]
+      val transformSpec = task.asInstanceOf[TransformSpec]
       Seq(
         ("Source", transformSpec.selection.inputId.toString),
         ("Type", transformSpec.selection.typeUri.toString),
