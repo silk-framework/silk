@@ -2,13 +2,11 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
 
+import org.silkframework.config.TaskSpec
 import org.silkframework.dataset._
-import org.silkframework.execution.{ExecuteTransformResult, ExecutionReport}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.workspace.{Project, ProjectTask}
-
-import scala.collection.immutable.ListMap
+import org.silkframework.workspace.ProjectTask
 
 class WorkflowExecutor(task: ProjectTask[Workflow],
                        replaceDataSources: Map[String, DataSource] = Map.empty,
@@ -53,11 +51,11 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
   private def checkVariableDatasets(): Unit = {
     val variableDatasets = workflow.variableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
-    if(notCoveredVariableDatasets.size > 0) {
+    if (notCoveredVariableDatasets.size > 0) {
       throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " + notCoveredVariableDatasets.mkString(", "))
     }
     val notCoveredVariableSinks = variableDatasets.sinks.filter(!replaceSinks.contains(_))
-    if(notCoveredVariableSinks.size > 0) {
+    if (notCoveredVariableSinks.size > 0) {
       throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " + notCoveredVariableSinks.mkString(", "))
     }
   }
@@ -75,15 +73,15 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     val dataSources = inputDatasources(internalDataset, inputs)
 
     // Get the sinks for this operator
-    val outputs = operator.outputs.map(project.anyTask(_).data)
+    val outputs: Seq[ProjectTask[_ <: TaskSpec]] = operator.outputs.map(project.anyTask(_))
     var sinks: Seq[SinkTrait] = outputSinks(outputs)
-    val errorOutputs = operator.errorOutputs.map(project.anyTask(_).data)
-    var errorSinks: Seq[SinkTrait] = errorOutputs.collect { case ds: DatasetTask => ds }
+    val errorOutputs = operator.errorOutputs.map(project.anyTask(_))
+    var errorSinks: Seq[SinkTrait] = errorOutputSinks(errorOutputs)
 
-    if (outputs.exists(!_.isInstanceOf[DatasetTask])) {
+    if (outputs.exists(!_.data.isInstanceOf[Dataset])) {
       sinks +:= internalDataset
     }
-    if (errorOutputs.exists(!_.isInstanceOf[DatasetTask])) {
+    if (errorOutputs.exists(!_.data.isInstanceOf[Dataset])) {
       errorSinks +:= internalDataset
     }
 
@@ -99,31 +97,44 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     log.info("Finished execution of " + operator.task)
   }
 
-  private def outputSinks(outputs: Seq[Any]): Seq[SinkTrait] = {
+  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[SinkTrait] = {
+    errorOutputs.collect {
+      case pt if pt.data.isInstanceOf[Dataset] =>
+        pt.data.asInstanceOf[Dataset]
+    }
+  }
+
+  private def outputSinks(outputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[SinkTrait] = {
     outputs.collect {
-      case ds: DatasetTask if ds.plugin.isInstanceOf[VariableDataset] =>
-        replaceSinks.get(ds.id.toString) match {
-          case Some(dataSource) => dataSource
-          case None =>
-            throw new IllegalArgumentException("No output found for variable dataset " + ds.id.toString)
+      case pt if pt.data.isInstanceOf[Dataset] =>
+        pt.data match {
+          case ds: VariableDataset =>
+            replaceSinks.get(pt.id.toString) match {
+              case Some(dataSource) => dataSource
+              case None =>
+                throw new IllegalArgumentException("No output found for variable dataset " + pt.id.toString)
+            }
+          case ds: Dataset =>
+            ds
         }
-      case ds: DatasetTask =>
-        ds
     }
   }
 
   private def inputDatasources(internalDataset: InternalDataset, inputIdentifiers: Seq[String]): Seq[DataSource] = {
-    val inputs = inputIdentifiers.map(task.project.anyTask(_).data)
-    if (inputs.forall(_.isInstanceOf[DatasetTask])) {
+    val inputs: Seq[ProjectTask[_ <: TaskSpec]] = inputIdentifiers.map(task.project.anyTask(_))
+    if (inputs.forall(_.data.isInstanceOf[Dataset])) {
       inputs.collect {
-        case ds: DatasetTask if ds.plugin.isInstanceOf[VariableDataset] =>
-          replaceDataSources.get(ds.id.toString) match {
-            case Some(dataSource) => dataSource
-            case None =>
-              throw new IllegalArgumentException("No input found for variable dataset " + ds.id.toString)
+        case pt if pt.data.isInstanceOf[Dataset] =>
+          pt.data match {
+            case ds: VariableDataset =>
+              replaceDataSources.get(pt.id.toString) match {
+                case Some(dataSource) => dataSource
+                case None =>
+                  throw new IllegalArgumentException("No input found for variable dataset " + pt.id.toString)
+              }
+            case ds: Dataset =>
+              ds.source
           }
-        case ds: DatasetTask =>
-          ds.source
       }
     } else {
       Seq(internalDataset.source)
