@@ -5,6 +5,13 @@ import org.silkframework.util.Identifier
 
 import scala.xml._
 
+/**
+  * A task, such as a dataset or a transformation task.
+  *
+  * @param id The id of this task.
+  * @param data The task specification that holds the actual task specification.
+  * @tparam TaskType The type of this task, e.g., TransformSpec.
+  */
 case class Task[+TaskType <: TaskSpec](id: Identifier, data: TaskType) {
 
 }
