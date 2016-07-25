@@ -1,11 +1,11 @@
+@import org.silkframework.config.LinkSpec
 @import plugins.Context
-@import org.silkframework.config.LinkSpecification
 
-@(context: Context[LinkSpecification])
+@(context: Context[LinkSpec])
 
 @header = {
   <script type="text/javascript">
-    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
+    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
 
     function startLearning() {
       $.ajax({

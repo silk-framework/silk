@@ -2,7 +2,7 @@ package controllers.linking
 
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.LinkSpec
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.util.DPair
@@ -14,13 +14,13 @@ import plugins.Context
 object ReferenceLinksManager extends Controller {
 
   def referenceLinksView(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.referenceLinks.referenceLinks(context))
   }
 
   def referenceLinks(projectName: String, taskName: String, linkType: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
     def linkSpec = task.data
     def linkageRule = linkSpec.rule

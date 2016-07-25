@@ -1,5 +1,5 @@
 @import plugins.Context
-@import org.silkframework.dataset.rdf.RdfDatasetPlugin
+@import org.silkframework.dataset.rdf.RdfDataset
 @import org.silkframework.dataset.Dataset
 
 @(context: Context[Dataset])
@@ -14,7 +14,7 @@
 
 @content = {
 
-@if(context.task.data.plugin.isInstanceOf[RdfDatasetPlugin]) {
+@if(context.task.data.plugin.isInstanceOf[RdfDataset]) {
   This is an RDF-Dataset that can be queried using the SPARQL query language.
 } else {
   This is not an RDF-Dataset and thus cannot be queried using SPARQL.

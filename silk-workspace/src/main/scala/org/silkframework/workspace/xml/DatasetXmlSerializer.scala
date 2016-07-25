@@ -16,7 +16,8 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.Task
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
@@ -60,15 +61,15 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
     // Load the data set
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    val dataset = XmlSerialization.fromXml[Dataset](XML.load(resources.get(name).load))
-    (dataset.id, dataset)
+    val dataset = XmlSerialization.fromXml[DatasetTask](XML.load(resources.get(name).load))
+    (dataset.id, dataset.plugin)
   }
 
   /**
    * Writes an updated task.
    */
-  override def writeTask(data: Dataset, resources: ResourceManager): Unit = {
-    resources.get(data.id.toString + ".xml").write{ os => XmlSerialization.toXml(data).write(os) }
+  override def writeTask(task: Task[Dataset], resources: ResourceManager): Unit = {
+    resources.get(task.id.toString + ".xml").write{ os => XmlSerialization.toXml(new DatasetTask(task.id, task.data)).write(os) }
   }
 
   /**

@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.TaskSpecification
-import org.silkframework.dataset.{VariableDataset, Dataset}
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.{Dataset, DatasetTask, VariableDataset}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Task, Project}
+import org.silkframework.workspace.{ProjectTask, Project}
 
 import scala.xml.Node
 
-case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpecification {
+case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
 
   def nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -47,7 +47,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   def topologicalSortedOperators(project: Project): Seq[WorkflowOperator] = {
     val inputs = inputDatasets(project)
     val outputs = outputDatasets(project)
-    val pureInputDatasets = inputs.map(_.name.toString).toSet -- outputs.map(_.name.toString)
+    val pureInputDatasets = inputs.map(_.id.toString).toSet -- outputs.map(_.id.toString)
     var done = pureInputDatasets
     var sortedOperators = Vector.empty[WorkflowOperator]
     var operatorsToSort = operators
@@ -60,8 +60,8 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       done ++= satisfied.map(_.id)
       operatorsToSort = unsatisfied
       // Add datasets to 'done' that are not written to by the remaining operators
-      val satisfiedDatasets = outputs.filter(ds => operatorsToSort.forall(op => !op.outputs.contains(ds.name.toString)))
-      done ++= satisfiedDatasets.map(_.name.toString)
+      val satisfiedDatasets = outputs.filter(ds => operatorsToSort.forall(op => !op.outputs.contains(ds.id.toString)))
+      done ++= satisfiedDatasets.map(_.id.toString)
     }
     sortedOperators
   }
@@ -74,15 +74,15 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     */
   def variableDatasets(project: Project): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
-      for (dataset <- outputDatasets(project)
-           if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
-        dataset.name.toString
+      for (datasetTask <- outputDatasets(project)
+           if datasetTask.data.isInstanceOf[VariableDataset]) yield {
+        datasetTask.id.toString
       }
 
     val variableDatasetsUsedInInput =
-      for (dataset <- inputDatasets(project)
-           if dataset.data.plugin.isInstanceOf[VariableDataset]) yield {
-        dataset.name.toString
+      for (datasetTask <- inputDatasets(project)
+           if datasetTask.data.isInstanceOf[VariableDataset]) yield {
+        datasetTask.id.toString
       }
     val bothInAndOut = variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet
     if (bothInAndOut.size > 0) {
@@ -91,14 +91,14 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
   }
 
-  def inputDatasets(project: Project): Seq[Task[Dataset]] = {
+  def inputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
     for (datasetId <- operators.flatMap(_.inputs).distinct;
          dataset <- project.taskOption[Dataset](datasetId)) yield {
       dataset
     }
   }
 
-  def outputDatasets(project: Project): Seq[Task[Dataset]] = {
+  def outputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
     for (datasetId <- operators.flatMap(_.outputs).distinct;
          dataset <- project.taskOption[Dataset](datasetId)) yield {
       dataset

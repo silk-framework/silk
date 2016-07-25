@@ -1,16 +1,16 @@
 package org.silkframework.execution
 
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{Matchers, FlatSpec}
-import org.silkframework.config.DatasetSelection
-import org.silkframework.dataset.{EntitySink, DataSource}
-import org.silkframework.entity.{EntitySchema, Entity, Path}
-import org.silkframework.rule.input.{Transformer, PathInput, TransformInput, Input}
+import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.dataset.{DataSource, EntitySink}
+import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.{ComplexMapping, TransformRule}
-import org.silkframework.runtime.activity.{StatusHolder, ValueHolder, ActivityContext}
-import org.silkframework.util.{Uri, Identifier}
+import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
+import org.silkframework.util.{Identifier, Uri}
 import org.mockito.Matchers.{eq => mockitoEq, _}
 import org.mockito.Mockito._
+import org.silkframework.config.DatasetSelection
 
 /**
   * Created on 4/15/16.

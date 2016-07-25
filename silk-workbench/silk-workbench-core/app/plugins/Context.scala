@@ -1,6 +1,7 @@
 package plugins
 
-import org.silkframework.workspace.{Project, Task, User}
+import org.silkframework.config.TaskSpec
+import org.silkframework.workspace.{Project, ProjectTask, User}
 
 import scala.reflect.ClassTag
 
@@ -12,7 +13,7 @@ import scala.reflect.ClassTag
  * @param path The request url path
  * @tparam T The type of the current task
  */
-case class Context[T](project: Project, task: Task[T], path: String)
+case class Context[T <: TaskSpec](project: Project, task: ProjectTask[T], path: String)
 
 /**
  * Factory for context objects.
@@ -28,7 +29,7 @@ object Context {
    * @tparam T The type of the task
    * @return The generated context
    */
-  def get[T : ClassTag](projectName: String, taskName: String, path: String): Context[T] = {
+  def get[T <: TaskSpec : ClassTag](projectName: String, taskName: String, path: String): Context[T] = {
     val project = User().workspace.project(projectName)
     val task = project.task[T](taskName)
 

@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset
 import java.net.{URI, URISyntaxException}
 
 import org.silkframework.config.Config
-import org.silkframework.dataset.{DataSource, DatasetPlugin, EntitySink, LinkSink}
+import org.silkframework.dataset.{Dataset, DataSource, EntitySink, LinkSink}
 import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 
 import scala.collection.mutable
@@ -15,7 +15,7 @@ import scala.util.Try
   description =
       """Dataset for storing entities between workflow steps."""
 )
-case class InternalDataset(val graphUri: String = null) extends DatasetPlugin {
+case class InternalDataset(val graphUri: String = null) extends Dataset {
   private val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
 
   override def source: DataSource = internalDatasetPluginImpl.source
@@ -35,14 +35,14 @@ object InternalDataset {
   val internalDatasetGraphPrefix = Try(Config().getString("dataset.internal.graphPrefix")).
       getOrElse("http://silkframework.org/internal/")
 
-  private val byGraphDataset: mutable.Map[String, DatasetPlugin] = new mutable.HashMap[String, DatasetPlugin]()
+  private val byGraphDataset: mutable.Map[String, Dataset] = new mutable.HashMap[String, Dataset]()
 
   // The internal dataset for the default graph
-  lazy val default: DatasetPlugin = createInternalDataset
+  lazy val default: Dataset = createInternalDataset
 
-  private def createInternalDataset: DatasetPlugin = {
+  private def createInternalDataset: Dataset = {
     // TODO: For non-in-memory datasets the graph must be handed over
-    PluginRegistry.createFromConfigOption[DatasetPlugin]("dataset.internal") match {
+    PluginRegistry.createFromConfigOption[Dataset]("dataset.internal") match {
       case Some(dataset) =>
         dataset
       case None =>
@@ -56,7 +56,7 @@ object InternalDataset {
     * @param graphUriOpt A graph or None for the default graph
     * @return
     */
-  def byGraph(graphUriOpt: Option[String]): DatasetPlugin = {
+  def byGraph(graphUriOpt: Option[String]): Dataset = {
     graphUriOpt match {
       case Some(graphURI) =>
         try {

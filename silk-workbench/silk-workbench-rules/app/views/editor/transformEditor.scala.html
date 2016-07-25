@@ -1,9 +1,9 @@
 @import plugins.Context
-@import org.silkframework.config.TransformSpecification
 @import org.silkframework.rule.TransformRule
 @import controllers.rules.routes.Assets
+@import org.silkframework.config.TransformSpec
 
-@(context: Context[TransformSpecification], rule: TransformRule)
+@(context: Context[TransformSpec], rule: TransformRule)
 
 @import org.silkframework.workspace.User
 @import org.silkframework.rule.input.Transformer
@@ -23,10 +23,10 @@
   <script type="text/javascript">
     var inEditorEnv = true;
     var projectName = '@context.project.name';
-    var taskName = '@context.task.name';
+    var taskName = '@context.task.id';
     var ruleIndex = '/@context.task.data.rules.indexOf(rule)';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
   </script>
 }

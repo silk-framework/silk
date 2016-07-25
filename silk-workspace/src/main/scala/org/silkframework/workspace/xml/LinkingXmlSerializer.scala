@@ -16,11 +16,12 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{LinkSpecification, Prefixes}
+import org.silkframework.config.{LinkSpec, Prefixes, Task}
 import org.silkframework.evaluation.ReferenceLinksReader
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.config.Task
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
@@ -29,7 +30,7 @@ import scala.xml.XML
 /**
  * The linking module which encapsulates all linking tasks.
  */
-private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
+private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
 
   private val logger = Logger.getLogger(classOf[LinkingXmlSerializer].getName)
 
@@ -38,7 +39,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, LinkSpecification] = {
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, LinkSpec] = {
     val tasks =
       for(name <- resources.listChildren) yield
         loadTask(resources.child(name), projectResources)
@@ -51,9 +52,9 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
   private def loadTask(taskResources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val resources = projectResources
     implicit val readContext = ReadContext(resources)
-    val linkSpec = fromXml[LinkSpecification](XML.load(taskResources.get("linkSpec.xml").load))
+    val linkSpec = fromXml[Task[LinkSpec]](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
-    (linkSpec.id, linkSpec.copy(referenceLinks = referenceLinks))
+    (linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks))
   }
 
   /**
@@ -66,7 +67,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpecification] {
   /**
    * Writes an updated task.
    */
-  def writeTask(data: LinkSpecification, resources: ResourceManager) = {
+  def writeTask(data: Task[LinkSpec], resources: ResourceManager) = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 

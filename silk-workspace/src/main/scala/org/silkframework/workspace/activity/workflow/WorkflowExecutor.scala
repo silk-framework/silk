@@ -5,9 +5,9 @@ import java.util.logging.Logger
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 
-class WorkflowExecutor(task: Task[Workflow],
+class WorkflowExecutor(task: ProjectTask[Workflow],
                        replaceDataSources: Map[String, DataSource] = Map.empty,
                        replaceSinks: Map[String, SinkTrait] = Map.empty) extends Activity[WorkflowExecutionReport] {
 
@@ -41,7 +41,7 @@ class WorkflowExecutor(task: Task[Workflow],
     // Clear all internal datasets used as output before writing
     for (datasetId <- operators.flatMap(_.outputs).distinct;
          dataset <- project.taskOption[Dataset](datasetId)
-         if dataset.data.plugin.isInstanceOf[InternalDataset]) {
+         if dataset.data.isInstanceOf[InternalDataset]) {
       dataset.data.clear()
     }
   }
@@ -99,10 +99,10 @@ class WorkflowExecutor(task: Task[Workflow],
   private def outputSinks(outputs: Seq[Any]): Seq[SinkTrait] = {
     outputs.collect {
       case ds: Dataset if ds.plugin.isInstanceOf[VariableDataset] =>
-        replaceSinks.get(ds.id.toString) match {
+        replaceSinks.get("REPLACE" /* TODO */) match {
           case Some(dataSource) => dataSource
           case None =>
-            throw new IllegalArgumentException("No output found for variable dataset " + ds.id.toString)
+            throw new IllegalArgumentException("No output found for variable dataset " + "REPLACE" /* TODO */)
         }
       case ds: Dataset =>
         ds
@@ -114,10 +114,10 @@ class WorkflowExecutor(task: Task[Workflow],
     if (inputs.forall(_.isInstanceOf[Dataset])) {
       inputs.collect {
         case ds: Dataset if ds.plugin.isInstanceOf[VariableDataset] =>
-          replaceDataSources.get(ds.id.toString) match {
+          replaceDataSources.get("REPLACE" /* TODO */) match {
             case Some(dataSource) => dataSource
             case None =>
-              throw new IllegalArgumentException("No input found for variable dataset " + ds.id.toString)
+              throw new IllegalArgumentException("No input found for variable dataset " + "REPLACE" /* TODO */)
           }
         case ds: Dataset =>
           ds.source

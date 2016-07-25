@@ -1,11 +1,11 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.scalatest.{Matchers, FlatSpec}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.Dataset
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, Task}
+import org.silkframework.workspace.{ProjectTask, Project}
 
 /**
   * Created on 7/21/16.
@@ -32,8 +32,8 @@ class WorkflowTest extends FlatSpec with Matchers with MockitoSugar {
       ))
     for(dataset <- workflow.datasets) {
       val id = Identifier(dataset.task)
-      val datasetTask = mock[Task[Dataset]]
-      when(datasetTask.name).thenReturn(id)
+      val datasetTask = mock[ProjectTask[Dataset]]
+      when(datasetTask.id).thenReturn(id)
       when(project.taskOption[Dataset](id)).thenReturn(Some(datasetTask))
     }
     val sortedOperators = workflow.topologicalSortedOperators(project).map(_.task)

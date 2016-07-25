@@ -1,15 +1,15 @@
 @import plugins.Context
-@import org.silkframework.config.TransformSpecification
 @import org.silkframework.execution.ExecuteTransform
 @import views.html.workspace.activity.taskActivityControl
 @import controllers.transform.routes.ExecuteTransformTab
+@import org.silkframework.config.TransformSpec
 
-@(context: Context[TransformSpecification])
+@(context: Context[TransformSpec])
 
 @header = {
   <script type="text/javascript">
     function updateStatistics() {
-      $( "#statistics_wrapper" ).load('@ExecuteTransformTab.executeStatistics(context.project.name, context.task.name).url');
+      $( "#statistics_wrapper" ).load('@ExecuteTransformTab.executeStatistics(context.project.name, context.task.id).url');
     }
   </script>
 }

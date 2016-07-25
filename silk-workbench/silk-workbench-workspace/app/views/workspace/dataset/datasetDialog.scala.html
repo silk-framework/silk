@@ -1,11 +1,11 @@
 @import org.silkframework.workspace.Project
-@import org.silkframework.dataset.DatasetPlugin
+@import org.silkframework.dataset.Dataset
 
-@(project: Project, datasetName: String, dataset: Option[DatasetPlugin])
+@(project: Project, datasetName: String, dataset: Option[Dataset])
 
   @widgets.pluginDialog(
     name = datasetName,
-    plugins = DatasetPlugin.availablePlugins,
+    plugins = Dataset.availablePlugins,
     currentObj = dataset,
     resources = project.resources.list) {
 

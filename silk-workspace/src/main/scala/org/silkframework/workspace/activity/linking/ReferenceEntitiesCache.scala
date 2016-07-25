@@ -2,26 +2,27 @@ package org.silkframework.workspace.activity.linking
 
 import java.util
 
-import org.silkframework.config.LinkSpecification
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.{DPair, Uri}
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
+import org.silkframework.config.LinkSpec
+
 import scala.collection.JavaConverters._
 
 
 /**
  * For each reference link, the reference entities cache holds all values of the linked entities.
  */
-class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[ReferenceEntities] {
+class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[ReferenceEntities] {
 
   @volatile
   private var canceled = false
 
-  override def name = s"Entities cache ${task.name}"
+  override def name = s"Entities cache ${task.id}"
 
   override def initialValue = Some(ReferenceEntities.empty)
 
@@ -42,9 +43,9 @@ class ReferenceEntitiesCache(task: Task[LinkSpecification]) extends Activity[Ref
     while (pathsCache.status().isRunning && !canceled)
       Thread.sleep(1000)
     if (pathsCache.status().failed)
-      throw new Exception(s"Cannot load reference entities cache for ${task.name}, because the paths cache could not be loaded.")
+      throw new Exception(s"Cannot load reference entities cache for ${task.id}, because the paths cache could not be loaded.")
     if (!Option(pathsCache.value()).exists(ed => ed.source.paths.nonEmpty || ed.target.paths.nonEmpty))
-      context.log.info(s"Could not load reference entities cache for ${task.name} as that paths cache does not define paths.")
+      context.log.info(s"Could not load reference entities cache for ${task.id} as that paths cache does not define paths.")
     else {
       val entityLoader = new EntityLoader(context, pathsCache.value())
       entityLoader.load()

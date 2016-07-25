@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.dataset.rdf.{SparqlParams, RdfDatasetPlugin}
+import org.silkframework.dataset.rdf.{SparqlParams, RdfDataset}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
@@ -29,7 +29,7 @@ case class SparqlDataset(
   @Param("True (default), if multiple queries should be executed in parallel for faster retrieval.")
   parallel: Boolean = true,
   @Param("Include useOrderBy in queries to enforce correct order of values.")
-  useOrderBy: Boolean = true) extends RdfDatasetPlugin {
+  useOrderBy: Boolean = true) extends RdfDataset {
 
   private val params =
     SparqlParams(

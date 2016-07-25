@@ -1,4 +1,4 @@
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.LinkSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 
@@ -15,9 +15,9 @@ case class LinkingPlugin() extends WorkbenchPlugin {
 
   override def tabs(context: Context[_]) = {
     var tabs = List[Tab]()
-    if(context.task.data.isInstanceOf[LinkSpecification]) {
+    if(context.task.data.isInstanceOf[LinkSpec]) {
       val p = context.project.name
-      val t = context.task.name
+      val t = context.task.id
       if (config.workbench.tabs.editor)
         tabs ::= Tab("Editor", s"linking/$p/$t/editor")
       if (config.workbench.tabs.generateLinks)
@@ -30,7 +30,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     tabs.reverse
   }
 
-  object LinkingTaskActions extends TaskActions[LinkSpecification] {
+  object LinkingTaskActions extends TaskActions[LinkSpec] {
 
     /** The name of the task type */
     override def name: String = "Linking Task"
@@ -56,7 +56,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(task: Any): Seq[(String, String)] = {
-      val linkSpec = task.asInstanceOf[LinkSpecification]
+      val linkSpec = task.asInstanceOf[LinkSpec]
       Seq(
         ("Source", linkSpec.dataSelections.source.inputId.toString),
         ("Target", linkSpec.dataSelections.target.inputId.toString),

@@ -16,13 +16,12 @@ package org.silkframework.config
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.{DataSource, Dataset, LinkSink}
+import org.silkframework.dataset.{DataSource, DatasetTask, LinkSink}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -33,20 +32,19 @@ import scala.xml.Node
 /**
  * Represents a Silk Link Specification.
  */
-case class LinkSpecification(id: Identifier = Identifier.random,
-                             dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
-                             rule: LinkageRule = LinkageRule(),
-                             outputs: Seq[Identifier] = Seq.empty,
-                             referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpecification {
+case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
+                    rule: LinkageRule = LinkageRule(),
+                    outputs: Seq[Identifier] = Seq.empty,
+                    referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpec {
 
-  def findSources(datasets: Traversable[Dataset]): DPair[DataSource] = {
-    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).getOrElse(Dataset.empty).source))
+  def findSources(datasets: Traversable[DatasetTask]): DPair[DataSource] = {
+    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).getOrElse(DatasetTask.empty).source))
   }
 
-  def findOutputs(datasets: Traversable[Dataset]): Seq[LinkSink] = {
+  def findOutputs(datasets: Traversable[DatasetTask]): Seq[LinkSink] = {
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
-  
+
   def entityDescriptions: DPair[EntitySchema] = {
     val sourceRestriction = dataSelections.source.restriction
     val targetRestriction = dataSelections.target.restriction
@@ -84,37 +82,33 @@ case class LinkSpecification(id: Identifier = Identifier.random,
   }
 }
 
-object LinkSpecification {
+object LinkSpec {
 
-  private val logger = Logger.getLogger(LinkSpecification.getClass.getName)
+  private val logger = Logger.getLogger(LinkSpec.getClass.getName)
 
   /**
    * XML serialization format.
    * Reference links are currently not serialized and need to be serialized separately.
    */
-  implicit object LinkSpecificationFormat extends XmlFormat[LinkSpecification] {
+  implicit object LinkSpecificationFormat extends XmlFormat[LinkSpec] {
 
     private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
 
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit readContext: ReadContext): LinkSpecification = {
+    def read(node: Node)(implicit readContext: ReadContext): LinkSpec = {
       // Validate against XSD Schema
       ValidatingXMLReader.validate(node, schemaLocation)
-
-      //Read id
-      val id = (node \ "@id").text
 
       //Read linkage rule node
       val linkConditionNode = (node \ "LinkCondition").headOption
       val linkageRuleNode = (node \ "LinkageRule").headOption.getOrElse(linkConditionNode.get)
 
-      if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification with id '" + id + "'")
+      if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification")
       if (linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
-      LinkSpecification(
-        id = id,
+      LinkSpec(
         dataSelections = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
           DatasetSelection.fromXML((node \ "TargetDataset").head)),
         rule = fromXml[LinkageRule](linkageRuleNode),
@@ -131,8 +125,8 @@ object LinkSpecification {
     /**
      * Serialize a value to XML.
      */
-    def write(spec: LinkSpecification)(implicit writeContext: WriteContext[Node]): Node =
-      <Interlink id={spec.id}>
+    def write(spec: LinkSpec)(implicit writeContext: WriteContext[Node]): Node =
+      <Interlink>
         {spec.dataSelections.source.toXML(asSource = true)}
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}

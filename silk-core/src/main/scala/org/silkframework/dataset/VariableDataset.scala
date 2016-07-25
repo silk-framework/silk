@@ -3,7 +3,7 @@ package org.silkframework.dataset
 import org.silkframework.runtime.plugin.Plugin
 
 /**
-  * A [[DatasetPlugin]] that has no own implementation, but is replaced by another implementation at request time.
+  * A [[Dataset]] that has no own implementation, but is replaced by another implementation at request time.
   * This is used for example in Silk Workflows, where the input (or even input format) is not fixed and comes in with
   * the request. A workflow cannot be run in a normal way if it includes a dataset of this type!
   */
@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.Plugin
   id = "variableDataset",
   label = "Variable Dataset",
   description = "Dataset that acts as a placeholder in Silk workflows and is replaced at request time.")
-final class VariableDataset extends DatasetPlugin {
+final class VariableDataset extends Dataset {
   /**
     * Returns a data source for reading entities from the data set.
     */

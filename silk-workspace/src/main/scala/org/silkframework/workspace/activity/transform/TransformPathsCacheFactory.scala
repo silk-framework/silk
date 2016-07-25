@@ -1,8 +1,8 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpecification
+import org.silkframework.config.TransformSpec
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 
 @Plugin(
@@ -11,14 +11,14 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
   categories = Array("TransformSpecification"),
   description = "Holds the most frequent paths for the selected entities."
 )
-case class TransformPathsCacheFactory() extends TaskActivityFactory[TransformSpecification, TransformPathsCache] {
+case class TransformPathsCacheFactory() extends TaskActivityFactory[TransformSpec, TransformPathsCache] {
 
   override def autoRun = true
 
-  def apply(task: Task[TransformSpecification]) = {
+  def apply(task: ProjectTask[TransformSpec]) = {
     new CachedActivity(
       activity = new TransformPathsCache(task),
-      resource = task.project.cacheResources.child("transform").child(task.name).get(s"pathsCache.xml")
+      resource = task.project.cacheResources.child("transform").child(task.id).get(s"pathsCache.xml")
     )
   }
 }

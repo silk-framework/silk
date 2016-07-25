@@ -1,15 +1,15 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpecification
-import org.silkframework.dataset.{DataSource, Dataset}
-import org.silkframework.workspace.Task
+import org.silkframework.config.TransformSpec
+import org.silkframework.dataset.{DataSource, Dataset, DatasetTask}
+import org.silkframework.workspace.ProjectTask
 
 /**
   * Adds additional methods to transform tasks.
   */
 object TransformTaskUtils {
 
-  implicit class TransformTask(task: Task[TransformSpecification]) {
+  implicit class TransformTask(task: ProjectTask[TransformSpec]) {
 
     /**
       * Retrieves the data source for this transform task.

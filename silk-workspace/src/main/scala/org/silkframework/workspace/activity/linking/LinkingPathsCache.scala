@@ -1,20 +1,21 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.{DatasetSelection, LinkSpecification}
+import org.silkframework.config.{DatasetSelection, LinkSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.config.LinkSpec
 import org.silkframework.util.DPair
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 /**
  * Holds the most frequent paths.
  */
-class LinkingPathsCache(task: Task[LinkSpecification]) extends Activity[DPair[EntitySchema]] {
+class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[EntitySchema]] {
 
   private def linkSpec = task.data
 
-  override def name = s"Paths cache ${linkSpec.id}"
+  override def name = s"Paths cache ${task.id}"
 
   override def initialValue = Some(DPair.fill(EntitySchema.empty))
 

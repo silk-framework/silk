@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.active.poolgenerator
 
-import org.silkframework.config.{LinkSpecification, RuntimeConfig}
+import org.silkframework.config.{LinkSpec, RuntimeConfig}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, Index, Link, Path}
 import org.silkframework.execution.{GenerateLinks, Linking}
@@ -33,7 +33,7 @@ import scala.util.Random
 case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   override def generator(inputs: DPair[DataSource],
-                         linkSpec: LinkSpecification,
+                         linkSpec: LinkSpec,
                          paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
@@ -41,7 +41,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
   def runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
   class LinkPoolGenerator(inputs: DPair[DataSource],
-                          linkSpec: LinkSpecification,
+                          linkSpec: LinkSpec,
                           paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
 
     override val initialValue = Some(UnlabeledLinkPool.empty)
@@ -56,7 +56,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
-      val generateLinks = new GenerateLinks(inputs, linkSpec2, Seq.empty, runtimeConfig) {
+      val generateLinks = new GenerateLinks("PoolGenerator", inputs, linkSpec2, Seq.empty, runtimeConfig) {
          override def entityDescs = entityDesc
       }
 

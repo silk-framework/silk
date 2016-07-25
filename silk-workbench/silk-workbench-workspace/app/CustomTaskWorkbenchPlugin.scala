@@ -1,18 +1,20 @@
-import org.silkframework.config.CustomTaskSpecification
+
+import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.config.TaskSpec
 import plugins.WorkbenchPlugin
 import plugins.WorkbenchPlugin.TaskActions
 
 /**
  * Adds custom tasks
  */
-case class CustomTaskPlugin() extends WorkbenchPlugin {
+case class CustomTaskWorkbenchPlugin() extends WorkbenchPlugin {
   /**
    * The task types to be added to the Workspace.
    */
-  override def tasks: Seq[TaskActions[_]] = Seq(CustomTasksActions)
+  override def tasks: Seq[TaskActions[_ <: TaskSpec]] = Seq(CustomTasksActions)
 
-  object CustomTasksActions extends TaskActions[CustomTaskSpecification] {
+  object CustomTasksActions extends TaskActions[CustomTask] {
 
     /** The name of the task type */
     override def name: String = "Other"
@@ -38,7 +40,7 @@ case class CustomTaskPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any): Seq[(String, String)] = {
-      val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTaskSpecification].plugin)
+      val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTask])
       params.toSeq
     }
   }
