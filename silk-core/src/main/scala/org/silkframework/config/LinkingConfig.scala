@@ -15,10 +15,8 @@
 package org.silkframework.config
 
 import org.silkframework.dataset.DatasetTask
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization._
-import org.silkframework.task.TransformSpec
 import org.silkframework.util.Identifier
 
 import scala.xml.Node

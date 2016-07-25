@@ -6,7 +6,7 @@ import org.silkframework.config.{LinkSpec, TaskSpec, TransformSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.task.TransformSpec
+import org.silkframework.config.TransformSpec
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}

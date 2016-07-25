@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.linking
 import org.silkframework.config.{LinkSpec, TransformSpec}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetTask}
 import org.silkframework.rule.TransformedDataSource
-import org.silkframework.task.TransformSpec
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.workspace.ProjectTask
 

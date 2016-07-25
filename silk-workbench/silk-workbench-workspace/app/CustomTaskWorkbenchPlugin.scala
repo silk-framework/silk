@@ -1,7 +1,7 @@
 
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.task.TaskSpec
+import org.silkframework.config.TaskSpec
 import plugins.WorkbenchPlugin
 import plugins.WorkbenchPlugin.TaskActions
 

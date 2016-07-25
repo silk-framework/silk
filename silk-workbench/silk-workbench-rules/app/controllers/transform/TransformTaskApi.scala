@@ -12,7 +12,7 @@ import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
-import org.silkframework.task.TransformSpec
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}

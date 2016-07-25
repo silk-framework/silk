@@ -20,7 +20,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.task.TaskSpec
+import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 

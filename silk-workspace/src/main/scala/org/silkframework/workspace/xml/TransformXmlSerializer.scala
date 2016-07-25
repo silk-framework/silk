@@ -8,7 +8,7 @@ import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.task.TransformSpec
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 

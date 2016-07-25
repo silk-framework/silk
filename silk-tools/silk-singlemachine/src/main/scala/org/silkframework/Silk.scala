@@ -23,7 +23,7 @@ import org.silkframework.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.task.TransformSpec
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.CollectLogs
 import org.silkframework.util.StringUtils._
 

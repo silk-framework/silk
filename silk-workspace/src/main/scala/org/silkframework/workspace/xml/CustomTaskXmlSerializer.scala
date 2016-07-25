@@ -21,7 +21,7 @@ import org.silkframework.dataset.DatasetTask
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.task.Task
+import org.silkframework.config.Task
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 

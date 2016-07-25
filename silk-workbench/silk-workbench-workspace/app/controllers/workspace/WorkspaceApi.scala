@@ -11,7 +11,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
-import org.silkframework.task.TaskSpec
+import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}

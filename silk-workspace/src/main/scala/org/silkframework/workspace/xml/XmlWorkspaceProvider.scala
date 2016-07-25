@@ -5,7 +5,7 @@ import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.task.TaskSpec
+import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}

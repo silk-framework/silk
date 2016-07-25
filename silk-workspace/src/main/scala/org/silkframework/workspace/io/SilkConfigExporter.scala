@@ -16,7 +16,7 @@ package org.silkframework.workspace.io
 
 import org.silkframework.config.{LinkSpec, LinkingConfig, RuntimeConfig, Task}
 import org.silkframework.dataset.{Dataset, DatasetTask}
-import org.silkframework.task.Task
+import org.silkframework.config.Task
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 

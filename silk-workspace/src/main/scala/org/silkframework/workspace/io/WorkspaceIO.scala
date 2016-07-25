@@ -3,7 +3,7 @@ package org.silkframework.workspace.io
 import org.silkframework.config.{LinkSpec, TaskSpec, TransformSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.task.TransformSpec
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}

@@ -15,7 +15,7 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.task.LinkSpec
+import org.silkframework.config.LinkSpec
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
