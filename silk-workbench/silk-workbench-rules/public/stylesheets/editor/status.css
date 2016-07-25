@@ -5,34 +5,33 @@
 #exclamation {
   width: 24px;
   height: 24px;
-  background-image: url('../../img/exclamation.png');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
+  color: red;
 }
 
 #tick {
   width: 24px;
   height: 24px;
-  background-image: url('../../img/tick.png');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
+  color: green;
 }
 
 #warning {
   width: 24px;
   height: 24px;
-  background-image: url('../../img/warning.png');
   float: right;
   margin-top: 8px;
   margin-right: 27px;
+  color: orange;
 }
 
 #pending {
   width: 24px;
   height: 24px;
-  background-image: url('../../img/pending.gif');
   float: right;
   margin-top: 8px;
   margin-right: 27px;

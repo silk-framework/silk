@@ -17,6 +17,7 @@ package org.silkframework.execution.methods
 import org.scalatest.matchers.{BeMatcher, MatchResult}
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.distance.characterbased.LevenshteinDistance
+import org.silkframework.test.TestTags.CoverageIncompatibleTest
 
 import scala.io.Source
 
@@ -50,7 +51,7 @@ class StringMapTest extends FlatSpec with Matchers {
     sm.coordinates(2000) should be(approximatelyEqualTo(origCoord2000))
   }
 
-  "StringMap" should "achieve the same recall as the original implementation" in {
+  "StringMap" should "achieve the same recall as the original implementation" taggedAs (CoverageIncompatibleTest) in {
     computeRecall should be >= (0.9798)
   }
 
