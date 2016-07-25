@@ -1,23 +1,30 @@
 package org.silkframework.plugins.dataset
 
+import java.net.{URI, URISyntaxException}
+
+import org.silkframework.config.Config
 import org.silkframework.dataset.{DataSource, DatasetPlugin, EntitySink, LinkSink}
 import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
+
+import scala.collection.mutable
+import scala.util.Try
 
 @Plugin(
   id = "internal",
   label = "Internal",
   description =
-"""Dataset for storing entities between workflow steps."""
+      """Dataset for storing entities between workflow steps."""
 )
-case class InternalDataset() extends DatasetPlugin {
+case class InternalDataset(val graphUri: String = null) extends DatasetPlugin {
+  private val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
 
-  override def source: DataSource = InternalDataset.default().source
+  override def source: DataSource = internalDatasetPluginImpl.source
 
-  override def linkSink: LinkSink = InternalDataset.default().linkSink
+  override def linkSink: LinkSink = internalDatasetPluginImpl.linkSink
 
-  override def entitySink: EntitySink = InternalDataset.default().entitySink
+  override def entitySink: EntitySink = internalDatasetPluginImpl.entitySink
 
-  override def clear() = InternalDataset.default().clear()
+  override def clear() = internalDatasetPluginImpl.clear()
 }
 
 /**
@@ -25,19 +32,47 @@ case class InternalDataset() extends DatasetPlugin {
   * At the moment, the default can only be set programmatically and not in the configuration.
   */
 object InternalDataset {
+  val internalDatasetGraphPrefix = Try(Config().getString("dataset.internal.graphPrefix")).
+      getOrElse("http://silkframework.org/internal/")
 
-  @volatile
-  private var datasetPlugin: Option[DatasetPlugin] = None
+  private val byGraphDataset: mutable.Map[String, DatasetPlugin] = new mutable.HashMap[String, DatasetPlugin]()
 
-  def isAvailable: Boolean = datasetPlugin.nonEmpty
+  // The internal dataset for the default graph
+  lazy val default: DatasetPlugin = createInternalDataset
 
-  def default(): DatasetPlugin = {
-    if(datasetPlugin.isEmpty) {
-      datasetPlugin = PluginRegistry.createFromConfigOption[DatasetPlugin]("dataset.internal")
-      if(datasetPlugin.isEmpty)
+  private def createInternalDataset: DatasetPlugin = {
+    // TODO: For non-in-memory datasets the graph must be handed over
+    PluginRegistry.createFromConfigOption[DatasetPlugin]("dataset.internal") match {
+      case Some(dataset) =>
+        dataset
+      case None =>
         throw new IllegalAccessException("No internal dataset plugin has been configured at 'dataset.internal'.")
     }
-    datasetPlugin.get
   }
 
+  /**
+    * Returns the internal dataset for a specific graph
+    *
+    * @param graphUriOpt A graph or None for the default graph
+    * @return
+    */
+  def byGraph(graphUriOpt: Option[String]): DatasetPlugin = {
+    graphUriOpt match {
+      case Some(graphURI) =>
+        try {
+          new URI(graphURI)
+        } catch {
+          case e: URISyntaxException =>
+            throw new RuntimeException("Not a valid URI: " + graphURI)
+        }
+        byGraphDataset.synchronized {
+          byGraphDataset.getOrElseUpdate(
+            graphURI,
+            createInternalDataset
+          )
+        }
+      case None =>
+        default
+    }
+  }
 }

@@ -23,7 +23,7 @@ class WorkflowExecutor(task: Task[Workflow],
   override def run(context: ActivityContext[WorkflowExecutionReport]) = {
     canceled = false
     val operators = workflow.operators
-    val internalDataset = InternalDataset()
+    val internalDataset = InternalDataset(graphUri = null)
     internalDataset.clear()
 
     clearInternalDatasets(operators)
