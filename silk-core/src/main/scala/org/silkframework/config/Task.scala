@@ -3,6 +3,7 @@ package org.silkframework.config
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 
+import scala.language.implicitConversions
 import scala.xml._
 
 /**

@@ -140,18 +140,18 @@ object ReferenceEntities {
   def fromEntities(positiveEntities: Traversable[DPair[Entity]],
                    negativeEntities: Traversable[DPair[Entity]],
                    unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty) = {
-    def srcEnt(e: Traversable[DPair[Entity]]) = e map (_.source) toSet
-    def tgtEnt(e: Traversable[DPair[Entity]]) = e map (_.target) toSet
+    def srcEnt(e: Traversable[DPair[Entity]]) = e.map(_.source).toSet
+    def tgtEnt(e: Traversable[DPair[Entity]]) = e.map(_.target).toSet
 
     val sourceEntities = srcEnt(positiveEntities) ++ srcEnt(negativeEntities) ++ srcEnt(unlabeledEntities)
     val targetEntities = tgtEnt(positiveEntities) ++ tgtEnt(negativeEntities) ++ tgtEnt(unlabeledEntities)
 
     ReferenceEntities(
-      sourceEntities = sourceEntities map (e => (e.uri, e)) toMap,
-      targetEntities = targetEntities map (e => (e.uri, e)) toMap,
-      positiveLinks = positiveEntities.map(i => (new Link(i.source.uri, i.target.uri))).toSet,
-      negativeLinks = negativeEntities.map(i => (new Link(i.source.uri, i.target.uri))).toSet,
-      unlabeledLinks = unlabeledEntities.map(i => (new Link(i.source.uri, i.target.uri))).toSet
+      sourceEntities = sourceEntities.map(e => (e.uri, e)).toMap,
+      targetEntities = targetEntities.map(e => (e.uri, e)).toMap,
+      positiveLinks = positiveEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
+      negativeLinks = negativeEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
+      unlabeledLinks = unlabeledEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet
     )
   }
 
