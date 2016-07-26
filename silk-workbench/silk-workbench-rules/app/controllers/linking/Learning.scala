@@ -7,7 +7,7 @@ import models.JsonError
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.LinkSpec
 import org.silkframework.entity.{Link, Path}
 import org.silkframework.evaluation.ReferenceLinks
 import org.silkframework.learning.LearningActivity
@@ -20,7 +20,7 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
-import org.silkframework.workspace.{Task, User}
+import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller, Result}
 import plugins.Context
@@ -30,33 +30,33 @@ object Learning extends Controller {
   private val log = Logger.getLogger(getClass.getName)
 
   def start(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.start(context))
   }
 
   def learn(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.learn(context))
   }
 
   def activeLearn(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.activeLearn(context))
   }
 
   def activeLearnTest(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.activeLearnTest(context))
   }
 
   def activeLearnDetails(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     val activeLearnState = context.task.activity[ActiveLearning].value
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
   def activeLearnCandidate(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     val prefixes = context.project.config.prefixes
     val activeLearn = context.task.activity[ActiveLearning].control
 
@@ -139,7 +139,7 @@ object Learning extends Controller {
     * @param linkSource source URI of the current link candidate
     * @param linkTarget target URI of the current link candidate
     */
-  private def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, context: Context[LinkSpecification]): Option[Link] = {
+  private def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, context: Context[LinkSpec]): Option[Link] = {
     val activeLearn = context.task.activity[ActiveLearning].control
     // Try to find the chosen link candidate in the pool, because the pool links have entities attached
     val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
@@ -186,9 +186,9 @@ object Learning extends Controller {
     * Renders the top linkage rule in the current population.
     */
   def rule(projectName: String, taskName: String) = Action { request =>
-    val context = Context.get[LinkSpecification](projectName, taskName, request.path)
+    val context = Context.get[LinkSpec](projectName, taskName, request.path)
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
     val population = getPopulation(task)
 
@@ -208,7 +208,7 @@ object Learning extends Controller {
     */
   def resetActiveLearning(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
 
     // Reset reference links
     task.activity[ReferenceEntitiesCache].control.reset()
@@ -222,7 +222,7 @@ object Learning extends Controller {
 
   def ruleStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
     val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
     Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
@@ -230,7 +230,7 @@ object Learning extends Controller {
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val validLinks = task.activity[ActiveLearning].value.links
     def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
@@ -251,14 +251,14 @@ object Learning extends Controller {
 
   def linksStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val stream = Stream.activityValue(task.activity[ActiveLearning].control)
     Ok.chunked(Widgets.autoReload("reload", stream))
   }
 
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
 
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
     val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
@@ -267,13 +267,13 @@ object Learning extends Controller {
   }
 
   def population(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.population(context))
   }
 
   def populationView(projectName: String, taskName: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val population = getPopulation(task)
 
     val pageSize = 20
@@ -284,7 +284,7 @@ object Learning extends Controller {
     Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value))
   }
 
-  private def getPopulation(task: Task[LinkSpecification]): Population = {
+  private def getPopulation(task: ProjectTask[LinkSpec]): Population = {
     val population1 = task.activity[ActiveLearning].value.population
     val population2 = task.activity[LearningActivity].value.population
     if(population1.isEmpty)

@@ -6,7 +6,7 @@ import org.silkframework.util.Uri
 /**
  * An empty data set.
  */
-private object EmptyDataset extends DatasetPlugin {
+private object EmptyDataset extends Dataset {
 
   /**
     * Clears the contents of this dataset.

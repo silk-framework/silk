@@ -1,15 +1,14 @@
 @**
 * Renders a linkage rule as a graph (like in the editor).
 *@
-
+@import org.silkframework.config.LinkSpec
 @import plugins.Context
-@import org.silkframework.config.LinkSpecification
 @import views.html.editor.renderRule
 @import play.api.Logger
 
 
 @(rule: org.silkframework.rule.LinkageRule,
-  context: Context[LinkSpecification])
+  context: Context[LinkSpec])
 
 
 <div class="droppable_outer">

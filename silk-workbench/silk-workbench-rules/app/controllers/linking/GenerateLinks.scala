@@ -3,8 +3,8 @@ package controllers.linking
 import controllers.core.{Stream, Widgets}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}
-import org.silkframework.config.LinkSpecification
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.LinkSpec
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.workspace.User
@@ -14,20 +14,20 @@ import plugins.Context
 object GenerateLinks extends Controller {
 
   def generateLinks(project: String, task: String) = Action { request =>
-    val context = Context.get[LinkSpecification](project, task, request.path)
+    val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.generateLinks.generateLinks(context))
   }
 
   def generateLinksDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[Dataset].map(_.name.toString())
+    val outputs = project.tasks[Dataset].map(_.id.toString())
 
     Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
     val linking = task.activity[GenerateLinksActivity].value
     val schemata = task.data.entityDescriptions
@@ -64,14 +64,14 @@ object GenerateLinks extends Controller {
 
   def linksStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val stream = Stream.activityValue(task.activity[GenerateLinksActivity].control)
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpecification](taskName)
+    val task = project.task[LinkSpec](taskName)
     val stream = Stream.status(task.activity[GenerateLinksActivity].control.status)
     Ok.chunked(Widgets.statusStream(stream))
   }

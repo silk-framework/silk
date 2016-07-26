@@ -1,12 +1,14 @@
 package org.silkframework.workspace.xml
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
+import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 
 /**
  * A plugin that adds a new module to the workspace.
  */
-private trait XmlSerializer[DataType] {
+private trait XmlSerializer[TaskType <: TaskSpec] {
 
   /**
    * A prefix that uniquely identifies this module.
@@ -16,7 +18,7 @@ private trait XmlSerializer[DataType] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, DataType]
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, TaskType]
 
   /**
    * Removes a specific task.
@@ -26,5 +28,5 @@ private trait XmlSerializer[DataType] {
   /**
    * Writes an updated task.
    */
-  def writeTask(data: DataType, resources: ResourceManager)
+  def writeTask(task: Task[TaskType], resources: ResourceManager)
 }

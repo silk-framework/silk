@@ -1,10 +1,10 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.LinkSpec
 import org.silkframework.learning.{LearningActivity, LearningConfiguration, LearningInput, LearningResult}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
@@ -13,9 +13,9 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   categories = Array("LinkSpecification"),
   description = "Executes the supervised learning."
 )
-case class LearningFactory() extends TaskActivityFactory[LinkSpecification, LearningActivity] {
+case class LearningFactory() extends TaskActivityFactory[LinkSpec, LearningActivity] {
 
-  def apply(task: Task[LinkSpecification]): Activity[LearningResult] = {
+  def apply(task: ProjectTask[LinkSpec]): Activity[LearningResult] = {
     Activity.regenerating {
       val input =
         LearningInput(

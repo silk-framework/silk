@@ -1,9 +1,9 @@
 @import plugins.Context
-@import org.silkframework.config.TransformSpecification
 @import org.silkframework.rule.TransformRule
 @import controllers.rules.routes.Assets
+@import org.silkframework.config.TransformSpec
 
-@(context: Context[TransformSpecification], rule: TransformRule)
+@(context: Context[TransformSpec], rule: TransformRule)
 
 @import org.silkframework.workspace.User
 @import org.silkframework.rule.input.Transformer
@@ -23,17 +23,15 @@
   <script type="text/javascript">
     var inEditorEnv = true;
     var projectName = '@context.project.name';
-    var taskName = '@context.task.name';
+    var taskName = '@context.task.id';
     var ruleIndex = '/@context.task.data.rules.indexOf(rule)';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.name';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
   </script>
 }
 
 @toolbar = {
-  <script type="text/javascript" src="@Assets.at("js/wz_tooltip.js")"></script>
-
   <ul>
     <li>
       <a class="mdl-button mdl-js-button mdl-button--icon" href="../editor">
@@ -99,15 +97,18 @@
   <div class="draggables mdl-shadow--2dp">
     <div class="palette-header">
     </div>
-    <div id="paths">
-      <div id="loading" style="width:230px;">loading ...</div>
-      <script type="text/javascript">
-        getPropertyPaths('#paths');
-      </script>
-    </div>
 
-    <div id="operators">
-      @operators("Transformations", "transform", Transformer.pluginsByCategory)
+    <div id="operators-grouped">
+      <div id="paths">
+        <div id="loading" style="width:230px;">loading ...</div>
+        <script type="text/javascript">
+          getPropertyPaths('#paths');
+        </script>
+      </div>
+
+      <div id="operators">
+        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+      </div>
     </div>
   </div>
 

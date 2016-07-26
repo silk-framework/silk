@@ -5,13 +5,13 @@
 @import org.silkframework.entity.Entity
 @import org.silkframework.util.DPair
 @import org.silkframework.rule.evaluation._
-@import org.silkframework.config.LinkSpecification
 @import controllers.rules.routes.Assets
-@import org.silkframework.workspace.Task
+@import org.silkframework.config.LinkSpec
+@import org.silkframework.workspace.ProjectTask
 @import org.silkframework.execution.LinkingStatistics
 
 @(project: Project,
-  task: Task[LinkSpecification],
+  task: ProjectTask[LinkSpec],
   links: Seq[EvalLink],
   linkingStatistics: Option[LinkingStatistics],
   sorting: LinkSorter,

@@ -1,10 +1,10 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpecification
-import org.silkframework.execution.{ExecuteTransformResult, ExecuteTransform}
+import org.silkframework.config.TransformSpec
+import org.silkframework.execution.{ExecuteTransform, ExecuteTransformResult}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
@@ -14,9 +14,9 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
   categories = Array("TransformSpecification"),
   description = "Executes the transformation."
 )
-case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpecification, ExecuteTransform] {
+case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpec, ExecuteTransform] {
 
-  def apply(task: Task[TransformSpecification]): Activity[ExecuteTransformResult] = {
+  def apply(task: ProjectTask[TransformSpec]): Activity[ExecuteTransformResult] = {
     Activity.regenerating {
       new ExecuteTransform(
         input = task.dataSource,

@@ -1,11 +1,10 @@
-@import org.silkframework.config.LinkSpecification
 @import controllers.rules.routes.Assets
 @import controllers.linking.routes
 @import org.silkframework.learning.active.ActiveLearning
 @import views.html.workspace.activity.taskActivityControl
-
 @import models.linking.LinkCandidateDecision
-@(context: plugins.Context[LinkSpecification])
+@import org.silkframework.config.LinkSpec
+@(context: plugins.Context[LinkSpec])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />
@@ -20,8 +19,8 @@
 
   <script type="text/javascript">
     var inEditorEnv = false;
-    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name/referenceLink';
-    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id/referenceLink';
+    var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
 
   </script>
 }

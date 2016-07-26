@@ -1,8 +1,9 @@
 package org.silkframework.workspace.io
 
-import org.silkframework.config.{LinkSpecification, TransformSpecification}
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.{LinkSpec, TaskSpec, TransformSpec}
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
@@ -30,12 +31,12 @@ object WorkspaceIO {
     outputWorkspace.putProject(project)
     copyResources(inputWorkspace.projectResources(project.id), outputWorkspace.projectResources(project.id))
     copyTasks[Dataset](inputWorkspace, outputWorkspace, project.id)
-    copyTasks[TransformSpecification](inputWorkspace, outputWorkspace, project.id)
-    copyTasks[LinkSpecification](inputWorkspace, outputWorkspace, project.id)
+    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, project.id)
+    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, project.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, project.id)
   }
 
-  private def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
+  def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
     // Copy resources at the current path
     for(resourceName <- inputResources.list) {
       val input = inputResources.get(resourceName)
@@ -48,7 +49,7 @@ object WorkspaceIO {
     }
   }
 
-  private def copyTasks[T: ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, projectName: Identifier): Unit = {
+  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, projectName: Identifier): Unit = {
     for((taskName, taskData) <- inputWorkspace.readTasks[T](projectName)) {
       outputWorkspace.putTask(projectName, taskName, taskData)
     }

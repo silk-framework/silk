@@ -237,15 +237,6 @@ $(function ()
     $(this).parent().removeClass('active').attr('title', newPath).html(newPath);
   });
 
-  $(document).on('mouseover', "#source_restriction, #target_restriction", function() {
-    var txt = $(this).text();
-    Tip(txt, DELAY, 20);
-  });
-
-  $(document).on('mouseout', "#source_restriction, #target_restriction", function() {
-    UnTip();
-  });
-
   if (inEditorEnv) {
     updateWindowSize();
     updateScore();
@@ -418,8 +409,14 @@ function highlightElement(elId, message) {
   $(".handler label").each(function() {
     if ($(this).text() == elId) {
       var elementToHighlight = $(this).parent().parent();
-      elementToHighlight.addClass('highlighted').attr('onmouseover', 'Tip("' + encodeHtml(message) + '")').attr("onmouseout", "UnTip()");
+      elementToHighlight.addClass('highlighted');
+      highlightId = elementToHighlight.attr('id');
+      tooltipId = highlightId + "_tooltip";
+      $('#' + tooltipId).text(encodeHtml(message));
+      $('#' + tooltipId).show();
+     // elementToHighlight.prepend('<div class="mdl-tooltip" for="' + elId + '">encodeHtml(message)</div>');
       jsPlumb.repaint(elementToHighlight);
+     // componentHandler.upgradeAllRegistered();
     }
   });
 }
@@ -427,6 +424,7 @@ function highlightElement(elId, message) {
 function removeHighlighting() {
   $("div .dragDiv").removeClass('highlighted').removeAttr('onmouseover');
   jsPlumb.repaintEverything();
+  $(".operator-tooltip").hide();
 }
 
 function cycleCheck(elId) {
@@ -454,7 +452,6 @@ function removeElement(elementId) {
   setTimeout(function() {
     jsPlumb.removeAllEndpoints(elementId);
     $('#' + elementId).remove();
-    UnTip();
     modifyLinkSpec();
   }, 100);
 }
@@ -623,7 +620,7 @@ function getPropertyPaths(targetElement, groupPaths) {
     complete: function(response, status) {
       $(targetElement).html(response.responseText);
       if(status == "error") {
-        setTimeout('getPropertyPaths(' + targetElement + ')', 2000);
+        setTimeout('getPropertyPaths(' + targetElement + ', ' + groupPaths + ')', 2000);
       } else {
         updateWindowSize();
       }

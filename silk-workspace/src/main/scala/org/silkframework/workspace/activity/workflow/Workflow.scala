@@ -1,11 +1,13 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.TaskSpecification
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.{Dataset, DatasetTask, VariableDataset}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.Project
 
 import scala.xml.Node
 
-case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpecification {
+case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
 
   def nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -39,6 +41,35 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     }</Workflow>
   }
 
+  /**
+    * Returns all variable datasets and how they are used in the workflow.
+    *
+    * @param project
+    * @return
+    * @throws Exception if a variable dataset is used as input and output, which is not allowed.
+    */
+  def variableDatasets(project: Project): AllVariableDatasets = {
+    val variableDatasetsUsedInOutput =
+      for (datasetId <- operators.flatMap(_.outputs).distinct;
+           dataset <- project.taskOption[Dataset](datasetId)
+           if dataset.data.isInstanceOf[VariableDataset]) yield {
+        datasetId
+      }
+
+    val variableDatasetsUsedInInput =
+      for (datasetId <- operators.flatMap(_.inputs).distinct;
+           dataset <- project.taskOption[Dataset](datasetId)
+           if dataset.data.isInstanceOf[VariableDataset]) yield {
+        datasetId
+      }
+    val bothInAndOut = variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet
+    if (bothInAndOut.size > 0) {
+      throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
+    }
+    AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
+  }
+
+  case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
 }
 
 object Workflow {

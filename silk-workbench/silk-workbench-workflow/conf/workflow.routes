@@ -1,16 +1,17 @@
-GET        /dialogs/:project/workflowDialog        controllers.workflow.Dialogs.workflowTaskDialog(project: String)
+GET        /dialogs/:project/workflowDialog                     controllers.workflow.Dialogs.workflowTaskDialog(project: String)
 
-GET        /:project/:task/editor                  controllers.workflow.Editor.editor(project: String, task: String)
-GET        /:project/:task/editor/statusStream     controllers.workflow.Editor.statusStream(project: String, task: String)
+GET        /:project/:task/editor                               controllers.workflow.Editor.editor(project: String, task: String)
+GET        /:project/:task/editor/statusStream                  controllers.workflow.Editor.statusStream(project: String, task: String)
 
-GET        /workflows/:project/:task               controllers.workflow.WorkflowApi.getWorkflow(project: String, task: String)
-PUT        /workflows/:project/:task               controllers.workflow.WorkflowApi.putWorkflow(project: String, task: String)
-DELETE     /workflows/:project/:task               controllers.workflow.WorkflowApi.deleteWorkflow(project: String, task: String)
+GET        /workflows/:project/:task                            controllers.workflow.WorkflowApi.getWorkflow(project: String, task: String)
+PUT        /workflows/:project/:task                            controllers.workflow.WorkflowApi.putWorkflow(project: String, task: String)
+DELETE     /workflows/:project/:task                            controllers.workflow.WorkflowApi.deleteWorkflow(project: String, task: String)
 
-PUT        /workflows/:project/:task/execute       controllers.workflow.WorkflowApi.executeWorkflow(project: String, task: String)
-GET        /workflows/:project/:task/status        controllers.workflow.WorkflowApi.status(project: String, task: String)
+PUT        /workflows/:project/:task/execute                    controllers.workflow.WorkflowApi.executeWorkflow(project: String, task: String)
+GET        /workflows/:project/:task/status                     controllers.workflow.WorkflowApi.status(project: String, task: String)
 
 # Assests
-GET        /assets/*file                           controllers.workflow.Assets.at(path="/public", file)
+GET        /assets/*file                                        controllers.workflow.Assets.at(path="/public", file)
 
-
+# Execution
+POST       /workflows/:project/:task/executeOnPayload           controllers.workflow.WorkflowApi.postVariableWorkflowInput(project: String, task: String)

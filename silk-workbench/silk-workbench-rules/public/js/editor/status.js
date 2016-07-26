@@ -2,21 +2,6 @@
  * The Javascript for the status.scala.html template.
  */
 
-$(function () {
-  $("#exclamation, #warning").mouseover(function() {
-    $(this).attr("style", "cursor:pointer;");
-  });
-
-  $("#exclamation, #warning").click(function() {
-    if ($("#info-box").is(':visible')) {
-      $("#info-box").slideUp(200);
-    } else {
-      $("#info-box").css("left", $(window).width()-294+"px");
-      $("#info-box").slideDown(200);
-    }
-  });
-});
-
 /**
  * Displays messages.
  * Each parameter contains an array of objects consisting of the following properties:
@@ -24,8 +9,8 @@ $(function () {
  * message: The message to be displayed
  */
 function updateStatus(messages) {
-  $("#info-box").html("");
-  $("#info-box").append(printMessages(messages));
+  $("#error-tooltip").html("");
+  $("#error-tooltip").append(printMessages(messages));
 
   var errorCount = messages.filter(function(msg){return msg.type == "Error"}).length;
   var warningCount = messages.filter(function(msg){return msg.type == "Warning"}).length;
@@ -45,13 +30,13 @@ function showValidIcon() {
 }
 
 function showInvalidIcon(numberMessages) {
-  $("#exclamation > .number-messages").html(numberMessages);
+  $("#exclamation").attr("data-badge", numberMessages);
   $("#tick, #warning, #pending").css("display", "none");
   $("#exclamation").css("display", "block");
 }
 
 function showWarningIcon(numberMessages) {
-  $("#warning > .number-messages").html(numberMessages);
+  $("#warning").attr("data-badge", numberMessages);
   $("#tick, #exclamation, #pending").css("display", "none");
   $("#warning").css("display", "block");
 }

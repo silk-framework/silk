@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.workspace.Task
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
@@ -13,7 +13,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 )
 case class WorkflowExecutorFactory() extends TaskActivityFactory[Workflow, WorkflowExecutor] {
 
-  override def apply(task: Task[Workflow]): Activity[WorkflowExecutionReport] = {
+  override def apply(task: ProjectTask[Workflow]): Activity[WorkflowExecutionReport] = {
     new WorkflowExecutor(task)
   }
 

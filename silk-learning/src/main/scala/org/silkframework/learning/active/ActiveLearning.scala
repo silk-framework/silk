@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.config.LinkSpecification
+import org.silkframework.config.LinkSpec
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Path
 import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
@@ -32,7 +32,7 @@ import scala.math.max
 
 class ActiveLearning(config: LearningConfiguration,
                      datasets: DPair[DataSource],
-                     linkSpec: LinkSpecification,
+                     linkSpec: LinkSpec,
                      paths: DPair[Seq[Path]],
                      referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                      initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {

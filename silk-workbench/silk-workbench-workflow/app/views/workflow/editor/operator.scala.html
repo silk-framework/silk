@@ -2,11 +2,11 @@
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
-@import org.silkframework.workspace.Task
+@import org.silkframework.workspace.ProjectTask
 
-@(project: Project, task: Task[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+@(project: Project, task: ProjectTask[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
-<div class="operator" title="@task.name" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
+<div class="operator" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
   <div class="operatorHeader">
     <div class="operatorHeaderText">
       @taskActions.name
@@ -15,8 +15,8 @@
   </div>
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
-    @task.name
-    @for(path <- taskActions.open(project.name, task.name)) {
+    @task.id
+    @for(path <- taskActions.open(project.name, task.id)) {
       <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
     }
   </div>

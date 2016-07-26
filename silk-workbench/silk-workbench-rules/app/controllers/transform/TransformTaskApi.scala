@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import models.JsonError
-import org.silkframework.config.{DatasetSelection, TransformSpecification}
+import org.silkframework.config.{DatasetSelection, TransformSpec}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.Restriction
 import org.silkframework.execution.ExecuteTransform
@@ -12,10 +12,11 @@ import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.config.TransformSpec
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{Task, User}
-import play.api.libs.json.{JsArray, JsObject, JsString}
+import org.silkframework.workspace.{ProjectTask, User}
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 object TransformTaskApi extends Controller {
@@ -31,7 +32,7 @@ object TransformTaskApi extends Controller {
     val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
 
-    proj.tasks[TransformSpecification].find(_.name == task) match {
+    proj.tasks[TransformSpec].find(_.id == task) match {
       //Update existing task
       case Some(oldTask) => {
         val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs)
@@ -39,7 +40,7 @@ object TransformTaskApi extends Controller {
       }
       //Create new task with no rule
       case None => {
-        val transformSpec = TransformSpecification(task, input, Seq.empty, outputs)
+        val transformSpec = TransformSpec(input, Seq.empty, outputs)
         proj.updateTask(task, transformSpec)
       }
     }
@@ -48,13 +49,13 @@ object TransformTaskApi extends Controller {
   }
 
   def deleteTransformTask(project: String, task: String) = Action {
-    User().workspace.project(project).removeTask[TransformSpecification](task)
+    User().workspace.project(project).removeTask[TransformSpec](task)
     Ok
   }
 
   def getRules(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
     Ok(<TransformRules>
@@ -64,7 +65,7 @@ object TransformTaskApi extends Controller {
 
   def putRules(projectName: String, taskName: String) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
@@ -94,7 +95,7 @@ object TransformTaskApi extends Controller {
 
   def getRule(projectName: String, taskName: String, rule: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
     task.data.rules.find(_.name == rule) match {
@@ -105,7 +106,7 @@ object TransformTaskApi extends Controller {
 
   def putRule(projectName: String, taskName: String, ruleIndex: Int) = Action { request => {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
@@ -139,7 +140,7 @@ object TransformTaskApi extends Controller {
 
   def reloadTransformCache(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     task.activity[TransformPathsCache].control.reset()
     task.activity[TransformPathsCache].control.start()
     Ok
@@ -147,7 +148,7 @@ object TransformTaskApi extends Controller {
 
   def executeTransformTask(projectName: String, taskName: String) = Action { request =>
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     val activity = task.activity[ExecuteTransform].control
     activity.start()
     Ok
@@ -158,7 +159,7 @@ object TransformTaskApi extends Controller {
    */
   def sourcePathCompletions(projectName: String, taskName: String, term: String) = Action {
     val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpecification](taskName)
+    val task = project.task[TransformSpec](taskName)
     var completions = Seq[String]()
 
     // Add known paths
@@ -214,13 +215,13 @@ object TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: Task[TransformSpecification], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
+  private def executeTransform(task: ProjectTask[TransformSpec], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
     val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink),errorEntitySinkOpt.toSeq)
     Activity(transform).startBlocking()
   }
 
   private def projectAndTask(projectName: String, taskName: String) = {
-    getProjectAndTask[TransformSpecification](projectName, taskName)
+    getProjectAndTask[TransformSpec](projectName, taskName)
   }
 }
 

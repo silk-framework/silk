@@ -17,8 +17,10 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.runtime.activity.{Status, HasValue}
+import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -27,38 +29,39 @@ import scala.util.control.NonFatal
 
 
 /**
- * A task.
+ * A task that belongs to a project.
  *
- * @tparam DataType The data type that specifies the properties of this task.
+ * @tparam TaskType The data type that specifies the properties of this task.
  */
-class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
-                               module: Module[DataType]) {
+class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier, initialData: TaskType,
+                                                   module: Module[TaskType]) {
 
   private val log = Logger.getLogger(getClass.getName)
 
   @volatile
-  private var currentData: DataType = initialData
+  private var currentData: TaskType = initialData
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
-  private val taskActivities: Seq[TaskActivity[DataType, _ <: HasValue]] = {
+  private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
     implicit val prefixes = module.project.config.prefixes
     implicit val resources = module.project.resources
-    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[DataType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[DataType])
-    var activities = List[TaskActivity[DataType, _ <: HasValue]]()
+    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
+    var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for(factory <- factories) {
       try {
         activities ::= new TaskActivity(this, factory)
       } catch {
-        case NonFatal(ex) => log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$name' in project '${module.project.name}'.", ex)
+        case NonFatal(ex) =>
+          log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$id' in project '${module.project.name}'.", ex)
       }
     }
     activities.reverse
   }
 
-  private val taskActivityMap: Map[Class[_], TaskActivity[DataType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
+  private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
 
   /**
     * The project this task belongs to.
@@ -70,6 +73,8 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    */
   def data = currentData
 
+  def task = Task(id, currentData)
+
   def init() = {
     // Start autorun activities
     for(activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
@@ -79,21 +84,21 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   /**
    * Updates the data of this task.
    */
-  def update(newData: DataType) = synchronized {
+  def update(newData: TaskType) = synchronized {
     // Update data
     currentData = newData
     // (Re)Schedule write
     for(writer <- scheduledWriter) {
       writer.cancel(false)
     }
-    scheduledWriter = Some(Task.scheduledExecutor.schedule(Writer, Task.writeInterval, TimeUnit.SECONDS))
-    log.info("Updated task '" + name + "'")
+    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
+    log.info("Updated task '" + id + "'")
   }
 
   /**
    * All activities that belong to this task.
    */
-  def activities: Seq[TaskActivity[DataType, _]] = taskActivities
+  def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
 
   /**
    * Retrieves an activity by type.
@@ -101,11 +106,11 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @tparam T The type of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity[T <: HasValue : ClassTag]: TaskActivity[DataType, T] = {
+  def activity[T <: HasValue : ClassTag]: TaskActivity[TaskType, T] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
+    val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
                                                                                          s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
-    act.asInstanceOf[TaskActivity[DataType, T]]
+    act.asInstanceOf[TaskActivity[TaskType, T]]
   }
 
   /**
@@ -114,17 +119,17 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
    * @param activityName The name of the requested activity
    * @return The activity control for the requested activity
    */
-  def activity(activityName: String): TaskActivity[DataType, _ <: HasValue] = {
+  def activity(activityName: String): TaskActivity[TaskType, _ <: HasValue] = {
     taskActivities.find(_.name == activityName)
-      .getOrElse(throw new NoSuchElementException(s"Task '$name' in project '${project.name}' does not contain an activity named '$activityName'. " +
+      .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity named '$activityName'. " +
                                                   s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
   }
 
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      module.provider.putTask(project.name, name, data)
-      log.info(s"Persisted task '$name' in project '${project.name}'")
+      module.provider.putTask(project.name, id, data)
+      log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for(activity <- taskActivities if activity.autoRun) {
         activity.control.cancel()
@@ -134,7 +139,7 @@ class Task[DataType: ClassTag](val name: Identifier, initialData: DataType,
   }
 }
 
-object Task {
+object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
   private val writeInterval = 5

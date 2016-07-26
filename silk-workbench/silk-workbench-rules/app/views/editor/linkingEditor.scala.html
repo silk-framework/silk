@@ -2,11 +2,11 @@
 @import org.silkframework.rule.input.Transformer
 @import org.silkframework.rule.similarity.Aggregator
 @import org.silkframework.rule.similarity.DistanceMeasure
-@import org.silkframework.config.LinkSpecification
 @import controllers.workspace.routes
 @import controllers.rules.routes.Assets
+@import org.silkframework.config.LinkSpec
 
-@(context: Context[LinkSpecification])
+@(context: Context[LinkSpec])
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
@@ -23,17 +23,15 @@
   <script type="text/javascript">
     var inEditorEnv = true;
     var projectName = '@context.project.name';
-    var taskName = '@context.task.name';
+    var taskName = '@context.task.id';
     var ruleIndex = '';
     var editorUrl = baseUrl + '/linking/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.name';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeLinkageRule;
   </script>
 }
 
 @toolbar = {
-  <script type="text/javascript" src="@Assets.at("js/wz_tooltip.js")"></script>
-
   <ul>
     <li>
       <button id="undo" class="mdl-button mdl-js-button mdl-button--icon" onclick="undo()">
@@ -57,7 +55,7 @@
       </div>
     </li>
     <li>
-      <a id="button_get_linkspec" class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.name).url" target="_blank">
+      <a id="button_get_linkspec" class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.id).url" target="_blank">
         <i class="material-icons">file_download</i>
       </a>
       <div class="mdl-tooltip mdl-tooltip--large" for="button_get_linkspec">
@@ -161,25 +159,6 @@
           )
         }
       </div>
-<!--
-      <div style="width: 180px; float: left;">
-        Link Limit:
-        <select id="linklimit" onchange="modifyLinkSpec()">
-          <option>unlimited</option>
-          @for(i <- 1 to 10) {
-            <option @if(context.task.data.rule.filter.limit == Some(i)) {selected="selected"}>@i</option>
-          }
-        </select>
-        <img src="@Assets.at("img/help.png")" title="Defines the number of links (n) originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering." />
-      </div>
-
-      <div style="width: 300px; float: left;">
-        Link Type:
-        <input type="text" id="linktype" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
-      </div>
-
--->
-
 
     </div>
 

@@ -1,6 +1,6 @@
 package org.silkframework.rule
 
-import org.silkframework.config.TransformSpecification
+import org.silkframework.config.TransformSpec
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
@@ -13,7 +13,7 @@ import scala.util.control.NonFatal
   * @param source The data source for retrieving the source entities.
   * @param transform The transformation
   */
-class TransformedDataSource(source: DataSource, transform: TransformSpecification) extends DataSource {
+class TransformedDataSource(source: DataSource, transform: TransformSpec) extends DataSource {
   /**
     * Retrieves known generated types in this source.
     *

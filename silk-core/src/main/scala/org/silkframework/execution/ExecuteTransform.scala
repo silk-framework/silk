@@ -1,7 +1,5 @@
 package org.silkframework.execution
 
-import java.util.concurrent.atomic.AtomicLong
-
 import org.silkframework.config.DatasetSelection
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.EntitySchema

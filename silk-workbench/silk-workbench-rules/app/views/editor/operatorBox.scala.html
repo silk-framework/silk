@@ -4,11 +4,12 @@
 @(opType: String,
   id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
-  parameters: Map[String, String],
+  parameterValues: Seq[String],
   x: Int, y: Int,
   display: Boolean)(additionalContent: Html)
 
 <div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
+  <div id="@GenerateId(id, display)_tooltip" for="@GenerateId(id, display)" class="mdl-tooltip operator-tooltip" style="display: none;">tooltip</div>
   <small class="name">@plugin.id</small>
   <small class="type">@opType</small>
   <h5 class="handler">
@@ -29,10 +30,13 @@
     </div>
     -->
     @additionalContent
-    @for(((name, value), index) <- parameters.zipWithIndex) {
+    @for((param, value) <- plugin.parameters zip parameterValues) {
       <div class="param_element plugin_param">
-        <label class="param_label">@name</label>
-        <input class="param_value" type="text" name="@name" value="@value"/>
+        <label id="@{GenerateId(id, display)}_param_@{param.name}" class="param_label">@{param.name}</label>
+        <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_@{param.name}">
+          @param.description
+        </div>
+        <input class="param_value" type="text" name="@{param.name}" value="@value"/>
       </div>
     }
   </div>

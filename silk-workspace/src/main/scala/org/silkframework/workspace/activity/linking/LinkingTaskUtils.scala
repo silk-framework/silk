@@ -1,17 +1,18 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.{LinkSpecification, TransformSpecification}
-import org.silkframework.dataset.{Dataset, DataSource}
+import org.silkframework.config.{LinkSpec, TransformSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetTask}
 import org.silkframework.rule.TransformedDataSource
-import org.silkframework.util.{Identifier, DPair}
-import org.silkframework.workspace.Task
+import org.silkframework.config.TransformSpec
+import org.silkframework.util.{DPair, Identifier}
+import org.silkframework.workspace.ProjectTask
 
 /**
   * Adds additional methods to linking tasks.
   */
 object LinkingTaskUtils {
 
-  implicit class LinkingTask(task: Task[LinkSpecification]) {
+  implicit class LinkingTask(task: ProjectTask[LinkSpec]) {
 
     /**
       * Retrieves both data sources for this linking task.
@@ -24,7 +25,7 @@ object LinkingTaskUtils {
       * Retrieves a specific data source for this linking task.
       */
     def dataSource(sourceId: Identifier): DataSource = {
-      task.project.taskOption[TransformSpecification](sourceId) match {
+      task.project.taskOption[TransformSpec](sourceId) match {
         case Some(transformTask) =>
           val source = task.project.task[Dataset](transformTask.data.selection.inputId).data.source
           new TransformedDataSource(source, transformTask.data)

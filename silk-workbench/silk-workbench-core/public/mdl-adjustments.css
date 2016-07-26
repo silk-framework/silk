@@ -80,6 +80,11 @@
   color: #3f51b5;
 }
 
+#error-icons {
+  display: inline-block;
+  float: right;
+}
+
 /*
 * Transform Editor Toolbar
 */

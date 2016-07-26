@@ -9,10 +9,12 @@
 @()
 
 <div id="validation-icons">
-  <div id="tick" onmouseover="Tip('Validated successfully.', DELAY, 20, WIDTH, 135, FIX, ['tick', -102, 3]);" onmouseout="UnTip();"></div>
-  <div id="exclamation" style="display: none"><span class="number-messages"></span></div>
-  <div id="warning" style="display: none"><span class="number-messages"></span></div>
-  <div id="pending" style="display: none"></div>
+  <div id="tick" class="material-icons">done</div>
+  <div class="mdl-tooltip mdl-tooltip--large" for="tick">Validated successfully.</div>
+  <div id="error-icons">
+    <div id="exclamation" class="material-icons mdl-badge mdl-badge--overlap" data-badge="0" style="display: none;">error</div>
+    <div id="warning" class="material-icons mdl-badge mdl-badge--overlap" data-badge="0" style="display: none;">warning</div>
+  </div>
+  <div id="error-tooltip" class="mdl-tooltip mdl-tooltip--large mdl-tooltip--left" for="error-icons">Errors.</div>
+  <div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active" id="pending" style="display: none"></div>
 </div>
-
-<div id="info-box" style="display: none"></div>
