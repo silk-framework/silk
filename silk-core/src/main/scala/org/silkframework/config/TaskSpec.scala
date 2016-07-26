@@ -17,6 +17,6 @@ trait TaskSpec {
     * The schema of the output data.
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
-  def outputSchema: Option[EntitySchema] = None
+  def outputSchemaOpt: Option[EntitySchema] = None
 
 }

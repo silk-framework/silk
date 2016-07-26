@@ -64,9 +64,9 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     canceled = true
   }
 
-  def executeOperator(operator: WorkflowOperator, internalDataset: InternalDataset, context: ActivityContext[WorkflowExecutionReport]): Unit = {
-    val project = task.project
-
+  def executeOperator(operator: WorkflowOperator,
+                      internalDataset: InternalDataset,
+                      context: ActivityContext[WorkflowExecutionReport]): Unit = {
     // Get the data sources of this operator
     // Either it reads the data from a dataset or directly from another operator in which case the internal data set is used.
     val inputs = operator.inputs

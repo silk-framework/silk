@@ -26,7 +26,7 @@ case class TransformSpec(selection: DatasetSelection, rules: Seq[TransformRule],
 
   override def inputSchemata = Seq(entitySchema)
 
-  override def outputSchema = {
+  override def outputSchemaOpt = {
     Some(
       EntitySchema(
         typeUri = rules.collect{ case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),

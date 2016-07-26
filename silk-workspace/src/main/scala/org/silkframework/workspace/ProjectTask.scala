@@ -33,7 +33,8 @@ import scala.util.control.NonFatal
  *
  * @tparam TaskType The data type that specifies the properties of this task.
  */
-class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier, initialData: TaskType,
+class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
+                                                   initialData: TaskType,
                                                    module: Module[TaskType]) {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -145,5 +146,4 @@ object ProjectTask {
   private val writeInterval = 5
 
   private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
-
 }
