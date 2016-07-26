@@ -79,7 +79,7 @@ function putTask(path, xml) {
     processData: false,
     data: xml,
     success: function(data) {
-      $('.dialog').dialog('close');
+      closeDialog();
       reloadWorkspace();
     },
     error: function(request) {
