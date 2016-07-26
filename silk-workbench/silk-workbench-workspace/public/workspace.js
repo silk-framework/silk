@@ -68,7 +68,7 @@ function reloadWorkspaceInBackend() {
 }
 
 function workspaceDialog(relativePath) {
-  showDialog(baseUrl + '/' + relativePath, reloadWorkspace);
+  showDialog(baseUrl + '/' + relativePath);
 }
 
 function putTask(path, xml) {
