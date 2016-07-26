@@ -78,22 +78,6 @@
         <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent close">Disagree</button></span>
       </div>
     </dialog>
-    <script>
-      var mdl_dialog = document.querySelector('#primary_dialog');
-      if (! mdl_dialog.showModal) {
-        dialogPolyfill.registerDialog(mdl_dialog);
-      }
-      mdl_dialog.querySelector('.close').addEventListener('click', function() {
-        mdl_dialog.close();
-      });
-      var secondary_mdl_dialog = document.querySelector('#secondary_dialog');
-      if (! secondary_mdl_dialog.showModal) {
-        dialogPolyfill.registerDialog(secondary_mdl_dialog);
-      }
-      secondary_mdl_dialog.querySelector('.close').addEventListener('click', function() {
-        secondary_mdl_dialog.close();
-      });
-    </script>
 
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
