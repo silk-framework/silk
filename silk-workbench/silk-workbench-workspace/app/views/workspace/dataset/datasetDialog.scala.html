@@ -34,7 +34,9 @@
 
       function autoConfigure(pluginId, name, parameters) {
         var queryString = $.param(parameters);
-        showDialog('@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.name/' + name + '/' + pluginId + '?' + queryString);
+        var path = '@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.name/' + name + '/' + pluginId + '?' + queryString;
+        closeDialog();
+        showDialog(path);
       }
     </script>
   }
