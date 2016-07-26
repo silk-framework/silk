@@ -22,6 +22,7 @@ var contentWidthCallback = function() { };
 // The currently open dialog
 var primary_dialog;
 var secondary_dialog;
+var dialogs = {};
 // The path of the current dialog, e.g., /workspace/mydialog
 var dialogPath;
 
@@ -39,6 +40,7 @@ $(function() {
 
   // Initialize dialog
   primary_dialog = document.querySelector('#primary_dialog');
+  dialogs['primary'] = primary_dialog;
   if (! primary_dialog.showModal) {
     dialogPolyfill.registerDialog(primary_dialog);
   }
@@ -46,6 +48,7 @@ $(function() {
     primary_dialog.close();
   });
   secondary_dialog = document.querySelector('#secondary_dialog');
+  dialogs['secondary'] = secondary_dialog;
   if (! secondary_dialog.showModal) {
     dialogPolyfill.registerDialog(secondary_dialog);
   }
@@ -65,15 +68,16 @@ var errorHandler = function(request) {
 /**
  * Opens a dialog.
  */
-function showDialog(path, dialog="primary") {
+function showDialog(path, dialog_key="primary") {
+  dialog = dialogs[dialog_key];
   dialogPath = path;
   $.get(path, function(data) {
     // inject dialog content into dialog container
-    $(primary_dialog).html(data);
+    $(dialog).html(data);
     // enable MDL JS for dynamically added components
     componentHandler.upgradeAllRegistered();
   }).success(function() {
-    primary_dialog.showModal();
+    dialog.showModal();
   }).fail(function(request) {
     alert(request.responseText);
   });
@@ -97,8 +101,9 @@ function reloadDialog() {
 /**
  * Closes current dialog.
  */
-function closeDialog() {
-  primary_dialog.close();
+function closeDialog(dialog_key="primary") {
+  dialog = dialogs[dialog_key];
+  dialog.close();
 }
 
 /**
