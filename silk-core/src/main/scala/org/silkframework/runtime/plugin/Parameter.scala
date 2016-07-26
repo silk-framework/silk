@@ -14,6 +14,8 @@
 
 package org.silkframework.runtime.plugin
 
+import scala.language.existentials
+
 case class Parameter(name: String,
                      dataType: ParameterType[_],
                      description: String = "No description",

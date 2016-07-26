@@ -21,7 +21,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-
+import scala.language.existentials
 import scala.util.control.NonFatal
 
 /**
