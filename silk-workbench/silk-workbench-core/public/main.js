@@ -20,7 +20,8 @@ var helpWidth = 170;
 var contentWidth;
 var contentWidthCallback = function() { };
 // The currently open dialog
-var dialog;
+var primary_dialog;
+var secondary_dialog;
 // The path of the current dialog, e.g., /workspace/mydialog
 var dialogPath;
 
@@ -37,9 +38,19 @@ $(function() {
   contentWidthCallback();
 
   // Initialize dialog
-  dialog = $('.dialog').dialog({
-    autoOpen: false,
-    modal: true
+  primary_dialog = document.querySelector('#primary_dialog');
+  if (! primary_dialog.showModal) {
+    dialogPolyfill.registerDialog(primary_dialog);
+  }
+  primary_dialog.querySelector('.close').addEventListener('click', function() {
+    primary_dialog.close();
+  });
+  secondary_dialog = document.querySelector('#secondary_dialog');
+  if (! secondary_dialog.showModal) {
+    dialogPolyfill.registerDialog(secondary_dialog);
+  }
+  secondary_dialog.querySelector('.close').addEventListener('click', function() {
+    secondary_dialog.close();
   });
 });
 
@@ -54,15 +65,15 @@ var errorHandler = function(request) {
 /**
  * Opens a dialog.
  */
-function showDialog(path) {
+function showDialog(path, dialog="primary") {
   dialogPath = path;
   $.get(path, function(data) {
     // inject dialog content into dialog container
-    $(mdl_dialog).html(data);
+    $(primary_dialog).html(data);
     // enable MDL JS for dynamically added components
     componentHandler.upgradeAllRegistered();
   }).success(function() {
-    mdl_dialog.showModal();
+    primary_dialog.showModal();
   }).fail(function(request) {
     alert(request.responseText);
   });
@@ -87,7 +98,7 @@ function reloadDialog() {
  * Closes current dialog.
  */
 function closeDialog() {
-  mdl_dialog.close();
+  primary_dialog.close();
 }
 
 /**
