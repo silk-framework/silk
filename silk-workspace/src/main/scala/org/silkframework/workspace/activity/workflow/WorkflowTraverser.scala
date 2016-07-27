@@ -21,10 +21,10 @@ class WorkflowTraverser(operator: WorkflowNode)(implicit workflow: ProjectTask[W
   }
 
   def inputs: Seq[WorkflowTraverser] = {
-    operator.inputs.map(input => new WorkflowTraverser(workflow.data.node(input)))
+    operator.inputs.map(input => new WorkflowTraverser(workflow.data.nodeById(input)))
   }
 
   def outputs: Seq[WorkflowTraverser] = {
-    operator.outputs.map(output => new WorkflowTraverser(workflow.data.node(output)))
+    operator.outputs.map(output => new WorkflowTraverser(workflow.data.nodeById(output)))
   }
 }

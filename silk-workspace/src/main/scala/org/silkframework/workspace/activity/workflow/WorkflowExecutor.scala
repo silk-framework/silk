@@ -33,7 +33,7 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
 
     // Preliminary: Just execute the operators from left to right
     for ((op, index) <- operators.sortBy(_.position.x).zipWithIndex if !canceled) {
-      context.status.update(s"${op.task} (${index + 1} / ${operators.size})", index.toDouble / operators.size)
+      context.status.update(s"${op.nodeId} (${index + 1} / ${operators.size})", index.toDouble / operators.size)
       executeOperator(op, internalDataset, context)
     }
   }
@@ -94,7 +94,7 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
     val report = context.child(activity, 0.0).startBlockingAndGetValue()
     context.value() = context.value().withReport(operator.nodeId, report)
-    log.info("Finished execution of " + operator.task)
+    log.info("Finished execution of " + operator.nodeId)
   }
 
   private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[SinkTrait] = {

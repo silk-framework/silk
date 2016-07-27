@@ -9,11 +9,11 @@ import scala.xml.Node
 
 case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
 
-  def nodes: Seq[WorkflowNode] = operators ++ datasets
+  lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
-  def node(name: String) = {
-    nodes.find(_.nodeId == name)
-        .getOrElse(throw new NoSuchElementException(s"Cannot find node $name in the workflow."))
+  def nodeById(nodeId: String) = {
+    nodes.find(_.nodeId == nodeId)
+        .getOrElse(throw new NoSuchElementException(s"Cannot find node $nodeId in the workflow."))
   }
 
   def toXML = {
@@ -42,13 +42,15 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   /**
     * Returns a topologically sorted sequence of [[WorkflowOperator]] used in this workflow.
     */
-  def topologicalSortedOperators(project: Project): Seq[WorkflowOperator] = {
-    val inputs = inputDatasets(project)
-    val outputs = outputDatasets(project)
-    val pureInputDatasets = inputs.map(_.id.toString).toSet -- outputs.map(_.id.toString)
-    var done = pureInputDatasets
-    var sortedOperators = Vector.empty[WorkflowOperator]
-    var operatorsToSort = operators
+  def topologicalSortedNodes(project: Project): Seq[WorkflowNode] = {
+    val inputs = inputWorkflowNodeIds()
+    val outputs = outputWorkflowNodeIds()
+    val pureOutputNodes = outputs.toSet -- inputs
+    var done = pureOutputNodes
+    var sortedOperators = Vector.empty[WorkflowNode]
+    val (start, rest) = nodes.partition(node => pureOutputNodes.contains(node.nodeId))
+    sortedOperators ++= start
+    var operatorsToSort = rest
     while (operatorsToSort.size > 0) {
       val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
       if (satisfied.size == 0) {
@@ -57,10 +59,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       sortedOperators ++= satisfied
       done ++= satisfied.map(_.nodeId)
       operatorsToSort = unsatisfied
-      // Add datasets to 'done' that are not written to by the remaining operators
-      val satisfiedDatasets = outputs.filter(ds => operatorsToSort.forall(op => !op.outputs.contains(ds.id.toString)))
-      done ++= satisfiedDatasets.map(_.id.toString)
-    }
+   5 }
     sortedOperators
   }
 
@@ -91,17 +90,27 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   }
 
   def inputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
-    for (datasetId <- operators.flatMap(_.inputs).distinct;
-         dataset <- project.taskOption[Dataset](datasetId)) yield {
+    for (datasetNodeId <- operators.flatMap(_.inputs).distinct;
+         dataset <- project.taskOption[Dataset](nodeById(datasetNodeId).task)) yield {
       dataset
     }
   }
 
   def outputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
-    for (datasetId <- operators.flatMap(_.outputs).distinct;
-         dataset <- project.taskOption[Dataset](datasetId)) yield {
+    for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
+         dataset <- project.taskOption[Dataset](nodeById(datasetNodeId).task)) yield {
       dataset
     }
+  }
+
+  /** Returns node ids of workflow nodes that have inputs from other nodes */
+  def inputWorkflowNodeIds(): Seq[String] = {
+    nodes.flatMap(_.outputs).distinct
+  }
+
+  /** Returns node ids of workflow nodes that output data into other nodes */
+  def outputWorkflowNodeIds(): Seq[String] = {
+    nodes.flatMap(_.inputs).distinct
   }
 
   case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
