@@ -21,6 +21,7 @@ import org.silkframework.entity.Link
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 
+import scala.language.implicitConversions
 import scala.xml.{Node, Text}
 
 /**

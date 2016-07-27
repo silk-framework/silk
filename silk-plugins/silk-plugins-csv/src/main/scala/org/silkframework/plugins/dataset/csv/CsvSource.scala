@@ -358,10 +358,10 @@ object SeparatorDetector {
                                                       separator: Char,
                                                       csvSettings: CsvSettings): Int = {
     val parser = new CsvParser(Seq.empty, csvSettings.copy(separator = separator))
-    inputLines takeWhile { line =>
+    inputLines.takeWhile{ line =>
       val fields = parser.parseLine(line)
       fields == null || line.split(separator).size != numberOfFields
-    } size
+    }.size
 
   }
 }
