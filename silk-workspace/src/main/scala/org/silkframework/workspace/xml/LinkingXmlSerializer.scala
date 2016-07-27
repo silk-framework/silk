@@ -16,12 +16,11 @@ package org.silkframework.workspace.xml
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{LinkSpec, Prefixes, Task}
+import org.silkframework.config._
 import org.silkframework.evaluation.ReferenceLinksReader
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.config.Task
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 

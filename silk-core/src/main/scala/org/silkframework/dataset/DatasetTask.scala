@@ -16,9 +16,8 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.Task
 import org.silkframework.entity.Link
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 
@@ -27,7 +26,7 @@ import scala.xml.{Node, Text}
 /**
  * A dataset of entities.
  */
-class DatasetTask(id: Identifier, val plugin: Dataset, val minConfidence: Option[Double] = None, val maxConfidence: Option[Double] = None) extends Task(id, plugin) with SinkTrait {
+class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Option[Double] = None, val maxConfidence: Option[Double] = None) extends Task[Dataset] with SinkTrait {
 
   private val log = Logger.getLogger(DatasetTask.getClass.getName)
 
@@ -116,6 +115,9 @@ class DatasetTask(id: Identifier, val plugin: Dataset, val minConfidence: Option
       log.info(s"Wrote $linkCount links.")
     }
   }
+
+  /** The task specification that holds the actual task specification. */
+  override def data: Dataset = plugin
 }
 
 object DatasetTask {

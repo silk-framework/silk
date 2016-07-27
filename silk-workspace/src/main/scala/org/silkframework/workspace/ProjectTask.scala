@@ -17,10 +17,9 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -35,7 +34,7 @@ import scala.util.control.NonFatal
  */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    initialData: TaskType,
-                                                   module: Module[TaskType]) {
+                                                   module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -74,7 +73,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
    */
   def data = currentData
 
-  def task = Task(id, currentData)
+  def task = PlainTask(id, currentData)
 
   def init() = {
     // Start autorun activities
