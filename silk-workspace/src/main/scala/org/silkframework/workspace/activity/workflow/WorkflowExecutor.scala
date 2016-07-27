@@ -93,7 +93,7 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     // Execute the task
     val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
     val report = context.child(activity, 0.0).startBlockingAndGetValue()
-    context.value() = context.value().withReport(operator.id, report)
+    context.value() = context.value().withReport(operator.nodeId, report)
     log.info("Finished execution of " + operator.task)
   }
 

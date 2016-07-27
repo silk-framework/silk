@@ -45,6 +45,6 @@ class WorkflowTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   def dataset(task: String): WorkflowDataset = {
-    WorkflowDataset(Seq(), task, Seq(), (0, 0))
+    WorkflowDataset(Seq(), task, Seq(), (0, 0), task)
   }
 }
