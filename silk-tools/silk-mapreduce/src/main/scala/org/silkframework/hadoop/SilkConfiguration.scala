@@ -45,9 +45,6 @@ class SilkConfiguration private(hadoopConfig : org.apache.hadoop.conf.Configurat
   private lazy val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
   lazy val config = {
-    // FIXME:
-    // Plugins.register()
-    // JenaPlugins.register()
     LinkingConfig.LinkingConfigFormat.read(XML.load(cacheFS.open(entityCachePath.suffix("/config.xml"))))(new ReadContext(EmptyResourceManager))
   }
 

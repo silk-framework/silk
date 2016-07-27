@@ -62,9 +62,6 @@ class Match(inputPath : String, outputPath : String, linkSpec : Option[String], 
    */
   private def setupJob(job : Job)
   {
-    // FIXME
-    // Plugins.register()
-
     val config = SilkConfiguration.get(job.getConfiguration)
 
     //General settings
