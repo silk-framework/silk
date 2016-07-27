@@ -29,6 +29,7 @@ import org.silkframework.execution.Loader
 import org.silkframework.hadoop.impl.HadoopEntityCache
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.plugins.dataset.rdf.RdfPlugins
+import org.silkframework.config.Task
 
 /**
  * Populates the entity cache.
@@ -91,7 +92,7 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
     }
   }
 
-  private def write(config : LinkingConfig, linkSpec : LinkSpec, entityCachePath : Path)
+  private def write(config : LinkingConfig, linkSpec : Task[LinkSpec], entityCachePath : Path)
   {
     val cacheFS = FileSystem.get(entityCachePath.toUri, hadoopConfig)
 
