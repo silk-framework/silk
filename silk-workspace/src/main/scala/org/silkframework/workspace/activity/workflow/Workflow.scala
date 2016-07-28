@@ -59,7 +59,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       sortedOperators ++= satisfied
       done ++= satisfied.map(_.nodeId)
       operatorsToSort = unsatisfied
-   5 }
+    }
     sortedOperators
   }
 
