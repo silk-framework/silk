@@ -78,10 +78,6 @@ function putTask(path, xml) {
     contentType: 'text/xml',
     processData: false,
     data: xml,
-    success: function(data) {
-      closeDialog();
-      reloadWorkspace();
-    },
     error: function(request) {
       alert(request.responseText);
     }
