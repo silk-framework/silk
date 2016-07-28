@@ -68,10 +68,10 @@ var errorHandler = function(request) {
 /**
  * Opens a dialog.
  */
-function showDialog(path, dialog_key="primary") {
+function showDialog(path, dialog_key="primary", payload={}) {
   dialog = dialogs[dialog_key];
   dialogPath = path;
-  $.get(path, function(data) {
+  $.get(path, payload, function(data) {
     // inject dialog content into dialog container
     $(dialog).html(data);
     // enable MDL JS for dynamically added components
@@ -81,12 +81,6 @@ function showDialog(path, dialog_key="primary") {
   }).fail(function(request) {
     alert(request.responseText);
   });
-/*
-  $.get(path, function(data) {
-    dialog.html(data);
-  }).success(function() { dialog.dialog('open'); } )
-    .fail(function(request) { alert(request.responseText);  })
-*/
 }
 
 /**
