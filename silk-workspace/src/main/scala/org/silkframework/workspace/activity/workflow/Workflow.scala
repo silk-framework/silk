@@ -1,12 +1,18 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{Dataset, DatasetTask, VariableDataset}
+import org.silkframework.dataset.{Dataset, VariableDataset}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{ProjectTask, Project}
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.xml.Node
 
+/**
+  * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
+  * @param id of the workflow
+  * @param operators Operators, e.g. transformations and link specs.
+  * @param datasets
+  */
 case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
@@ -40,9 +46,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   }
 
   /**
-    * Returns a topologically sorted sequence of [[WorkflowOperator]] used in this workflow.
+    * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow.
     */
-  def topologicalSortedNodes(project: Project): Seq[WorkflowNode] = {
+  lazy val topologicalSortedNodes: IndexedSeq[WorkflowNode] = {
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val pureOutputNodes = outputs.toSet -- inputs
@@ -61,6 +67,43 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       operatorsToSort = unsatisfied
     }
     sortedOperators
+  }
+
+  /**
+    * Returns a dependency graph that can be traversed from the start or end nodes and consists of
+    * double linked nodes.
+    */
+  lazy val workflowDependencyGraph: WorkflowDependencyGraph = {
+    val inputs = inputWorkflowNodeIds()
+    val outputs = outputWorkflowNodeIds()
+    val startNodes = outputs.toSet -- inputs
+    val endNodes = inputs.toSet -- outputs
+    val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
+    val startDependencyNodes = startNodes.map(workflowNodeMap)
+    val endDependencyNodes = endNodes.map(workflowNodeMap)
+    WorkflowDependencyGraph(startDependencyNodes, endDependencyNodes)
+  }
+
+  private def constructNodeMap: Map[String, WorkflowDependencyNode] = {
+    val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
+    for (node <- nodes) {
+      val depNode = workflowNodeMap(node.nodeId)
+      for (inputNode <- node.inputs) {
+        val precedingNode = workflowNodeMap.getOrElse(inputNode,
+          throw new scala.RuntimeException("Unsatisfiable input dependency in workflow " + id.toString + "! Dependency: " + inputNode))
+        depNode.addPrecedingNode(precedingNode)
+        precedingNode.addFollowingNode(depNode)
+      }
+      for (outputNode <- node.outputs) {
+        val followingNode = workflowNodeMap.getOrElse(outputNode,
+          throw new scala.RuntimeException("Unsatisfiable output dependency in workflow " + id.toString + "! Dependency: " + outputNode))
+        depNode.addFollowingNode(followingNode)
+        followingNode.addPrecedingNode(depNode)
+      }
+    }
+    // Make immutable
+    workflowNodeMap.map(_._2.setToImmutable())
+    workflowNodeMap
   }
 
   /**
@@ -114,6 +157,51 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   }
 
   case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
+
+  case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
+                                     endNodes: Iterable[WorkflowDependencyNode])
+
+  /**
+    * Since this class is spanning a double linked graph, this node needs to be mutable
+    * until the graph has been constructed. Afterwards the node is set to immutable and cannot
+    * be changed anymore.
+    *
+    * @param workflowNode
+    */
+  case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
+    private var mutableNode = true
+
+    private var _precedingNodes = Set.empty[WorkflowDependencyNode]
+    private var _followingNodes = Set.empty[WorkflowDependencyNode]
+
+    def setToImmutable(): Unit = {
+      mutableNode = false
+    }
+
+    def nodeId = workflowNode.nodeId
+
+    def isMutable = mutableNode
+
+    def addPrecedingNode(node: WorkflowDependencyNode): Unit = {
+      if(isMutable) {
+        _precedingNodes += node
+      } else {
+        throw new IllegalStateException("Cannot add node to preceding nodes! This node is set to immutable!")
+      }
+    }
+
+    def addFollowingNode(node: WorkflowDependencyNode): Unit = {
+      if(isMutable) {
+        _followingNodes += node
+      } else {
+        throw new IllegalStateException("Cannot add node to following nodes! This node is set to immutable!")
+      }
+    }
+
+    def followingNodes = _followingNodes
+
+    def precedingNodes = _precedingNodes
+  }
 
 }
 
