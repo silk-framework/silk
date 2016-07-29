@@ -73,7 +73,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
    */
   def data = currentData
 
-  def task = PlainTask(id, currentData)
+  def task: Task[TaskType] = PlainTask(id, currentData)
 
   def init() = {
     // Start autorun activities
