@@ -26,6 +26,15 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     sortedWorkflowNodes mustBe Seq("dsA1", "dsA2", "transform1", "transform2", "dsB1", "dsB2", "links", "output", "linking", "generateOutput")
   }
 
+  it should "detect circular workflows" in {
+    intercept[RuntimeException] {
+      circularWorkflow.topologicalSortedNodes
+    }
+    intercept[RuntimeException] {
+      circularWorkflow.workflowDependencyGraph
+    }
+  }
+
   it should "generate a DAG of the node dependencies" in {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe testWorkflow.WorkflowDependencyGraph(
@@ -44,6 +53,9 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       val next = current.followingNodes.head
       next.nodeId mustBe nextLabel
       next.precedingNodes must contain(current)
+      if(!next.workflowNode.isInstanceOf[WorkflowDataset]) {
+        next.inputNodes must contain(current)
+      }
       current = next
     }
     current mustBe dag.endNodes.head
@@ -66,6 +78,17 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
         dataset("links", "links"),
         dataset("output", "output")
       ))
+  }
+
+  val circularWorkflow: Workflow = {
+    Workflow(
+      Identifier("circularWorkflow"),
+      operators = Seq(
+        operator(task = "transform1", inputs = Seq("transform2"), outputs = Seq("transform2"), "transform1"),
+        operator(task = "transform2", inputs = Seq("transform1"), outputs = Seq("transform1"), "transform2")
+      ),
+      datasets = Seq()
+    )
   }
 
   def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String): WorkflowOperator = {

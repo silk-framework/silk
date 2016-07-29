@@ -17,15 +17,15 @@ trait Task[+TaskType <: TaskSpec] {
 
   /** The task specification that holds the actual task specification. */
   def data: TaskType
-}
 
-case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType) extends Task[TaskType] {
   /**
-    * Returns this [[PlainTask]] as a [[Task]]. For some reason the type inference mechanism of Scala is not able
-    * to infer that this is a TaskTrait[TaskType] for implicits. So this conversion must be done there.
+    * Returns this task as a [[Task]]. For some reason the type inference mechanism of Scala is not able
+    * to infer that this is a Task[TaskType] for implicits if this is a subclass of [[Task]] So this conversion must be done there.
     */
   def taskTrait: Task[TaskType] = this.asInstanceOf[Task[TaskType]]
 }
+
+case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType) extends Task[TaskType]
 
 object Task {
 

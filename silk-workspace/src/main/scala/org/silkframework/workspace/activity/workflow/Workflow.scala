@@ -74,6 +74,8 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     * double linked nodes.
     */
   lazy val workflowDependencyGraph: WorkflowDependencyGraph = {
+    // Test if this graph can be topologically sorted
+    topologicalSortedNodes
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val startNodes = outputs.toSet -- inputs
@@ -201,6 +203,14 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     def followingNodes = _followingNodes
 
     def precedingNodes = _precedingNodes
+
+    def inputNodes: Seq[WorkflowDependencyNode] = {
+      for(
+        input <- workflowNode.inputs;
+        pNode <- precedingNodes.filter(_.nodeId == input)) yield {
+        pNode
+      }
+    }
   }
 
 }
