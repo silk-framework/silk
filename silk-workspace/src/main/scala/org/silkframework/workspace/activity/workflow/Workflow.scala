@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{Dataset, VariableDataset}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -9,6 +10,7 @@ import scala.xml.Node
 
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
+ *
   * @param id of the workflow
   * @param operators Operators, e.g. transformations and link specs.
   * @param datasets
@@ -213,6 +215,17 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     }
   }
 
+  /**
+    * The schemata of the input data for this task.
+    * A separate entity schema is returned for each input.
+    */
+override def inputSchemata: Seq[EntitySchema] = Seq()
+
+  /**
+    * The schema of the output data.
+    * Returns None, if the schema is unknown or if no output is written by this task.
+    */
+  override def outputSchemaOpt: Option[EntitySchema] = None
 }
 
 object Workflow {

@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.TaskSpec
+import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 /**
@@ -18,6 +19,11 @@ trait Dataset extends TaskSpec with AnyPlugin with SinkTrait {
    */
   def clear(): Unit
 
+  /** Datasets don't define input schemata, because any data can be written to them. */
+  override def inputSchemata: Seq[EntitySchema] = Seq.empty
+
+  /** Datasets don't have a static EntitySchema. It is defined by the following task. */
+  override def outputSchemaOpt: Option[EntitySchema] = None
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {

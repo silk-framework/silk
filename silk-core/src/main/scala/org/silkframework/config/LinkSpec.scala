@@ -80,11 +80,27 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
     case _ => Set()
   }
+
+  /**
+    * The schemata of the input data for this task.
+    * A separate entity schema is returned for each input.
+    */
+  override def inputSchemata: Seq[EntitySchema] = {
+    entityDescriptions.toSeq
+  }
+
+  /**
+    * The schema of the output data.
+    * Returns None, if the schema is unknown or if no output is written by this task.
+    */
+  override def outputSchemaOpt: Option[EntitySchema] = Some(LinkSpec.linkEntitySchema)
 }
 
 object LinkSpec {
 
   private val logger = Logger.getLogger(LinkSpec.getClass.getName)
+
+  val linkEntitySchema = EntitySchema("", IndexedSeq(Path("targetUri"), Path("confidence")))
 
   /**
    * XML serialization format.

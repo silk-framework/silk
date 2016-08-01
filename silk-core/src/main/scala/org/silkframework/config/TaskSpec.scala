@@ -11,12 +11,12 @@ trait TaskSpec {
     * The schemata of the input data for this task.
     * A separate entity schema is returned for each input.
     */
-  def inputSchemata: Seq[EntitySchema] = Seq.empty
+  def inputSchemata: Seq[EntitySchema]
 
   /**
     * The schema of the output data.
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
-  def outputSchemaOpt: Option[EntitySchema] = None
+  def outputSchemaOpt: Option[EntitySchema]
 
 }
