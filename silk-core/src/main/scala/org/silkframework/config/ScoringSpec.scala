@@ -30,7 +30,7 @@ case class ScoringSpec(selection: DatasetSelection, rules: Seq[ScoringRule], out
   override def outputSchemaOpt: Option[EntitySchema] = {
     Some(
       EntitySchema(
-        typeUri = rules.collect{ case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
+        typeUri = selection.typeUri,
         paths = rules.map(_.target).map(Path(_)).toIndexedSeq
       )
     )
