@@ -16,6 +16,7 @@ package org.silkframework.plugins
 
 import org.silkframework.dataset.VariableDataset
 import org.silkframework.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
+import org.silkframework.plugins.custom.net.RestTaskSpec
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.plugins.distance.characterbased._
 import org.silkframework.plugins.distance.equality._
@@ -43,7 +44,7 @@ import org.silkframework.runtime.plugin.PluginModule
   */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators
+  override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators ++ customTaskSpecs
 
   private def datasets =
     classOf[InternalDataset] ::
@@ -149,4 +150,7 @@ class CorePlugins extends PluginModule {
         classOf[MinimumAggregator] ::
         classOf[QuadraticMeanAggregator] ::
         classOf[GeometricMeanAggregator] :: Nil
+
+  private def customTaskSpecs =
+    classOf[RestTaskSpec] :: Nil
 }
