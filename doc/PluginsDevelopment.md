@@ -40,8 +40,30 @@ The plugin annotation has the following parameters:
 
 The plugin annotation will be left out from all following examples as it takes the same parameters for all types of plugins.
 
-**Adding the Plugin**
-In order for the plugin to be discovered on startup, a jar containing the plugins must be placed in the `{user_home}/.silk/plugins/` directory. Silk provides a number of different plugin interfaces that can be implemented in order to add new behavour. In the following, we describe the most common ones.
+**Adding Plugins**
+
+In order to add a set of plugins the `org.silkframework.runtime.plugin.PluginModule` trait needs to be implemented:
+
+
+    class MyPlugins extends PluginModule {
+    
+      override def pluginClasses = Seq(classOf[MyPlugin])
+    
+    }
+
+The Java Service Provider infrastructure is used for discovering plugins at runtime. 
+A new plugin module can be registered by adding a jar that provides a file `services/org.silkframework.runtime.plugin.PluginModule` in its `META-INF` directory, which lists all plugin modules.
+More information about the Java Service Provider infrastructure can be found at [official documentation](http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html)
+
+All plugins that are present on the classpath, will be loaded at startup.
+Alternatively, a jar containing the plugins can be placed in the `{user_home}/.silk/plugins/` directory. 
+
+Silk provides a number of different plugin interfaces that can be implemented in order to add new behavour. In the following, we describe the most common ones.
+
+Adding Task Types
+=================
+
+In addition to the existing task types, such as linking tasks and transform tasks, additional task types can be added by implementing the `org.silkframework.config.CustomTask` trait.
 
 Adding Transformers
 ===================
