@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.custom
 
-import org.silkframework.config.CustomTask
+import org.silkframework.plugins.custom.net.RestTaskSpec
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
@@ -15,8 +15,8 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   categories = Array("Custom"),
   description = "Executes the REST task."
 )
-case class RestTaskExecutorFactory() extends TaskActivityFactory[CustomTask, RestTaskExecutor] {
-  override def apply(task: ProjectTask[CustomTask]): Activity[Unit] = {
+case class RestTaskExecutorFactory() extends TaskActivityFactory[RestTaskSpec, RestTaskExecutor] {
+  override def apply(task: ProjectTask[RestTaskSpec]): Activity[Unit] = {
     new RestTaskExecutor(task)
   }
 }

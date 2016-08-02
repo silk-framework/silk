@@ -14,7 +14,7 @@ import scala.concurrent.{Await, Future}
 /**
   * Created on 8/2/16.
   */
-case class RestTaskExecutor(task: ProjectTask[CustomTask]) extends Activity[Unit] {
+case class RestTaskExecutor(task: ProjectTask[RestTaskSpec]) extends Activity[Unit] {
   /**
     * Executes this activity.
     *
