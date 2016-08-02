@@ -67,7 +67,7 @@
 
 @datasetSelect(sourceOrTarget: String, inputId: Option[String]) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
-    <select class="mdl-selectfield__select" id="linking_task_@{sourceOrTarget}" name="linking_task_@{sourceOrTarget}" @if(!inputId.isDefined) { disabled }>
+    <select class="mdl-selectfield__select" id="linking_task_@{sourceOrTarget}" name="linking_task_@{sourceOrTarget}">
       <option value=""></option>
       @for(dataset <- datasets) {
         @if(inputId.isDefined && dataset.id == inputId.get) {
