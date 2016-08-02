@@ -51,6 +51,7 @@
     @restriction("target", currentInputs.map(_.target.restriction.serialize).getOrElse(""))
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
       <select class="mdl-selectfield__select" id="output_dataset" name="output_dataset">
+        <option value=""></option>
         @for(dataset <- datasets) {
           @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
             <option value="@dataset.id" selected="selected">@dataset.id</option>
@@ -67,6 +68,7 @@
 @datasetSelect(sourceOrTarget: String, inputId: Option[String]) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <select class="mdl-selectfield__select" id="linking_task_@{sourceOrTarget}" name="linking_task_@{sourceOrTarget}" @if(!inputId.isDefined) { disabled }>
+      <option value=""></option>
       @for(dataset <- datasets) {
         @if(inputId.isDefined && dataset.id == inputId.get) {
           <option value="@dataset.id" selected="selected">@dataset.id</option>
