@@ -22,127 +22,105 @@
 @prefixes = @{ User().workspace.project(project).config.prefixes }
 
 @widgets.dialog(title = "Linking Task") {
-  <table border="0">
+  <div class="dialog-form">
     @if(task.isEmpty) {
-      <tr>
-        <td>Name</td>
-        <td><input name="name" title="Name" size="60"/></td>
-      </tr>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="linking_task_name" name="linking_task_name"/>
+        <label class="mdl-textfield__label" for="linking_task_name">Name</label>
+      </div>
     }
-    <tr>
-      <td>Source</td>
-      <td>
-        <select name="source" title="Source dataset">
-          @for(dataset <- datasets) {
-            @if(currentInputs.isDefined && dataset.id == currentInputs.get.source.inputId) {
-              <option value="@dataset.id" selected="selected">@dataset.id</option>
-            } else {
-              <option value="@dataset.id">@dataset.id</option>
-            }
+    @if(currentInputs.isDefined) {
+      @datasetSelect("source", Some(currentInputs.get.source.inputId))
+    } else {
+      @datasetSelect("source", None)
+    }
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="source_type" name="source_type" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.serialize(prefixes)" }/>
+      <label class="mdl-textfield__label" for="source_type">Source Type</label>
+    </div>
+    @restriction("source", currentInputs.map(_.source.restriction.serialize).getOrElse(""))
+    @if(currentInputs.isDefined) {
+      @datasetSelect("target", Some(currentInputs.get.target.inputId))
+    } else {
+      @datasetSelect("target", None)
+    }
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="target_type" name="target_type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.serialize(prefixes)" }/>
+      <label class="mdl-textfield__label" for="source_type">Target Type</label>
+    </div>
+    @restriction("target", currentInputs.map(_.target.restriction.serialize).getOrElse(""))
+    <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+      <select class="mdl-selectfield__select" id="output_dataset" name="output_dataset">
+        @for(dataset <- datasets) {
+          @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
+            <option value="@dataset.id" selected="selected">@dataset.id</option>
+          } else {
+            <option value="@dataset.id">@dataset.id</option>
           }
-          @for(transform <- transformTasks) {
-            @if(currentInputs.isDefined && transform.id == currentInputs.get.source.inputId) {
-              <option value="@transform.id" selected="selected">@transform.id</option>
-            } else {
-              <option value="@transform.id">@transform.id</option>
-            }
-          }
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td>Source Type</td>
-      <td>
-        <input name="sourceType" title="Source Type" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.serialize(prefixes)" } style="width: 100%" />
-      </td>
-    </tr>
-    <tr>
-      <td>Source restriction</td>
-      <td>
-        <input name="sourceRestriction" title="Restrict source dataset using SPARQL clauses" size="50"
-               value="@currentInputs.map(_.source.restriction.serialize).getOrElse("")"/>
-        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog('source')" src="@Assets.at("img/wrench-screwdriver.png")" />
-      </td>
-    </tr>
-    <tr>
-      <td>Target</td>
-      <td>
-        <select name="target" title="Target dataset">
-          @for(dataset <- datasets) {
-            @if(currentInputs.isDefined && dataset.id == currentInputs.get.target.inputId) {
-              <option value="@dataset.id" selected="selected">@dataset.id</option>
-            } else {
-              <option value="@dataset.id">@dataset.id</option>
-            }
-          }
-          @for(transform <- transformTasks) {
-            @if(currentInputs.isDefined && transform.id == currentInputs.get.target.inputId) {
-              <option value="@transform.id" selected="selected">@transform.id</option>
-            } else {
-              <option value="@transform.id">@transform.id</option>
-            }
-          }
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td>Target Type</td>
-      <td>
-        <input name="targetType" title="Target Type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.serialize(prefixes)" } style="width: 100%" />
-      </td>
-    </tr>
-    <tr>
-      <td>Target restriction</td>
-      <td>
-        <div id="target_restriction_textfield_container" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label target-restriction-container">
-          <input id="target_restriction_textfield" class="mdl-textfield__input" type="text"
-                 name="target_restriction_textfield" title="Restrict target dataset using SPARQL clauses"
-                 value="@currentInputs.map(_.target.restriction.serialize).getOrElse("")">
-          <label class="mdl-textfield__label" for="target_restriction_textfield">Target Restriction</label>
-        </div>
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label target-restriction-container" style="display: none;">
-          <textarea id="target_restriction_textarea" name="sparql_restriction" class="mdl-textfield__input" type="text" rows="5">@currentInputs.map(_.target.restriction.serialize).getOrElse("")</textarea>
-          <label class="mdl-textfield__label" for="target_restriction_textarea">Target Restriction</label>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <td>Output</td>
-      <td>
-        <select name="output" title="Output">
-          <option value="" @if(currentOutput.isEmpty) {selected="selected"}></option>
-          @for(dataset <- datasets) {
-            @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
-              <option value="@dataset.id" selected="selected">@dataset.id</option>
-            } else {
-              <option value="@dataset.id">@dataset.id</option>
-            }
-          }
-        </select>
-      </td>
-    </tr>
-  </table>
+        }
+      </select>
+      <label class="mdl-selectfield__label" for="output_dataset">Output</label>
+    </div>
+  </div>
+}
+
+@datasetSelect(sourceOrTarget: String, inputId: Option[String]) = {
+  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+    <select class="mdl-selectfield__select" id="linking_task_@{sourceOrTarget}" name="linking_task_@{sourceOrTarget}" @if(!inputId.isDefined) { disabled }>
+      @for(dataset <- datasets) {
+        @if(inputId.isDefined && dataset.id == inputId.get) {
+          <option value="@dataset.id" selected="selected">@dataset.id</option>
+        } else {
+          <option value="@dataset.id">@dataset.id</option>
+        }
+      }
+      @for(transform <- transformTasks) {
+        @if(inputId.isDefined && transform.id == inputId.get) {
+          <option value="@transform.id" selected="selected">@transform.id</option>
+        } else {
+          <option value="@transform.id">@transform.id</option>
+        }
+      }
+    </select>
+    <label class="mdl-selectfield__label" for="linking_task_@{sourceOrTarget}">@{sourceOrTarget} Dataset</label>
+  </div>
+}
+
+@restriction(sourceOrTarget: String, value: String) = {
+<tr>
+  <td>@{sourceOrTarget} restriction</td>
+  <td>
+    <div id="@{sourceOrTarget}_restriction_textfield_container" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{sourceOrTarget}-restriction-container">
+      <input id="@{sourceOrTarget}_restriction_textfield" class="mdl-textfield__input" type="text"
+             name="@{sourceOrTarget}_restriction_textfield" title="Restrict @{sourceOrTarget} dataset using SPARQL clauses"
+             value="@value">
+      <label class="mdl-textfield__label" for="@{sourceOrTarget}_restriction_textfield">@{sourceOrTarget} Restriction</label>
+    </div>
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{sourceOrTarget}-restriction-container" style="display: none;">
+      <textarea id="@{sourceOrTarget}_restriction_textarea" name="@{sourceOrTarget}_sparql_restriction" class="mdl-textfield__input" type="text" rows="5">@value</textarea>
+      <label class="mdl-textfield__label" for="@{sourceOrTarget}_restriction_textarea">@{sourceOrTarget} Restriction</label>
+    </div>
+  </td>
+</tr>
+<script type="text/javascript">
+  $("#@{sourceOrTarget}_restriction_textfield").focus(function() {
+    $(".@{sourceOrTarget}-restriction-container").toggle(200, "linear");
+    $("#@{sourceOrTarget}_restriction_textarea").focus();
+  });
+  $("#@{sourceOrTarget}_restriction_textarea").focusout(function() {
+    $(".@{sourceOrTarget}-restriction-container").toggle(200, "linear");
+    var restriction = $("#@{sourceOrTarget}_restriction_textarea").val().replace(/[\n\r]+/g, ' ');
+    document.querySelector('#@{sourceOrTarget}_restriction_textfield_container').MaterialTextfield.change(restriction);
+  });
+</script>
 }
 
 <script type="text/javascript">
-
-  $("#target_restriction_textfield").focus(function() {
-    $(".target-restriction-container").toggle(200, "linear");
-  });
-  $("#target_restriction_textarea").focusout(function() {
-    $(".target-restriction-container").toggle(200, "linear");
-    var restriction = $("#target_restriction_textarea").val().replace(/[\n\r]+/g, ' ');
-    document.querySelector('#target_restriction_textfield_container').MaterialTextfield.change(restriction);
-  });
 
   // The variable name.
   var varName;
   // The name of the currently edited datasource.
   var sourceName;
-  // The currently edited sparql restriction.
-  var sparqlRestriction;
-
-  var sourceOrTarget;
 
   $(function() {
     // Add autocompletion
@@ -166,28 +144,6 @@
       minLength: 0
     }).focus(function() { $(this).autocomplete("search"); });
   });
-
-  function openRestrictionDialog(openSourceOrTarget) {
-    // Set variables
-    sourceOrTarget = openSourceOrTarget;
-    varName = 'a';
-    sourceName = $("select[name='" + sourceOrTarget + "']").val();
-    sparqlRestriction = $("input[name='" + sourceOrTarget + "Restriction']").val();
-
-    var path = '@config.baseUrl/rules/dialogs/editRestriction/@project/' + sourceName;
-    var payload = { varName: varName, restriction: sparqlRestriction };
-    showDialog('@config.baseUrl/rules/dialogs/editRestriction/@project/' + sourceName, 'secondary', payload);
-    /*$.get('@config.baseUrl/rules/dialogs/editRestriction/@project/' + sourceName,
-          { varName: varName, restriction: sparqlRestriction },
-          function(data) {
-            $('#restrictionDialog').html(data);
-          }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )*/
-  }
-
-  function closeRestrictionDialog(newRestriction) {
-    $("input[name='" + sourceOrTarget + "Restriction']").val(newRestriction);
-    closeDialog('secondary');
-  }
 
   function submit() {
     var values = {

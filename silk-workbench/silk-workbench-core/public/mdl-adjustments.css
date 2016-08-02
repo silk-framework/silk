@@ -478,3 +478,7 @@
   color: red;
   font-style: italic;
 }
+
+.dialog-form {
+  width: 330px;
+}
