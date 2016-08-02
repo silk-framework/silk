@@ -44,7 +44,8 @@ lazy val workspace = (project in file("silk-workspace"))
   .aggregate(core, learning)
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Workspace"
+    name := "Silk Workspace",
+    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.3.10"
   )
 
 //////////////////////////////////////////////////////////////////////////////

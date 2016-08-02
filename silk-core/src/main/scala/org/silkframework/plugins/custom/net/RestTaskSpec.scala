@@ -17,9 +17,11 @@ import org.silkframework.util.Uri
 case class RestTaskSpec(@Param("The URL to execute this request against.")
                         url: String,
                         @Param("The HTTP method. One of GET, PUT or POST")
-                        method: String,
+                        method: String = "GET",
                         @Param("The accept header String.")
                         accept: String,
+                        @Param("Request timeout in ms.")
+                        requestTimeout: Int = 10000,
                         @Param("The content-type header String. This can be set in case of PUT or POST. If another " +
                             "content type comes back, the task will fail.")
                         contentType: String) extends CustomTask {
