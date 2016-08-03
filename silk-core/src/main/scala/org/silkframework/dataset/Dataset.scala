@@ -20,7 +20,7 @@ trait Dataset extends TaskSpec with AnyPlugin with SinkTrait {
   def clear(): Unit
 
   /** Datasets don't define input schemata, because any data can be written to them. */
-  override def inputSchemata: Seq[EntitySchema] = Seq.empty
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override def outputSchemaOpt: Option[EntitySchema] = None

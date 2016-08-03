@@ -85,8 +85,8 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     * The schemata of the input data for this task.
     * A separate entity schema is returned for each input.
     */
-  override def inputSchemata: Seq[EntitySchema] = {
-    entityDescriptions.toSeq
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
+    Some(entityDescriptions.toSeq)
   }
 
   /**

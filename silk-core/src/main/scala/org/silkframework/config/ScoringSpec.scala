@@ -21,7 +21,7 @@ case class ScoringSpec(selection: DatasetSelection, rules: Seq[ScoringRule], out
     * The schemata of the input data for this task.
     * A separate entity schema is returned for each input.
     */
-  override def inputSchemata: Seq[EntitySchema] = Seq(entityDescription)
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(entityDescription))
 
   /**
     * The schema of the output data.

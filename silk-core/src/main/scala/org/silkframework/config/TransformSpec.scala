@@ -24,7 +24,7 @@ case class TransformSpec(selection: DatasetSelection, rules: Seq[TransformRule],
     )
   }
 
-  override def inputSchemata = Seq(entitySchema)
+  override def inputSchemataOpt = Some(Seq(entitySchema))
 
   override def outputSchemaOpt = {
     Some(

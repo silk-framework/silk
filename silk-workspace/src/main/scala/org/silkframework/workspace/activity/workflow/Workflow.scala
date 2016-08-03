@@ -10,8 +10,8 @@ import scala.xml.Node
 
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
- *
-  * @param id of the workflow
+  *
+  * @param id        of the workflow
   * @param operators Operators, e.g. transformations and link specs.
   * @param datasets
   */
@@ -187,7 +187,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     def isMutable = mutableNode
 
     def addPrecedingNode(node: WorkflowDependencyNode): Unit = {
-      if(isMutable) {
+      if (isMutable) {
         _precedingNodes += node
       } else {
         throw new IllegalStateException("Cannot add node to preceding nodes! This node is set to immutable!")
@@ -195,7 +195,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     }
 
     def addFollowingNode(node: WorkflowDependencyNode): Unit = {
-      if(isMutable) {
+      if (isMutable) {
         _followingNodes += node
       } else {
         throw new IllegalStateException("Cannot add node to following nodes! This node is set to immutable!")
@@ -207,7 +207,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     def precedingNodes = _precedingNodes
 
     def inputNodes: Seq[WorkflowDependencyNode] = {
-      for(
+      for (
         input <- workflowNode.inputs;
         pNode <- precedingNodes.filter(_.nodeId == input)) yield {
         pNode
@@ -216,10 +216,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   }
 
   /**
-    * The schemata of the input data for this task.
-    * A separate entity schema is returned for each input.
+    * A workflow does not have any inputs.
     */
-override def inputSchemata: Seq[EntitySchema] = Seq()
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq())
 
   /**
     * The schema of the output data.
