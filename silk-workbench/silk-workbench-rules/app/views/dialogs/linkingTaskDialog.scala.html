@@ -98,10 +98,10 @@
   function submit() {
     var values = {
       name: @if(!task.isEmpty) {'@task'} else {$("#linking_task_name").val()},
-      source: $("#linking_task_source").val(),
+      source: $("#source_dataset").val(),
       sourceType: $("#source_type").val(),
       sourceRestriction: $("#source_restriction_textarea").val(),
-      target: $("#linking_task_target").val(),
+      target: $("#target_dataset").val(),
       targetType: $("#target_type").val(),
       targetRestriction: $("#target_restriction_textarea").val(),
       output: $("#output_dataset").val()
