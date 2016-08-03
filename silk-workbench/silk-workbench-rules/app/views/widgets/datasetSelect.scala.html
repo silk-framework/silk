@@ -11,18 +11,18 @@
   <select class="mdl-selectfield__select" id="linking_task_@{sourceOrTarget}" name="linking_task_@{sourceOrTarget}">
     <option value=""></option>
     @for(dataset <- datasets) {
-    @if(inputId.isDefined && dataset.id == inputId.get) {
-    <option value="@dataset.id" selected="selected">@dataset.id</option>
-    } else {
-    <option value="@dataset.id">@dataset.id</option>
-    }
+      @if(inputId.isDefined && dataset.id == inputId.get) {
+        <option value="@dataset.id" selected="selected">@dataset.id</option>
+      } else {
+        <option value="@dataset.id">@dataset.id</option>
+      }
     }
     @for(transform <- transformTasks) {
-    @if(inputId.isDefined && transform.id == inputId.get) {
-    <option value="@transform.id" selected="selected">@transform.id</option>
-    } else {
-    <option value="@transform.id">@transform.id</option>
-    }
+      @if(inputId.isDefined && transform.id == inputId.get) {
+        <option value="@transform.id" selected="selected">@transform.id</option>
+      } else {
+        <option value="@transform.id">@transform.id</option>
+      }
     }
   </select>
   <label class="mdl-selectfield__label" for="linking_task_@{sourceOrTarget}">@{sourceOrTarget} Dataset</label>
