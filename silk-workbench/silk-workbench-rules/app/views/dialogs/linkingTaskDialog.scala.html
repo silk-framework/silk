@@ -46,7 +46,7 @@
     }
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input" type="text" id="target_type" name="target_type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.serialize(prefixes)" }/>
-      <label class="mdl-textfield__label" for="source_type">Target Type</label>
+      <label class="mdl-textfield__label" for="target_type">Target Type</label>
     </div>
     @restriction("target", currentInputs.map(_.target.restriction.serialize).getOrElse(""))
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
@@ -149,14 +149,14 @@
 
   function submit() {
     var values = {
-      name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
-      source: $("select[name='source']").val(),
-      sourceType: $("input[name='sourceType']").val(),
-      sourceRestriction: $("input[name='sourceRestriction']").val(),
-      target: $("select[name='target']").val(),
-      targetType: $("input[name='targetType']").val(),
-      targetRestriction: $("input[name='targetRestriction']").val(),
-      output: $("select[name='output']").val()
+      name: @if(!task.isEmpty) {'@task'} else {$("#linking_task_name").val()},
+      source: $("#linking_task_source").val(),
+      sourceType: $("#source_type").val(),
+      sourceRestriction: $("#source_restriction_textarea").val(),
+      target: $("#linking_task_target").val(),
+      targetType: $("#target_type").val(),
+      targetRestriction: $("#target_restriction_textarea").val(),
+      output: $("#output_dataset").val()
     };
 
     if(values.name.length === 0) {
