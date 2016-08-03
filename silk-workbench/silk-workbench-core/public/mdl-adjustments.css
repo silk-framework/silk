@@ -482,3 +482,36 @@
 .dialog-form {
   width: 330px;
 }
+
+/* Resource Dialog */
+
+#resource-resources-box {
+  padding: 10px 10px 5px 10px;
+  border: 1px solid rgba(0, 0, 0, .34);
+  border-radius: 3px;
+}
+
+
+.resource-chip {
+  color: rgba(0, 0, 0, .87);
+  background-color: rgba(0, 0, 0, 0.0588235);
+  border-radius: 16px;
+  line-height: 32px;
+  padding-left: 12px;
+  padding-right: 7px;
+  font-size: 13px;
+  margin: 0 5px 5px 0;
+  display: inline-block;
+}
+
+.resource-chip-icon {
+  background-color: rgba(0, 0, 0, .54);
+  color: #eee;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 2px;
+  border-radius: 8px;
+  vertical-align: middle;
+  margin-left: 2px;
+  cursor: pointer;
+}
