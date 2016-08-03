@@ -16,7 +16,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   it should "support sorting its workflow operators topologically" in {
     val project = mock[Project]
     val workflow = testWorkflow
-    for(dataset <- workflow.datasets) {
+    for (dataset <- workflow.datasets) {
       val id = Identifier(dataset.nodeId)
       val datasetTask = mock[ProjectTask[Dataset]]
       when(datasetTask.id).thenReturn(id)
@@ -39,26 +39,48 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe testWorkflow.WorkflowDependencyGraph(
       startNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(),"dsA1",List(),(0,0),"dsA1")),
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(),"dsA2",List(),(0,0),"dsA2"))),
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA1", List(), (0, 0), "dsA1")),
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA2", List(), (0, 0), "dsA2"))),
       endNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(),"output",List(),(0,0),"output"))))
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "output", List(), (0, 0), "output"))))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == "dsA1").head
     intercept[IllegalStateException] {
       dsA1.addFollowingNode(null)
     }
     var current = dsA1
-    for(nextLabel <- Seq("transform1", "dsB1", "linking", "links", "generateOutput", "output")) {
+    for (nextLabel <- Seq("transform1", "dsB1", "linking", "links", "generateOutput", "output")) {
       current.followingNodes.size mustBe 1
       val next = current.followingNodes.head
       next.nodeId mustBe nextLabel
       next.precedingNodes must contain(current)
-      if(!next.workflowNode.isInstanceOf[WorkflowDataset]) {
+      if (!next.workflowNode.isInstanceOf[WorkflowDataset]) {
         next.inputNodes must contain(current)
       }
       current = next
     }
     current mustBe dag.endNodes.head
+  }
+
+  it should "sort correctly for a workflow ending in an operator" in {
+    val sortedNodes = testWorkflowEndingInOperator.topologicalSortedNodes
+    sortedNodes.map(_.nodeId) mustBe Seq("dsA", "dsB", "transform")
+  }
+
+  it should "build the DAG correctly for a workflow ending in an operator" in {
+    val dag = testWorkflowEndingInOperator.workflowDependencyGraph
+    dag.startNodes.map(_.nodeId) mustBe Set("dsA", "dsB")
+    dag.endNodes.map(_.nodeId) mustBe Set("transform")
+  }
+
+  it should "sort correctly for a workflow with disjunct data flows and multiple output nodes" in {
+    val sortedNodes = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.topologicalSortedNodes
+    sortedNodes.map(_.nodeId) mustBe Seq("dsA", "dsB", "dsC", "transform", "op1", "op2")
+  }
+
+  it should "build the DAG correctly for a workflow with disjunct data flows and multiple output nodes" in {
+    val dag = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.workflowDependencyGraph
+    dag.startNodes.map(_.nodeId) mustBe Set("dsA", "dsB", "dsC")
+    dag.endNodes.map(_.nodeId) mustBe Set("transform", "op1", "op2")
   }
 
   val testWorkflow: Workflow = {
@@ -80,6 +102,33 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       ))
   }
 
+  val testWorkflowEndingInOperator: Workflow = {
+    Workflow(
+      Identifier("workflow"),
+      operators = Seq(
+        operator(task = "transform", inputs = Seq("dsA", "dsB"), outputs = Seq(), "transform")
+      ),
+      datasets = Seq(
+        dataset("dsA", "dsA"),
+        dataset("dsB", "dsB")
+      ))
+  }
+
+  val testWorkflowWithMultipleEndNodesAndDisjunctDataFlows: Workflow = {
+    Workflow(
+      Identifier("workflow"),
+      operators = Seq(
+        operator(task = "transform", inputs = Seq("dsA", "dsB"), outputs = Seq(), "transform"),
+        operator(task = "op1", inputs = Seq("dsC"), outputs = Seq(), "op1"),
+        operator(task = "op2", inputs = Seq("dsC"), outputs = Seq(), "op2")
+      ),
+      datasets = Seq(
+        dataset("dsA", "dsA"),
+        dataset("dsB", "dsB"),
+        dataset("dsC", "dsC")
+      ))
+  }
+
   val circularWorkflow: Workflow = {
     Workflow(
       Identifier("circularWorkflow"),
@@ -92,7 +141,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   }
 
   def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0,0), nodeId)
+    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId)
   }
 
   def dataset(task: String, nodeId: String): WorkflowDataset = {

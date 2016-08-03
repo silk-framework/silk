@@ -152,12 +152,16 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
 
   /** Returns node ids of workflow nodes that have inputs from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
-    nodes.flatMap(_.outputs).distinct
+    val outputs = nodes.flatMap(_.outputs).distinct
+    val nodesWithInputs = nodes.filter(_.inputs.size > 0).map(_.nodeId)
+    (outputs ++ nodesWithInputs).distinct
   }
 
   /** Returns node ids of workflow nodes that output data into other nodes */
   def outputWorkflowNodeIds(): Seq[String] = {
-    nodes.flatMap(_.inputs).distinct
+    val inputs = nodes.flatMap(_.inputs).distinct
+    val nodesWithOutputs = nodes.filter(_.outputs.size > 0).map(_.nodeId)
+    (inputs ++ nodesWithOutputs).distinct
   }
 
   case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
