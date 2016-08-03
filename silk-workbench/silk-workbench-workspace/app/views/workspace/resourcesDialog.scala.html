@@ -3,77 +3,62 @@
 @import controllers.workspace.routes.Assets
 
 @widgets.dialog(title = "Manage Resources", width = 500) {
-  <fieldset>
-    <legend>Available resources:</legend>
+<div class="mdl-grid" style="width: 500px">
+
+  <div id="resource-resources-box" class="mdl-cell mdl-cell--12-col">
     @for((resource, index) <- resourceLoader.list.zipWithIndex) {
-      <div id="resource@index" class="resource">
-        @resource
-        <img class="button-delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@Assets.at("img/cross.png")" />
-        <img class="button-export" title="Download" onclick="getResource('@resource')" src="@Assets.at("img/document-export.png")" />
-      </div>
+    <div id="resource@index" class="resource-chip mdl-shadow--2dp">
+      <span class="resource-chip-label">@resource</span>
+      <!--
+      <img class="button-delete" title="Delete" onclick="deleteResourceDialog(@index, '@resource')" src="@Assets.at("img/cross.png")" />
+      <img class="button-export" title="Download" onclick="getResource('@resource')" src="@Assets.at("img/document-export.png")" />
+      -->
+      <i class="material-icons resource-chip-icon">file_download</i>
+      <i class="material-icons resource-chip-icon">clear</i>
+    </div>
     }
-  </fieldset>
+  </div>
 
-  <fieldset>
-    <legend>Upload input resource:</legend>
-    <table border="0">
-      <tr>
-        <td>Name</td>
-        <td><input name="resource-name" title="Resource Name" size="25" value="unnamed"/></td>
-      </tr>
-      <tr>
-        <td>File</td>
-        <td>
-          <form name="uploadForm" enctype="multipart/form-data">
-            <input name="resource-file" type="file" size="10"/>
-          </form>
-        </td>
-      </tr>
-      <tr>
-        <td><img id="icon-pending" title="Pending Upload" src="@Assets.at("img/pending.gif")" /></td>
-        <td align="right"><button onclick="uploadResource()">Upload</button></td>
-      </tr>
-    </table>
-  </fieldset>
+  <div class="mdl-cell mdl-cell--12-col">
+    <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+      <div class="mdl-tabs__tab-bar">
+        <a id="resources-upload-panel-tag" href="#resources-upload-panel" class="mdl-tabs__tab is-active">Upload Local</a>
+        <a id="resources-import-panel-tag" href="#resources-import-panel" class="mdl-tabs__tab">Import from URL</a>
+        <a id="resources-output-panel-tag" href="#resources-output-panel" class="mdl-tabs__tab">Define Output</a>
+      </div>
 
-  <fieldset>
-    <legend>Import input resource from URL:</legend>
-    <table border="0">
-      <tr>
-        <td>Name</td>
-        <td><input name="url-resource-name" title="Resource Name" size="25" value="unnamed"/></td>
-      </tr>
-      <tr>
-        <td>URL</td>
-        <td>
-          <form name="addUrlResourceForm" enctype="multipart/form-data">
-            <input name="resource-url" type="text" size="25" value="" />
-          </form>
-        </td>
-      </tr>
-      <tr>
-        <td><img id="icon-pending2" title="Pending Import" src="@Assets.at("img/pending.gif")" /></td>
-        <td align="right"><button onclick="addUrlResource()">Import</button></td>
-      </tr>
-    </table>
-  </fieldset>
+      <div class="mdl-tabs__panel is-active" id="resources-upload-panel">
+        <h6>Upload input resource:</h6>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="upload_resource_name" name="upload_resource_name" value="unnamed"/>
+          <label class="mdl-textfield__label" for="upload_resource_name">Name</label>
+        </div>
+        <div>
+          <input name="upload_file" type="file"/>
+        </div>
+      </div>
+      <div class="mdl-tabs__panel" id="resources-import-panel">
+        <h6>Import input resource from URL:</h6>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="import_resource_name" name="import_resource_name" value="unnamed"/>
+          <label class="mdl-textfield__label" for="import_resource_name">Name</label>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="import_url" name="import_url"/>
+          <label class="mdl-textfield__label" for="import_url">URL</label>
+        </div>
+      </div>
+      <div class="mdl-tabs__panel" id="resources-output-panel">
+        <h6 >New output resource:</h6>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="output_resource_name" name="output_resource_name" value="unnamed"/>
+          <label class="mdl-textfield__label" for="output_resource_name">Name</label>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <fieldset>
-    <legend>New output resource:</legend>
-      <table border="0">
-        <tr>
-          <td>Name</td>
-          <td><input name="newresource-name" title="New Resource Name" size="25" value="output"/></td>
-        </tr>
-        <tr>
-          <tr>
-            <td></td>
-            <td align="right"><button onclick="newResource()">Create</button></td>
-          </tr>
-      </table>
-    </fieldset>
-
-  <button id="button-close" onclick="closeDialog()" >Close</button>
+</div>
 
   <div id="delete-dialog" >
     <p>
@@ -82,43 +67,24 @@
     </p>
   </div>
 
-  <style type="text/css">
-    .resource {
-      float: left;
-      width: 300px;
-      height: 20px;
-      margin: 10px;
-      padding: 5px;
-      background-color: #eeeeee;
-      border-width: 1px;
-      border-style: solid;
-      border-color: #a0a0a0;
-    }
-
-    .resource:hover {
-      background-color: #d0d0d0;
-    }
-
-    .button-export {
-      float: right;
-      cursor: pointer;
-      margin-right: 5px;
-    }
-
-    .button-delete {
-      float: right;
-      cursor: pointer;
-    }
-
-    #button-close {
-      float: right;
-      margin: 10px;
-    }
-  </style>
-
   <script type="text/javascript">
     // Initialization
+
+    var buttonNames = {
+      "resources-upload-panel-tag": "Upload" ,
+      "resources-import-panel-tag": "Import" ,
+      "resources-output-panel-tag": "Create"
+    }
+
+
     $(function() {
+      $("#primary_dialog .mdl-tabs__tab").click(function() {
+        var currentPanel = $(this).attr("id");
+        $("#dialog-submit-button").text(buttonNames[currentPanel]);
+      });
+
+
+
       // Hide pending icon
       $('#icon-pending').hide();
       $('#icon-pending2').hide();
@@ -173,8 +139,8 @@
 
     // Uploads a resource
     function uploadResource() {
-      var name = $("input[name='resource-name']").val();
-      var file = $("input[name='resource-file']").val();
+      var name = $("#upload_resource_name]").val();
+      var file = $("#upload_file").val();
       var formData = new FormData($("form[name='uploadForm']")[0]);
 
       $('#icon-pending').show();
@@ -242,6 +208,24 @@
           alert(request.responseText);
         }
       });
+    }
+
+    function submit() {
+      var currentPanel = $("#primary_dialog .mdl-tabs__panel.is-active").attr("id");
+      switch(currentPanel) {
+        case "resources-upload-panel":
+          console.log("upload");
+          uploadResource();
+          break;
+        case "resources-import-panel":
+          console.log("import");
+          addUrlResource();
+          break;
+        case "resources-output-panel":
+          console.log("output");
+          newResource();
+          break;
+      }
     }
   </script>
 }
