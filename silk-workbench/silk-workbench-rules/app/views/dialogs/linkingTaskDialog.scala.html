@@ -38,7 +38,7 @@
       <input class="mdl-textfield__input" type="text" id="source_type" name="source_type" @for(t <- linkingTask) { value="@t.data.dataSelections.source.typeUri.serialize(prefixes)" }/>
       <label class="mdl-textfield__label" for="source_type">Source Type</label>
     </div>
-    @restriction("source", currentInputs.map(_.source.restriction.serialize).getOrElse(""))
+    @widgets.restriction("source", currentInputs.map(_.source.restriction.serialize).getOrElse(""))
     @if(currentInputs.isDefined) {
       @widgets.datasetSelect(project, "target", Some(currentInputs.get.target.inputId))
     } else {
@@ -48,7 +48,7 @@
       <input class="mdl-textfield__input" type="text" id="target_type" name="target_type" @for(t <- linkingTask) { value="@t.data.dataSelections.target.typeUri.serialize(prefixes)" }/>
       <label class="mdl-textfield__label" for="target_type">Target Type</label>
     </div>
-    @restriction("target", currentInputs.map(_.target.restriction.serialize).getOrElse(""))
+    @widgets.restriction("target", currentInputs.map(_.target.restriction.serialize).getOrElse(""))
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
       <select class="mdl-selectfield__select" id="output_dataset" name="output_dataset">
         <option value=""></option>
@@ -63,35 +63,6 @@
       <label class="mdl-selectfield__label" for="output_dataset">Output</label>
     </div>
   </div>
-}
-
-@restriction(sourceOrTarget: String, value: String) = {
-<tr>
-  <td>@{sourceOrTarget} restriction</td>
-  <td>
-    <div id="@{sourceOrTarget}_restriction_textfield_container" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{sourceOrTarget}-restriction-container">
-      <input id="@{sourceOrTarget}_restriction_textfield" class="mdl-textfield__input" type="text"
-             name="@{sourceOrTarget}_restriction_textfield" title="Restrict @{sourceOrTarget} dataset using SPARQL clauses"
-             value="@value">
-      <label class="mdl-textfield__label" for="@{sourceOrTarget}_restriction_textfield">@{sourceOrTarget} Restriction</label>
-    </div>
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{sourceOrTarget}-restriction-container" style="display: none;">
-      <textarea id="@{sourceOrTarget}_restriction_textarea" name="@{sourceOrTarget}_sparql_restriction" class="mdl-textfield__input" type="text" rows="5">@value</textarea>
-      <label class="mdl-textfield__label" for="@{sourceOrTarget}_restriction_textarea">@{sourceOrTarget} Restriction</label>
-    </div>
-  </td>
-</tr>
-<script type="text/javascript">
-  $("#@{sourceOrTarget}_restriction_textfield").focus(function() {
-    $(".@{sourceOrTarget}-restriction-container").toggle(200, "linear");
-    $("#@{sourceOrTarget}_restriction_textarea").focus();
-  });
-  $("#@{sourceOrTarget}_restriction_textarea").focusout(function() {
-    $(".@{sourceOrTarget}-restriction-container").toggle(200, "linear");
-    var restriction = $("#@{sourceOrTarget}_restriction_textarea").val().replace(/[\n\r]+/g, ' ');
-    document.querySelector('#@{sourceOrTarget}_restriction_textfield_container').MaterialTextfield.change(restriction);
-  });
-</script>
 }
 
 <script type="text/javascript">
