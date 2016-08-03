@@ -1,23 +1,23 @@
-@(sourceOrTarget: String, value: String)
+@(modifier: String, value: String)
 
-<div id="@{sourceOrTarget}_restriction_textfield_container" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{sourceOrTarget}-restriction-container">
-  <input id="@{sourceOrTarget}_restriction_textfield" class="mdl-textfield__input" type="text"
-         name="@{sourceOrTarget}_restriction_textfield" title="Restrict @{sourceOrTarget} dataset using SPARQL clauses"
+<div id="@{modifier}_restriction_textfield_container" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{modifier}-restriction-container">
+  <input id="@{modifier}_restriction_textfield" class="mdl-textfield__input" type="text"
+         name="@{modifier}_restriction_textfield" title="Restrict @{modifier} dataset using SPARQL clauses"
          value="@value">
-  <label class="mdl-textfield__label" for="@{sourceOrTarget}_restriction_textfield">@{sourceOrTarget} Restriction</label>
+  <label class="mdl-textfield__label" for="@{modifier}_restriction_textfield">@{modifier.capitalize} Restriction</label>
 </div>
-<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{sourceOrTarget}-restriction-container" style="display: none;">
-  <textarea id="@{sourceOrTarget}_restriction_textarea" name="@{sourceOrTarget}_sparql_restriction" class="mdl-textfield__input" type="text" rows="5">@value</textarea>
-  <label class="mdl-textfield__label" for="@{sourceOrTarget}_restriction_textarea">@{sourceOrTarget} Restriction</label>
+<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{modifier}-restriction-container" style="display: none;">
+  <textarea id="@{modifier}_restriction_textarea" name="@{modifier}_sparql_restriction" class="mdl-textfield__input" type="text" rows="5">@value</textarea>
+  <label class="mdl-textfield__label" for="@{modifier}_restriction_textarea">@{modifier.capitalize} Restriction</label>
 </div>
 <script type="text/javascript">
-  $("#@{sourceOrTarget}_restriction_textfield").focus(function() {
-    $(".@{sourceOrTarget}-restriction-container").toggle(200, "linear");
-    $("#@{sourceOrTarget}_restriction_textarea").focus();
+  $("#@{modifier}_restriction_textfield").focus(function() {
+    $(".@{modifier}-restriction-container").toggle(200, "linear");
+    $("#@{modifier}_restriction_textarea").focus();
   });
-  $("#@{sourceOrTarget}_restriction_textarea").focusout(function() {
-    $(".@{sourceOrTarget}-restriction-container").toggle(200, "linear");
-    var restriction = $("#@{sourceOrTarget}_restriction_textarea").val().replace(/[\n\r]+/g, ' ');
-    document.querySelector('#@{sourceOrTarget}_restriction_textfield_container').MaterialTextfield.change(restriction);
+  $("#@{modifier}_restriction_textarea").focusout(function() {
+    $(".@{modifier}-restriction-container").toggle(200, "linear");
+    var restriction = $("#@{modifier}_restriction_textarea").val().replace(/[\n\r]+/g, ' ');
+    document.querySelector('#@{modifier}_restriction_textfield_container').MaterialTextfield.change(restriction);
   });
 </script>
