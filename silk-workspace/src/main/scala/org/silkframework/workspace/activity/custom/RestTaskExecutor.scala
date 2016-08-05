@@ -1,6 +1,5 @@
 package org.silkframework.workspace.activity.custom
 
-import org.silkframework.config.CustomTask
 import org.silkframework.plugins.custom.net.RestTaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.ProjectTask
@@ -40,6 +39,7 @@ case class RestTaskExecutor(task: ProjectTask[RestTaskSpec]) extends Activity[Un
       }
     }
   }
+
 
   private def executeRequest(client: WSClient,
                              restTaskSpec: RestTaskSpec): Future[WSResponse] = {
