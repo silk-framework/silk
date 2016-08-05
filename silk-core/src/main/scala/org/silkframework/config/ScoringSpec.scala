@@ -1,7 +1,7 @@
 package org.silkframework.config
 
-import org.silkframework.entity.EntitySchema
-import org.silkframework.rule.ScoringRule
+import org.silkframework.entity.{Path, EntitySchema}
+import org.silkframework.rule.{TypeMapping, ScoringRule}
 import org.silkframework.util.Identifier
 
 /**
@@ -17,6 +17,24 @@ case class ScoringSpec(selection: DatasetSelection, rules: Seq[ScoringRule], out
     )
   }
 
+  /**
+    * The schemata of the input data for this task.
+    * A separate entity schema is returned for each input.
+    */
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(entityDescription))
+
+  /**
+    * The schema of the output data.
+    * Returns None, if the schema is unknown or if no output is written by this task.
+    */
+  override def outputSchemaOpt: Option[EntitySchema] = {
+    Some(
+      EntitySchema(
+        typeUri = selection.typeUri,
+        paths = rules.map(_.target).map(Path(_)).toIndexedSeq
+      )
+    )
+  }
 }
 
 object ScoringSpec {

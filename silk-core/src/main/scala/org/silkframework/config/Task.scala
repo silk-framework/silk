@@ -3,18 +3,29 @@ package org.silkframework.config
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 
+import scala.language.implicitConversions
 import scala.xml._
 
 /**
   * A task, such as a dataset or a transformation task.
   *
-  * @param id The id of this task.
-  * @param data The task specification that holds the actual task specification.
   * @tparam TaskType The type of this task, e.g., TransformSpec.
   */
-case class Task[+TaskType <: TaskSpec](id: Identifier, data: TaskType) {
+trait Task[+TaskType <: TaskSpec] {
+  /** The id of this task. */
+  def id: Identifier
 
+  /** The task specification that holds the actual task specification. */
+  def data: TaskType
+
+  /**
+    * Returns this task as a [[Task]]. For some reason the type inference mechanism of Scala is not able
+    * to infer that this is a Task[TaskType] for implicits if this is a subclass of [[Task]] So this conversion must be done there.
+    */
+  def taskTrait: Task[TaskType] = this.asInstanceOf[Task[TaskType]]
 }
+
+case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType) extends Task[TaskType]
 
 object Task {
 
@@ -38,7 +49,7 @@ object Task {
       * Deserialize a value from XML.
       */
     def read(node: Node)(implicit readContext: ReadContext) = {
-      Task(
+      PlainTask(
         id = (node \ "@id").text,
         data = XmlSerialization.fromXml[T](node)
       )

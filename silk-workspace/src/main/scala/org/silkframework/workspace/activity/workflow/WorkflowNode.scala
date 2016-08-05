@@ -5,6 +5,7 @@ package org.silkframework.workspace.activity.workflow
   * Either a dataset or an operator (such as a transformation or linking task).
   */
 sealed trait WorkflowNode {
+  type NodeReference = String
 
   /**
     * The name of the project task that this workflow step relates to.
@@ -12,14 +13,14 @@ sealed trait WorkflowNode {
   def task: String
 
   /**
-    * The names of the input tasks.
+    * The names of the input nodes.
     */
-  def inputs: Seq[String]
+  def inputs: Seq[NodeReference]
 
   /**
-    * The names of the outputs tasks.
+    * The names of the outputs nodes.
     */
-  def outputs: Seq[String]
+  def outputs: Seq[NodeReference]
 
   /**
     * The position in the visual representation. (x, y) coordinates.
@@ -27,8 +28,13 @@ sealed trait WorkflowNode {
   //TODO extract to separate class
   def position: (Int, Int)
 
+  /**
+    * The id that is referenced by the inputs and outputs values.
+    * This is necessary since a task can be used multiple times in a workflow.
+    */
+  def nodeId: NodeReference
 }
 
-case class WorkflowOperator(inputs: Seq[String], task: String, outputs: Seq[String], errorOutputs: Seq[String], position: (Int, Int), id: String) extends WorkflowNode
+case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference], task: String, outputs: Seq[WorkflowNode#NodeReference], errorOutputs: Seq[String], position: (Int, Int), nodeId: WorkflowNode#NodeReference) extends WorkflowNode
 
-case class WorkflowDataset(inputs: Seq[String], task: String, outputs: Seq[String], position: (Int, Int)) extends WorkflowNode
+case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference], task: String, outputs: Seq[WorkflowNode#NodeReference], position: (Int, Int), nodeId: WorkflowNode#NodeReference) extends WorkflowNode

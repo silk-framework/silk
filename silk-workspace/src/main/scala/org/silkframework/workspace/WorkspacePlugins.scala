@@ -8,6 +8,7 @@ import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory}
 import org.silkframework.workspace.activity.workflow.WorkflowExecutorFactory
 import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, FileWorkspaceProvider}
+import scala.language.existentials
 
 class WorkspacePlugins extends PluginModule {
 

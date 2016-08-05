@@ -195,7 +195,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
         entitySchema = entityDesc,
         entities = entityUris map Uri.apply
       )
-      entities map { e => (e.uri, e)} toMap
+      entities.map{ e => (e.uri, e)}.toMap
     }
 
     private def entityMatchesDescription(entity: Entity, entityDesc: EntitySchema): Boolean = {

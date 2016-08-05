@@ -18,7 +18,7 @@ import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTas
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
-
+import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object WorkspaceApi extends Controller {

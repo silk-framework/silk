@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.dataset
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**

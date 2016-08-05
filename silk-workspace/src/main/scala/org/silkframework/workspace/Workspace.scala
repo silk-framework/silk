@@ -24,9 +24,9 @@ class Workspace(val provider: WorkspaceProvider) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
-  private var cacbedProjects = loadProjects()
+  private var cachedProjects = loadProjects()
 
-  def projects: Seq[Project] = cacbedProjects
+  def projects: Seq[Project] = cachedProjects
 
   /**
    * Retrieves a project by name.
@@ -38,18 +38,18 @@ class Workspace(val provider: WorkspaceProvider) {
   }
 
   def createProject(name: Identifier) = {
-    require(!cacbedProjects.exists(_.name == name), "A project with the name '" + name + "' already exists")
+    require(!cachedProjects.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
     val projectConfig = ProjectConfig(name)
     provider.putProject(projectConfig)
     val newProject = new Project(projectConfig, provider)
-    cacbedProjects :+= newProject
+    cachedProjects :+= newProject
     newProject
   }
 
   def removeProject(name: Identifier) = {
     provider.deleteProject(name)
-    cacbedProjects = cacbedProjects.filterNot(_.name == name)
+    cachedProjects = cachedProjects.filterNot(_.name == name)
   }
 
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
@@ -64,7 +64,7 @@ class Workspace(val provider: WorkspaceProvider) {
   }
 
   def reload() {
-    cacbedProjects = loadProjects()
+    cachedProjects = loadProjects()
   }
 
   private def loadProjects(): Seq[Project] = {
