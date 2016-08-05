@@ -25,8 +25,8 @@ case class RestTaskSpec(@Param("The URL to execute this request against.")
                         @Param("The content-type header String. This can be set in case of PUT or POST. If another " +
                             "content type comes back, the task will fail.")
                         contentType: String) extends CustomTask {
-  override def inputSchemata: Seq[EntitySchema] = {
-    Seq(EntitySchema(
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
+    Some(Seq(EntitySchema(
       typeUri = Uri(SilkVocab.RestTaskData),
       paths = IndexedSeq(
         // The URL that the POST, GET or PUT request should be executed against. This will overwrite the task spec URL if set.
@@ -34,10 +34,10 @@ case class RestTaskSpec(@Param("The URL to execute this request against.")
         // The content String that should be send in case of PUT or POST
         Path(SilkVocab.RestTaskPropertyContent)
       )
-    ))
+    )))
   }
 
-  override def outputSchema: Option[EntitySchema] = {
+  override def outputSchemaOpt: Option[EntitySchema] = {
     Some(EntitySchema(
       typeUri = Uri(SilkVocab.RestTaskResult),
       paths = IndexedSeq(

@@ -32,7 +32,7 @@ case class RestTaskExecutor(task: ProjectTask[RestTaskSpec]) extends Activity[Un
       client = getClient()
       val response: Future[WSResponse] = executeRequest(client, restTaskSpec)
       context.status.update("Execute", 0.5)
-      val result = Await.result(response, restTaskSpec.requestTimeout millis)
+      Await.result(response, restTaskSpec.requestTimeout.millis)
       context.status.update("Finished", 1.0)
     } finally {
       if(client != null) {
