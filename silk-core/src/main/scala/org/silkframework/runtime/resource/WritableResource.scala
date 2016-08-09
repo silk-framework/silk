@@ -2,7 +2,7 @@ package org.silkframework.runtime.resource
 
 import java.io.{InputStream, OutputStream}
 
-trait WritableResource extends Resource{
+trait WritableResource extends Resource {
 
   /**
     * Preferred method for writing to a resource.

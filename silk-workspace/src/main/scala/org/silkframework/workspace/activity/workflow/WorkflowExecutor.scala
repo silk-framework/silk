@@ -24,7 +24,7 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
   override def run(context: ActivityContext[WorkflowExecutionReport]) = {
     canceled = false
     val operators = workflow.operators
-    val internalDataset = InternalDataset()
+    val internalDataset = InternalDataset(graphUri = null)
     internalDataset.clear()
 
     clearInternalDatasets(operators)
@@ -33,7 +33,7 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
 
     // Preliminary: Just execute the operators from left to right
     for ((op, index) <- operators.sortBy(_.position.x).zipWithIndex if !canceled) {
-      context.status.update(s"${op.task} (${index + 1} / ${operators.size})", index.toDouble / operators.size)
+      context.status.update(s"${op.nodeId} (${index + 1} / ${operators.size})", index.toDouble / operators.size)
       executeOperator(op, internalDataset, context)
     }
   }
@@ -64,9 +64,9 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     canceled = true
   }
 
-  def executeOperator(operator: WorkflowOperator, internalDataset: InternalDataset, context: ActivityContext[WorkflowExecutionReport]): Unit = {
-    val project = task.project
-
+  def executeOperator(operator: WorkflowOperator,
+                      internalDataset: InternalDataset,
+                      context: ActivityContext[WorkflowExecutionReport]): Unit = {
     // Get the data sources of this operator
     // Either it reads the data from a dataset or directly from another operator in which case the internal data set is used.
     val inputs = operator.inputs
@@ -93,8 +93,8 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     // Execute the task
     val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
     val report = context.child(activity, 0.0).startBlockingAndGetValue()
-    context.value() = context.value().withReport(operator.id, report)
-    log.info("Finished execution of " + operator.task)
+    context.value() = context.value().withReport(operator.nodeId, report)
+    log.info("Finished execution of " + operator.nodeId)
   }
 
   private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[SinkTrait] = {

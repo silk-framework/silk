@@ -2,7 +2,6 @@ package org.silkframework.workspace.xml
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 
 /**

@@ -169,6 +169,15 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
+    * Retrieves a task of any type by name if it exists, else it returns None.
+    *
+    * @param taskName The name of the task
+    */
+  def anyTaskOption(taskName: Identifier): Option[ProjectTask[_ <: TaskSpec]] = {
+    modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpec]]]).headOption
+  }
+
+  /**
     * Adds a new task to this project.
     *
     * @param name The name of the task. Must be unique for all tasks in this project.

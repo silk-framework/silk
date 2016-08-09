@@ -3,9 +3,8 @@ package org.silkframework.workspace.xml
 import java.io._
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.config.TaskSpec
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
@@ -72,7 +71,7 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
   }
 
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier, data: T): Unit = {
-    plugin[T].writeTask(Task(task, data), res.child(project).child(plugin[T].prefix))
+    plugin[T].writeTask(PlainTask(task, data), res.child(project).child(plugin[T].prefix))
   }
 
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier): Unit = {

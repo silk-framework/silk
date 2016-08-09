@@ -18,7 +18,7 @@ import org.silkframework.runtime.plugin.Plugin
 )
 case class GetValueByIndexTransformer(index: Int, failIfNotFound: Boolean = false) extends Transformer {
   override def apply(values: Seq[Seq[String]]) = {
-    values.map { vs =>
+    values.flatMap { vs =>
       vs.drop(index).headOption match {
         case None if failIfNotFound =>
           throw new IndexOutOfBoundsException("No value at index " + index + ".")
@@ -27,6 +27,6 @@ case class GetValueByIndexTransformer(index: Int, failIfNotFound: Boolean = fals
         case Some(v) =>
           Seq(v)
       }
-    } flatten
+    }
   }
 }

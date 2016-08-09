@@ -17,6 +17,8 @@ package org.silkframework.learning
 import org.silkframework.evaluation.EvaluationResult
 import org.silkframework.learning.individual.Population
 
+import scala.language.postfixOps
+
 case class LearningResult(iterations: Int = 0,
                           time: Long = 0,
                           population: Population = Population.empty,
