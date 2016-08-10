@@ -47,12 +47,12 @@
       </div>
       <div class="mdl-tabs__panel" id="resources-import-panel">
         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-          <input class="mdl-textfield__input" type="text" id="import_resource_name" name="import_resource_name" value="unnamed"/>
-          <label class="mdl-textfield__label" for="import_resource_name">Name</label>
-        </div>
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
           <input class="mdl-textfield__input" type="text" id="import_url" name="import_url"/>
           <label class="mdl-textfield__label" for="import_url">URL</label>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="import_resource_name" name="import_resource_name" value="unnamed"/>
+          <label class="mdl-textfield__label" for="import_resource_name">Name</label>
         </div>
       </div>
       <div class="mdl-tabs__panel" id="resources-output-panel">
@@ -206,7 +206,7 @@
 
     // Creates a new resource
     function newResource() {
-      var name = $("input[name='newresource-name']").val();
+      var name = $("#output_resource_name").val();
       $.ajax({
         type: 'PUT',
         url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
@@ -220,20 +220,15 @@
     }
 
     function submit() {
-      console.log("submit");
       var currentPanel = $("#primary_dialog .mdl-tabs__panel.is-active").attr("id");
-      console.log(currentPanel);
       switch(currentPanel) {
         case "resources-upload-panel":
-          console.log("upload");
           uploadResource();
           break;
         case "resources-import-panel":
-          console.log("import");
           addUrlResource();
           break;
         case "resources-output-panel":
-          console.log("output");
           newResource();
           break;
       }
