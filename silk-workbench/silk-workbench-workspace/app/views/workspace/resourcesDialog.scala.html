@@ -19,26 +19,33 @@
     }
   </div>
 
-  <div class="mdl-cell mdl-cell--12-col">
+  <div id="resource-tab-panels" class="mdl-cell mdl-cell--12-col">
     <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
       <div class="mdl-tabs__tab-bar">
         <a id="resources-upload-panel-tag" href="#resources-upload-panel" class="mdl-tabs__tab is-active">Upload Local</a>
+        <div class="mdl-tooltip mdl-tooltip--large" for="resources-upload-panel-tag">
+          Upload an input resource from a local file.
+        </div>
         <a id="resources-import-panel-tag" href="#resources-import-panel" class="mdl-tabs__tab">Import from URL</a>
+        <div class="mdl-tooltip mdl-tooltip--large" for="resources-upload-panel-tag">
+          Import an input resource from an external URL.
+        </div>
         <a id="resources-output-panel-tag" href="#resources-output-panel" class="mdl-tabs__tab">Define Output</a>
+        <div class="mdl-tooltip mdl-tooltip--large" for="resources-upload-panel-tag">
+          Create a new output resource.
+        </div>
       </div>
 
       <div class="mdl-tabs__panel is-active" id="resources-upload-panel">
-        <h6>Upload input resource:</h6>
+        <div class="mdl-file-upload">
+          <input id="upload_file" name="upload_file" type="file"/>
+        </div>
         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
           <input class="mdl-textfield__input" type="text" id="upload_resource_name" name="upload_resource_name" value="unnamed"/>
           <label class="mdl-textfield__label" for="upload_resource_name">Name</label>
         </div>
-        <div>
-          <input name="upload_file" type="file"/>
-        </div>
       </div>
       <div class="mdl-tabs__panel" id="resources-import-panel">
-        <h6>Import input resource from URL:</h6>
         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
           <input class="mdl-textfield__input" type="text" id="import_resource_name" name="import_resource_name" value="unnamed"/>
           <label class="mdl-textfield__label" for="import_resource_name">Name</label>
@@ -49,7 +56,6 @@
         </div>
       </div>
       <div class="mdl-tabs__panel" id="resources-output-panel">
-        <h6 >New output resource:</h6>
         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
           <input class="mdl-textfield__input" type="text" id="output_resource_name" name="output_resource_name" value="unnamed"/>
           <label class="mdl-textfield__label" for="output_resource_name">Name</label>
@@ -76,6 +82,12 @@
       "resources-output-panel-tag": "Create"
     }
 
+    $("#dialog-submit-button").text(buttonNames["resources-upload-panel-tag"]);
+
+    $("#upload_file").change(function() {
+      var name=$("#upload_file").val().split(/(\\|\/)/g).pop();
+      $("#upload_resource_name").val(name);
+    });
 
     $(function() {
       $("#primary_dialog .mdl-tabs__tab").click(function() {
@@ -83,11 +95,6 @@
         $("#dialog-submit-button").text(buttonNames[currentPanel]);
       });
 
-
-
-      // Hide pending icon
-      $('#icon-pending').hide();
-      $('#icon-pending2').hide();
 
       // Initialize the delete dialog
       $("#delete-dialog").dialog({
@@ -139,11 +146,13 @@
 
     // Uploads a resource
     function uploadResource() {
-      var name = $("#upload_resource_name]").val();
+      var name = $("#upload_resource_name").val();
       var file = $("#upload_file").val();
-      var formData = new FormData($("form[name='uploadForm']")[0]);
+      var formData = new FormData();
+      formData.append('file', $('#upload_file')[0].files[0]);
+      console.log(formData);
 
-      $('#icon-pending').show();
+      $('#dialog-progress-spinner').show();
       $.ajax({
         type: 'PUT',
         url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
@@ -156,11 +165,11 @@
         contentType: false,
         processData: false,
         success: function() {
-          $('#icon-pending').hide();
+          $('#dialog-progress-spinner').hide();
           reloadDialog();
         },
         error: function(request) {
-          $('#icon-pending').hide();
+          $('#dialog-progress-spinner').hide();
           alert(request.responseText);
         }
       });
@@ -172,7 +181,7 @@
       var url = $("input[name='resource-url']").val();
       var formData = new FormData($("form[name='addUrlResourceForm']")[0]);
 
-      $('#icon-pending2').show();
+      $('#dialog-progress-spinner').show();
       $.ajax({
         type: 'PUT',
         url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
@@ -185,11 +194,11 @@
         contentType: false,
         processData: false,
         success: function() {
-          $('#icon-pending2').hide();
+          $('#dialog-progress-spinner').hide();
           reloadDialog();
         },
         error: function(request) {
-          $('#icon-pending2').hide();
+          $('#dialog-progress-spinner').hide();
           alert(request.responseText);
         }
       });
@@ -211,7 +220,9 @@
     }
 
     function submit() {
+      console.log("submit");
       var currentPanel = $("#primary_dialog .mdl-tabs__panel.is-active").attr("id");
+      console.log(currentPanel);
       switch(currentPanel) {
         case "resources-upload-panel":
           console.log("upload");

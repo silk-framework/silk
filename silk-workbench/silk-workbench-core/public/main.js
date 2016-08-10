@@ -88,7 +88,8 @@ function showDialog(path, dialog_key="primary", payload={}) {
  */
 function reloadDialog() {
   $.get(dialogPath, function(data) {
-    dialog.html(data);
+    $(dialog).html(data);
+    componentHandler.upgradeAllRegistered();
   }).fail(function(request) { alert(request.responseText);  })
 }
 

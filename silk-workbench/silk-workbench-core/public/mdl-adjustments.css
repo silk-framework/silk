@@ -515,3 +515,15 @@
   margin-left: 2px;
   cursor: pointer;
 }
+
+#resource-tab-panels .mdl-tabs__panel {
+  margin-top: 20px;
+}
+
+.mdl-file-upload {
+  padding: 20px 0;
+}
+
+.mdl-file-upload input {
+  font-size: 16px;
+}
