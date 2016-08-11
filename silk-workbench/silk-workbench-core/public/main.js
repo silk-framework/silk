@@ -23,8 +23,6 @@ var contentWidthCallback = function() { };
 var primary_dialog;
 var secondary_dialog;
 var dialogs = {};
-// The path of the current dialog, e.g., /workspace/mydialog
-var dialogPath;
 
 $(function() {
 
@@ -70,7 +68,7 @@ var errorHandler = function(request) {
  */
 function showDialog(path, dialog_key="primary", payload={}) {
   dialog = dialogs[dialog_key];
-  dialogPath = path;
+  $.data(dialog, "path", path);
   $.get(path, payload, function(data) {
     // inject dialog content into dialog container
     $(dialog).html(data);
@@ -88,7 +86,8 @@ function showDialog(path, dialog_key="primary", payload={}) {
  */
 function reloadDialog(dialog_key="primary") {
   dialog = dialogs[dialog_key];
-  $.get(dialogPath, function(data) {
+  var path = $.data(dialog, "path");
+  $.get(path, function(data) {
     $(dialog).html(data);
     componentHandler.upgradeAllRegistered();
   }).fail(function(request) { alert(request.responseText);  })
