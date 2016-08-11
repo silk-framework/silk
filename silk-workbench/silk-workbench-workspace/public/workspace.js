@@ -100,3 +100,7 @@ function deleteTask(path) {
 function deleteTaskConfirm(name, path) {
   showDialog(baseUrl + '/workspace/dialogs/removetask/' + name + "/" + encodeURIComponent(path));
 }
+
+function deleteResourceConfirm(name, path) {
+  showDialog(baseUrl + '/workspace/dialogs/removeresource/' + name + "/" + encodeURIComponent(path), "secondary");
+}
