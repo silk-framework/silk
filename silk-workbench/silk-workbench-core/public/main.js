@@ -84,9 +84,10 @@ function showDialog(path, dialog_key="primary", payload={}) {
 }
 
 /**
- * Reloads the current dialog.
+ * Reloads a dialog.
  */
-function reloadDialog() {
+function reloadDialog(dialog_key="primary") {
+  dialog = dialogs[dialog_key];
   $.get(dialogPath, function(data) {
     $(dialog).html(data);
     componentHandler.upgradeAllRegistered();
