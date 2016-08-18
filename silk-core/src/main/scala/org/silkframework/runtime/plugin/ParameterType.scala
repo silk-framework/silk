@@ -145,7 +145,10 @@ object ParameterType {
   object ResourceType extends ParameterType[Resource] {
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Resource = {
-      resourceLoader.get(str, mustExist = false)
+      if(str.trim.isEmpty)
+        throw new ValidationException("Resource cannot be empty")
+      else
+        resourceLoader.get(str, mustExist = false)
     }
 
   }
@@ -153,7 +156,10 @@ object ParameterType {
   object WritableResourceType extends ParameterType[WritableResource] {
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): WritableResource = {
-      resourceLoader.get(str, mustExist = false)
+      if(str.trim.isEmpty)
+        throw new ValidationException("Resource cannot be empty")
+      else
+        resourceLoader.get(str, mustExist = false)
     }
 
   }

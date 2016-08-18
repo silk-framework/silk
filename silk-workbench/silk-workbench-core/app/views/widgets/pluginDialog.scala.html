@@ -106,11 +106,13 @@
           No resources found!
         </div>
       } else {
-        <select name='@(pluginId)_@(param.name)' title='@param.description'>
+        <input name='@(pluginId)_@(param.name)' value='@value(pluginId, param)' title='@param.description' type="text" list='@(pluginId)_@(param.name)_list' >
+        <datalist id='@(pluginId)_@(param.name)_list'>
           @for(resource <- resources) {
             <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
           }
-        </select>
+        </datalist>
+
         <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
       }
     </td>
