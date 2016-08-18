@@ -64,4 +64,6 @@ case class UrlResource(url: URL, connectTimeout: Option[Int] = Some(5000), readT
    * The path of this resource.
    */
   override def path: String = url.getPath
+
+  override def toString = url.toString
 }

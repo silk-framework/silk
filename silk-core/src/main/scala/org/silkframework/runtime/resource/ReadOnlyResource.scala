@@ -18,4 +18,6 @@ class ReadOnlyResource(resource: Resource) extends WritableResource {
   override def write(write: (OutputStream) => Unit): Unit = {
     throw new UnsupportedOperationException("This resource can not be written.")
   }
+
+  override def toString = resource.toString
 }
