@@ -101,20 +101,17 @@
   <tr>
     <td>@param.name</td>
     <td>
-      @if(resources.isEmpty) {
-        <div style="text-align:center">
-          No resources found!
-        </div>
-      } else {
-        <input name='@(pluginId)_@(param.name)' value='@value(pluginId, param)' title='@param.description' type="text" list='@(pluginId)_@(param.name)_list' >
-        <datalist id='@(pluginId)_@(param.name)_list'>
+      <input name='@(pluginId)_@(param.name)' value='@value(pluginId, param)' title='@param.description' type="text" list='@(pluginId)_@(param.name)_list' >
+      <datalist id='@(pluginId)_@(param.name)_list'>
+        @if(resources.isEmpty) {
+          <option>No resources found!</option>
+        } else {
           @for(resource <- resources) {
-            <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
+            <option>@resource</option>
           }
-        </datalist>
-
-        <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
-      }
+        }
+      </datalist>
+      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
     </td>
   </tr>
 }
