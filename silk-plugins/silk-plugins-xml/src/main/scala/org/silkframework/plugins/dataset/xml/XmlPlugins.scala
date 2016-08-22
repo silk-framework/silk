@@ -4,6 +4,6 @@ import org.silkframework.runtime.plugin.PluginModule
 
 class XmlPlugins extends PluginModule {
 
-  override def pluginClasses = Seq(classOf[XmlDataset])
+  override def pluginClasses = Seq(classOf[XmlDataset], classOf[XmlParserTask])
 
 }
