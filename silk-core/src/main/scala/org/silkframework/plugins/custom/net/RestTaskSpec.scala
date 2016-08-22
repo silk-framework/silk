@@ -14,7 +14,7 @@ import org.silkframework.util.Uri
   label = "REST Operator",
   description = "Executes a REST request based on fixed configuration and/or input parameters and returns the result as entity."
 )
-case class RestTaskSpec(@Param("The URL to execute this request against.")
+case class RestTaskSpec(@Param("The URL to execute this request against. This can be overwritten at execution time via input.")
                         url: String = "",
                         @Param("The HTTP method. One of GET, PUT or POST")
                         method: String = "GET",
@@ -27,10 +27,16 @@ case class RestTaskSpec(@Param("The URL to execute this request against.")
                         contentType: String = "",
                         @Param("The content that is send with a POST or PUT request. For handling this payload dynamically " +
                             "this parameter must be overwritten via the task input.")
-                        content: String = ""
+                        content: String = "",
+                        @Param("If this is set to true, specific parameters can be overwritten at execution time. Else inputs are ignored. Parameters that can currently be overwritten: url, content")
+                        readParametersFromInput: Boolean = false
                        ) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    Some(Seq(inputSchema))
+    if(readParametersFromInput) {
+      Some(Seq(inputSchema))
+    } else {
+      None
+    }
   }
 
   final private val inputPaths = IndexedSeq[(String, (RestTaskSpec, String) => RestTaskSpec)](
@@ -47,6 +53,7 @@ case class RestTaskSpec(@Param("The URL to execute this request against.")
 
   /**
     * Returns a copy of this [[RestTaskSpec]] with values from the provided config overwriting the config values.
+    *
     * @param config
     */
   def customize(config: Map[String, String]): RestTaskSpec = {
