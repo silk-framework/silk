@@ -86,9 +86,9 @@ $(function () {
       if(jsPlumb.getEndpoints(ui.helper) === undefined) {
         var id = ui.helper.attr('id');
         // Hide operator in toolbox
-        if($(ui.helper).hasClass('dataset')) {
-          ui.draggable.hide();
-        }
+//        if($(ui.helper).hasClass('dataset')) {
+//          ui.draggable.hide();
+//        }
 
         // Add operator to editor contents
         $.ui.ddmanager.current.cancelHelperRemoval = true;

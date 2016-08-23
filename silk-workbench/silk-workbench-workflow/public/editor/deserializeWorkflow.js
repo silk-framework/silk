@@ -32,9 +32,11 @@ function deserializeWorkflow(xml) {
     }
 
     var toolbox = $("#toolbox_" + taskId);
-    toolbox.hide();
-
+// Datasets can be used multiple times in a workflow now
+//    // Hide datasets that are already used in workflow
+//    toolbox.hide();
     var box = toolbox.children('.dataset').clone(false);
+
     box.attr('taskId', taskId);
     box.attr('id', opId)
     box.show();
