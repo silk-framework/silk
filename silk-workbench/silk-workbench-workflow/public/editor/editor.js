@@ -46,21 +46,29 @@ $(function () {
   // Make operators draggable
   $('.toolboxOperator').draggable({
       init: function() {
-        var counter = 1;
+
         this.helper = function() {
+          var counter = 1;
           var box = $(this).children('.operator,.dataset').clone(false);
           // Generate a new id for the operator of the form operator_name
           var boxId = $(this).attr('id');
           var taskId = boxId.substring(boxId.indexOf("_") + 1)
           var suffix = '';
+          // Count up if element id already exists
           if(counter > 1) {
-            while($('#' + taskId + counter).length > 0) {
-              // Count up because an operator with this id already exists
-              counter = counter + 1;
-            }
+            operatorId = taskId + counter;
+          } else {
+            operatorId = taskId;
+          }
+          while($('#' + operatorId).length > 0) {
+            // Count up because an operator with this id already exists
+            counter = counter + 1;
+            operatorId = taskId + counter;
+          }
+
+          if(counter > 1) {
             suffix = '' + counter;
           }
-          counter = counter + 1;
           box.attr('taskid', taskId)
           box.attr('id', taskId + suffix);
           box.show();
