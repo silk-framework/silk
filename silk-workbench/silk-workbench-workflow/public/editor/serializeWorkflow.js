@@ -70,6 +70,7 @@ function serializeDataset(ds, xml) {
   var datasetXml = xml.ownerDocument.createElement("Dataset");
   datasetXml.setAttribute("posX", position.left);
   datasetXml.setAttribute("posY", position.top);
+  datasetXml.setAttribute("id", ds.id);
   var taskId = $(ds).attr("taskid");
   if(taskId === undefined) {
     taskId = ds.id
