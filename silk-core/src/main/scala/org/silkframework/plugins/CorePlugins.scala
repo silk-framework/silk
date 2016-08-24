@@ -72,6 +72,7 @@ class CorePlugins extends PluginModule {
         classOf[ConvertCharsetTransformer] ::
         classOf[RemoveValues] ::
         classOf[RemoveStopwords] ::
+        classOf[RemoveRemoteStopwords] ::
         classOf[RemoveEmptyValues] ::
         classOf[RemoveParentheses] ::
         classOf[TrimTransformer] ::

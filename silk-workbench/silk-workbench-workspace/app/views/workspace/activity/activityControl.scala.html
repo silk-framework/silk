@@ -122,7 +122,9 @@
   }
 
   $( window ).load(function() {
-    $("#activity_control_wrapper").append('<iframe src="@WorkspaceApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0">');
+    setTimeout(function () {
+      $("#activity_control_wrapper").append('<iframe src="@WorkspaceApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0">');
+    }, 1);
   });
 </script>
 
