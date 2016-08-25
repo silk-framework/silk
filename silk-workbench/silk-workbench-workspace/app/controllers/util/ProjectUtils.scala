@@ -59,32 +59,56 @@ object ProjectUtils {
   def createDataSources(xmlRoot: NodeSeq,
                         dataSourceIds: Option[Set[String]])
                        (implicit resourceLoader: ResourceManager): Map[String, DataSource] = {
-    val datasets = createAllDatasets(xmlRoot, "DataSources", dataSourceIds)
-    datasets.map { ds => (ds.id.toString, ds.source) }.toMap
+    createDatasets(xmlRoot, dataSourceIds, "DataSources").mapValues(_.source)
+  }
+
+  def createDatasets(xmlRoot: NodeSeq,
+                     datasetIds: Option[Set[String]],
+                     xmlElementTag: String)
+                    (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
+    val datasets = createAllDatasets(xmlRoot, xmlElementTag, datasetIds)
+    datasets.map { ds => (ds.id.toString, ds.data) }.toMap
   }
 
   /**
     * Creates in-memory sink version of the selected datasets.
     * This does only work with [[Dataset]] that implement the [[WritableResourceDataset]] trait.
- *
+    *
     * @param sinkIds The dataset ids (keys) for which sinks should be created, the values of the map
     *                are the resource ids of the resource manager that should be used for each dataset.
     */
   def createInMemorySink(xmlRoot: NodeSeq,
                          sinkIds: Map[String, String])
                         (implicit resourceLoader: ResourceManager): Map[String, SinkTrait] = {
-    val datasets = createAllDatasets(xmlRoot, "Sinks", Some(sinkIds.map(_._1).toSet))
-//    val datasetPlugins = datasets.map { ds =>
-//      val ds.plugin match {
-//        case plugin: DatasetPlugin with WritableResourceDatasetPlugin =>
-//          val writableResource = resourceLoader.get(sinkIds(ds.id.toString))
-//          plugin.replaceWritableResource(writableResource)
-//        case p =>
-//          val datasetId = ds.id.toString
-//          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
-//      }
-//    }
-    datasets.map { ds => (ds.id.toString, ds) }.toMap
+    val datasets = createDatasets(xmlRoot, Some(sinkIds.keySet), "Sinks")
+    //    val datasetPlugins = datasets.map { ds =>
+    //      val ds.plugin match {
+    //        case plugin: DatasetPlugin with WritableResourceDatasetPlugin =>
+    //          val writableResource = resourceLoader.get(sinkIds(ds.id.toString))
+    //          plugin.replaceWritableResource(writableResource)
+    //        case p =>
+    //          val datasetId = ds.id.toString
+    //          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
+    //      }
+    //    }
+    datasets
+  }
+
+  def createInMemoryDataset(xmlRoot: NodeSeq,
+                            datasetIds: Map[String, String])
+                        (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
+    val datasets = createAllDatasets(xmlRoot, "Sinks", Some(datasetIds.keySet))
+    //    val datasetPlugins = datasets.map { ds =>
+    //      val ds.plugin match {
+    //        case plugin: DatasetPlugin with WritableResourceDatasetPlugin =>
+    //          val writableResource = resourceLoader.get(sinkIds(ds.id.toString))
+    //          plugin.replaceWritableResource(writableResource)
+    //        case p =>
+    //          val datasetId = ds.id.toString
+    //          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
+    //      }
+    //    }
+    datasets.map { ds => (ds.id.toString, ds.data) }.toMap
   }
 
   /**
