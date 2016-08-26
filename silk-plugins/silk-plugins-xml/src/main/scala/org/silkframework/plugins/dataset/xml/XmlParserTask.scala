@@ -18,9 +18,7 @@ case class XmlParserTask(@Param("The Silk path expression of the input entity th
                          @Param("The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
                          basePath: String = "",
                          @Param("A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements")
-                         uriPattern: String = "",
-                         @Param("If each generated entity from the parse task should be linked to the parent entity, i.e. the input entity, this parameter should be set to the property URI that will relate back to the parent entity. This property still needs to be requested from the following task.")
-                         parentResourcePropertyURI: String = "") extends CustomTask {
+                         uriPattern: String = "") extends CustomTask {
   val parsedInputPath = {
     if (inputPath != "") {
       Some(Path.parse(inputPath))
