@@ -13,7 +13,7 @@ import scala.io.Codec
 """Retrieves all entities from an JSON file."""
 )
 case class JsonDataset(
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+  @Param("Json file.")
   file: Resource,
   @Param("The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
   basePath: String = "",

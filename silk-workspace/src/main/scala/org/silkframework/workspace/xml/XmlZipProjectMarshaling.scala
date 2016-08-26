@@ -1,12 +1,12 @@
 package org.silkframework.workspace.xml
 
-import java.io.{OutputStream, InputStream}
-import java.util.zip.{ZipEntry, ZipOutputStream, ZipInputStream}
+import java.io.{InputStream, OutputStream}
+import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.runtime.resource.{ResourceLoader, InMemoryResourceManager}
+import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceLoader, UrlResourceManager}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider, ProjectMarshallingTrait}
+import org.silkframework.workspace.{ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
 
 /**
   * Created on 6/27/16.
@@ -34,7 +34,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                        workspaceProvider: WorkspaceProvider): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
-    val resourceManager = InMemoryResourceManager()
+    val resourceManager = UrlResourceManager(InMemoryResourceManager())
     val xmlWorkspaceProvider = new XmlWorkspaceProvider(resourceManager)
     // Load project into temporary XML workspace provider
     exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider)
@@ -75,7 +75,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   private def createWorkspaceFromInputStream(projectName: Identifier,
                                              inputStream: InputStream): WorkspaceProvider = {
-    val resourceManager = InMemoryResourceManager()
+    val resourceManager = UrlResourceManager(InMemoryResourceManager())
     // Open ZIP
     val zip = new ZipInputStream(inputStream)
 

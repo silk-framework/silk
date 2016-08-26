@@ -12,13 +12,13 @@ case class UrlResourceManager(localResourceManager: ResourceManager) extends Res
     if(name.startsWith("http:") || name.startsWith("https:") || name.startsWith("ftp:")) {
       new ReadOnlyResource(UrlResource(new URL(name)))
     } else {
-      localResourceManager.get(name)
+      localResourceManager.get(name, mustExist = mustExist)
     }
   }
 
-  override def child(name: String): ResourceManager = localResourceManager.child(name)
+  override def child(name: String): ResourceManager = UrlResourceManager(localResourceManager.child(name))
 
-  override def parent: Option[ResourceManager] = localResourceManager.parent
+  override def parent: Option[ResourceManager] = for(parent <- localResourceManager.parent) yield UrlResourceManager(parent)
 
   override def delete(name: String): Unit = localResourceManager.delete(name)
 

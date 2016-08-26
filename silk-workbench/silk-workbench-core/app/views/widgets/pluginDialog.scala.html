@@ -92,7 +92,7 @@
     <td>@param.name</td>
     <td>
       <input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/>
-      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
+      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description - Expected type: @param.dataType.description"/>
     </td>
   </tr>
 }
@@ -111,7 +111,7 @@
           }
         }
       </datalist>
-      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description"/>
+      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description - Expected type: @param.dataType.description"/>
     </td>
   </tr>
 }
