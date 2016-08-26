@@ -20,7 +20,7 @@ case class XmlParserTask(@Param("The Silk path expression of the input entity th
                          @Param("A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements")
                          uriPattern: String = "") extends CustomTask {
   val parsedInputPath = {
-    if(inputPath != "") {
+    if (inputPath != "") {
       Some(Path.parse(inputPath))
     } else {
       None

@@ -13,11 +13,18 @@
     <script type="text/javascript">
       function submit(pluginId, name, parameters) {
         // Build dataset xml
-        var xml = '<CustomTask id=\'' + name + '\' type=\'' + pluginId + '\'>';
+        var ctDoc = document.implementation.createDocument("", "CustomTask", null);
+        var ct = ctDoc.documentElement
+        ct.setAttribute('id', name);
+        ct.setAttribute('type', pluginId);
         for(var i in parameters) {
-          xml += '  <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+          var param = ctDoc.createElement('Param');
+          param.setAttribute('name', parameters[i].name);
+          param.setAttribute('value', parameters[i].value);
+          ct.appendChild(param);
         }
-        xml += '</CustomTask>';
+        var oSerializer = new XMLSerializer();
+        var xml = oSerializer.serializeToString(ctDoc);
 
         // Delete the old task in case its name changed
         if(@taskPlugin.nonEmpty) {
