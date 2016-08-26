@@ -167,7 +167,7 @@ object ParameterType {
       if(str.trim.isEmpty)
         throw new ValidationException("Resource cannot be empty")
       else
-        resourceLoader.get(str, mustExist = false)
+        resourceLoader.get(str, mustExist = true)
     }
 
   }
@@ -180,7 +180,7 @@ object ParameterType {
       if(str.trim.isEmpty)
         throw new ValidationException("Resource cannot be empty")
       else
-        resourceLoader.get(str, mustExist = false)
+        resourceLoader.get(str, mustExist = true)
     }
 
   }
