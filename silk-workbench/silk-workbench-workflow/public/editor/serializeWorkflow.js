@@ -21,8 +21,8 @@ function serializeWorkflow() {
   var xml = xmlDoc.createElement("Workflow");
 
   // Serialize all operators and datasets
-  $('#editorContent').find('.operator').each(function() { serializeOperator(this, xml) });
-  $('#editorContent').find('.dataset').each(function() { serializeDataset(this, xml) });
+  $('#editorContent').find('.operator').each(function() { serializeWorkflowOperator(this, xml, "Operator") });
+  $('#editorContent').find('.dataset').each(function() { serializeWorkflowOperator(this, xml, "Dataset") });
 
   // Return xml string
   var xmlString = (new XMLSerializer()).serializeToString(xml);
@@ -30,7 +30,8 @@ function serializeWorkflow() {
   return xmlString;
 }
 
-function serializeOperator(op, xml) {
+// type can be 'Operator' or 'Dataset'
+function serializeWorkflowOperator(op, xml, type) {
   // Get position
   var position = $(op).position();
 
@@ -51,7 +52,7 @@ function serializeOperator(op, xml) {
       }).join(",");
 
   // Assemble xml
-  var operatorXml = xml.ownerDocument.createElement("Operator");
+  var operatorXml = xml.ownerDocument.createElement(type);
   operatorXml.setAttribute("posX", position.left);
   operatorXml.setAttribute("posY", position.top);
   var taskId = $(op).attr("taskid");
@@ -63,18 +64,4 @@ function serializeOperator(op, xml) {
   operatorXml.setAttribute("inputs", sources);
   operatorXml.setAttribute("outputs", targets);
   xml.appendChild(operatorXml);
-}
-
-function serializeDataset(ds, xml) {
-  var position = $(ds).position();
-  var datasetXml = xml.ownerDocument.createElement("Dataset");
-  datasetXml.setAttribute("posX", position.left);
-  datasetXml.setAttribute("posY", position.top);
-  datasetXml.setAttribute("id", ds.id);
-  var taskId = $(ds).attr("taskid");
-  if(taskId === undefined) {
-    taskId = ds.id
-  }
-  datasetXml.setAttribute("task", taskId);
-  xml.appendChild(datasetXml);
 }
