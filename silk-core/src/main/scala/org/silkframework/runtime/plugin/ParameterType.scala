@@ -22,6 +22,11 @@ sealed abstract class ParameterType[T : ClassTag] {
     */
   private val dataType = implicitly[ClassTag[T]].runtimeClass
 
+  /**
+    * User-readable description of this type to be displayed.
+    */
+  def description = ""
+
   def hasType(givenType: Type): Boolean = {
     givenType match {
       case pt: ParameterizedType => pt.getRawType.toString == dataType.toString
@@ -79,6 +84,8 @@ object ParameterType {
 
   object StringType extends ParameterType[String] {
 
+    override def description = "A character string."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): String = {
       str
     }
@@ -86,6 +93,8 @@ object ParameterType {
   }
 
   object CharType extends ParameterType[Char] {
+
+    override def description = "A single character."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Char = {
       if(str.length == 1) str(0)
@@ -96,6 +105,8 @@ object ParameterType {
 
   object IntType extends ParameterType[Int] {
 
+    override def description = "An integer number."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
       str.toInt
     }
@@ -104,6 +115,8 @@ object ParameterType {
 
   object DoubleType extends ParameterType[Double] {
 
+    override def description = "A floating-point number."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
       str.toDouble
     }
@@ -111,6 +124,8 @@ object ParameterType {
   }
 
   object BooleanType extends ParameterType[Boolean] {
+
+    override def description = "Either true or false."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Boolean = {
       str.toLowerCase match {
@@ -137,12 +152,16 @@ object ParameterType {
 
   object UriType extends ParameterType[Uri] {
 
+    override def description = "Either a full URI or a prefixed name."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
       Uri.parse(str, prefixes)
     }
   }
 
   object ResourceType extends ParameterType[Resource] {
+
+    override def description = "Either the name of a project resource or a full URI."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Resource = {
       if(str.trim.isEmpty)
@@ -155,6 +174,8 @@ object ParameterType {
 
   object WritableResourceType extends ParameterType[WritableResource] {
 
+    override def description = "Either the name of a project resource or a full URI."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): WritableResource = {
       if(str.trim.isEmpty)
         throw new ValidationException("Resource cannot be empty")
@@ -165,6 +186,8 @@ object ParameterType {
   }
 
   object TaskReferenceType extends ParameterType[TaskReference] {
+
+    override def description = "The name of a task in the same project."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TaskReference = {
       TaskReference(Identifier(str))
