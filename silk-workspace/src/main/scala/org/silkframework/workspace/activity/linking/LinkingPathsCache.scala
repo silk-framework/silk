@@ -39,7 +39,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
       val updatedSchemata =
         for((dataSelection, entitySchema) <- linkSpec.dataSelections zip currentEntityDescs) yield {
           val paths = retrievePaths(dataSelection)
-          entitySchema.copy(paths = entitySchema.paths ++ paths.distinct)
+          entitySchema.copy(paths = (entitySchema.paths ++ paths).distinct)
         }
       context.value.update(updatedSchemata)
     }
