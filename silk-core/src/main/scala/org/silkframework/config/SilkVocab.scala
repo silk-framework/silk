@@ -16,5 +16,9 @@ object SilkVocab {
 
   val RestTaskResult = taskSpecNamespace + "RestTaskResult"
 
-  val RestTaskPropertyContentType = RestTaskData + "/propertyContentType"
+  val RestTaskResultContentType = RestTaskResult + "/propertyContentType"
+
+  val RestTaskResultUrl = RestTaskResult + "/url"
+
+  val RestTaskResultResponseBody = RestTaskResult + "/responseBody"
 }

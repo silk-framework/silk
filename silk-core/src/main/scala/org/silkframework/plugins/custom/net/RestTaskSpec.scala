@@ -70,11 +70,11 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
     typeUri = Uri(SilkVocab.RestTaskResult),
     paths = IndexedSeq(
       // The URL the request was executed against.
-      Path(SilkVocab.RestTaskPropertyURL),
+      Path(SilkVocab.RestTaskResultUrl),
       // The content of the result.
-      Path(SilkVocab.RestTaskPropertyContent),
+      Path(SilkVocab.RestTaskResultResponseBody),
       // The content type of the result.
-      Path(SilkVocab.RestTaskPropertyContentType)
+      Path(SilkVocab.RestTaskResultContentType)
     )
   )
 
