@@ -20,7 +20,7 @@ case class SparqlDataset(
   entityList: String = null,
   @Param("The number of milliseconds to wait between subsequent query")
   pauseTime: Int = 0,
-  @Param("The number of retires if a query fails")
+  @Param("The number of retries if a query fails")
   retryCount: Int = 3,
   @Param("The number of milliseconds to wait until a failed query is retried.")
   retryPause: Int = 1000,
