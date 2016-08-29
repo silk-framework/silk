@@ -69,9 +69,14 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
           if (uriPattern.isEmpty)
             node.label + index
           else
-            uriRegex.replaceAllIn(uriPattern, m =>
-              URLEncoder.encode(evaluateXPath(node, m.group(1)).text, "UTF8")
-            )
+            uriRegex.replaceAllIn(uriPattern, m => {
+              val pattern = m.group(1)
+              if(pattern == "#") {
+                index.toString
+              } else {
+                URLEncoder.encode(evaluateXPath(node, pattern).text, "UTF8")
+              }
+            })
 
         val values = for (path <- entityDesc.paths) yield evaluateSilkPath(node, path)
         f(new Entity(uri, values, entityDesc))
