@@ -32,7 +32,7 @@ import org.silkframework.plugins.transformer.linguistic._
 import org.silkframework.plugins.transformer.normalize._
 import org.silkframework.plugins.transformer.numeric._
 import org.silkframework.plugins.transformer.replace.{MapTransformer, RegexReplaceTransformer, ReplaceTransformer}
-import org.silkframework.plugins.transformer.sequence.GetValueByIndexTransformer
+import org.silkframework.plugins.transformer.sequence.{ValuesToIndexesTransformer, GetValueByIndexTransformer}
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange}
@@ -120,6 +120,7 @@ class CorePlugins extends PluginModule {
         classOf[ValidateDateAfter] ::
         // Sequence
         classOf[GetValueByIndexTransformer] ::
+        classOf[ValuesToIndexesTransformer] ::
         Nil
 
   private def measures =
