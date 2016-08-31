@@ -6,7 +6,7 @@ import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{EntitySink, LinkSink}
+import org.silkframework.dataset.{TripleSink, EntitySink, LinkSink}
 import org.silkframework.entity.Link
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.util.StringUtils
@@ -21,7 +21,7 @@ class SparqlSink(params: SparqlParams,
                  endpoint: SparqlEndpoint,
                  formatterOpt: Option[RdfFormatter] = None,
                  /**Maximum number of statements per request. */
-                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink {
+                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink with TripleSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -148,5 +148,9 @@ class SparqlSink(params: SparqlParams,
     if(statements > 0) { // Else this would throw an exception, because of invalid syntax
       endpoint.update(query)
     }
+  }
+
+  override def writeTriple(subject: String, predicate: String, obj: String): Unit = {
+    writeStatement(subject, predicate, obj)
   }
 }
