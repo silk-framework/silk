@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset
 import java.net.{URI, URISyntaxException}
 
 import org.silkframework.config.Config
+import org.silkframework.dataset.rdf.{SparqlEndpoint, RdfDataset}
 import org.silkframework.dataset.{Dataset, DataSource, EntitySink, LinkSink}
 import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 
@@ -15,7 +16,7 @@ import scala.util.Try
   description =
       """Dataset for storing entities between workflow steps."""
 )
-case class InternalDataset(val graphUri: String = null) extends Dataset {
+case class InternalDataset(val graphUri: String = null) extends Dataset with RdfDataset {
   private val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
 
   override def source: DataSource = internalDatasetPluginImpl.source
@@ -25,6 +26,15 @@ case class InternalDataset(val graphUri: String = null) extends Dataset {
   override def entitySink: EntitySink = internalDatasetPluginImpl.entitySink
 
   override def clear() = internalDatasetPluginImpl.clear()
+
+  override def sparqlEndpoint: SparqlEndpoint = {
+    internalDatasetPluginImpl match {
+      case rdfDataset: RdfDataset =>
+        rdfDataset.sparqlEndpoint
+      case _ =>
+        throw new RuntimeException("Internal dataset is not ")
+    }
+  }
 }
 
 /**
