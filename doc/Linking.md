@@ -23,7 +23,7 @@ The editor is divided in two parts:
 The left pane contains the most frequent used \[\[Inputs|property paths\]\] for the given data sets and restrictions. It also contains a list of all available operators (\[\[transformation|transformations\]\], \[\[comparison|comparators\]\] and \[\[aggregation|aggregators\]\]) as draggable elements.
 The right part (editor pane) allows for drawing the flow chart by combining the elements chosen.
 
-\[\[image:silk\_editor.png\]\]
+![LinkageRule Editor](img/linkageRuleEditor.png)
 
 ### Editing
 
