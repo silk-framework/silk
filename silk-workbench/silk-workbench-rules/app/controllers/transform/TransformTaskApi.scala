@@ -47,17 +47,17 @@ object TransformTaskApi extends Controller {
   }
   }
 
-  def deleteTransformTask(project: String, task: String, removeDependentTasks: Boolean) = Action {
-    val project = User().workspace.project(project)
+  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean) = Action {
+    val project = User().workspace.project(projectName)
     if(removeDependentTasks) {
-      for(dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == task)) {
+      for(dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
         project.removeTask[LinkSpec](dependentTransform.id)
       }
-      for(dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == task))) {
+      for(dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
         project.removeTask[LinkSpec](dependentLinking.id)
       }
     }
-    project.removeTask[TransformSpec](task)
+    project.removeTask[TransformSpec](taskName)
     Ok
   }
 
