@@ -18,7 +18,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
-    val xml = loadXmlNodes().head
+    val xml = loadXmlNodes().head.node
     for (path <- XmlParser.collectPaths(xml).toIndexedSeq) yield {
       Path(path.tail.toList)
     }
@@ -34,13 +34,30 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     throw new UnsupportedOperationException("Retrieving single entities from XML is currently not supported")
   }
 
-  private def loadXmlNodes() = {
+  private case class XmlTraverser(parentOpt: Option[XmlTraverser], node: Node) {
+    def parents: List[Node] = {
+      parentOpt match {
+        case Some(traverser) =>
+          traverser.node :: traverser.parents
+        case None =>
+          Nil
+      }
+    }
+  }
+
+  /**
+    * Returns the XML nodes found at the base path and
+    *
+    * @return
+    */
+  private def loadXmlNodes(): Seq[XmlTraverser] = {
     // Load XML
     val xml = XML.load(file.load)
+    val rootTraverser = XmlTraverser(None, xml)
     // Resolve the base path
     if (basePath.isEmpty) {
       // If the base path is empty, we read all direct children of the root element
-      xml \ "_"
+      (xml \ "_").map(n => XmlTraverser(Some(rootTraverser), n))
     } else {
       // As it may not be clear whether the base path must include the root element, we accept both
       val path =
@@ -49,48 +66,78 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
         else
           basePath
       // Move to base path
-      evaluateXPath(xml, path)
+      evaluateXPath(rootTraverser, path)
     }
   }
 
-  private def evaluateXPath(node: Node, path: String): NodeSeq = {
-    var currentNode: NodeSeq = node
-    for (label <- path.stripPrefix("/").split('/') if !label.isEmpty) {
-      currentNode = currentNode \ label
-    }
-    currentNode
+  private def evaluateXPath(traverser: XmlTraverser, path: String): Seq[XmlTraverser] = {
+    val pathElements = path.stripPrefix("/").split('/').filterNot(_.isEmpty).toList
+    evaluateXPathRec(traverser, pathElements)
   }
 
-  private class Entities(xml: NodeSeq, entityDesc: EntitySchema) extends Traversable[Entity] {
+  private def evaluateXPathRec(traverser: XmlTraverser, pathElements: List[String]): Seq[XmlTraverser] = {
+    pathElements match {
+      case Nil =>
+        Seq(traverser)
+      case label :: pathTail =>
+        val nextNodes = traverser.node \ label
+        nextNodes.flatMap(n => evaluateXPathRec(XmlTraverser(Some(traverser), n), pathTail))
+    }
+  }
+
+  private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
       // Enumerate entities
-      for ((node, index) <- xml.zipWithIndex) {
+      for ((traverser, index) <- xml.zipWithIndex) {
         val uri =
-          if (uriPattern.isEmpty)
-            node.label + index
-          else
-            uriRegex.replaceAllIn(uriPattern, m =>
-              URLEncoder.encode(evaluateXPath(node, m.group(1)).text, "UTF8")
-            )
+          if (uriPattern.isEmpty) {
+            traverser.node.label + index
+          } else {
+            uriRegex.replaceAllIn(uriPattern, m => {
+              val pattern = m.group(1)
+              if (pattern == "#") {
+                index.toString
+              } else {
+                val traversers = evaluateXPath(traverser, pattern)
+                val nodeSeq = NodeSeq.fromSeq(traversers.map(_.node))
+                URLEncoder.encode(nodeSeq.text, "UTF8")
+              }
+            })
+          }
 
-        val values = for (path <- entityDesc.paths) yield evaluateSilkPath(node, path)
+        val values = for (path <- entityDesc.paths) yield evaluateSilkPath(traverser.node, path, traverser.parents)
         f(new Entity(uri, values, entityDesc))
       }
     }
 
-    private def evaluateSilkPath(node: NodeSeq, path: Path): Seq[String] = {
-      var xml = node
-      for (op <- path.operators) {
-        xml = evaluateOperator(xml, op)
-      }
+    private def evaluateSilkPath(node: Node, path: Path, parentNodes: List[Node]): Seq[String] = {
+      val xml = evaluateOperators(node, path.operators, parentNodes)
       xml.map(_.text)
     }
 
-    private def evaluateOperator(node: NodeSeq, op: PathOperator): NodeSeq = op match {
-      case ForwardOperator(p) => node \ p.uri
-      case p @ PropertyFilter(prop, cmp, value) =>
-        node.filter(n => p.evaluate("\"" + (n \ prop.uri).text + "\""))
-      case _ => throw new UnsupportedOperationException("Unsupported path operator: " + op.getClass.getSimpleName)
+    private def evaluateOperators(node: Node, ops: List[PathOperator], parentNodes: List[Node]): NodeSeq = {
+      ops match {
+        case Nil =>
+          node
+        case op :: opsTail =>
+          op match {
+            case ForwardOperator(p) =>
+              val forwardNodes = node \ p.uri
+              forwardNodes flatMap { forwardNode =>
+                evaluateOperators(forwardNode, opsTail, node :: parentNodes)
+              }
+            case p @ PropertyFilter(prop, cmp, value) =>
+              node.filter(n => p.evaluate("\"" + (n \ prop.uri).text + "\""))
+            case BackwardOperator(p) =>
+              parentNodes match {
+                case parent :: parentTail =>
+                  evaluateOperators(parent, opsTail, parentTail)
+                case Nil =>
+                  throw new RuntimeException("Cannot go backward from root XML element! Backward property: " + p.uri)
+              }
+            case _ => throw new UnsupportedOperationException("Unsupported path operator: " + op.getClass.getSimpleName)
+          }
+      }
     }
   }
 
