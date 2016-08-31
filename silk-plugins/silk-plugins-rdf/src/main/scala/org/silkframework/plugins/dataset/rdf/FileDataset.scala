@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.DataSource
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.{TripleSink, TripleSinkDataset, DataSource}
+import org.silkframework.dataset.rdf.{SparqlParams, RdfDataset}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
@@ -23,7 +23,7 @@ case class FileDataset(
   @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
   format: String,
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
-  graph: String = "") extends RdfDataset {
+  graph: String = "") extends RdfDataset with TripleSinkDataset {
 
   /** The RDF format of the given resource. */
   private val lang = {
@@ -109,4 +109,6 @@ case class FileDataset(
       }
     }
   }
+
+  override def tripleSink: TripleSink = new FormattedEntitySink(file, formatter)
 }

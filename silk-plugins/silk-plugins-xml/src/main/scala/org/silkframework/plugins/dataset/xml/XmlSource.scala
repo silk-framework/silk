@@ -127,7 +127,12 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
                 evaluateOperators(forwardNode, opsTail, node :: parentNodes)
               }
             case p @ PropertyFilter(prop, cmp, value) =>
-              node.filter(n => p.evaluate("\"" + (n \ prop.uri).text + "\""))
+              node.filter(n => p.evaluate("\"" + (n \ prop.uri).text + "\"")).headOption match {
+                case Some(n) =>
+                  evaluateOperators(n, opsTail, parentNodes)
+                case None =>
+                  NodeSeq.Empty
+              }
             case BackwardOperator(p) =>
               parentNodes match {
                 case parent :: parentTail =>

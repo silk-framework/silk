@@ -2,13 +2,13 @@ package org.silkframework.plugins.dataset.rdf.formatters
 
 import java.io._
 
-import org.silkframework.dataset.EntitySink
+import org.silkframework.dataset.{TripleSink, EntitySink}
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 
 /**
  * Created by andreas on 12/11/15.
  */
-class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter) extends EntitySink {
+class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter) extends EntitySink with TripleSink {
 
   private var properties = Seq[String]()
 
@@ -34,9 +34,14 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-    for((property, valueSet) <- properties zip values; value <- valueSet) {
-      writer.write(formatter.formatLiteralStatement(subject, property, value))
+    for((property, valueSet) <- properties zip values;
+        value <- valueSet) {
+      writeStatement(subject, property, value)
     }
+  }
+
+  private def writeStatement(subject: String, predicate: String, value: String): Unit = {
+    writer.write(formatter.formatLiteralStatement(subject, predicate, value))
   }
 
   override def close() {
@@ -50,5 +55,13 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
       }
       writer = null
     }
+  }
+
+  override def init(): Unit = {
+    open(properties = Seq())
+  }
+
+  override def writeTriple(subject: String, predicate: String, value: String): Unit = {
+    writeStatement(subject, predicate, value)
   }
 }

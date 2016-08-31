@@ -8,6 +8,8 @@ object SilkVocab {
 
   val taskSpecNamespace = namespace + "taskSpec/"
 
+  // REST Task vocabulary
+
   val RestTaskData = taskSpecNamespace + "RestTaskData"
 
   val RestTaskPropertyURL = RestTaskData + "/propertyURL"
@@ -21,4 +23,12 @@ object SilkVocab {
   val RestTaskResultUrl = RestTaskResult + "/url"
 
   val RestTaskResultResponseBody = RestTaskResult + "/responseBody"
+
+  // Triple input/output schema vocabulary
+
+  val TripleSchemaType = namespace + "/TripleSchemaType"
+
+  val tripleSubject = namespace + "tripleSubject"
+  val triplePredicate = namespace + "triplePredicate"
+  val tripleObject = namespace + "tripleObject"
 }

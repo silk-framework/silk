@@ -54,7 +54,8 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   }
 
   "XmlDatasetTest" should "support property filters" in {
-    entities().head.evaluate(personValue) should equal(Seq("V2"))
+    val result = entities().head.evaluate(personValue)
+    result should equal(Seq("V2"))
   }
 
   private def entities(basePath: String = "") = {
