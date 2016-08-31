@@ -60,7 +60,7 @@ sealed trait TransformRule {
  */
 case class DirectMapping(name: Identifier = "transform", sourcePath: Path = Path(Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
 
-  override val operator = PathInput(path = sourcePath)
+  override val operator = PathInput("sourcePath", sourcePath)
 
   override val target = Some(targetProperty)
 }
@@ -77,9 +77,9 @@ case class UriMapping(name: Identifier = "uri", pattern: String = "http://exampl
     val inputs =
       for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
         if (i % 2 == 0)
-          TransformInput(transformer = ConstantTransformer(str))
+          TransformInput("constant" + i, ConstantTransformer(str))
         else
-          PathInput(path = Path.parse(str))
+          PathInput("path" + i, Path.parse(str))
       }
     TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
   }
@@ -99,9 +99,9 @@ case class ObjectMapping(name: Identifier = "object", pattern: String = "http://
     val inputs =
       for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
         if (i % 2 == 0)
-          TransformInput(transformer = ConstantTransformer(str))
+          TransformInput("constant" + i, ConstantTransformer(str))
         else
-          PathInput(path = Path.parse(str))
+          PathInput("path" + i , Path.parse(str))
       }
     TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
   }
@@ -117,7 +117,7 @@ case class ObjectMapping(name: Identifier = "object", pattern: String = "http://
  */
 case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing") extends TransformRule {
 
-  override val operator = TransformInput(transformer = ConstantUriTransformer(typeUri))
+  override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
   override val target = Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
 }
