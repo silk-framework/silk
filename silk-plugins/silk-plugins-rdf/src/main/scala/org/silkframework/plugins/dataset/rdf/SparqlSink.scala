@@ -75,13 +75,6 @@ class SparqlSink(params: SparqlParams,
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-    if(body.isEmpty) {
-      beginSparul(true)
-    } else if (statements + 1 > statementsPerRequest) {
-      endSparql()
-      beginSparul(false)
-    }
-
     for((property, valueSet) <- properties zip values; value <- valueSet) {
       writeStatement(subject, property, value)
     }
@@ -93,7 +86,14 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  private def writeStatement(subject: String, property: String, value: String): Unit = {
+  def writeStatement(subject: String, property: String, value: String): Unit = {
+    if(body.isEmpty) {
+      beginSparul(true)
+    } else if (statements + 1 > statementsPerRequest) {
+      endSparql()
+      beginSparul(false)
+    }
+
     val stmtString: String = buildStatementString(subject, property, value)
     body.append(stmtString).append("\n")
     statements += 1
