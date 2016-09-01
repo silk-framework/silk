@@ -247,7 +247,7 @@ object Workflow {
           task = task,
           outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
           errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
-          position = ((op \ "@posX").text.toInt, (op \ "@posY").text.toInt),
+          position = ( Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt ),
           nodeId = {
             val node = ((op \ "@id"))
             if (node.isEmpty) {
@@ -268,7 +268,7 @@ object Workflow {
           inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
           task = task,
           outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
-          position = ((ds \ "@posX").text.toInt, (ds \ "@posY").text.toInt),
+          position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
           nodeId = {
             val node = ((ds \ "@id"))
             if (node.isEmpty) {
