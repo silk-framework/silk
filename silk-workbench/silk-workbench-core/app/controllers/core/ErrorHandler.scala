@@ -13,7 +13,7 @@ import scala.concurrent.Future
 object ErrorHandler extends HttpErrorHandler {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    Future { NotFound(JsonError(message)) }
+    Future { Status(statusCode)(JsonError(message)) }
   }
 
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
