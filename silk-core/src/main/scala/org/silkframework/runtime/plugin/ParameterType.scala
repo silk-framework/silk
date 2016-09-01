@@ -8,6 +8,7 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, Resou
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
+import scala.language.existentials
 import scala.reflect.ClassTag
 
 /**
@@ -66,9 +67,9 @@ sealed abstract class ParameterType[T : ClassTag] {
 object ParameterType {
 
   /**
-    * All available parameter types.
+    * All available static parameter types.
     */
-  val all: Seq[ParameterType[_]] = {
+  private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType, TaskReferenceType)
   }
 
@@ -78,8 +79,13 @@ object ParameterType {
     * @throws InvalidPluginException If no parameter type is available for the given class.
     */
   def forType(dataType: Type): ParameterType[_] = {
-    all.find(_.hasType(dataType))
-       .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
+    dataType match {
+      case enumClass: Class[_] if enumClass.isEnum  =>
+        EnumerationType(enumClass)
+      case _ =>
+        allStaticTypes.find(_.hasType(dataType))
+          .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
+    }
   }
 
   object StringType extends ParameterType[String] {
@@ -197,6 +203,21 @@ object ParameterType {
       value.id
     }
 
+  }
+
+  case class EnumerationType(enumType: Class[_]) extends ParameterType[Enum[_]] {
+    require(enumType.isEnum)
+
+    private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
+
+    private val valueList = enumConstants.map(_.name).mkString(", ")
+
+    override def description = "One of the following values: " + valueList
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager) = {
+      enumConstants.find(_.name == str.trim)
+        .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+    }
   }
 
 }

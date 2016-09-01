@@ -28,6 +28,7 @@ A Plugin may define a number of parameters, such as `param1` and `param2` in the
 -   `Double`: A floating point number.
 -   `Boolean`: A boolean typed value.
 -   `Resource`: A file resource.
+-   `Enumeration`: A Java Enumeration.
 
 **Plugin Annotation**
 
