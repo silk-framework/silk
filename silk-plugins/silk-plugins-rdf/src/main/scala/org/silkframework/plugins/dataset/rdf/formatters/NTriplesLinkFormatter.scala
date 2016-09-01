@@ -14,12 +14,8 @@
 
 package org.silkframework.plugins.dataset.rdf.formatters
 
-import java.net.URI
-
 import org.silkframework.entity.Link
-import org.silkframework.util.StringUtils.DoubleLiteral
-
-import scala.util.Try
+import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
 
@@ -28,17 +24,6 @@ case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
   }
 
   override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
-    value match {
-      // Check if value is an URI
-      case v if value.startsWith("http") && Try(URI.create(value)).isSuccess =>
-        "<" + subject + "> <" + predicate + "> <" + v + "> .\n"
-      // Check if value is a number
-      case DoubleLiteral(d) =>
-        "<" + subject + "> <" + predicate + "> \"" + d + "\"^^<http://www.w3.org/2001/XMLSchema#double> .\n"
-      // Write string values
-      case _ =>
-        val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-        "<" + subject + "> <" + predicate + "> \"" + escapedValue + "\" .\n"
-    }
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value) + "\n"
   }
 }
