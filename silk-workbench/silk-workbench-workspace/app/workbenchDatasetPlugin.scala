@@ -3,6 +3,7 @@ import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
+import controllers.workspace.routes.Assets
 
 /**
  * The data plugin adds data sources and outputs.
@@ -39,7 +40,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     override def name: String = "Dataset"
 
     /** Path to the task icon */
-    override def icon: String = "img/server.png"
+    override def icon: String = Assets.at("img/server.png").url
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =

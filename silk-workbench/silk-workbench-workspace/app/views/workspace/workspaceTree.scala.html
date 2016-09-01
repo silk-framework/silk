@@ -60,7 +60,7 @@
 }
 
 @task(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_ <: TaskSpec]) = {
-  <li id="task_@{project.name}_@task.id" data-jstree='{"icon":"@Assets.at(taskActions.icon)"}'>
+  <li id="task_@{project.name}_@task.id" data-jstree='{"icon":"@taskActions.icon"}'>
     @task.id
     @for(path <- taskActions.propertiesDialog(project.name, task.id)) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")

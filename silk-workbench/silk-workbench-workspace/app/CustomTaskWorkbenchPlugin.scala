@@ -4,6 +4,7 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.config.TaskSpec
 import plugins.WorkbenchPlugin
 import plugins.WorkbenchPlugin.TaskActions
+import controllers.workspace.routes.Assets
 
 /**
  * Adds custom tasks
@@ -20,7 +21,7 @@ case class CustomTaskWorkbenchPlugin() extends WorkbenchPlugin {
     override def name: String = "Other"
 
     /** Path to the task icon */
-    override def icon: String = "img/task.png"
+    override def icon: String = Assets.at("img/task.png").url
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =

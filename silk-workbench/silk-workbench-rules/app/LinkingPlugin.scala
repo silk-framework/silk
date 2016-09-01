@@ -1,6 +1,7 @@
 import org.silkframework.config.LinkSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
+import controllers.rules.routes.Assets
 
 /**
  * The linking Workbench plugin.
@@ -36,7 +37,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     override def name: String = "Linking Task"
 
     /** Path to the task icon */
-    override def icon: String = "img/arrow-join.png"
+    override def icon: String = Assets.at("img/arrow-join.png").url
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =

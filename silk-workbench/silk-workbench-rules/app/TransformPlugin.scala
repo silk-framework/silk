@@ -1,6 +1,7 @@
 import org.silkframework.config.TransformSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
+import controllers.rules.routes.Assets
 
 case class TransformPlugin() extends WorkbenchPlugin {
 
@@ -28,7 +29,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
     override def name: String = "Transform Task"
 
     /** Path to the task icon */
-    override def icon: String = "img/arrow-skip.png"
+    override def icon: String = Assets.at("img/arrow-skip.png").url
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =

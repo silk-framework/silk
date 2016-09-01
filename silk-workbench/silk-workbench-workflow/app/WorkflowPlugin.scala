@@ -1,6 +1,7 @@
 import org.silkframework.workspace.activity.workflow.Workflow
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
+import controllers.workflow.routes.Assets
 
 /**
  * The workflow Workbench plugin.
@@ -30,7 +31,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     override def name: String = "Workflow"
 
     /** Path to the task icon */
-    override def icon: String = "img/arrow-switch.png"
+    override def icon: String = Assets.at("img/arrow-switch.png").url
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
